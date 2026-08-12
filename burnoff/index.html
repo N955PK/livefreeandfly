@@ -51,9 +51,6 @@ footer a{color:var(--dim)}
 
 @media(min-width:1100px){
   main{max-width:1280px}
-  #cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
-  #cards .apt{margin-bottom:0}
-  #cards details{grid-column:1/-1}
 }
 </style>
 </head>
@@ -214,13 +211,12 @@ function chart(days,tick){
       const v=d[key];
       if(v!=null)
         g+=`<circle cx="${xv(v)}" cy="${yi(i)}" r="3.4" fill="${dash?'none':color}" stroke="${color}" stroke-width="1.7"/>`;
-      else if(heldKey&&d[heldKey])
-        g+=`<path d="M${W-R-2} ${yi(i)-4} l6 4 l-6 4 z" fill="${color}" opacity=".85"/>`;
+
     });
   };
-  line('obsClear','#e9edf1',false,'obsHeld');
+  line('obsClear','#e9edf1',false,null);
   line('obsOnset','#e9edf1',true,null);
-  line('modClear','#A31F34',false,'modHeld');
+  line('modClear','#A31F34',false,null);
   line('modOnset','#A31F34',true,null);
   if(tick!=null){
     const i=days.findIndex(d=>tick<1440?d.isToday:d.isTmrw);
@@ -233,7 +229,6 @@ async function run(){
   const now=new Date();
   const midnight=new Date(now); midnight.setHours(0,0,0,0);
   const nowMin=(now-midnight)/60000;
-  const startISO=new Date(now-14*864e5).toISOString();
   const gs=await Promise.all(['KSFO','KSMF','KRNO'].map(id=>
     j(`https://api.weather.gov/stations/${id}/observations?start=${new Date(now-13*3600e3).toISOString()}&limit=60`)));
   let g1=null,g2=null,tr1=0;
@@ -261,10 +256,15 @@ async function run(){
   const omArr=Array.isArray(om)?om:om?[om]:[];
   const pvArr=Array.isArray(prev)?prev:prev?[prev]:[];
   const results=await Promise.all(FIELDS.map(async(f,i)=>{
-    const [cur,hist]=await Promise.all([
-      j(`https://api.weather.gov/stations/${f.id}/observations/latest`),
-      j(`https://api.weather.gov/stations/${f.id}/observations?start=${startISO}&limit=500`)
-    ]);
+    const chunks=[];
+    for(let k=0;k<4;k++){
+      const c0=new Date(now.getTime()-14*864e5+k*3.5*864e5).toISOString();
+      const c1=new Date(now.getTime()-14*864e5+(k+1)*3.5*864e5).toISOString();
+      chunks.push(j(`https://api.weather.gov/stations/${f.id}/observations?start=${c0}&end=${c1}&limit=500`));
+    }
+    const [cur,...hs]=await Promise.all([
+      j(`https://api.weather.gov/stations/${f.id}/observations/latest`),...chunks]);
+    const hist={features:[].concat(...hs.filter(x=>x&&x.features).map(x=>x.features))};
     const h=omArr[i]&&omArr[i].hourly;
     const series=[];
     if(h&&h.time)for(let k=0;k<h.time.length;k++)
@@ -360,7 +360,7 @@ async function run(){
       <div class="why" style="margin-top:6px">
         <span style="color:#e9edf1">●— observed burn-off</span> · <span style="color:#e9edf1">○-- observed return</span> ·
         <span style="color:#A31F34">●— model burn-off</span> · <span style="color:#A31F34">○-- model return</span> ·
-        ▶ right edge: never cleared · ${r.pv?'model history: HRRR day-ahead runs · 14 days':'model history unavailable — showing today/tmrw only'} · ◬ blended call
+        ${r.pv?'model history: HRRR day-ahead runs · 14 days':'model history unavailable — showing today/tmrw only'} · ◬ blended call
       </div>`;
     $('cards').appendChild(el);
   }
