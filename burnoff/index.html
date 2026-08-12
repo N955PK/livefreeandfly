@@ -101,7 +101,7 @@ function sunriseOf(lat,lon,d){
     (Math.sin(-0.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec)))))/rad;
   return 720-4*lon-eot-d.getTimezoneOffset()-ha*4;
 }
-function ceilOf(layers){
+function ceilOf(layers,raw){
   let c=null;
   for(const L of (layers||[])){
     const amt=String(L.amount||'').toUpperCase();
@@ -109,6 +109,13 @@ function ceilOf(layers){
     let b=L.base&&L.base.value; if(b==null)continue;
     const ft=/m$/.test(String(L.base.unitCode||''))?b*3.28084:b;
     if(c==null||ft<c)c=ft;
+  }
+  if(c==null&&raw){   // AWOS feeds often ship empty cloudLayers; the raw METAR is authoritative
+    const mm=String(raw).toUpperCase().match(/\b(?:BKN|OVC|VV)(\d{3})\b/g)||[];
+    for(const t of mm){
+      const ft=parseInt(t.slice(-3),10)*100;
+      if(c==null||ft<c)c=ft;
+    }
   }
   return c;
 }
@@ -149,7 +156,7 @@ function obsPerDay(obs,lat,lon){
   const byDay={};
   for(const f of obs){
     const p=f.properties||f; const t=new Date(p.timestamp);
-    const c=ceilOf(p.cloudLayers);
+    const c=ceilOf(p.cloudLayers,p.rawMessage);
     (byDay[t.toDateString()]=byDay[t.toDateString()]||[]).push({m:t.getHours()*60+t.getMinutes(),low:c!=null&&c<3000,t});
   }
   const out=[];
@@ -278,7 +285,7 @@ async function run(){
     const per=hist&&hist.features?obsPerDay(hist.features,f.lat,f.lon):[];
     let ceil=null,cat='vna';
     if(cur&&cur.properties){
-      ceil=ceilOf(cur.properties.cloudLayers);
+      ceil=ceilOf(cur.properties.cloudLayers,cur.properties.rawMessage);
       cat=ceil==null||ceil>3000?'vfr':ceil>=1000?'mvfr':'ifr';
     }
     const nowM=series.find(x=>x.m>=nowMin);
