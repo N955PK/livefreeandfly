@@ -92,6 +92,9 @@ header .brand,#status{pointer-events:auto}
 .icon-btn{width:32px;height:32px;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center;color:var(--dim)}
 .icon-btn svg{width:15px;height:15px;fill:currentColor}
 .icon-btn[aria-pressed="true"]{color:#0a0e13;background:var(--ink);border-color:var(--ink)}
+header .brand{display:flex;align-items:center;gap:9px}
+header .brand a{display:flex;pointer-events:auto}
+header .brand img{height:30px;width:auto;display:block}
 .tgls{display:flex;gap:9px;align-items:center;flex:1}
 .tglspacer{flex:1}
 @media (max-width:640px){
@@ -247,7 +250,7 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
   <div id="veil">
     <div class="fogblob a"></div><div class="fogblob b"></div>
     <div class="inner">
-      <div class="brand"><span id="brandA">fog</span><span class="slash">/</span>map</div>
+      <div class="brand"><a href="/" aria-label="live free and fly — home"><img src="/assets/logo-512.v4.png" alt=""></a><span id="brandA">fog</span><span class="slash">/</span>map</div>
       <div id="loadMsg">contacting GOES-West…</div>
       <div id="bar"><i></i></div>
       <div id="errBox"><p id="errTxt"></p><button id="retryBtn">RETRY</button></div>
