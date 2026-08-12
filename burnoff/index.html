@@ -251,10 +251,10 @@ function chart(days,tick){
 
     });
   };
-  line('obsClear','#e9edf1',false,null);
-  line('obsOnset','#e9edf1',true,null);
-  line('modClear','#A31F34',false,null);
-  line('modOnset','#A31F34',true,null);
+  line('obsClear','#e9edf1',true,null);
+  line('obsOnset','#e9edf1',false,null);
+  line('modClear','#A31F34',true,null);
+  line('modOnset','#A31F34',false,null);
   if(tick!=null){
     const i=days.findIndex(d=>tick<1440?d.isToday:d.isTmrw);
     if(i>=0)g+=`<circle cx="${xv(tick%1440)}" cy="${yi(i)}" r="5.6" fill="none" stroke="#A31F34" stroke-width="1.8"/>`+
@@ -343,6 +343,33 @@ async function run(){
     const clears=recent.filter(d=>d.clear!=null).map(d=>d.clear);
     const onsets=recent.filter(d=>d.onset!=null).map(d=>d.onset);
     const held=recent.filter(d=>d.held).length;
+    // model hindcast per past day: day-ahead runs where available, model past-record otherwise
+    const errC=[],errO=[]; let usedD1=0,usedD0=0;
+    const days=pastDays.map(d=>{
+      let mc=null,mo=null,mh=false;
+      const srd=sunriseOf(r.f.lat,r.f.lon,d.d);
+      if(r.pv&&r.pv.time){
+        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.d.getTime(),srd);
+        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD1++;}
+      }
+      if(mc==null&&mo==null&&!mh&&r.pa&&r.pa.time){
+        const dm=modelDayScan(r.pa.time,r.pa.cloud_cover_low||[],d.d.getTime(),srd);
+        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD0++;}
+      }
+      if(mc!=null&&d.clear!=null)errC.push(mc-d.clear);
+      if(mo!=null&&d.onset!=null)errO.push(mo-d.onset);
+      return {label:d.day,obsClear:d.clear,obsOnset:d.onset,obsHeld:d.held,modClear:mc,modOnset:mo,modHeld:mh};
+    });
+    const biasC=errC.length>=4?Math.max(-90,Math.min(90,med(errC))):0;
+    const biasO=errO.length>=4?Math.max(-90,Math.min(90,med(errO))):0;
+    const tScan=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),midnight.getTime(),sr);
+    days.push({label:'today',isToday:true,
+      obsClear:todayObs?todayObs.clear:null,obsOnset:todayObs?todayObs.onset:null,obsHeld:false,
+      modClear:tScan.clear,modOnset:tScan.onset,modHeld:tScan.held});
+    const tm=new Date(midnight.getTime()+864e5);
+    const tScan2=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),tm.getTime(),sunriseOf(r.f.lat,r.f.lon,tm));
+    days.push({label:'tmrw',isTmrw:true,obsClear:null,obsOnset:null,obsHeld:false,
+      modClear:tScan2.clear,modOnset:tScan2.onset,modHeld:tScan2.held});
     let head,sub='',mCol,hCol,gCol,tick=null;
     if(r.deckNow){
       const model=r.findClear(Math.max(nowMin,sr-30));
@@ -377,33 +404,6 @@ async function run(){
         head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
       }
     }
-    // model hindcast per past day: day-ahead runs where available, model past-record otherwise
-    const errC=[],errO=[]; let usedD1=0,usedD0=0;
-    const days=pastDays.map(d=>{
-      let mc=null,mo=null,mh=false;
-      const srd=sunriseOf(r.f.lat,r.f.lon,d.d);
-      if(r.pv&&r.pv.time){
-        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.d.getTime(),srd);
-        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD1++;}
-      }
-      if(mc==null&&mo==null&&!mh&&r.pa&&r.pa.time){
-        const dm=modelDayScan(r.pa.time,r.pa.cloud_cover_low||[],d.d.getTime(),srd);
-        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD0++;}
-      }
-      if(mc!=null&&d.clear!=null)errC.push(mc-d.clear);
-      if(mo!=null&&d.onset!=null)errO.push(mo-d.onset);
-      return {label:d.day,obsClear:d.clear,obsOnset:d.onset,obsHeld:d.held,modClear:mc,modOnset:mo,modHeld:mh};
-    });
-    const biasC=errC.length>=4?Math.max(-90,Math.min(90,med(errC))):0;
-    const biasO=errO.length>=4?Math.max(-90,Math.min(90,med(errO))):0;
-    const tScan=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),midnight.getTime(),sr);
-    days.push({label:'today',isToday:true,
-      obsClear:todayObs?todayObs.clear:null,obsOnset:todayObs?todayObs.onset:null,obsHeld:false,
-      modClear:tScan.clear,modOnset:tScan.onset,modHeld:tScan.held});
-    const tm=new Date(midnight.getTime()+864e5);
-    const tScan2=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),tm.getTime(),sunriseOf(r.f.lat,r.f.lon,tm));
-    days.push({label:'tmrw',isTmrw:true,obsClear:null,obsOnset:null,obsHeld:false,
-      modClear:tScan2.clear,modOnset:tScan2.onset,modHeld:tScan2.held});
     const el=document.createElement('div'); el.className='apt';
     el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
       <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'ceiling '+Math.round(r.ceil/100)*100+"'":'no low ceiling'}</span></div>
@@ -415,8 +415,8 @@ async function run(){
       </div>
       ${chart(days,tick)}
       <div class="why" style="margin-top:6px">
-        ▍ day with an observed event · <span style="color:#e9edf1">●— observed burn-off</span> · <span style="color:#e9edf1">○-- observed return</span> ·
-        <span style="color:#A31F34">●— model burn-off</span> · <span style="color:#A31F34">○-- model return</span> · ◬ blended call
+        ▍ day with an observed event · <span style="color:#e9edf1">○-- observed burn-off</span> · <span style="color:#e9edf1">●— observed return</span> ·
+        <span style="color:#A31F34">○-- model burn-off</span> · <span style="color:#A31F34">●— model return</span> · ◬ blended call
       </div>
       <div class="why" style="margin-top:2px">
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
