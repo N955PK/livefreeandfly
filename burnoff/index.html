@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e13">
+<title>burn/off — live free and fly</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.v4.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.v4.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.v4.png">
+<style>
+:root{--bg:#0a0e13;--ink:#e9edf1;--dim:#8B959E;--line:rgba(233,237,241,.14);--accent:#A31F34;--glass:rgba(16,22,29,.6);
+--vfr:#39d07f;--mvfr:#3aa8ff;--ifr:#ff4d4d;
+--mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100svh;display:flex;flex-direction:column;align-items:center}
+main{width:100%;max-width:680px;padding:0 20px calc(40px + env(safe-area-inset-bottom))}
+header{padding:calc(30px + env(safe-area-inset-top)) 0 18px;display:flex;align-items:center;gap:16px}
+h1{font-family:var(--mono);font-weight:600;font-size:20px;letter-spacing:.05em}
+h1 .slash{color:var(--accent);font-weight:700}
+#grad{border:1px solid var(--line);border-radius:16px;background:var(--glass);padding:16px 18px;margin-bottom:14px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#grad h2{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--dim);margin-bottom:12px}
+.gg{display:flex;gap:22px;flex-wrap:wrap}
+.g{min-width:150px}
+.g .v{font-family:var(--mono);font-size:22px;font-weight:600}
+.g .v small{font-size:11px;color:var(--dim);font-weight:400;margin-left:6px}
+.g .l{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;margin-bottom:3px}
+#gread{margin-top:12px;font-size:13px;color:var(--dim);line-height:1.55}
+#gread b{color:var(--ink)}
+.apt{border:1px solid var(--line);border-radius:16px;background:var(--glass);padding:16px 18px;margin-bottom:12px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.top{display:flex;align-items:baseline;gap:10px}
+.id{font-family:var(--mono);font-weight:700;font-size:17px;letter-spacing:.06em}
+.nm{color:var(--dim);font-size:13px}
+.now{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--dim)}
+.now i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.head{font-family:var(--mono);font-size:24px;font-weight:600;margin:10px 0 2px}
+.head small{font-size:12px;color:var(--dim);font-weight:400;margin-left:8px}
+.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.p{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.p .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--dim)}
+.p .x{font-family:var(--mono);font-size:13.5px;font-weight:600;margin-top:3px}
+.p .x small{display:block;font-size:9.5px;color:var(--dim);font-weight:400;margin-top:2px}
+.why{margin-top:10px;font-size:12.5px;color:var(--dim);line-height:1.5}
+footer{margin-top:22px;color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.04em;line-height:1.9;text-align:center}
+footer a{color:var(--dim)}
+#status{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:14px;min-height:14px}
+@media(max-width:480px){.parts{grid-template-columns:1fr 1fr} .p:last-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <a href="/" aria-label="home"><img src="/assets/logo-512.v4.png" alt="" style="height:48px;width:auto;display:block"></a>
+    <h1>burn<span class="slash">/</span>off</h1>
+  </header>
+  <div id="status">reading the morning…</div>
+  <div id="grad" style="display:none">
+    <h2>PRESSURE GRADIENTS · ONSHORE PUSH</h2>
+    <div class="gg">
+      <div class="g"><div class="l">SFO → SAC</div><div class="v" id="g1">—</div></div>
+      <div class="g"><div class="l">SFO → RNO</div><div class="v" id="g2">—</div></div>
+    </div>
+    <div id="gread"></div>
+  </div>
+  <div id="cards"></div>
+  <footer>
+    blend of NOAA HRRR (3&nbsp;km) · last-7-morning observed clearings (NWS) · live SFO–SAC / SFO–RNO gradients<br>
+    marine-layer stratus tool — winter valley (tule) fog behaves differently · experimental · not for flight planning
+  </footer>
+</main>
+<script>
+const FIELDS=[
+ {id:'KWVI',s:'WVI',n:'Watsonville',lat:36.9357,lon:-121.7896},
+ {id:'KMRY',s:'MRY',n:'Monterey',lat:36.5870,lon:-121.8429},
+ {id:'KSNS',s:'SNS',n:'Salinas',lat:36.6628,lon:-121.6064},
+ {id:'KOAR',s:'OAR',n:'Marina',lat:36.6819,lon:-121.7621},
+ {id:'KHAF',s:'HAF',n:'Half Moon Bay',lat:37.5134,lon:-122.5011},
+];
+const $=i=>document.getElementById(i);
+const fmtHM=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'});
+function sunriseLocal(lat,lon,d){ // NOAA approximation, minutes from local midnight
+  const rad=Math.PI/180, J=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+  const g=(360/365.25)*(J-81)*rad;
+  const eot=9.87*Math.sin(2*g)-7.53*Math.cos(g)-1.5*Math.sin(g);
+  const dec=23.45*Math.sin((360/365*(J-81))*rad)*rad;
+  const ha=Math.acos(Math.max(-1,Math.min(1,
+    (Math.sin(-0.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec)))))/rad;
+  const solarNoon=720-4*lon-eot-d.getTimezoneOffset();
+  return solarNoon-ha*4;
+}
+function ceilOf(layers){
+  let c=null;
+  for(const L of (layers||[])){
+    const amt=String(L.amount||'').toUpperCase();
+    if(amt!=='BKN'&&amt!=='OVC'&&amt!=='VV')continue;
+    let b=L.base&&L.base.value; if(b==null)continue;
+    const ft=/m$/.test(String(L.base.unitCode||''))?b*3.28084:b;
+    if(c==null||ft<c)c=ft;
+  }
+  return c;
+}
+async function j(u){
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),12000);
+  try{const r=await fetch(u,{signal:ctl.signal,headers:{accept:'application/geo+json,application/json'}});
+    clearTimeout(t); if(!r.ok)throw 0; return await r.json();
+  }catch(e){clearTimeout(t);return null;}
+}
+function slp(p){ // prefer sea-level pressure, fall back to altimeter-derived
+  const s=p.seaLevelPressure&&p.seaLevelPressure.value;
+  if(s)return s/100;
+  const a=p.barometricPressure&&p.barometricPressure.value;
+  return a?a/100:null;
+}
+function clearingFromObs(obs,lat,lon){ // per-day observed clearing minutes-from-midnight
+  const days={};
+  for(const f of obs){
+    const p=f.properties||f; const t=new Date(p.timestamp);
+    const key=t.getFullYear()+'-'+t.getMonth()+'-'+t.getDate();
+    (days[key]=days[key]||[]).push({t,ceil:ceilOf(p.cloudLayers)});
+  }
+  const out=[];
+  for(const k of Object.keys(days)){
+    const arr=days[k].sort((a,b)=>a.t-b.t);
+    const d0=arr[0].t, sr=sunriseLocal(lat,lon,d0);
+    let hadDeck=false, clearAt=null;
+    for(const o of arr){
+      const m=o.t.getHours()*60+o.t.getMinutes();
+      if(m<sr-40)continue;
+      const low=o.ceil!=null&&o.ceil<3000;
+      if(low)hadDeck=true;
+      if(hadDeck&&!low&&clearAt==null)clearAt=m;
+      if(clearAt!=null&&low)clearAt=null;   // re-formed: not a real clearing
+    }
+    if(hadDeck&&clearAt!=null&&clearAt<16.5*60)out.push(clearAt);
+    else if(hadDeck&&clearAt==null)out.push(null);   // held all day
+  }
+  return out;
+}
+function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
+function fmtMin(m){const d=new Date();d.setHours(0,m,0,0);return fmtHM.format(d);}
+async function run(){
+  const now=new Date();
+  const startISO=new Date(now-7*864e5).toISOString();
+  // 1) gradients: SFO, SMF, RNO current + 12h back
+  const gs=await Promise.all(['KSFO','KSMF','KRNO'].map(id=>
+    j(`https://api.weather.gov/stations/${id}/observations?start=${new Date(now-13*3600e3).toISOString()}&limit=60`)));
+  let gtxt='gradient data unavailable';
+  let g1=null,g2=null,tr1=0;
+  if(gs.every(x=>x&&x.features&&x.features.length)){
+    const cur=gs.map(g=>slp(g.features[0].properties));
+    const old=gs.map(g=>{const f=g.features[g.features.length-1];return slp(f.properties);});
+    if(cur.every(v=>v!=null)){
+      g1=cur[0]-cur[1]; g2=cur[0]-cur[2];
+      if(old.every(v=>v!=null))tr1=(cur[0]-cur[1])-(old[0]-old[1]);
+      $('g1').innerHTML=(g1>=0?'+':'')+g1.toFixed(1)+'<small>hPa'+(tr1>0.4?' ↑':tr1<-0.4?' ↓':' →')+'</small>';
+      $('g2').innerHTML=(g2>=0?'+':'')+g2.toFixed(1)+'<small>hPa</small>';
+      const strength=g1>=3.5?'strong onshore — deep, stubborn marine layer'
+        :g1>=1.5?'moderate onshore — normal deck, normal burn-off'
+        :g1>=0.3?'weak onshore — shallow deck, early clearing likely'
+        :'flat-to-offshore — layer suppressed; may be clear or thin';
+      const trend=tr1>0.4?'building':(tr1<-0.4?'weakening':'steady');
+      gtxt=`<b>${strength}</b> · gradient ${trend} over the last 12 h. Strong SFO→RNO push (${g2!=null?(g2>=0?'+':'')+g2.toFixed(1):'—'}) deepens the layer regionally.`;
+      $('grad').style.display='block';
+      $('gread').innerHTML=gtxt;
+    }
+  }
+  // 2) per-field: current obs + 7-day history + HRRR low cloud
+  const om=await j(`https://api.open-meteo.com/v1/forecast?latitude=${FIELDS.map(f=>f.lat).join(',')}`+
+    `&longitude=${FIELDS.map(f=>f.lon).join(',')}&hourly=cloud_cover_low&forecast_days=1`+
+    `&timeformat=unixtime&timezone=auto&models=gfs_hrrr`);
+  const omArr=Array.isArray(om)?om:om?[om]:[];
+  const results=await Promise.all(FIELDS.map(async(f,i)=>{
+    const [cur,hist]=await Promise.all([
+      j(`https://api.weather.gov/stations/${f.id}/observations/latest`),
+      j(`https://api.weather.gov/stations/${f.id}/observations?start=${startISO}&limit=400`)
+    ]);
+    const sr=sunriseLocal(f.lat,f.lon,now);
+    // model clearing
+    let model=null, modelNone=false, deckNow=null;
+    const h=omArr[i]&&omArr[i].hourly;
+    if(h&&h.time){
+      const nowIdx=h.time.findIndex(t=>t*1000>now.getTime())-1;
+      deckNow=nowIdx>=0?h.cloud_cover_low[nowIdx]:null;
+      let found=false;
+      for(let k=0;k<h.time.length-1;k++){
+        const d=new Date(h.time[k]*1000), m=d.getHours()*60+d.getMinutes();
+        if(m<sr-30)continue;
+        if(h.cloud_cover_low[k]<40&&h.cloud_cover_low[k+1]<45){model=m;found=true;break;}
+      }
+      if(!found)modelNone=true;
+    }
+    // history clearing
+    let histArr=[],histHold=0;
+    if(hist&&hist.features){
+      const per=clearingFromObs(hist.features,f.lat,f.lon);
+      histArr=per.filter(v=>v!=null); histHold=per.filter(v=>v==null).length;
+    }
+    const hm=med(histArr);
+    // now state
+    let ceil=null,cat='vna';
+    if(cur&&cur.properties){
+      ceil=ceilOf(cur.properties.cloudLayers);
+      cat=ceil==null||ceil>3000?'vfr':ceil>=1000?'mvfr':'ifr';
+    }
+    return {f,sr,model,modelNone,deckNow,histArr,hm,histHold,ceil,cat};
+  }));
+  // 3) blend + render
+  $('status').textContent='updated '+fmtHM.format(now)+' · refreshes hourly';
+  $('cards').innerHTML='';
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const adj=(g1==null)?0:Math.max(-35,Math.min(50,(g1-2.0)*18))+(tr1>0.4?15:tr1<-0.4?-15:0);
+  results.sort((a,b)=>((a.model??a.hm??1e9))-((b.model??b.hm??1e9)));
+  for(const r of results){
+    const el=document.createElement('div'); el.className='apt';
+    const clearNow=r.cat==='vfr'&&(r.deckNow==null||r.deckNow<35);
+    let head,sub='',why=[];
+    const both=r.model!=null&&r.hm!=null;
+    if(clearNow){
+      head='clear now'; sub='no low deck over the field';
+    }else if(r.model==null&&r.hm==null&&!r.modelNone){
+      head='—'; sub='insufficient data';
+    }else{
+      let base=both?0.55*r.model+0.45*r.hm:(r.model??r.hm);
+      let band=Math.max(25,(both?0.6*Math.abs(r.model-r.hm):45));
+      if(r.modelNone&&(g1!=null&&g1>=4)&&r.ceil!=null&&r.ceil<1500){
+        head='may hold all day';
+        sub='deep deck + strong onshore push';
+      }else if(r.modelNone&&r.hm==null){
+        head='may hold all day';
+        sub=`model keeps the deck; ${r.histHold} of last 7 mornings never cleared`;
+      }else{
+        base+=adj;
+        if(base<nowMin)base=nowMin+15;
+        head='clearing ~'+fmtMin(base);
+        sub='±'+Math.round(band)+' min';
+      }
+    }
+    if(r.ceil!=null)why.push('deck now '+Math.round(r.ceil/100)*100+' ft');
+    if(g1!=null)why.push('gradient '+(adj>8?'adds ~'+Math.round(adj)+' min':adj<-8?'trims ~'+Math.round(-adj)+' min':'neutral'));
+    if(r.histHold>=2)why.push(r.histHold+'/7 recent mornings never cleared');
+    el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
+      <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'OVC/BKN '+Math.round(r.ceil/100)*100+"'":'no ceiling'}</span></div>
+      <div class="head">${head}<small>${sub}</small></div>
+      <div class="parts">
+        <div class="p"><div class="k">MODEL · HRRR</div><div class="x">${r.model!=null?fmtMin(r.model):(r.modelNone?'holds all day':'—')}<small>3 km, hourly run</small></div></div>
+        <div class="p"><div class="k">LAST 7 MORNINGS</div><div class="x">${r.hm!=null?fmtMin(r.hm):(r.histArr.length===0&&r.histHold===0?'no deck lately':'held all day')}<small>${r.histArr.length?r.histArr.length+' clearings observed':(r.histHold?r.histHold+' full-day decks':'')}</small></div></div>
+        <div class="p"><div class="k">GRADIENT SAYS</div><div class="x">${g1==null?'—':(adj>8?'later +'+Math.round(adj)+'m':adj<-8?'earlier −'+Math.round(-adj)+'m':'neutral')}<small>SFO→SAC ${g1!=null?(g1>=0?'+':'')+g1.toFixed(1)+' hPa':''}</small></div></div>
+      </div>
+      ${why.length?`<div class="why">${why.join(' · ')}</div>`:''}`;
+    $('cards').appendChild(el);
+  }
+}
+run();
+setInterval(run,60*60*1000);
+</script>
+</body>
+</html>
