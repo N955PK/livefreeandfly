@@ -1568,7 +1568,7 @@ function fltCat(vis,ceil){
   return 'vfr';
 }
 function catClass(vis,ceil){const k=fltCat(vis,ceil);return k||'vna';}
-function ceilOf(layers){
+function ceilOf(layers,raw){
   let ceil=null,txt=null;
   for(const L of (layers||[])){
     const amt=String(L.amount||L.cover||'').toUpperCase();
@@ -1578,6 +1578,13 @@ function ceilOf(layers){
     b=+b; if(!isFinite(b))continue;
     const ft=(L.base&&L.base.unitCode&&/m$/.test(String(L.base.unitCode)))?b*3.28084:b;
     if(ceil==null||ft<ceil){ceil=ft;txt=amt+' '+(Math.round(ft/100)*100)+' ft';}
+  }
+  if(ceil==null&&raw){   // AWOS feeds often ship empty cloudLayers; parse the raw METAR
+    const mm=String(raw).toUpperCase().match(/\b(BKN|OVC|VV)(\d{3})\b/g)||[];
+    for(const t of mm){
+      const amt=t.slice(0,t.length-3), ft=parseInt(t.slice(-3),10)*100;
+      if(ceil==null||ft<ceil){ceil=ft;txt=amt+' '+ft+' ft';}
+    }
   }
   return {ceil,txt};
 }
@@ -1875,7 +1882,7 @@ async function fetchObsOne(a){
     const num=x=>x&&typeof x.value==='number'?x.value:null;
     const visM=num(p.visibility), tC=num(p.temperature), dC=num(p.dewpoint);
     const wKmh=num(p.windSpeed), wDir=num(p.windDirection);
-    const cl=ceilOf(p.cloudLayers);
+    const cl=ceilOf(p.cloudLayers,p.rawMessage);
     obs[a.id]={ok:true,
       ceil:cl.ceil, ceilTxt:cl.txt,
       vis:visM==null?null:visM/1609.344,
