@@ -88,15 +88,14 @@ function fmtDur(m){m=Math.round(m);
   if(m<60)return m+' min';
   const h=Math.floor(m/60),r=m%60;
   return r?h+' h '+r+' min':h+' h';}
-function sunTimes(lat,lon,d){
+function sunriseOf(lat,lon,d){
   const rad=Math.PI/180, J=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
   const g=(360/365.25)*(J-81)*rad;
   const eot=9.87*Math.sin(2*g)-7.53*Math.cos(g)-1.5*Math.sin(g);
   const dec=23.45*Math.sin((360/365*(J-81))*rad)*rad;
   const ha=Math.acos(Math.max(-1,Math.min(1,
     (Math.sin(-0.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec)))))/rad;
-  const noon=720-4*lon-eot-d.getTimezoneOffset();
-  return {sr:noon-ha*4, ss:noon+ha*4};
+  return 720-4*lon-eot-d.getTimezoneOffset()-ha*4;
 }
 function ceilOf(layers){
   let c=null;
@@ -110,7 +109,7 @@ function ceilOf(layers){
   return c;
 }
 async function j(u){
-  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),12000);
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),14000);
   try{const r=await fetch(u,{signal:ctl.signal,headers:{accept:'application/geo+json,application/json'}});
     clearTimeout(t); if(!r.ok)throw 0; return await r.json();
   }catch(e){clearTimeout(t);return null;}
@@ -121,99 +120,102 @@ function slp(p){
   const a=p.barometricPressure&&p.barometricPressure.value;
   return a?a/100:null;
 }
-function dayStats(obs,lat,lon){
+function scanDay(samples,sr){ // samples: [{m,low}] one local day → {clear,onset,held,had}
+  let had=false,clear=null,onset=null,wasClearPM=false;
+  for(const o of samples){
+    if(o.m>=sr-40&&o.m<16*60){
+      if(o.low)had=true;
+      if(had&&!o.low&&clear==null)clear=o.m;
+      if(clear!=null&&o.low&&o.m<16*60)clear=null;
+    }
+    if(o.m>=13*60){
+      if(!o.low)wasClearPM=true;
+      if(wasClearPM&&o.low&&onset==null)onset=o.m;
+    }
+  }
+  return {clear,onset,held:had&&clear==null,had};
+}
+function obsPerDay(obs,lat,lon){
   const byDay={};
   for(const f of obs){
     const p=f.properties||f; const t=new Date(p.timestamp);
-    (byDay[t.toDateString()]=byDay[t.toDateString()]||[]).push({t,ceil:ceilOf(p.cloudLayers)});
+    const c=ceilOf(p.cloudLayers);
+    (byDay[t.toDateString()]=byDay[t.toDateString()]||[]).push({m:t.getHours()*60+t.getMinutes(),low:c!=null&&c<3000,t});
   }
-  const todayKey=new Date().toDateString();
-  const clears=[],onsets=[]; let held=0;
-  const lanes=[];
+  const out=[];
   for(const k of Object.keys(byDay)){
-    const arr=byDay[k].sort((a,b)=>a.t-b.t);
-    if(arr.length<5&&k!==todayKey)continue;
-    const {sr}=sunTimes(lat,lon,arr[0].t);
-    let hadDeck=false,clearAt=null,onsetAt=null,wasClearPM=false,open=null;
-    const iv=[];
-    for(const o of arr){
-      const m=o.t.getHours()*60+o.t.getMinutes();
-      const low=o.ceil!=null&&o.ceil<3000;
-      if(low&&open==null)open=m;
-      if(!low&&open!=null){iv.push([open,m]);open=null;}
-      if(m>=sr-40&&m<16*60){
-        if(low)hadDeck=true;
-        if(hadDeck&&!low&&clearAt==null)clearAt=m;
-        if(clearAt!=null&&low&&m<16*60)clearAt=null;
-      }
-      if(m>=13*60){
-        if(!low)wasClearPM=true;
-        if(wasClearPM&&low&&onsetAt==null)onsetAt=m;
-      }
-    }
-    const lastM=arr.length?arr[arr.length-1].t.getHours()*60+arr[arr.length-1].t.getMinutes():0;
-    if(open!=null)iv.push([open,lastM]);
-    lanes.push({key:k,day:DAYNM[new Date(k).getDay()],today:k===todayKey,iv,lastM});
-    if(k===todayKey)continue;
-    if(hadDeck){if(clearAt!=null)clears.push(clearAt);else held++;}
-    if(onsetAt!=null)onsets.push(onsetAt);
+    const arr=byDay[k].sort((x,y)=>x.m-y.m);
+    const d=new Date(k);
+    out.push({key:k,d,day:DAYNM[d.getDay()],...scanDay(arr,sunriseOf(lat,lon,d))});
   }
-  lanes.sort((a,b)=>new Date(a.key)-new Date(b.key));
-  return {clears,onsets,held,lanes};
+  out.sort((x,y)=>x.d-y.d);
+  return out;
+}
+function modelDayScan(times,vals,dayStart,sr){ // hourly unix times/cloud vals within one day
+  const s=[];
+  for(let k=0;k<times.length;k++){
+    const m=(times[k]*1000-dayStart)/60000;
+    if(m<0||m>=1440)continue;
+    s.push({m,low:vals[k]>=50,c:vals[k]});
+  }
+  let clear=null,onset=null,had=false,wasClearPM=false;
+  for(let k=0;k<s.length;k++){
+    const o=s[k],nx=s[k+1];
+    if(o.m>=sr-40&&o.m<16*60){
+      if(o.c>=50)had=true;
+      if(had&&o.c<40&&(!nx||nx.c<45)&&clear==null)clear=o.m;
+      if(clear!=null&&o.c>=55&&o.m<16*60)clear=null;
+    }
+    if(o.m>=13*60){
+      if(o.c<45)wasClearPM=true;
+      if(wasClearPM&&o.c>=60&&onset==null)onset=o.m;
+    }
+  }
+  return {clear,onset,held:had&&clear==null};
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
-function chart(lanes,modelIv,nowMin,sr,ss,tick){
-  const W=720,L=52,laneH=13,gap=4;
-  const rows=lanes.filter(l=>!l.today).slice(-7).concat(lanes.filter(l=>l.today));
-  const n=rows.length+2; // + today may exist already; +1 tomorrow lane; ensure today lane exists
-  const hasToday=rows.some(l=>l.today);
-  const total=(hasToday?rows.length:rows.length+1)+1;
-  const H=total*(laneH+gap)+22;
-  const x=m=>L+(Math.max(0,Math.min(1440,m))/1440)*(W-L-6);
+function chart(days,tick){
+  // days: chronological [{label, obsClear, obsOnset, obsHeld, modClear, modOnset, modHeld, isToday, isTmrw}]
+  const W=720,H=250,L=46,R=8,T=10,B=26;
+  const Y0=5*60,Y1=22.5*60;
+  const xi=i=>L+(i+0.5)*(W-L-R)/days.length;
+  const yv=m=>T+(1-(Math.min(Y1,Math.max(Y0,m))-Y0)/(Y1-Y0))*(H-T-B);
   let g='';
-  // hour grid + sun guides
-  for(const hh of [6,12,18])
-    g+=`<line x1="${x(hh*60)}" y1="2" x2="${x(hh*60)}" y2="${H-18}" stroke="rgba(233,237,241,.08)"/>`+
-       `<text x="${x(hh*60)}" y="${H-6}" fill="#8B959E" font-size="9" font-family="ui-monospace,monospace" text-anchor="middle">${hh}:00</text>`;
-  for(const sv of [sr,ss])
-    g+=`<line x1="${x(sv)}" y1="2" x2="${x(sv)}" y2="${H-18}" stroke="rgba(233,237,241,.22)" stroke-dasharray="2 4"/>`;
-  let y=2, i=0;
-  const lane=(label,ivs,fill,op,extra='')=>{
-    g+=`<text x="${L-8}" y="${y+laneH-3}" fill="#8B959E" font-size="9.5" font-family="ui-monospace,monospace" text-anchor="end">${label}</text>`;
-    g+=`<rect x="${L}" y="${y}" width="${W-L-6}" height="${laneH}" rx="3" fill="rgba(233,237,241,.045)"/>`;
-    for(const [a,b] of ivs)
-      g+=`<rect x="${x(a)}" y="${y}" width="${Math.max(2,x(b)-x(a))}" height="${laneH}" rx="3" fill="${fill}" opacity="${op}"/>`;
-    g+=extra; y+=laneH+gap;
+  for(const hh of [6,9,12,15,18,21]){
+    g+=`<line x1="${L}" y1="${yv(hh*60)}" x2="${W-R}" y2="${yv(hh*60)}" stroke="rgba(233,237,241,.08)"/>`+
+       `<text x="${L-6}" y="${yv(hh*60)+3}" fill="#8B959E" font-size="9" font-family="ui-monospace,monospace" text-anchor="end">${hh}:00</text>`;
+  }
+  days.forEach((d,i)=>{
+    g+=`<text x="${xi(i)}" y="${H-8}" fill="${d.isToday||d.isTmrw?'#e9edf1':'#8B959E'}" font-size="9.5" font-family="ui-monospace,monospace" text-anchor="middle">${d.label}</text>`;
+    if(d.isToday)g+=`<line x1="${xi(i)}" y1="${T}" x2="${xi(i)}" y2="${H-B}" stroke="rgba(233,237,241,.12)"/>`;
+  });
+  const line=(key,color,dash,heldKey)=>{
+    let path='',pen=false;
+    days.forEach((d,i)=>{
+      const v=d[key];
+      if(v==null){pen=false;return;}
+      path+=(pen?'L':'M')+xi(i).toFixed(1)+' '+yv(v).toFixed(1)+' ';
+      pen=true;
+    });
+    if(path)g+=`<path d="${path}" fill="none" stroke="${color}" stroke-width="1.8" ${dash?'stroke-dasharray="5 4"':''} opacity=".9"/>`;
+    days.forEach((d,i)=>{
+      const v=d[key];
+      if(v!=null)
+        g+=`<circle cx="${xi(i)}" cy="${yv(v)}" r="3.2" fill="${dash?'none':color}" stroke="${color}" stroke-width="1.6"/>`;
+      else if(heldKey&&d[heldKey])
+        g+=`<path d="M${xi(i)-4} ${T+8} h8 l-4 -7 z" fill="${color}" opacity=".8"/>`;
+    });
   };
-  for(const l of rows){
-    if(l.today){
-      const obsIv=l.iv.map(v=>[v[0],Math.min(v[1],nowMin)]).filter(v=>v[1]>v[0]);
-      const modToday=modelIv.filter(v=>v[1]>nowMin&&v[0]<1440).map(v=>[Math.max(v[0],nowMin),Math.min(v[1],1440)]);
-      lane('today',obsIv,'#8B959E',.6);
-      y-=laneH+gap;
-      for(const [a,b] of modToday)
-        g+=`<rect x="${x(a)}" y="${y}" width="${Math.max(2,x(b)-x(a))}" height="${laneH}" rx="3" fill="#A31F34" opacity=".45"/>`;
-      g+=`<line x1="${x(nowMin)}" y1="${y-1}" x2="${x(nowMin)}" y2="${y+laneH+1}" stroke="#e9edf1" stroke-width="1.4"/>`;
-      if(tick!=null&&tick<1440)
-        g+=`<path d="M${x(tick)} ${y-3} l4 -6 h-8 z" fill="#A31F34"/>`;
-      y+=laneH+gap;
-    }else{
-      lane(l.day,l.iv,'#8B959E',.55);
-    }
+  line('obsClear','#e9edf1',false,'obsHeld');
+  line('obsOnset','#e9edf1',true,null);
+  line('modClear','#A31F34',false,'modHeld');
+  line('modOnset','#A31F34',true,null);
+  if(tick!=null){
+    const i=days.findIndex(d=>tick<1440?d.isToday:d.isTmrw);
+    if(i>=0)g+=`<path d="M${xi(i)} ${yv(tick%1440)-9} l5 -8 h-10 z" fill="#A31F34"/>`+
+      `<circle cx="${xi(i)}" cy="${yv(tick%1440)}" r="4.4" fill="none" stroke="#A31F34" stroke-width="1.6"/>`;
   }
-  if(!hasToday){
-    lane('today',[],'#8B959E',.6);
-    y-=laneH+gap;
-    for(const v of modelIv.filter(v=>v[0]<1440))
-      g+=`<rect x="${x(Math.max(v[0],nowMin))}" y="${y}" width="${Math.max(2,x(Math.min(v[1],1440))-x(Math.max(v[0],nowMin)))}" height="${laneH}" rx="3" fill="#A31F34" opacity=".45"/>`;
-    g+=`<line x1="${x(nowMin)}" y1="${y-1}" x2="${x(nowMin)}" y2="${y+laneH+1}" stroke="#e9edf1" stroke-width="1.4"/>`;
-    if(tick!=null&&tick<1440)g+=`<path d="M${x(tick)} ${y-3} l4 -6 h-8 z" fill="#A31F34"/>`;
-    y+=laneH+gap;
-  }
-  const tmrw=modelIv.filter(v=>v[1]>1440).map(v=>[Math.max(0,v[0]-1440),Math.min(1440,v[1]-1440)]);
-  lane('tmrw',tmrw,'#A31F34',.3,
-    tick!=null&&tick>=1440?`<path d="M${x(tick-1440)} ${y-3} l4 -6 h-8 z" fill="#A31F34"/>`:'');
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:12px">${g}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:12px">${g}</svg>`;
 }
 async function run(){
   const now=new Date();
@@ -236,13 +238,16 @@ async function run(){
         :g1>=0.3?'weak onshore — shallow deck, early clearing likely'
         :'flat-to-offshore — layer suppressed; may stay clear';
       $('grad').style.display='block';
-      $('gread').innerHTML=`<b>${strength}</b>. Higher pressure at the coast than inland pushes marine air (and its stratus) onto the land; the stronger the push, the deeper the deck and the later it burns off — and the earlier it returns in the evening.`;
+      $('gread').innerHTML=`<b>${strength}</b>. Higher pressure at the coast than inland pushes marine air onto the land; the stronger the push, the deeper the deck, the later the burn-off — and the earlier the evening return.`;
     }
   }
-  const om=await j(`https://api.open-meteo.com/v1/forecast?latitude=${FIELDS.map(f=>f.lat).join(',')}`+
-    `&longitude=${FIELDS.map(f=>f.lon).join(',')}&hourly=cloud_cover_low&forecast_days=2`+
-    `&timeformat=unixtime&timezone=auto&models=gfs_hrrr`);
+  const latq=FIELDS.map(f=>f.lat).join(','), lonq=FIELDS.map(f=>f.lon).join(',');
+  const [om,prev]=await Promise.all([
+    j(`https://api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low&forecast_days=2&timeformat=unixtime&timezone=auto&models=gfs_hrrr`),
+    j(`https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low_previous_day1&past_days=7&forecast_days=1&timeformat=unixtime&timezone=auto&models=gfs_hrrr`)
+  ]);
   const omArr=Array.isArray(om)?om:om?[om]:[];
+  const pvArr=Array.isArray(prev)?prev:prev?[prev]:[];
   const results=await Promise.all(FIELDS.map(async(f,i)=>{
     const [cur,hist]=await Promise.all([
       j(`https://api.weather.gov/stations/${f.id}/observations/latest`),
@@ -252,27 +257,21 @@ async function run(){
     const series=[];
     if(h&&h.time)for(let k=0;k<h.time.length;k++)
       series.push({m:(h.time[k]*1000-midnight.getTime())/60000,c:h.cloud_cover_low[k]});
-    const modelIv=[]; let openIv=null;
-    for(const p of series){
-      const on=p.c>=50;
-      if(on&&openIv==null)openIv=p.m;
-      if(!on&&openIv!=null){modelIv.push([openIv,p.m]);openIv=null;}
-    }
-    if(openIv!=null&&series.length)modelIv.push([openIv,series[series.length-1].m]);
     const findClear=(from)=>{for(let k=0;k<series.length-1;k++){
       if(series[k].m<from)continue;
       if(series[k].c<40&&series[k+1].c<45)return series[k].m;}return null;};
     const findOnset=(from)=>{for(let k=0;k<series.length-1;k++){
       if(series[k].m<from)continue;
       if(series[k].c>=60&&series[k+1].c>=55)return series[k].m;}return null;};
-    const st=hist&&hist.features?dayStats(hist.features,f.lat,f.lon):{clears:[],onsets:[],held:0,lanes:[]};
+    const per=hist&&hist.features?obsPerDay(hist.features,f.lat,f.lon):[];
     let ceil=null,cat='vna';
     if(cur&&cur.properties){
       ceil=ceilOf(cur.properties.cloudLayers);
       cat=ceil==null||ceil>3000?'vfr':ceil>=1000?'mvfr':'ifr';
     }
     const nowM=series.find(x=>x.m>=nowMin);
-    return {f,series,modelIv,findClear,findOnset,st,ceil,cat,
+    return {f,series,findClear,findOnset,per,ceil,cat,
+      pv:pvArr[i]&&pvArr[i].hourly,
       deckNow:(ceil!=null&&ceil<3000)||(nowM&&nowM.c>=55)};
   }));
   $('status').textContent='updated '+fmtHM.format(now)+' · refreshes hourly';
@@ -280,43 +279,61 @@ async function run(){
   const adjClear=(g1==null)?0:Math.max(-35,Math.min(50,(g1-2.0)*18))+(tr1>0.4?15:tr1<-0.4?-15:0);
   const adjOnset=(g1==null)?0:-Math.max(-30,Math.min(40,(g1-2.0)*14))-(tr1>0.4?12:tr1<-0.4?-12:0);
   for(const r of results){
-    const {sr,ss}=sunTimes(r.f.lat,r.f.lon,now);
-    let head,sub='',mCol,hCol,gCol,why=[],tick=null;
+    const sr=sunriseOf(r.f.lat,r.f.lon,now);
+    const pastDays=r.per.filter(d=>d.key!==now.toDateString()).slice(-7);
+    const todayObs=r.per.find(d=>d.key===now.toDateString());
+    const clears=pastDays.filter(d=>d.clear!=null).map(d=>d.clear);
+    const onsets=pastDays.filter(d=>d.onset!=null).map(d=>d.onset);
+    const held=pastDays.filter(d=>d.held).length;
+    let head,sub='',mCol,hCol,gCol,tick=null;
     if(r.deckNow){
       const model=r.findClear(Math.max(nowMin,sr-30));
-      const hm=med(r.st.clears);
+      const hm=med(clears);
       mCol={v:model!=null?fmtAbs(model):'holds all day',s:'HRRR forecast of when the deck breaks'};
-      hCol={v:hm!=null?fmtAbs(hm):(r.st.held?'often held all day':'—'),
-            s:r.st.clears.length?`median of ${r.st.clears.length} observed clearings, last 7 days`:`${r.st.held} of last 7 mornings never cleared`};
+      hCol={v:hm!=null?fmtAbs(hm):(held?'often held all day':'—'),
+            s:clears.length?`median of ${clears.length} observed clearings, last 7 days`:`${held} of last 7 mornings never cleared`};
       gCol={v:adjClear>8?'later +'+fmtDur(adjClear):adjClear<-8?'earlier −'+fmtDur(-adjClear):'neutral',
             s:'push strength shifts the blend'};
-      if(model==null&&(hm==null||r.st.held>=3)){
-        head='may hold all day'; sub='model keeps the deck; recent mornings agree';
-      }else{
+      if(model==null&&(hm==null||held>=3)){head='may hold all day';sub='model keeps the deck; recent mornings agree';}
+      else{
         let base=model!=null&&hm!=null?0.55*model+0.45*hm:(model??hm);
         base+=adjClear; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,model!=null&&hm!=null?0.6*Math.abs(model-hm):45);
         head='clears ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
       }
-      if(r.ceil!=null)why.push('deck now '+Math.round(r.ceil/100)*100+' ft');
-      if(r.st.held>=2)why.push(`${r.st.held}/7 recent mornings the deck never broke`);
     }else{
       const model=r.findOnset(nowMin);
-      const hm=med(r.st.onsets);
+      const hm=med(onsets);
       mCol={v:model!=null?fmtAbs(model):'stays clear',s:'HRRR forecast of when the deck moves in'};
       hCol={v:hm!=null?fmtAbs(hm):'—',
-            s:r.st.onsets.length?`median return time, ${r.st.onsets.length} of last 7 evenings`:'no returns observed this week'};
+            s:onsets.length?`median return time, ${onsets.length} of last 7 evenings`:'no returns observed this week'};
       gCol={v:adjOnset<-8?'sooner −'+fmtDur(-adjOnset):adjOnset>8?'later +'+fmtDur(adjOnset):'neutral',
             s:'stronger push brings it back sooner'};
-      if(model==null){
-        head='clear'; sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow';
-      }else{
+      if(model==null){head='clear';sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow';}
+      else{
         let base=hm!=null?0.55*model+0.45*(hm>model+720?model:hm):model;
         base+=adjOnset; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,hm!=null?0.6*Math.abs(model-Math.min(hm,model+240)):45);
         head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
       }
     }
+    // model hindcast per past day (what HRRR said a day ahead)
+    const days=pastDays.map(d=>{
+      let mc=null,mo=null,mh=false;
+      if(r.pv&&r.pv.time){
+        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.d.getTime(),sunriseOf(r.f.lat,r.f.lon,d.d));
+        mc=dm.clear;mo=dm.onset;mh=dm.held;
+      }
+      return {label:d.day,obsClear:d.clear,obsOnset:d.onset,obsHeld:d.held,modClear:mc,modOnset:mo,modHeld:mh};
+    });
+    const tScan=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),midnight.getTime(),sr);
+    days.push({label:'today',isToday:true,
+      obsClear:todayObs?todayObs.clear:null,obsOnset:todayObs?todayObs.onset:null,obsHeld:false,
+      modClear:tScan.clear,modOnset:tScan.onset,modHeld:tScan.held});
+    const tm=new Date(midnight.getTime()+864e5);
+    const tScan2=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),tm.getTime(),sunriseOf(r.f.lat,r.f.lon,tm));
+    days.push({label:'tmrw',isTmrw:true,obsClear:null,obsOnset:null,obsHeld:false,
+      modClear:tScan2.clear,modOnset:tScan2.onset,modHeld:tScan2.held});
     const el=document.createElement('div'); el.className='apt';
     el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
       <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'ceiling '+Math.round(r.ceil/100)*100+"'":'no low ceiling'}</span></div>
@@ -326,17 +343,22 @@ async function run(){
         <div class="p"><div class="k">RECENT DAYS SAY</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
         <div class="p"><div class="k">GRADIENT SAYS</div><div class="x">${gCol.v}<small>${gCol.s}</small></div></div>
       </div>
-      ${chart(r.st.lanes,r.modelIv,nowMin,sr,ss,tick)}
-      <div class="why" style="margin-top:6px">grey bars: deck observed over the field (METARs) · red: model forecast · ▲ the blended call · dashed: sunrise / sunset${why.length?' · '+why.join(' · '):''}</div>`;
+      ${chart(days,tick)}
+      <div class="why" style="margin-top:6px">
+        <span style="color:#e9edf1">●— observed burn-off</span> · <span style="color:#e9edf1">○-- observed return</span> ·
+        <span style="color:#A31F34">●— model burn-off</span> · <span style="color:#A31F34">○-- model return</span> ·
+        ▲ top edge: never cleared · ${r.pv?'model history: HRRR day-ahead runs':'model history unavailable — showing today/tmrw only'} · ◬ blended call
+      </div>`;
     $('cards').appendChild(el);
   }
   const det=document.createElement('details');
   det.style.cssText='margin-top:6px;color:var(--dim);font-size:12.5px;line-height:1.6';
   det.innerHTML=`<summary style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;cursor:pointer">HOW THIS WORKS</summary>
-    <p style="margin-top:10px"><b style="color:var(--ink)">Model says</b> — NOAA's HRRR (3&nbsp;km, refreshed hourly): the first hour it forecasts low cloud under 40% is "clears"; the first hour over 60% is "fog returns."</p>
-    <p style="margin-top:8px"><b style="color:var(--ink)">Recent days say</b> — the last 7 days of actual METAR reports for this field. A "clearing" is the first report after sunrise where the ceiling lifted above 3,000&nbsp;ft and stayed; a "return" is the first afternoon/evening report where a sub-3,000&nbsp;ft deck came back. Times shown are <b style="color:var(--ink)">medians</b> of those observed events. The chart draws exactly this: each grey bar is a period the deck was actually reported over the field.</p>
-    <p style="margin-top:8px"><b style="color:var(--ink)">Gradient says</b> — live SFO→SAC pressure difference. Onshore push deepens the layer: each hPa above +2.0 delays clearing ~18 min and hastens the evening return ~14 min in the blend.</p>
-    <p style="margin-top:8px">Headline = 55% model + 45% recent days, shifted by the gradient. The ± band widens when they disagree — disagreement is honest uncertainty.</p>`;
+    <p style="margin-top:10px"><b style="color:var(--ink)">The chart</b> — each column is a day; the vertical axis is time of day. White points are what actually happened per the METARs (solid: morning burn-off; dashed: evening return). Red points are what HRRR <i>predicted for that same day, one day ahead</i> (via Open-Meteo's previous-runs archive), continuing through today and tomorrow. Where red tracks white, the model has been trustworthy this week; where they split, believe the wider band.</p>
+    <p style="margin-top:8px"><b style="color:var(--ink)">Model says</b> — HRRR (3&nbsp;km, hourly refresh): first hour under 40% low cloud = clears; first hour over 60% = returns.</p>
+    <p style="margin-top:8px"><b style="color:var(--ink)">Recent days say</b> — medians of the observed events on the chart.</p>
+    <p style="margin-top:8px"><b style="color:var(--ink)">Gradient says</b> — live SFO→SAC pressure difference; each hPa above +2.0 delays clearing ~18 min and hastens the return ~14 min in the blend.</p>
+    <p style="margin-top:8px">Headline = 55% model + 45% recent days, shifted by the gradient; the ± widens when they disagree.</p>`;
   $('cards').appendChild(det);
 }
 run();
