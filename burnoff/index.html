@@ -173,8 +173,10 @@ function modelDayScan(times,vals,dayStart,sr){
   for(let k=0;k<times.length;k++){
     const m=(times[k]*1000-dayStart)/60000;
     if(m<0||m>=1440)continue;
+    if(vals[k]==null||!isFinite(vals[k]))continue;
     seq.push({m,c:vals[k]});
   }
+  if(seq.length<10)return {clear:null,onset:null,held:false,thin:true};
   let had=false,clear=null,onset=null;
   for(let k=0;k<seq.length;k++){
     const o=seq[k],nx=seq[k+1];
@@ -198,8 +200,8 @@ function chart(days,tick){
   let g='';
   for(let hh=6;hh<=22;hh++){
     const maj=hh%3===0;
-    g+=`<line x1="${xv(hh*60)}" y1="${T}" x2="${xv(hh*60)}" y2="${H-B}" stroke="rgba(233,237,241,${maj?'.10':'.045'})"/>`;
-    if(maj)g+=`<text x="${xv(hh*60)}" y="${H-8}" fill="#8B959E" font-size="9" font-family="ui-monospace,monospace" text-anchor="middle">${hh}:00</text>`;
+    g+=`<line x1="${xv(hh*60)}" y1="${T}" x2="${xv(hh*60)}" y2="${H-B}" stroke="rgba(233,237,241,${maj?'.10':'.05'})"/>`;
+    g+=`<text x="${xv(hh*60)}" y="${H-8}" fill="${maj?'#8B959E':'rgba(139,149,158,.6)'}" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
   }
   days.forEach((d,i)=>{
     if(d.isToday)g+=`<rect x="${L}" y="${yi(i)-rowH/2}" width="${W-L-R}" height="${rowH}" fill="rgba(233,237,241,.05)" rx="3"/>`;
@@ -256,12 +258,14 @@ async function run(){
     }
   }
   const latq=FIELDS.map(f=>f.lat).join(','), lonq=FIELDS.map(f=>f.lon).join(',');
-  const [om,prev]=await Promise.all([
+  const [om,prev,past]=await Promise.all([
     j(`https://api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low&forecast_days=2&timeformat=unixtime&timezone=auto&models=gfs_hrrr`),
-    j(`https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low_previous_day1&past_days=14&forecast_days=1&timeformat=unixtime&timezone=auto&models=gfs_hrrr`)
+    j(`https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low_previous_day1&past_days=14&forecast_days=1&timeformat=unixtime&timezone=auto&models=gfs_hrrr`),
+    j(`https://api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low&past_days=14&forecast_days=1&timeformat=unixtime&timezone=auto&models=gfs_hrrr`)
   ]);
   const omArr=Array.isArray(om)?om:om?[om]:[];
   const pvArr=Array.isArray(prev)?prev:prev?[prev]:[];
+  const paArr=Array.isArray(past)?past:past?[past]:[];
   const results=await Promise.all(FIELDS.map(async(f,i)=>{
     const chunks=[];
     for(let k=0;k<4;k++){
@@ -290,7 +294,7 @@ async function run(){
     }
     const nowM=series.find(x=>x.m>=nowMin);
     return {f,series,findClear,findOnset,per,ceil,cat,
-      pv:pvArr[i]&&pvArr[i].hourly,
+      pv:pvArr[i]&&pvArr[i].hourly, pa:paArr[i]&&paArr[i].hourly,
       deckNow:(ceil!=null&&ceil<3000)||(nowM&&nowM.c>=55)};
   }));
   $('status').textContent='updated '+fmtHM.format(now)+' · refreshes hourly';
@@ -316,7 +320,8 @@ async function run(){
             s:'push strength shifts the blend'};
       if(model==null&&(hm==null||held>=3)){head='may hold all day';sub='model keeps the deck; recent mornings agree';}
       else{
-        let base=model!=null&&hm!=null?0.55*model+0.45*hm:(model??hm);
+        const mcorr=model!=null?model-biasC:null;
+        let base=mcorr!=null&&hm!=null?0.55*mcorr+0.45*hm:(mcorr??hm);
         base+=adjClear; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,model!=null&&hm!=null?0.6*Math.abs(model-hm):45);
         head='clears ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
@@ -331,21 +336,32 @@ async function run(){
             s:'stronger push brings it back sooner'};
       if(model==null){head='clear';sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow';}
       else{
-        let base=hm!=null?0.55*model+0.45*(hm>model+720?model:hm):model;
+        const mcorr=model-biasO;
+        let base=hm!=null?0.55*mcorr+0.45*(hm>mcorr+720?mcorr:hm):mcorr;
         base+=adjOnset; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,hm!=null?0.6*Math.abs(model-Math.min(hm,model+240)):45);
         head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
       }
     }
-    // model hindcast per past day (what HRRR said a day ahead)
+    // model hindcast per past day: day-ahead runs where available, model past-record otherwise
+    const errC=[],errO=[]; let usedD1=0,usedD0=0;
     const days=pastDays.map(d=>{
       let mc=null,mo=null,mh=false;
+      const srd=sunriseOf(r.f.lat,r.f.lon,d.d);
       if(r.pv&&r.pv.time){
-        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.d.getTime(),sunriseOf(r.f.lat,r.f.lon,d.d));
-        mc=dm.clear;mo=dm.onset;mh=dm.held;
+        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.d.getTime(),srd);
+        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD1++;}
       }
+      if(mc==null&&mo==null&&!mh&&r.pa&&r.pa.time){
+        const dm=modelDayScan(r.pa.time,r.pa.cloud_cover_low||[],d.d.getTime(),srd);
+        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD0++;}
+      }
+      if(mc!=null&&d.clear!=null)errC.push(mc-d.clear);
+      if(mo!=null&&d.onset!=null)errO.push(mo-d.onset);
       return {label:d.day,obsClear:d.clear,obsOnset:d.onset,obsHeld:d.held,modClear:mc,modOnset:mo,modHeld:mh};
     });
+    const biasC=errC.length>=4?Math.max(-90,Math.min(90,med(errC))):0;
+    const biasO=errO.length>=4?Math.max(-90,Math.min(90,med(errO))):0;
     const tScan=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),midnight.getTime(),sr);
     days.push({label:'today',isToday:true,
       obsClear:todayObs?todayObs.clear:null,obsOnset:todayObs?todayObs.onset:null,obsHeld:false,
@@ -367,7 +383,7 @@ async function run(){
       <div class="why" style="margin-top:6px">
         <span style="color:#e9edf1">●— observed burn-off</span> · <span style="color:#e9edf1">○-- observed return</span> ·
         <span style="color:#A31F34">●— model burn-off</span> · <span style="color:#A31F34">○-- model return</span> ·
-        ${r.pv?'model history: HRRR day-ahead runs · 14 days':'model history unavailable — showing today/tmrw only'} · ◬ blended call
+        model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record · ◬ blended call
       </div>`;
     $('cards').appendChild(el);
   }
