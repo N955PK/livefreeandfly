@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#0a0e13">
-<title>fog/west — live fog · CA OR WA</title>
+<title>fog/map — live fog · CA OR WA</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.v4.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.v4.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.v4.png"><text y='.9em' font-size='90'>🌫️</text></svg>">
@@ -188,7 +188,7 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
   <div id="lyr"></div>
 
   <header id="hdr">
-    <div class="brand"><span id="brandA">fog</span><span class="slash">/</span>west
+    <div class="brand"><span id="brandA">fog</span><span class="slash">/</span>map
       </div>
     <div id="status">
       <div id="liveChip"><span class="dot"></span><span id="liveTxt">CONNECTING</span></div>
@@ -247,7 +247,7 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
   <div id="veil">
     <div class="fogblob a"></div><div class="fogblob b"></div>
     <div class="inner">
-      <div class="brand"><span id="brandA">fog</span><span class="slash">/</span>west</div>
+      <div class="brand"><span id="brandA">fog</span><span class="slash">/</span>map</div>
       <div id="loadMsg">contacting GOES-West…</div>
       <div id="bar"><i></i></div>
       <div id="errBox"><p id="errTxt"></p><button id="retryBtn">RETRY</button></div>
@@ -258,7 +258,7 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
 
   <div id="info"><div id="infoCard">
     <button id="infoClose">close</button>
-    <h2>fog<span class="slash">/</span>west</h2>
+    <h2>fog<span class="slash">/</span>map</h2>
     <p>A live loop of <b>fog and low cloud along the entire West Coast</b> — Washington, Oregon, and California — from NOAA's <b>GOES-18 (GOES-West)</b> satellite's Pacific U.S. scan. New frames arrive about every 5 minutes; the page refreshes itself. <b>GeoColor</b> shows natural color by day and infrared at night; <b>IR</b> is the 3.9&nbsp;µm shortwave band forecasters use to find fog in the dark.</p>
     <p><b>Airports</b> show live visibility from official aviation weather reports — dots are colored by <b>flight category</b> from the live report — <span style="color:var(--vfr)">VFR</span>, <span style="color:var(--mvfr)">MVFR</span>, <span style="color:var(--ifr)">IFR</span>, <span style="color:var(--lifr)">LIFR</span> (ceiling and visibility combined, standard aviation thresholds). Tap one for the full report. <b>Webcams</b> are ridge-top sky cameras from the ALERTCalifornia / ALERTWest network — each icon is a wedge rotated to the camera's live pointing direction (zooming in reveals more cameras) — mountaintop views over the marine layer and valley fog — tinted by the visibility at the nearest reporting airport; tap for the live image.</p>
     <p><b>Imagery engine:</b> frames stream as <b>map tiles from CIRA's SLIDER service</b> — only the pixels in your viewport download, at the resolution your zoom needs, up to the satellite's native ½&nbsp;km. Zoom in <i>while the loop plays</i> and it sharpens automatically; replay reaches as far back as the tile archive holds (typically ~2–3 weeks). If the tile service is unreachable, the app falls back to NOAA's whole-frame feed.</p>
@@ -273,7 +273,7 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
 <script>
 'use strict';
 /* =====================================================================
-   fog/west — GOES-18 PACUS viewer with georeferenced weather layers
+   fog/map — GOES-18 PACUS viewer with georeferenced weather layers
    ===================================================================== */
 const CDN='https://cdn.star.nesdis.noaa.gov';
 const REGIONS={
