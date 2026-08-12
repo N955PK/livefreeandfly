@@ -125,6 +125,32 @@ async function j(u){
     clearTimeout(t); if(!r.ok)throw 0; return await r.json();
   }catch(e){clearTimeout(t);return null;}
 }
+async function jt(u){
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),16000);
+  try{const r=await fetch(u,{signal:ctl.signal});
+    clearTimeout(t); if(!r.ok)throw 0; return await r.text();
+  }catch(e){clearTimeout(t);return null;}
+}
+async function iemObs(icao,days){ // deep METAR archive via Iowa Environmental Mesonet
+  const sid=icao.replace(/^K/,'');
+  const d1=new Date(Date.now()-days*864e5), d2=new Date(Date.now()+864e5);
+  const q=`station=${sid}&data=metar&year1=${d1.getUTCFullYear()}&month1=${d1.getUTCMonth()+1}&day1=${d1.getUTCDate()}`+
+    `&year2=${d2.getUTCFullYear()}&month2=${d2.getUTCMonth()+1}&day2=${d2.getUTCDate()}`+
+    `&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no`;
+  const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
+  if(!txt)return null;
+  const feats=[];
+  for(const line of txt.split('\n')){
+    if(!line||line[0]==='#'||line.startsWith('station'))continue;
+    const i1=line.indexOf(','); if(i1<0)continue;
+    const i2=line.indexOf(',',i1+1); if(i2<0)continue;
+    const valid=line.slice(i1+1,i2).trim(), raw=line.slice(i2+1).trim();
+    if(!valid||!raw)continue;
+    let iso=valid.replace(' ','T'); if(iso.length===16)iso+=':00'; 
+    feats.push({properties:{timestamp:iso+'Z',cloudLayers:[],rawMessage:raw}});
+  }
+  return feats.length>=40?feats:null;
+}
 function slp(p){
   const s=p.seaLevelPressure&&p.seaLevelPressure.value;
   if(s)return s/100;
@@ -206,6 +232,8 @@ function chart(days,tick){
   days.forEach((d,i)=>{
     if(d.isToday)g+=`<rect x="${L}" y="${yi(i)-rowH/2}" width="${W-L-R}" height="${rowH}" fill="rgba(233,237,241,.05)" rx="3"/>`;
     g+=`<text x="${L-7}" y="${yi(i)+3}" fill="${d.isToday||d.isTmrw?'#e9edf1':'#8B959E'}" font-size="9.5" font-family="ui-monospace,monospace" text-anchor="end">${d.label}</text>`;
+    if(d.obsClear!=null||d.obsOnset!=null)
+      g+=`<line x1="${L+2}" y1="${yi(i)-rowH/2+2}" x2="${L+2}" y2="${yi(i)+rowH/2-2}" stroke="#e9edf1" stroke-width="2" opacity=".85"/>`;
   });
   const line=(key,color,dash,heldKey)=>{
     let path='',pen=false;
@@ -267,15 +295,20 @@ async function run(){
   const pvArr=Array.isArray(prev)?prev:prev?[prev]:[];
   const paArr=Array.isArray(past)?past:past?[past]:[];
   const results=await Promise.all(FIELDS.map(async(f,i)=>{
-    const chunks=[];
-    for(let k=0;k<4;k++){
-      const c0=new Date(now.getTime()-14*864e5+k*3.5*864e5).toISOString();
-      const c1=new Date(now.getTime()-14*864e5+(k+1)*3.5*864e5).toISOString();
-      chunks.push(j(`https://api.weather.gov/stations/${f.id}/observations?start=${c0}&end=${c1}&limit=500`));
+    const curP=j(`https://api.weather.gov/stations/${f.id}/observations/latest`);
+    let feats=await iemObs(f.id,15);
+    if(!feats){
+      const chunks=[];
+      for(let k=0;k<4;k++){
+        const c0=new Date(now.getTime()-14*864e5+k*3.5*864e5).toISOString();
+        const c1=new Date(now.getTime()-14*864e5+(k+1)*3.5*864e5).toISOString();
+        chunks.push(j(`https://api.weather.gov/stations/${f.id}/observations?start=${c0}&end=${c1}&limit=500`));
+      }
+      const hs=await Promise.all(chunks);
+      feats=[].concat(...hs.filter(x=>x&&x.features).map(x=>x.features));
     }
-    const [cur,...hs]=await Promise.all([
-      j(`https://api.weather.gov/stations/${f.id}/observations/latest`),...chunks]);
-    const hist={features:[].concat(...hs.filter(x=>x&&x.features).map(x=>x.features))};
+    const cur=await curP;
+    const hist={features:feats||[]};
     const h=omArr[i]&&omArr[i].hourly;
     const series=[];
     if(h&&h.time)for(let k=0;k<h.time.length;k++)
@@ -381,7 +414,7 @@ async function run(){
       </div>
       ${chart(days,tick)}
       <div class="why" style="margin-top:6px">
-        <span style="color:#e9edf1">●— observed burn-off</span> · <span style="color:#e9edf1">○-- observed return</span> ·
+        ▍ day with an observed event · <span style="color:#e9edf1">●— observed burn-off</span> · <span style="color:#e9edf1">○-- observed return</span> ·
         <span style="color:#A31F34">●— model burn-off</span> · <span style="color:#A31F34">○-- model return</span> ·
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record · ◬ blended call
       </div>`;
