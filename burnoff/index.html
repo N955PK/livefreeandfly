@@ -216,9 +216,9 @@ function modelDayScan(times,vals,dayStart,sr){
   return {clear,onset,held};
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
-function chart(days,tick){
+function chart(days,tick,nowMin){
   // rows = days (old → new, then today, tmrw); X = time of day for precision
-  const W=720,L=52,R=10,T=8,B=24,rowH=17;
+  const W=720,L=66,R=10,T=8,B=24,rowH=17;
   const Y0=5*60,Y1=22.5*60;
   const H=T+days.length*rowH+B;
   const xv=m=>L+(Math.min(Y1,Math.max(Y0,m))-Y0)/(Y1-Y0)*(W-L-R);
@@ -230,10 +230,16 @@ function chart(days,tick){
     g+=`<text x="${xv(hh*60)}" y="${H-8}" fill="${maj?'#8B959E':'rgba(139,149,158,.6)'}" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
   }
   days.forEach((d,i)=>{
-    if(d.isToday)g+=`<rect x="${L}" y="${yi(i)-rowH/2}" width="${W-L-R}" height="${rowH}" fill="rgba(233,237,241,.05)" rx="3"/>`;
+    if(d.isToday){
+      g+=`<rect x="${L}" y="${yi(i)-rowH/2}" width="${W-L-R}" height="${rowH}" fill="rgba(233,237,241,.05)" rx="3"/>`;
+      if(nowMin!=null)
+        g+=`<line x1="${xv(nowMin)}" y1="${yi(i)-rowH/2-1}" x2="${xv(nowMin)}" y2="${yi(i)+rowH/2+1}" stroke="#e9edf1" stroke-width="1.4" opacity=".9"/>`;
+    }
     g+=`<text x="${L-7}" y="${yi(i)+3}" fill="${d.isToday||d.isTmrw?'#e9edf1':'#8B959E'}" font-size="9.5" font-family="ui-monospace,monospace" text-anchor="end">${d.label}</text>`;
     if(d.obsClear!=null||d.obsOnset!=null)
-      g+=`<line x1="${L+2}" y1="${yi(i)-rowH/2+2}" x2="${L+2}" y2="${yi(i)+rowH/2-2}" stroke="#e9edf1" stroke-width="2" opacity=".85"/>`;
+      g+=`<line x1="8" y1="${yi(i)-rowH/2+2}" x2="8" y2="${yi(i)+rowH/2-2}" stroke="#e9edf1" stroke-width="2.4" opacity=".9"/>`;
+    if(d.modHeld)
+      g+=`<line x1="14" y1="${yi(i)-rowH/2+2}" x2="14" y2="${yi(i)+rowH/2-2}" stroke="#A31F34" stroke-width="2.4" opacity=".9"/>`;
   });
   const line=(key,color,dash,heldKey)=>{
     let path='',pen=false;
@@ -413,9 +419,9 @@ async function run(){
         <div class="p"><div class="k">RECENT DAYS SAY</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
         <div class="p"><div class="k">GRADIENT SAYS</div><div class="x">${gCol.v}<small>${gCol.s}</small></div></div>
       </div>
-      ${chart(days,tick)}
+      ${chart(days,tick,nowMin)}
       <div class="why" style="margin-top:6px">
-        ▍ day with an observed event · <span style="color:#e9edf1">○-- observed burn-off</span> · <span style="color:#e9edf1">●— observed return</span> ·
+        ▍ observed event that day · <span style="color:#A31F34">▍</span> model kept the deck all day · │ current time · <span style="color:#e9edf1">○-- observed burn-off</span> · <span style="color:#e9edf1">●— observed return</span> ·
         <span style="color:#A31F34">○-- model burn-off</span> · <span style="color:#A31F34">●— model return</span> · ◬ blended call
       </div>
       <div class="why" style="margin-top:2px">
