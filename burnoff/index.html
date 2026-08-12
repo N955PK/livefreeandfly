@@ -81,15 +81,18 @@ const FIELDS=[
 ];
 const $=i=>document.getElementById(i);
 const fmtHM=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'});
-function sunriseLocal(lat,lon,d){ // NOAA approximation, minutes from local midnight
+function fmtAbs(m){ // minutes from today's local midnight; handles tomorrow
+  const d=new Date(); d.setHours(0,0,0,0); d.setMinutes(m);
+  return (m>=1440?'tmrw ':'')+fmtHM.format(d);
+}
+function sunriseLocal(lat,lon,d){
   const rad=Math.PI/180, J=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
   const g=(360/365.25)*(J-81)*rad;
   const eot=9.87*Math.sin(2*g)-7.53*Math.cos(g)-1.5*Math.sin(g);
   const dec=23.45*Math.sin((360/365*(J-81))*rad)*rad;
   const ha=Math.acos(Math.max(-1,Math.min(1,
     (Math.sin(-0.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec)))))/rad;
-  const solarNoon=720-4*lon-eot-d.getTimezoneOffset();
-  return solarNoon-ha*4;
+  return 720-4*lon-eot-d.getTimezoneOffset()-ha*4;
 }
 function ceilOf(layers){
   let c=null;
@@ -108,46 +111,51 @@ async function j(u){
     clearTimeout(t); if(!r.ok)throw 0; return await r.json();
   }catch(e){clearTimeout(t);return null;}
 }
-function slp(p){ // prefer sea-level pressure, fall back to altimeter-derived
+function slp(p){
   const s=p.seaLevelPressure&&p.seaLevelPressure.value;
   if(s)return s/100;
   const a=p.barometricPressure&&p.barometricPressure.value;
   return a?a/100:null;
 }
-function clearingFromObs(obs,lat,lon){ // per-day observed clearing minutes-from-midnight
+function dayStats(obs,lat,lon){ // per past day: when the deck cleared, when it returned
   const days={};
   for(const f of obs){
     const p=f.properties||f; const t=new Date(p.timestamp);
-    const key=t.getFullYear()+'-'+t.getMonth()+'-'+t.getDate();
+    const key=t.toDateString();
     (days[key]=days[key]||[]).push({t,ceil:ceilOf(p.cloudLayers)});
   }
-  const out=[];
+  const clears=[],onsets=[]; let held=0,deckDays=0;
   for(const k of Object.keys(days)){
     const arr=days[k].sort((a,b)=>a.t-b.t);
-    const d0=arr[0].t, sr=sunriseLocal(lat,lon,d0);
-    let hadDeck=false, clearAt=null;
+    const sr=sunriseLocal(lat,lon,arr[0].t);
+    let hadDeck=false,clearAt=null,onsetAt=null,wasClearPM=false;
     for(const o of arr){
       const m=o.t.getHours()*60+o.t.getMinutes();
-      if(m<sr-40)continue;
       const low=o.ceil!=null&&o.ceil<3000;
-      if(low)hadDeck=true;
-      if(hadDeck&&!low&&clearAt==null)clearAt=m;
-      if(clearAt!=null&&low)clearAt=null;   // re-formed: not a real clearing
+      if(m>=sr-40&&m<16*60){
+        if(low)hadDeck=true;
+        if(hadDeck&&!low&&clearAt==null)clearAt=m;
+        if(clearAt!=null&&low&&m<16*60)clearAt=null;
+      }
+      if(m>=13*60){
+        if(!low)wasClearPM=true;
+        if(wasClearPM&&low&&onsetAt==null)onsetAt=m;
+      }
     }
-    if(hadDeck&&clearAt!=null&&clearAt<16.5*60)out.push(clearAt);
-    else if(hadDeck&&clearAt==null)out.push(null);   // held all day
+    if(hadDeck){deckDays++; if(clearAt!=null)clears.push(clearAt); else held++;}
+    if(onsetAt!=null)onsets.push(onsetAt);
   }
-  return out;
+  return {clears,onsets,held,deckDays,nDays:Object.keys(days).length};
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
-function fmtMin(m){const d=new Date();d.setHours(0,m,0,0);return fmtHM.format(d);}
 async function run(){
   const now=new Date();
+  const midnight=new Date(now); midnight.setHours(0,0,0,0);
+  const nowMin=(now-midnight)/60000;
   const startISO=new Date(now-7*864e5).toISOString();
-  // 1) gradients: SFO, SMF, RNO current + 12h back
+  // gradients
   const gs=await Promise.all(['KSFO','KSMF','KRNO'].map(id=>
     j(`https://api.weather.gov/stations/${id}/observations?start=${new Date(now-13*3600e3).toISOString()}&limit=60`)));
-  let gtxt='gradient data unavailable';
   let g1=null,g2=null,tr1=0;
   if(gs.every(x=>x&&x.features&&x.features.length)){
     const cur=gs.map(g=>slp(g.features[0].properties));
@@ -155,103 +163,112 @@ async function run(){
     if(cur.every(v=>v!=null)){
       g1=cur[0]-cur[1]; g2=cur[0]-cur[2];
       if(old.every(v=>v!=null))tr1=(cur[0]-cur[1])-(old[0]-old[1]);
-      $('g1').innerHTML=(g1>=0?'+':'')+g1.toFixed(1)+'<small>hPa'+(tr1>0.4?' ↑':tr1<-0.4?' ↓':' →')+'</small>';
+      $('g1').innerHTML=(g1>=0?'+':'')+g1.toFixed(1)+'<small>hPa'+(tr1>0.4?' ↑ building':tr1<-0.4?' ↓ weakening':' → steady')+'</small>';
       $('g2').innerHTML=(g2>=0?'+':'')+g2.toFixed(1)+'<small>hPa</small>';
       const strength=g1>=3.5?'strong onshore — deep, stubborn marine layer'
         :g1>=1.5?'moderate onshore — normal deck, normal burn-off'
         :g1>=0.3?'weak onshore — shallow deck, early clearing likely'
-        :'flat-to-offshore — layer suppressed; may be clear or thin';
-      const trend=tr1>0.4?'building':(tr1<-0.4?'weakening':'steady');
-      gtxt=`<b>${strength}</b> · gradient ${trend} over the last 12 h. Strong SFO→RNO push (${g2!=null?(g2>=0?'+':'')+g2.toFixed(1):'—'}) deepens the layer regionally.`;
+        :'flat-to-offshore — layer suppressed; may stay clear';
       $('grad').style.display='block';
-      $('gread').innerHTML=gtxt;
+      $('gread').innerHTML=`<b>${strength}</b>. Higher pressure at the coast than inland pushes marine air (and its stratus) onto the land; the stronger the push, the deeper the deck and the later it burns off — and the earlier it returns in the evening.`;
     }
   }
-  // 2) per-field: current obs + 7-day history + HRRR low cloud
+  // HRRR 48 h low-cloud per field
   const om=await j(`https://api.open-meteo.com/v1/forecast?latitude=${FIELDS.map(f=>f.lat).join(',')}`+
-    `&longitude=${FIELDS.map(f=>f.lon).join(',')}&hourly=cloud_cover_low&forecast_days=1`+
+    `&longitude=${FIELDS.map(f=>f.lon).join(',')}&hourly=cloud_cover_low&forecast_days=2`+
     `&timeformat=unixtime&timezone=auto&models=gfs_hrrr`);
   const omArr=Array.isArray(om)?om:om?[om]:[];
   const results=await Promise.all(FIELDS.map(async(f,i)=>{
     const [cur,hist]=await Promise.all([
       j(`https://api.weather.gov/stations/${f.id}/observations/latest`),
-      j(`https://api.weather.gov/stations/${f.id}/observations?start=${startISO}&limit=400`)
+      j(`https://api.weather.gov/stations/${f.id}/observations?start=${startISO}&limit=450`)
     ]);
-    const sr=sunriseLocal(f.lat,f.lon,now);
-    // model clearing
-    let model=null, modelNone=false, deckNow=null;
     const h=omArr[i]&&omArr[i].hourly;
-    if(h&&h.time){
-      const nowIdx=h.time.findIndex(t=>t*1000>now.getTime())-1;
-      deckNow=nowIdx>=0?h.cloud_cover_low[nowIdx]:null;
-      let found=false;
-      for(let k=0;k<h.time.length-1;k++){
-        const d=new Date(h.time[k]*1000), m=d.getHours()*60+d.getMinutes();
-        if(m<sr-30)continue;
-        if(h.cloud_cover_low[k]<40&&h.cloud_cover_low[k+1]<45){model=m;found=true;break;}
-      }
-      if(!found)modelNone=true;
-    }
-    // history clearing
-    let histArr=[],histHold=0;
-    if(hist&&hist.features){
-      const per=clearingFromObs(hist.features,f.lat,f.lon);
-      histArr=per.filter(v=>v!=null); histHold=per.filter(v=>v==null).length;
-    }
-    const hm=med(histArr);
-    // now state
+    const series=[];
+    if(h&&h.time)for(let k=0;k<h.time.length;k++)
+      series.push({m:(h.time[k]*1000-midnight.getTime())/60000, c:h.cloud_cover_low[k]});
+    const findClear=(from)=>{for(let k=0;k<series.length-1;k++){
+      if(series[k].m<from)continue;
+      if(series[k].c<40&&series[k+1].c<45)return series[k].m;}return null;};
+    const findOnset=(from)=>{for(let k=0;k<series.length-1;k++){
+      if(series[k].m<from)continue;
+      if(series[k].c>=60&&series[k+1].c>=55)return series[k].m;}return null;};
+    const st=hist&&hist.features?dayStats(hist.features,f.lat,f.lon):{clears:[],onsets:[],held:0,deckDays:0,nDays:0};
     let ceil=null,cat='vna';
     if(cur&&cur.properties){
       ceil=ceilOf(cur.properties.cloudLayers);
       cat=ceil==null||ceil>3000?'vfr':ceil>=1000?'mvfr':'ifr';
     }
-    return {f,sr,model,modelNone,deckNow,histArr,hm,histHold,ceil,cat};
+    const deckNowModel=series.length?series.find(x=>x.m>=nowMin):null;
+    return {f,series,findClear,findOnset,st,ceil,cat,
+      deckNow:(ceil!=null&&ceil<3000)||(deckNowModel&&deckNowModel.c>=55)};
   }));
-  // 3) blend + render
   $('status').textContent='updated '+fmtHM.format(now)+' · refreshes hourly';
   $('cards').innerHTML='';
-  const nowMin=now.getHours()*60+now.getMinutes();
-  const adj=(g1==null)?0:Math.max(-35,Math.min(50,(g1-2.0)*18))+(tr1>0.4?15:tr1<-0.4?-15:0);
-  results.sort((a,b)=>((a.model??a.hm??1e9))-((b.model??b.hm??1e9)));
+  const adjClear=(g1==null)?0:Math.max(-35,Math.min(50,(g1-2.0)*18))+(tr1>0.4?15:tr1<-0.4?-15:0);
+  const adjOnset=(g1==null)?0:-Math.max(-30,Math.min(40,(g1-2.0)*14))-(tr1>0.4?12:tr1<-0.4?-12:0);
+  const out=[];
   for(const r of results){
-    const el=document.createElement('div'); el.className='apt';
-    const clearNow=r.cat==='vfr'&&(r.deckNow==null||r.deckNow<35);
-    let head,sub='',why=[];
-    const both=r.model!=null&&r.hm!=null;
-    if(clearNow){
-      head='clear now'; sub='no low deck over the field';
-    }else if(r.model==null&&r.hm==null&&!r.modelNone){
-      head='—'; sub='insufficient data';
-    }else{
-      let base=both?0.55*r.model+0.45*r.hm:(r.model??r.hm);
-      let band=Math.max(25,(both?0.6*Math.abs(r.model-r.hm):45));
-      if(r.modelNone&&(g1!=null&&g1>=4)&&r.ceil!=null&&r.ceil<1500){
-        head='may hold all day';
-        sub='deep deck + strong onshore push';
-      }else if(r.modelNone&&r.hm==null){
-        head='may hold all day';
-        sub=`model keeps the deck; ${r.histHold} of last 7 mornings never cleared`;
+    let mode,head,sub='',mCol,hCol,gCol,why=[];
+    if(r.deckNow){
+      mode='clearing';
+      const model=r.findClear(Math.max(nowMin,sunriseLocal(r.f.lat,r.f.lon,now)-30));
+      const hm=med(r.st.clears);
+      mCol={v:model!=null?fmtAbs(model):'holds all day',s:'HRRR forecast of when the deck breaks'};
+      hCol={v:hm!=null?fmtAbs(hm):(r.st.held?'often held all day':'—'),
+            s:r.st.clears.length?`median of ${r.st.clears.length} observed clearings, last 7 days`:`${r.st.held} of last 7 mornings never cleared`};
+      gCol={v:adjClear>8?'later +'+Math.round(adjClear)+' min':adjClear<-8?'earlier '+Math.round(adjClear)+' min':'neutral',
+            s:'push strength shifts the blend'};
+      if(model==null&&(hm==null||r.st.held>=3)){
+        head='may hold all day'; sub='model keeps the deck; recent mornings agree';
       }else{
-        base+=adj;
-        if(base<nowMin)base=nowMin+15;
-        head='clearing ~'+fmtMin(base);
-        sub='±'+Math.round(band)+' min';
+        let base=model!=null&&hm!=null?0.55*model+0.45*hm:(model??hm);
+        base+=adjClear; if(base<nowMin)base=nowMin+15;
+        const band=Math.max(25,model!=null&&hm!=null?0.6*Math.abs(model-hm):45);
+        head='clears ~'+fmtAbs(base); sub='best estimate ±'+Math.round(band)+' min';
+        out.push([base,0]);
+      }
+      if(r.ceil!=null)why.push('deck now '+Math.round(r.ceil/100)*100+' ft');
+      if(r.st.held>=2)why.push(`${r.st.held}/7 recent mornings the deck never broke`);
+    }else{
+      mode='onset';
+      const model=r.findOnset(nowMin);
+      const hm=med(r.st.onsets);
+      mCol={v:model!=null?fmtAbs(model):'stays clear',s:'HRRR forecast of when the deck moves in'};
+      hCol={v:hm!=null?fmtAbs(hm):'—',
+            s:r.st.onsets.length?`median return time, ${r.st.onsets.length} of last 7 evenings`:'no returns observed this week'};
+      gCol={v:adjOnset<-8?'sooner '+Math.round(adjOnset)+' min':adjOnset>8?'later +'+Math.round(adjOnset)+' min':'neutral',
+            s:'stronger push brings it back sooner'};
+      if(model==null){
+        head='clear'; sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow';
+      }else{
+        let base=hm!=null?0.55*model+0.45*(hm>model+720?model:hm):model;
+        base+=adjOnset; if(base<nowMin)base=nowMin+15;
+        const band=Math.max(25,hm!=null?0.6*Math.abs(model-Math.min(hm,model+240)):45);
+        head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+Math.round(band)+' min';
+        out.push([base,1]);
       }
     }
-    if(r.ceil!=null)why.push('deck now '+Math.round(r.ceil/100)*100+' ft');
-    if(g1!=null)why.push('gradient '+(adj>8?'adds ~'+Math.round(adj)+' min':adj<-8?'trims ~'+Math.round(-adj)+' min':'neutral'));
-    if(r.histHold>=2)why.push(r.histHold+'/7 recent mornings never cleared');
+    const el=document.createElement('div'); el.className='apt';
     el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
-      <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'OVC/BKN '+Math.round(r.ceil/100)*100+"'":'no ceiling'}</span></div>
+      <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'ceiling '+Math.round(r.ceil/100)*100+"'":'no low ceiling'}</span></div>
       <div class="head">${head}<small>${sub}</small></div>
       <div class="parts">
-        <div class="p"><div class="k">MODEL · HRRR</div><div class="x">${r.model!=null?fmtMin(r.model):(r.modelNone?'holds all day':'—')}<small>3 km, hourly run</small></div></div>
-        <div class="p"><div class="k">LAST 7 MORNINGS</div><div class="x">${r.hm!=null?fmtMin(r.hm):(r.histArr.length===0&&r.histHold===0?'no deck lately':'held all day')}<small>${r.histArr.length?r.histArr.length+' clearings observed':(r.histHold?r.histHold+' full-day decks':'')}</small></div></div>
-        <div class="p"><div class="k">GRADIENT SAYS</div><div class="x">${g1==null?'—':(adj>8?'later +'+Math.round(adj)+'m':adj<-8?'earlier −'+Math.round(-adj)+'m':'neutral')}<small>SFO→SAC ${g1!=null?(g1>=0?'+':'')+g1.toFixed(1)+' hPa':''}</small></div></div>
+        <div class="p"><div class="k">MODEL SAYS</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
+        <div class="p"><div class="k">RECENT DAYS SAY</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
+        <div class="p"><div class="k">GRADIENT SAYS</div><div class="x">${gCol.v}<small>${gCol.s}</small></div></div>
       </div>
       ${why.length?`<div class="why">${why.join(' · ')}</div>`:''}`;
     $('cards').appendChild(el);
   }
+  const det=document.createElement('details');
+  det.style.cssText='margin-top:6px;color:var(--dim);font-size:12.5px;line-height:1.6';
+  det.innerHTML=`<summary style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;cursor:pointer">HOW THIS WORKS</summary>
+    <p style="margin-top:10px"><b style="color:var(--ink)">Model says</b> — NOAA's HRRR (3&nbsp;km, refreshed hourly): the first hour it forecasts low cloud under 40% is "clears"; the first hour over 60% is "fog returns."</p>
+    <p style="margin-top:8px"><b style="color:var(--ink)">Recent days say</b> — the last 7 days of actual METAR reports for this field. A "clearing" is the first report after sunrise where the ceiling lifted above 3,000&nbsp;ft and stayed; a "return" is the first afternoon/evening report where a sub-3,000&nbsp;ft deck came back. The time shown is the <b style="color:var(--ink)">median</b> of those observed events — what this week's regime has actually been doing.</p>
+    <p style="margin-top:8px"><b style="color:var(--ink)">Gradient says</b> — live SFO→SAC pressure difference. Onshore push deepens the layer: each hPa above +2.0 delays clearing ~18 min and hastens the evening return ~14 min in the blend, with a bonus for a building or weakening trend.</p>
+    <p style="margin-top:8px">The headline is a weighted blend (55% model, 45% recent days) plus the gradient shift. The ± band widens when model and history disagree — disagreement is honest uncertainty.</p>`;
+  $('cards').appendChild(det);
 }
 run();
 setInterval(run,60*60*1000);
