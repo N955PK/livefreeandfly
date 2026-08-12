@@ -127,20 +127,26 @@ function slp(p){
   const a=p.barometricPressure&&p.barometricPressure.value;
   return a?a/100:null;
 }
-function scanDay(samples,sr){ // samples: [{m,low}] one local day → {clear,onset,held,had}
-  let had=false,clear=null,onset=null,wasClearPM=false;
-  for(const o of samples){
-    if(o.m>=sr-40&&o.m<16*60){
-      if(o.low)had=true;
-      if(had&&!o.low&&clear==null)clear=o.m;
-      if(clear!=null&&o.low&&o.m<16*60)clear=null;
+function scanDay(samples,sr){ // samples:[{m,low}] sorted → {clear,onset,held,had}
+  const sustained=(i,state,dur)=>{      // does `state` hold for `dur` min from sample i?
+    const t0=samples[i].m;
+    for(let k=i+1;k<samples.length;k++){
+      if(samples[k].m-t0>dur)return true;
+      if(samples[k].low!==state)return false;
     }
-    if(o.m>=13*60){
-      if(!o.low)wasClearPM=true;
-      if(wasClearPM&&o.low&&onset==null)onset=o.m;
-    }
+    return true;                        // ran out of data while holding
+  };
+  let had=false,clear=null,onset=null;
+  for(let i=0;i<samples.length;i++){
+    const o=samples[i];
+    if(o.m<sr-40)continue;
+    if(o.low)had=true;
+    if(had&&!o.low&&clear==null&&o.m<16.5*60&&sustained(i,false,60))clear=o.m;
+    if(clear!=null&&o.low&&o.m>clear+45&&onset==null&&sustained(i,true,45))onset=o.m;
   }
-  return {clear,onset,held:had&&clear==null,had};
+  const held=had&&clear==null;
+  if(held)onset=null;                   // no clearing ⇒ no return, by definition
+  return {clear,onset,held,had};
 }
 function obsPerDay(obs,lat,lon){
   const byDay={};
@@ -158,27 +164,24 @@ function obsPerDay(obs,lat,lon){
   out.sort((x,y)=>x.d-y.d);
   return out;
 }
-function modelDayScan(times,vals,dayStart,sr){ // hourly unix times/cloud vals within one day
-  const s=[];
+function modelDayScan(times,vals,dayStart,sr){
+  const seq=[];
   for(let k=0;k<times.length;k++){
     const m=(times[k]*1000-dayStart)/60000;
     if(m<0||m>=1440)continue;
-    s.push({m,low:vals[k]>=50,c:vals[k]});
+    seq.push({m,c:vals[k]});
   }
-  let clear=null,onset=null,had=false,wasClearPM=false;
-  for(let k=0;k<s.length;k++){
-    const o=s[k],nx=s[k+1];
-    if(o.m>=sr-40&&o.m<16*60){
-      if(o.c>=50)had=true;
-      if(had&&o.c<40&&(!nx||nx.c<45)&&clear==null)clear=o.m;
-      if(clear!=null&&o.c>=55&&o.m<16*60)clear=null;
-    }
-    if(o.m>=13*60){
-      if(o.c<45)wasClearPM=true;
-      if(wasClearPM&&o.c>=60&&onset==null)onset=o.m;
-    }
+  let had=false,clear=null,onset=null;
+  for(let k=0;k<seq.length;k++){
+    const o=seq[k],nx=seq[k+1];
+    if(o.m<sr-40)continue;
+    if(o.c>=50)had=true;
+    if(had&&clear==null&&o.m<16.5*60&&o.c<40&&(!nx||nx.c<45))clear=o.m;
+    if(clear!=null&&onset==null&&o.m>clear+45&&o.c>=60&&(!nx||nx.c>=55))onset=o.m;
   }
-  return {clear,onset,held:had&&clear==null};
+  const held=had&&clear==null;
+  if(held)onset=null;
+  return {clear,onset,held};
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
 function chart(days,tick){
