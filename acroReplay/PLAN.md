@@ -359,13 +359,40 @@ increments, roll-rate constancy, loop roundness, heading hold on verticals,
 box position); Aresti overlay via OpenAero (GPL — isolate); audio cues in the
 headset; multi-session comparison ("this loop vs my best loop").
 
-### 7.1 Cockpit host options (defer until phase 4)
+### 7.1 Cockpit display platform: Apple device (decided 2026-08-13)
 
-| option | pros | cons |
+The display is an iPad or iPhone. This is the proven EFB pattern — ForeFlight
+plus Sentry/Stratux is exactly "iPad joins a sensor's internet-less Wi-Fi AP" —
+and Safari/WebKit runs a three.js scene at native refresh. The iPad mini is
+the de-facto aerobatic kneeboard for mass reasons: ~300 g is ~2.4 kg effective
+at +8 g; a full-size iPad is ~2×–5× that. iOS tolerates internet-less Wi-Fi
+but deprioritizes it: turn off auto-join for other known networks before
+flight so the device doesn't wander off the Hub AP.
+
+Browsers cannot receive UDP, so the only question is how samples reach
+Safari/the screen. Four paths; which one wins depends on U4 and U1:
+
+| path | needs | notes |
 |---|---|---|
-| iPad joins Hub Wi-Fi; bridge runs... where? | zero extra hardware | iPadOS can't run the Python bridge; browser-only works ONLY if U4-a (Hub WebSocket) pans out |
-| Raspberry Pi Zero 2 W in cockpit: joins Hub AP, runs bridge, serves its own AP/web app to iPad | full stack, $20, powered off USB | two Wi-Fi roles on one radio needs care (AP+STA), or add a USB Wi-Fi dongle |
-| Native tablet app (later) | cleanest long-term | biggest lift; do only after the loop proves valuable |
+| a. Safari → Hub WebSocket directly | U4-a true (Hub serves WS/SSE) | best case: zero extra hardware, pure web app; add to home screen (PWA) for full-screen standalone mode |
+| b. Safari → SBC bridge (Pi Zero 2 W joins Hub AP, runs the Python bridge, serves its own AP + web app) | ~$20 SBC on USB power | default if U4-a is false; keeps logging/segmentation without any App Store involvement; AP+STA on one radio needs care (or add a USB Wi-Fi dongle) |
+| c. Native thin shell: Swift app = Network.framework UDP listener + WKWebView hosting the SAME three.js app | Apple dev account; see entitlement note | polished endgame; TestFlight distribution; near-zero rework of the web frontend |
+| d. Capacitor/RN wrapper with a small UDP plugin | same entitlement note | only if c's shell is unappealing |
+
+**iOS UDP entitlement note (paths c/d):** receiving *broadcast or multicast*
+UDP on iOS hardware requires the `com.apple.developer.networking.multicast`
+entitlement — granted via an Apple request form, enforced on iOS 16+
+(simulator is exempt). Plain *unicast* UDP needs nothing. So if U1 lands on
+broadcast, either request the entitlement or use the U1-b discovery trick to
+make the Hub unicast to the device (ForeFlight's own spec pushes unicast
+because iOS broadcast reception is lossy anyway). Local-network privacy
+prompt (iOS 14+) appears once either way.
+
+Cockpit practicalities regardless of path: thermal — iPads shut down in
+direct sun under a canopy, so mount shaded; sunlight legibility — iPad Pro
+(~1000 nits) or an iPhone beats a base iPad (~600 nits); use Guided Access to
+lock to the app; mounting is a safety item (any loose mass goes airborne
+under negative g).
 
 ## 8. Repo layout (target)
 
