@@ -68,6 +68,19 @@ footer a{color:var(--dim)}
 .apt.showraw .rawline{display:block}
 .hist{margin-top:10px;color:var(--dim)}
 .hist summary{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;cursor:pointer;color:var(--dim)}
+#aboutBtn{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--dim);
+  background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+#aboutBtn:hover{color:var(--ink);border-color:rgba(233,237,241,.35)}
+#about{position:fixed;inset:0;background:rgba(6,9,13,.8);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  z-index:50;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:5vh 16px}
+#about.open{display:flex}
+#about .box{max-width:640px;background:#10161d;border:1px solid var(--line);border-radius:18px;
+  padding:26px 24px;color:var(--dim);font-size:13px;line-height:1.65}
+#about h2{font-family:var(--mono);font-size:14px;color:var(--ink);letter-spacing:.06em;margin-bottom:6px}
+#about h3{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;margin:16px 0 4px}
+#about b{color:var(--ink)}
+#about .x{float:right;font-family:var(--mono);color:var(--dim);background:none;border:1px solid var(--line);
+  border-radius:999px;width:28px;height:28px;cursor:pointer}
 #docBtn{margin-left:auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
   background:var(--glass);color:var(--dim);font-family:var(--mono);font-size:13px;cursor:pointer}
 #docBtn:hover{color:var(--ink);border-color:rgba(233,237,241,.35)}
@@ -92,6 +105,7 @@ footer a{color:var(--dim)}
   <header>
     <a href="/" aria-label="home"><img src="/assets/logo-512.v4.png" alt="" style="height:48px;width:auto;display:block"></a>
     <h1>fog<span class="slash">/</span>time</h1>
+    <button id="aboutBtn" aria-label="how this all works">ⓘ how it works</button>
     <button id="docBtn" aria-label="How the models and data work" title="How this works">i</button>
   </header>
   <div id="status">reading the morning…</div>
@@ -104,6 +118,29 @@ footer a{color:var(--dim)}
     <div id="gread"></div>
   </div>
   <div id="cards"></div>
+  <div id="about" role="dialog" aria-modal="true">
+    <div class="box">
+      <button class="x" id="aboutX" aria-label="close">✕</button>
+      <h2>how fog/time works</h2>
+      <h3>THE NOW LINE</h3>
+      The big colored readout is the field's <b>latest METAR, decoded</b> — lowest ceiling group and visibility — colored by flight category (green VFR · blue MVFR · red IFR), with the exact observation time and its age. Tap it to see the raw METAR. Observations refresh every 5 minutes and whenever you return to the tab.
+      <h3>THE TODAY TIMELINE</h3>
+      One bar, 05:00–22:30. <b style="color:#8B959E">Grey</b> = when a deck (ceiling &lt; 3,000 ft) has <b>actually been observed</b> over the field so far today. <b style="color:#A31F34">Red</b> = hours where the <b>model expects</b> a deck from now on (HRRR low-cloud ≥ 50%). The translucent <b style="color:#A31F34">red box</b> is <b>CLARO's prediction window</b> — best time (marker + line) inside an empirical ± band. Dashed verticals are sunrise and sunset; the white line is now, and it moves.
+      <h3>THE FOUR ESTIMATORS</h3>
+      <b>CLARO</b> — our fitted model (Ceiling Lift And Return Outlook): ridge regressions for burn-off and return time plus a logistic model for hourly P(ceiling &lt; 1,000 ft), trained in your browser on three warm seasons (Apr–Oct) of archived METARs, 05:00 SFO→SAC / SFO→RNO pressure gradients, HRRR archive fields, and T<sub>850</sub>−T<sub>2m</sub> as an inversion-strength proxy — the marine layer is capped near 850 hPa, and inversion structure governs stratus (Iacobellis &amp; Cayan 2013). Architecture follows the KSFO stratus systems (Hilliker &amp; Fritsch 1999; MIT-LL Marine Stratus Forecast System).
+      <b>HRRR</b> — NOAA's 3-km hourly-refresh model, read directly: first hour under 40% low cloud = clears; first over 60% = returns.
+      <b>Recent days</b> — medians of what actually happened, last 7 days.
+      <b>Gradient</b> — live SFO→SAC onshore push: stronger push, deeper deck, later burn-off, earlier evening return.
+      <h3>THE PROBABILITY STRIP</h3>
+      Eighteen cells, 05–22h: CLARO's P(ceiling &lt; 1,000 ft) for each hour today. Green low, red high. Tap a cell for the number.
+      <h3>THE 14-DAY DRAWER</h3>
+      Verification view: each row a day, time across. <b>White</b> = observed events (dashed/hollow burn-off, solid/filled return); <b style="color:#A31F34">red</b> = what the model said for that same day; gutter ticks: white = an observed event that day, red = model kept the deck all day. This is where you audit the model against reality.
+      <h3>VERIFICATION &amp; HONESTY</h3>
+      CLARO is scored walk-forward — refit on strictly earlier days, predict blind — against HRRR, persistence, and climatology; the full table and coefficients live in the <b>CLARO Lab</b> at the bottom of the page. Card ± bands are the 80th percentile of CLARO's own hindcast errors. Warm-season tool; winter tule fog is different physics. Experimental — not for flight decisions.
+      <h3>DATA &amp; CADENCE</h3>
+      METARs: NWS + Iowa Environmental Mesonet archive · model: Open-Meteo (HRRR + historical runs) · pressures: SFO/SMF/RNO. Observations every 5 min · now-line every minute · model rebuild hourly · CLARO refit daily.
+    </div>
+  </div>
   <footer>
     blend of NOAA HRRR (3&nbsp;km) · last-7-morning observed clearings (NWS) · live SFO–SAC / SFO–RNO gradients<br>
     marine-layer stratus tool — winter valley (tule) fog behaves differently · experimental · not for flight planning
@@ -201,7 +238,7 @@ async function iemObs(icao,days){ // deep METAR archive via Iowa Environmental M
   const d1=new Date(Date.now()-days*864e5), d2=new Date(Date.now()+864e5);
   const q=`station=${sid}&data=metar&year1=${d1.getUTCFullYear()}&month1=${d1.getUTCMonth()+1}&day1=${d1.getUTCDate()}`+
     `&year2=${d2.getUTCFullYear()}&month2=${d2.getUTCMonth()+1}&day2=${d2.getUTCDate()}`+
-    `&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no`;
+    `&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=yes`;
   const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
   if(!txt)return null;
   const feats=[];
@@ -214,7 +251,22 @@ async function iemObs(icao,days){ // deep METAR archive via Iowa Environmental M
     let iso=valid.replace(' ','T'); if(iso.length===16)iso+=':00'; 
     feats.push({properties:{timestamp:iso+'Z',cloudLayers:[],rawMessage:raw}});
   }
-  return feats.length>=40?feats:null;
+  if(feats.length>=40)return feats;
+  const net=icao==='KRNO'?'NV_ASOS':'CA_ASOS';
+  const out=[];
+  for(let k=0;k<Math.min(days,16);k++){
+    const d=new Date(Date.now()-k*864e5);
+    const ds=d.toISOString().slice(0,10);
+    const jd=await j(`https://mesonet.agron.iastate.edu/api/1/obhistory.json?station=${icao.slice(1)}&network=${net}&date=${ds}`);
+    const data=jd&&(jd.data||jd);
+    if(Array.isArray(data))for(const o of data){
+      if(!o||!o.metar)continue;
+      let ts=o.utc_valid||o.valid; if(!ts)continue;
+      if(!/Z$/.test(ts))ts=ts.replace(' ','T')+(ts.length<=16?':00':'')+'Z';
+      out.push({properties:{timestamp:ts,cloudLayers:[],rawMessage:o.metar}});
+    }
+  }
+  return out.length>=40?out:(feats.length?feats:null);
 }
 function slp(p){
   const s=p.seaLevelPressure&&p.seaLevelPressure.value;
@@ -545,6 +597,7 @@ async function run(){
       <div class="rawline" data-raw>${r.obsRaw||''}</div>
       <div class="head">${head}<small>${sub}</small></div>
       <div data-strip>${todayStrip(r,tick,r.stripBand||45,nowMin,sr,r.ssv)}</div>
+      <div class="why" style="margin-top:2px"><span style="color:#8B959E">▮</span> deck observed today · <span style="color:#A31F34">▮</span> model expects deck · <span style="color:#A31F34">▢</span> CLARO ± window &amp; marker · │ now · ┆ sunrise/sunset</div>
       <div class="parts">
         <div class="p"><div class="k">HRRR</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
         <div class="p"><div class="k">RECENT DAYS</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
@@ -625,7 +678,7 @@ const CLARO={
       const q='station='+r.f.id.slice(1)+'&data=metar'
         +'&year1='+a.getUTCFullYear()+'&month1='+(a.getUTCMonth()+1)+'&day1='+a.getUTCDate()
         +'&year2='+b.getUTCFullYear()+'&month2='+(b.getUTCMonth()+1)+'&day2='+(b.getUTCDate()+1)
-        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no';
+        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=yes';
       const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
       if(!txt)continue;
       const byDay={};
@@ -675,7 +728,7 @@ const CLARO={
       const q='station='+sid.slice(1)+'&data=mslp&data=alti'
         +'&year1='+a.getUTCFullYear()+'&month1='+(a.getUTCMonth()+1)+'&day1='+a.getUTCDate()
         +'&year2='+b.getUTCFullYear()+'&month2='+(b.getUTCMonth()+1)+'&day2='+(b.getUTCDate()+1)
-        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no';
+        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=yes';
       const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
       if(!txt)continue;
       let hi=-1,hm=-1,ha2=-1;
@@ -1045,6 +1098,10 @@ function tickAges(){
     if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
   }
 }
+document.getElementById('aboutBtn').onclick=()=>document.getElementById('about').classList.add('open');
+document.getElementById('aboutX').onclick=()=>document.getElementById('about').classList.remove('open');
+document.getElementById('about').onclick=e=>{if(e.target.id==='about')e.target.classList.remove('open');};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('about').classList.remove('open');});
 run();
 setInterval(run,60*60*1000);            // full rebuild + CLARO refit hourly
 setInterval(refreshObs,5*60*1000);      // latest observations every 5 min
