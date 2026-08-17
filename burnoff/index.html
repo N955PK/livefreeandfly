@@ -347,7 +347,7 @@ function modelDayScan(times,vals,dayStart,sr){
   return {clear,onset,held};
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
-function todayStrip(r,pred,band,nowMin,sr,ssv){
+function todayStrip(r,nowMin,sr,ssv){
   const W=720,H=76,L=10,R=10,T=24,BH=22;
   const Y0=5*60,Y1=22.5*60;
   const xv=m=>L+(Math.min(Y1,Math.max(Y0,m))-Y0)/(Y1-Y0)*(W-L-R);
@@ -367,11 +367,14 @@ function todayStrip(r,pred,band,nowMin,sr,ssv){
     if(p.m<nowMin||p.m>Y1)continue;
     if(p.c>=50)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${BH}" fill="#A31F34" opacity=".38"/>`;
   }
-  if(pred!=null&&pred<Y1){
-    const a=Math.max(Y0,pred-band),b=Math.min(Y1,pred+band);
-    g+=`<rect x="${xv(a)}" y="${T-3}" width="${Math.max(2,xv(b)-xv(a))}" height="${BH+6}" rx="4" fill="rgba(163,31,52,.16)" stroke="rgba(163,31,52,.45)"/>`;
-    g+=`<path d="M${xv(pred)} ${T-6} l5 -8 h-10 z" fill="#A31F34"/>`;
-    g+=`<line x1="${xv(pred)}" y1="${T-4}" x2="${xv(pred)}" y2="${T+BH+4}" stroke="#A31F34" stroke-width="1.6"/>`;
+  for(const ev of (r.events||[])){
+    if(ev.m==null||ev.m>=Y1)continue;
+    const col=ev.kind==='clear'?'57,208,127':'255,163,46';
+    const hexc=ev.kind==='clear'?'#39d07f':'#ffa32e';
+    const a=Math.max(Y0,ev.m-ev.band),b=Math.min(Y1,ev.m+ev.band);
+    g+=`<rect x="${xv(a)}" y="${T-3}" width="${Math.max(2,xv(b)-xv(a))}" height="${BH+6}" rx="4" fill="rgba(${col},.14)" stroke="rgba(${col},.5)"/>`;
+    g+=`<path d="M${xv(ev.m)} ${T-6} l5 -8 h-10 z" fill="${hexc}"/>`;
+    g+=`<line x1="${xv(ev.m)}" y1="${T-4}" x2="${xv(ev.m)}" y2="${T+BH+4}" stroke="${hexc}" stroke-width="1.6"/>`;
   }
   if(nowMin>=Y0&&nowMin<=Y1)
     g+=`<line x1="${xv(nowMin)}" y1="${T-8}" x2="${xv(nowMin)}" y2="${T+BH+8}" stroke="#e9edf1" stroke-width="1.6"/>`+
@@ -421,8 +424,8 @@ function chart(days,tick,nowMin){
   };
   line('obsClear','#e9edf1',true,null);
   line('obsOnset','#e9edf1',false,null);
-  line('modClear','#A31F34',true,null);
-  line('modOnset','#A31F34',false,null);
+  line('modClear','#39d07f',true,null);
+  line('modOnset','#ffa32e',false,null);
   if(tick!=null){
     const i=days.findIndex(d=>tick<1440?d.isToday:d.isTmrw);
     if(i>=0)g+=`<circle cx="${xv(tick%1440)}" cy="${yi(i)}" r="5.6" fill="none" stroke="#A31F34" stroke-width="1.8"/>`+
@@ -580,13 +583,27 @@ async function run(){
             s:clears.length?`median of ${clears.length} observed clearings, last 7 days`:`${held} of last 7 mornings never cleared`};
       gCol={v:adjClear>8?'later +'+fmtDur(adjClear):adjClear<-8?'earlier −'+fmtDur(-adjClear):'neutral',
             s:'push strength shifts the blend'};
-      if(model==null&&(hm==null||held>=3)){head='may hold all day';sub='model keeps the deck; recent mornings agree';}
+      if(model==null&&(hm==null||held>=3)){head='may hold all day';sub='model keeps the deck; recent mornings agree'; r.events=[];}
       else{
         const mcorr=model!=null?model-biasC:null;
         let base=mcorr!=null&&hm!=null?0.55*mcorr+0.45*hm:(mcorr??hm);
         base+=adjClear; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,model!=null&&hm!=null?0.6*Math.abs(model-hm):45);
-        head='clears ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base; r.stripBand=band;
+        r.events=[{m:base,band,kind:'clear'}];
+        head='clears ~'+fmtAbs(base);
+        const om2=r.findOnset(Math.max(nowMin,base+30));
+        if(om2!=null){
+          let rb=(om2-biasO)+adjOnset;
+          const hmO=med(onsets);
+          if(hmO!=null&&hmO<=rb+240)rb=0.55*rb+0.45*hmO;
+          if(rb>base+30){
+            const band2=Math.max(30,hmO!=null?0.6*Math.abs(om2-hmO):50);
+            r.events.push({m:rb,band:band2,kind:'return'});
+            head+=' · fog returns ~'+fmtAbs(rb);
+            sub='±'+fmtDur(band)+' / ±'+fmtDur(band2)+' · ≈'+fmtDur(rb-base)+' of clear air';
+          }else sub='±'+fmtDur(band)+' · no return expected today';
+        }else sub='±'+fmtDur(band)+' · no return expected today';
+        tick=base;
       }
     }else{
       const model=r.findOnset(nowMin);
@@ -596,13 +613,28 @@ async function run(){
             s:onsets.length?`median return time, ${onsets.length} of last 7 evenings`:'no returns observed this week'};
       gCol={v:adjOnset<-8?'sooner −'+fmtDur(-adjOnset):adjOnset>8?'later +'+fmtDur(adjOnset):'neutral',
             s:'stronger push brings it back sooner'};
-      if(model==null){head='clear';sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow';}
+      if(model==null){head='clear';sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow'; r.events=[];}
       else{
         const mcorr=model-biasO;
         let base=hm!=null?0.55*mcorr+0.45*(hm>mcorr+720?mcorr:hm):mcorr;
         base+=adjOnset; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,hm!=null?0.6*Math.abs(model-Math.min(hm,model+240)):45);
-        head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base; r.stripBand=band;
+        r.events=[{m:base,band,kind:'return'}];
+        head='fog returns ~'+fmtAbs(base);
+        const tmSr=sunriseOf(r.f.lat,r.f.lon,new Date(midnight.getTime()+864e5+12*3600e3));
+        const mc2=r.findClear(Math.max(base+60,1440+tmSr-30));
+        if(mc2!=null){
+          let cb=(mc2-biasC)+adjClear;
+          const hmC=med(clears);
+          if(hmC!=null)cb=0.55*cb+0.45*(1440+hmC);
+          if(cb>base+30){
+            const band2=Math.max(30,hmC!=null?0.6*Math.abs(mc2-(1440+hmC)):50);
+            r.events.push({m:cb,band:band2,kind:'clear'});
+            head+=' · clears ~'+fmtAbs(cb);
+            sub='±'+fmtDur(band)+' / ±'+fmtDur(band2);
+          }else sub='best estimate ±'+fmtDur(band);
+        }else sub='best estimate ±'+fmtDur(band);
+        tick=base;
       }
     }
     const el=document.createElement('div'); el.className='apt'; el.dataset.id=r.f.s;
@@ -613,8 +645,8 @@ async function run(){
         <span class="nowsub" data-nowsub>${r.obsWhen||''}</span></div>
       <div class="rawline" data-raw>${r.obsRaw||''}</div>
       <div class="head">${head}<small>${sub}</small></div>
-      <div data-strip>${todayStrip(r,tick,r.stripBand||45,nowMin,sr,r.ssv)}</div>
-      <div class="why" style="margin-top:2px"><span style="color:#8B959E">▮</span> deck observed today · <span style="color:#A31F34">▮</span> model expects deck · <span style="color:#A31F34">▢</span> CLARO ± window &amp; marker · │ now · ┆ sunrise/sunset</div>
+      <div data-strip>${todayStrip(r,nowMin,sr,r.ssv)}</div>
+      <div class="why" style="margin-top:2px"><span style="color:#8B959E">▮</span> deck observed today · <span style="color:#A31F34">▮</span> model expects deck · <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> — prediction windows · │ now · ┆ sunrise/sunset</div>
       <div class="parts">
         <div class="p"><div class="k">HRRR</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
         <div class="p"><div class="k">RECENT DAYS</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
@@ -624,7 +656,7 @@ async function run(){
       ${(r.lastTick=tick,'')}${chart(days,tick,nowMin)}
       <div class="why" style="margin-top:6px">
         ▍ observed event that day · <span style="color:#A31F34">▍</span> model kept the deck all day · │ current time · <span style="color:#e9edf1">○-- observed burn-off</span> · <span style="color:#e9edf1">●— observed return</span> ·
-        <span style="color:#A31F34">○-- model burn-off</span> · <span style="color:#A31F34">●— model return</span> · ◬ blended call
+        <span style="color:#39d07f">○-- model burn-off</span> · <span style="color:#ffa32e">●— model return</span> · ◬ blended call
       </div>
       <div class="why mcheck" style="margin-top:2px">
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
@@ -1129,7 +1161,7 @@ function redrawStrips(){
   for(const r of RESULTS){
     const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
     const holder=card&&card.querySelector('[data-strip]');
-    if(holder)holder.innerHTML=todayStrip(r,r.lastTick??null,r.stripBand||45,nowMin,sunriseOf(r.f.lat,r.f.lon,new Date()),r.ssv);
+    if(holder)holder.innerHTML=todayStrip(r,nowMin,sunriseOf(r.f.lat,r.f.lon,new Date()),r.ssv);
   }
 }
 function tickAges(){
