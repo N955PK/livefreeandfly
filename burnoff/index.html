@@ -38,7 +38,8 @@ h1 .slash{color:var(--accent);font-weight:700}
 .now i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
 .head{font-family:var(--mono);font-size:24px;font-weight:600;margin:10px 0 2px}
 .head small{font-size:12px;color:var(--dim);font-weight:400;margin-left:8px}
-.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.parts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+@media(min-width:900px){.parts{grid-template-columns:repeat(4,1fr)}}
 .p{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .p .k{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--dim)}
 .p .x{font-family:var(--mono);font-size:13.5px;font-weight:600;margin-top:3px}
@@ -47,7 +48,7 @@ h1 .slash{color:var(--accent);font-weight:700}
 footer{margin-top:22px;color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.04em;line-height:1.9;text-align:center}
 footer a{color:var(--dim)}
 #status{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:14px;min-height:14px}
-@media(max-width:480px){.parts{grid-template-columns:1fr 1fr} .p:last-child{grid-column:1/-1}}
+
 
 @media(min-width:1100px){
   main{max-width:1280px}
@@ -60,6 +61,9 @@ footer a{color:var(--dim)}
 #lab th:first-child,#lab td:first-child{text-align:left}
 #lab th{color:var(--dim);font-weight:400;letter-spacing:.06em}
 .fitchip{border-color:rgba(163,31,52,.5)!important}
+.mcheck{border-top:1px solid var(--line);padding-top:6px;margin-top:8px!important}
+.paxis{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:2px;font-family:var(--mono);font-size:8px;color:var(--dim)}
+.paxis span{text-align:center}
 </style>
 </head>
 <body>
@@ -86,9 +90,9 @@ footer a{color:var(--dim)}
 <script>
 const FIELDS=[
  {id:'KWVI',s:'WVI',n:'Watsonville',lat:36.9357,lon:-121.7896},
+ {id:'KOAR',s:'OAR',n:'Marina',lat:36.6819,lon:-121.7621},
  {id:'KMRY',s:'MRY',n:'Monterey',lat:36.5870,lon:-121.8429},
  {id:'KSNS',s:'SNS',n:'Salinas',lat:36.6628,lon:-121.6064},
- {id:'KOAR',s:'OAR',n:'Marina',lat:36.6819,lon:-121.7621},
  {id:'KHAF',s:'HAF',n:'Half Moon Bay',lat:37.5134,lon:-122.5011},
 ];
 const $=i=>document.getElementById(i);
@@ -423,16 +427,16 @@ async function run(){
       <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'ceiling '+Math.round(r.ceil/100)*100+"'":'no low ceiling'}</span></div>
       <div class="head">${head}<small>${sub}</small></div>
       <div class="parts">
-        <div class="p"><div class="k">MODEL SAYS</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
-        <div class="p"><div class="k">RECENT DAYS SAY</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
-        <div class="p"><div class="k">GRADIENT SAYS</div><div class="x">${gCol.v}<small>${gCol.s}</small></div></div>
+        <div class="p"><div class="k">HRRR</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
+        <div class="p"><div class="k">RECENT DAYS</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
+        <div class="p"><div class="k">GRADIENT</div><div class="x">${gCol.v}<small>${gCol.s}</small></div></div>
       </div>
       ${chart(days,tick,nowMin)}
       <div class="why" style="margin-top:6px">
         ▍ observed event that day · <span style="color:#A31F34">▍</span> model kept the deck all day · │ current time · <span style="color:#e9edf1">○-- observed burn-off</span> · <span style="color:#e9edf1">●— observed return</span> ·
         <span style="color:#A31F34">○-- model burn-off</span> · <span style="color:#A31F34">●— model return</span> · ◬ blended call
       </div>
-      <div class="why" style="margin-top:2px">
+      <div class="why mcheck" style="margin-top:2px">
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
       </div>`;
     $('cards').appendChild(el);
@@ -452,105 +456,83 @@ async function run(){
     <p style="margin-top:8px"><b style="color:var(--ink)">Gradient says</b> — live SFO→SAC pressure difference; each hPa above +2.0 delays clearing ~18 min and hastens the return ~14 min in the blend.</p>
     <p style="margin-top:8px">Headline = 55% model + 45% recent days, shifted by the gradient; the ± widens when they disagree.</p>`;
   $('cards').appendChild(det);
-  try{LAB.boot(results,{g1,g2,tr1,nowMin,midnight});}catch(e){console.warn('lab',e);}
+  try{CLARO.boot(results,{g1,g2,tr1,nowMin,midnight});}catch(e){console.warn('claro',e);}
 }
 
-/* ===================== MODEL LAB =====================
-   Fitted statistical models for burn-off / onset / P(ceiling<1000ft),
-   trained in-browser on ~120 days of archived METARs + model fields,
-   verified walk-forward. Lineage: Hilliker & Fritsch 1999 (obs-based
-   hourly ceiling probabilities, KSFO); MIT-LL Marine Stratus Forecast
-   System (consensus of models); Iacobellis & Cayan 2013 (inversion
-   base height governs stratus); Klein & Hartmann LTS stability.      */
-const LAB={
-  DAYS:120, TESTN:28,
-  key:'foglab.v2',
-  st:null,
+/* ============================ CLARO ============================
+   Ceiling Lift And Return Outlook — a fitted statistical model for
+   marine-stratus burn-off time, evening return time, and hourly
+   P(ceiling < 1000 ft), per airport.
+   Training: three warm seasons (Apr–Oct) of archived METARs (IEM),
+   regional MSLP gradients, HRRR archive fields, and T850−T2m as an
+   inversion-strength proxy. Verified walk-forward against baselines.
+   Lineage: Hilliker & Fritsch 1999; MIT-LL Marine Stratus Forecast
+   System; Iacobellis & Cayan 2013; Klein–Hartmann LTS.             */
+const CLARO={
+  TESTN:45, key:'claro.v1', st:null,
+  windows(){
+    const now=new Date(), Y=now.getFullYear(), out=[];
+    for(let y=Y-2;y<=Y;y++){
+      const a=new Date(Date.UTC(y,3,1));
+      let b=new Date(Date.UTC(y,9,31));
+      if(y===Y){ if(now<a)continue; b=new Date(Math.min(b.getTime(),now.getTime())); }
+      if(b>a)out.push([a,b]);
+    }
+    return out;
+  },
   async boot(results,ctx){
     const today=new Date().toDateString();
     let cache=null;
     try{cache=JSON.parse(localStorage.getItem(this.key)||'null');}catch(e){}
-    if(cache&&cache.day===today){this.st=cache;this.apply(results,ctx);return;}
     const stat=document.getElementById('status');
     const say=t=>{if(stat)stat.textContent=t;};
-    say('training statistical model — pulling archives…');
+    if(cache&&cache.day===today&&cache.out){
+      this.st=cache; this.apply(results,ctx); return;
+    }
+    say('CLARO — training on three seasons of archives…');
     try{
-      const st=await this.build(results,say,ctx);
+      const st=await this.build(results,say,cache);
       st.day=today; this.st=st;
-      try{localStorage.setItem(this.key,JSON.stringify(st));}catch(e){}
+      try{localStorage.setItem(this.key,JSON.stringify(st));}
+      catch(e){ try{localStorage.setItem(this.key,JSON.stringify({day:st.day,out:st.out,names:st.names,tB:st.tB}));}catch(e2){} }
       this.apply(results,ctx);
-      say('updated '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date())+' · fitted model active · refreshes hourly');
-    }catch(e){console.warn('LAB build failed',e); say('fitted model unavailable — heuristic blend shown');}
+      say('updated '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date())+' · CLARO active · refreshes hourly');
+    }catch(e){console.warn('CLARO build failed',e); say('CLARO unavailable — heuristic blend shown');}
   },
   parseTd(raw){ const m=String(raw).match(/\s(M?\d{2})\/(M?\d{2})\s/); if(!m)return null;
     const f=x=>parseInt(x.replace('M','-'),10); return {t:f(m[1]),td:f(m[2])}; },
-  async build(results,say,ctx){
-    const now=new Date(); const mid=new Date(now); mid.setHours(0,0,0,0);
-    const dayKey=d=>d.toDateString();
-    const d0=new Date(now.getTime()-this.DAYS*864e5);
+  packHc(hc){return hc.map(v=>v==null?-1:Math.min(99,Math.round(v/100)));},
+  unpackHc(p){return p.map(v=>v<0?null:v*100);},
+  async fetchRange(results,say,a,b,rowsByField,pressCache){
     const dstr=d=>d.toISOString().slice(0,10);
-    say('training — station archives…');
-    const fieldFeats={};
+    const spanDays=Math.round((b-a)/864e5)+2;
+    // METAR archives per field
     for(const r of results){
-      const f=await iemObs(r.f.id,this.DAYS+2);
-      fieldFeats[r.f.s]=f||[];
-      say('training — archives '+Object.keys(fieldFeats).length+'/'+results.length);
-    }
-    const press={};
-    for(const sid of ['KSFO','KSMF','KRNO']){
-      const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?station='+sid.slice(1)
-        +'&data=mslp&data=alti&year1='+d0.getUTCFullYear()+'&month1='+(d0.getUTCMonth()+1)+'&day1='+d0.getUTCDate()
-        +'&year2='+now.getUTCFullYear()+'&month2='+(now.getUTCMonth()+1)+'&day2='+(now.getUTCDate()+1)
-        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no');
-      const arr=[];
-      if(txt){
-        const lines=txt.split('\n'); let hi=-1,hm=-1,ha=-1;
-        for(const line of lines){
-          if(line.startsWith('station')){const h=line.split(',');hm=h.indexOf('mslp');ha=h.indexOf('alti');hi=h.indexOf('valid');continue;}
-          if(!line||line[0]==='#')continue;
-          const c=line.split(','); if(hi<0||!c[hi])continue;
-          let p=hm>=0&&c[hm]&&c[hm]!=='M'?parseFloat(c[hm]):null;
-          if(p==null&&ha>=0&&c[ha]&&c[ha]!=='M')p=parseFloat(c[ha])*33.8639;
-          if(p==null||!isFinite(p))continue;
-          let iso=c[hi].replace(' ','T'); if(iso.length===16)iso+=':00';
-          arr.push({ms:Date.parse(iso+'Z'),p});
-        }
-      }
-      press[sid]=arr.sort((a,b)=>a.ms-b.ms);
-      say('training — pressure '+sid);
-    }
-    const pAt=(sid,ms)=>{ const a=press[sid]; if(!a||!a.length)return null;
-      let best=null,bd=1e15; for(const o of a){const d=Math.abs(o.ms-ms); if(d<bd){bd=d;best=o.p;}}
-      return bd<=100*60000?best:null; };
-    say('training — model archive…');
-    const latq=results.map(r=>r.f.lat).join(','), lonq=results.map(r=>r.f.lon).join(',');
-    let histA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
-      +'&hourly=cloud_cover_low&start_date='+dstr(d0)+'&end_date='+dstr(now)+'&timeformat=unixtime&timezone=auto&models=gfs_hrrr');
-    if(!histA)histA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
-      +'&hourly=cloud_cover_low&start_date='+dstr(d0)+'&end_date='+dstr(now)+'&timeformat=unixtime&timezone=auto');
-    const histB=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
-      +'&hourly=temperature_850hPa,temperature_2m&start_date='+dstr(d0)+'&end_date='+dstr(now)+'&timeformat=unixtime&timezone=auto');
-    const todayB=await j('https://api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
-      +'&hourly=temperature_850hPa,temperature_2m&forecast_days=2&timeformat=unixtime&timezone=auto');
-    const hA=i=>Array.isArray(histA)?histA[i]&&histA[i].hourly:histA&&histA.hourly;
-    const hB=i=>Array.isArray(histB)?histB[i]&&histB[i].hourly:histB&&histB.hourly;
-    const tB=i=>Array.isArray(todayB)?todayB[i]&&todayB[i].hourly:todayB&&todayB.hourly;
-    say('training — building feature rows…');
-    const perField={};
-    results.forEach((r,fi)=>{
+      say('CLARO — '+r.f.s+' archive '+dstr(a).slice(0,7)+'…');
+      const q='station='+r.f.id.slice(1)+'&data=metar'
+        +'&year1='+a.getUTCFullYear()+'&month1='+(a.getUTCMonth()+1)+'&day1='+a.getUTCDate()
+        +'&year2='+b.getUTCFullYear()+'&month2='+(b.getUTCMonth()+1)+'&day2='+(b.getUTCDate()+1)
+        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no';
+      const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
+      if(!txt)continue;
       const byDay={};
-      for(const ft of fieldFeats[r.f.s]){
-        const p=ft.properties; const t=new Date(p.timestamp);
-        const k=dayKey(t);
-        (byDay[k]=byDay[k]||[]).push({t,m:t.getHours()*60+t.getMinutes(),
-          ceil:ceilOf(p.cloudLayers,p.rawMessage), raw:p.rawMessage});
+      for(const line of txt.split('\n')){
+        if(!line||line[0]==='#'||line.startsWith('station'))continue;
+        const i1=line.indexOf(','); if(i1<0)continue;
+        const i2=line.indexOf(',',i1+1); if(i2<0)continue;
+        let iso=line.slice(i1+1,i2).trim().replace(' ','T'); if(iso.length===16)iso+=':00';
+        const raw=line.slice(i2+1).trim();
+        if(!iso||!raw)continue;
+        const t=new Date(iso+'Z');
+        (byDay[t.toDateString()]=byDay[t.toDateString()]||[]).push({t,m:t.getHours()*60+t.getMinutes(),
+          ceil:ceilOf([],raw),raw});
       }
-      const days=Object.keys(byDay).map(k=>({k,d:new Date(k)})).sort((a,b)=>a.d-b.d);
-      const rows=[];
-      const ha=hA(fi), hb=hB(fi);
-      for(let di=0;di<days.length;di++){
-        const {k,d}=days[di];
-        const obs=byDay[k].sort((a,b)=>a.m-b.m);
+      const R=rowsByField[r.f.s]=rowsByField[r.f.s]||{};
+      for(const k of Object.keys(byDay)){
+        const d=new Date(k);
+        const mon=d.getMonth()+1;
+        if(mon<4||mon>10)continue;
+        const obs=byDay[k].sort((x,y)=>x.m-y.m);
         if(obs.length<8)continue;
         const sr=sunriseOf(r.f.lat,r.f.lon,d);
         const ss=scanDay(obs.map(o=>({m:o.m,low:o.ceil!=null&&o.ceil<3000})),sr);
@@ -558,7 +540,7 @@ const LAB={
         for(const o of obs){
           if(o.m>=sr-60&&o.m<=sr+90){
             if(o.ceil!=null&&(dawnCeil==null||o.ceil<dawnCeil))dawnCeil=o.ceil;
-            if(spread==null){const td=LAB.parseTd(o.raw); if(td)spread=td.t-td.td;}
+            if(spread==null){const td=CLARO.parseTd(o.raw); if(td)spread=td.t-td.td;}
             if(o.ceil!=null&&o.ceil<1000)st05=1;
           }
         }
@@ -566,98 +548,193 @@ const LAB={
         for(const o of obs){const h=Math.floor(o.m/60);
           if(o.ceil!=null&&(hc[h]==null||o.ceil<hc[h]))hc[h]=o.ceil;
           else if(o.ceil==null&&hc[h]==null)hc[h]=9999;}
-        const t05=d.getTime()+5*3600e3;
-        const g1v=(()=>{const a=pAt('KSFO',t05),b=pAt('KSMF',t05);return a!=null&&b!=null?a-b:null;})();
-        const g2v=(()=>{const a=pAt('KSFO',t05),b=pAt('KRNO',t05);return a!=null&&b!=null?a-b:null;})();
-        const g1p=(()=>{const t23=d.getTime()-3600e3;const a=pAt('KSFO',t23),b=pAt('KSMF',t23);return a!=null&&b!=null?a-b:null;})();
-        let mhc=null,mho=null,mheld=0,cclArr=null,t8=null;
-        if(ha&&ha.time){const dm=modelDayScan(ha.time,ha.cloud_cover_low||[],d.getTime(),sr);
-          if(!dm.thin){mhc=dm.clear;mho=dm.onset;mheld=dm.held?1:0;}
-          cclArr=new Array(24).fill(null);
+        const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+        R[k]={ms:d.getTime(),sr:Math.round(sr),
+          y:ss.clear,yo:ss.onset,held:ss.held?1:0,
+          dc:dawnCeil,sp:spread,s5:st05,
+          hc:CLARO.packHc(hc),
+          dS:+Math.sin(2*Math.PI*doy/365).toFixed(4),dC:+Math.cos(2*Math.PI*doy/365).toFixed(4)};
+      }
+    }
+    // pressure gradients at 05 local, per day
+    for(const sid of ['KSFO','KSMF','KRNO']){
+      say('CLARO — pressure '+sid+' '+dstr(a).slice(0,7));
+      const q='station='+sid.slice(1)+'&data=mslp&data=alti'
+        +'&year1='+a.getUTCFullYear()+'&month1='+(a.getUTCMonth()+1)+'&day1='+a.getUTCDate()
+        +'&year2='+b.getUTCFullYear()+'&month2='+(b.getUTCMonth()+1)+'&day2='+(b.getUTCDate()+1)
+        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no';
+      const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
+      if(!txt)continue;
+      let hi=-1,hm=-1,ha2=-1;
+      const P=pressCache[sid]=pressCache[sid]||{};
+      for(const line of txt.split('\n')){
+        if(line.startsWith('station')){const h=line.split(',');hm=h.indexOf('mslp');ha2=h.indexOf('alti');hi=h.indexOf('valid');continue;}
+        if(!line||line[0]==='#')continue;
+        const c=line.split(','); if(hi<0||!c[hi])continue;
+        let p=hm>=0&&c[hm]&&c[hm]!=='M'?parseFloat(c[hm]):null;
+        if(p==null&&ha2>=0&&c[ha2]&&c[ha2]!=='M')p=parseFloat(c[ha2])*33.8639;
+        if(p==null||!isFinite(p))continue;
+        let iso=c[hi].trim().replace(' ','T'); if(iso.length===16)iso+=':00';
+        const t=new Date(iso+'Z');
+        const local5=new Date(t); // bucket to nearest local 05:00 / 17:00-prev trend anchor
+        const k=t.toDateString(), hr=t.getHours()+t.getMinutes()/60;
+        const slot=Math.abs(hr-5)<=1.2?'a':(Math.abs(hr-23)<=1.2?'b':null);
+        if(!slot)continue;
+        (P[k]=P[k]||{})[slot]=p;
+      }
+    }
+    // Open-Meteo archives for the window
+    say('CLARO — model archive '+dstr(a).slice(0,7));
+    const latq=results.map(r=>r.f.lat).join(','), lonq=results.map(r=>r.f.lon).join(',');
+    let hA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
+      +'&hourly=cloud_cover_low&start_date='+dstr(a)+'&end_date='+dstr(b)+'&timeformat=unixtime&timezone=auto&models=gfs_hrrr');
+    if(!hA)hA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
+      +'&hourly=cloud_cover_low&start_date='+dstr(a)+'&end_date='+dstr(b)+'&timeformat=unixtime&timezone=auto');
+    const hBres=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
+      +'&hourly=temperature_850hPa,temperature_2m&start_date='+dstr(a)+'&end_date='+dstr(b)+'&timeformat=unixtime&timezone=auto');
+    results.forEach((r,fi)=>{
+      const ha=Array.isArray(hA)?hA[fi]&&hA[fi].hourly:hA&&hA.hourly;
+      const hb=Array.isArray(hBres)?hBres[fi]&&hBres[fi].hourly:hBres&&hBres.hourly;
+      const R=rowsByField[r.f.s]||{};
+      for(const k of Object.keys(R)){
+        const row=R[k]; const d=new Date(k);
+        if(row.mhc!==undefined&&row.t8!==undefined)continue;
+        if(ha&&ha.time){
+          const dm=modelDayScan(ha.time,ha.cloud_cover_low||[],d.getTime(),row.sr);
+          if(!dm.thin){row.mhc=dm.clear;row.mho=dm.onset;row.mh=dm.held?1:0;}
+          const cc=new Array(24).fill(-1);
           for(let q3=0;q3<ha.time.length;q3++){
             const mm=(ha.time[q3]*1000-d.getTime())/3600e3;
-            if(mm>=0&&mm<24&&ha.cloud_cover_low[q3]!=null)cclArr[Math.round(mm)]=ha.cloud_cover_low[q3];
-          }}
-        if(hb&&hb.time){const idx=hb.time.findIndex(t=>Math.abs(t*1000-(d.getTime()+6*3600e3))<1800e3);
-          if(idx>=0&&hb.temperature_850hPa&&hb.temperature_2m&&hb.temperature_850hPa[idx]!=null)
-            t8=hb.temperature_850hPa[idx]-hb.temperature_2m[idx];}
-        const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
-        rows.push({k,ms:d.getTime(),sr,
-          y:ss.clear,yo:ss.onset,held:ss.held?1:0,had:ss.had?1:0,
-          dawnCeil,spread,st05,g1:g1v,g2:g2v,g1t:(g1v!=null&&g1p!=null)?g1v-g1p:null,
-          mhc,mho,mheld,t8,ccl:cclArr,hc,
-          doyS:Math.sin(2*Math.PI*doy/365),doyC:Math.cos(2*Math.PI*doy/365)});
+            if(mm>=0&&mm<24&&ha.cloud_cover_low[q3]!=null)cc[Math.round(mm)]=Math.round(ha.cloud_cover_low[q3]);
+          }
+          row.cc=cc;
+        }
+        if(hb&&hb.time){
+          const idx=hb.time.findIndex(t=>Math.abs(t*1000-(d.getTime()+6*3600e3))<1800e3);
+          if(idx>=0&&hb.temperature_850hPa&&hb.temperature_850hPa[idx]!=null)
+            row.t8=+(hb.temperature_850hPa[idx]-hb.temperature_2m[idx]).toFixed(1);
+        }
       }
-      for(let i=1;i<rows.length;i++){rows[i].pc=rows[i-1].y;rows[i].po=rows[i-1].yo;}
-      perField[r.f.s]=rows;
     });
-    say('training — fitting & verifying…');
-    const featC=row=>[
-      row.dawnCeil!=null?Math.log(Math.max(100,Math.min(4000,row.dawnCeil))):Math.log(4000),
-      row.g1??2, row.g2??3, row.g1t??0,
-      row.mhc!=null?row.mhc/60:11, row.mheld,
-      row.t8??5, row.spread??3,
-      row.pc!=null?row.pc/60:10.5,
-      row.doyS,row.doyC];
-    const NAMES=['ln dawn ceil','SFO−SAC','SFO−RNO','grad Δ12h','HRRR clear','HRRR held','T850−T2m','T−Td dawn','prev clear','doy sin','doy cos'];
-    const featO=row=>[
-      row.g1??2,row.g2??3,
-      row.mho!=null?row.mho/60:20,
-      row.t8??5,
-      row.po!=null?row.po/60:20,
-      row.doyS,row.doyC];
-    const perOut={};
+  },
+  finalizeRows(results,rowsByField,pressCache){
+    const per={};
     for(const r of results){
-      const rows=perField[r.f.s]||[];
-      const cRows=rows.filter(x=>x.y!=null);
-      const oRows=rows.filter(x=>x.yo!=null);
-      const test=cRows.slice(-this.TESTN);
-      const eF=[],eH=[],eP=[],eC=[];
-      for(const t of test){
-        const train=cRows.filter(x=>x.ms<t.ms);
-        if(train.length<25)continue;
-        const w=LAB.ridge(train.map(featC),train.map(x=>x.y),3);
-        const pred=LAB.dot(w,featC(t));
-        eF.push(pred-t.y);
-        if(t.mhc!=null)eH.push(t.mhc-t.y);
-        if(t.pc!=null)eP.push(t.pc-t.y);
-        const med7=LAB.med(train.slice(-7).map(x=>x.y)); if(med7!=null)eC.push(med7-t.y);
+      const R=rowsByField[r.f.s]||{};
+      const rows=Object.keys(R).map(k=>({k,...R[k]})).sort((a,b)=>a.ms-b.ms);
+      for(const row of rows){
+        const P=k2=>pressCache.KSFO&&pressCache.KSFO[k2]&&pressCache.KSMF&&pressCache.KSMF[k2]?null:null;
+        const kk=new Date(row.ms).toDateString();
+        const pf=pressCache.KSFO&&pressCache.KSFO[kk], pm=pressCache.KSMF&&pressCache.KSMF[kk], pr=pressCache.KRNO&&pressCache.KRNO[kk];
+        row.g1=pf&&pm&&pf.a!=null&&pm.a!=null?+(pf.a-pm.a).toFixed(1):null;
+        row.g2=pf&&pr&&pf.a!=null&&pr.a!=null?+(pf.a-pr.a).toFixed(1):null;
+        const kprev=new Date(row.ms-864e5).toDateString();
+        const pf2=pressCache.KSFO&&pressCache.KSFO[kprev], pm2=pressCache.KSMF&&pressCache.KSMF[kprev];
+        const gPrev=pf2&&pm2&&pf2.b!=null&&pm2.b!=null?pf2.b-pm2.b:null;
+        row.g1t=row.g1!=null&&gPrev!=null?+(row.g1-gPrev).toFixed(1):null;
       }
-      const wC=cRows.length>=25?LAB.ridge(cRows.map(featC),cRows.map(x=>x.y),3):null;
-      const wO=oRows.length>=20?LAB.ridge(oRows.map(featO),oRows.map(x=>x.yo),3):null;
+      for(let i=1;i<rows.length;i++){
+        const gap=(rows[i].ms-rows[i-1].ms)/864e5;
+        rows[i].pc=gap<=2?rows[i-1].y:null;
+        rows[i].po=gap<=2?rows[i-1].yo:null;
+      }
+      per[r.f.s]=rows;
+    }
+    return per;
+  },
+  featC(row){return [
+    row.dc!=null?Math.log(Math.max(100,Math.min(4000,row.dc))):Math.log(4000),
+    row.g1??2,row.g2??3,row.g1t??0,
+    row.mhc!=null?row.mhc/60:11,row.mh??0,
+    row.t8??5,row.sp??3,
+    row.pc!=null?row.pc/60:10.5,
+    row.dS,row.dC];},
+  featO(row){return [
+    row.g1??2,row.g2??3,
+    row.mho!=null?row.mho/60:20,
+    row.t8??5,
+    row.po!=null?row.po/60:20,
+    row.dS,row.dC];},
+  NAMES:['ln dawn ceiling','SFO−SAC','SFO−RNO','grad Δ12h','HRRR clear','HRRR held','T850−T2m','T−Td dawn','prev clearing','doy sin','doy cos'],
+  fitVerify(results,per){
+    const out={};
+    for(const r of results){
+      const rows=per[r.f.s]||[];
+      const cR=rows.filter(x=>x.y!=null), oR=rows.filter(x=>x.yo!=null);
+      const wf=(R,feat,yk,mk)=>{
+        const test=R.slice(-this.TESTN), eF=[],eM=[],eP=[],eC=[];
+        for(const t of test){
+          const tr=R.filter(x=>x.ms<t.ms);
+          if(tr.length<40)continue;
+          const w=CLARO.ridge(tr.map(feat),tr.map(x=>x[yk]),3);
+          eF.push(CLARO.dot(w.w,feat(t))-t[yk]);
+          if(t[mk]!=null)eM.push(t[mk]-t[yk]);
+          const pk=yk==='y'?'pc':'po'; if(t[pk]!=null)eP.push(t[pk]-t[yk]);
+          const m7=CLARO.med(tr.slice(-7).map(x=>x[yk])); if(m7!=null)eC.push(m7-t[yk]);
+        }
+        return {eF,eM,eP,eC};
+      };
+      const vc=wf(cR,this.featC.bind(this),'y','mhc');
+      const vo=wf(oR,this.featO.bind(this),'yo','mho');
+      const fitC=cR.length>=40?CLARO.ridge(cR.map(this.featC),cR.map(x=>x.y),3):null;
+      const fitO=oR.length>=30?CLARO.ridge(oR.map(this.featO),oR.map(x=>x.yo),3):null;
+      // hourly logistic
       const LX=[],LY=[];
       for(const row of rows){
+        const hc=CLARO.unpackHc(row.hc||[]);
         for(let h=5;h<=22;h++){
-          const c=row.hc[h]; if(c==null)continue;
-          const ccl=row.ccl?row.ccl[h]:null;
+          const c=hc[h]; if(c==null)continue;
+          const ccl=row.cc&&row.cc[h]>=0?row.cc[h]:null;
           LX.push([Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
-            row.dawnCeil!=null?Math.log(Math.max(100,Math.min(4000,row.dawnCeil))):Math.log(4000),
-            row.st05,row.g1??2,row.t8??5,(ccl??50)/100]);
+            row.dc!=null?Math.log(Math.max(100,Math.min(4000,row.dc))):Math.log(4000),
+            row.s5??0,row.g1??2,row.t8??5,(ccl??50)/100]);
           LY.push(c<1000?1:0);
         }
       }
       const nTr=Math.max(0,LY.length-18*this.TESTN);
-      const wL=nTr>200?LAB.logit(LX.slice(0,nTr),LY.slice(0,nTr)):null;
+      const wL=nTr>400?CLARO.logit(LX.slice(0,nTr),LY.slice(0,nTr)):null;
       let brier=null,brierClim=null;
       if(wL){
         const base=LY.slice(0,nTr).reduce((a,b)=>a+b,0)/nTr;
         let s1=0,s2=0,n=0;
         for(let i=nTr;i<LY.length;i++){
-          const p=LAB.sig(LAB.dot(wL,LX[i]));
+          const p=CLARO.sig(CLARO.dot(wL,LX[i]));
           s1+=(p-LY[i])**2; s2+=(base-LY[i])**2; n++;
         }
         if(n){brier=s1/n;brierClim=s2/n;}
       }
-      const q=a=>{const s2=a.map(Math.abs).sort((x,y)=>x-y);return s2.length?s2[Math.floor(0.8*(s2.length-1))]:null;};
-      perOut[r.f.s]={
-        n:cRows.length,nTest:eF.length,
-        maeF:LAB.mean(eF.map(Math.abs)),maeH:LAB.mean(eH.map(Math.abs)),
-        maeP:LAB.mean(eP.map(Math.abs)),maeC:LAB.mean(eC.map(Math.abs)),
-        biasF:LAB.med(eF),p80:q(eF),
-        wC,wO,wL,brier,brierClim};
+      const q80=a=>{const s2=a.map(Math.abs).sort((x,y)=>x-y);return s2.length?s2[Math.floor(0.8*(s2.length-1))]:null;};
+      const lastO=oR.length?oR[oR.length-1].yo:null;
+      out[r.f.s]={n:cR.length,no:oR.length,nT:vc.eF.length,nTo:vo.eF.length,
+        maeF:CLARO.mean(vc.eF.map(Math.abs)),maeM:CLARO.mean(vc.eM.map(Math.abs)),
+        maeP:CLARO.mean(vc.eP.map(Math.abs)),maeC:CLARO.mean(vc.eC.map(Math.abs)),
+        maeFo:CLARO.mean(vo.eF.map(Math.abs)),maeMo:CLARO.mean(vo.eM.map(Math.abs)),
+        biasF:CLARO.med(vc.eF),p80:q80(vc.eF),p80o:q80(vo.eF),
+        wC:fitC?fitC.w:null,bC:fitC?fitC.std:null,
+        wO:fitO?fitO.w:null,wL,brier,brierClim,lastO};
     }
-    return {out:perOut, names:NAMES,
-            tB:results.map((r,i)=>{const h=tB(i);return h&&h.time?{time:h.time,t8:h.temperature_850hPa,t2:h.temperature_2m}:null;})};
+    return out;
+  },
+  async build(results,say,cache){
+    const now=new Date();
+    const rowsByField=(cache&&cache.rows)||{};
+    const pressCache=(cache&&cache.press)||{};
+    const haveAny=Object.keys(rowsByField).length>0;
+    const wins=this.windows();
+    if(!haveAny){
+      for(const [a,b] of wins)await this.fetchRange(results,say,a,b,rowsByField,pressCache);
+    }else{
+      const a=new Date(now.getTime()-10*864e5);
+      await this.fetchRange(results,say,a,now,rowsByField,pressCache);
+    }
+    say('CLARO — fitting & walk-forward verification…');
+    const per=this.finalizeRows(results,rowsByField,pressCache);
+    const out=this.fitVerify(results,per);
+    const todayB=await j('https://api.open-meteo.com/v1/forecast?latitude='+results.map(r=>r.f.lat).join(',')
+      +'&longitude='+results.map(r=>r.f.lon).join(',')+'&hourly=temperature_850hPa,temperature_2m&forecast_days=2&timeformat=unixtime&timezone=auto');
+    const tB=results.map((r,i)=>{const h=Array.isArray(todayB)?todayB[i]&&todayB[i].hourly:todayB&&todayB.hourly;
+      return h&&h.time?{time:h.time,t8:h.temperature_850hPa,t2:h.temperature_2m}:null;});
+    return {rows:rowsByField,press:pressCache,out,names:this.NAMES,tB};
   },
   apply(results,ctx){
     const st=this.st; if(!st||!st.out)return;
@@ -668,59 +745,83 @@ const LAB={
       const card=document.querySelector('.apt[data-id="'+r.f.s+'"]'); if(!card)return;
       const parts=card.querySelector('.parts'); if(!parts)return;
       const sr=sunriseOf(r.f.lat,r.f.lon,new Date());
-      const g1=ctx.g1, g2=ctx.g2;
-      const dawnCeil=r.ceil, st05=r.ceil!=null&&r.ceil<1000?1:0;
+      const g1=ctx.g1,g2=ctx.g2;
       let t8=null; const tb=st.tB&&st.tB[fi];
       if(tb){const idx=tb.time.findIndex(t=>Math.abs(t*1000-(ctx.midnight.getTime()+6*3600e3))<1800e3);
         if(idx>=0&&tb.t8&&tb.t8[idx]!=null)t8=tb.t8[idx]-tb.t2[idx];}
-      const mToday=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
       const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
-      const x=[dawnCeil!=null?Math.log(Math.max(100,Math.min(4000,dawnCeil))):Math.log(4000),
-        g1??2,g2??3,0,mToday!=null?mToday/60:11,0,t8??5,3,10.5,
-        Math.sin(2*Math.PI*doy/365),Math.cos(2*Math.PI*doy/365)];
-      let fitted=null;
-      if(o.wC&&r.deckNow){fitted=LAB.dot(o.wC,x); if(fitted<ctx.nowMin)fitted=ctx.nowMin+15;}
+      const dS=Math.sin(2*Math.PI*doy/365),dC=Math.cos(2*Math.PI*doy/365);
+      let pred=null,band=null,verb=null;
+      if(r.deckNow&&o.wC){
+        const mToday=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
+        const x=[r.ceil!=null?Math.log(Math.max(100,Math.min(4000,r.ceil))):Math.log(4000),
+          g1??2,g2??3,0,mToday!=null?mToday/60:11,0,t8??5,3,10.5,dS,dC];
+        pred=CLARO.dot(o.wC,x); band=o.p80||45; verb='clears';
+      }else if(!r.deckNow&&o.wO){
+        const mo=r.findOnset?r.findOnset(ctx.nowMin):null;
+        const x=[g1??2,g2??3,mo!=null?mo/60:20,t8??5,o.lastO!=null?o.lastO/60:20,dS,dC];
+        pred=CLARO.dot(o.wO,x); band=o.p80o||60; verb='fog returns';
+      }
+      if(pred!=null&&pred<ctx.nowMin)pred=ctx.nowMin+15;
+      // headline promotion
+      if(pred!=null){
+        const head=card.querySelector('.head');
+        if(head)head.innerHTML=verb+' ~'+fA(pred)+'<small>CLARO ±'+fmtDur(band)+' · fitted on '+(verb==='clears'?o.n:o.no)+' days</small>';
+      }
       const cell=document.createElement('div'); cell.className='p fitchip';
-      cell.innerHTML='<div class="k">FITTED MODEL</div><div class="x">'+
-        (fitted!=null?fA(fitted)+' ±'+fmtDur(o.p80||45):(o.wC?'—':'training…'))+
-        '<small>ridge on '+o.n+' days · hindcast MAE '+(o.maeF!=null?fmtDur(o.maeF):'—')+
-        (o.maeH!=null?' (HRRR '+fmtDur(o.maeH)+')':'')+'</small></div>';
-      parts.appendChild(cell);
+      cell.innerHTML='<div class="k">CLARO</div><div class="x">'+
+        (pred!=null?fA(pred)+' ±'+fmtDur(band):(o.wC||o.wO?'—':'training…'))+
+        '<small>'+(o.maeF!=null?'burn-off MAE '+fmtDur(o.maeF)+(o.maeM!=null?' vs HRRR '+fmtDur(o.maeM):''):'')+
+        (o.maeFo!=null?' · return MAE '+fmtDur(o.maeFo):'')+'</small></div>';
+      parts.insertBefore(cell,parts.firstChild);
       if(o.wL&&r.series){
         const strip=document.createElement('div'); strip.className='pstrip';
         let cells='';
+        const dcNow=r.ceil, s5=r.ceil!=null&&r.ceil<1000?1:0;
         for(let h=5;h<=22;h++){
           const pt=r.series.find(z=>Math.abs(z.m-h*60)<40);
-          const ccl=pt?pt.c:null;
-          const p=LAB.sig(LAB.dot(o.wL,[Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
-            x[0],st05,g1??2,t8??5,(ccl??50)/100]));
+          const p=CLARO.sig(CLARO.dot(o.wL,[Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
+            dcNow!=null?Math.log(Math.max(100,Math.min(4000,dcNow))):Math.log(4000),
+            s5,g1??2,t8??5,((pt?pt.c:null)??50)/100]));
           const col=p>0.65?'255,77,77':p>0.35?'255,163,46':'57,208,127';
           cells+='<div title="'+h+':00 — P(ceiling&lt;1000\u2032)='+Math.round(p*100)+'%" style="background:rgba('+col+','+(0.25+0.6*p).toFixed(2)+')"></div>';
         }
         strip.innerHTML=cells;
+        const axis=document.createElement('div'); axis.className='paxis';
+        let ax=''; for(let h=5;h<=22;h++)ax+='<span>'+(h%3===0?h:'')+'</span>';
+        axis.innerHTML=ax;
         const cap=document.createElement('div'); cap.className='pcap';
-        cap.textContent='P(ceiling < 1000 ft) today, 05\u201322h \u2014 fitted logistic'+(o.brier!=null?' \u00b7 Brier '+o.brier.toFixed(3)+' vs clim '+o.brierClim.toFixed(3):'');
+        cap.textContent='CLARO · P(ceiling < 1000 ft) today';
         const chartEl=card.querySelector('svg');
-        if(chartEl){chartEl.after(cap); chartEl.after(strip);}
+        if(chartEl){chartEl.after(cap); chartEl.after(axis); chartEl.after(strip);}
       }
     });
+    // lab
     let lab=document.getElementById('lab');
     if(!lab){lab=document.createElement('details');lab.id='lab';
       lab.style.cssText='margin-top:14px;color:var(--dim);font-size:12.5px;line-height:1.6';
       document.getElementById('cards').appendChild(lab);}
     let rowsHtml='';
     for(const r of results){const o=st.out[r.f.s]; if(!o)continue;
-      rowsHtml+='<tr><td>'+r.f.s+'</td><td>'+o.n+'</td><td>'+(o.nTest||0)+'</td>'+
-        '<td>'+(o.maeF!=null?Math.round(o.maeF):'—')+'</td><td>'+(o.maeH!=null?Math.round(o.maeH):'—')+'</td>'+
+      rowsHtml+='<tr><td>'+r.f.s+'</td><td>'+o.n+'</td><td>'+(o.nT||0)+'</td>'+
+        '<td>'+(o.maeF!=null?Math.round(o.maeF):'—')+'</td><td>'+(o.maeM!=null?Math.round(o.maeM):'—')+'</td>'+
         '<td>'+(o.maeP!=null?Math.round(o.maeP):'—')+'</td><td>'+(o.maeC!=null?Math.round(o.maeC):'—')+'</td>'+
         '<td>'+(o.biasF!=null?(o.biasF>0?'+':'')+Math.round(o.biasF):'—')+'</td>'+
+        '<td>'+(o.maeFo!=null?Math.round(o.maeFo):'—')+'</td><td>'+(o.maeMo!=null?Math.round(o.maeMo):'—')+'</td>'+
         '<td>'+(o.brier!=null&&o.brierClim?(1-o.brier/o.brierClim).toFixed(2):'—')+'</td></tr>';}
-    lab.innerHTML='<summary style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;cursor:pointer">MODEL LAB — METHODS &amp; VERIFICATION</summary>'+
-      '<p style="margin-top:10px"><b style="color:var(--ink)">Approach.</b> Observation-based statistical models in the lineage of the KSFO stratus systems (Hilliker &amp; Fritsch 1999; MIT-LL Marine Stratus Forecast System): a ridge regression predicts burn-off time; a logistic model predicts hourly P(ceiling &lt; 1000 ft). Trained in your browser on ~120 days of archived METARs (Iowa Environmental Mesonet), regional pressure gradients, HRRR archive fields, and an inversion-strength proxy (T<sub>850</sub> \u2212 T<sub>2m</sub>: the marine layer is capped near 850 hPa, and inversion properties govern stratus per Iacobellis &amp; Cayan 2013).</p>'+
-      '<p style="margin-top:8px"><b style="color:var(--ink)">Features.</b> '+st.names.join(' · ')+'.</p>'+
-      '<p style="margin-top:8px"><b style="color:var(--ink)">Verification.</b> Walk-forward: for each of the last '+LAB.TESTN+' deck-days, the model is refit on strictly earlier days only, then scored on that day. MAE in minutes vs three baselines: raw HRRR, persistence (yesterday\u2019s clearing), and the 7-day median. BSS = Brier skill vs climatology for P(&lt;1000 ft) on the held-out tail. The \u00b1 band on each card is the 80th percentile of the fitted model\u2019s own hindcast errors \u2014 an empirical, not assumed, interval.</p>'+
-      '<table><tr><th>field</th><th>days</th><th>test</th><th>MAE fit</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>BSS</th></tr>'+rowsHtml+'</table>'+
-      '<p style="margin-top:8px"><b style="color:var(--ink)">Limitations.</b> One warm season per station; no soundings (T850 from a coarse model as inversion proxy); AWOS archive gaps; winter tule fog is a different mechanism; coefficients refit daily, cached locally. Experimental \u2014 not for flight decisions.</p>';
+    let coefHtml='<tr><th>feature</th>'+results.map(r=>'<th>'+r.f.s+'</th>').join('')+'</tr>';
+    st.names.forEach((nm,j)=>{
+      coefHtml+='<tr><td>'+nm+'</td>'+results.map(r=>{
+        const o=st.out[r.f.s];
+        return '<td>'+(o&&o.bC?(o.bC[j]>0?'+':'')+o.bC[j].toFixed(1):'—')+'</td>';}).join('')+'</tr>';
+    });
+    lab.innerHTML='<summary style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;cursor:pointer">CLARO — METHODS &amp; VERIFICATION</summary>'+
+      '<p style="margin-top:10px"><b style="color:var(--ink)">CLARO</b> (Ceiling Lift And Return Outlook) is a per-airport statistical model in the lineage of the KSFO stratus systems (Hilliker &amp; Fritsch 1999; the MIT-LL Marine Stratus Forecast System): ridge regressions predict burn-off and return times; a logistic model predicts hourly P(ceiling &lt; 1000 ft). It trains in your browser on <b style="color:var(--ink)">three warm seasons (Apr–Oct)</b> of archived METARs (Iowa Environmental Mesonet), 05:00 SFO→SAC / SFO→RNO sea-level-pressure gradients with overnight trend, the HRRR archive, and T<sub>850</sub>−T<sub>2m</sub> as an inversion-strength proxy — the marine layer is capped near 850 hPa, and inversion properties govern stratus extent (Iacobellis &amp; Cayan 2013). First visit fetches the archives once; afterwards only the newest days top up.</p>'+
+      '<p style="margin-top:8px"><b style="color:var(--ink)">Verification (walk-forward).</b> For each of the last '+this.TESTN+' event-days, CLARO refits on strictly earlier days only, then predicts blind. Columns: burn-off MAE (min) for CLARO vs raw HRRR vs persistence vs 7-day median; median bias; return MAE for CLARO vs HRRR; BSS = Brier skill vs climatology for P(&lt;1000 ft). Card ± bands are the 80th percentile of CLARO\u2019s own hindcast errors.</p>'+
+      '<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th></tr>'+rowsHtml+'</table>'+
+      '<p style="margin-top:10px"><b style="color:var(--ink)">Burn-off coefficients (standardized β, minutes per SD).</b> Positive = later clearing.</p>'+
+      '<table>'+coefHtml+'</table>'+
+      '<p style="margin-top:8px"><b style="color:var(--ink)">Limitations.</b> Warm-season model (Apr–Oct); tule-season radiation fog is different physics. T850 from a coarse model, not soundings. AWOS archives contain gaps. Coefficients refit daily and cached locally. Experimental — not for flight decisions.</p>';
   },
   dot(w,x){let s=w[0];for(let i=0;i<x.length;i++)s+=w[i+1]*x[i];return s;},
   sig(z){return 1/(1+Math.exp(-z));},
@@ -742,10 +843,10 @@ const LAB={
         for(let q2=0;q2<D;q2++)A[p][q2]+=z[p]*z[q2];}
     }
     for(let p=1;p<D;p++)A[p][p]+=lam;
-    const w=LAB.solve(A,b);
+    const w=CLARO.solve(A,b);
     const out=new Array(D).fill(0);
     out[0]=w[0]; for(let j=0;j<d;j++){out[j+1]=w[j+1]/sd[j]; out[0]-=w[j+1]*mu[j]/sd[j];}
-    return out;
+    return {w:out,std:w.slice(1)};
   },
   solve(A,b){
     const n=b.length, M=A.map((r,i)=>[...r,b[i]]);
@@ -765,7 +866,7 @@ const LAB={
     for(let it=0;it<350;it++){
       const g=new Array(d+1).fill(0);
       for(let i=0;i<n;i++){
-        const p=LAB.sig(LAB.dot(w,X[i]))-y[i];
+        const p=CLARO.sig(CLARO.dot(w,X[i]))-y[i];
         g[0]+=p; for(let j=0;j<d;j++)g[j+1]+=p*X[i][j];
       }
       const lr=0.4/n;
