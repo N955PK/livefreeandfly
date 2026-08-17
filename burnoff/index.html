@@ -61,6 +61,13 @@ footer a{color:var(--dim)}
 #lab th:first-child,#lab td:first-child{text-align:left}
 #lab th{color:var(--dim);font-weight:400;letter-spacing:.06em}
 .fitchip{border-color:rgba(163,31,52,.5)!important}
+.nowrow{display:flex;align-items:baseline;gap:12px;margin-top:10px;flex-wrap:wrap}
+.nowbig{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:.02em}
+.nowsub{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.04em}
+.rawline{display:none;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;word-break:break-all}
+.apt.showraw .rawline{display:block}
+.hist{margin-top:10px;color:var(--dim)}
+.hist summary{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;cursor:pointer;color:var(--dim)}
 .mcheck{border-top:1px solid var(--line);padding-top:6px;margin-top:8px!important}
 .paxis{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:2px;font-family:var(--mono);font-size:8px;color:var(--dim)}
 .paxis span{text-align:center}
@@ -228,6 +235,37 @@ function modelDayScan(times,vals,dayStart,sr){
   return {clear,onset,held};
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
+function todayStrip(r,pred,band,nowMin,sr,ssv){
+  const W=720,H=76,L=10,R=10,T=24,BH=22;
+  const Y0=5*60,Y1=22.5*60;
+  const xv=m=>L+(Math.min(Y1,Math.max(Y0,m))-Y0)/(Y1-Y0)*(W-L-R);
+  let g='';
+  for(let hh=6;hh<=22;hh++){
+    const maj=hh%3===0;
+    g+=`<line x1="${xv(hh*60)}" y1="${T-4}" x2="${xv(hh*60)}" y2="${T+BH+4}" stroke="rgba(233,237,241,${maj?'.1':'.05'})"/>`;
+    if(maj)g+=`<text x="${xv(hh*60)}" y="${H-4}" fill="#8B959E" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
+  }
+  for(const sv of [sr,ssv])
+    g+=`<line x1="${xv(sv)}" y1="${T-4}" x2="${xv(sv)}" y2="${T+BH+4}" stroke="rgba(233,237,241,.25)" stroke-dasharray="2 4"/>`;
+  g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${BH}" rx="4" fill="rgba(233,237,241,.05)"/>`;
+  for(const [a,b] of (r.todayIv||[]))
+    g+=`<rect x="${xv(a)}" y="${T}" width="${Math.max(2,xv(Math.min(b,nowMin))-xv(a))}" height="${BH}" rx="4" fill="#8B959E" opacity=".55"/>`;
+  if(r.series)for(let k=0;k<r.series.length;k++){
+    const p=r.series[k];
+    if(p.m<nowMin||p.m>Y1)continue;
+    if(p.c>=50)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${BH}" fill="#A31F34" opacity=".38"/>`;
+  }
+  if(pred!=null&&pred<Y1){
+    const a=Math.max(Y0,pred-band),b=Math.min(Y1,pred+band);
+    g+=`<rect x="${xv(a)}" y="${T-3}" width="${Math.max(2,xv(b)-xv(a))}" height="${BH+6}" rx="4" fill="rgba(163,31,52,.16)" stroke="rgba(163,31,52,.45)"/>`;
+    g+=`<path d="M${xv(pred)} ${T-6} l5 -8 h-10 z" fill="#A31F34"/>`;
+    g+=`<line x1="${xv(pred)}" y1="${T-4}" x2="${xv(pred)}" y2="${T+BH+4}" stroke="#A31F34" stroke-width="1.6"/>`;
+  }
+  if(nowMin>=Y0&&nowMin<=Y1)
+    g+=`<line x1="${xv(nowMin)}" y1="${T-8}" x2="${xv(nowMin)}" y2="${T+BH+8}" stroke="#e9edf1" stroke-width="1.6"/>`+
+       `<text x="${xv(nowMin)}" y="${T-11}" fill="#e9edf1" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">now</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:10px">${g}</svg>`;
+}
 function chart(days,tick,nowMin){
   // rows = days (old → new, then today, tmrw); X = time of day for precision
   const W=720,L=66,R=10,T=8,B=24,rowH=17;
@@ -280,6 +318,7 @@ function chart(days,tick,nowMin){
   }
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:12px">${g}</svg>`;
 }
+let RESULTS=null,LASTCTX=null;
 async function run(){
   const now=new Date();
   const midnight=new Date(now); midnight.setHours(0,0,0,0);
@@ -338,17 +377,46 @@ async function run(){
       if(series[k].m<from)continue;
       if(series[k].c>=60&&series[k+1].c>=55)return series[k].m;}return null;};
     const per=hist&&hist.features?obsPerDay(hist.features,f.lat,f.lon):[];
-    let ceil=null,cat='vna';
+    let ceil=null,cat='vna',obsTxt='—',obsWhen='',obsRaw='',obsMs=null;
     if(cur&&cur.properties){
-      ceil=ceilOf(cur.properties.cloudLayers,cur.properties.rawMessage);
+      const p=cur.properties;
+      ceil=ceilOf(p.cloudLayers,p.rawMessage);
       cat=ceil==null||ceil>3000?'vfr':ceil>=1000?'mvfr':'ifr';
+      obsRaw=p.rawMessage||'';
+      obsMs=Date.parse(p.timestamp);
+      let vis=null;
+      if(p.visibility&&p.visibility.value!=null)vis=p.visibility.value/1609.344;
+      else{const mv=obsRaw.match(/\s(\d{1,2}(?:\s\d\/\d)?|\d\/\d)SM\s/);
+        if(mv){const t2=mv[1].trim().split(' ');let v=0;for(const q of t2)v+=q.includes('/')?(+q.split('/')[0]/+q.split('/')[1]):+q;vis=v;}}
+      const sky=obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g);
+      const skyTxt=ceil!=null?(sky?sky.filter(x=>/BKN|OVC|VV/.test(x))[0]:null)||('OVC'+String(Math.round(ceil/100)).padStart(3,'0')):(sky&&sky.length?sky[0]:'CLR');
+      obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'');
+    }
+    // today's observed deck intervals + sunset
+    const todayIv=[]; let openIv2=null;
+    if(hist&&hist.features){
+      const tks=new Date().toDateString();
+      const tobs=hist.features.map(ft=>ft.properties).filter(p=>new Date(p.timestamp).toDateString()===tks)
+        .map(p=>({m:(Date.parse(p.timestamp)-midnight.getTime())/60000,low:(()=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return c!=null&&c<3000;})()}))
+        .sort((a,b)=>a.m-b.m);
+      for(const o of tobs){
+        if(o.low&&openIv2==null)openIv2=o.m;
+        if(!o.low&&openIv2!=null){todayIv.push([openIv2,o.m]);openIv2=null;}
+      }
+      if(openIv2!=null)todayIv.push([openIv2,nowMin]);
     }
     const nowM=series.find(x=>x.m>=nowMin);
-    return {f,series,findClear,findOnset,per,ceil,cat,
+    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,todayIv,
+      catCol:cat==='vfr'?'#39d07f':cat==='mvfr'?'#3aa8ff':cat==='ifr'?'#ff4d4d':'#8B959E',
+      ssv:(()=>{const rad=Math.PI/180,d2=new Date(),J=Math.floor((d2-new Date(d2.getFullYear(),0,0))/864e5),
+        gq=(360/365.25)*(J-81)*rad,eot=9.87*Math.sin(2*gq)-7.53*Math.cos(gq)-1.5*Math.sin(gq),
+        dec=23.45*Math.sin((360/365*(J-81))*rad)*rad,
+        haq=Math.acos(Math.max(-1,Math.min(1,(Math.sin(-0.833*rad)-Math.sin(f.lat*rad)*Math.sin(dec))/(Math.cos(f.lat*rad)*Math.cos(dec)))))/rad,
+        noon=720-4*f.lon-eot-d2.getTimezoneOffset();return noon+haq*4;})(),
       pv:pvArr[i]&&pvArr[i].hourly, pa:paArr[i]&&paArr[i].hourly,
       deckNow:(ceil!=null&&ceil<3000)||(nowM&&nowM.c>=55)};
   }));
-  $('status').textContent='updated '+fmtHM.format(now)+' · refreshes hourly';
+  $('status').textContent='updated '+fmtHM.format(now)+' · obs every 5 min · model every hour';
   $('cards').innerHTML='';
   const adjClear=(g1==null)?0:Math.max(-35,Math.min(50,(g1-2.0)*18))+(tr1>0.4?15:tr1<-0.4?-15:0);
   const adjOnset=(g1==null)?0:-Math.max(-30,Math.min(40,(g1-2.0)*14))-(tr1>0.4?12:tr1<-0.4?-12:0);
@@ -403,7 +471,7 @@ async function run(){
         let base=mcorr!=null&&hm!=null?0.55*mcorr+0.45*hm:(mcorr??hm);
         base+=adjClear; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,model!=null&&hm!=null?0.6*Math.abs(model-hm):45);
-        head='clears ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
+        head='clears ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base; r.stripBand=band;
       }
     }else{
       const model=r.findOnset(nowMin);
@@ -419,26 +487,33 @@ async function run(){
         let base=hm!=null?0.55*mcorr+0.45*(hm>mcorr+720?mcorr:hm):mcorr;
         base+=adjOnset; if(base<nowMin)base=nowMin+15;
         const band=Math.max(25,hm!=null?0.6*Math.abs(model-Math.min(hm,model+240)):45);
-        head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
+        head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base; r.stripBand=band;
       }
     }
     const el=document.createElement('div'); el.className='apt'; el.dataset.id=r.f.s;
+    el.onclick=e=>{if(e.target.closest('.nowrow'))el.classList.toggle('showraw');};
     el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
-      <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'ceiling '+Math.round(r.ceil/100)*100+"'":'no low ceiling'}</span></div>
+      <span class="now"><i style="background:var(--${r.cat})"></i>${r.cat==='vna'?'—':r.cat.toUpperCase()}</span></div>
+      <div class="nowrow"><span class="nowbig" style="color:${r.catCol}" data-nowbig>${r.obsTxt||'—'}</span>
+        <span class="nowsub" data-nowsub>${r.obsWhen||''}</span></div>
+      <div class="rawline" data-raw>${r.obsRaw||''}</div>
       <div class="head">${head}<small>${sub}</small></div>
+      <div data-strip>${todayStrip(r,tick,r.stripBand||45,nowMin,sr,r.ssv)}</div>
       <div class="parts">
         <div class="p"><div class="k">HRRR</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
         <div class="p"><div class="k">RECENT DAYS</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
         <div class="p"><div class="k">GRADIENT</div><div class="x">${gCol.v}<small>${gCol.s}</small></div></div>
       </div>
-      ${chart(days,tick,nowMin)}
+      <details class="hist"><summary>14-DAY OBSERVED vs MODEL — VERIFICATION</summary>
+      ${(r.lastTick=tick,'')}${chart(days,tick,nowMin)}
       <div class="why" style="margin-top:6px">
         ▍ observed event that day · <span style="color:#A31F34">▍</span> model kept the deck all day · │ current time · <span style="color:#e9edf1">○-- observed burn-off</span> · <span style="color:#e9edf1">●— observed return</span> ·
         <span style="color:#A31F34">○-- model burn-off</span> · <span style="color:#A31F34">●— model return</span> · ◬ blended call
       </div>
       <div class="why mcheck" style="margin-top:2px">
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
-      </div>`;
+      </div>
+      </details>`;
     $('cards').appendChild(el);
    }catch(err){
     const el=document.createElement('div'); el.className='apt';
@@ -456,7 +531,8 @@ async function run(){
     <p style="margin-top:8px"><b style="color:var(--ink)">Gradient says</b> — live SFO→SAC pressure difference; each hPa above +2.0 delays clearing ~18 min and hastens the return ~14 min in the blend.</p>
     <p style="margin-top:8px">Headline = 55% model + 45% recent days, shifted by the gradient; the ± widens when they disagree.</p>`;
   $('cards').appendChild(det);
-  try{CLARO.boot(results,{g1,g2,tr1,nowMin,midnight});}catch(e){console.warn('claro',e);}
+  RESULTS=results; LASTCTX={g1,g2,tr1,nowMin,midnight};
+  try{CLARO.boot(results,LASTCTX);}catch(e){console.warn('claro',e);}
 }
 
 /* ============================ CLARO ============================
@@ -876,8 +952,68 @@ const CLARO={
   }
 };
 
+function fmtAge(ms){const m=Math.round((Date.now()-ms)/60000);
+  return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+(m%60)+' min ago';}
+async function refreshObs(){
+  if(!RESULTS)return;
+  const midnight=new Date(); midnight.setHours(0,0,0,0);
+  const nowMin=(Date.now()-midnight.getTime())/60000;
+  await Promise.all(RESULTS.map(async r=>{
+    const cur=await j(`https://api.weather.gov/stations/${r.f.id}/observations/latest`);
+    if(!cur||!cur.properties)return;
+    const p=cur.properties;
+    const c=ceilOf(p.cloudLayers,p.rawMessage);
+    r.ceil=c; r.cat=c==null||c>3000?'vfr':c>=1000?'mvfr':'ifr';
+    r.catCol=r.cat==='vfr'?'#39d07f':r.cat==='mvfr'?'#3aa8ff':'#ff4d4d';
+    r.obsRaw=p.rawMessage||''; r.obsMs=Date.parse(p.timestamp);
+    let vis=null;
+    if(p.visibility&&p.visibility.value!=null)vis=p.visibility.value/1609.344;
+    const sky=(r.obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g)||[]);
+    const skyTxt=c!=null?(sky.filter(x=>/BKN|OVC|VV/.test(x))[0]||('OVC'+String(Math.round(c/100)).padStart(3,'0'))):(sky[0]||'CLR');
+    r.obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'');
+    // extend today's observed interval live
+    const low=c!=null&&c<3000;
+    if(!r.todayIv)r.todayIv=[];
+    const last=r.todayIv[r.todayIv.length-1];
+    if(low){ if(last&&Math.abs(last[1]-nowMin)<70)last[1]=nowMin; else if(!last||last[1]<nowMin-70)r.todayIv.push([nowMin-5,nowMin]); }
+    const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
+    if(card){
+      const nb=card.querySelector('[data-nowbig]'), ns=card.querySelector('[data-nowsub]'), rw=card.querySelector('[data-raw]');
+      if(nb){nb.textContent=r.obsTxt;nb.style.color=r.catCol;}
+      if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
+      if(rw)rw.textContent=r.obsRaw;
+      const chipI=card.querySelector('.now i'), chipT=card.querySelector('.now');
+      if(chipI)chipI.style.background=r.catCol;
+      if(chipT)chipT.lastChild.textContent=r.cat.toUpperCase();
+    }
+  }));
+  redrawStrips();
+}
+function redrawStrips(){
+  if(!RESULTS)return;
+  const midnight=new Date(); midnight.setHours(0,0,0,0);
+  const nowMin=(Date.now()-midnight.getTime())/60000;
+  for(const r of RESULTS){
+    const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
+    const holder=card&&card.querySelector('[data-strip]');
+    if(holder)holder.innerHTML=todayStrip(r,r.lastTick??null,r.stripBand||45,nowMin,sunriseOf(r.f.lat,r.f.lon,new Date()),r.ssv);
+  }
+}
+function tickAges(){
+  if(!RESULTS)return;
+  for(const r of RESULTS){
+    if(!r.obsMs)continue;
+    const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
+    const ns=card&&card.querySelector('[data-nowsub]');
+    if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
+  }
+}
 run();
-setInterval(run,60*60*1000);
+setInterval(run,60*60*1000);            // full rebuild + CLARO refit hourly
+setInterval(refreshObs,5*60*1000);      // latest observations every 5 min
+setInterval(redrawStrips,60*1000);      // now-line marches every minute
+setInterval(tickAges,30*1000);          // observation age ticker
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshObs();});
 </script>
 </body>
 </html>
