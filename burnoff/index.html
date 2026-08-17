@@ -52,6 +52,14 @@ footer a{color:var(--dim)}
 @media(min-width:1100px){
   main{max-width:1280px}
 }
+.pstrip{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:8px}
+.pstrip div{height:10px;border-radius:2px}
+.pcap{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em;margin-top:3px}
+#lab table{border-collapse:collapse;margin-top:10px;font-family:var(--mono);font-size:10.5px}
+#lab th,#lab td{border:1px solid var(--line);padding:5px 8px;text-align:right}
+#lab th:first-child,#lab td:first-child{text-align:left}
+#lab th{color:var(--dim);font-weight:400;letter-spacing:.06em}
+.fitchip{border-color:rgba(163,31,52,.5)!important}
 </style>
 </head>
 <body>
@@ -410,7 +418,7 @@ async function run(){
         head='fog returns ~'+fmtAbs(base); sub='best estimate ±'+fmtDur(band); tick=base;
       }
     }
-    const el=document.createElement('div'); el.className='apt';
+    const el=document.createElement('div'); el.className='apt'; el.dataset.id=r.f.s;
     el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
       <span class="now"><i style="background:var(--${r.cat})"></i>${r.ceil!=null?'ceiling '+Math.round(r.ceil/100)*100+"'":'no low ceiling'}</span></div>
       <div class="head">${head}<small>${sub}</small></div>
@@ -444,7 +452,329 @@ async function run(){
     <p style="margin-top:8px"><b style="color:var(--ink)">Gradient says</b> — live SFO→SAC pressure difference; each hPa above +2.0 delays clearing ~18 min and hastens the return ~14 min in the blend.</p>
     <p style="margin-top:8px">Headline = 55% model + 45% recent days, shifted by the gradient; the ± widens when they disagree.</p>`;
   $('cards').appendChild(det);
+  try{LAB.boot(results,{g1,g2,tr1,nowMin,midnight});}catch(e){console.warn('lab',e);}
 }
+
+/* ===================== MODEL LAB =====================
+   Fitted statistical models for burn-off / onset / P(ceiling<1000ft),
+   trained in-browser on ~120 days of archived METARs + model fields,
+   verified walk-forward. Lineage: Hilliker & Fritsch 1999 (obs-based
+   hourly ceiling probabilities, KSFO); MIT-LL Marine Stratus Forecast
+   System (consensus of models); Iacobellis & Cayan 2013 (inversion
+   base height governs stratus); Klein & Hartmann LTS stability.      */
+const LAB={
+  DAYS:120, TESTN:28,
+  key:'foglab.v2',
+  st:null,
+  async boot(results,ctx){
+    const today=new Date().toDateString();
+    let cache=null;
+    try{cache=JSON.parse(localStorage.getItem(this.key)||'null');}catch(e){}
+    if(cache&&cache.day===today){this.st=cache;this.apply(results,ctx);return;}
+    const stat=document.getElementById('status');
+    const say=t=>{if(stat)stat.textContent=t;};
+    say('training statistical model — pulling archives…');
+    try{
+      const st=await this.build(results,say,ctx);
+      st.day=today; this.st=st;
+      try{localStorage.setItem(this.key,JSON.stringify(st));}catch(e){}
+      this.apply(results,ctx);
+      say('updated '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date())+' · fitted model active · refreshes hourly');
+    }catch(e){console.warn('LAB build failed',e); say('fitted model unavailable — heuristic blend shown');}
+  },
+  parseTd(raw){ const m=String(raw).match(/\s(M?\d{2})\/(M?\d{2})\s/); if(!m)return null;
+    const f=x=>parseInt(x.replace('M','-'),10); return {t:f(m[1]),td:f(m[2])}; },
+  async build(results,say,ctx){
+    const now=new Date(); const mid=new Date(now); mid.setHours(0,0,0,0);
+    const dayKey=d=>d.toDateString();
+    const d0=new Date(now.getTime()-this.DAYS*864e5);
+    const dstr=d=>d.toISOString().slice(0,10);
+    say('training — station archives…');
+    const fieldFeats={};
+    for(const r of results){
+      const f=await iemObs(r.f.id,this.DAYS+2);
+      fieldFeats[r.f.s]=f||[];
+      say('training — archives '+Object.keys(fieldFeats).length+'/'+results.length);
+    }
+    const press={};
+    for(const sid of ['KSFO','KSMF','KRNO']){
+      const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?station='+sid.slice(1)
+        +'&data=mslp&data=alti&year1='+d0.getUTCFullYear()+'&month1='+(d0.getUTCMonth()+1)+'&day1='+d0.getUTCDate()
+        +'&year2='+now.getUTCFullYear()+'&month2='+(now.getUTCMonth()+1)+'&day2='+(now.getUTCDate()+1)
+        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=no');
+      const arr=[];
+      if(txt){
+        const lines=txt.split('\n'); let hi=-1,hm=-1,ha=-1;
+        for(const line of lines){
+          if(line.startsWith('station')){const h=line.split(',');hm=h.indexOf('mslp');ha=h.indexOf('alti');hi=h.indexOf('valid');continue;}
+          if(!line||line[0]==='#')continue;
+          const c=line.split(','); if(hi<0||!c[hi])continue;
+          let p=hm>=0&&c[hm]&&c[hm]!=='M'?parseFloat(c[hm]):null;
+          if(p==null&&ha>=0&&c[ha]&&c[ha]!=='M')p=parseFloat(c[ha])*33.8639;
+          if(p==null||!isFinite(p))continue;
+          let iso=c[hi].replace(' ','T'); if(iso.length===16)iso+=':00';
+          arr.push({ms:Date.parse(iso+'Z'),p});
+        }
+      }
+      press[sid]=arr.sort((a,b)=>a.ms-b.ms);
+      say('training — pressure '+sid);
+    }
+    const pAt=(sid,ms)=>{ const a=press[sid]; if(!a||!a.length)return null;
+      let best=null,bd=1e15; for(const o of a){const d=Math.abs(o.ms-ms); if(d<bd){bd=d;best=o.p;}}
+      return bd<=100*60000?best:null; };
+    say('training — model archive…');
+    const latq=results.map(r=>r.f.lat).join(','), lonq=results.map(r=>r.f.lon).join(',');
+    let histA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
+      +'&hourly=cloud_cover_low&start_date='+dstr(d0)+'&end_date='+dstr(now)+'&timeformat=unixtime&timezone=auto&models=gfs_hrrr');
+    if(!histA)histA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
+      +'&hourly=cloud_cover_low&start_date='+dstr(d0)+'&end_date='+dstr(now)+'&timeformat=unixtime&timezone=auto');
+    const histB=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
+      +'&hourly=temperature_850hPa,temperature_2m&start_date='+dstr(d0)+'&end_date='+dstr(now)+'&timeformat=unixtime&timezone=auto');
+    const todayB=await j('https://api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
+      +'&hourly=temperature_850hPa,temperature_2m&forecast_days=2&timeformat=unixtime&timezone=auto');
+    const hA=i=>Array.isArray(histA)?histA[i]&&histA[i].hourly:histA&&histA.hourly;
+    const hB=i=>Array.isArray(histB)?histB[i]&&histB[i].hourly:histB&&histB.hourly;
+    const tB=i=>Array.isArray(todayB)?todayB[i]&&todayB[i].hourly:todayB&&todayB.hourly;
+    say('training — building feature rows…');
+    const perField={};
+    results.forEach((r,fi)=>{
+      const byDay={};
+      for(const ft of fieldFeats[r.f.s]){
+        const p=ft.properties; const t=new Date(p.timestamp);
+        const k=dayKey(t);
+        (byDay[k]=byDay[k]||[]).push({t,m:t.getHours()*60+t.getMinutes(),
+          ceil:ceilOf(p.cloudLayers,p.rawMessage), raw:p.rawMessage});
+      }
+      const days=Object.keys(byDay).map(k=>({k,d:new Date(k)})).sort((a,b)=>a.d-b.d);
+      const rows=[];
+      const ha=hA(fi), hb=hB(fi);
+      for(let di=0;di<days.length;di++){
+        const {k,d}=days[di];
+        const obs=byDay[k].sort((a,b)=>a.m-b.m);
+        if(obs.length<8)continue;
+        const sr=sunriseOf(r.f.lat,r.f.lon,d);
+        const ss=scanDay(obs.map(o=>({m:o.m,low:o.ceil!=null&&o.ceil<3000})),sr);
+        let dawnCeil=null,spread=null,st05=0;
+        for(const o of obs){
+          if(o.m>=sr-60&&o.m<=sr+90){
+            if(o.ceil!=null&&(dawnCeil==null||o.ceil<dawnCeil))dawnCeil=o.ceil;
+            if(spread==null){const td=LAB.parseTd(o.raw); if(td)spread=td.t-td.td;}
+            if(o.ceil!=null&&o.ceil<1000)st05=1;
+          }
+        }
+        const hc=new Array(24).fill(null);
+        for(const o of obs){const h=Math.floor(o.m/60);
+          if(o.ceil!=null&&(hc[h]==null||o.ceil<hc[h]))hc[h]=o.ceil;
+          else if(o.ceil==null&&hc[h]==null)hc[h]=9999;}
+        const t05=d.getTime()+5*3600e3;
+        const g1v=(()=>{const a=pAt('KSFO',t05),b=pAt('KSMF',t05);return a!=null&&b!=null?a-b:null;})();
+        const g2v=(()=>{const a=pAt('KSFO',t05),b=pAt('KRNO',t05);return a!=null&&b!=null?a-b:null;})();
+        const g1p=(()=>{const t23=d.getTime()-3600e3;const a=pAt('KSFO',t23),b=pAt('KSMF',t23);return a!=null&&b!=null?a-b:null;})();
+        let mhc=null,mho=null,mheld=0,cclArr=null,t8=null;
+        if(ha&&ha.time){const dm=modelDayScan(ha.time,ha.cloud_cover_low||[],d.getTime(),sr);
+          if(!dm.thin){mhc=dm.clear;mho=dm.onset;mheld=dm.held?1:0;}
+          cclArr=new Array(24).fill(null);
+          for(let q3=0;q3<ha.time.length;q3++){
+            const mm=(ha.time[q3]*1000-d.getTime())/3600e3;
+            if(mm>=0&&mm<24&&ha.cloud_cover_low[q3]!=null)cclArr[Math.round(mm)]=ha.cloud_cover_low[q3];
+          }}
+        if(hb&&hb.time){const idx=hb.time.findIndex(t=>Math.abs(t*1000-(d.getTime()+6*3600e3))<1800e3);
+          if(idx>=0&&hb.temperature_850hPa&&hb.temperature_2m&&hb.temperature_850hPa[idx]!=null)
+            t8=hb.temperature_850hPa[idx]-hb.temperature_2m[idx];}
+        const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+        rows.push({k,ms:d.getTime(),sr,
+          y:ss.clear,yo:ss.onset,held:ss.held?1:0,had:ss.had?1:0,
+          dawnCeil,spread,st05,g1:g1v,g2:g2v,g1t:(g1v!=null&&g1p!=null)?g1v-g1p:null,
+          mhc,mho,mheld,t8,ccl:cclArr,hc,
+          doyS:Math.sin(2*Math.PI*doy/365),doyC:Math.cos(2*Math.PI*doy/365)});
+      }
+      for(let i=1;i<rows.length;i++){rows[i].pc=rows[i-1].y;rows[i].po=rows[i-1].yo;}
+      perField[r.f.s]=rows;
+    });
+    say('training — fitting & verifying…');
+    const featC=row=>[
+      row.dawnCeil!=null?Math.log(Math.max(100,Math.min(4000,row.dawnCeil))):Math.log(4000),
+      row.g1??2, row.g2??3, row.g1t??0,
+      row.mhc!=null?row.mhc/60:11, row.mheld,
+      row.t8??5, row.spread??3,
+      row.pc!=null?row.pc/60:10.5,
+      row.doyS,row.doyC];
+    const NAMES=['ln dawn ceil','SFO−SAC','SFO−RNO','grad Δ12h','HRRR clear','HRRR held','T850−T2m','T−Td dawn','prev clear','doy sin','doy cos'];
+    const featO=row=>[
+      row.g1??2,row.g2??3,
+      row.mho!=null?row.mho/60:20,
+      row.t8??5,
+      row.po!=null?row.po/60:20,
+      row.doyS,row.doyC];
+    const perOut={};
+    for(const r of results){
+      const rows=perField[r.f.s]||[];
+      const cRows=rows.filter(x=>x.y!=null);
+      const oRows=rows.filter(x=>x.yo!=null);
+      const test=cRows.slice(-this.TESTN);
+      const eF=[],eH=[],eP=[],eC=[];
+      for(const t of test){
+        const train=cRows.filter(x=>x.ms<t.ms);
+        if(train.length<25)continue;
+        const w=LAB.ridge(train.map(featC),train.map(x=>x.y),3);
+        const pred=LAB.dot(w,featC(t));
+        eF.push(pred-t.y);
+        if(t.mhc!=null)eH.push(t.mhc-t.y);
+        if(t.pc!=null)eP.push(t.pc-t.y);
+        const med7=LAB.med(train.slice(-7).map(x=>x.y)); if(med7!=null)eC.push(med7-t.y);
+      }
+      const wC=cRows.length>=25?LAB.ridge(cRows.map(featC),cRows.map(x=>x.y),3):null;
+      const wO=oRows.length>=20?LAB.ridge(oRows.map(featO),oRows.map(x=>x.yo),3):null;
+      const LX=[],LY=[];
+      for(const row of rows){
+        for(let h=5;h<=22;h++){
+          const c=row.hc[h]; if(c==null)continue;
+          const ccl=row.ccl?row.ccl[h]:null;
+          LX.push([Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
+            row.dawnCeil!=null?Math.log(Math.max(100,Math.min(4000,row.dawnCeil))):Math.log(4000),
+            row.st05,row.g1??2,row.t8??5,(ccl??50)/100]);
+          LY.push(c<1000?1:0);
+        }
+      }
+      const nTr=Math.max(0,LY.length-18*this.TESTN);
+      const wL=nTr>200?LAB.logit(LX.slice(0,nTr),LY.slice(0,nTr)):null;
+      let brier=null,brierClim=null;
+      if(wL){
+        const base=LY.slice(0,nTr).reduce((a,b)=>a+b,0)/nTr;
+        let s1=0,s2=0,n=0;
+        for(let i=nTr;i<LY.length;i++){
+          const p=LAB.sig(LAB.dot(wL,LX[i]));
+          s1+=(p-LY[i])**2; s2+=(base-LY[i])**2; n++;
+        }
+        if(n){brier=s1/n;brierClim=s2/n;}
+      }
+      const q=a=>{const s2=a.map(Math.abs).sort((x,y)=>x-y);return s2.length?s2[Math.floor(0.8*(s2.length-1))]:null;};
+      perOut[r.f.s]={
+        n:cRows.length,nTest:eF.length,
+        maeF:LAB.mean(eF.map(Math.abs)),maeH:LAB.mean(eH.map(Math.abs)),
+        maeP:LAB.mean(eP.map(Math.abs)),maeC:LAB.mean(eC.map(Math.abs)),
+        biasF:LAB.med(eF),p80:q(eF),
+        wC,wO,wL,brier,brierClim};
+    }
+    return {out:perOut, names:NAMES,
+            tB:results.map((r,i)=>{const h=tB(i);return h&&h.time?{time:h.time,t8:h.temperature_850hPa,t2:h.temperature_2m}:null;})};
+  },
+  apply(results,ctx){
+    const st=this.st; if(!st||!st.out)return;
+    const fmtHM2=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'});
+    const fA=m=>{const d=new Date();d.setHours(0,0,0,0);d.setMinutes(m);return (m>=1440?'tmrw ':'')+fmtHM2.format(d);};
+    results.forEach((r,fi)=>{
+      const o=st.out[r.f.s]; if(!o)return;
+      const card=document.querySelector('.apt[data-id="'+r.f.s+'"]'); if(!card)return;
+      const parts=card.querySelector('.parts'); if(!parts)return;
+      const sr=sunriseOf(r.f.lat,r.f.lon,new Date());
+      const g1=ctx.g1, g2=ctx.g2;
+      const dawnCeil=r.ceil, st05=r.ceil!=null&&r.ceil<1000?1:0;
+      let t8=null; const tb=st.tB&&st.tB[fi];
+      if(tb){const idx=tb.time.findIndex(t=>Math.abs(t*1000-(ctx.midnight.getTime()+6*3600e3))<1800e3);
+        if(idx>=0&&tb.t8&&tb.t8[idx]!=null)t8=tb.t8[idx]-tb.t2[idx];}
+      const mToday=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
+      const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
+      const x=[dawnCeil!=null?Math.log(Math.max(100,Math.min(4000,dawnCeil))):Math.log(4000),
+        g1??2,g2??3,0,mToday!=null?mToday/60:11,0,t8??5,3,10.5,
+        Math.sin(2*Math.PI*doy/365),Math.cos(2*Math.PI*doy/365)];
+      let fitted=null;
+      if(o.wC&&r.deckNow){fitted=LAB.dot(o.wC,x); if(fitted<ctx.nowMin)fitted=ctx.nowMin+15;}
+      const cell=document.createElement('div'); cell.className='p fitchip';
+      cell.innerHTML='<div class="k">FITTED MODEL</div><div class="x">'+
+        (fitted!=null?fA(fitted)+' ±'+fmtDur(o.p80||45):(o.wC?'—':'training…'))+
+        '<small>ridge on '+o.n+' days · hindcast MAE '+(o.maeF!=null?fmtDur(o.maeF):'—')+
+        (o.maeH!=null?' (HRRR '+fmtDur(o.maeH)+')':'')+'</small></div>';
+      parts.appendChild(cell);
+      if(o.wL&&r.series){
+        const strip=document.createElement('div'); strip.className='pstrip';
+        let cells='';
+        for(let h=5;h<=22;h++){
+          const pt=r.series.find(z=>Math.abs(z.m-h*60)<40);
+          const ccl=pt?pt.c:null;
+          const p=LAB.sig(LAB.dot(o.wL,[Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
+            x[0],st05,g1??2,t8??5,(ccl??50)/100]));
+          const col=p>0.65?'255,77,77':p>0.35?'255,163,46':'57,208,127';
+          cells+='<div title="'+h+':00 — P(ceiling&lt;1000\u2032)='+Math.round(p*100)+'%" style="background:rgba('+col+','+(0.25+0.6*p).toFixed(2)+')"></div>';
+        }
+        strip.innerHTML=cells;
+        const cap=document.createElement('div'); cap.className='pcap';
+        cap.textContent='P(ceiling < 1000 ft) today, 05\u201322h \u2014 fitted logistic'+(o.brier!=null?' \u00b7 Brier '+o.brier.toFixed(3)+' vs clim '+o.brierClim.toFixed(3):'');
+        const chartEl=card.querySelector('svg');
+        if(chartEl){chartEl.after(cap); chartEl.after(strip);}
+      }
+    });
+    let lab=document.getElementById('lab');
+    if(!lab){lab=document.createElement('details');lab.id='lab';
+      lab.style.cssText='margin-top:14px;color:var(--dim);font-size:12.5px;line-height:1.6';
+      document.getElementById('cards').appendChild(lab);}
+    let rowsHtml='';
+    for(const r of results){const o=st.out[r.f.s]; if(!o)continue;
+      rowsHtml+='<tr><td>'+r.f.s+'</td><td>'+o.n+'</td><td>'+(o.nTest||0)+'</td>'+
+        '<td>'+(o.maeF!=null?Math.round(o.maeF):'—')+'</td><td>'+(o.maeH!=null?Math.round(o.maeH):'—')+'</td>'+
+        '<td>'+(o.maeP!=null?Math.round(o.maeP):'—')+'</td><td>'+(o.maeC!=null?Math.round(o.maeC):'—')+'</td>'+
+        '<td>'+(o.biasF!=null?(o.biasF>0?'+':'')+Math.round(o.biasF):'—')+'</td>'+
+        '<td>'+(o.brier!=null&&o.brierClim?(1-o.brier/o.brierClim).toFixed(2):'—')+'</td></tr>';}
+    lab.innerHTML='<summary style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;cursor:pointer">MODEL LAB — METHODS &amp; VERIFICATION</summary>'+
+      '<p style="margin-top:10px"><b style="color:var(--ink)">Approach.</b> Observation-based statistical models in the lineage of the KSFO stratus systems (Hilliker &amp; Fritsch 1999; MIT-LL Marine Stratus Forecast System): a ridge regression predicts burn-off time; a logistic model predicts hourly P(ceiling &lt; 1000 ft). Trained in your browser on ~120 days of archived METARs (Iowa Environmental Mesonet), regional pressure gradients, HRRR archive fields, and an inversion-strength proxy (T<sub>850</sub> \u2212 T<sub>2m</sub>: the marine layer is capped near 850 hPa, and inversion properties govern stratus per Iacobellis &amp; Cayan 2013).</p>'+
+      '<p style="margin-top:8px"><b style="color:var(--ink)">Features.</b> '+st.names.join(' · ')+'.</p>'+
+      '<p style="margin-top:8px"><b style="color:var(--ink)">Verification.</b> Walk-forward: for each of the last '+LAB.TESTN+' deck-days, the model is refit on strictly earlier days only, then scored on that day. MAE in minutes vs three baselines: raw HRRR, persistence (yesterday\u2019s clearing), and the 7-day median. BSS = Brier skill vs climatology for P(&lt;1000 ft) on the held-out tail. The \u00b1 band on each card is the 80th percentile of the fitted model\u2019s own hindcast errors \u2014 an empirical, not assumed, interval.</p>'+
+      '<table><tr><th>field</th><th>days</th><th>test</th><th>MAE fit</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>BSS</th></tr>'+rowsHtml+'</table>'+
+      '<p style="margin-top:8px"><b style="color:var(--ink)">Limitations.</b> One warm season per station; no soundings (T850 from a coarse model as inversion proxy); AWOS archive gaps; winter tule fog is a different mechanism; coefficients refit daily, cached locally. Experimental \u2014 not for flight decisions.</p>';
+  },
+  dot(w,x){let s=w[0];for(let i=0;i<x.length;i++)s+=w[i+1]*x[i];return s;},
+  sig(z){return 1/(1+Math.exp(-z));},
+  mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;},
+  med(a){if(!a||!a.length)return null;const s=a.slice().sort((x,y)=>x-y);return s[Math.floor(s.length/2)];},
+  ridge(X,y,lam){
+    const n=X.length,d=X[0].length;
+    const mu=new Array(d).fill(0),sd=new Array(d).fill(0);
+    for(const x of X)for(let j=0;j<d;j++)mu[j]+=x[j]/n;
+    for(const x of X)for(let j=0;j<d;j++)sd[j]+=(x[j]-mu[j])**2/n;
+    for(let j=0;j<d;j++)sd[j]=Math.sqrt(sd[j])||1;
+    const Z=X.map(x=>x.map((v,j)=>(v-mu[j])/sd[j]));
+    const D=d+1;
+    const A=Array.from({length:D},()=>new Array(D).fill(0));
+    const b=new Array(D).fill(0);
+    for(let i=0;i<n;i++){
+      const z=[1,...Z[i]];
+      for(let p=0;p<D;p++){b[p]+=z[p]*y[i];
+        for(let q2=0;q2<D;q2++)A[p][q2]+=z[p]*z[q2];}
+    }
+    for(let p=1;p<D;p++)A[p][p]+=lam;
+    const w=LAB.solve(A,b);
+    const out=new Array(D).fill(0);
+    out[0]=w[0]; for(let j=0;j<d;j++){out[j+1]=w[j+1]/sd[j]; out[0]-=w[j+1]*mu[j]/sd[j];}
+    return out;
+  },
+  solve(A,b){
+    const n=b.length, M=A.map((r,i)=>[...r,b[i]]);
+    for(let c=0;c<n;c++){
+      let piv=c; for(let r2=c+1;r2<n;r2++)if(Math.abs(M[r2][c])>Math.abs(M[piv][c]))piv=r2;
+      const tmp=M[c]; M[c]=M[piv]; M[piv]=tmp;
+      const pv=M[c][c]||1e-9;
+      for(let r2=0;r2<n;r2++){ if(r2===c)continue;
+        const f=M[r2][c]/pv;
+        for(let k=c;k<=n;k++)M[r2][k]-=f*M[c][k];}
+    }
+    return M.map((r,i)=>r[n]/(r[i]||1e-9));
+  },
+  logit(X,y){
+    const n=X.length,d=X[0].length;
+    let w=new Array(d+1).fill(0);
+    for(let it=0;it<350;it++){
+      const g=new Array(d+1).fill(0);
+      for(let i=0;i<n;i++){
+        const p=LAB.sig(LAB.dot(w,X[i]))-y[i];
+        g[0]+=p; for(let j=0;j<d;j++)g[j+1]+=p*X[i][j];
+      }
+      const lr=0.4/n;
+      for(let j=0;j<=d;j++)w[j]-=lr*(g[j]+0.02*w[j]*n*(j?1:0));
+    }
+    return w;
+  }
+};
+
 run();
 setInterval(run,60*60*1000);
 </script>
