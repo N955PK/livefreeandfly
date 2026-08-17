@@ -123,9 +123,9 @@ footer a{color:var(--dim)}
       <button class="x" id="aboutX" aria-label="close">✕</button>
       <h2>how fog/time works</h2>
       <h3>THE NOW LINE</h3>
-      The big colored readout is the field's <b>latest METAR, decoded</b> — lowest ceiling group and visibility — colored by flight category (green VFR · blue MVFR · red IFR), with the exact observation time and its age. Tap it to see the raw METAR. Observations refresh every 5 minutes and whenever you return to the tab.
+      The big colored readout is the field's <b>latest METAR, decoded</b> — lowest ceiling group and visibility — colored by flight category (green VFR · blue MVFR · red IFR), plus <b>current wind</b> (direction° speed, gusts), with the exact observation time and its age. Tap it to see the raw METAR. Observations refresh every 5 minutes and whenever you return to the tab.
       <h3>THE TODAY TIMELINE</h3>
-      One bar, 05:00–22:30. <b style="color:#8B959E">Grey</b> = when a deck (ceiling &lt; 3,000 ft) has <b>actually been observed</b> over the field so far today. <b style="color:#A31F34">Red</b> = hours where the <b>model expects</b> a deck from now on (HRRR low-cloud ≥ 50%). The translucent <b style="color:#A31F34">red box</b> is <b>CLARO's prediction window</b> — best time (marker + line) inside an empirical ± band. Dashed verticals are sunrise and sunset; the white line is now, and it moves.
+      One bar, 05:00–22:30 <b>Pacific (airport-local) time — all times on this page are</b>. <b style="color:#8B959E">Grey</b> = when a deck (ceiling &lt; 3,000 ft) has <b>actually been observed</b> over the field so far today. <b style="color:#A31F34">Red</b> = hours where the <b>model expects</b> a deck from now on (HRRR low-cloud ≥ 50%). Prediction windows: <b style="color:#39d07f">green box = clearing</b> (good), <b style="color:#ffa32e">amber box = fog returning</b>, each a best-time marker inside an empirical ± band. Red is reserved for fog itself. Dashed verticals are sunrise and sunset; the white line is now, and it moves.
       <h3>THE FOUR ESTIMATORS</h3>
       <b>CLARO</b> — our fitted model (Ceiling Lift And Return Outlook): ridge regressions for burn-off and return time plus a logistic model for hourly P(ceiling &lt; 1,000 ft), trained in your browser on three warm seasons (Apr–Oct) of archived METARs, 05:00 SFO→SAC / SFO→RNO pressure gradients, HRRR archive fields, and T<sub>850</sub>−T<sub>2m</sub> as an inversion-strength proxy — the marine layer is capped near 850 hPa, and inversion structure governs stratus (Iacobellis &amp; Cayan 2013). Architecture follows the KSFO stratus systems (Hilliker &amp; Fritsch 1999; MIT-LL Marine Stratus Forecast System).
       <b>HRRR</b> — NOAA's 3-km hourly-refresh model, read directly: first hour under 40% low cloud = clears; first over 60% = returns.
@@ -134,7 +134,7 @@ footer a{color:var(--dim)}
       <h3>THE PROBABILITY STRIP</h3>
       Eighteen cells, 05–22h: CLARO's P(ceiling &lt; 1,000 ft) for each hour today. Green low, red high. Tap a cell for the number.
       <h3>THE 14-DAY DRAWER</h3>
-      Verification view: each row a day, time across. <b>White</b> = observed events (dashed/hollow burn-off, solid/filled return); <b style="color:#A31F34">red</b> = what the model said for that same day; gutter ticks: white = an observed event that day, red = model kept the deck all day. This is where you audit the model against reality.
+      Verification view: each row a day, time across. <b>White</b> = observed events (dashed/hollow burn-off, solid/filled return); <b style="color:#39d07f">green</b>/<b style="color:#ffa32e">amber</b> = the model's burn-off/return for that same day; gutter ticks: white = an observed event that day, red = model kept the deck all day. This is where you audit the model against reality.
       <h3>VERIFICATION &amp; HONESTY</h3>
       CLARO is scored walk-forward — refit on strictly earlier days, predict blind — against HRRR, persistence, and climatology; the full table and coefficients live in the <b>CLARO Lab</b> at the bottom of the page. Card ± bands are the 80th percentile of CLARO's own hindcast errors. Warm-season tool; winter tule fog is different physics. Experimental — not for flight decisions.
       <h3>DATA &amp; CADENCE</h3>
@@ -186,10 +186,17 @@ const FIELDS=[
  {id:'KHAF',s:'HAF',n:'Half Moon Bay',lat:37.5134,lon:-122.5011},
 ];
 const $=i=>document.getElementById(i);
-const fmtHM=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'});
+const TZ='America/Los_Angeles';
+const pa=d=>new Date(d.toLocaleString('en-US',{timeZone:TZ}));
+const paMin=d=>{const p=pa(d);return p.getHours()*60+p.getMinutes();};
+const paDay=d=>pa(d).toDateString();
+function paOffset(d){const u=new Date(d.toLocaleString('en-US',{timeZone:'UTC'}));return (u-pa(d))/60000;}
+const fmtHM=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit',timeZone:TZ});
 const DAYNM=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-function fmtAbs(m){const d=new Date();d.setHours(0,0,0,0);d.setMinutes(m);
-  return (m>=1440?'tmrw ':'')+fmtHM.format(d);}
+function fmtClock(m){m=((Math.round(m)%1440)+1440)%1440;
+  let h=Math.floor(m/60),mm=m%60;const ap=h>=12?'PM':'AM';h=h%12||12;
+  return h+':'+String(mm).padStart(2,'0')+' '+ap;}
+function fmtAbs(m){return (m>=1440?'tmrw ':'')+fmtClock(m);}
 function fmtDur(m){m=Math.round(m);
   if(m<60)return m+' min';
   const h=Math.floor(m/60),r=m%60;
@@ -201,7 +208,7 @@ function sunriseOf(lat,lon,d){
   const dec=23.45*Math.sin((360/365*(J-81))*rad)*rad;
   const ha=Math.acos(Math.max(-1,Math.min(1,
     (Math.sin(-0.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec)))))/rad;
-  return 720-4*lon-eot-d.getTimezoneOffset()-ha*4;
+  return 720-4*lon-eot-paOffset(d)-ha*4;
 }
 function ceilOf(layers,raw){
   let c=null;
@@ -268,6 +275,12 @@ async function iemObs(icao,days){ // deep METAR archive via Iowa Environmental M
   }
   return out.length>=40?out:(feats.length?feats:null);
 }
+function windTxt(raw){
+  const m=String(raw).match(/\b(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT\b/);
+  if(!m)return null;
+  if(m[1]==='000'||(+m[2]===0&&!m[3]))return 'calm';
+  return (m[1]==='VRB'?'VRB':m[1]+'°')+' '+(+m[2])+(m[3]?'G'+(+m[3]):'')+' kt';
+}
 function slp(p){
   const s=p.seaLevelPressure&&p.seaLevelPressure.value;
   if(s)return s/100;
@@ -300,15 +313,16 @@ function obsPerDay(obs,lat,lon){
   for(const f of obs){
     const p=f.properties||f; const t=new Date(p.timestamp);
     const c=ceilOf(p.cloudLayers,p.rawMessage);
-    (byDay[t.toDateString()]=byDay[t.toDateString()]||[]).push({m:t.getHours()*60+t.getMinutes(),low:c!=null&&c<3000,t});
+    (byDay[paDay(t)]=byDay[paDay(t)]||[]).push({m:paMin(t),low:c!=null&&c<3000,t});
   }
   const out=[];
   for(const k of Object.keys(byDay)){
     const arr=byDay[k].sort((x,y)=>x.m-y.m);
-    const d=new Date(k);
-    out.push({key:k,d,day:DAYNM[d.getDay()],...scanDay(arr,sunriseOf(lat,lon,d))});
+    const msMid=arr[0].t.getTime()-arr[0].m*60000;
+    const d=new Date(msMid+12*3600e3);
+    out.push({key:k,d,msMid,day:DAYNM[pa(d).getDay()],...scanDay(arr,sunriseOf(lat,lon,d))});
   }
-  out.sort((x,y)=>x.d-y.d);
+  out.sort((x,y)=>x.msMid-y.msMid);
   return out;
 }
 function modelDayScan(times,vals,dayStart,sr){
@@ -419,8 +433,9 @@ function chart(days,tick,nowMin){
 let RESULTS=null,LASTCTX=null;
 async function run(){
   const now=new Date();
-  const midnight=new Date(now); midnight.setHours(0,0,0,0);
-  const nowMin=(now-midnight)/60000;
+  const nowMin=paMin(now);
+  const todayKey=paDay(now);
+  const midnight=new Date(now.getTime()-nowMin*60000);   // Pacific midnight, as epoch
   const gs=await Promise.all(['KSFO','KSMF','KRNO'].map(id=>
     j(`https://api.weather.gov/stations/${id}/observations?start=${new Date(now-13*3600e3).toISOString()}&limit=60`)));
   let g1=null,g2=null,tr1=0;
@@ -466,8 +481,10 @@ async function run(){
     const hist={features:feats||[]};
     const h=omArr[i]&&omArr[i].hourly;
     const series=[];
-    if(h&&h.time)for(let k=0;k<h.time.length;k++)
-      series.push({m:(h.time[k]*1000-midnight.getTime())/60000,c:h.cloud_cover_low[k]});
+    if(h&&h.time)for(let k=0;k<h.time.length;k++){
+      const tms=h.time[k]*1000;
+      series.push({m:paMin(new Date(tms))+(paDay(new Date(tms))===todayKey?0:1440),c:h.cloud_cover_low[k]});
+    }
     const findClear=(from)=>{for(let k=0;k<series.length-1;k++){
       if(series[k].m<from)continue;
       if(series[k].c<40&&series[k+1].c<45)return series[k].m;}return null;};
@@ -488,14 +505,14 @@ async function run(){
         if(mv){const t2=mv[1].trim().split(' ');let v=0;for(const q of t2)v+=q.includes('/')?(+q.split('/')[0]/+q.split('/')[1]):+q;vis=v;}}
       const sky=obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g);
       const skyTxt=ceil!=null?(sky?sky.filter(x=>/BKN|OVC|VV/.test(x))[0]:null)||('OVC'+String(Math.round(ceil/100)).padStart(3,'0')):(sky&&sky.length?sky[0]:'CLR');
-      obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'');
+      const wtx=windTxt(obsRaw);
+      obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
     }
     // today's observed deck intervals + sunset
     const todayIv=[]; let openIv2=null;
     if(hist&&hist.features){
-      const tks=new Date().toDateString();
-      const tobs=hist.features.map(ft=>ft.properties).filter(p=>new Date(p.timestamp).toDateString()===tks)
-        .map(p=>({m:(Date.parse(p.timestamp)-midnight.getTime())/60000,low:(()=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return c!=null&&c<3000;})()}))
+      const tobs=hist.features.map(ft=>ft.properties).filter(p=>paDay(new Date(p.timestamp))===todayKey)
+        .map(p=>({m:paMin(new Date(p.timestamp)),low:(()=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return c!=null&&c<3000;})()}))
         .sort((a,b)=>a.m-b.m);
       for(const o of tobs){
         if(o.low&&openIv2==null)openIv2=o.m;
@@ -510,7 +527,7 @@ async function run(){
         gq=(360/365.25)*(J-81)*rad,eot=9.87*Math.sin(2*gq)-7.53*Math.cos(gq)-1.5*Math.sin(gq),
         dec=23.45*Math.sin((360/365*(J-81))*rad)*rad,
         haq=Math.acos(Math.max(-1,Math.min(1,(Math.sin(-0.833*rad)-Math.sin(f.lat*rad)*Math.sin(dec))/(Math.cos(f.lat*rad)*Math.cos(dec)))))/rad,
-        noon=720-4*f.lon-eot-d2.getTimezoneOffset();return noon+haq*4;})(),
+        noon=720-4*f.lon-eot-paOffset(d2);return noon+haq*4;})(),
       pv:pvArr[i]&&pvArr[i].hourly, pa:paArr[i]&&paArr[i].hourly,
       deckNow:(ceil!=null&&ceil<3000)||(nowM&&nowM.c>=55)};
   }));
@@ -521,8 +538,8 @@ async function run(){
   for(const r of results){
    try{
     const sr=sunriseOf(r.f.lat,r.f.lon,now);
-    const pastDays=r.per.filter(d=>d.key!==now.toDateString()).slice(-14);
-    const todayObs=r.per.find(d=>d.key===now.toDateString());
+    const pastDays=r.per.filter(d=>d.key!==todayKey).slice(-14);
+    const todayObs=r.per.find(d=>d.key===todayKey);
     const recent=pastDays.slice(-7);
     const clears=recent.filter(d=>d.clear!=null).map(d=>d.clear);
     const onsets=recent.filter(d=>d.onset!=null).map(d=>d.onset);
@@ -533,11 +550,11 @@ async function run(){
       let mc=null,mo=null,mh=false;
       const srd=sunriseOf(r.f.lat,r.f.lon,d.d);
       if(r.pv&&r.pv.time){
-        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.d.getTime(),srd);
+        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.msMid,srd);
         if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD1++;}
       }
       if(mc==null&&mo==null&&!mh&&r.pa&&r.pa.time){
-        const dm=modelDayScan(r.pa.time,r.pa.cloud_cover_low||[],d.d.getTime(),srd);
+        const dm=modelDayScan(r.pa.time,r.pa.cloud_cover_low||[],d.msMid,srd);
         if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD0++;}
       }
       if(mc!=null&&d.clear!=null)errC.push(mc-d.clear);
@@ -550,7 +567,7 @@ async function run(){
     days.push({label:'today',isToday:true,
       obsClear:todayObs?todayObs.clear:null,obsOnset:todayObs?todayObs.onset:null,obsHeld:false,
       modClear:tScan.clear,modOnset:tScan.onset,modHeld:tScan.held});
-    const tm=new Date(midnight.getTime()+864e5);
+    const tm=new Date(midnight.getTime()+864e5+12*3600e3);
     const tScan2=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),tm.getTime(),sunriseOf(r.f.lat,r.f.lon,tm));
     days.push({label:'tmrw',isTmrw:true,obsClear:null,obsOnset:null,obsHeld:false,
       modClear:tScan2.clear,modOnset:tScan2.onset,modHeld:tScan2.held});
@@ -635,7 +652,7 @@ async function run(){
    Lineage: Hilliker & Fritsch 1999; MIT-LL Marine Stratus Forecast
    System; Iacobellis & Cayan 2013; Klein–Hartmann LTS.             */
 const CLARO={
-  TESTN:45, key:'claro.v1', st:null,
+  TESTN:45, key:'claro.v2', st:null,
   windows(){
     const now=new Date(), Y=now.getFullYear(), out=[];
     for(let y=Y-2;y<=Y;y++){
@@ -690,13 +707,15 @@ const CLARO={
         const raw=line.slice(i2+1).trim();
         if(!iso||!raw)continue;
         const t=new Date(iso+'Z');
-        (byDay[t.toDateString()]=byDay[t.toDateString()]||[]).push({t,m:t.getHours()*60+t.getMinutes(),
+        (byDay[paDay(t)]=byDay[paDay(t)]||[]).push({t,m:paMin(t),
           ceil:ceilOf([],raw),raw});
       }
       const R=rowsByField[r.f.s]=rowsByField[r.f.s]||{};
       for(const k of Object.keys(byDay)){
-        const d=new Date(k);
-        const mon=d.getMonth()+1;
+        const arr0=byDay[k];
+        const msMid=arr0[0].t.getTime()-arr0[0].m*60000;
+        const d=new Date(msMid+12*3600e3);
+        const mon=pa(d).getMonth()+1;
         if(mon<4||mon>10)continue;
         const obs=byDay[k].sort((x,y)=>x.m-y.m);
         if(obs.length<8)continue;
@@ -715,7 +734,7 @@ const CLARO={
           if(o.ceil!=null&&(hc[h]==null||o.ceil<hc[h]))hc[h]=o.ceil;
           else if(o.ceil==null&&hc[h]==null)hc[h]=9999;}
         const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
-        R[k]={ms:d.getTime(),sr:Math.round(sr),
+        R[k]={ms:msMid,sr:Math.round(sr),
           y:ss.clear,yo:ss.onset,held:ss.held?1:0,
           dc:dawnCeil,sp:spread,s5:st05,
           hc:CLARO.packHc(hc),
@@ -742,8 +761,7 @@ const CLARO={
         if(p==null||!isFinite(p))continue;
         let iso=c[hi].trim().replace(' ','T'); if(iso.length===16)iso+=':00';
         const t=new Date(iso+'Z');
-        const local5=new Date(t); // bucket to nearest local 05:00 / 17:00-prev trend anchor
-        const k=t.toDateString(), hr=t.getHours()+t.getMinutes()/60;
+        const k=paDay(t), hr=paMin(t)/60;
         const slot=Math.abs(hr-5)<=1.2?'a':(Math.abs(hr-23)<=1.2?'b':null);
         if(!slot)continue;
         (P[k]=P[k]||{})[slot]=p;
@@ -790,11 +808,11 @@ const CLARO={
       const rows=Object.keys(R).map(k=>({k,...R[k]})).sort((a,b)=>a.ms-b.ms);
       for(const row of rows){
         const P=k2=>pressCache.KSFO&&pressCache.KSFO[k2]&&pressCache.KSMF&&pressCache.KSMF[k2]?null:null;
-        const kk=new Date(row.ms).toDateString();
+        const kk=paDay(new Date(row.ms+12*3600e3));
         const pf=pressCache.KSFO&&pressCache.KSFO[kk], pm=pressCache.KSMF&&pressCache.KSMF[kk], pr=pressCache.KRNO&&pressCache.KRNO[kk];
         row.g1=pf&&pm&&pf.a!=null&&pm.a!=null?+(pf.a-pm.a).toFixed(1):null;
         row.g2=pf&&pr&&pf.a!=null&&pr.a!=null?+(pf.a-pr.a).toFixed(1):null;
-        const kprev=new Date(row.ms-864e5).toDateString();
+        const kprev=paDay(new Date(row.ms-864e5+12*3600e3));
         const pf2=pressCache.KSFO&&pressCache.KSFO[kprev], pm2=pressCache.KSMF&&pressCache.KSMF[kprev];
         const gPrev=pf2&&pm2&&pf2.b!=null&&pm2.b!=null?pf2.b-pm2.b:null;
         row.g1t=row.g1!=null&&gPrev!=null?+(row.g1-gPrev).toFixed(1):null;
@@ -905,7 +923,7 @@ const CLARO={
   apply(results,ctx){
     const st=this.st; if(!st||!st.out)return;
     const fmtHM2=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'});
-    const fA=m=>{const d=new Date();d.setHours(0,0,0,0);d.setMinutes(m);return (m>=1440?'tmrw ':'')+fmtHM2.format(d);};
+    const fA=m=>fmtAbs(m);
     results.forEach((r,fi)=>{
       const o=st.out[r.f.s]; if(!o)return;
       const card=document.querySelector('.apt[data-id="'+r.f.s+'"]'); if(!card)return;
@@ -917,23 +935,49 @@ const CLARO={
         if(idx>=0&&tb.t8&&tb.t8[idx]!=null)t8=tb.t8[idx]-tb.t2[idx];}
       const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
       const dS=Math.sin(2*Math.PI*doy/365),dC=Math.cos(2*Math.PI*doy/365);
-      let pred=null,band=null,verb=null;
+      const evs=[];
       if(r.deckNow&&o.wC){
         const mToday=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
         const x=[r.ceil!=null?Math.log(Math.max(100,Math.min(4000,r.ceil))):Math.log(4000),
           g1??2,g2??3,0,mToday!=null?mToday/60:11,0,t8??5,3,10.5,dS,dC];
-        pred=CLARO.dot(o.wC,x); band=o.p80||45; verb='clears';
+        let c=CLARO.dot(o.wC,x); if(c<ctx.nowMin)c=ctx.nowMin+15;
+        evs.push({m:c,band:o.p80||45,kind:'clear'});
+        if(o.wO){
+          const mo=r.findOnset?r.findOnset(Math.max(ctx.nowMin,c+30)):null;
+          const x2=[g1??2,g2??3,mo!=null?mo/60:20,t8??5,o.lastO!=null?o.lastO/60:20,dS,dC];
+          let rt=CLARO.dot(o.wO,x2);
+          if(rt>c+30)evs.push({m:rt,band:o.p80o||60,kind:'return'});
+        }
       }else if(!r.deckNow&&o.wO){
         const mo=r.findOnset?r.findOnset(ctx.nowMin):null;
         const x=[g1??2,g2??3,mo!=null?mo/60:20,t8??5,o.lastO!=null?o.lastO/60:20,dS,dC];
-        pred=CLARO.dot(o.wO,x); band=o.p80o||60; verb='fog returns';
+        let rt=CLARO.dot(o.wO,x); if(rt<ctx.nowMin)rt=ctx.nowMin+15;
+        evs.push({m:rt,band:o.p80o||60,kind:'return'});
+        if(o.wC&&r.findClear){
+          const tmSr=sunriseOf(r.f.lat,r.f.lon,new Date(ctx.midnight.getTime()+864e5+12*3600e3));
+          const mc2=r.findClear(Math.max(rt+60,1440+tmSr-30));
+          if(mc2!=null){
+            const x3=[r.ceil!=null?Math.log(Math.max(100,Math.min(4000,r.ceil))):Math.log(4000),
+              g1??2,g2??3,0,mc2/60,0,t8??5,3,10.5,dS,dC];
+            let c2=CLARO.dot(o.wC,x3)+1440*0;   // features already carry tomorrow via HRRR clear
+            if(mc2>=1440&&c2<1440)c2+=1440;
+            if(c2>rt+30)evs.push({m:c2,band:o.p80||45,kind:'clear'});
+          }
+        }
       }
-      if(pred!=null&&pred<ctx.nowMin)pred=ctx.nowMin+15;
-      // headline promotion
-      if(pred!=null){
+      if(evs.length){
+        r.events=evs;
         const head=card.querySelector('.head');
-        if(head)head.innerHTML=verb+' ~'+fA(pred)+'<small>CLARO ±'+fmtDur(band)+' · fitted on '+(verb==='clears'?o.n:o.no)+' days</small>';
+        if(head){
+          const parts=evs.map(e=>(e.kind==='clear'?'clears ~':'fog returns ~')+fA(e.m));
+          let extra='';
+          const c=evs.find(e=>e.kind==='clear'), rt=evs.find(e=>e.kind==='return');
+          if(c&&rt&&rt.m>c.m)extra=' · ≈'+fmtDur(rt.m-c.m)+' of clear air';
+          head.innerHTML=parts.join(' · ')+'<small>CLARO ±'+evs.map(e=>fmtDur(e.band)).join(' / ±')+extra+'</small>';
+        }
+        if(typeof redrawStrips==='function')redrawStrips();
       }
+      const pred=evs.length?evs[0].m:null, band=evs.length?evs[0].band:null;
       const cell=document.createElement('div'); cell.className='p fitchip';
       cell.innerHTML='<div class="k">CLARO</div><div class="x">'+
         (pred!=null?fA(pred)+' ±'+fmtDur(band):(o.wC||o.wO?'—':'training…'))+
@@ -1046,8 +1090,7 @@ function fmtAge(ms){const m=Math.round((Date.now()-ms)/60000);
   return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+(m%60)+' min ago';}
 async function refreshObs(){
   if(!RESULTS)return;
-  const midnight=new Date(); midnight.setHours(0,0,0,0);
-  const nowMin=(Date.now()-midnight.getTime())/60000;
+  const nowMin=paMin(new Date());
   await Promise.all(RESULTS.map(async r=>{
     const cur=await j(`https://api.weather.gov/stations/${r.f.id}/observations/latest`);
     if(!cur||!cur.properties)return;
@@ -1060,7 +1103,8 @@ async function refreshObs(){
     if(p.visibility&&p.visibility.value!=null)vis=p.visibility.value/1609.344;
     const sky=(r.obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g)||[]);
     const skyTxt=c!=null?(sky.filter(x=>/BKN|OVC|VV/.test(x))[0]||('OVC'+String(Math.round(c/100)).padStart(3,'0'))):(sky[0]||'CLR');
-    r.obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'');
+    const wtx=windTxt(r.obsRaw);
+    r.obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
     // extend today's observed interval live
     const low=c!=null&&c<3000;
     if(!r.todayIv)r.todayIv=[];
@@ -1081,8 +1125,7 @@ async function refreshObs(){
 }
 function redrawStrips(){
   if(!RESULTS)return;
-  const midnight=new Date(); midnight.setHours(0,0,0,0);
-  const nowMin=(Date.now()-midnight.getTime())/60000;
+  const nowMin=paMin(new Date());
   for(const r of RESULTS){
     const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
     const holder=card&&card.querySelector('[data-strip]');
