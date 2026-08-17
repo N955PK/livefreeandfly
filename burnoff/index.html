@@ -1033,9 +1033,11 @@ const CLARO={
         let ax=''; for(let h=5;h<=22;h++)ax+='<span>'+(h%3===0?h:'')+'</span>';
         axis.innerHTML=ax;
         const cap=document.createElement('div'); cap.className='pcap';
-        cap.textContent='CLARO · P(ceiling < 1000 ft) today';
-        const chartEl=card.querySelector('svg');
-        if(chartEl){chartEl.after(cap); chartEl.after(axis); chartEl.after(strip);}
+        cap.textContent='CLARO — chance of ceiling below 1,000 ft, by hour (green = unlikely, red = likely)';
+        const anchor=card.querySelector('[data-strip]');
+        const legend=anchor?anchor.nextElementSibling:null;
+        const tgt=legend||anchor||card.querySelector('svg');
+        if(tgt){tgt.after(axis); tgt.after(strip); tgt.after(cap);}
       }
     });
     // lab
