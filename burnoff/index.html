@@ -81,20 +81,12 @@ footer a{color:var(--dim)}
 #about b{color:var(--ink)}
 #about .x{float:right;font-family:var(--mono);color:var(--dim);background:none;border:1px solid var(--line);
   border-radius:999px;width:28px;height:28px;cursor:pointer}
-#docBtn{margin-left:auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);
-  background:var(--glass);color:var(--dim);font-family:var(--mono);font-size:13px;cursor:pointer}
-#docBtn:hover{color:var(--ink);border-color:rgba(233,237,241,.35)}
-#docModal{position:fixed;inset:0;display:none;z-index:60;align-items:center;justify-content:center;
-  background:rgba(5,8,11,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:18px}
-#docModal.open{display:flex}
 .doc{background:#0e141b;border:1px solid var(--line);border-radius:18px;max-width:760px;width:100%;
   max-height:88svh;overflow:auto;padding:26px 26px 30px;font-size:13.5px;line-height:1.65;color:var(--dim)}
 .doc h2{font-family:var(--mono);font-size:15px;color:var(--ink);letter-spacing:.05em;margin-bottom:4px}
 .doc h3{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.14em;margin:20px 0 6px}
 .doc b{color:var(--ink)}
 .doc code{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
-#docClose{float:right;background:none;border:none;color:var(--dim);font-size:22px;cursor:pointer;line-height:1}
-#docClose:hover{color:var(--ink)}
 .mcheck{border-top:1px solid var(--line);padding-top:6px;margin-top:8px!important}
 .paxis{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:2px;font-family:var(--mono);font-size:8px;color:var(--dim)}
 .paxis span{text-align:center}
@@ -106,7 +98,6 @@ footer a{color:var(--dim)}
     <a href="/" aria-label="home"><img src="/assets/logo-512.v4.png" alt="" style="height:48px;width:auto;display:block"></a>
     <h1>fog<span class="slash">/</span>time</h1>
     <button id="aboutBtn">how it works</button>
-    <button id="docBtn" aria-label="How the models and data work" title="How this works">i</button>
   </header>
   <div id="status">reading the morning…</div>
   <div id="grad" style="display:none">
@@ -149,37 +140,7 @@ footer a{color:var(--dim)}
     marine-layer stratus tool — winter valley (tule) fog behaves differently · experimental · not for flight planning
   </footer>
 </main>
-<div id="docModal" role="dialog" aria-modal="true" aria-label="How fog/time works">
-  <div class="doc">
-    <button id="docClose" aria-label="Close">×</button>
-    <h2>How fog/time works</h2>
-    <p>This page predicts, per airport, when today's marine-layer deck <b>burns off</b>, when it <b>returns</b>, and the hour-by-hour <b>probability the ceiling is below 1,000&nbsp;ft</b> — and it shows you exactly how it earns those numbers.</p>
 
-    <h3>LIVE DATA</h3>
-    <p><b>Latest observation</b> comes from the National Weather Service feed and refreshes <b>every 5 minutes</b> (plus instantly when you return to the tab). The big colored line is the decoded METAR — lowest ceiling layer and visibility — with its exact observation time and a live age counter; tap it for the raw METAR string. Because some AWOS feeds ship empty structured fields, ceilings are also parsed straight from the raw text (<code>BKN/OVC/VV</code> groups), so fields like WVI read correctly.</p>
-
-    <h3>EVENT DEFINITIONS</h3>
-    <p>A <b>deck</b> is a ceiling under 3,000&nbsp;ft (the operational stratus threshold used at SFO). A <b>burn-off</b> is the first post-sunrise lift that <b>holds 60+ minutes</b>. A <b>return</b> is the first re-deck that <b>holds 45+ minutes and comes after a genuine burn-off</b> — a day that never cleared has no return, by definition, and momentary blips count as neither. The same state machine judges observations and models, so comparisons are apples-to-apples.</p>
-
-    <h3>THE FOUR ESTIMATORS</h3>
-    <p><b>CLARO</b> — the fitted model (below). <b>HRRR</b> — NOAA's 3-km hourly-refresh model: first hour under 40% low cloud = clears; first hour over 60% = returns. <b>Recent days</b> — medians of the observed events over the past week. <b>Gradient</b> — live SFO→SAC and SFO→RNO sea-level-pressure differences: onshore push deepens the layer (roughly +18&nbsp;min later clearing and −14&nbsp;min earlier return per hPa above +2.0 in the fallback blend), with the 12-hour trend as a modifier.</p>
-
-    <h3>CLARO — THE FITTED MODEL</h3>
-    <p><b>CLARO</b> (<i>Ceiling Lift And Return Outlook</i>) trains in your browser on <b>three warm seasons (Apr–Oct)</b> of archived METARs, then refits daily with a light top-up. Features, each with a physical reason: <b>dawn ceiling height</b> (the deck base proxies the inversion base, which governs stratus extent — Iacobellis&nbsp;&amp;&nbsp;Cayan&nbsp;2013); <b>T<sub>850</sub>−T<sub>2m</sub></b> (inversion strength — the marine layer is capped near 850&nbsp;hPa; cf. Klein–Hartmann lower-tropospheric stability); <b>SFO→SAC / SFO→RNO gradients + overnight trend</b> (synoptic onshore push); <b>HRRR's own clearing time</b> (the regression learns how much to trust the model); <b>yesterday's clearing</b> (regime persistence); and <b>day-of-year harmonics</b> (solar forcing). Burn-off and return are ridge regressions; P(&lt;1000&nbsp;ft) is a logistic model. The architecture follows the KSFO stratus lineage — Hilliker&nbsp;&amp;&nbsp;Fritsch&nbsp;1999 and the MIT-Lincoln-Lab Marine Stratus Forecast System's consensus-of-models design.</p>
-
-    <h3>VERIFICATION — WHY YOU CAN TRUST (OR DISTRUST) IT</h3>
-    <p>Every score is <b>walk-forward</b>: for each of the last 45 event-days, CLARO refits on strictly earlier days only, then predicts blind. Mean absolute error is reported against three baselines — raw HRRR, persistence, and the 7-day median — plus median bias, return-time MAE, and a Brier Skill Score for the &lt;1000&nbsp;ft probabilities. The ± band on every headline is the <b>80th percentile of CLARO's own blind errors</b> — an empirical interval, not an assumption. All numbers, and the standardized coefficients per field, live in the <b>CLARO — Methods &amp; Verification</b> drawer at the bottom of the page.</p>
-
-    <h3>READING THE GRAPHICS</h3>
-    <p><b>Today strip</b> (under each headline): grey = where the deck has actually been today; red = where the model expects it from now on; the red window with the marker is CLARO's call ± its band; dashes are sunrise/sunset; the white line is now. <b>Probability strip</b>: P(ceiling&lt;1000&nbsp;ft) each hour, green→red, tap a cell for the number. <b>14-day drawer</b>: dashed/hollow = burn-off, solid/filled = return; white = observed, red = the model's day-ahead call for that same day; ▍white = a day with an observed event, ▍red = the model kept the deck all day; ◬ = today's call.</p>
-
-    <h3>REFRESH CADENCE</h3>
-    <p>Observations every 5&nbsp;min · observation-age ticker every 30&nbsp;s · the now-line marches every minute · models and the full page hourly · CLARO refits daily (cached locally).</p>
-
-    <h3>LIMITS</h3>
-    <p>Warm-season model — winter tule fog is different physics. T<sub>850</sub> comes from a coarse model, not soundings. AWOS archives have gaps. Small verification samples wobble. Experimental — never a substitute for an official briefing.</p>
-  </div>
-</div>
 <script>
 const FIELDS=[
  {id:'KWVI',s:'WVI',n:'Watsonville',lat:36.9357,lon:-121.7896},
@@ -1240,11 +1201,6 @@ setInterval(refreshObs,2*60*1000);      // latest observations every 2 min
 setInterval(redrawStrips,60*1000);      // now-line marches every minute
 setInterval(tickAges,30*1000);          // observation age ticker
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshObs();});
-const docM=document.getElementById('docModal');
-document.getElementById('docBtn').onclick=()=>docM.classList.add('open');
-document.getElementById('docClose').onclick=()=>docM.classList.remove('open');
-docM.onclick=e=>{if(e.target===docM)docM.classList.remove('open');};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')docM.classList.remove('open');});
 </script>
 </body>
 </html>
