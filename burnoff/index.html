@@ -132,7 +132,7 @@ footer a{color:var(--dim)}
       <b>Recent days</b> — medians of what actually happened, last 7 days.
       <b>Gradient</b> — live SFO→SAC onshore push: stronger push, deeper deck, later burn-off, earlier evening return.
       <h3>THE PROBABILITY STRIP</h3>
-      Eighteen cells, 05–22h: CLARO's P(ceiling &lt; 1,000 ft) for each hour today. Green low, red high. Tap a cell for the number.
+      Eighteen cells, 05–22h: CLARO's P(ceiling &lt; 1,000 ft) for each hour today — anchored to <b>today's dawn ceiling</b> (the feature it was trained on), so the strip is stable through the day and identical for every viewer, refreshing with observations. Green low, red high. Tap a cell for the number.
       <h3>THE 14-DAY DRAWER</h3>
       Verification view: each row a day, time across. <b>White</b> = observed events (dashed/hollow burn-off, solid/filled return); <b style="color:#39d07f">green</b>/<b style="color:#ffa32e">amber</b> = the model's burn-off/return for that same day; gutter ticks: white = an observed event that day, red = model kept the deck all day. This is where you audit the model against reality.
       <h3>VERIFICATION &amp; HONESTY</h3>
@@ -536,8 +536,16 @@ async function run(){
     const todayIv=[]; let openIv2=null;
     if(hist&&hist.features){
       const tobs=hist.features.map(ft=>ft.properties).filter(p=>paDay(new Date(p.timestamp))===todayKey)
-        .map(p=>({m:paMin(new Date(p.timestamp)),low:(()=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return c!=null&&c<3000;})()}))
+        .map(p=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return {m:paMin(new Date(p.timestamp)),ceil:c,low:c!=null&&c<3000};})
         .sort((a,b)=>a.m-b.m);
+      var dawnCeilToday=null,st05Today=0;
+      {const srT=sunriseOf(f.lat,f.lon,new Date());
+       for(const o of tobs){
+         if(o.m>=srT-60&&o.m<=srT+90){
+           if(o.ceil!=null&&(dawnCeilToday==null||o.ceil<dawnCeilToday))dawnCeilToday=o.ceil;
+           if(o.ceil!=null&&o.ceil<1000)st05Today=1;
+         }
+       }}
       for(const o of tobs){
         if(o.low&&openIv2==null)openIv2=o.m;
         if(!o.low&&openIv2!=null){todayIv.push([openIv2,o.m]);openIv2=null;}
@@ -545,7 +553,7 @@ async function run(){
       if(openIv2!=null)todayIv.push([openIv2,nowMin]);
     }
     const nowM=series.find(x=>x.m>=nowMin);
-    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,todayIv,
+    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,todayIv,dawnCeilToday,st05Today,
       catCol:cat==='vfr'?'#39d07f':cat==='mvfr'?'#3aa8ff':cat==='ifr'?'#ff4d4d':'#8B959E',
       ssv:(()=>{const rad=Math.PI/180,d2=new Date(),J=Math.floor((d2-new Date(d2.getFullYear(),0,0))/864e5),
         gq=(360/365.25)*(J-81)*rad,eot=9.87*Math.sin(2*gq)-7.53*Math.cos(gq)-1.5*Math.sin(gq),
@@ -975,6 +983,7 @@ const CLARO={
   },
   apply(results,ctx){
     const st=this.st; if(!st||!st.out)return;
+    this._results=results; this._ctx=ctx;
     const fmtHM2=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'});
     const fA=m=>fmtAbs(m);
     results.forEach((r,fi)=>{
@@ -1039,17 +1048,7 @@ const CLARO={
       parts.insertBefore(cell,parts.firstChild);
       if(o.wL&&r.series){
         const strip=document.createElement('div'); strip.className='pstrip';
-        let cells='';
-        const dcNow=r.ceil, s5=r.ceil!=null&&r.ceil<1000?1:0;
-        for(let h=5;h<=22;h++){
-          const pt=r.series.find(z=>Math.abs(z.m-h*60)<40);
-          const p=CLARO.sig(CLARO.dot(o.wL,[Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
-            dcNow!=null?Math.log(Math.max(100,Math.min(4000,dcNow))):Math.log(4000),
-            s5,g1??2,t8??5,((pt?pt.c:null)??50)/100]));
-          const col=p>0.65?'255,77,77':p>0.35?'255,163,46':'57,208,127';
-          cells+='<div title="'+h+':00 — P(ceiling&lt;1000\u2032)='+Math.round(p*100)+'%" style="background:rgba('+col+','+(0.25+0.6*p).toFixed(2)+')"></div>';
-        }
-        strip.innerHTML=cells;
+        strip.innerHTML=CLARO.stripCells(r,o,g1,t8);
         const axis=document.createElement('div'); axis.className='paxis';
         let ax=''; for(let h=5;h<=22;h++)ax+='<span>'+(h%3===0?h:'')+'</span>';
         axis.innerHTML=ax;
@@ -1080,6 +1079,34 @@ const CLARO={
     });
     lab.innerHTML='<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th></tr>'+rowsHtml+'</table>'+
       '<table style="margin-top:12px">'+coefHtml+'</table>';
+  },
+  stripCells(r,o,g1,t8){
+    // dawn-anchored: same feature the model was trained on, stable all day, viewer-independent
+    const dc=r.dawnCeilToday??r.ceil;
+    const s5=r.st05Today??(r.ceil!=null&&r.ceil<1000?1:0);
+    let cells='';
+    for(let h=5;h<=22;h++){
+      const pt=r.series&&r.series.find(z=>Math.abs(z.m-h*60)<40);
+      const p=CLARO.sig(CLARO.dot(o.wL,[Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
+        dc!=null?Math.log(Math.max(100,Math.min(4000,dc))):Math.log(4000),
+        s5,g1??2,t8??5,((pt?pt.c:null)??50)/100]));
+      const col=p>0.65?'255,77,77':p>0.35?'255,163,46':'57,208,127';
+      cells+='<div title="'+h+':00 — P(ceiling&lt;1000\u2032)='+Math.round(p*100)+'%" style="background:rgba('+col+','+(0.25+0.6*p).toFixed(2)+')"></div>';
+    }
+    return cells;
+  },
+  restrips(){
+    if(!this.st||!this._results)return;
+    for(let i=0;i<this._results.length;i++){
+      const r=this._results[i], o=this.st.out[r.f.s];
+      if(!o||!o.wL)continue;
+      const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
+      const strip=card&&card.querySelector('.pstrip');
+      let t8=null; const tb=this.st.tB&&this.st.tB[i];
+      if(tb&&this._ctx){const idx=tb.time.findIndex(t=>Math.abs(t*1000-(this._ctx.midnight.getTime()+6*3600e3))<1800e3);
+        if(idx>=0&&tb.t8&&tb.t8[idx]!=null)t8=tb.t8[idx]-tb.t2[idx];}
+      if(strip)strip.innerHTML=this.stripCells(r,o,this._ctx?this._ctx.g1:null,t8);
+    }
   },
   dot(w,x){let s=w[0];for(let i=0;i<x.length;i++)s+=w[i+1]*x[i];return s;},
   sig(z){return 1/(1+Math.exp(-z));},
@@ -1168,6 +1195,7 @@ async function refreshObs(){
     }
   }));
   redrawStrips();
+  if(typeof CLARO!=='undefined'&&CLARO.restrips)CLARO.restrips();
 }
 function redrawStrips(){
   if(!RESULTS)return;
