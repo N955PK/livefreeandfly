@@ -267,7 +267,13 @@ async function latestObs(icao){
     if(ms)cands.push({ms,raw:lraw,layers:[],vis:null,src:'AWOS via IEM'});
   }
   cands.sort((x,y)=>y.ms-x.ms);
-  return cands[0]||null;
+  if(!cands.length)return null;
+  const top=cands[0];
+  if(!top.raw){
+    const alt=cands.find(c=>c.raw&&c.ms>=top.ms-10*60000);
+    if(alt)return alt;
+  }
+  return top;
 }
 function windTxt(raw){
   const m=String(raw).match(/\b(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT\b/);
@@ -642,7 +648,7 @@ async function run(){
       <span class="now"><i style="background:var(--${r.cat})"></i>${r.cat==='vna'?'—':r.cat.toUpperCase()}</span></div>
       <div class="nowrow"><span class="nowbig" style="color:${r.catCol}" data-nowbig>${r.obsTxt||'—'}</span>
         <span class="nowsub" data-nowsub>${r.obsWhen||''}</span></div>
-      <div class="rawline" data-raw>${r.obsRaw||''}</div>
+      <div class="rawline" data-raw>${r.obsRaw||('raw METAR not provided by '+(r.obsSrc||'source'))}</div>
       <div class="head">${head}<small>${sub}</small></div>
       <div data-strip>${todayStrip(r,nowMin,sr,r.ssv)}</div>
       <div class="why" style="margin-top:2px"><span style="color:#8B959E">▮</span> deck observed today · <span style="color:#8B959E;opacity:.55">▮</span> model expects deck (lighter) · <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> — prediction windows · │ now · ┆ sunrise/sunset</div>
@@ -661,12 +667,6 @@ async function run(){
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
       </div>
       </details>`;
-    const nr=el.querySelector('.nowrow');
-    if(nr){
-      nr.style.cursor='pointer';
-      nr.setAttribute('role','button');
-      nr.addEventListener('click',()=>el.classList.toggle('showraw'));
-    }
     $('cards').appendChild(el);
    }catch(err){
     const el=document.createElement('div'); el.className='apt';
@@ -1164,7 +1164,7 @@ async function refreshObs(){
       const nb=card.querySelector('[data-nowbig]'), ns=card.querySelector('[data-nowsub]'), rw=card.querySelector('[data-raw]');
       if(nb){nb.textContent=r.obsTxt;nb.style.color=r.catCol;}
       if(ns)ns.textContent='observed '+fmtHM.format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+(r.obsSrc?' · '+r.obsSrc:'')+' · tap for raw';
-      if(rw)rw.textContent=r.obsRaw;
+      if(rw)rw.textContent=r.obsRaw||('raw METAR not provided by '+(r.obsSrc||'source'));
       const chipI=card.querySelector('.now i'), chipT=card.querySelector('.now');
       if(chipI)chipI.style.background=r.catCol;
       if(chipT)chipT.lastChild.textContent=r.cat.toUpperCase();
@@ -1191,6 +1191,10 @@ function tickAges(){
     if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
   }
 }
+$('cards').addEventListener('click',e=>{
+  const card=e.target.closest('.apt');
+  if(card&&e.target.closest('.nowrow'))card.classList.toggle('showraw');
+});
 document.getElementById('aboutBtn').onclick=()=>document.getElementById('about').classList.add('open');
 document.getElementById('aboutX').onclick=()=>document.getElementById('about').classList.remove('open');
 document.getElementById('about').onclick=e=>{if(e.target.id==='about')e.target.classList.remove('open');};
