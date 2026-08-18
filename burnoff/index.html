@@ -141,7 +141,7 @@ footer a{color:var(--dim)}
       Walk-forward scores (last 45 event-days, refit on strictly earlier days, predicted blind). MAE in minutes; baselines: raw HRRR, persistence, 7-day median. BSS = Brier skill vs climatology for P(&lt;1,000 ft). Coefficients are standardized β (minutes per SD; positive = later clearing). Card ± bands are the 80th percentile of CLARO's blind errors.
       <div id="labTables" style="margin-top:10px"></div>
       <h3>DATA &amp; CADENCE</h3>
-      Observations: freshest of NWS + AviationWeather, every 5 min · archive: Iowa Environmental Mesonet · model: Open-Meteo (HRRR + historical runs) · pressures: SFO/SMF/RNO. Observations every 5 min · now-line every minute · model rebuild hourly · CLARO refit daily.
+      Observations: freshest of NWS, AviationWeather, and the AWOS/ASOS live feed (via IEM), polled every 2 min · archive: Iowa Environmental Mesonet · model: Open-Meteo (HRRR + historical runs) · pressures: SFO/SMF/RNO. Observations every 5 min · now-line every minute · model rebuild hourly · CLARO refit daily.
     </div>
   </div>
   <footer>
@@ -279,9 +279,11 @@ async function iemObs(icao,days){ // deep METAR archive via Iowa Environmental M
   return out.length>=40?out:(feats.length?feats:null);
 }
 async function latestObs(icao){
-  const [nws,awc]=await Promise.all([
+  const net=icao==='KRNO'?'NV_ASOS':'CA_ASOS';
+  const [nws,awc,iem]=await Promise.all([
     j(`https://api.weather.gov/stations/${icao}/observations/latest`),
-    j(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json`)
+    j(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json`),
+    j(`https://mesonet.agron.iastate.edu/json/current.py?station=${icao.slice(1)}&network=${net}`)
   ]);
   const cands=[];
   if(nws&&nws.properties){
@@ -294,6 +296,14 @@ async function latestObs(icao){
     let v=a.visib; if(typeof v==='string')v=parseFloat(v);
     cands.push({ms:(a.obsTime?a.obsTime*1000:Date.parse(a.reportTime||a.receiptTime||0))||0,
       raw:a.rawOb||a.raw_text,layers:[],vis:(v!=null&&isFinite(v))?v:null,src:'AWC'});
+  }
+  const lo=iem&&(iem.last_ob||iem);
+  const lraw=lo&&(lo.raw||lo.metar);
+  if(lraw){
+    let ts=lo.utc_valid||lo.local_valid||'';
+    if(ts&&!/Z$/.test(ts))ts=ts.replace(' ','T')+'Z';
+    const ms=Date.parse(ts)||0;
+    if(ms)cands.push({ms,raw:lraw,layers:[],vis:null,src:'AWOS via IEM'});
   }
   cands.sort((x,y)=>y.ms-x.ms);
   return cands[0]||null;
@@ -530,7 +540,7 @@ async function run(){
       const skyTxt=ceil!=null?(sky?sky.filter(x=>/BKN|OVC|VV/.test(x))[0]:null)||('OVC'+String(Math.round(ceil/100)).padStart(3,'0')):(sky&&sky.length?sky[0]:'CLR');
       const wtx=windTxt(obsRaw);
       obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
-      obsWhen='observed '+fmtHM.format(new Date(obsMs))+' · tap for raw';
+      obsWhen='observed '+fmtHM.format(new Date(obsMs))+' · '+(ob.src||'')+' · tap for raw';
     }
     // today's observed deck intervals + sunset
     const todayIv=[]; let openIv2=null;
@@ -553,7 +563,7 @@ async function run(){
       if(openIv2!=null)todayIv.push([openIv2,nowMin]);
     }
     const nowM=series.find(x=>x.m>=nowMin);
-    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,todayIv,dawnCeilToday,st05Today,
+    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,obsSrc:ob?ob.src:'',todayIv,dawnCeilToday,st05Today,
       catCol:cat==='vfr'?'#39d07f':cat==='mvfr'?'#3aa8ff':cat==='ifr'?'#ff4d4d':'#8B959E',
       ssv:(()=>{const rad=Math.PI/180,d2=new Date(),J=Math.floor((d2-new Date(d2.getFullYear(),0,0))/864e5),
         gq=(360/365.25)*(J-81)*rad,eot=9.87*Math.sin(2*gq)-7.53*Math.cos(gq)-1.5*Math.sin(gq),
@@ -563,7 +573,7 @@ async function run(){
       pv:pvArr[i]&&pvArr[i].hourly, pa:paArr[i]&&paArr[i].hourly,
       deckNow:(ceil!=null&&ceil<3000)||(nowM&&nowM.c>=55)};
   }));
-  $('status').textContent='updated '+fmtHM.format(now)+' · obs every 5 min · model every hour';
+  $('status').textContent='updated '+fmtHM.format(now)+' · obs every 2 min · model every hour';
   $('cards').innerHTML='';
   const adjClear=(g1==null)?0:Math.max(-35,Math.min(50,(g1-2.0)*18))+(tr1>0.4?15:tr1<-0.4?-15:0);
   const adjOnset=(g1==null)?0:-Math.max(-30,Math.min(40,(g1-2.0)*14))-(tr1>0.4?12:tr1<-0.4?-12:0);
@@ -1177,7 +1187,7 @@ async function refreshObs(){
     const c=ceilOf(ob.layers,ob.raw);
     r.ceil=c; r.cat=c==null||c>3000?'vfr':c>=1000?'mvfr':'ifr';
     r.catCol=r.cat==='vfr'?'#39d07f':r.cat==='mvfr'?'#3aa8ff':'#ff4d4d';
-    r.obsRaw=ob.raw; r.obsMs=ob.ms;
+    r.obsRaw=ob.raw; r.obsMs=ob.ms; r.obsSrc=ob.src;
     let vis=ob.vis;
     const sky=(r.obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g)||[]);
     const skyTxt=c!=null?(sky.filter(x=>/BKN|OVC|VV/.test(x))[0]||('OVC'+String(Math.round(c/100)).padStart(3,'0'))):(sky[0]||'CLR');
@@ -1192,7 +1202,7 @@ async function refreshObs(){
     if(card){
       const nb=card.querySelector('[data-nowbig]'), ns=card.querySelector('[data-nowsub]'), rw=card.querySelector('[data-raw]');
       if(nb){nb.textContent=r.obsTxt;nb.style.color=r.catCol;}
-      if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
+      if(ns)ns.textContent='observed '+fmtHM.format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+(r.obsSrc?' · '+r.obsSrc:'')+' · tap for raw';
       if(rw)rw.textContent=r.obsRaw;
       const chipI=card.querySelector('.now i'), chipT=card.querySelector('.now');
       if(chipI)chipI.style.background=r.catCol;
@@ -1226,7 +1236,7 @@ document.getElementById('about').onclick=e=>{if(e.target.id==='about')e.target.c
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('about').classList.remove('open');});
 run();
 setInterval(run,60*60*1000);            // full rebuild + CLARO refit hourly
-setInterval(refreshObs,5*60*1000);      // latest observations every 5 min
+setInterval(refreshObs,2*60*1000);      // latest observations every 2 min
 setInterval(redrawStrips,60*1000);      // now-line marches every minute
 setInterval(tickAges,30*1000);          // observation age ticker
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshObs();});
