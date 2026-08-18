@@ -61,7 +61,7 @@ footer a{color:var(--dim)}
 #about th:first-child,#about td:first-child{text-align:left}
 #about th{color:var(--dim);font-weight:400;letter-spacing:.06em}
 .fitchip{border-color:rgba(163,31,52,.5)!important}
-.nowrow{display:flex;align-items:baseline;gap:12px;margin-top:10px;flex-wrap:wrap}
+.nowrow{display:flex;align-items:baseline;gap:12px;margin-top:10px;flex-wrap:wrap;cursor:pointer}
 .nowbig{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:.02em}
 .nowsub{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.04em}
 .rawline{display:none;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;word-break:break-all}
@@ -105,7 +105,7 @@ footer a{color:var(--dim)}
   <header>
     <a href="/" aria-label="home"><img src="/assets/logo-512.v4.png" alt="" style="height:48px;width:auto;display:block"></a>
     <h1>fog<span class="slash">/</span>time</h1>
-    <button id="aboutBtn" aria-label="how this all works">ⓘ how it works</button>
+    <button id="aboutBtn">how it works</button>
     <button id="docBtn" aria-label="How the models and data work" title="How this works">i</button>
   </header>
   <div id="status">reading the morning…</div>
@@ -667,7 +667,6 @@ async function run(){
       }
     }
     const el=document.createElement('div'); el.className='apt'; el.dataset.id=r.f.s;
-    el.onclick=e=>{if(e.target.closest('.nowrow'))el.classList.toggle('showraw');};
     el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
       <span class="now"><i style="background:var(--${r.cat})"></i>${r.cat==='vna'?'—':r.cat.toUpperCase()}</span></div>
       <div class="nowrow"><span class="nowbig" style="color:${r.catCol}" data-nowbig>${r.obsTxt||'—'}</span>
@@ -691,6 +690,12 @@ async function run(){
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
       </div>
       </details>`;
+    const nr=el.querySelector('.nowrow');
+    if(nr){
+      nr.style.cursor='pointer';
+      nr.setAttribute('role','button');
+      nr.addEventListener('click',()=>el.classList.toggle('showraw'));
+    }
     $('cards').appendChild(el);
    }catch(err){
     const el=document.createElement('div'); el.className='apt';
