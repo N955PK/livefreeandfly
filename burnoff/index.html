@@ -56,10 +56,10 @@ footer a{color:var(--dim)}
 .pstrip{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:8px}
 .pstrip div{height:10px;border-radius:2px}
 .pcap{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em;margin-top:3px}
-#lab table{border-collapse:collapse;margin-top:10px;font-family:var(--mono);font-size:10.5px}
-#lab th,#lab td{border:1px solid var(--line);padding:5px 8px;text-align:right}
-#lab th:first-child,#lab td:first-child{text-align:left}
-#lab th{color:var(--dim);font-weight:400;letter-spacing:.06em}
+#about table{border-collapse:collapse;margin-top:10px;font-family:var(--mono);font-size:10.5px}
+#about th,#about td{border:1px solid var(--line);padding:5px 8px;text-align:right}
+#about th:first-child,#about td:first-child{text-align:left}
+#about th{color:var(--dim);font-weight:400;letter-spacing:.06em}
 .fitchip{border-color:rgba(163,31,52,.5)!important}
 .nowrow{display:flex;align-items:baseline;gap:12px;margin-top:10px;flex-wrap:wrap}
 .nowbig{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:.02em}
@@ -125,7 +125,7 @@ footer a{color:var(--dim)}
       <h3>THE NOW LINE</h3>
       The big colored readout is the field's <b>latest METAR, decoded</b> — lowest ceiling group and visibility — colored by flight category (green VFR · blue MVFR · red IFR), plus <b>current wind</b> (direction° speed, gusts), with the exact observation time and its age. Tap it to see the raw METAR. Observations refresh every 5 minutes and whenever you return to the tab.
       <h3>THE TODAY TIMELINE</h3>
-      One bar, 05:00–22:30 <b>Pacific (airport-local) time — all times on this page are</b>. <b style="color:#8B959E">Grey</b> = when a deck (ceiling &lt; 3,000 ft) has <b>actually been observed</b> over the field so far today. <b style="color:#A31F34">Red</b> = hours where the <b>model expects</b> a deck from now on (HRRR low-cloud ≥ 50%). Prediction windows: <b style="color:#39d07f">green box = clearing</b> (good), <b style="color:#ffa32e">amber box = fog returning</b>, each a best-time marker inside an empirical ± band. Red is reserved for fog itself. Dashed verticals are sunrise and sunset; the white line is now, and it moves.
+      One bar, 05:00–22:30 <b>Pacific (airport-local) time — all times on this page are</b>. <b style="color:#8B959E">Grey</b> = when a deck (ceiling &lt; 3,000 ft) has <b>actually been observed</b> over the field so far today. <b style="color:#8B959E">Lighter grey</b> = hours where the <b>model expects</b> a deck from now on (HRRR low-cloud ≥ 50%) — same substance as observed, fainter certainty. Prediction windows: <b style="color:#39d07f">green box = clearing</b> (good), <b style="color:#ffa32e">amber box = fog returning</b>, each a best-time marker inside an empirical ± band. Red is reserved for fog itself. Dashed verticals are sunrise and sunset; the white line is now, and it moves.
       <h3>THE FOUR ESTIMATORS</h3>
       <b>CLARO</b> — our fitted model (Ceiling Lift And Return Outlook): ridge regressions for burn-off and return time plus a logistic model for hourly P(ceiling &lt; 1,000 ft), trained in your browser on three warm seasons (Apr–Oct) of archived METARs, 05:00 SFO→SAC / SFO→RNO pressure gradients, HRRR archive fields, and T<sub>850</sub>−T<sub>2m</sub> as an inversion-strength proxy — the marine layer is capped near 850 hPa, and inversion structure governs stratus (Iacobellis &amp; Cayan 2013). Architecture follows the KSFO stratus systems (Hilliker &amp; Fritsch 1999; MIT-LL Marine Stratus Forecast System).
       <b>HRRR</b> — NOAA's 3-km hourly-refresh model, read directly: first hour under 40% low cloud = clears; first over 60% = returns.
@@ -137,8 +137,11 @@ footer a{color:var(--dim)}
       Verification view: each row a day, time across. <b>White</b> = observed events (dashed/hollow burn-off, solid/filled return); <b style="color:#39d07f">green</b>/<b style="color:#ffa32e">amber</b> = the model's burn-off/return for that same day; gutter ticks: white = an observed event that day, red = model kept the deck all day. This is where you audit the model against reality.
       <h3>VERIFICATION &amp; HONESTY</h3>
       CLARO is scored walk-forward — refit on strictly earlier days, predict blind — against HRRR, persistence, and climatology; the full table and coefficients live in the <b>CLARO Lab</b> at the bottom of the page. Card ± bands are the 80th percentile of CLARO's own hindcast errors. Warm-season tool; winter tule fog is different physics. Experimental — not for flight decisions.
+      <h3>CLARO — VERIFICATION &amp; COEFFICIENTS</h3>
+      Walk-forward scores (last 45 event-days, refit on strictly earlier days, predicted blind). MAE in minutes; baselines: raw HRRR, persistence, 7-day median. BSS = Brier skill vs climatology for P(&lt;1,000 ft). Coefficients are standardized β (minutes per SD; positive = later clearing). Card ± bands are the 80th percentile of CLARO's blind errors.
+      <div id="labTables" style="margin-top:10px"></div>
       <h3>DATA &amp; CADENCE</h3>
-      METARs: NWS + Iowa Environmental Mesonet archive · model: Open-Meteo (HRRR + historical runs) · pressures: SFO/SMF/RNO. Observations every 5 min · now-line every minute · model rebuild hourly · CLARO refit daily.
+      Observations: freshest of NWS + AviationWeather, every 5 min · archive: Iowa Environmental Mesonet · model: Open-Meteo (HRRR + historical runs) · pressures: SFO/SMF/RNO. Observations every 5 min · now-line every minute · model rebuild hourly · CLARO refit daily.
     </div>
   </div>
   <footer>
@@ -275,6 +278,26 @@ async function iemObs(icao,days){ // deep METAR archive via Iowa Environmental M
   }
   return out.length>=40?out:(feats.length?feats:null);
 }
+async function latestObs(icao){
+  const [nws,awc]=await Promise.all([
+    j(`https://api.weather.gov/stations/${icao}/observations/latest`),
+    j(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json`)
+  ]);
+  const cands=[];
+  if(nws&&nws.properties){
+    const p=nws.properties;
+    cands.push({ms:Date.parse(p.timestamp)||0,raw:p.rawMessage||'',layers:p.cloudLayers||[],
+      vis:p.visibility&&p.visibility.value!=null?p.visibility.value/1609.344:null,src:'NWS'});
+  }
+  const a=Array.isArray(awc)?awc[0]:(awc&&awc.data&&awc.data[0]);
+  if(a&&(a.rawOb||a.raw_text)){
+    let v=a.visib; if(typeof v==='string')v=parseFloat(v);
+    cands.push({ms:(a.obsTime?a.obsTime*1000:Date.parse(a.reportTime||a.receiptTime||0))||0,
+      raw:a.rawOb||a.raw_text,layers:[],vis:(v!=null&&isFinite(v))?v:null,src:'AWC'});
+  }
+  cands.sort((x,y)=>y.ms-x.ms);
+  return cands[0]||null;
+}
 function windTxt(raw){
   const m=String(raw).match(/\b(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT\b/);
   if(!m)return null;
@@ -365,7 +388,7 @@ function todayStrip(r,nowMin,sr,ssv){
   if(r.series)for(let k=0;k<r.series.length;k++){
     const p=r.series[k];
     if(p.m<nowMin||p.m>Y1)continue;
-    if(p.c>=50)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${BH}" fill="#A31F34" opacity=".38"/>`;
+    if(p.c>=50)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${BH}" fill="#8B959E" opacity=".26"/>`;
   }
   for(const ev of (r.events||[])){
     if(ev.m==null||ev.m>=Y1)continue;
@@ -468,7 +491,7 @@ async function run(){
   const pvArr=Array.isArray(prev)?prev:prev?[prev]:[];
   const paArr=Array.isArray(past)?past:past?[past]:[];
   const results=await Promise.all(FIELDS.map(async(f,i)=>{
-    const curP=j(`https://api.weather.gov/stations/${f.id}/observations/latest`);
+    const curP=latestObs(f.id);
     let feats=await iemObs(f.id,15);
     if(!feats){
       const chunks=[];
@@ -480,7 +503,7 @@ async function run(){
       const hs=await Promise.all(chunks);
       feats=[].concat(...hs.filter(x=>x&&x.features).map(x=>x.features));
     }
-    const cur=await curP;
+    const ob=await curP;
     const hist={features:feats||[]};
     const h=omArr[i]&&omArr[i].hourly;
     const series=[];
@@ -496,20 +519,18 @@ async function run(){
       if(series[k].c>=60&&series[k+1].c>=55)return series[k].m;}return null;};
     const per=hist&&hist.features?obsPerDay(hist.features,f.lat,f.lon):[];
     let ceil=null,cat='vna',obsTxt='—',obsWhen='',obsRaw='',obsMs=null;
-    if(cur&&cur.properties){
-      const p=cur.properties;
-      ceil=ceilOf(p.cloudLayers,p.rawMessage);
+    if(ob){
+      ceil=ceilOf(ob.layers,ob.raw);
       cat=ceil==null||ceil>3000?'vfr':ceil>=1000?'mvfr':'ifr';
-      obsRaw=p.rawMessage||'';
-      obsMs=Date.parse(p.timestamp);
-      let vis=null;
-      if(p.visibility&&p.visibility.value!=null)vis=p.visibility.value/1609.344;
-      else{const mv=obsRaw.match(/\s(\d{1,2}(?:\s\d\/\d)?|\d\/\d)SM\s/);
+      obsRaw=ob.raw; obsMs=ob.ms;
+      let vis=ob.vis;
+      if(vis==null){const mv=obsRaw.match(/\s(\d{1,2}(?:\s\d\/\d)?|\d\/\d)SM\s/);
         if(mv){const t2=mv[1].trim().split(' ');let v=0;for(const q of t2)v+=q.includes('/')?(+q.split('/')[0]/+q.split('/')[1]):+q;vis=v;}}
       const sky=obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g);
       const skyTxt=ceil!=null?(sky?sky.filter(x=>/BKN|OVC|VV/.test(x))[0]:null)||('OVC'+String(Math.round(ceil/100)).padStart(3,'0')):(sky&&sky.length?sky[0]:'CLR');
       const wtx=windTxt(obsRaw);
       obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
+      obsWhen='observed '+fmtHM.format(new Date(obsMs))+' · tap for raw';
     }
     // today's observed deck intervals + sunset
     const todayIv=[]; let openIv2=null;
@@ -646,7 +667,7 @@ async function run(){
       <div class="rawline" data-raw>${r.obsRaw||''}</div>
       <div class="head">${head}<small>${sub}</small></div>
       <div data-strip>${todayStrip(r,nowMin,sr,r.ssv)}</div>
-      <div class="why" style="margin-top:2px"><span style="color:#8B959E">▮</span> deck observed today · <span style="color:#A31F34">▮</span> model expects deck · <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> — prediction windows · │ now · ┆ sunrise/sunset</div>
+      <div class="why" style="margin-top:2px"><span style="color:#8B959E">▮</span> deck observed today · <span style="color:#8B959E;opacity:.55">▮</span> model expects deck (lighter) · <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> — prediction windows · │ now · ┆ sunrise/sunset</div>
       <div class="parts">
         <div class="p"><div class="k">HRRR</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
         <div class="p"><div class="k">RECENT DAYS</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
@@ -1041,10 +1062,8 @@ const CLARO={
       }
     });
     // lab
-    let lab=document.getElementById('lab');
-    if(!lab){lab=document.createElement('details');lab.id='lab';
-      lab.style.cssText='margin-top:14px;color:var(--dim);font-size:12.5px;line-height:1.6';
-      document.getElementById('cards').appendChild(lab);}
+    const lab=document.getElementById('labTables');
+    if(!lab)return;
     let rowsHtml='';
     for(const r of results){const o=st.out[r.f.s]; if(!o)continue;
       rowsHtml+='<tr><td>'+r.f.s+'</td><td>'+o.n+'</td><td>'+(o.nT||0)+'</td>'+
@@ -1059,13 +1078,8 @@ const CLARO={
         const o=st.out[r.f.s];
         return '<td>'+(o&&o.bC?(o.bC[j]>0?'+':'')+o.bC[j].toFixed(1):'—')+'</td>';}).join('')+'</tr>';
     });
-    lab.innerHTML='<summary style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;cursor:pointer">CLARO — METHODS &amp; VERIFICATION</summary>'+
-      '<p style="margin-top:10px"><b style="color:var(--ink)">CLARO</b> (Ceiling Lift And Return Outlook) is a per-airport statistical model in the lineage of the KSFO stratus systems (Hilliker &amp; Fritsch 1999; the MIT-LL Marine Stratus Forecast System): ridge regressions predict burn-off and return times; a logistic model predicts hourly P(ceiling &lt; 1000 ft). It trains in your browser on <b style="color:var(--ink)">three warm seasons (Apr–Oct)</b> of archived METARs (Iowa Environmental Mesonet), 05:00 SFO→SAC / SFO→RNO sea-level-pressure gradients with overnight trend, the HRRR archive, and T<sub>850</sub>−T<sub>2m</sub> as an inversion-strength proxy — the marine layer is capped near 850 hPa, and inversion properties govern stratus extent (Iacobellis &amp; Cayan 2013). First visit fetches the archives once; afterwards only the newest days top up.</p>'+
-      '<p style="margin-top:8px"><b style="color:var(--ink)">Verification (walk-forward).</b> For each of the last '+this.TESTN+' event-days, CLARO refits on strictly earlier days only, then predicts blind. Columns: burn-off MAE (min) for CLARO vs raw HRRR vs persistence vs 7-day median; median bias; return MAE for CLARO vs HRRR; BSS = Brier skill vs climatology for P(&lt;1000 ft). Card ± bands are the 80th percentile of CLARO\u2019s own hindcast errors.</p>'+
-      '<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th></tr>'+rowsHtml+'</table>'+
-      '<p style="margin-top:10px"><b style="color:var(--ink)">Burn-off coefficients (standardized β, minutes per SD).</b> Positive = later clearing.</p>'+
-      '<table>'+coefHtml+'</table>'+
-      '<p style="margin-top:8px"><b style="color:var(--ink)">Limitations.</b> Warm-season model (Apr–Oct); tule-season radiation fog is different physics. T850 from a coarse model, not soundings. AWOS archives contain gaps. Coefficients refit daily and cached locally. Experimental — not for flight decisions.</p>';
+    lab.innerHTML='<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th></tr>'+rowsHtml+'</table>'+
+      '<table style="margin-top:12px">'+coefHtml+'</table>';
   },
   dot(w,x){let s=w[0];for(let i=0;i<x.length;i++)s+=w[i+1]*x[i];return s;},
   sig(z){return 1/(1+Math.exp(-z));},
@@ -1126,15 +1140,13 @@ async function refreshObs(){
   if(!RESULTS)return;
   const nowMin=paMin(new Date());
   await Promise.all(RESULTS.map(async r=>{
-    const cur=await j(`https://api.weather.gov/stations/${r.f.id}/observations/latest`);
-    if(!cur||!cur.properties)return;
-    const p=cur.properties;
-    const c=ceilOf(p.cloudLayers,p.rawMessage);
+    const ob=await latestObs(r.f.id);
+    if(!ob||(r.obsMs&&ob.ms<=r.obsMs&&ob.raw===r.obsRaw))return;
+    const c=ceilOf(ob.layers,ob.raw);
     r.ceil=c; r.cat=c==null||c>3000?'vfr':c>=1000?'mvfr':'ifr';
     r.catCol=r.cat==='vfr'?'#39d07f':r.cat==='mvfr'?'#3aa8ff':'#ff4d4d';
-    r.obsRaw=p.rawMessage||''; r.obsMs=Date.parse(p.timestamp);
-    let vis=null;
-    if(p.visibility&&p.visibility.value!=null)vis=p.visibility.value/1609.344;
+    r.obsRaw=ob.raw; r.obsMs=ob.ms;
+    let vis=ob.vis;
     const sky=(r.obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g)||[]);
     const skyTxt=c!=null?(sky.filter(x=>/BKN|OVC|VV/.test(x))[0]||('OVC'+String(Math.round(c/100)).padStart(3,'0'))):(sky[0]||'CLR');
     const wtx=windTxt(r.obsRaw);
