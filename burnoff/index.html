@@ -359,13 +359,13 @@ function todayStrip(r,nowMin,sr,ssv){
   }
   for(const sv of [sr,ssv])
     g+=`<line x1="${xv(sv)}" y1="${T-4}" x2="${xv(sv)}" y2="${T+BH+4}" stroke="rgba(233,237,241,.25)" stroke-dasharray="2 4"/>`;
-  g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${BH}" rx="4" fill="rgba(233,237,241,.05)"/>`;
+  g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${BH}" rx="4" fill="rgba(233,237,241,.035)"/>`;
   for(const [a,b] of (r.todayIv||[]))
     g+=`<rect x="${xv(a)}" y="${T}" width="${Math.max(2,xv(Math.min(b,nowMin))-xv(a))}" height="${BH}" rx="4" fill="#8B959E" opacity=".55"/>`;
   if(r.series)for(let k=0;k<r.series.length;k++){
     const p=r.series[k];
     if(p.m<nowMin||p.m>Y1)continue;
-    if(p.c>=50)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${BH}" fill="#8B959E" opacity=".26"/>`;
+    if(p.c>=50)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${BH}" fill="#8B959E" opacity=".33"/>`;
   }
   for(const ev of (r.events||[])){
     if(ev.m==null||ev.m>=Y1)continue;
@@ -1140,23 +1140,44 @@ const CLARO={
 function fmtAge(ms){const m=Math.round((Date.now()-ms)/60000);
   return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+(m%60)+' min ago';}
 async function refreshToday(r){
-  const net=r.f.id==='KRNO'?'NV_ASOS':'CA_ASOS';
-  const ds=new Date().toISOString().slice(0,10);
-  const jd=await j(`https://mesonet.agron.iastate.edu/api/1/obhistory.json?station=${r.f.id.slice(1)}&network=${net}&date=${ds}`);
-  const data=jd&&(jd.data||jd);
-  if(!Array.isArray(data)||!data.length)return;
   const todayKey=paDay(new Date());
-  const list=[];
-  for(const o of data){
-    if(!o||!o.metar)continue;
-    let ts=o.utc_valid||o.valid; if(!ts)continue;
-    if(!/Z$/.test(ts))ts=ts.replace(' ','T')+'Z';
-    const t=new Date(ts);
+  let list=[];
+  // primary: AviationWeather recent METARs — raw text guaranteed
+  const aw=await j(`https://aviationweather.gov/api/data/metar?ids=${r.f.id}&format=json&hours=20`);
+  const arr=Array.isArray(aw)?aw:(aw&&aw.data)||[];
+  for(const o of arr){
+    const raw=o.rawOb||o.raw_text;
+    const ms=o.obsTime?o.obsTime*1000:Date.parse(o.reportTime||o.receiptTime||0);
+    if(!raw||!ms)continue;
+    const t=new Date(ms);
     if(paDay(t)!==todayKey)continue;
-    const c=ceilOf([],o.metar);
+    const c=ceilOf([],raw);
     list.push({m:paMin(t),ceil:c,low:c!=null&&c<3000});
   }
-  list.sort((a,b)=>a.m-b.m);
+  // fallback: IEM obhistory, using raw if present else decoded sky fields
+  if(list.length<3){
+    const net=r.f.id==='KRNO'?'NV_ASOS':'CA_ASOS';
+    const ds=new Date().toISOString().slice(0,10);
+    const jd=await j(`https://mesonet.agron.iastate.edu/api/1/obhistory.json?station=${r.f.id.slice(1)}&network=${net}&date=${ds}`);
+    const data=jd&&(jd.data||jd);
+    if(Array.isArray(data))for(const o of data){
+      let ts=o.utc_valid||o.valid; if(!ts)continue;
+      if(!/Z$/.test(ts))ts=ts.replace(' ','T')+'Z';
+      const t=new Date(ts);
+      if(paDay(t)!==todayKey)continue;
+      let c=null;
+      if(o.metar||o.raw)c=ceilOf([],o.metar||o.raw);
+      else{
+        for(let k=1;k<=4;k++){
+          const amt=String(o['skyc'+k]||'').toUpperCase(), lvl=o['skyl'+k];
+          if((amt==='BKN'||amt==='OVC'||amt==='VV')&&lvl!=null&&isFinite(+lvl))
+            if(c==null||+lvl<c)c=+lvl;
+        }
+      }
+      list.push({m:paMin(t),ceil:c,low:c!=null&&c<3000});
+    }
+  }
+  list.sort((x,y)=>x.m-y.m);
   if(!list.length)return;
   const nowMin=paMin(new Date());
   const iv=[]; let open=null;
@@ -1176,8 +1197,9 @@ async function refreshToday(r){
     if(firstCeil==null&&o.ceil!=null)firstCeil=o.ceil;
   }
   if(dc!=null){r.dawnCeilToday=dc;r.st05Today=s5;}
-  else if(firstCeil!=null&&r.dawnCeilToday==null){r.dawnCeilToday=firstCeil;r.st05Today=firstCeil<1000?1:0;}
+  else if(firstCeil!=null){r.dawnCeilToday=firstCeil;r.st05Today=firstCeil<1000?1:0;}
 }
+
 async function refreshObs(){
   if(!RESULTS)return;
   const nowMin=paMin(new Date());
