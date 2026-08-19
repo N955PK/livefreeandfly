@@ -689,7 +689,7 @@ async function run(){
    Lineage: Hilliker & Fritsch 1999; MIT-LL Marine Stratus Forecast
    System; Iacobellis & Cayan 2013; Klein–Hartmann LTS.             */
 const CLARO={
-  TESTN:45, key:'claro.v2', st:null,
+  TESTN:45, key:'claro.v3', st:null,
   windows(){
     const now=new Date(), Y=now.getFullYear(), out=[];
     for(let y=Y-2;y<=Y;y++){
@@ -912,6 +912,7 @@ const CLARO={
           LY.push(c<1000?1:0);
         }
       }
+      const y0=LY.length?LY.reduce((a,b)=>a+b,0)/LY.length:null;
       const nTr=Math.max(0,LY.length-18*this.TESTN);
       const wL=nTr>400?CLARO.logit(LX.slice(0,nTr),LY.slice(0,nTr)):null;
       let brier=null,brierClim=null;
@@ -931,6 +932,7 @@ const CLARO={
         maeP:CLARO.mean(vc.eP.map(Math.abs)),maeC:CLARO.mean(vc.eC.map(Math.abs)),
         maeFo:CLARO.mean(vo.eF.map(Math.abs)),maeMo:CLARO.mean(vo.eM.map(Math.abs)),
         biasF:CLARO.med(vc.eF),p80:q80(vc.eF),p80o:q80(vo.eF),
+        nHrs:LY.length,pBase:LY.length?y0:null,
         wC:fitC?fitC.w:null,bC:fitC?fitC.std:null,
         wO:fitO?fitO.w:null,wL,brier,brierClim,lastO};
     }
@@ -1046,14 +1048,15 @@ const CLARO={
         '<td>'+(o.maeP!=null?Math.round(o.maeP):'—')+'</td><td>'+(o.maeC!=null?Math.round(o.maeC):'—')+'</td>'+
         '<td>'+(o.biasF!=null?(o.biasF>0?'+':'')+Math.round(o.biasF):'—')+'</td>'+
         '<td>'+(o.maeFo!=null?Math.round(o.maeFo):'—')+'</td><td>'+(o.maeMo!=null?Math.round(o.maeMo):'—')+'</td>'+
-        '<td>'+(o.brier!=null&&o.brierClim?(1-o.brier/o.brierClim).toFixed(2):'—')+'</td></tr>';}
+        '<td>'+(o.brier!=null&&o.brierClim?(1-o.brier/o.brierClim).toFixed(2):'—')+'</td>'+
+        '<td>'+(o.nHrs||0)+'</td><td>'+(o.pBase!=null?Math.round(o.pBase*100)+'%':'—')+'</td></tr>';}
     let coefHtml='<tr><th>feature</th>'+results.map(r=>'<th>'+r.f.s+'</th>').join('')+'</tr>';
     st.names.forEach((nm,j)=>{
       coefHtml+='<tr><td>'+nm+'</td>'+results.map(r=>{
         const o=st.out[r.f.s];
         return '<td>'+(o&&o.bC?(o.bC[j]>0?'+':'')+o.bC[j].toFixed(1):'—')+'</td>';}).join('')+'</tr>';
     });
-    lab.innerHTML='<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th></tr>'+rowsHtml+'</table>'+
+    lab.innerHTML='<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th><th>hrs</th><th>&lt;1000 base</th></tr>'+rowsHtml+'</table>'+
       '<table style="margin-top:12px">'+coefHtml+'</table>';
   },
   stripCells(r,o,g1,t8){
@@ -1123,17 +1126,26 @@ const CLARO={
   },
   logit(X,y){
     const n=X.length,d=X[0].length;
+    const mu=new Array(d).fill(0),sd=new Array(d).fill(0);
+    for(const x of X)for(let j=0;j<d;j++)mu[j]+=x[j]/n;
+    for(const x of X)for(let j=0;j<d;j++)sd[j]+=(x[j]-mu[j])**2/n;
+    for(let j=0;j<d;j++)sd[j]=Math.sqrt(sd[j])||1;
+    const Z=X.map(x=>x.map((v,j)=>(v-mu[j])/sd[j]));
+    const base=y.reduce((a,b)=>a+b,0)/n;
     let w=new Array(d+1).fill(0);
-    for(let it=0;it<350;it++){
+    w[0]=Math.log(Math.max(1e-3,base)/Math.max(1e-3,1-base));   // start at climatology
+    for(let it=0;it<600;it++){
       const g=new Array(d+1).fill(0);
       for(let i=0;i<n;i++){
-        const p=CLARO.sig(CLARO.dot(w,X[i]))-y[i];
-        g[0]+=p; for(let j=0;j<d;j++)g[j+1]+=p*X[i][j];
+        const p=CLARO.sig(CLARO.dot(w,Z[i]))-y[i];
+        g[0]+=p; for(let j=0;j<d;j++)g[j+1]+=p*Z[i][j];
       }
-      const lr=0.4/n;
+      const lr=1.2/n;
       for(let j=0;j<=d;j++)w[j]-=lr*(g[j]+0.02*w[j]*n*(j?1:0));
     }
-    return w;
+    const out=new Array(d+1).fill(0);
+    out[0]=w[0]; for(let j=0;j<d;j++){out[j+1]=w[j+1]/sd[j]; out[0]-=w[j+1]*mu[j]/sd[j];}
+    return out;
   }
 };
 
