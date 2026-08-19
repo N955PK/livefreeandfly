@@ -666,10 +666,6 @@ async function run(){
       </div>
       <details class="hist"><summary>14-DAY OBSERVED vs MODEL — VERIFICATION</summary>
       ${(r.lastTick=tick,'')}${chart(days,tick,nowMin)}
-      <div class="why" style="margin-top:6px">
-        ▍ observed event that day · <span style="color:#A31F34">▍</span> model kept the deck all day · │ current time · <span style="color:#e9edf1">○-- observed burn-off</span> · <span style="color:#e9edf1">●— observed return</span> ·
-        <span style="color:#39d07f">○-- model burn-off</span> · <span style="color:#ffa32e">●— model return</span> · ◬ blended call
-      </div>
       <div class="why mcheck" style="margin-top:2px">
         model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
       </div>
@@ -1037,12 +1033,9 @@ const CLARO={
         const axis=document.createElement('div'); axis.className='paxis';
         let ax=''; for(let h=5;h<=22;h++)ax+='<span>'+(h%3===0?h:'')+'</span>';
         axis.innerHTML=ax;
-        const cap=document.createElement('div'); cap.className='pcap';
-        cap.textContent='CLARO — chance of ceiling below 1,000 ft, by hour (green = unlikely, red = likely)';
         const anchor=card.querySelector('[data-strip]');
-        const legend=anchor?anchor.nextElementSibling:null;
-        const tgt=legend||anchor||card.querySelector('svg');
-        if(tgt){tgt.after(axis); tgt.after(strip); tgt.after(cap);}
+        const tgt=anchor||card.querySelector('svg');
+        if(tgt){tgt.after(axis); tgt.after(strip);}
       }
     });
     // lab
