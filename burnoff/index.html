@@ -602,12 +602,12 @@ async function run(){
           let rb=(om2-biasO)+adjOnset;
           const hmO=med(onsets);
           if(hmO!=null&&hmO<=rb+240)rb=0.55*rb+0.45*hmO;
-          if(rb>base+30){
+          if(rb>base+90){
             const band2=Math.max(30,hmO!=null?0.6*Math.abs(om2-hmO):50);
             r.events.push({m:rb,band:band2,kind:'return'});
             head+=' · fog returns ~'+fmtAbs(rb);
             sub='±'+fmtDur(band)+' / ±'+fmtDur(band2)+' · ≈'+fmtDur(rb-base)+' of clear air';
-          }else sub='±'+fmtDur(band)+' · no return expected today';
+          }else sub='±'+fmtDur(band)+' · return timing unclear';
         }else sub='±'+fmtDur(band)+' · no return expected today';
         tick=base;
       }
@@ -984,7 +984,7 @@ const CLARO={
           const mo=r.findOnset?r.findOnset(Math.max(ctx.nowMin,c+30)):null;
           const x2=[g1??2,g2??3,mo!=null?mo/60:20,t8??5,o.lastO!=null?o.lastO/60:20,dS,dC];
           let rt=CLARO.dot(o.wO,x2);
-          if(rt>c+30)evs.push({m:rt,band:o.p80o||60,kind:'return'});
+          if(rt>c+90)evs.push({m:rt,band:o.p80o||60,kind:'return'});
         }
       }else if(!r.deckNow&&o.wO){
         const mo=r.findOnset?r.findOnset(ctx.nowMin):null;
@@ -1139,10 +1139,50 @@ const CLARO={
 
 function fmtAge(ms){const m=Math.round((Date.now()-ms)/60000);
   return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+(m%60)+' min ago';}
+async function refreshToday(r){
+  const net=r.f.id==='KRNO'?'NV_ASOS':'CA_ASOS';
+  const ds=new Date().toISOString().slice(0,10);
+  const jd=await j(`https://mesonet.agron.iastate.edu/api/1/obhistory.json?station=${r.f.id.slice(1)}&network=${net}&date=${ds}`);
+  const data=jd&&(jd.data||jd);
+  if(!Array.isArray(data)||!data.length)return;
+  const todayKey=paDay(new Date());
+  const list=[];
+  for(const o of data){
+    if(!o||!o.metar)continue;
+    let ts=o.utc_valid||o.valid; if(!ts)continue;
+    if(!/Z$/.test(ts))ts=ts.replace(' ','T')+'Z';
+    const t=new Date(ts);
+    if(paDay(t)!==todayKey)continue;
+    const c=ceilOf([],o.metar);
+    list.push({m:paMin(t),ceil:c,low:c!=null&&c<3000});
+  }
+  list.sort((a,b)=>a.m-b.m);
+  if(!list.length)return;
+  const nowMin=paMin(new Date());
+  const iv=[]; let open=null;
+  for(const o of list){
+    if(o.low&&open==null)open=o.m;
+    if(!o.low&&open!=null){iv.push([open,o.m]);open=null;}
+  }
+  if(open!=null)iv.push([open,nowMin]);
+  r.todayIv=iv;
+  const srT=sunriseOf(r.f.lat,r.f.lon,new Date());
+  let dc=null,s5=0,firstCeil=null;
+  for(const o of list){
+    if(o.m>=srT-60&&o.m<=srT+90){
+      if(o.ceil!=null&&(dc==null||o.ceil<dc))dc=o.ceil;
+      if(o.ceil!=null&&o.ceil<1000)s5=1;
+    }
+    if(firstCeil==null&&o.ceil!=null)firstCeil=o.ceil;
+  }
+  if(dc!=null){r.dawnCeilToday=dc;r.st05Today=s5;}
+  else if(firstCeil!=null&&r.dawnCeilToday==null){r.dawnCeilToday=firstCeil;r.st05Today=firstCeil<1000?1:0;}
+}
 async function refreshObs(){
   if(!RESULTS)return;
   const nowMin=paMin(new Date());
   await Promise.all(RESULTS.map(async r=>{
+    await refreshToday(r).catch(()=>{});
     const ob=await latestObs(r.f.id);
     if(!ob||(r.obsMs&&ob.ms<=r.obsMs&&ob.raw===r.obsRaw))return;
     const c=ceilOf(ob.layers,ob.raw);
@@ -1154,11 +1194,6 @@ async function refreshObs(){
     const skyTxt=c!=null?(sky.filter(x=>/BKN|OVC|VV/.test(x))[0]||('OVC'+String(Math.round(c/100)).padStart(3,'0'))):(sky[0]||'CLR');
     const wtx=windTxt(r.obsRaw);
     r.obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
-    // extend today's observed interval live
-    const low=c!=null&&c<3000;
-    if(!r.todayIv)r.todayIv=[];
-    const last=r.todayIv[r.todayIv.length-1];
-    if(low){ if(last&&Math.abs(last[1]-nowMin)<70)last[1]=nowMin; else if(!last||last[1]<nowMin-70)r.todayIv.push([nowMin-5,nowMin]); }
     const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
     if(card){
       const nb=card.querySelector('[data-nowbig]'), ns=card.querySelector('[data-nowsub]'), rw=card.querySelector('[data-raw]');
