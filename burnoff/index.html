@@ -275,6 +275,12 @@ async function latestObs(icao){
   }
   return top;
 }
+function skyState(raw,c){
+  if(c!=null)return c<3000?'low':'clear';
+  const R=String(raw).toUpperCase();
+  if(/\b(CLR|SKC|NSC|NCD|CAVOK)\b/.test(R)||/\b(FEW|SCT)\d{3}\b/.test(R))return 'clear';
+  return 'unknown';          // sky group missing or indeterminate — bridges, never breaks
+}
 function windTxt(raw){
   const m=String(raw).match(/\b(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT\b/);
   if(!m)return null;
@@ -513,7 +519,7 @@ async function run(){
     const todayIv=[]; let openIv2=null;
     if(hist&&hist.features){
       const tobs=hist.features.map(ft=>ft.properties).filter(p=>paDay(new Date(p.timestamp))===todayKey)
-        .map(p=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return {m:paMin(new Date(p.timestamp)),ceil:c,low:c!=null&&c<3000};})
+        .map(p=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return {m:paMin(new Date(p.timestamp)),ceil:c,st:skyState(p.rawMessage||'',c)};})
         .sort((a,b)=>a.m-b.m);
       var dawnCeilToday=null,st05Today=0;
       {const srT=sunriseOf(f.lat,f.lon,new Date());
@@ -524,8 +530,9 @@ async function run(){
          }
        }}
       for(const o of tobs){
-        if(o.low&&openIv2==null)openIv2=o.m;
-        if(!o.low&&openIv2!=null){todayIv.push([openIv2,o.m]);openIv2=null;}
+        if(o.st==='unknown')continue;
+        if(o.st==='low'&&openIv2==null)openIv2=o.m;
+        if(o.st==='clear'&&openIv2!=null){todayIv.push([openIv2,o.m]);openIv2=null;}
       }
       if(openIv2!=null)todayIv.push([openIv2,nowMin]);
     }
@@ -1164,7 +1171,7 @@ async function refreshToday(r){
     const t=new Date(ms);
     if(paDay(t)!==todayKey)continue;
     const c=ceilOf([],raw);
-    list.push({m:paMin(t),ceil:c,low:c!=null&&c<3000});
+    list.push({m:paMin(t),ceil:c,st:skyState(raw,c)});
   }
   // fallback: IEM obhistory, using raw if present else decoded sky fields
   if(list.length<3){
@@ -1186,7 +1193,7 @@ async function refreshToday(r){
             if(c==null||+lvl<c)c=+lvl;
         }
       }
-      list.push({m:paMin(t),ceil:c,low:c!=null&&c<3000});
+      list.push({m:paMin(t),ceil:c,st:skyState(o.metar||o.raw||'',c)});
     }
   }
   list.sort((x,y)=>x.m-y.m);
@@ -1194,8 +1201,9 @@ async function refreshToday(r){
   const nowMin=paMin(new Date());
   const iv=[]; let open=null;
   for(const o of list){
-    if(o.low&&open==null)open=o.m;
-    if(!o.low&&open!=null){iv.push([open,o.m]);open=null;}
+    if(o.st==='unknown')continue;              // dropout: bridge
+    if(o.st==='low'&&open==null)open=o.m;
+    if(o.st==='clear'&&open!=null){iv.push([open,o.m]);open=null;}
   }
   if(open!=null)iv.push([open,nowMin]);
   r.todayIv=iv;
