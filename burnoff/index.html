@@ -695,7 +695,7 @@ async function run(){
    Lineage: Hilliker & Fritsch 1999; MIT-LL Marine Stratus Forecast
    System; Iacobellis & Cayan 2013; Klein–Hartmann LTS.             */
 const CLARO={
-  TESTN:45, key:'claro.v3', st:null,
+  TESTN:45, key:'claro.v4', st:null,
   windows(){
     const now=new Date(), Y=now.getFullYear(), out=[];
     for(let y=Y-2;y<=Y;y++){
@@ -864,6 +864,7 @@ const CLARO={
         const gap=(rows[i].ms-rows[i-1].ms)/864e5;
         rows[i].pc=gap<=2?rows[i-1].y:null;
         rows[i].po=gap<=2?rows[i-1].yo:null;
+        rows[i].ph=gap<=2?(rows[i-1].held?0:(rows[i-1].y!=null?1:null)):null;
       }
       per[r.f.s]=rows;
     }
@@ -931,6 +932,34 @@ const CLARO={
         }
         if(n){brier=s1/n;brierClim=s2/n;}
       }
+      const featB=row=>[
+        row.dc!=null?Math.log(Math.max(100,Math.min(4000,row.dc))):Math.log(4000),
+        row.g1??2,row.g2??3,row.g1t??0,
+        row.mh??0,
+        (row.mhc!=null&&row.mhc<16.5*60)?row.mhc/60:12,
+        row.t8??5,row.sp??3,
+        row.ph==null?0.5:row.ph,
+        row.dS,row.dC];
+      const dRows=rows.filter(x=>x.y!=null||x.held);
+      const bY=r2=>r2.y!=null?1:0;
+      let wB=null,bssB=null,nBt=0,baseB=null,prevB=0.5;
+      if(dRows.length>=80){
+        const testB=dRows.slice(-this.TESTN);
+        let s1=0,s2v=0,nb=0;
+        for(const t of testB){
+          const tr=dRows.filter(x=>x.ms<t.ms);
+          if(tr.length<60)continue;
+          const w=CLARO.logit(tr.map(featB),tr.map(bY));
+          const p=CLARO.sig(CLARO.dot(w,featB(t)));
+          const base=tr.reduce((a,x)=>a+bY(x),0)/tr.length;
+          s1+=(p-bY(t))**2; s2v+=(base-bY(t))**2; nb++;
+        }
+        if(nb>=20){bssB=1-s1/Math.max(1e-9,s2v);nBt=nb;}
+        baseB=dRows.reduce((a,x)=>a+bY(x),0)/dRows.length;
+        if(bssB!=null&&bssB>0.02)wB=CLARO.logit(dRows.map(featB),dRows.map(bY));
+        const lastD=dRows[dRows.length-1];
+        prevB=lastD?(lastD.held?0:1):0.5;
+      }
       const q80=a=>{const s2=a.map(Math.abs).sort((x,y)=>x-y);return s2.length?s2[Math.floor(0.8*(s2.length-1))]:null;};
       const lastO=oR.length?oR[oR.length-1].yo:null;
       out[r.f.s]={n:cR.length,no:oR.length,nT:vc.eF.length,nTo:vo.eF.length,
@@ -939,6 +968,7 @@ const CLARO={
         maeFo:CLARO.mean(vo.eF.map(Math.abs)),maeMo:CLARO.mean(vo.eM.map(Math.abs)),
         biasF:CLARO.med(vc.eF),p80:q80(vc.eF),p80o:q80(vo.eF),
         nHrs:LY.length,pBase:LY.length?y0:null,
+        wB,bssB,nBt,baseB,nDeck:dRows.length,prevB,
         wC:fitC?fitC.w:null,bC:fitC?fitC.std:null,
         wO:fitO?fitO.w:null,wL,brier,brierClim,lastO};
     }
@@ -981,6 +1011,29 @@ const CLARO={
         if(idx>=0&&tb.t8&&tb.t8[idx]!=null)t8=tb.t8[idx]-tb.t2[idx];}
       const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
       const dS=Math.sin(2*Math.PI*doy/365),dC=Math.cos(2*Math.PI*doy/365);
+      const oldBl=card.querySelector('.breakline'); if(oldBl)oldBl.remove();
+      if(r.deckNow){
+        const dc=r.dawnCeilToday??r.ceil;
+        let mToday2=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
+        const heldF2=(mToday2==null||mToday2>=16.5*60)?1:0;
+        const xb=[dc!=null?Math.log(Math.max(100,Math.min(4000,dc))):Math.log(4000),
+          g1??2,g2??3,0,heldF2,heldF2?12:mToday2/60,t8??5,3,o.prevB??0.5,dS,dC];
+        const line=document.createElement('div');
+        line.className='why breakline'; line.style.marginTop='2px';
+        if(o.wB){
+          const p=CLARO.sig(CLARO.dot(o.wB,xb));
+          const col=p>=0.65?'#39d07f':p>=0.35?'#ffa32e':'#ff4d4d';
+          line.innerHTML='chance the deck breaks today: <b style="color:'+col+'">'+Math.round(p*100)+'%</b>'+
+            ' <span style="opacity:.75">CLARO · skill +'+o.bssB.toFixed(2)+' vs climatology · '+o.nDeck+' deck-days</span>';
+        }else if(o.baseB!=null){
+          line.innerHTML='chance the deck breaks today: <b>~'+Math.round(o.baseB*100)+'%</b>'+
+            ' <span style="opacity:.75">3-season climatology · model shows no added skill here ('+o.nDeck+' deck-days'+(o.bssB!=null?', BSS '+o.bssB.toFixed(2):'')+')</span>';
+        }
+        if(line.innerHTML){
+          const head=card.querySelector('.head');
+          if(head)head.after(line);
+        }
+      }
       const evs=[];
       if(r.deckNow&&o.wC){
         let mToday=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
