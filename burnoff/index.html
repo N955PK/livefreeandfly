@@ -155,11 +155,11 @@ const pa=d=>new Date(d.toLocaleString('en-US',{timeZone:TZ}));
 const paMin=d=>{const p=pa(d);return p.getHours()*60+p.getMinutes();};
 const paDay=d=>pa(d).toDateString();
 function paOffset(d){const u=new Date(d.toLocaleString('en-US',{timeZone:'UTC'}));return (u-pa(d))/60000;}
-const fmtHM=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit',timeZone:TZ});
+const fmtHM=new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:TZ});
 const DAYNM=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function fmtClock(m){m=((Math.round(m)%1440)+1440)%1440;
-  let h=Math.floor(m/60),mm=m%60;const ap=h>=12?'PM':'AM';h=h%12||12;
-  return h+':'+String(mm).padStart(2,'0')+' '+ap;}
+  const h=Math.floor(m/60),mm=m%60;
+  return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');}
 function fmtAbs(m){return (m>=1440?'tmrw ':'')+fmtClock(m);}
 function fmtDur(m){m=Math.round(m);
   if(m<60)return m+' min';
@@ -722,7 +722,7 @@ const CLARO={
       try{localStorage.setItem(this.key,JSON.stringify(st));}
       catch(e){ try{localStorage.setItem(this.key,JSON.stringify({day:st.day,out:st.out,names:st.names,tB:st.tB}));}catch(e2){} }
       this.apply(results,ctx);
-      say('updated '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date())+' · CLARO active · refreshes hourly');
+      say('updated '+new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date())+' · CLARO active · refreshes hourly');
     }catch(e){console.warn('CLARO build failed',e); say('CLARO unavailable — heuristic blend shown');}
   },
   parseTd(raw){ const m=String(raw).match(/\s(M?\d{2})\/(M?\d{2})\s/); if(!m)return null;
@@ -998,7 +998,7 @@ const CLARO={
   apply(results,ctx){
     const st=this.st; if(!st||!st.out)return;
     this._results=results; this._ctx=ctx;
-    const fmtHM2=new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'});
+    const fmtHM2=new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false});
     const fA=m=>fmtAbs(m);
     results.forEach((r,fi)=>{
       const o=st.out[r.f.s]; if(!o)return;
@@ -1316,7 +1316,7 @@ function tickAges(){
     if(!r.obsMs)continue;
     const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
     const ns=card&&card.querySelector('[data-nowsub]');
-    if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'numeric',minute:'2-digit'}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
+    if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
   }
 }
 $('cards').addEventListener('click',e=>{
