@@ -108,12 +108,15 @@ footer a{color:var(--dim)}
     </div>
     <div id="gread"></div>
   </div>
-  <div id="key" class="why" style="margin:2px 0 14px;line-height:1.9">
+  <details id="keywrap" style="margin:2px 0 14px">
+    <summary style="font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;cursor:pointer;color:var(--dim)">GRAPH KEY</summary>
+    <div id="key" class="why" style="margin-top:8px;line-height:1.9">
     <span style="color:#8B959E">▮</span> observed fog — lower edge = reported ceiling (ft AGL, log axis) · <span style="color:#8B959E;opacity:.45">▮</span> model expects deck (presence only) ·
     <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> · │ now · ┆ sunrise/sunset<br>
     hour strip: CLARO's P(ceiling &lt; 1,000 ft), green → red · 14-day drawer: white = observed (○-- burn-off, ●— return),
     <span style="color:#39d07f">green</span>/<span style="color:#ffa32e">amber</span> = model day-ahead, ▍ observed-event day, <span style="color:#A31F34">▍</span> model held all day, ◬ blended call
   </div>
+  </details>
   <div id="cards"></div>
   <div id="about" role="dialog" aria-modal="true">
     <div class="box">
