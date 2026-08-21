@@ -108,6 +108,12 @@ footer a{color:var(--dim)}
     </div>
     <div id="gread"></div>
   </div>
+  <div id="key" class="why" style="margin:2px 0 14px;line-height:1.9">
+    <span style="color:#8B959E">▮</span> observed fog — lower edge = reported ceiling (ft AGL, log axis) · <span style="color:#8B959E;opacity:.45">▮</span> model expects deck (presence only) ·
+    <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> · │ now · ┆ sunrise/sunset<br>
+    hour strip: CLARO's P(ceiling &lt; 1,000 ft), green → red · 14-day drawer: white = observed (○-- burn-off, ●— return),
+    <span style="color:#39d07f">green</span>/<span style="color:#ffa32e">amber</span> = model day-ahead, ▍ observed-event day, <span style="color:#A31F34">▍</span> model held all day, ◬ blended call
+  </div>
   <div id="cards"></div>
   <div id="about" role="dialog" aria-modal="true">
     <div class="box">
@@ -661,7 +667,6 @@ async function run(){
       <div class="rawline" data-raw>${r.obsRaw||('raw METAR not provided by '+(r.obsSrc||'source'))}</div>
       <div class="head">${head}<small>${sub}</small></div>
       <div data-strip>${todayStrip(r,nowMin,sr,r.ssv)}</div>
-      <div class="why" style="margin-top:2px"><span style="color:#8B959E">▮</span> deck observed today · <span style="color:#8B959E;opacity:.55">▮</span> model expects deck (lighter) · <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> — prediction windows · │ now · ┆ sunrise/sunset</div>
       <div class="parts">
         <div class="p"><div class="k">HRRR</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
         <div class="p"><div class="k">RECENT DAYS</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
