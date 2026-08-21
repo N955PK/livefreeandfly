@@ -281,6 +281,20 @@ async function latestObs(icao){
   }
   return top;
 }
+function ceilSteps(list,endMin){
+  const steps=[]; let lastC=null;
+  for(const o of list){
+    let c;
+    if(o.st==='low')c=o.ceil!=null?o.ceil:lastC;
+    else if(o.st==='clear')c=null;
+    else c=lastC;
+    if(steps.length&&steps[steps.length-1].c===c)steps[steps.length-1].m1=o.m;
+    else steps.push({m0:o.m,m1:o.m,c});
+    lastC=c;
+  }
+  for(let i=0;i<steps.length;i++)steps[i].m1=i+1<steps.length?steps[i+1].m0:endMin;
+  return steps;
+}
 function skyState(raw,c){
   if(c!=null)return c<3000?'low':'clear';
   const R=String(raw).toUpperCase();
@@ -360,37 +374,49 @@ function modelDayScan(times,vals,dayStart,sr){
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
 function todayStrip(r,nowMin,sr,ssv){
-  const W=720,H=76,L=10,R=10,T=24,BH=22;
-  const Y0=5*60,Y1=22.5*60;
+  const W=720,H=118,L=36,R=10,T=14,PB=92;
+  const Y0=5*60,Y1=22.5*60,PH=PB-T;
   const xv=m=>L+(Math.min(Y1,Math.max(Y0,m))-Y0)/(Y1-Y0)*(W-L-R);
+  const CLO=120,CHI=3000;
+  const yBase=c=>{const cc=Math.min(CHI,Math.max(CLO,c));
+    return T+(1-(Math.log(cc)-Math.log(CLO))/(Math.log(CHI)-Math.log(CLO)))*PH;};
   let g='';
+  for(const tk of [200,500,1000,3000]){
+    const y=yBase(tk);
+    g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="rgba(233,237,241,${tk===1000?'.12':'.06'})"/>`;
+    g+=`<text x="${L-5}" y="${y+3}" fill="#8B959E" font-size="8" font-family="ui-monospace,monospace" text-anchor="end">${tk>=1000?(tk/1000)+'k':tk}</text>`;
+  }
   for(let hh=6;hh<=22;hh++){
     const maj=hh%3===0;
-    g+=`<line x1="${xv(hh*60)}" y1="${T-4}" x2="${xv(hh*60)}" y2="${T+BH+4}" stroke="rgba(233,237,241,${maj?'.1':'.05'})"/>`;
-    if(maj)g+=`<text x="${xv(hh*60)}" y="${H-4}" fill="#8B959E" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
+    g+=`<line x1="${xv(hh*60)}" y1="${T}" x2="${xv(hh*60)}" y2="${PB}" stroke="rgba(233,237,241,${maj?'.08':'.04'})"/>`;
+    if(maj)g+=`<text x="${xv(hh*60)}" y="${H-6}" fill="#8B959E" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
   }
   for(const sv of [sr,ssv])
-    g+=`<line x1="${xv(sv)}" y1="${T-4}" x2="${xv(sv)}" y2="${T+BH+4}" stroke="rgba(233,237,241,.25)" stroke-dasharray="2 4"/>`;
-  g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${BH}" rx="4" fill="rgba(233,237,241,.035)"/>`;
-  for(const [a,b] of (r.todayIv||[]))
-    g+=`<rect x="${xv(a)}" y="${T}" width="${Math.max(2,xv(Math.min(b,nowMin))-xv(a))}" height="${BH}" rx="4" fill="#8B959E" opacity=".55"/>`;
+    g+=`<line x1="${xv(sv)}" y1="${T}" x2="${xv(sv)}" y2="${PB}" stroke="rgba(233,237,241,.25)" stroke-dasharray="2 4"/>`;
   if(r.series)for(let k=0;k<r.series.length;k++){
     const p=r.series[k];
     if(p.m<nowMin||p.m>Y1)continue;
-    if(p.c>=40)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${BH}" fill="#8B959E" opacity=".33"/>`;
+    if(p.c>=40)g+=`<rect x="${xv(p.m)}" y="${T}" width="${Math.max(2,xv(Math.min(p.m+62,Y1))-xv(p.m))}" height="${PH}" fill="#8B959E" opacity=".14"/>`;
+  }
+  for(const st of (r.todaySteps||[])){
+    if(st.c==null)continue;
+    const x0=xv(st.m0),x1=xv(Math.min(st.m1,nowMin));
+    if(x1<=x0)continue;
+    const yb=yBase(st.c);
+    g+=`<rect x="${x0}" y="${T}" width="${Math.max(1.5,x1-x0)}" height="${Math.max(2,yb-T)}" fill="#8B959E" opacity=".55"/>`;
   }
   for(const ev of (r.events||[])){
     if(ev.m==null||ev.m>=Y1)continue;
     const col=ev.kind==='clear'?'57,208,127':'255,163,46';
     const hexc=ev.kind==='clear'?'#39d07f':'#ffa32e';
-    const a=Math.max(Y0,ev.m-ev.band),b=Math.min(Y1,ev.m+ev.band);
-    g+=`<rect x="${xv(a)}" y="${T-3}" width="${Math.max(2,xv(b)-xv(a))}" height="${BH+6}" rx="4" fill="rgba(${col},.14)" stroke="rgba(${col},.5)"/>`;
-    g+=`<path d="M${xv(ev.m)} ${T-6} l5 -8 h-10 z" fill="${hexc}"/>`;
-    g+=`<line x1="${xv(ev.m)}" y1="${T-4}" x2="${xv(ev.m)}" y2="${T+BH+4}" stroke="${hexc}" stroke-width="1.6"/>`;
+    const a2=Math.max(Y0,ev.m-ev.band),b2=Math.min(Y1,ev.m+ev.band);
+    g+=`<rect x="${xv(a2)}" y="${T-3}" width="${Math.max(2,xv(b2)-xv(a2))}" height="${PH+6}" rx="4" fill="rgba(${col},.12)" stroke="rgba(${col},.5)"/>`;
+    g+=`<path d="M${xv(ev.m)} ${T-5} l5 -8 h-10 z" fill="${hexc}"/>`;
+    g+=`<line x1="${xv(ev.m)}" y1="${T-3}" x2="${xv(ev.m)}" y2="${PB+3}" stroke="${hexc}" stroke-width="1.6"/>`;
   }
   if(nowMin>=Y0&&nowMin<=Y1)
-    g+=`<line x1="${xv(nowMin)}" y1="${T-8}" x2="${xv(nowMin)}" y2="${T+BH+8}" stroke="#e9edf1" stroke-width="1.6"/>`+
-       `<text x="${xv(nowMin)}" y="${T-11}" fill="#e9edf1" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">now</text>`;
+    g+=`<line x1="${xv(nowMin)}" y1="${T-8}" x2="${xv(nowMin)}" y2="${PB+4}" stroke="#e9edf1" stroke-width="1.6"/>`+
+       `<text x="${xv(nowMin)}" y="${T-10}" fill="#e9edf1" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">now</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:10px">${g}</svg>`;
 }
 function chart(days,tick,nowMin){
@@ -541,9 +567,10 @@ async function run(){
         if(o.st==='clear'&&openIv2!=null){todayIv.push([openIv2,o.m]);openIv2=null;}
       }
       if(openIv2!=null)todayIv.push([openIv2,nowMin]);
+      var todaySteps=ceilSteps(tobs,nowMin);
     }
     const nowM=series.find(x=>x.m>=nowMin);
-    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,obsSrc:ob?ob.src:'',todayIv,dawnCeilToday,st05Today,
+    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,obsSrc:ob?ob.src:'',todayIv,todaySteps,dawnCeilToday,st05Today,
       catCol:cat==='vfr'?'#39d07f':cat==='mvfr'?'#3aa8ff':cat==='ifr'?'#ff4d4d':'#8B959E',
       ssv:(()=>{const rad=Math.PI/180,d2=new Date(),J=Math.floor((d2-new Date(d2.getFullYear(),0,0))/864e5),
         gq=(360/365.25)*(J-81)*rad,eot=9.87*Math.sin(2*gq)-7.53*Math.cos(gq)-1.5*Math.sin(gq),
@@ -1263,6 +1290,7 @@ async function refreshToday(r){
   }
   if(open!=null)iv.push([open,nowMin]);
   r.todayIv=iv;
+  r.todaySteps=ceilSteps(list,nowMin);
   const srT=sunriseOf(r.f.lat,r.f.lon,new Date());
   let dc=null,s5=0,firstCeil=null;
   for(const o of list){
