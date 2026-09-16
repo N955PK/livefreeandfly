@@ -387,11 +387,19 @@ Still unverified in flight: GNSS-denied behavior, and how the INS-healthy bit
 behaves under sustained high rates (it dropped ~5% of frames during hand
 flips on the bench).
 
-**Phase 1 — pipeline skeleton (unblocked NOW).** Bridge with `xplane_udp` and
-`log_replay` sources, WebSocket fanout, ring buffer, parquet logging.
-three.js scene with box, model, trail, judge camera, interpolation buffer.
-Exit: hand-fly a loop in X-Plane, watch it live in the browser, scrub it back.
-Everything here survives unchanged when the OnFlight adapter lands.
+**Phase 1 — pipeline skeleton. FIRST CUT DONE 2026-09-16.** `run_bridge.py`
+(aiohttp) takes the Hub's live UDP broadcast or a recorded `.bin`/`.pcap`
+replayed at wall-clock pace, decodes with `onflight/udp_ins.py`, converts to
+three.js world pose in `bridge/frames.py` (tested), fans JSON samples out on
+`/ws` at 50 Hz, seeds late joiners with 120 s of history, and logs every raw
+frame to `sessions/`. `web/` is a buildless ES-module three.js app (three
+vendored — the phone has no internet on the Hub's Wi-Fi): 1000 m box, biplane
+model, trail, orbit / judge / chase cameras, 80 ms interpolation buffer, HUD,
+LIVE / INS-init / NO-DATA status. Verified in-browser against the recorded
+hand-rotation capture. Deviations from the original plan: no Vite/Node
+toolchain and no X-Plane source — real recorded frames are the dev feed.
+Still to do in this phase: scrub-back UI over the history, and a first live
+desk run with the Hub powered.
 
 **Phase 2 — real data.** OnFlight adapter from phase 0 + a data-quality badge.
 Exit: live desk demo off the Hub; car-roof drive-around shows sane
@@ -477,6 +485,8 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — Phase 1 first cut: aiohttp bridge + buildless three.js app;
+  origin altitude tracks the lowest seen so the ground is always the floor.
 - 2026-09-15 — U1/U2/U3 resolved from capture v2: UDP broadcast :2000,
   67-byte packed struct, 50 Hz, full INS state. Phase 0 done; Plan C closed.
   Fixtures committed with location moved to the KWVI reference point and

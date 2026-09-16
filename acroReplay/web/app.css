@@ -1,0 +1,13 @@
+html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: -apple-system, system-ui, sans-serif; -webkit-user-select: none; user-select: none; }
+#view { display: block; width: 100vw; height: 100vh; touch-action: none; }
+#hud { position: fixed; top: calc(env(safe-area-inset-top) + 8px); left: calc(env(safe-area-inset-left) + 8px); color: #fff; background: rgba(0, 0, 0, .45); padding: 8px 12px; border-radius: 10px; font-variant-numeric: tabular-nums; line-height: 1.35; pointer-events: none; }
+.row { display: grid; grid-template-columns: repeat(6, auto); gap: 0 10px; font-size: clamp(16px, 3.2vw, 22px); }
+.k { opacity: .65; font-size: .7em; align-self: center; }
+.v { font-weight: 600; min-width: 3.4em; text-align: right; }
+.pill { position: fixed; top: calc(env(safe-area-inset-top) + 8px); right: calc(env(safe-area-inset-right) + 8px); padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; color: #000; background: #ffd166; pointer-events: none; }
+.pill.good { background: #7bd88f; }
+.pill.bad { background: #ff6b6b; color: #fff; }
+#controls { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 10px); left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
+button { font-size: 16px; padding: 10px 16px; border-radius: 999px; border: 0; background: rgba(255, 255, 255, .85); color: #111; font-weight: 600; }
+button.on { background: #2395e7; color: #fff; }
+@media (max-width: 560px) { .pill { top: auto; bottom: calc(env(safe-area-inset-bottom) + 64px); right: 50%; transform: translateX(50%); white-space: nowrap; } }

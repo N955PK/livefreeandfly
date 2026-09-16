@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>acroReplay</title>
+<link rel="stylesheet" href="./app.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div id="hud">
+  <div class="row">
+    <span class="k">HDG</span><span class="v" id="hdg">---</span>
+    <span class="k">PITCH</span><span class="v" id="pitch">--.-</span>
+    <span class="k">ROLL</span><span class="v" id="roll">--.-</span>
+  </div>
+  <div class="row">
+    <span class="k">G</span><span class="v" id="nz">-.--</span>
+    <span class="k">ALT</span><span class="v" id="alt">----</span>
+    <span class="k">GS</span><span class="v" id="gs">---</span>
+  </div>
+</div>
+<div id="status" class="pill">connecting…</div>
+<div id="controls">
+  <button data-cam="judge">Judge</button>
+  <button data-cam="orbit" class="on">Orbit</button>
+  <button data-cam="chase">Chase</button>
+  <button id="clear">Clear trail</button>
+</div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
