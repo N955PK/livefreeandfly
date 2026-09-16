@@ -146,6 +146,21 @@ function sunburstTexture(rays, spread) {
   return tex;
 }
 
+function propDiskTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grad.addColorStop(0, 'rgba(40,40,40,1)');
+  grad.addColorStop(0.12, 'rgba(60,60,60,0.9)');
+  grad.addColorStop(0.5, 'rgba(90,90,90,0.55)');
+  grad.addColorStop(0.9, 'rgba(120,120,120,0.35)');
+  grad.addColorStop(1, 'rgba(120,120,120,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 function buildAircraft() {
   const g = new THREE.Group();
   const paint = new THREE.MeshStandardMaterial({ map: sunburstTexture(2, 1.6), roughness: 0.45, metalness: 0.05 });
@@ -196,11 +211,24 @@ function loadEagleModel() {
   new MTLLoader().setPath(path).load('eagle.mtl', (mtl) => {
     mtl.preload();
     new OBJLoader().setMaterials(mtl).setPath(path).load('eagle.obj', (obj) => {
+      const props = [];
       obj.traverse((m) => {
         if (!m.isMesh) return;
         if (/canopy/i.test(m.name)) m.material = new THREE.MeshStandardMaterial({ color: 0x9fc5e8, transparent: true, opacity: 0.35, roughness: 0.1 });
+        else if (/propeller/i.test(m.name)) props.push(m);
         else m.material.side = THREE.DoubleSide;
       });
+      // A spinning prop reads as a translucent disk: replace the blade mesh with one at the hub (model XY plane faces +Z = nose).
+      for (const m of props) {
+        const bb = new THREE.Box3().setFromObject(m);
+        const size = bb.getSize(new THREE.Vector3()), center = bb.getCenter(new THREE.Vector3());
+        m.visible = false;
+        const disk = new THREE.Mesh(new THREE.CircleGeometry(Math.max(size.x, size.y) / 2, 48), new THREE.MeshBasicMaterial({
+          map: propDiskTexture(), transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false,
+        }));
+        disk.position.copy(center);
+        obj.add(disk);
+      }
       const pivot = new THREE.Group();
       pivot.setRotationFromMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0)));
       pivot.scale.setScalar(0.01);
@@ -255,7 +283,7 @@ function onSample(s, seedOnly = false) {
   if (s.pos) {
     s.v = new THREE.Vector3(s.pos[0], Math.max(0.6, s.pos[1]), s.pos[2]);
     s.q = new THREE.Quaternion(...s.quat);
-    pushTrail(s.v, seedOnly ? trailLastMs + 1000 : s.recv);
+    if (seedOnly) pushTrail(s.v, trailLastMs + 1000);
     if (!seedOnly) {
       samples.push(s);
       if (samples.length > 100) samples.splice(0, samples.length - 100);
@@ -425,7 +453,11 @@ setCamMode('orbit');
 function frame() {
   const now = performance.now();
   const pose = poseAt(now - RENDER_DELAY_MS);
-  if (pose) { aircraft.position.copy(pose.v); aircraft.quaternion.copy(pose.q); }
+  if (pose) {
+    aircraft.position.copy(pose.v);
+    aircraft.quaternion.copy(pose.q);
+    if (latest && now - lastRecv < STALE_MS) pushTrail(pose.v, now);
+  }
   updateCamera();
   updateHud(now);
   renderer.render(scene, camera);
