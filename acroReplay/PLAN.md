@@ -430,8 +430,13 @@ is proprietary even though their libraries are open, and its USB-C port is charg
 self-modifying it is off the table). Implementation in `ios/` (see `ios/README.md`): Swift
 listens on UDP 2000 and pushes raw frames into a WKWebView running the unchanged web app,
 which now decodes and does frame math in JS (`web/onflight.js`, `web/frames.js`). Blockers
-at decision time: Xcode not installed on the dev Mac; multicast entitlement request pending
-a paid developer account.
+at decision time: multicast entitlement request pending a paid developer account.
+**Verified 2026-09-16 in the iPhone 17 Pro simulator** (Xcode 27 / iOS 26.3): app builds clean,
+receives frames from `run_fake_hub.py` over loopback, renders LIVE with HUD, model, and trail.
+Note: the simulator's software WebGL takes several seconds to compile shaders on first launch
+(black canvas, then live); hardware iPhones don't. Until Apple grants the entitlement, a real
+phone can only be fed by *unicast* (e.g. `run_fake_hub.py --dest <phone-ip>`), not the Hub's
+broadcast.
 
 The display is an iPad or iPhone. This is the proven EFB pattern — ForeFlight
 plus Sentry/Stratux is exactly "iPad joins a sensor's internet-less Wi-Fi AP" —

@@ -8,6 +8,23 @@
 <meta name="theme-color" content="#000000">
 <title>acroReplay</title>
 <link rel="stylesheet" href="./app.css">
+<script>
+  // Inside the iOS shell, surface page errors in the native log (WKWebView has no visible console).
+  (function () {
+    const native = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.acro;
+    if (!native) return;
+    const report = (msg) => native.postMessage('log: ' + msg);
+    window.addEventListener('error', (e) => report(`${e.message} @ ${e.filename}:${e.lineno}`));
+    window.addEventListener('unhandledrejection', (e) => report('unhandled: ' + (e.reason && e.reason.stack || e.reason)));
+    const origError = console.error.bind(console);
+    console.error = (...a) => { report(a.map(String).join(' ')); origError(...a); };
+    setTimeout(() => {
+      const c = document.getElementById('view');
+      report(`diag viewport ${window.innerWidth}x${window.innerHeight} dpr ${devicePixelRatio} canvas ${c && c.width}x${c && c.height} ` +
+             `webgl ${!!(document.createElement('canvas').getContext('webgl2'))} app ${typeof window.acroReplay}`);
+    }, 2500);
+  })();
+</script>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
 </head>
 <body>

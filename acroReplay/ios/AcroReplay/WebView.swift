@@ -23,8 +23,12 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.body as? String == "ready" else { return }
-        listener.start { [weak self] data, wall in self?.push(data, wall: wall) }
+        guard let body = message.body as? String else { return }
+        if body == "ready" {
+            listener.start { [weak self] data, wall in self?.push(data, wall: wall) }
+        } else {
+            NSLog("[web] %@", body)
+        }
     }
 
     private func push(_ data: Data, wall: TimeInterval) {
