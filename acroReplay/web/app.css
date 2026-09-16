@@ -12,4 +12,6 @@ button { font-size: 16px; padding: 10px 16px; border-radius: 999px; border: 0; b
 button.on { background: #2395e7; color: #fff; }
 @media (max-width: 560px) { .pill { top: auto; bottom: calc(env(safe-area-inset-bottom) + 64px); right: 50%; transform: translateX(50%); white-space: nowrap; } }
 #attribution { position: fixed; right: calc(env(safe-area-inset-right) + 8px); bottom: calc(env(safe-area-inset-bottom) + 2px); font-size: 10px; color: rgba(255,255,255,.75); pointer-events: none; }
-#zoom-in, #zoom-out { min-width: 44px; font-size: 20px; padding: 6px 12px; }
+#zoom { position: fixed; right: calc(env(safe-area-inset-right) + 10px); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; }
+#zoom button { width: 48px; height: 48px; padding: 0; font-size: 24px; line-height: 48px; }
+@media (max-width: 560px) { #controls button { font-size: 15px; padding: 10px 13px; } }
