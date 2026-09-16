@@ -224,21 +224,26 @@ Manual says it exists but not port, addressing, or whether it needs enabling.
   with and without the key entered (§5 step 7) and diff. If the no-key stream
   is sufficient, use it and avoid the encumbered format entirely.
 
-### U4 — Does the config page itself expose a live data channel?
+### U4 — RESOLVED 2026-09-15: the Hub serves `ws://192.168.23.1/data` (binary)
 
-The page renders live values, so the Wi-Fi processor already serves data to a
-browser somehow.
+The mirrored page JS opens a WebSocket that pushes a **101-byte little-endian
+status struct** — full layout and the HTTP config API (`/config`,
+`/sys-config`, `/sensor-config`, `/ins-config`, `/acrowrx`, …) are in
+[docs/PROTOCOL.md](docs/PROTOCOL.md); decoder in `onflight/ws_data.py`.
+Contents: 4 status-flag bytes, sensor die temps, GNSS fix/sats/accuracies,
+UTC, **pitch and roll (0.01°)**, WGS-84/MSL/cabin-pressure altitudes,
+external air-data fields, AGL, **lat/lon (1e-7°)**, sys time (ms), heart
+rate, 4 analog inputs. Push rate: measured by capture v2.
 
-- **Branch a — WebSocket or EventSource on the Hub:** jackpot — the tablet
-  connects DIRECTLY to the Hub with no bridge process at all; the whole
-  backend collapses into the frontend for the live path (bridge still useful
-  for logging/segmentation, but it could move into the browser too). The
-  capture script greps the page JS for `WebSocket(`/`EventSource(` and the
-  probe manifest will show it.
-- **Branch b — HTTP polling (likely, 1–2 Hz):** too slow to render from, but
-  the polled JSON's field names are a free, labeled data dictionary that
-  massively accelerates U2 field mapping. The script samples each JSON
-  endpoint twice, 1 s apart, precisely to show which fields are live.
+**Verdict:** it carries no heading, body rates, accelerations, load factor,
+or velocities, so it cannot drive the 3D replay — it is a health/GNSS-quality
+side channel (and the config API is how we'd read firmware version, mounting
+rotation, and the ACROWRX product flag). Its packed-struct style is a strong
+hint that the developer UDP stream is also a packed LE struct, most likely
+the datalog record. **U1/U2 remain open**: the 2026-09-15 pcaps were empty
+because macOS dropped the Hub Wi-Fi mid-capture (competing auto-join
+networks) and the Hub's server hangs on unknown URLs — both fixed in the
+capture v2 protocol (§5).
 
 ### U5 — GNSS indoors: the INS may never initialize on the bench
 
@@ -280,14 +285,20 @@ the Mac, `sudo` password.
 
 1. Power the Hub on a stable surface; don't move it for 10 s (gyro-bias
    init). Wait for the status LED to go solid (INS initialized — needs GNSS).
-2. Join the Mac to the "OnFlight Hub…" Wi-Fi. **The Mac is offline from here**
-   — Claude can't help live; the script is self-guiding.
-3. `python3 capture_onflight.py` — it will:
-   - mirror the config page + assets and probe discovered/guessed API
-     endpoints (each JSON endpoint sampled twice, 1 s apart);
-   - tcpdump phase 1 (60 s, Hub perfectly still);
-   - tcpdump phase 2 (60 s, slow hand rotations — ~20 s each of roll, pitch,
-     yaw, one axis at a time, smooth and slow).
+2. Start `python3 capture_onflight.py` from any network — v2 joins the Hub
+   SSID itself (`OnFlight Hub 4496A6FE8CE0`, open network) and re-asserts it
+   before every step, because macOS otherwise auto-joins a known network with
+   internet mid-run. **The Mac is offline from here** — Claude can't help
+   live; the script is self-guiding. It will:
+   - mirror the config page and GET the four JSON config endpoints (firmware
+     version, mounting rotation, ACROWRX flag, datalog format/divider);
+   - phase 1 "stationary" (60 s, Hub perfectly still) and phase 2 "moving"
+     (60 s, slow hand rotations — ~20 s each of roll, pitch, yaw, one axis at
+     a time), each recording simultaneously: ALL traffic on the interface
+     (tcpdump), the `ws://hub/data` frames, and any datagrams arriving on
+     UDP 4000 while broadcasting ForeFlight's discovery JSON on UDP 63093 (so
+     a Hub that unicasts to discovered EFBs starts sending to this Mac).
+   Only known URLs are touched — the Hub's web server hangs on unknown paths.
 4. Note (photo is fine) the config page header: firmware version, serial,
    GNSS fix/sats, and whether an ACROWRX key is entered.
 5. If an SD card is in the Hub: afterwards, copy the RAW log files for this
@@ -399,10 +410,11 @@ under negative g).
 ```
 livefreeandfly/acroReplay/
   PLAN.md                    ← this file
-  capture_onflight.py        ← bench capture kit (exists)
-  captures/                  ← pcaps + endpoint mirrors (gitignored if huge; keep decoded fixtures)
+  capture_onflight.py        ← bench capture kit v2 (exists)
+  captures/                  ← pcaps + web mirrors + ws/gdl90 logs (gitignored; keep decoded fixtures)
   sample_logs/               ← SD-card logs + CSV/MAT exports (gitignored; fixtures extracted into tests/)
-  docs/PROTOCOL.md           ← wire-format writeup (phase 0 output)
+  docs/PROTOCOL.md           ← Wi-Fi processor interfaces: HTTP config API + ws /data frame (exists); UDP stream TBD
+  onflight/ws_data.py        ← ws /data frame decoder (exists)
   bridge/                    ← python: sources/, hub, ring buffer, segmenter, logging
   web/                       ← vite + three.js app
   tests/                     ← pytest; fixtures/ holds pcap slices + expected StateSamples
@@ -418,6 +430,9 @@ livefreeandfly/acroReplay/
   MVP; revisit at phase 4.
 - 2026-08-12 — Plan C (custom sensor unit) is contingency only; do not start
   while U1–U3 are unresolved.
+- 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
+  frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
+  developer UDP stream stays the target for 3D. Capture v2 written.
 
 ## 10. References
 
