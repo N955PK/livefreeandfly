@@ -46,7 +46,7 @@ button:active { transform: scale(.97); }
 .chip:empty { display: none; }
 
 /* status */
-.badge { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.badge { display: flex; align-items: center; gap: 8px; margin-left: 10px; padding-right: 6px; font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
 .badge::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 8px var(--warn); flex: none; }
 .badge.good::before { background: var(--good); box-shadow: 0 0 8px var(--good); }
 .badge.bad::before { background: var(--bad); box-shadow: 0 0 8px var(--bad); }
@@ -104,6 +104,7 @@ select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--f
   .stat .v { font-size: 21px; }
   #plan { width: 56px; height: 56px; } #vert { width: 20px; height: 56px; }
   .chip { font-size: 11px; width: 10ch; }
+  .badge { margin-left: 4px; padding-right: 0; }
   .badge span { display: none; }
   #zoom { bottom: calc(var(--safe-b) + 78px); }
   #pickbar { top: calc(var(--safe-t) + 118px); bottom: auto; }
