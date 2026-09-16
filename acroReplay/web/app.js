@@ -6,7 +6,7 @@ import { Line2 } from 'three/addons/Line2.js';
 import { LineMaterial } from 'three/addons/LineMaterial.js';
 import { LineGeometry } from 'three/addons/LineGeometry.js';
 import { decodeIns, base64ToBytes } from './onflight.js';
-import { Origin, sampleFromFrame, FT_TO_M } from './frames.js';
+import { Origin, sampleFromFrame, worldQuaternion, FT_TO_M } from './frames.js';
 import { buildTileGround, ATTRIBUTION } from './tiles.js';
 import { DEFAULT_BOX, loadBox, saveBox, buildBoxGroup, judgeWorldPosition, boxStatus, boxFromJudges, boxFromEntry, judgeLatLon } from './box.js';
 import { getItem, setItem } from './storage.js';
@@ -22,6 +22,7 @@ const STALE_MS = 400;
 const TRAIL_HZ = 25;
 const TRAIL_SECONDS = 180;
 const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS;
+const REST_AFTER_MS = 3000;   // no frames this long → park the aircraft
 
 const canvas = document.getElementById('view');
 const hud = Object.fromEntries(['nz', 'alt', 'alt-u', 'boxstat', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
@@ -369,6 +370,11 @@ function loadEagleModel() {
   }, undefined, (err) => console.error('eagle mtl failed', err));
 }
 loadEagleModel();
+// Parked pose shown until the INS is initialized and data is flowing: on the wheels, level, nose up.
+const REST = { pos: new THREE.Vector3(0, 1.2, 0), quat: worldQuaternion(0, 6, 0) };
+aircraft.position.copy(REST.pos);
+aircraft.quaternion.copy(REST.quat);
+let parked = true;
 
 // Trail: thick screen-space line (Line2). Points are decimated to TRAIL_HZ and age out gradually.
 const trailPts = new Float32Array(TRAIL_MAX * 3);
@@ -549,7 +555,7 @@ function updateHud(now) {
   else { text = `${s.sats} sats · ±${units.fmtLen(s.hacc * units.FT_TO_M)}`; cls = 'good'; }
   status.firstElementChild.textContent = text;
   status.className = `badge ${cls}`;
-  if (!s) return;
+  if (!s) { hud.minis.classList.add('hidden'); hud.boxstat.textContent = ''; return; }
   hud.nz.textContent = s.nz.toFixed(1).padStart(4, '\u2007');   // room for the minus sign so the strip doesn't shift
   hud.alt.textContent = Math.round(units.ftToUnit(s.alt));
   if (boxGroup && s.init) {
@@ -622,11 +628,18 @@ setCamMode('orbit');
 
 function frame() {
   const now = performance.now();
-  const pose = poseAt(now - RENDER_DELAY_MS);
+  const flying = socketOpen && latest && latest.init && now - lastRecv < REST_AFTER_MS;
+  const pose = flying ? poseAt(now - RENDER_DELAY_MS) : null;
   if (pose) {
+    parked = false;
     aircraft.position.copy(pose.v);
     aircraft.quaternion.copy(pose.q);
-    if (latest && now - lastRecv < STALE_MS) pushTrail(pose.v, now);
+    if (now - lastRecv < STALE_MS) pushTrail(pose.v, now);
+  } else if (!parked) {
+    parked = true;
+    samples.length = 0;
+    aircraft.position.copy(REST.pos);
+    aircraft.quaternion.copy(REST.quat);
   }
   updateCamera();
   updateHud(now);
