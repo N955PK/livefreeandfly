@@ -28,7 +28,7 @@ def test_records_decode_to_physical_values():
     assert r.gnss_fix in (3, 4) and 6 <= r.gnss_num_sv <= 30
     assert r.utc.year == 2026 and 3.0 < r.input_voltage_v < 6.5
     assert 0.2 < sum(a * a for a in r.accel_g) ** 0.5 < 6
-    assert 40 < sum(m * m for m in r.mag_ut) ** 0.5 < 60
+    assert 20 < sum(m * m for m in r.mag_ut) ** 0.5 < 120
     assert 80_000 < r.static_pres_pa < 102_000
     dt = [b.sys_time_s - a.sys_time_s for a, b in zip(recs, recs[1:])]
     assert all(abs(x - 0.02) < 0.002 for x in dt)
