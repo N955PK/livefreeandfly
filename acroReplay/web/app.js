@@ -24,7 +24,7 @@ const TRAIL_SECONDS = 180;
 const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS;
 
 const canvas = document.getElementById('view');
-const hud = Object.fromEntries(['nz', 'alt', 'alt-k', 'boxstat', 'box-h', 'box-v', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
+const hud = Object.fromEntries(['nz', 'alt', 'alt-k', 'boxstat', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
@@ -554,10 +554,9 @@ function updateHud(now) {
   hud.alt.textContent = Math.round(units.ftToUnit(s.alt));
   if (boxGroup && s.init) {
     const st = boxStatus(boxGroup, aircraft.position);
-    hud['box-h'].textContent = st.horiz ? `↔ ${units.fmtLenFixed(st.horiz.m)} ${st.horiz.word}` : '↔ in box';
-    hud['box-v'].textContent = st.vert ? `↕ ${units.fmtLenFixed(st.vert.m)} ${st.vert.word}` : '↕ in box';
-    hud['box-h'].className = st.horiz ? 'out' : 'in';
-    hud['box-v'].className = st.vert ? 'out' : 'in';
+    const parts = [st.horiz, st.vert].filter(Boolean).map((o) => `${units.fmtLenFixed(o.m)} ${o.word}`);
+    hud.boxstat.textContent = parts.length ? parts.join(' · ') : 'IN BOX';
+    hud.boxstat.className = `chip ${parts.length ? 'out' : 'in'}`;
     hud.minis.classList.remove('hidden');
     // Top-down: judges along the bottom edge; the box spans 25..75 in both axes; outside stays visible.
     const flip = st.towardJudges < 0 ? -1 : 1;
@@ -575,8 +574,7 @@ function updateHud(now) {
     hud['plan-hdg'].setAttribute('class', `mhdg ${st.horiz ? 'out' : ''}`);
     hud['vert-dot'].setAttribute('class', `mdot ${st.vert ? 'out' : ''}`);
   } else {
-    hud['box-h'].textContent = '';
-    hud['box-v'].textContent = '';
+    hud.boxstat.textContent = '';
     hud.minis.classList.add('hidden');
   }
 }

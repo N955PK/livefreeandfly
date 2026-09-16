@@ -38,10 +38,9 @@ button:active { transform: scale(.97); }
 .mjudge { fill: #ff3b30; }
 .mdot { fill: var(--good); stroke: rgba(0,0,0,.5); stroke-width: 1.5; } .mdot.out { fill: var(--warn); }
 .mhdg { stroke: var(--good); stroke-width: 3; stroke-linecap: round; } .mhdg.out { stroke: var(--warn); }
-.chip { display: flex; flex-direction: column; gap: 2px; width: 11.5ch; font-size: 13px; font-weight: 600; line-height: 1.25; font-variant-numeric: tabular-nums; white-space: pre; }
-.chip span:empty::before { content: '\2007'; }
+.chip { width: 12ch; font-size: 13px; font-weight: 600; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .seg.small button { padding: 6px 14px; font-size: 14px; }
-.chip .in { color: var(--good); } .chip .out { color: var(--warn); }
+.chip.in { color: var(--good); } .chip.out { color: var(--warn); }
 .chip:empty { display: none; }
 
 /* status */
@@ -99,7 +98,7 @@ select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--f
   .stat { width: 4.4em; }
   .stat .v { font-size: 19px; }
   #plan { width: 58px; height: 58px; } #vert { width: 20px; height: 58px; }
-  .chip { font-size: 11px; width: 10.5ch; }
+  .chip { font-size: 11px; width: 11ch; }
   .pill { top: auto; bottom: calc(var(--safe-b) + 68px); right: 50%; transform: translateX(50%); }
   #pickbar { top: calc(var(--safe-t) + 118px); bottom: auto; }
   #controls { gap: 6px; padding: 0 8px; }
