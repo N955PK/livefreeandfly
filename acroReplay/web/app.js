@@ -294,7 +294,7 @@ function poseAt(t) {
 let camMode = 'orbit';
 const camOffset = new THREE.Vector3(8, 4, 12);
 const chase = { dist: 16 };
-const judge = { fov: 22 };
+const judge = { fov: 22, zoom: 1 };   // auto FOV keeps the aircraft a constant size; ± scales it
 const DEFAULT_FOV = 55;
 const bodyUp = new THREE.Vector3();
 const chaseOff = new THREE.Vector3();
@@ -303,8 +303,7 @@ function setCamMode(mode) {
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
   controls.enabled = mode === 'orbit';
   camera.up.set(0, 1, 0);
-  camera.fov = mode === 'judge' ? judge.fov : DEFAULT_FOV;
-  camera.updateProjectionMatrix();
+  if (mode !== 'judge') { camera.fov = DEFAULT_FOV; camera.updateProjectionMatrix(); }
   if (mode === 'orbit') camera.position.copy(aircraft.position).add(camOffset);
 }
 function zoomBy(f) {
@@ -315,9 +314,7 @@ function zoomBy(f) {
   } else if (camMode === 'chase') {
     chase.dist = THREE.MathUtils.clamp(chase.dist * f, 5, 300);
   } else if (camMode === 'judge') {
-    judge.fov = THREE.MathUtils.clamp(judge.fov * f, 3, 70);
-    camera.fov = judge.fov;
-    camera.updateProjectionMatrix();
+    judge.zoom = THREE.MathUtils.clamp(judge.zoom * f, 0.1, 4);
   }
 }
 document.querySelectorAll('#controls [data-cam]').forEach(b => b.addEventListener('click', () => setCamMode(b.dataset.cam)));
@@ -343,6 +340,10 @@ function updateCamera() {
   } else if (camMode === 'judge') {
     if (boxGroup) judgeWorldPosition(boxGroup, camera.position); else camera.position.set(0, 1.7, JUDGE_DISTANCE_M);
     camera.lookAt(p);
+    const dist = Math.max(20, camera.position.distanceTo(p));
+    judge.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(45 * judge.zoom / dist)), 2, 60);
+    camera.fov = judge.fov;
+    camera.updateProjectionMatrix();
   } else {
     chaseOff.set(-chase.dist, 0, -chase.dist * 0.28).applyQuaternion(aircraft.quaternion);
     bodyUp.set(0, 0, -1).applyQuaternion(aircraft.quaternion);
