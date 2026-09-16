@@ -499,6 +499,11 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — HUD refinements (Sean): fixed-width centred strip; G to one decimal; out-of-box
+  distances padded to a constant width; each indicator (top-down dot, altitude dot, its text
+  line) colours only for its own axis; red judges tick removed from the minimap; judges marker
+  hidden in the judge view. Global ft/m unit setting (web/units.js, persisted) applies to every
+  length: altitude, box dimensions and setback, readouts, GNSS accuracy.
 - 2026-09-16 — HUD redesign (Sean): heading/pitch/roll numbers removed; the strip shows G,
   altitude, a top-down box minimap (judges along the bottom edge, dot + heading tick, stays
   visible outside the box) and a vertical floor/ceiling strip, all coloured by in/out with the

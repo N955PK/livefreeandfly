@@ -11,6 +11,7 @@ import { buildTileGround, ATTRIBUTION } from './tiles.js';
 import { DEFAULT_BOX, loadBox, saveBox, buildBoxGroup, judgeWorldPosition, boxStatus, boxFromJudges, boxFromEntry, judgeLatLon } from './box.js';
 import { getItem, setItem } from './storage.js';
 import { offsetLatLon } from './frames.js';
+import * as units from './units.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -23,6 +24,7 @@ const TRAIL_SECONDS = 180;
 const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS;
 
 const canvas = document.getElementById('view');
+const hud = Object.fromEntries(['nz', 'alt', 'alt-k', 'boxstat', 'box-h', 'box-v', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
@@ -86,17 +88,33 @@ document.getElementById('ground-toggle').addEventListener('click', () => {
 let box = loadBox();
 let boxGroup = null;
 const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
+const LEN_M = new Set(['widthM', 'depthM', 'judgeSetbackM']);
+const LEN_FT = new Set(['floorFt', 'ceilFt']);
 function readBoxInputs() {
   const v = {};
   for (const [k, id] of Object.entries(boxInputs)) {
     const el = document.getElementById(id);
-    v[k] = el.type === 'number' ? (parseFloat(el.value) || DEFAULT_BOX[k]) : el.value;
+    if (el.type !== 'number') { v[k] = el.value; continue; }
+    const raw = parseFloat(el.value);
+    if (!Number.isFinite(raw)) { v[k] = DEFAULT_BOX[k]; continue; }
+    v[k] = LEN_M.has(k) ? units.unitToM(raw) : LEN_FT.has(k) ? units.unitToFt(raw) : raw;
   }
   return v;
 }
 function writeBoxInputs(b) {
-  for (const [k, id] of Object.entries(boxInputs)) document.getElementById(id).value = b[k];
+  for (const [k, id] of Object.entries(boxInputs)) {
+    const el = document.getElementById(id);
+    el.value = LEN_M.has(k) ? Math.round(units.mToUnit(b[k])) : LEN_FT.has(k) ? Math.round(units.ftToUnit(b[k])) : b[k];
+  }
 }
+function applyUnits() {
+  document.querySelectorAll('.u-len').forEach((e) => { e.textContent = units.unit; });
+  document.querySelectorAll('#units [data-unit]').forEach((btn) => btn.classList.toggle('on', btn.dataset.unit === units.unit));
+  hud['alt-k'].textContent = `ALT ${units.unit}`;
+  writeBoxInputs(box || DEFAULT_BOX);
+  rebuildBox();
+}
+document.querySelectorAll('#units [data-unit]').forEach((btn) => btn.addEventListener('click', () => { units.setUnit(btn.dataset.unit); applyUnits(); }));
 function rebuildBox() {
   if (boxGroup) { scene.remove(boxGroup); boxGroup = null; }
   if (box && originLatLon) {
@@ -107,7 +125,9 @@ function rebuildBox() {
   if (box) {
     const [jLat, jLon] = judgeLatLon(box);
     const how = box.anchor === 'judges' ? 'set from judges' : box.anchor === 'entry' ? 'set from flight path' : 'saved';
-    info.textContent = `Box ${how} · ${box.widthM}×${box.depthM} m · ${box.floorFt}–${box.ceilFt} ft · edge ${Math.round(box.headingDeg)}° · judges at ${jLat.toFixed(5)}, ${jLon.toFixed(5)}`;
+    const u = units.unit, w = Math.round(units.mToUnit(box.widthM)), d = Math.round(units.mToUnit(box.depthM));
+    const f = Math.round(units.ftToUnit(box.floorFt)), c = Math.round(units.ftToUnit(box.ceilFt));
+    info.textContent = `Box ${how} · ${w}×${d} ${u} · ${f}–${c} ${u} · edge ${Math.round(box.headingDeg)}° · judges at ${jLat.toFixed(5)}, ${jLon.toFixed(5)}`;
   } else {
     info.textContent = 'No box set. Set it from the aircraft in flight, or from the judges\' position on the ground.';
   }
@@ -161,9 +181,9 @@ canvas.addEventListener('pointerup', (e) => {
     const dN = (g.latLon[0] - jLat) * 111320, dE = (g.latLon[1] - jLon) * 111320 * Math.cos(jLat * Math.PI / 180);
     const facing = (THREE.MathUtils.radToDeg(Math.atan2(dE, dN)) + 360) % 360;
     document.getElementById('j-hdg').value = Math.round(facing);
-    const setback = parseFloat(document.getElementById('j-set').value) || DEFAULT_BOX.judgeSetbackM;
-    const depth = parseFloat(document.getElementById('box-d').value) || DEFAULT_BOX.depthM;
-    document.getElementById('j-set').value = Math.max(20, Math.round(Math.hypot(dN, dE) - depth / 2)) || setback;
+    const setback = units.unitToM(parseFloat(document.getElementById('j-set').value)) || DEFAULT_BOX.judgeSetbackM;
+    const depth = units.unitToM(parseFloat(document.getElementById('box-d').value)) || DEFAULT_BOX.depthM;
+    document.getElementById('j-set').value = Math.round(units.mToUnit(Math.max(20, Math.hypot(dN, dE) - depth / 2) || setback));
     pickState = null;
     if (placeFromJudges(msg)) msg.textContent = `Judges placed, facing ${Math.round(facing)}°. Box saved — tap Done.`;
   }
@@ -211,9 +231,8 @@ function rederiveBox(dims) {
   if (box.anchor === 'entry' && box.entry) return boxFromEntry({ ...box.entry, ...dims });
   return { ...box, ...dims };
 }
-writeBoxInputs(box || DEFAULT_BOX);
 fillJudgeInputs(box);
-rebuildBox();
+applyUnits();
 document.getElementById('box-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
 document.getElementById('box-close').addEventListener('click', () => document.getElementById('boxpanel').classList.add('hidden'));
 document.getElementById('box-set').addEventListener('click', () => {
@@ -494,6 +513,7 @@ canvas.addEventListener('touchmove', (e) => {
 
 function updateCamera() {
   const p = aircraft.position;
+  if (boxGroup) boxGroup.userData.judgeMarker.visible = camMode !== 'judge';   // the marker would fill the judge's view
   if (camMode === 'orbit') {
     camera.position.sub(controls.target).add(p);
     controls.target.copy(p);
@@ -517,7 +537,6 @@ function updateCamera() {
   }
 }
 
-const hud = Object.fromEntries(['nz', 'alt', 'boxstat', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
 const clamp01 = (v, lo = -0.45, hi = 1.45) => THREE.MathUtils.clamp(v, lo, hi);
 const status = document.getElementById('status');
 function updateHud(now) {
@@ -527,16 +546,18 @@ function updateHud(now) {
   else if (!s || now - lastRecv > STALE_MS) { text = 'NO DATA'; cls = 'bad'; }
   else if (!s.init) { text = `INS init… fix ${s.fix} · ${s.sats} sats`; cls = ''; }
   else if (!s.ok) { text = `INS degraded · ${s.sats} sats`; cls = ''; }
-  else { text = `LIVE · ${s.sats} sats · ±${s.hacc.toFixed(0)} ft`; cls = 'good'; }
+  else { text = `LIVE · ${s.sats} sats · ±${units.fmtLen(s.hacc * units.FT_TO_M)}`; cls = 'good'; }
   status.textContent = text;
   status.className = `pill ${cls}`;
   if (!s) return;
-  hud.nz.textContent = s.nz.toFixed(2);
-  hud.alt.textContent = Math.round(s.alt);
+  hud.nz.textContent = s.nz.toFixed(1);
+  hud.alt.textContent = Math.round(units.ftToUnit(s.alt));
   if (boxGroup && s.init) {
     const st = boxStatus(boxGroup, aircraft.position);
-    hud.boxstat.textContent = st.text;
-    hud.boxstat.className = `chip ${st.inBox ? 'in' : 'out'}`;
+    hud['box-h'].textContent = st.horiz ? `↔ ${units.fmtLenFixed(st.horiz.m)} ${st.horiz.word}` : '↔ in box';
+    hud['box-v'].textContent = st.vert ? `↕ ${units.fmtLenFixed(st.vert.m)} ${st.vert.word}` : '↕ in box';
+    hud['box-h'].className = st.horiz ? 'out' : 'in';
+    hud['box-v'].className = st.vert ? 'out' : 'in';
     hud.minis.classList.remove('hidden');
     // Top-down: judges along the bottom edge; the box spans 25..75 in both axes; outside stays visible.
     const flip = st.towardJudges < 0 ? -1 : 1;
@@ -549,11 +570,13 @@ function updateHud(now) {
     hud['plan-hdg'].setAttribute('y2', (py + flip * 12 * Math.sin(rel)).toFixed(1));
     // Vertical: floor at y=70, ceiling at y=30.
     hud['vert-dot'].setAttribute('cy', (70 - clamp01(st.vertical, -0.6, 1.6) * 40).toFixed(1));
-    const cls = st.inBox ? '' : 'out';
-    hud['plan-dot'].setAttribute('class', `mdot ${cls}`); hud['vert-dot'].setAttribute('class', `mdot ${cls}`);
-    hud['plan-hdg'].setAttribute('class', `mhdg ${cls}`);
+    // Each indicator colours only for its own axis: horizontal position vs. altitude band.
+    hud['plan-dot'].setAttribute('class', `mdot ${st.horiz ? 'out' : ''}`);
+    hud['plan-hdg'].setAttribute('class', `mhdg ${st.horiz ? 'out' : ''}`);
+    hud['vert-dot'].setAttribute('class', `mdot ${st.vert ? 'out' : ''}`);
   } else {
-    hud.boxstat.textContent = '';
+    hud['box-h'].textContent = '';
+    hud['box-v'].textContent = '';
     hud.minis.classList.add('hidden');
   }
 }

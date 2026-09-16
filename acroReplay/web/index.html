@@ -27,13 +27,12 @@
 
 <section id="hud" class="glass" aria-label="flight data">
   <div class="stat"><span class="k">G</span><span class="v" id="nz">-.--</span></div>
-  <div class="stat"><span class="k">ALT ft</span><span class="v" id="alt">----</span></div>
+  <div class="stat"><span class="k" id="alt-k">ALT ft</span><span class="v" id="alt">----</span></div>
   <div class="minis" id="minis">
     <svg id="plan" viewBox="0 0 100 100" aria-label="position in box, top-down">
       <rect class="mbox" x="25" y="25" width="50" height="50" rx="2"/>
       <line class="mline" x1="25" y1="50" x2="75" y2="50"/>
       <line class="mline" x1="50" y1="25" x2="50" y2="75"/>
-      <polygon class="mjudge" points="44,88 56,88 50,80"/>
       <line id="plan-hdg" class="mhdg" x1="50" y1="50" x2="50" y2="38"/>
       <circle id="plan-dot" class="mdot" cx="50" cy="50" r="5"/>
     </svg>
@@ -44,7 +43,7 @@
       <circle id="vert-dot" class="mdot" cx="15" cy="50" r="5"/>
     </svg>
   </div>
-  <div id="boxstat" class="chip"></div>
+  <div id="boxstat" class="chip"><span id="box-h"></span><span id="box-v"></span></div>
 </section>
 
 <div id="status" class="pill">connecting…</div>
@@ -88,7 +87,7 @@
       <label class="field"><span>Judges latitude</span><div class="input"><input id="j-lat" type="number" step="0.00001" placeholder="36.93575"><em>°</em></div></label>
       <label class="field"><span>Judges longitude</span><div class="input"><input id="j-lon" type="number" step="0.00001" placeholder="-121.78975"><em>°</em></div></label>
       <label class="field"><span>Facing (true)</span><div class="input"><input id="j-hdg" type="number" step="1" placeholder="into the box"><em>°</em></div></label>
-      <label class="field"><span>Setback</span><div class="input"><input id="j-set" type="number" step="10"><em>m</em></div></label>
+      <label class="field"><span>Setback</span><div class="input"><input id="j-set" type="number" data-len step="10"><em class="u-len">m</em></div></label>
     </div>
     <div class="row">
       <button class="secondary" id="j-here">Use my location</button>
@@ -100,11 +99,15 @@
 
   <h3>Dimensions</h3>
   <div class="grid2">
-    <label class="field"><span>Width</span><div class="input"><input id="box-w" type="number" step="50"><em>m</em></div></label>
-    <label class="field"><span>Depth</span><div class="input"><input id="box-d" type="number" step="50"><em>m</em></div></label>
-    <label class="field"><span>Floor</span><div class="input"><input id="box-f" type="number" step="100"><em>ft</em></div></label>
-    <label class="field"><span>Ceiling</span><div class="input"><input id="box-c" type="number" step="100"><em>ft</em></div></label>
+    <label class="field"><span>Width</span><div class="input"><input id="box-w" type="number" data-len step="50"><em class="u-len">m</em></div></label>
+    <label class="field"><span>Depth</span><div class="input"><input id="box-d" type="number" data-len step="50"><em class="u-len">m</em></div></label>
+    <label class="field"><span>Floor</span><div class="input"><input id="box-f" type="number" data-len step="100"><em class="u-len">ft</em></div></label>
+    <label class="field"><span>Ceiling</span><div class="input"><input id="box-c" type="number" data-len step="100"><em class="u-len">ft</em></div></label>
   </div>
+  <h3>Settings</h3>
+  <label class="field inline"><span>Units (everything)</span>
+    <div class="seg small" id="units"><button data-unit="ft">ft</button><button data-unit="m">m</button></div>
+  </label>
   <footer class="pfoot">
     <p id="box-info" class="hint"></p>
     <button class="secondary danger" id="box-clear">Clear box</button>

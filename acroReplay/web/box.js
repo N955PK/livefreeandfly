@@ -97,6 +97,7 @@ export function buildBoxGroup(box, origin) {
   cam.position.set(w / 2, 0, jz);
   cam.rotation.y = side > 0 ? 0 : Math.PI;
   g.add(cam);
+  g.userData.judgeMarker = cam;
   g.userData.judgeLocal = new THREE.Vector3(w / 2, 1.7, jz);
   g.userData.bounds = { w, zMin: Math.min(z0, z1), zMax: Math.max(z0, z1), f, c };
   g.userData.judgeSide = box.judgeSide;
@@ -112,21 +113,19 @@ const tmp = new THREE.Vector3();
 export function boxStatus(group, worldPos) {
   const l = group.worldToLocal(tmp.copy(worldPos));
   const b = group.userData.bounds;
-  const out = [];
-  const add = (v, unit, word) => { const n = Math.round(v); if (n > 0) out.push(`${n} ${unit} ${word}`); };
-  add(-l.x, 'm', 'short');
-  add(l.x - b.w, 'm', 'long');
-  add(b.zMin - l.z, 'm', 'out');
-  add(l.z - b.zMax, 'm', 'out');
-  add((b.f - l.y) / FT_TO_M, 'ft', 'low');
-  add((l.y - b.c) / FT_TO_M, 'ft', 'high');
+  // Offsets outside the box, in metres: one horizontal (the larger of along/across) and one vertical.
+  let horiz = null;
+  for (const [m, word] of [[-l.x, 'short'], [l.x - b.w, 'long'], [b.zMin - l.z, 'out'], [l.z - b.zMax, 'out']]) {
+    if (m > 0.5 && (!horiz || m > horiz.m)) horiz = { m, word };
+  }
+  const vert = l.y < b.f ? { m: b.f - l.y, word: 'low' } : l.y > b.c ? { m: l.y - b.c, word: 'high' } : null;
   // Normalised coordinates for the minimaps: along the edge (0..1), across from the far edge to the judges'
   // edge (0..1), and altitude from floor (0) to ceiling (1). Values outside 0..1 are outside the box.
   const towardJudges = group.userData.judgeSide === 'left' ? -1 : 1;
   const depth = b.zMax - b.zMin;
   const across = towardJudges > 0 ? (l.z - b.zMin) / depth : (b.zMax - l.z) / depth;
   return {
-    inBox: out.length === 0, text: out.length ? out.join(' · ') : 'IN BOX',
+    inBox: !horiz && !vert, horiz, vert,
     along: l.x / b.w, across, vertical: (l.y - b.f) / (b.c - b.f), towardJudges,
   };
 }
