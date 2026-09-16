@@ -26,8 +26,8 @@
 <canvas id="view"></canvas>
 
 <section id="hud" class="glass" aria-label="flight data">
-  <div class="stat"><span class="k">G</span><span class="v" id="nz">-.--</span></div>
-  <div class="stat"><span class="k" id="alt-k">ALT ft</span><span class="v" id="alt">----</span></div>
+  <div class="stat"><span class="k">LOAD</span><span class="v"><b id="nz">-.-</b><em>G</em></span></div>
+  <div class="stat"><span class="k">ALTITUDE</span><span class="v"><b id="alt">----</b><em id="alt-u">ft</em></span></div>
   <div class="minis" id="minis">
     <svg id="plan" viewBox="0 0 100 100" aria-label="position in box, top-down">
       <rect class="mbox" x="25" y="25" width="50" height="50" rx="2"/>
@@ -44,9 +44,8 @@
     </svg>
   </div>
   <div id="boxstat" class="chip"></div>
+  <div id="status" class="badge"><span>connecting…</span></div>
 </section>
-
-<div id="status" class="pill">connecting…</div>
 
 <div id="zoom">
   <button class="round" id="zoom-in" aria-label="zoom in">+</button>

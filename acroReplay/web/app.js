@@ -24,7 +24,7 @@ const TRAIL_SECONDS = 180;
 const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS;
 
 const canvas = document.getElementById('view');
-const hud = Object.fromEntries(['nz', 'alt', 'alt-k', 'boxstat', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
+const hud = Object.fromEntries(['nz', 'alt', 'alt-u', 'boxstat', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
@@ -110,7 +110,7 @@ function writeBoxInputs(b) {
 function applyUnits() {
   document.querySelectorAll('.u-len').forEach((e) => { e.textContent = units.unit; });
   document.querySelectorAll('#units [data-unit]').forEach((btn) => btn.classList.toggle('on', btn.dataset.unit === units.unit));
-  hud['alt-k'].textContent = `ALT ${units.unit}`;
+  hud['alt-u'].textContent = units.unit;
   writeBoxInputs(box || DEFAULT_BOX);
   rebuildBox();
 }
@@ -542,13 +542,13 @@ const status = document.getElementById('status');
 function updateHud(now) {
   const s = latest;
   let text, cls;
-  if (!socketOpen) { text = 'disconnected'; cls = 'bad'; }
-  else if (!s || now - lastRecv > STALE_MS) { text = 'NO DATA'; cls = 'bad'; }
-  else if (!s.init) { text = `INS init… fix ${s.fix} · ${s.sats} sats`; cls = ''; }
+  if (!socketOpen) { text = 'offline'; cls = 'bad'; }
+  else if (!s || now - lastRecv > STALE_MS) { text = 'no data'; cls = 'bad'; }
+  else if (!s.init) { text = `INS init · ${s.sats} sats`; cls = ''; }
   else if (!s.ok) { text = `INS degraded · ${s.sats} sats`; cls = ''; }
-  else { text = `LIVE · ${s.sats} sats · ±${units.fmtLen(s.hacc * units.FT_TO_M)}`; cls = 'good'; }
-  status.textContent = text;
-  status.className = `pill ${cls}`;
+  else { text = `${s.sats} sats · ±${units.fmtLen(s.hacc * units.FT_TO_M)}`; cls = 'good'; }
+  status.firstElementChild.textContent = text;
+  status.className = `badge ${cls}`;
   if (!s) return;
   hud.nz.textContent = s.nz.toFixed(1);
   hud.alt.textContent = Math.round(units.ftToUnit(s.alt));
