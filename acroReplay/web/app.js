@@ -21,7 +21,7 @@ controls.enableDamping = true;
 controls.enablePan = false;
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x4d6b3a, 1.1));
-const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
 sun.position.set(300, 800, 200);
 scene.add(sun);
 
@@ -44,17 +44,65 @@ function buildBox() {
 }
 buildBox();
 
+function sunburstTexture(rays, spread) {
+  // Christen Eagle scheme: white base, rainbow "feather" rays fanning back from the nose along +v.
+  const c = document.createElement('canvas'); c.width = 512; c.height = 1024;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f7f7f4'; g.fillRect(0, 0, c.width, c.height);
+  const colors = ['#d62828', '#f77f00', '#fcbf49', '#2a9d3f', '#1d6fd6', '#6a3fb5'];
+  const n = colors.length * rays;
+  for (let i = 0; i < n; i += 1) {
+    const x0 = c.width * (0.5 + (i / (n - 1) - 0.5) * spread);
+    g.fillStyle = colors[i % colors.length];
+    g.beginPath();
+    g.moveTo(c.width / 2, 40);
+    g.lineTo(x0 - 34, c.height);
+    g.lineTo(x0 + 34, c.height);
+    g.closePath();
+    g.fill();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 function buildAircraft() {
   const g = new THREE.Group();
-  const red = new THREE.MeshLambertMaterial({ color: 0xd8262c });
-  const white = new THREE.MeshLambertMaterial({ color: 0xf4f4f4 });
-  const add = (geo, mat, x, y, z, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.z = rz; g.add(m); };
-  add(new THREE.BoxGeometry(6.0, 0.9, 1.0), red, -0.6, 0, 0);
-  add(new THREE.ConeGeometry(0.5, 1.4, 12), red, 3.1, 0, 0, -Math.PI / 2);
-  add(new THREE.BoxGeometry(1.3, 6.0, 0.12), white, 0.3, 0, 0.2);
-  add(new THREE.BoxGeometry(1.3, 6.0, 0.12), white, 0.8, 0, -1.0);
-  add(new THREE.BoxGeometry(0.8, 2.4, 0.08), white, -3.1, 0, -0.1);
-  add(new THREE.BoxGeometry(0.9, 0.08, 1.1), red, -3.1, 0, -0.65);
+  const paint = new THREE.MeshStandardMaterial({ map: sunburstTexture(2, 1.6), roughness: 0.45, metalness: 0.05 });
+  const wingPaint = new THREE.MeshStandardMaterial({ map: sunburstTexture(3, 1.9), roughness: 0.45, metalness: 0.05 });
+  const white = new THREE.MeshStandardMaterial({ color: 0xf7f7f4, roughness: 0.5 });
+  const black = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+  const glass = new THREE.MeshStandardMaterial({ color: 0x8fb7d8, transparent: true, opacity: 0.55, roughness: 0.1 });
+  const add = (mesh, x, y, z, rx = 0, ry = 0, rz = 0) => { mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz); g.add(mesh); return mesh; };
+
+  // Fuselage: lathe profile along its axis (nose at +x). Lathe axis is +y, so rotate onto +x.
+  const profile = [[0.02, 2.85], [0.28, 2.75], [0.44, 2.2], [0.5, 1.2], [0.52, 0.3], [0.46, -0.5], [0.34, -1.5], [0.2, -2.4], [0.05, -2.8], [0.0, -2.82]]
+    .map(([r, x]) => new THREE.Vector2(r, x));
+  add(new THREE.Mesh(new THREE.LatheGeometry(profile, 28), paint), 0, 0, 0, 0, 0, -Math.PI / 2);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.35, 24, 1, false, 0, Math.PI), glass), 0.15, 0, -0.45, Math.PI / 2, 0, -Math.PI / 2);
+
+  // Wings: lower at z=+0.35, upper staggered forward at z=-1.05; span 6 m, chord 1.2 m.
+  const wingGeo = new THREE.BoxGeometry(1.2, 6.0, 0.11);
+  add(new THREE.Mesh(wingGeo, wingPaint), 0.1, 0, 0.35);
+  add(new THREE.Mesh(wingGeo, wingPaint), 0.55, 0, -1.05);
+  // Interplane I-struts and cabane struts.
+  const strut = new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8);
+  for (const y of [-2.2, 2.2, -0.5, 0.5]) add(new THREE.Mesh(strut, white), 0.35, y, -0.35, 0, 0, Math.PI / 2 * 0 + (y > -1 && y < 1 ? 0 : 0)).rotation.set(Math.PI / 2, 0, 0);
+  for (const y of [-2.2, 2.2]) add(new THREE.Mesh(strut, white), 0.35, y, -0.35).rotation.set(Math.PI / 2, 0, 0);
+
+  // Tail: horizontal stabilizer/elevator, vertical fin/rudder (up is -z).
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.75, 2.3, 0.07), wingPaint), -2.45, 0, -0.05);
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.07, 1.05), paint), -2.45, 0, -0.6);
+
+  // Landing gear with wheel pants, tailwheel, prop and spinner.
+  for (const y of [-0.9, 0.9]) {
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.55), white), 1.0, y * 0.75, 0.6, 0, 0, y > 0 ? -0.5 : 0.5);
+    add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), white), 1.0, y, 0.85).scale.set(1.4, 0.45, 0.9);
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.12, 16), black), 1.0, y, 0.98, Math.PI / 2, 0, 0);
+  }
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.06, 12), black), -2.6, 0, 0.3, Math.PI / 2, 0, 0);
+  add(new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.4, 16), white), 3.05, 0, 0, 0, 0, -Math.PI / 2);
+  add(new THREE.Mesh(new THREE.BoxGeometry(0.03, 1.9, 0.14), black), 2.9, 0, 0, 0.6, 0, 0);
   return g;
 }
 const aircraft = buildAircraft();
@@ -110,7 +158,7 @@ function poseAt(t) {
 }
 
 let camMode = 'orbit';
-const camOffset = new THREE.Vector3(12, 6, 18);
+const camOffset = new THREE.Vector3(8, 4, 12);
 function setCamMode(mode) {
   camMode = mode;
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
@@ -131,7 +179,7 @@ function updateCamera() {
     camera.lookAt(p);
   } else {
     const hdg = THREE.MathUtils.degToRad(latest ? latest.hdg : 0);
-    camera.position.set(p.x - 28 * Math.sin(hdg), p.y + 7, p.z + 28 * Math.cos(hdg));
+    camera.position.set(p.x - 18 * Math.sin(hdg), p.y + 5, p.z + 18 * Math.cos(hdg));
     camera.lookAt(p);
   }
 }

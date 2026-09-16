@@ -157,6 +157,68 @@ declination).
 | 19 | char[24] | pilot name |
 | 43 | char[12] | aircraft type |
 
+## SD-card datalog — `*.acrowrx` (ACROWRX format, product flag set)
+
+Reader: `onflight/acrowrx_log.py` (also converts a log to replayable UDP frames). Derived from
+three real flights (firmware 14); every field below was checked against physics and against
+the UDP frame's encodings. **Layout is firmware-dependent** — the reader verifies checksums
+and record length and will refuse silently-different records.
+
+Blocks: `tag(2) type(1) len(1) payload(len) fletcher16(2)`, checksum over tag+type+len+payload
+(Bolder Flight `framing`). `MD` type 0, 54 B = identity (serial u48, tail[12], pilot[24],
+type[12]); `CD` type 1, 231 B = configuration dump; `SD` type 0, 3 B unknown; then `AW` type 1,
+190 B per 50 Hz frame until power-off (final record usually truncated).
+
+### `AW` record (190 B, little-endian) — INS block then raw-sensor block
+
+| off | type | field | scale / notes |
+|---|---|---|---|
+| 0–1 | u8 u8 | flags0, flags1 | same bit meanings as the UDP frame's bytes 1–2 |
+| 2–5 | u8×4 | flags2, flags3, reserved | zero without external sensors |
+| 6 | i16 | pitch ° | ÷100 |
+| 8 | i16 | roll ° | ÷100 (reads garbage until INS converges — 85° while parked on one log) |
+| 10 | i16 | magnetic declination ° | ÷100 |
+| 12 | u16 | true heading ° | ÷100 |
+| 14 | u16 | magnetic heading ° | ÷100 (= true − declination) |
+| 16 | i16 | climb rate ft/min | ×1 (r = 0.97 vs d(pressure alt)/dt) |
+| 18 | i16 | unknown | 83 parked, ±4500 in flight |
+| 20 | i16×3 | accel x, y, z | mg, body FRD, bias-corrected (pairs with raw @97) |
+| 26 | i16×3 | gyro x, y, z (p, q, r) | ÷10 °/s (|ω| vs attitude rate r = 1.000) |
+| 32 | i16×3 | magnetometer x, y, z | ÷100 µT (|B| = 47.7 µT at Watsonville) |
+| 38 | i16 i16 | velocity north, east | ÷10 kt (r = 1.000 vs gs·cos/sin track) |
+| 42 | i16 | velocity down | ft/min |
+| 44 | u16 | ground speed | ÷100 kt |
+| 46 | u16 | true ground track ° | ÷100 |
+| 48 | u16 | magnetic ground track ° | ÷100 |
+| 50 | i16 | flight-path angle ° | ÷100 |
+| 52 | u8 | unknown | |
+| 53 | u16 | input voltage | mV, filtered (3.9 V on battery, 5.8 V on USB) |
+| 55 | i32 i32 | INS latitude, longitude | ÷1e7 |
+| 63 | u8 | GNSS fix (& 7), satellites (>> 3) | |
+| 64 | u8×6 | UTC year−1970, month, day, hour, min, sec | |
+| 70 | u8×3 | unknown | GNSS accuracies? |
+| 73 | i8×4 | die temperatures °C | assumed cpu, imu, mag, pres |
+| 77 | i16×3 | GNSS velocity north, east (÷10 kt), down (ft/min) | |
+| 83 | u8 | unknown | |
+| 84 | u16 | input voltage | mV, raw |
+| 86 | i16 | unknown | −999 (sentinel?) |
+| 88 | i32 i32 | GNSS latitude, longitude | ÷1e7 |
+| 96 | u8 | unknown | |
+| 97 | i16×3 | raw accel x, y, z | mg |
+| 103 | i16×3 | raw gyro x, y, z | ÷10 °/s |
+| 109 | u8 | unknown | |
+| 110 | i16×3 | raw magnetometer x, y, z | ÷100 µT |
+| 116 | u16 | static pressure, raw | ×2 Pa |
+| 118 | u16 | pressure altitude ft | −10000 |
+| 120 | u8 | unknown | |
+| 121 | u16 | static pressure, filtered | ×2 Pa |
+| 123–150 | | external air-data block | zeros; two `+10000` altitude slots at 136/138 |
+| 151 | u32 | system time ms since boot | |
+| 155–189 | | remainder | mostly zero; a few slow-changing bytes |
+
+Not yet located: an MSL / WGS-84 altitude (the UDP frame has both; the converter fills the
+altitude slots with pressure altitude), GNSS accuracies, load factor (derived as −accel z).
+
 ## GDL90 (ForeFlight extension)
 
 Configured via `/sys-config.gdl90-port` (4000 on this unit). Observed: broadcast,
