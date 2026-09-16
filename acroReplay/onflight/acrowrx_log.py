@@ -260,7 +260,7 @@ def main():
     ap.add_argument("log", help=".acrowrx file")
     ap.add_argument("out", help="output .bin (capture-kit records of 67-byte UDP frames)")
     ap.add_argument("--start", type=float, default=None,
-                    help="start offset in seconds (default: 20 s before ground speed first exceeds 30 kt)")
+                    help="start offset, s (default: 10 s before first reaching 1500 ft above the lowest altitude)")
     ap.add_argument("--duration", type=float, default=None, help="seconds to convert (default: to end)")
     args = ap.parse_args()
 
@@ -269,8 +269,9 @@ def main():
         sys.exit("no records")
     t0 = recs[0].sys_time_s
     if args.start is None:
-        moving = next((r for r in recs if r.ground_speed_kts > 30), recs[0])
-        args.start = max(0.0, moving.sys_time_s - t0 - 20)
+        ground_ft = min(r.pres_alt_ft for r in recs if r.ins_initialized)
+        airborne = next((r for r in recs if r.ins_initialized and r.pres_alt_ft > ground_ft + 1500), recs[0])
+        args.start = max(0.0, airborne.sys_time_s - t0 - 10)
     start_t = t0 + args.start
     end_t = start_t + args.duration if args.duration else float("inf")
     chosen = [r for r in recs if start_t <= r.sys_time_s < end_t and r.ins_initialized]

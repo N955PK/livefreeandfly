@@ -20,6 +20,7 @@ SESSION_DIR = ROOT / "sessions"
 SAMPLE_HZ = 50
 HISTORY_SECONDS = 120
 HISTORY_STRIDE = 5
+DEFAULT_GROUND_FT = 163.0   # KWVI field elevation
 
 
 def sample_from_frame(wall, f, origin):
@@ -29,7 +30,7 @@ def sample_from_frame(wall, f, origin):
         "fix": f.gnss_fix, "sats": f.gnss_num_sv, "hacc": f.horz_pos_acc_ft,
         "hdg": f.true_heading_deg, "pitch": f.pitch_deg, "roll": f.roll_deg, "nz": f.load_factor_g,
         "gs": f.ground_speed_kts, "trk": f.ground_track_deg, "vs": f.climb_rate_fpm, "alt": f.alt_msl_ft,
-        "rates": [f.p_dps, f.q_dps, f.r_dps], "pos": None, "quat": None,
+        "rates": [f.p_dps, f.q_dps, f.r_dps], "lat": f.lat_deg, "lon": f.lon_deg, "pos": None, "quat": None,
     }
     if f.ins_initialized and origin is not None:
         ned = fr.ned_from_lla(f.lat_deg, f.lon_deg, f.alt_msl_ft * fr.FT_TO_M, origin)
@@ -41,7 +42,8 @@ def sample_from_frame(wall, f, origin):
 class Broadcaster:
     """Holds connected clients, the recent-history ring, the session origin, and the raw-frame log."""
 
-    def __init__(self, log_dir=SESSION_DIR):
+    def __init__(self, log_dir=SESSION_DIR, ground_m=DEFAULT_GROUND_FT * fr.FT_TO_M):
+        self.ground_m = ground_m
         self.clients = set()
         self.history = deque(maxlen=HISTORY_SECONDS * SAMPLE_HZ)
         self.origin = None
@@ -52,14 +54,11 @@ class Broadcaster:
         self.count = 0
 
     def _update_origin(self, f):
-        """Origin = first fix horizontally; its altitude follows the lowest altitude seen, so the ground
-        plane is always the floor (INS altitude wanders several metres while parked)."""
-        alt_m = f.alt_msl_ft * fr.FT_TO_M
+        """Origin = first fix horizontally, at the configured ground elevation, so altitude is absolute
+        (a client joining mid-flight must not see the aircraft on the ground)."""
         if self.origin is None:
-            self.origin = (f.lat_deg, f.lon_deg, alt_m)
-            log.info("origin set at %.6f, %.6f, %.0f ft MSL", f.lat_deg, f.lon_deg, f.alt_msl_ft)
-        elif alt_m < self.origin[2]:
-            self.origin = (self.origin[0], self.origin[1], alt_m)
+            self.origin = (f.lat_deg, f.lon_deg, self.ground_m)
+            log.info("origin set at %.6f, %.6f, ground %.0f ft", f.lat_deg, f.lon_deg, self.ground_m / fr.FT_TO_M)
 
     async def ingest(self, wall, payload):
         self._log.write(RECORD_HEADER.pack(wall, len(payload)) + payload)
@@ -105,9 +104,9 @@ async def index(request):
     return web.FileResponse(WEB_DIR / "index.html")
 
 
-def make_app(source):
+def make_app(source, ground_ft=DEFAULT_GROUND_FT):
     app = web.Application()
-    app["broadcaster"] = Broadcaster()
+    app["broadcaster"] = Broadcaster(ground_m=ground_ft * fr.FT_TO_M)
     app.add_routes([web.get("/", index), web.get("/ws", ws_handler), web.static("/", WEB_DIR)])
 
     async def start_pump(app):

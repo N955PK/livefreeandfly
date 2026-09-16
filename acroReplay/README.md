@@ -26,6 +26,18 @@ for full-screen.
 python3 -m pytest tests            # decoders and frame math against real captured frames
 ```
 
+## Replay a real flight from the SD card
+
+```bash
+python3 -m onflight.acrowrx_log sample_logs/data16.acrowrx sessions/data16.bin   # starts airborne by default
+python3 run_bridge.py --replay sessions/data16.bin
+```
+
+The ground is aerial imagery fetched live (Esri / USGS). For the cockpit, where the phone has
+no internet, bundle tiles once: `python3 tools/fetch_tiles.py --lat 36.936 --lon -121.790`
+(≈400 tiles / 10 MB into `web/tiles/`, gitignored, picked up automatically and bundled into
+the iOS app). The aircraft model in `web/models/` is a licensed asset and is also not in git.
+
 ## Quickstart (when the OnFlight Hub is on the bench)
 
 1. Power the Hub outdoors (or with sky view) and wait for a solid status LED.

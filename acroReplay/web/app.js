@@ -2,36 +2,62 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { OBJLoader } from 'three/addons/OBJLoader.js';
 import { MTLLoader } from 'three/addons/MTLLoader.js';
+import { Line2 } from 'three/addons/Line2.js';
+import { LineMaterial } from 'three/addons/LineMaterial.js';
+import { LineGeometry } from 'three/addons/LineGeometry.js';
 import { decodeIns, base64ToBytes } from './onflight.js';
-import { Origin, sampleFromFrame } from './frames.js';
+import { Origin, sampleFromFrame, FT_TO_M } from './frames.js';
+import { buildTileGround, ATTRIBUTION } from './tiles.js';
 
+const params = new URLSearchParams(location.search);
+const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
+const TILES = params.get('tiles') !== 'none';
 const BOX_M = 1000;
 const JUDGE_DISTANCE_M = 700;
-const TRAIL_MAX = 50 * 90;
 const RENDER_DELAY_MS = 80;
 const STALE_MS = 400;
+const TRAIL_HZ = 25;
+const TRAIL_SECONDS = 180;
+const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS;
 
 const canvas = document.getElementById('view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9ec9ee);
-scene.fog = new THREE.Fog(0x9ec9ee, 2000, 8000);
-const camera = new THREE.PerspectiveCamera(55, 1, 0.5, 20000);
+const HORIZON = new THREE.Color(0xcfe0ee);
+scene.fog = new THREE.Fog(HORIZON, 15000, 170000);
+const camera = new THREE.PerspectiveCamera(55, 1, 1, 250000);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.enablePan = false;
+controls.minDistance = 4;
+controls.maxDistance = 3000;
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x4d6b3a, 1.1));
 const sun = new THREE.DirectionalLight(0xffffff, 1.6);
 sun.position.set(300, 800, 200);
 scene.add(sun);
 
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(8000, 8000), new THREE.MeshLambertMaterial({ color: 0x6f9a5c }));
+const sky = new THREE.Mesh(new THREE.SphereGeometry(200000, 32, 16), new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { top: { value: new THREE.Color(0x3d7fd6) }, horizon: { value: HORIZON } },
+  vertexShader: 'varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform vec3 top; uniform vec3 horizon; varying vec3 vPos; void main(){ float h = clamp(vPos.y / 200000.0, 0.0, 1.0); gl_FragColor = vec4(mix(horizon, top, pow(h, 0.45)), 1.0); }',
+}));
+sky.renderOrder = -100;
+scene.add(sky);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400000, 400000), new THREE.MeshLambertMaterial({ color: 0x6f9a5c, depthWrite: false }));
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.05;
+ground.renderOrder = -20;
 scene.add(ground);
-scene.add(new THREE.GridHelper(3000, 30, 0x86a878, 0x86a878));
+let tileGround = null;
+function ensureGround(lat, lon) {
+  if (tileGround || !TILES) return;
+  tileGround = true;
+  buildTileGround(scene, [lat, lon]).then((g) => { tileGround = g; });
+  document.getElementById('attribution').textContent = ATTRIBUTION;
+}
 
 function buildBox() {
   const h = BOX_M / 2;
@@ -39,10 +65,7 @@ function buildBox() {
   const edges = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
   const pts = edges.flatMap(([a, b]) => [...c[a], ...c[b]]);
   const geo = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-  const box = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 }));
-  const judge = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 1.5, 16), new THREE.MeshLambertMaterial({ color: 0xffffff }));
-  judge.position.set(0, 0.75, JUDGE_DISTANCE_M);
-  scene.add(box, judge);
+  scene.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })));
 }
 buildBox();
 
@@ -135,19 +158,38 @@ function loadEagleModel() {
 }
 loadEagleModel();
 
-const trailPos = new Float32Array(TRAIL_MAX * 3);
-const trailGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
-trailGeo.setDrawRange(0, 0);
-scene.add(new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ color: 0xff7a00 })));
+// Trail: thick screen-space line (Line2). Points are decimated to TRAIL_HZ and age out gradually.
+const trailPts = new Float32Array(TRAIL_MAX * 3);
 let trailLen = 0;
-function pushTrail(v) {
-  if (trailLen === TRAIL_MAX) { trailPos.copyWithin(0, TRAIL_MAX * 3 / 2); trailLen = TRAIL_MAX / 2; }
-  trailPos.set([v.x, v.y, v.z], trailLen * 3);
-  trailLen += 1;
-  trailGeo.setDrawRange(0, trailLen);
-  trailGeo.attributes.position.needsUpdate = true;
+let trailLastMs = 0;
+const trailGeo = new LineGeometry();
+trailGeo.setPositions(new Float32Array(TRAIL_MAX * 3));
+const trailMat = new LineMaterial({ color: 0xff7a00, linewidth: 5, worldUnits: false, transparent: true, opacity: 0.95 });
+const trail = new Line2(trailGeo, trailMat);
+trail.frustumCulled = false;
+trailGeo.instanceCount = 0;
+scene.add(trail);
+const seg = trailGeo.attributes.instanceStart.data;
+function writeSegment(i) {
+  seg.array.set(trailPts.subarray(i * 3, i * 3 + 3), i * 6);
+  seg.array.set(trailPts.subarray(i * 3 + 3, i * 3 + 6), i * 6 + 3);
 }
-function clearTrail() { trailLen = 0; trailGeo.setDrawRange(0, 0); }
+function pushTrail(v, nowMs) {
+  if (nowMs - trailLastMs < 1000 / TRAIL_HZ) return;
+  trailLastMs = nowMs;
+  if (trailLen === TRAIL_MAX) {
+    const drop = Math.floor(TRAIL_MAX * 0.1);
+    trailPts.copyWithin(0, drop * 3, trailLen * 3);
+    trailLen -= drop;
+    for (let i = 0; i < trailLen - 1; i += 1) writeSegment(i);
+  }
+  trailPts.set([v.x, v.y, v.z], trailLen * 3);
+  trailLen += 1;
+  if (trailLen >= 2) writeSegment(trailLen - 2);
+  trailGeo.instanceCount = Math.max(0, trailLen - 1);
+  seg.needsUpdate = true;
+}
+function clearTrail() { trailLen = 0; trailGeo.instanceCount = 0; }
 
 const samples = [];
 let latest = null;
@@ -156,16 +198,24 @@ let socketOpen = false;
 function onSample(s, seedOnly = false) {
   s.recv = performance.now();
   if (s.pos) {
-    s.v = new THREE.Vector3(...s.pos);
+    s.v = new THREE.Vector3(s.pos[0], Math.max(0.6, s.pos[1]), s.pos[2]);
     s.q = new THREE.Quaternion(...s.quat);
-    pushTrail(s.v);
+    pushTrail(s.v, seedOnly ? trailLastMs + 1000 : s.recv);
     if (!seedOnly) {
       samples.push(s);
       if (samples.length > 100) samples.splice(0, samples.length - 100);
     }
+    if (s.lat !== undefined && !tileGround) ensureGround(...inferOrigin(s));
   }
   latest = s;
   lastRecv = s.recv;
+}
+// Origin (lat, lon) the positions are relative to, recovered from any sample carrying lat/lon + pos.
+function inferOrigin(s) {
+  const north = -s.pos[2], east = s.pos[0];
+  const lat0 = s.lat - north / (6378137 * Math.PI / 180);
+  const lon0 = s.lon - east / (6378137 * Math.PI / 180 * Math.cos(lat0 * Math.PI / 180));
+  return [lat0, lon0];
 }
 
 const tmpV = new THREE.Vector3();
@@ -184,16 +234,42 @@ function poseAt(t) {
   return { v: tmpV, q: tmpQ };
 }
 
+// Cameras. Orbit: OrbitControls around the aircraft (pinch/wheel zooms). Chase: rigidly attached to the
+// airframe — it rolls and pitches with the aircraft. Judge: fixed at the box's judging position.
 let camMode = 'orbit';
 const camOffset = new THREE.Vector3(8, 4, 12);
+const chase = { dist: 16 };
+const bodyUp = new THREE.Vector3();
+const chaseOff = new THREE.Vector3();
 function setCamMode(mode) {
   camMode = mode;
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
   controls.enabled = mode === 'orbit';
+  camera.up.set(0, 1, 0);
   if (mode === 'orbit') camera.position.copy(aircraft.position).add(camOffset);
+}
+function zoomBy(f) {
+  if (camMode === 'orbit') {
+    const d = camera.position.clone().sub(controls.target);
+    const len = THREE.MathUtils.clamp(d.length() * f, controls.minDistance, controls.maxDistance);
+    camera.position.copy(controls.target).add(d.setLength(len));
+  } else if (camMode === 'chase') {
+    chase.dist = THREE.MathUtils.clamp(chase.dist * f, 5, 300);
+  }
 }
 document.querySelectorAll('#controls [data-cam]').forEach(b => b.addEventListener('click', () => setCamMode(b.dataset.cam)));
 document.getElementById('clear').addEventListener('click', clearTrail);
+document.getElementById('zoom-in').addEventListener('click', () => zoomBy(0.75));
+document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1.33));
+canvas.addEventListener('wheel', (e) => { if (camMode === 'chase') { e.preventDefault(); zoomBy(Math.exp(e.deltaY * 0.0015)); } }, { passive: false });
+let pinchDist = 0;
+canvas.addEventListener('touchstart', (e) => { if (e.touches.length === 2) pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }, { passive: true });
+canvas.addEventListener('touchmove', (e) => {
+  if (camMode !== 'chase' || e.touches.length !== 2) return;
+  const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  if (pinchDist > 0) zoomBy(pinchDist / d);
+  pinchDist = d;
+}, { passive: true });
 
 function updateCamera() {
   const p = aircraft.position;
@@ -205,8 +281,10 @@ function updateCamera() {
     camera.position.set(0, 1.7, JUDGE_DISTANCE_M);
     camera.lookAt(p);
   } else {
-    const hdg = THREE.MathUtils.degToRad(latest ? latest.hdg : 0);
-    camera.position.set(p.x - 18 * Math.sin(hdg), p.y + 5, p.z + 18 * Math.cos(hdg));
+    chaseOff.set(-chase.dist, 0, -chase.dist * 0.28).applyQuaternion(aircraft.quaternion);
+    bodyUp.set(0, 0, -1).applyQuaternion(aircraft.quaternion);
+    camera.position.copy(p).add(chaseOff);
+    camera.up.copy(bodyUp);
     camera.lookAt(p);
   }
 }
@@ -242,15 +320,18 @@ function connect() {
   };
   ws.onclose = () => { socketOpen = false; setTimeout(connect, 1000); };
 }
+
 // Inside the iOS shell the native side pushes raw 67-byte frames (base64) instead of a bridge WebSocket.
 const nativeHandler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.acro;
 if (nativeHandler) {
-  const origin = new Origin();
+  const origin = new Origin(GROUND_M);
   window.acroReplay = {
     frame(b64, wall) {
       const f = decodeIns(base64ToBytes(b64));
       if (f.init) origin.update(f);
-      onSample(sampleFromFrame(wall, f, origin.value));
+      const s = sampleFromFrame(wall, f, origin.value);
+      s.lat = f.lat; s.lon = f.lon;
+      onSample(s);
     },
   };
   socketOpen = true;
@@ -264,6 +345,7 @@ function resize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  trailMat.resolution.set(w, h);
 }
 window.addEventListener('resize', resize);
 resize();

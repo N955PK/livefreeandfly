@@ -35,6 +35,8 @@ def main():
     ap.add_argument("--speed", type=float, default=1.0, help="replay speed factor (default 1.0)")
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
     ap.add_argument("--host", default="0.0.0.0")
+    ap.add_argument("--ground-ft", type=float, default=163.0,
+                    help="ground elevation at the origin, ft MSL (default 163 = KWVI)")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 
@@ -42,7 +44,7 @@ def main():
     log = logging.getLogger("bridge")
     log.info("source: %s", f"replay {args.replay} x{args.speed}" if args.replay else "live UDP")
     log.info("open http://%s:%d/ (this machine) or http://localhost:%d/", lan_ip(), args.port, args.port)
-    web.run_app(make_app(source), host=args.host, port=args.port, print=None)
+    web.run_app(make_app(source, args.ground_ft), host=args.host, port=args.port, print=None)
 
 
 if __name__ == "__main__":

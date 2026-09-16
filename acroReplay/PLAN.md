@@ -499,6 +499,14 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — Rendering pass: absolute altitude against a fixed ground elevation (default
+  KWVI 163 ft; `--ground-ft` / `?ground_ft=`) instead of "lowest altitude seen"; aerial
+  imagery ground (Esri World Imagery → USGS fallback, 4 zoom rings to 160 km, bundle for
+  offline with tools/fetch_tiles.py); Line2 thick trail with gradual ageing; chase camera
+  rigidly attached to the airframe (rolls with it); pinch/wheel/± zoom in orbit and chase;
+  gradient sky; licensed CGTrader Christen Eagle model (web/models/, gitignored) loaded via
+  OBJ/MTL. Log replay defaults to starting airborne. Ground layers are depth-write-free and
+  ordered coarse→fine to avoid z-fighting at grazing angles.
 - 2026-09-16 — Cockpit platform: native iPhone shell (path c) chosen; ios/ scaffolded,
   web app made transport-agnostic (JS decoder + frame math).
 - 2026-09-16 — Phase 1 first cut: aiohttp bridge + buildless three.js app;

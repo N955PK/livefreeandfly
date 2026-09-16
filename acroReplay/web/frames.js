@@ -38,13 +38,11 @@ export function worldQuaternion(yaw, pitch, roll, target = new THREE.Quaternion(
   return target.setFromRotationMatrix(m4);
 }
 
-// Session origin: first fix horizontally; altitude follows the lowest seen so the ground is always the floor.
+// Session origin: first fix horizontally, at a fixed ground elevation so altitude is absolute.
 export class Origin {
-  constructor() { this.value = null; }
+  constructor(groundM) { this.groundM = groundM; this.value = null; }
   update(f) {
-    const altM = f.alt * FT_TO_M;
-    if (!this.value) this.value = [f.lat, f.lon, altM];
-    else if (altM < this.value[2]) this.value[2] = altM;
+    if (!this.value) this.value = [f.lat, f.lon, this.groundM];
   }
 }
 
