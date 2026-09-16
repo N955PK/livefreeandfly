@@ -499,6 +499,9 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — In-flight box placement redefined (Sean): the tap marks the *middle of the entry
+  edge*, and the box axis follows the *ground track* (flight path), not the nose heading; the box
+  extends ahead one edge length and ±depth/2 to the sides, judges on the chosen side.
 - 2026-09-16 — Box from the judges (Sean's asks): the box can also be placed from the judges'
   position — typed coordinates, the phone's GPS ("Use my location"), or two taps on a top-down
   map camera (where the judges stand, then toward the box centre, which also sets the setback) —

@@ -8,7 +8,7 @@ import { LineGeometry } from 'three/addons/LineGeometry.js';
 import { decodeIns, base64ToBytes } from './onflight.js';
 import { Origin, sampleFromFrame, FT_TO_M } from './frames.js';
 import { buildTileGround, ATTRIBUTION } from './tiles.js';
-import { DEFAULT_BOX, loadBox, saveBox, buildBoxGroup, judgeWorldPosition, boxStatus, boxFromJudges, judgeLatLon } from './box.js';
+import { DEFAULT_BOX, loadBox, saveBox, buildBoxGroup, judgeWorldPosition, boxStatus, boxFromJudges, boxFromEntry, judgeLatLon } from './box.js';
 import { getItem, setItem } from './storage.js';
 import { offsetLatLon } from './frames.js';
 
@@ -204,7 +204,8 @@ rebuildBox();
 document.getElementById('box-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
 document.getElementById('box-set').addEventListener('click', () => {
   if (!latest || !latest.init || latest.lat === undefined) return;
-  box = { ...readBoxInputs(), lat: latest.lat, lon: latest.lon, headingDeg: latest.hdg };
+  const trackDeg = latest.gs > 15 ? latest.trk : latest.hdg;   // flight path; fall back to heading when nearly stationary
+  box = boxFromEntry({ ...readBoxInputs(), lat: latest.lat, lon: latest.lon, trackDeg });
   saveBox(box);
   rebuildBox();
 });

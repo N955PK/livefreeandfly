@@ -30,6 +30,17 @@ export function boxFromJudges({ lat, lon, facingDeg, ...dims }) {
   return { ...b, lat: cLat, lon: cLon, headingDeg: h };
 }
 
+// Box from the aircraft entering it: the aircraft is over the middle of the entry edge, flying into the box
+// along its main axis (ground track). The box extends ahead by `widthM` and ±depthM/2 to either side; the
+// judges sit on `judgeSide` outside the box, so the front edge (and our corner) is depthM/2 toward them.
+export function boxFromEntry({ lat, lon, trackDeg, ...dims }) {
+  const b = { ...DEFAULT_BOX, ...dims };
+  const h = ((trackDeg % 360) + 360) % 360;
+  const towardJudges = (h + (b.judgeSide === 'left' ? -90 : 90)) * DEG;
+  const [cLat, cLon] = offsetLatLon(lat, lon, (b.depthM / 2) * Math.cos(towardJudges), (b.depthM / 2) * Math.sin(towardJudges));
+  return { ...b, lat: cLat, lon: cLon, headingDeg: h };
+}
+
 // Where the judges stand for a given box (inverse of the above), for display.
 export function judgeLatLon(box) {
   const h = box.headingDeg * DEG;
