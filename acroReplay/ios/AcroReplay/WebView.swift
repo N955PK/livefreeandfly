@@ -53,7 +53,8 @@ struct WebView: UIViewRepresentable {
 final class BundleSchemeHandler: NSObject, WKURLSchemeHandler {
     private static let mimeTypes = [
         "html": "text/html", "js": "text/javascript", "mjs": "text/javascript", "css": "text/css",
-        "json": "application/json", "png": "image/png", "svg": "image/svg+xml", "ico": "image/x-icon",
+        "json": "application/json", "png": "image/png", "jpg": "image/jpeg", "svg": "image/svg+xml", "ico": "image/x-icon",
+        "obj": "text/plain", "mtl": "text/plain",
     ]
 
     func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {

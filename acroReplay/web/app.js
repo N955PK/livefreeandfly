@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
+import { OBJLoader } from 'three/addons/OBJLoader.js';
+import { MTLLoader } from 'three/addons/MTLLoader.js';
 import { decodeIns, base64ToBytes } from './onflight.js';
 import { Origin, sampleFromFrame } from './frames.js';
 
@@ -105,8 +107,33 @@ function buildAircraft() {
   add(new THREE.Mesh(new THREE.BoxGeometry(0.03, 1.9, 0.14), black), 2.9, 0, 0, 0.6, 0, 0);
   return g;
 }
-const aircraft = buildAircraft();
+// Licensed Christen Eagle model (web/models/, not in git): cm units, Y up, nose +Z, right wing -X.
+// Rotated into the FRD body frame and scaled to metres; the procedural model stands in until it loads.
+const aircraft = new THREE.Group();
+const placeholder = buildAircraft();
+aircraft.add(placeholder);
 scene.add(aircraft);
+function loadEagleModel() {
+  const path = './models/eagle/';
+  new MTLLoader().setPath(path).load('eagle.mtl', (mtl) => {
+    mtl.preload();
+    new OBJLoader().setMaterials(mtl).setPath(path).load('eagle.obj', (obj) => {
+      obj.traverse((m) => {
+        if (!m.isMesh) return;
+        if (/canopy/i.test(m.name)) m.material = new THREE.MeshStandardMaterial({ color: 0x9fc5e8, transparent: true, opacity: 0.35, roughness: 0.1 });
+        else m.material.side = THREE.DoubleSide;
+      });
+      const pivot = new THREE.Group();
+      pivot.setRotationFromMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0)));
+      pivot.scale.setScalar(0.01);
+      obj.position.set(0, -1.6, -30);
+      pivot.add(obj);
+      aircraft.remove(placeholder);
+      aircraft.add(pivot);
+    }, undefined, (err) => console.error('eagle model failed', err));
+  }, undefined, (err) => console.error('eagle mtl failed', err));
+}
+loadEagleModel();
 
 const trailPos = new Float32Array(TRAIL_MAX * 3);
 const trailGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
