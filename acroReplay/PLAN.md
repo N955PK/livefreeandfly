@@ -422,7 +422,16 @@ increments, roll-rate constancy, loop roundness, heading hold on verticals,
 box position); Aresti overlay via OpenAero (GPL — isolate); audio cues in the
 headset; multi-session comparison ("this loop vs my best loop").
 
-### 7.1 Cockpit display platform: Apple device (decided 2026-08-13)
+### 7.1 Cockpit display platform: Apple device (decided 2026-08-13; path c chosen 2026-09-16)
+
+**Decision 2026-09-16 — path c, the native thin shell**, over a Pi/ESP32 bridge (extra box in
+the plane) and over asking Bolder Flight for a WebSocket (unknown timeline; the Hub firmware
+is proprietary even though their libraries are open, and its USB-C port is charge-only, so
+self-modifying it is off the table). Implementation in `ios/` (see `ios/README.md`): Swift
+listens on UDP 2000 and pushes raw frames into a WKWebView running the unchanged web app,
+which now decodes and does frame math in JS (`web/onflight.js`, `web/frames.js`). Blockers
+at decision time: Xcode not installed on the dev Mac; multicast entitlement request pending
+a paid developer account.
 
 The display is an iPad or iPhone. This is the proven EFB pattern — ForeFlight
 plus Sentry/Stratux is exactly "iPad joins a sensor's internet-less Wi-Fi AP" —
@@ -485,6 +494,8 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — Cockpit platform: native iPhone shell (path c) chosen; ios/ scaffolded,
+  web app made transport-agnostic (JS decoder + frame math).
 - 2026-09-16 — Phase 1 first cut: aiohttp bridge + buildless three.js app;
   origin altitude tracks the lowest seen so the ground is always the floor.
 - 2026-09-15 — U1/U2/U3 resolved from capture v2: UDP broadcast :2000,

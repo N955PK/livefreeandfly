@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
+import { decodeIns, base64ToBytes } from './onflight.js';
+import { Origin, sampleFromFrame } from './frames.js';
 
 const BOX_M = 1000;
 const JUDGE_DISTANCE_M = 700;
@@ -165,7 +167,22 @@ function connect() {
   };
   ws.onclose = () => { socketOpen = false; setTimeout(connect, 1000); };
 }
-connect();
+// Inside the iOS shell the native side pushes raw 67-byte frames (base64) instead of a bridge WebSocket.
+const nativeHandler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.acro;
+if (nativeHandler) {
+  const origin = new Origin();
+  window.acroReplay = {
+    frame(b64, wall) {
+      const f = decodeIns(base64ToBytes(b64));
+      if (f.init) origin.update(f);
+      onSample(sampleFromFrame(wall, f, origin.value));
+    },
+  };
+  socketOpen = true;
+  nativeHandler.postMessage('ready');
+} else {
+  connect();
+}
 
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;

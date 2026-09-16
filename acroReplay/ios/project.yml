@@ -1,0 +1,38 @@
+name: AcroReplay
+options:
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+targets:
+  AcroReplay:
+    type: application
+    platform: iOS
+    sources:
+      - path: AcroReplay
+      - path: ../web
+        type: folder
+        buildPhase: resources
+    info:
+      path: AcroReplay/Info.plist
+      properties:
+        CFBundleDisplayName: acroReplay
+        UILaunchScreen: {}
+        UIRequiresFullScreen: true
+        UIStatusBarHidden: true
+        UIViewControllerBasedStatusBarAppearance: false
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        NSLocalNetworkUsageDescription: acroReplay listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.
+        ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: AcroReplay/AcroReplay.entitlements
+      properties:
+        com.apple.developer.networking.multicast: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.livefreeandfly.acroreplay
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: R6P52BJ2K9
