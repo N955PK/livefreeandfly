@@ -14,7 +14,7 @@ button.on { background: #2395e7; color: #fff; }
 #attribution { position: fixed; right: calc(env(safe-area-inset-right) + 8px); bottom: calc(env(safe-area-inset-bottom) + 2px); font-size: 10px; color: rgba(255,255,255,.75); pointer-events: none; }
 #zoom { position: fixed; right: calc(env(safe-area-inset-right) + 10px); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; }
 #zoom button { width: 48px; height: 48px; padding: 0; font-size: 24px; line-height: 48px; }
-@media (max-width: 560px) { #controls button { font-size: 15px; padding: 10px 13px; } }
+@media (max-width: 560px) { #controls { gap: 5px; padding: 0 6px; } #controls button { font-size: 14px; padding: 9px 10px; } .panel { bottom: calc(env(safe-area-inset-bottom) + 60px); } }
 #controls { flex-wrap: wrap; padding: 0 8px; }
 #boxstat { font-size: 14px; font-weight: 600; margin-top: 2px; min-height: 1.2em; }
 #boxstat.in { color: #7bd88f; } #boxstat.out { color: #ffd166; }
