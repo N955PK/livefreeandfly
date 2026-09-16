@@ -4,8 +4,15 @@ Real-time aerobatic figure replay: a live 3D recreation of the aircraft driven
 by an OnFlight Hub's Wi-Fi data stream, so the pilot can review each figure
 right after flying it — during the repositioning leg — and iterate efficiently.
 
-Status: planning / pre-hardware. Everything known, unknown, and planned is in
+Status: phase 0 (protocol decode) done — the Hub's 50 Hz UDP INS stream,
+identity message, WebSocket status frame, and HTTP config API are documented
+in [docs/PROTOCOL.md](docs/PROTOCOL.md) with decoders in `onflight/` and
+real-frame fixtures in `tests/`. Plan, decisions, and next phases are in
 [PLAN.md](PLAN.md).
+
+```bash
+python3 -m pytest tests            # decoders against real captured frames
+```
 
 ## Quickstart (when the OnFlight Hub is on the bench)
 

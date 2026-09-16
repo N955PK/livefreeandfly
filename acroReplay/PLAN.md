@@ -171,7 +171,17 @@ this bit BayRadar repeatedly).
 This is the section to reread when the Hub is in hand. U1–U4 all resolve from
 one bench capture session (§5).
 
-### U1 — How is the developer UDP stream delivered, and is it on by default?
+### U1 — RESOLVED 2026-09-15: always-on UDP **broadcast** to 192.168.23.255
+
+Three broadcast flows, no configuration or discovery handshake needed:
+**port 2000 — the INS stream, 67-byte frames at 50 Hz** (median 20.0 ms);
+port 4000 — GDL90 (heartbeat + ForeFlight ID at 1 Hz; ownship + geo-alt +
+AHRS packed in one datagram at 5 Hz); port 2005 — a 55-byte identity message
+at 1 Hz (serial, tail number, pilot name, aircraft type). Broadcast means the
+iOS native path needs the multicast entitlement (§7.1) — or a bridge.
+*(Original branches kept below for the record.)*
+
+#### U1 — original question: how is the developer UDP stream delivered?
 
 Manual says it exists but not port, addressing, or whether it needs enabling.
 
@@ -195,7 +205,24 @@ Manual says it exists but not port, addressing, or whether it needs enabling.
   probability of a helpful answer). Meanwhile build against GDL90 5 Hz +
   log replay so the app keeps moving.
 
-### U2 — Wire format of the stream
+### U2 — RESOLVED 2026-09-15: raw packed little-endian struct, no framing
+
+Byte 0 is a message id (0x02 = INS frame on port 2000, 0x00 = identity on
+port 2005); no start/stop bytes or checksum (UDP already delimits — the
+bolderflight `framing` scheme is not used here), not MAVLink. Field encodings
+are exactly the manual's spec-table ranges: int16 ÷100 angles, uint16 ÷100
+knots (0–655 kt), uint16 − 10000 ft altitudes (−10,000…55,535 ft), int16 ÷10
+ft/min climb (±3,276), int16 ÷10 deg/s rates (covers ±2,000), int16 mg
+accelerations (±32 g), int32 ÷1e7 lat/lon, uint32 ms system time. Full layout
+in docs/PROTOCOL.md; decoder `onflight/udp_ins.py`; fixtures in
+`tests/fixtures/` (location and identity strings scrubbed — public repo).
+Every field was confirmed against an independent source: the WebSocket status
+frame (pitch/roll/lat/lon/alts/GNSS/UTC/temps), GDL90 (true heading to 0.04°,
+track, ground speed, pitch/roll), physics (1 g / 982 mg stationary, rotation-
+angle rates vs gyro), and the local magnetic declination (12.54° E) for @21.
+*(Original branches kept below for the record.)*
+
+#### U2 — original question: wire format of the stream
 
 - **Branch a — self-describing (JSON/CSV text):** decode trivially. Possible:
   the Wi-Fi processor is a small MCU (ESP32-class) and JSON at 50 Hz is cheap.
@@ -208,7 +235,19 @@ Manual says it exists but not port, addressing, or whether it needs enabling.
 - **Branch d — opaque custom binary:** full correlation methodology (§6). This
   still works — it's just a day of work instead of an hour.
 
-### U3 — Stream content and rate
+### U3 — RESOLVED 2026-09-15: full INS solution at 50 Hz — sufficient for 3D
+
+The 67-byte frame carries pitch, roll, true heading (+ declination), ground
+speed, ground track, flight-path angle, climb rate, load factor, 3-axis body
+rates, 3-axis body acceleration, WGS-84 / MSL / cabin-pressure altitude,
+static pressure, lat/lon, GNSS fix/sats/accuracies, UTC, health flags (incl.
+INS-initialized and INS-healthy bits), and system time. Missing versus the
+ideal `StateSample`: NED velocity components (derive from ground speed +
+track + climb rate) and a quaternion (build from the Euler triple in the
+adapter — 0.01° resolution is fine). Plan C is closed.
+*(Original branches kept below for the record.)*
+
+#### U3 — original question: stream content and rate
 
 - **Expect:** full INS solution (attitude, position, velocities, rates,
   accels, load factor, pressure alt, GNSS status) at 50 Hz — i.e. a superset
@@ -340,8 +379,13 @@ the Mac, `sudo` password.
 
 ## 7. Build phases
 
-**Phase 0 — decode (blocked on hardware).** §5 + §6. Exit: PROTOCOL.md +
-parser passing fixture tests.
+**Phase 0 — decode. DONE 2026-09-15** (two bench sessions, ~5 min of data).
+Exit met: docs/PROTOCOL.md documents the UDP INS frame, identity message,
+WebSocket status frame, and HTTP config API; `onflight/udp_ins.py` and
+`onflight/ws_data.py` decode them, locked by real-frame fixtures in `tests/`.
+Still unverified in flight: GNSS-denied behavior, and how the INS-healthy bit
+behaves under sustained high rates (it dropped ~5% of frames during hand
+flips on the bench).
 
 **Phase 1 — pipeline skeleton (unblocked NOW).** Bridge with `xplane_udp` and
 `log_replay` sources, WebSocket fanout, ring buffer, parquet logging.
@@ -433,6 +477,10 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-15 — U1/U2/U3 resolved from capture v2: UDP broadcast :2000,
+  67-byte packed struct, 50 Hz, full INS state. Phase 0 done; Plan C closed.
+  Fixtures committed with location moved to the KWVI reference point and
+  identity strings synthesized — never commit raw captures (public repo).
 
 ## 10. References
 

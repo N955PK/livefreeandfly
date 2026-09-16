@@ -1,8 +1,8 @@
 # OnFlight Hub — Wi-Fi processor interfaces
 
 Derived 2026-09-15 from the Hub's own config webpage (`index.html`, `script.js`)
-mirrored off `http://192.168.23.1/`. Unit: serial `4496A6FE8CE0` (SSID suffix).
-Firmware version: recorded in the `/config` JSON of the next capture.
+mirrored off `http://192.168.23.1/` and from packet captures of its broadcasts.
+Unit: firmware 14, hardware 2, ACROWRX product flag set, datalog divider 0 (50 Hz).
 
 All multi-byte values are **little-endian**. The Wi-Fi processor behaves like
 an ESP-class async web server: static assets, JSON config endpoints, and one
@@ -80,18 +80,94 @@ The page opens this on load with `binaryType = 'arraybuffer'` and reconnects
 
 **Assessment for acroReplay:** no heading, body rates, accelerations, load
 factor, or velocities → this frame cannot drive the 3D replay by itself. It is
-a good health/GNSS-quality side channel. Its packed-struct style strongly
-suggests the developer UDP stream (still uncaptured) is also a packed LE
-struct, most likely the datalog record — decode plan in PLAN.md §6.
+a good health/GNSS-quality side channel. The UDP INS frame below is the 3D data source; this frame's extra fields (air-data,
+AGL, heart rate, analog inputs) only appear here.
+
+## UDP broadcast streams (to 192.168.23.255, always on)
+
+Captured 2026-09-15 with firmware 14 / hw 2, ACROWRX product flag set. No
+discovery handshake is needed; the Hub broadcasts from boot.
+
+| port | rate | size | message |
+|---|---|---|---|
+| 2000 | 50 Hz (20.0 ms median) | 67 B | INS frame, message id `0x02` — **the acroReplay data source** |
+| 2005 | 1 Hz | 55 B | identity, message id `0x00` |
+| 4000 (configurable) | 5 Hz + 1 Hz | 57 / 111 B | GDL90: ownship 0x0A + geo-alt 0x0B + ForeFlight AHRS 0x65/01 per datagram; heartbeat 0x00 + ForeFlight ID 0x65/00 once a second |
+
+Frames are raw packed little-endian structs: no start/stop bytes, no
+checksum, not MAVLink, not the bolderflight `framing` scheme. The encodings
+are exactly the ranges in the manual's spec table.
+
+### INS frame — port 2000, 67 bytes, `struct` format `<BBBbbbbBBBBBBBBBBhhhHHHhhhhhhhhhHHHHiiI`
+
+Decoder: `onflight/udp_ins.py`. Body axes front-right-down. Attitude/position
+fields read exactly 0 until the INS has initialized (needs a 3D fix with the
+configured minimum satellites — ~45 s outdoors on the bench).
+
+| off | type | field | scale / notes | verified against |
+|---|---|---|---|---|
+| 0 | u8 | message id | `0x02` | constant |
+| 1 | u8 | flags0 | bit0 batt WARN, bit1 batt LOW, bit2 cpu temp ok, **bit3 INS initialized**, **bit4 INS healthy** (drops transiently under aggressive rotation), bit5 mag healthy, bit6 mag temp ok, bit7 GNSS healthy | ws `flags0` bit-for-bit except bits 3–4; bit3 == attitude non-zero 100% |
+| 2 | u8 | flags1 | bits 0,1,2,4,5,7 always set on a healthy unit (sensor health, names unknown); **bit3 toggles at 25 Hz** (new mag/pressure sample); **bit6 pulses at the GNSS nav rate** (10 Hz → 1 frame in 5) | duty cycles |
+| 3–6 | i8×4 | cpu, imu, mag, pres die temp °C | | ws |
+| 7 | u8 | horz pos accuracy ft | ÷10 | ws |
+| 8 | u8 | vert pos accuracy ft | ÷10 | ws |
+| 9 | u8 | velocity accuracy kt | ÷10 | ws |
+| 10 | u8 | gnss | fix = `& 0x07` (0 none, 1 time, 2 2D, 3 3D, 4 DGNSS, 5 RTK float, 6 RTK fixed), num_sv = `>> 3` | ws |
+| 11–16 | u8×6 | UTC year−1970, month, day, hour, min, sec | | ws |
+| 17 | i16 | pitch ° | ÷100 | ws, GDL90 AHRS (0.06° median diff) |
+| 19 | i16 | roll ° | ÷100 | ws, GDL90 AHRS |
+| 21 | i16 | magnetic declination ° (east +) | ÷100; 12.54 at Watsonville | true − mag heading vs GDL90 |
+| 23 | u16 | **true** heading ° | ÷100 | GDL90 AHRS heading (0.04° median diff) |
+| 25 | u16 | ground speed kt | ÷100 (0–655 kt) | GDL90 ownship |
+| 27 | u16 | ground track ° | ÷100 | GDL90 ownship (0.7° median diff) |
+| 29 | i16 | flight-path angle ° | ÷100 | range ±89 |
+| 31 | i16 | climb rate ft/min | ÷10 (±3,276) | GDL90 ownship (coarse) |
+| 33 | i16 | load factor g, positive up | ÷1000 | 0.982 stationary |
+| 35 | i16 | **q** — pitch rate °/s | ÷10 | Euler-rate kinematics r=0.995 |
+| 37 | i16 | **p** — roll rate °/s | ÷10 | kinematics r=0.993 |
+| 39 | i16 | **r** — yaw rate °/s | ÷10 | kinematics r=0.988 |
+| 41 | i16 | accel x (body fwd) | mg | −0.996 × gravity component |
+| 43 | i16 | accel y (body right) | mg | −1.006 × |
+| 45 | i16 | accel z (body down) | mg | −0.993 × |
+| 47 | u16 | WGS-84 altitude ft | − 10000 | ws |
+| 49 | u16 | MSL altitude ft | − 10000 | ws |
+| 51 | u16 | cabin pressure altitude ft | − 10000 | ws, GDL90 ownship pressure alt |
+| 53 | u16 | static pressure Pa | × 2 | 100,846 Pa at 41 m |
+| 55 | i32 | latitude ° | ÷1e7 | ws |
+| 59 | i32 | longitude ° | ÷1e7 | ws |
+| 63 | u32 | system time ms since boot | ÷1000 | +20 per frame; matches ws |
+
+Note the rate ordering: the frame stores **q, p, r** (pitch, roll, yaw rate),
+not p, q, r — confirmed by two independent attitude-derivative methods at
+r > 0.99. The Hub low-passes gyros at the configured cutoff (3 Hz default),
+so raw rates read ~10% below attitude-derived peaks during fast motion.
+
+Not present (derive in the adapter): NED velocity (from ground speed, track,
+climb rate), quaternion (from the Euler triple), magnetic heading (true −
+declination).
+
+### Identity message — port 2005, 55 bytes, `<B6s12s24s12s`
+
+| off | type | field |
+|---|---|---|
+| 0 | u8 | message id `0x00` |
+| 1 | u48 LE | unit serial (same value as the Wi-Fi SSID suffix, `/config.serial`) |
+| 7 | char[12] | tail number, NUL-padded (`/config.tail-num`) |
+| 19 | char[24] | pilot name |
+| 43 | char[12] | aircraft type |
 
 ## GDL90 (ForeFlight extension)
 
-Configured via `/sys-config.gdl90-port` (ForeFlight expects 4000). Per the
-manual: heartbeat + ForeFlight ID at 1 Hz; ownship, GNSS altitude, attitude at
-5 Hz. Whether the Hub unicasts to a client after seeing ForeFlight's discovery
-broadcast on UDP 63093 is tested by capture v2.
+Configured via `/sys-config.gdl90-port` (4000 on this unit). Observed: broadcast,
+not unicast — the Hub kept broadcasting while ForeFlight discovery JSON was sent
+on UDP 63093. Datagrams pack several messages: ownship 0x0A + geo-alt 0x0B +
+ForeFlight AHRS 0x65/01 at 5 Hz; heartbeat + ForeFlight ID 0x65/00 at 1 Hz. The
+AHRS heading matched the UDP true heading, with the true/mag flag inconsistently
+set. Fallback only — 5 Hz attitude is too slow for aerobatics.
 
 ## Capture file formats (this repo)
 
-`ws_data_<phase>.bin` and `gdl90_<phase>.bin`: repeated records of
-`<dH` (unix time f64, payload length u16) followed by the raw payload.
+`ws_data_<phase>.bin`, `gdl90_<phase>.bin`, and `tests/fixtures/*.bin`: repeated
+records of `<dH` (unix time f64, payload length u16) followed by the raw payload
+(`onflight/records.py`). `<phase>.pcap`: libpcap, read with `onflight/pcap.py`.

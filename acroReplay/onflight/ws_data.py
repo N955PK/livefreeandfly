@@ -7,6 +7,8 @@ Layout transcribed from the Hub's own ``script.js`` ``onMessage`` handler
 import struct
 from dataclasses import dataclass
 
+from onflight.records import iter_records  # noqa: F401  (re-exported for callers of ws_data.iter_records)
+
 FRAME_FORMAT = "<BBBBbbbbbbBBBBBBBBBBBhhHHHHHhHHHHHhHHhhiiIBBBBbbbbHHHHffff"
 FRAME_SIZE = struct.calcsize(FRAME_FORMAT)
 
@@ -107,15 +109,3 @@ def decode(payload):
         heart_rate_bpm=v[42], ain_connected=v[43], ain_healthy_die_temp_ok=v[44], ain_batt_status=v[45],
         ain_die_temp_c=tuple(v[46:50]), ain_volt=tuple(x / 10000 for x in v[50:54]), ain_val=tuple(v[54:58]),
     )
-
-
-def iter_records(path):
-    """Yield ``(unix_time, payload)`` from a ``ws_data_*.bin`` capture file."""
-    header = struct.Struct("<dH")
-    with open(path, "rb") as fh:
-        while True:
-            head = fh.read(header.size)
-            if len(head) < header.size:
-                return
-            t, n = header.unpack(head)
-            yield t, fh.read(n)
