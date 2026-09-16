@@ -40,6 +40,7 @@
     <span class="k">ALT</span><span class="v" id="alt">----</span>
     <span class="k">GS</span><span class="v" id="gs">---</span>
   </div>
+  <div id="boxstat"></div>
 </div>
 <div id="status" class="pill">connecting…</div>
 <div id="controls">
@@ -47,6 +48,19 @@
   <button data-cam="orbit" class="on">Orbit</button>
   <button data-cam="chase">Chase</button>
   <button id="clear">Clear</button>
+  <button id="box-toggle">Box</button>
+  <button id="ground-toggle">Sat</button>
+</div>
+<div id="boxpanel" class="panel hidden">
+  <div class="prow"><button id="box-set">Set corner here</button><button id="box-clear">Clear box</button></div>
+  <div class="pgrid">
+    <label>Width m<input id="box-w" type="number" step="50"></label>
+    <label>Depth m<input id="box-d" type="number" step="50"></label>
+    <label>Floor ft<input id="box-f" type="number" step="100"></label>
+    <label>Ceiling ft<input id="box-c" type="number" step="100"></label>
+    <label>Judges<select id="box-side"><option value="right">on my right</option><option value="left">on my left</option></select></label>
+  </div>
+  <div id="box-info" class="muted"></div>
 </div>
 <div id="zoom">
   <button id="zoom-in" aria-label="zoom in">+</button>

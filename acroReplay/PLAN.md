@@ -499,6 +499,13 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — Box + ground controls (Sean's asks): the aerobatic box is set in flight
+  from the aircraft's live position/heading ("Set corner here": corner under the aircraft,
+  front edge along the heading, box extends away from the judges), standard 1000×1000 m or
+  custom edges, floor/ceiling in ft, judges left/right; stored geodetically in localStorage
+  (web/box.js). HUD shows in-box status ("73 m out · 47 ft low"). Judge camera stands at the
+  judge line with a narrow adjustable FOV. Satellite/plain ground toggle (persisted). All of
+  it keys off live lat/lon (bridge samples and the iOS shell both carry it).
 - 2026-09-16 — Rendering pass: absolute altitude against a fixed ground elevation (default
   KWVI 163 ft; `--ground-ft` / `?ground_ft=`) instead of "lowest altitude seen"; aerial
   imagery ground (Esri World Imagery → USGS fallback, 4 zoom rings to 160 km, bundle for
