@@ -448,6 +448,10 @@ function setCamMode(mode) {
   controls.enableRotate = mode !== 'map';
   controls.enablePan = mode === 'map';
   controls.screenSpacePanning = true;
+  // Map mode: one finger / left button pans the map; orbit mode: they rotate.
+  controls.mouseButtons.LEFT = mode === 'map' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+  controls.touches.ONE = mode === 'map' ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+  controls.panSpeed = mode === 'map' ? 1.6 : 1;
   controls.maxPolarAngle = mode === 'map' ? 0.001 : Math.PI;
   camera.up.set(0, 1, 0);
   if (mode !== 'judge') { camera.fov = DEFAULT_FOV; camera.updateProjectionMatrix(); }
@@ -467,7 +471,7 @@ function zoomBy(f) {
   } else if (camMode === 'chase') {
     chase.dist = THREE.MathUtils.clamp(chase.dist * f, 5, 300);
   } else if (camMode === 'judge') {
-    judge.zoom = THREE.MathUtils.clamp(judge.zoom * f, 0.1, 4);
+    judge.zoom = THREE.MathUtils.clamp(judge.zoom * f, 0.1, 80);
   } else if (camMode === 'map') {
     mapCam.height = THREE.MathUtils.clamp(mapCam.height * f, 200, 30000);
     camera.position.set(controls.target.x, mapCam.height, controls.target.z + 0.01);
@@ -496,11 +500,12 @@ function updateCamera() {
     controls.update();
   } else if (camMode === 'map') {
     controls.update();
+    mapCam.height = camera.position.y;
   } else if (camMode === 'judge') {
     if (boxGroup) judgeWorldPosition(boxGroup, camera.position); else camera.position.set(0, 1.7, JUDGE_DISTANCE_M);
     camera.lookAt(p);
     const dist = Math.max(20, camera.position.distanceTo(p));
-    judge.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(45 * judge.zoom / dist)), 2, 60);
+    judge.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(45 * judge.zoom / dist)), 2, 115);
     camera.fov = judge.fov;
     camera.updateProjectionMatrix();
   } else {
