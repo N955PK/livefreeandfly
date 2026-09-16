@@ -50,16 +50,22 @@ export function judgeLatLon(box) {
   return offsetLatLon(mid[0], mid[1], box.judgeSetbackM * Math.cos(toJudges), box.judgeSetbackM * Math.sin(toJudges));
 }
 
-function labelSprite(text) {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
-  const g = c.getContext('2d');
-  g.fillStyle = 'rgba(0,0,0,0.55)'; g.beginPath(); g.roundRect(8, 8, 496, 112, 24); g.fill();
-  g.fillStyle = '#fff'; g.font = 'bold 76px -apple-system, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText(text, 256, 66);
-  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
-  sprite.scale.set(60, 15, 1);
-  return sprite;
+// Judges as an orange camera on the ground, lens toward the box, with a field-of-view wedge that shows the
+// facing direction from altitude. Built looking along +z; rotated to face the box.
+function judgesCamera() {
+  const g = new THREE.Group();
+  const orange = new THREE.MeshStandardMaterial({ color: 0xff8c1a, roughness: 0.6 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.4 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(24, 14, 16), orange); body.position.set(0, 7, 0); g.add(body);
+  const finder = new THREE.Mesh(new THREE.BoxGeometry(9, 5, 9), orange); finder.position.set(-6, 16.5, -2); g.add(finder);
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(6, 7, 12, 24), dark); lens.rotation.x = Math.PI / 2; lens.position.set(0, 8, 13); g.add(lens);
+  const glass = new THREE.Mesh(new THREE.CircleGeometry(4.5, 24), new THREE.MeshStandardMaterial({ color: 0x66aaff, roughness: 0.1 }));
+  glass.position.set(0, 8, 19.2); g.add(glass);
+  const wedge = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0.6, 16, -70, 0.6, 260, 70, 0.6, 260], 3));
+  g.add(new THREE.Mesh(wedge, new THREE.MeshBasicMaterial({ color: 0xff8c1a, transparent: true, opacity: 0.32, side: THREE.DoubleSide, depthWrite: false })));
+  const rays = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0.7, 16, -70, 0.7, 260, 0, 0.7, 16, 70, 0.7, 260], 3));
+  g.add(new THREE.LineSegments(rays, new THREE.LineBasicMaterial({ color: 0xff8c1a, transparent: true, opacity: 0.85 })));
+  return g;
 }
 
 // Local frame of the group: +x along the front edge (heading), +z to the pilot's right, y up from the ground.
@@ -85,19 +91,16 @@ export function buildBoxGroup(box, origin) {
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(w / 2, f, (z0 + z1) / 2);
   g.add(floor);
-  // Judges: a disc on the ground, a striped pole, and a label readable from altitude.
+  // Judges: orange camera at the judging position, looking into the box.
   const jz = -side * (box.judgeSetbackM || DEFAULT_BOX.judgeSetbackM);
-  const disc = new THREE.Mesh(new THREE.CircleGeometry(8, 32),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, depthWrite: false }));
-  disc.rotation.x = -Math.PI / 2; disc.position.set(w / 2, 0.6, jz); g.add(disc);
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 12, 12), new THREE.MeshBasicMaterial({ color: 0xff3b30 }));
-  pole.position.set(w / 2, 6, jz); g.add(pole);
-  const label = labelSprite('JUDGES'); label.position.set(w / 2, 22, jz); g.add(label);
-  const sight = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(w / 2, 0.6, jz), new THREE.Vector3(w / 2, 0.6, 0)]),
-    new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 6, gapSize: 6, transparent: true, opacity: 0.7 }));
-  sight.computeLineDistances(); g.add(sight);
+  const cam = judgesCamera();
+  cam.position.set(w / 2, 0, jz);
+  cam.rotation.y = side > 0 ? 0 : Math.PI;
+  g.add(cam);
   g.userData.judgeLocal = new THREE.Vector3(w / 2, 1.7, jz);
   g.userData.bounds = { w, zMin: Math.min(z0, z1), zMax: Math.max(z0, z1), f, c };
+  g.userData.judgeSide = box.judgeSide;
+  g.userData.headingDeg = box.headingDeg;
   return g;
 }
 
@@ -117,5 +120,13 @@ export function boxStatus(group, worldPos) {
   add(l.z - b.zMax, 'm', 'out');
   add((b.f - l.y) / FT_TO_M, 'ft', 'low');
   add((l.y - b.c) / FT_TO_M, 'ft', 'high');
-  return { inBox: out.length === 0, text: out.length ? out.join(' · ') : 'IN BOX' };
+  // Normalised coordinates for the minimaps: along the edge (0..1), across from the far edge to the judges'
+  // edge (0..1), and altitude from floor (0) to ceiling (1). Values outside 0..1 are outside the box.
+  const towardJudges = group.userData.judgeSide === 'left' ? -1 : 1;
+  const depth = b.zMax - b.zMin;
+  const across = towardJudges > 0 ? (l.z - b.zMin) / depth : (b.zMax - l.z) / depth;
+  return {
+    inBox: out.length === 0, text: out.length ? out.join(' · ') : 'IN BOX',
+    along: l.x / b.w, across, vertical: (l.y - b.f) / (b.c - b.f), towardJudges,
+  };
 }

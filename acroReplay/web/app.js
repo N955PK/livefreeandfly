@@ -517,7 +517,8 @@ function updateCamera() {
   }
 }
 
-const hud = Object.fromEntries(['hdg', 'pitch', 'roll', 'nz', 'alt', 'gs', 'boxstat'].map(id => [id, document.getElementById(id)]));
+const hud = Object.fromEntries(['nz', 'alt', 'boxstat', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
+const clamp01 = (v, lo = -0.45, hi = 1.45) => THREE.MathUtils.clamp(v, lo, hi);
 const status = document.getElementById('status');
 function updateHud(now) {
   const s = latest;
@@ -530,18 +531,30 @@ function updateHud(now) {
   status.textContent = text;
   status.className = `pill ${cls}`;
   if (!s) return;
-  hud.hdg.textContent = String(Math.round(s.hdg) % 360).padStart(3, '0');
-  hud.pitch.textContent = s.pitch.toFixed(1);
-  hud.roll.textContent = s.roll.toFixed(1);
   hud.nz.textContent = s.nz.toFixed(2);
   hud.alt.textContent = Math.round(s.alt);
-  hud.gs.textContent = Math.round(s.gs);
   if (boxGroup && s.init) {
     const st = boxStatus(boxGroup, aircraft.position);
     hud.boxstat.textContent = st.text;
     hud.boxstat.className = `chip ${st.inBox ? 'in' : 'out'}`;
+    hud.minis.classList.remove('hidden');
+    // Top-down: judges along the bottom edge; the box spans 25..75 in both axes; outside stays visible.
+    const flip = st.towardJudges < 0 ? -1 : 1;
+    const px = 50 + flip * (clamp01(st.along) - 0.5) * 50;
+    const py = 25 + clamp01(st.across) * 50;
+    const rel = THREE.MathUtils.degToRad(s.hdg - boxGroup.userData.headingDeg);
+    hud['plan-dot'].setAttribute('cx', px.toFixed(1)); hud['plan-dot'].setAttribute('cy', py.toFixed(1));
+    hud['plan-hdg'].setAttribute('x1', px.toFixed(1)); hud['plan-hdg'].setAttribute('y1', py.toFixed(1));
+    hud['plan-hdg'].setAttribute('x2', (px + flip * 12 * Math.cos(rel)).toFixed(1));
+    hud['plan-hdg'].setAttribute('y2', (py + flip * 12 * Math.sin(rel)).toFixed(1));
+    // Vertical: floor at y=70, ceiling at y=30.
+    hud['vert-dot'].setAttribute('cy', (70 - clamp01(st.vertical, -0.6, 1.6) * 40).toFixed(1));
+    const cls = st.inBox ? '' : 'out';
+    hud['plan-dot'].setAttribute('class', `mdot ${cls}`); hud['vert-dot'].setAttribute('class', `mdot ${cls}`);
+    hud['plan-hdg'].setAttribute('class', `mhdg ${cls}`);
   } else {
     hud.boxstat.textContent = '';
+    hud.minis.classList.add('hidden');
   }
 }
 

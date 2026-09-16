@@ -499,6 +499,10 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — HUD redesign (Sean): heading/pitch/roll numbers removed; the strip shows G,
+  altitude, a top-down box minimap (judges along the bottom edge, dot + heading tick, stays
+  visible outside the box) and a vertical floor/ceiling strip, all coloured by in/out with the
+  out-of-box text. Judges marker is an orange camera with a field-of-view wedge (no label).
 - 2026-09-16 — UI polish pass before real-time validation (Sean): shared glass design tokens,
   HUD as a label-over-value grid, camera modes as one segmented control, Box panel with header/
   close, proper fields with unit suffixes and 44 px targets, primary/secondary buttons. Boxes
