@@ -104,10 +104,20 @@ async def index(request):
     return web.FileResponse(WEB_DIR / "index.html")
 
 
+async def save_icon(request):
+    """Dev helper for web/icon.html: stores the rendered app icon as sessions/icon.png."""
+    data = await request.read()
+    SESSION_DIR.mkdir(exist_ok=True)
+    (SESSION_DIR / "icon.png").write_bytes(data)
+    log.info("icon saved (%d bytes)", len(data))
+    return web.Response(text="ok")
+
+
 def make_app(source, ground_ft=DEFAULT_GROUND_FT):
     app = web.Application()
     app["broadcaster"] = Broadcaster(ground_m=ground_ft * fr.FT_TO_M)
-    app.add_routes([web.get("/", index), web.get("/ws", ws_handler), web.static("/", WEB_DIR)])
+    app.add_routes([web.get("/", index), web.get("/ws", ws_handler), web.post("/dev/icon", save_icon),
+                    web.static("/", WEB_DIR)])
 
     async def start_pump(app):
         app["pump"] = asyncio.create_task(app["broadcaster"].pump(source))

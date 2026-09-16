@@ -7,198 +7,146 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6D16A1A217B53B286C77AD54 /* web in Resources */ = {isa = PBXBuildFile; fileRef = 1EB1D44D2B9385F9FF0C1493 /* web */; };
-		8731515101DA5AD3487D82C4 /* AcroReplayApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F98FF87986570210C6797F17 /* AcroReplayApp.swift */; };
-		CD6410DBC0A31BAF7F78F0F9 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17282ADE867D65BE65611BB /* WebView.swift */; };
-		D3EA155533BC74D57B8E60EB /* HubListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D3FDE1D9299B490064A56E0 /* HubListener.swift */; };
+		0421E9CCA28EF02CBA6490B7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FBC349FD7B3BA945963691C4 /* Assets.xcassets */; };
+		13E5FBAF8F2F6F7A6CB62AB4 /* HubListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED832F287937B9ABFB188279 /* HubListener.swift */; };
+		8C2009F7E5F0FF7447926155 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8EFC388ED51E66BBD2EBDCE /* WebView.swift */; };
+		99A4C7C3B10A531D08E6C7D0 /* WingRockApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2764DFC23A45C3711025762C /* WingRockApp.swift */; };
+		A0EE8F24AD8E9A337E7B7F08 /* web in Resources */ = {isa = PBXBuildFile; fileRef = A92D40E14E5FE3BC82465C02 /* web */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		18AA893312DCFF754C4BD0DA /* AcroReplay.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AcroReplay.entitlements; sourceTree = "<group>"; };
-		1D3FDE1D9299B490064A56E0 /* HubListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubListener.swift; sourceTree = "<group>"; };
-		1EB1D44D2B9385F9FF0C1493 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = web; path = ../web; sourceTree = SOURCE_ROOT; };
-		6392270E3A6A14257FF0CE94 /* AcroReplay.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AcroReplay.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		BC05D54C318959839725BECE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		F17282ADE867D65BE65611BB /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
-		F98FF87986570210C6797F17 /* AcroReplayApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcroReplayApp.swift; sourceTree = "<group>"; };
+		2764DFC23A45C3711025762C /* WingRockApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WingRockApp.swift; sourceTree = "<group>"; };
+		3D38F91508FE721C9639E984 /* WingRock.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WingRock.entitlements; sourceTree = "<group>"; };
+		81CB65E2443D163765919381 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		964F1EE0F42B3CE5DC333208 /* WingRock.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WingRock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A92D40E14E5FE3BC82465C02 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = web; path = ../web; sourceTree = SOURCE_ROOT; };
+		C8EFC388ED51E66BBD2EBDCE /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		ED832F287937B9ABFB188279 /* HubListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubListener.swift; sourceTree = "<group>"; };
+		FBC349FD7B3BA945963691C4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		1EB57AF09FF56557CE98CB6F /* AcroReplay */ = {
+		266817B107E2F3FFB94E94F1 /* acroReplay */ = {
 			isa = PBXGroup;
 			children = (
-				18AA893312DCFF754C4BD0DA /* AcroReplay.entitlements */,
-				F98FF87986570210C6797F17 /* AcroReplayApp.swift */,
-				1D3FDE1D9299B490064A56E0 /* HubListener.swift */,
-				BC05D54C318959839725BECE /* Info.plist */,
-				F17282ADE867D65BE65611BB /* WebView.swift */,
-			);
-			path = AcroReplay;
-			sourceTree = "<group>";
-		};
-		2CA172B23971FF173223FD9E /* acroReplay */ = {
-			isa = PBXGroup;
-			children = (
-				1EB1D44D2B9385F9FF0C1493 /* web */,
+				A92D40E14E5FE3BC82465C02 /* web */,
 			);
 			name = acroReplay;
 			path = ..;
 			sourceTree = "<group>";
 		};
-		D8A97F98DD05C171D3507A2C = {
+		721DEE37B1BC41508041AFAE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1EB57AF09FF56557CE98CB6F /* AcroReplay */,
-				2CA172B23971FF173223FD9E /* acroReplay */,
-				FD700423BC5B126E6428B063 /* Products */,
+				964F1EE0F42B3CE5DC333208 /* WingRock.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8E2275A406CB4742542AE52B = {
+			isa = PBXGroup;
+			children = (
+				266817B107E2F3FFB94E94F1 /* acroReplay */,
+				B1E61DCBEA11E9ABDE0001EA /* WingRock */,
+				721DEE37B1BC41508041AFAE /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		FD700423BC5B126E6428B063 /* Products */ = {
+		B1E61DCBEA11E9ABDE0001EA /* WingRock */ = {
 			isa = PBXGroup;
 			children = (
-				6392270E3A6A14257FF0CE94 /* AcroReplay.app */,
+				FBC349FD7B3BA945963691C4 /* Assets.xcassets */,
+				ED832F287937B9ABFB188279 /* HubListener.swift */,
+				81CB65E2443D163765919381 /* Info.plist */,
+				C8EFC388ED51E66BBD2EBDCE /* WebView.swift */,
+				3D38F91508FE721C9639E984 /* WingRock.entitlements */,
+				2764DFC23A45C3711025762C /* WingRockApp.swift */,
 			);
-			name = Products;
+			path = WingRock;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		05FF0C9C2F400D7575AA5B9E /* AcroReplay */ = {
+		DD0E3655941D1C6C3B6806EF /* WingRock */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EB5870B68B6D44C9E04C588D /* Build configuration list for PBXNativeTarget "AcroReplay" */;
+			buildConfigurationList = 10F15D58B4BDCE818BD14CDE /* Build configuration list for PBXNativeTarget "WingRock" */;
 			buildPhases = (
-				B6591EC9E1C37ABF48434B8C /* Sources */,
-				FFF38A3BB3413BEF7A34720F /* Resources */,
+				9E023B1E92D9EFAA5A21F865 /* Sources */,
+				1C3AF72EF464A71F3A907169 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = AcroReplay;
+			name = WingRock;
 			packageProductDependencies = (
 			);
-			productName = AcroReplay;
-			productReference = 6392270E3A6A14257FF0CE94 /* AcroReplay.app */;
+			productName = WingRock;
+			productReference = 964F1EE0F42B3CE5DC333208 /* WingRock.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		EDFB01B41842C0318E167EF7 /* Project object */ = {
+		C10A567C3160E810F299C642 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					05FF0C9C2F400D7575AA5B9E = {
+					DD0E3655941D1C6C3B6806EF = {
 						DevelopmentTeam = R6P52BJ2K9;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 3D7B15730A19A3E934EB6B76 /* Build configuration list for PBXProject "AcroReplay" */;
+			buildConfigurationList = EA28FF9D6EFEF0925FFA4B33 /* Build configuration list for PBXProject "WingRock" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
 				en,
 			);
-			mainGroup = D8A97F98DD05C171D3507A2C;
+			mainGroup = 8E2275A406CB4742542AE52B;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = FD700423BC5B126E6428B063 /* Products */;
+			productRefGroup = 721DEE37B1BC41508041AFAE /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				05FF0C9C2F400D7575AA5B9E /* AcroReplay */,
+				DD0E3655941D1C6C3B6806EF /* WingRock */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		FFF38A3BB3413BEF7A34720F /* Resources */ = {
+		1C3AF72EF464A71F3A907169 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6D16A1A217B53B286C77AD54 /* web in Resources */,
+				0421E9CCA28EF02CBA6490B7 /* Assets.xcassets in Resources */,
+				A0EE8F24AD8E9A337E7B7F08 /* web in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		B6591EC9E1C37ABF48434B8C /* Sources */ = {
+		9E023B1E92D9EFAA5A21F865 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8731515101DA5AD3487D82C4 /* AcroReplayApp.swift in Sources */,
-				D3EA155533BC74D57B8E60EB /* HubListener.swift in Sources */,
-				CD6410DBC0A31BAF7F78F0F9 /* WebView.swift in Sources */,
+				13E5FBAF8F2F6F7A6CB62AB4 /* HubListener.swift in Sources */,
+				8C2009F7E5F0FF7447926155 /* WebView.swift in Sources */,
+				99A4C7C3B10A531D08E6C7D0 /* WingRockApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		1438BF09398FA63540F05AE7 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		175F4C136F075E69598FF760 /* Debug */ = {
+		02E2AE561CA4DE2B9CC5A27B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -261,72 +209,126 @@
 			};
 			name = Debug;
 		};
-		796C60D6C2962BA8304111F1 /* Release */ = {
+		53BC464155C669F3D4030664 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = AcroReplay/AcroReplay.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = R6P52BJ2K9;
-				INFOPLIST_FILE = AcroReplay/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.livefreeandfly.acroreplay;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.9;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
-		D72684E7E8AA2F82D6434C7D /* Debug */ = {
+		A1DB5B5A46618FFFAD258CD0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = AcroReplay/AcroReplay.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = R6P52BJ2K9;
-				INFOPLIST_FILE = AcroReplay/Info.plist;
+				INFOPLIST_FILE = WingRock/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.livefreeandfly.acroreplay;
+				PRODUCT_BUNDLE_IDENTIFIER = org.livefreeandfly.wingrock;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
+		E7EF1CDF3E327CEF5A869F5C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R6P52BJ2K9;
+				INFOPLIST_FILE = WingRock/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.livefreeandfly.wingrock;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3D7B15730A19A3E934EB6B76 /* Build configuration list for PBXProject "AcroReplay" */ = {
+		10F15D58B4BDCE818BD14CDE /* Build configuration list for PBXNativeTarget "WingRock" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				175F4C136F075E69598FF760 /* Debug */,
-				1438BF09398FA63540F05AE7 /* Release */,
+				A1DB5B5A46618FFFAD258CD0 /* Debug */,
+				E7EF1CDF3E327CEF5A869F5C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		EB5870B68B6D44C9E04C588D /* Build configuration list for PBXNativeTarget "AcroReplay" */ = {
+		EA28FF9D6EFEF0925FFA4B33 /* Build configuration list for PBXProject "WingRock" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D72684E7E8AA2F82D6434C7D /* Debug */,
-				796C60D6C2962BA8304111F1 /* Release */,
+				02E2AE561CA4DE2B9CC5A27B /* Debug */,
+				53BC464155C669F3D4030664 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = EDFB01B41842C0318E167EF7 /* Project object */;
+	rootObject = C10A567C3160E810F299C642 /* Project object */;
 }

@@ -499,6 +499,11 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — Named **WingRock** (the three wing rocks that open every sequence). iOS target,
+  bundle id `org.livefreeandfly.wingrock`, app icon = the Eagle rendered top-down by
+  web/icon.html → sessions/icon.png. Multicast entitlement removed from the default build so any
+  Apple ID can install; ios/README.md documents the entitlement request and `run_relay.py`
+  (Mac forwards the Hub's broadcast to the phone by unicast) for real-time validation meanwhile.
 - 2026-09-16 — HUD refinements (Sean): fixed-width centred strip; G to one decimal; out-of-box
   distances padded to a constant width; each indicator (top-down dot, altitude dot, its text
   line) colours only for its own axis; red judges tick removed from the minimap; judges marker

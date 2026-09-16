@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>acroReplay</string>
+	<string>WingRock</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,9 +23,9 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>acroReplay listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.</string>
+	<string>WingRock listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>acroReplay uses your position to place the aerobatic box at the judges' location.</string>
+	<string>WingRock uses your position to place the aerobatic box at the judges' location.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>

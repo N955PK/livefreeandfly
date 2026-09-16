@@ -1,36 +1,33 @@
-name: AcroReplay
+name: WingRock
 options:
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
 targets:
-  AcroReplay:
+  WingRock:
     type: application
     platform: iOS
     sources:
-      - path: AcroReplay
+      - path: WingRock
       - path: ../web
         type: folder
         buildPhase: resources
     info:
-      path: AcroReplay/Info.plist
+      path: WingRock/Info.plist
       properties:
-        CFBundleDisplayName: acroReplay
+        CFBundleDisplayName: WingRock
         UILaunchScreen: {}
         UIRequiresFullScreen: true
         UIStatusBarHidden: true
         UIViewControllerBasedStatusBarAppearance: false
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
-        NSLocalNetworkUsageDescription: acroReplay listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.
-        NSLocationWhenInUseUsageDescription: acroReplay uses your position to place the aerobatic box at the judges' location.
+        NSLocalNetworkUsageDescription: WingRock listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.
+        NSLocationWhenInUseUsageDescription: WingRock uses your position to place the aerobatic box at the judges' location.
         ITSAppUsesNonExemptEncryption: false
-    entitlements:
-      path: AcroReplay/AcroReplay.entitlements
-      properties:
-        com.apple.developer.networking.multicast: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.livefreeandfly.acroreplay
+        PRODUCT_BUNDLE_IDENTIFIER: org.livefreeandfly.wingrock
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: 0.1.0
         CURRENT_PROJECT_VERSION: 1
         TARGETED_DEVICE_FAMILY: "1,2"

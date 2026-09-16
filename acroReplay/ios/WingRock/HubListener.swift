@@ -9,7 +9,7 @@ final class HubListener {
     static let port: UInt16 = 2000
     static let frameSize = 67
 
-    private let queue = DispatchQueue(label: "org.livefreeandfly.acroreplay.udp", qos: .userInteractive)
+    private let queue = DispatchQueue(label: "org.livefreeandfly.wingrock.udp", qos: .userInteractive)
     private var running = false
 
     func start(onFrame: @escaping (Data, TimeInterval) -> Void) {

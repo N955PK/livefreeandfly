@@ -1,54 +1,68 @@
-# acroReplay for iPhone
+# WingRock for iPhone
 
-A thin native shell around the web app in `../web/`: Swift receives the OnFlight Hub's
-50 Hz UDP broadcast on port 2000 and pushes each raw 67-byte frame into a `WKWebView`
-running the same three.js app the Python bridge serves. No computer in the loop.
+WingRock is the live, in-cockpit view: a thin native shell around the web app in `../web/`. Swift receives
+the OnFlight Hub's 50 Hz UDP frames and pushes each raw 67-byte frame into a `WKWebView` running the same
+three.js app the Python bridge serves. No computer in the loop.
 
 ```
 ios/
   project.yml                 XcodeGen spec — regenerate the .xcodeproj with `xcodegen generate`
-  AcroReplay.xcodeproj        generated (committed for convenience)
-  AcroReplay/
-    AcroReplayApp.swift       SwiftUI app: full screen, status bar hidden, screen never sleeps
-    WebView.swift             WKWebView + acro:// scheme handler serving the bundled web/ folder;
-                              pushes frames via evaluateJavaScript("acroReplay.frame(b64, wall)")
+  WingRock.xcodeproj          generated (committed)
+  WingRock/
+    WingRockApp.swift         SwiftUI app: full screen, status bar hidden, screen never sleeps
+    WebView.swift             WKWebView + acro:// scheme serving the bundled web/ folder; frames pushed via
+                              evaluateJavaScript; web settings mirrored to UserDefaults (window.acroStore)
     HubListener.swift         BSD UDP socket bound to 0.0.0.0:2000
-    AcroReplay.entitlements   com.apple.developer.networking.multicast (needed for broadcast on device)
+    WingRock.entitlements     multicast entitlement — NOT wired in by default (see below)
+    Assets.xcassets           app icon: the Eagle rendered top-down by web/icon.html
 ```
 
-The web app detects the shell (`window.webkit.messageHandlers.acro`), decodes frames with
-`web/onflight.js`, does the frame math in `web/frames.js`, and posts `ready` to start the
-listener. Nothing else in the web app differs from bridge mode.
+## Install on your iPhone
 
-## Build and run in the simulator
+1. Open `ios/WingRock.xcodeproj` in Xcode. Signing is Automatic under team `R6P52BJ2K9` (already on this Mac).
+2. Plug the phone in with USB and unlock it. First time only: on the phone enable
+   Settings → Privacy & Security → **Developer Mode** (restart), then trust the Mac when asked.
+3. Pick the phone as the run destination (top bar) and press Run (⌘R).
+4. First launch: Settings → General → VPN & Device Management → trust your developer certificate, then open
+   WingRock. Allow the **Local Network** prompt.
+5. Join the phone to the Hub's Wi-Fi ("OnFlight Hub …") before flying. INS init takes ~45 s outdoors.
 
-1. Install Xcode from the App Store (the Command Line Tools alone cannot build iOS apps), then
-   `sudo xcode-select -s /Applications/Xcode.app` once.
-2. `brew install xcodegen` (already installed on this Mac) and, after editing `project.yml`,
-   `cd ios && xcodegen generate`.
-3. Open `ios/AcroReplay.xcodeproj`, pick an iPhone simulator, Run.
-4. Feed it data — the simulator shares the Mac's loopback:
+A free Apple ID installs fine but the app expires after 7 days (re-run from Xcode); the paid Developer
+Program ($99/yr) gives year-long installs and TestFlight — and is required for the entitlement below.
 
-   ```bash
-   python run_fake_hub.py                              # recorded fixture frames → 127.0.0.1:2000
-   python run_fake_hub.py --replay captures/<stamp>/moving.pcap
+## Real-time data: the broadcast catch
+
+The Hub *broadcasts* its frames. Since iOS 16, an app only receives broadcast UDP if its provisioning
+profile carries `com.apple.developer.networking.multicast`. Without it WingRock runs but shows "no data"
+next to the Hub. Two ways forward, which can run in parallel:
+
+**A. Relay from a Mac (works today).** On a Mac joined to the Hub's Wi-Fi:
+
+```bash
+python run_relay.py <phone IP on the Hub network>     # Settings → Wi-Fi → ⓘ on the phone
+```
+
+Unicast needs no entitlement, so the phone shows the live flight with the Mac temporarily in the loop.
+Good for validating the whole chain in the airplane before Apple answers.
+
+**B. Request the multicast entitlement (no computer, the goal).**
+1. Be enrolled in the Apple Developer Program as Account Holder (free accounts cannot get it).
+2. Fill in <https://developer.apple.com/contact/request/networking-multicast> with the bundle ID
+   `org.livefreeandfly.wingrock` and a plain description, e.g.: *"Receives UDP broadcast telemetry
+   (port 2000) from an aerobatic flight-data logger — the Bolder Flight OnFlight Hub — on the logger's own
+   Wi-Fi access point. The device only broadcasts; it has no unicast mode. Traffic is local, in-cockpit,
+   non-commercial."* Apple typically answers within days to two weeks.
+3. When approved: developer.apple.com → Certificates, Identifiers & Profiles → Identifiers → the App ID →
+   enable **Multicast Networking**. Then wire the entitlement into the build by adding to `project.yml`
+   under the target:
+   ```yaml
+   entitlements:
+     path: WingRock/WingRock.entitlements
+     properties:
+       com.apple.developer.networking.multicast: true
    ```
+   and `xcodegen generate`. Automatic signing regenerates the profile; rebuild, install, done.
 
-   The app should go LIVE within a second and follow the recorded hand rotations.
+## Simulator
 
-## Run on your iPhone
-
-1. Apple Developer Program membership ($99/yr) under team `R6P52BJ2K9` (the identity already
-   on this Mac). Signing is set to Automatic in `project.yml`.
-2. Request the multicast entitlement once, at
-   <https://developer.apple.com/contact/request/networking-multicast> — say the app receives an
-   avionics data logger's UDP broadcast on the device's own Wi-Fi network. Until it is granted,
-   device builds fail signing with the entitlement present; temporarily comment out the
-   `entitlements:` block in `project.yml` to install, knowing broadcast reception will be
-   blocked on iOS 16+ until the profile carries it.
-3. Plug in the phone, select it as the run destination, Run. Trust the developer certificate
-   under Settings → General → VPN & Device Management the first time.
-4. On the phone: join the "OnFlight Hub …" Wi-Fi, open acroReplay, allow the Local Network
-   prompt. INS init takes ~45 s outdoors; then LIVE.
-
-Battery/heat notes for the cockpit are in `../PLAN.md` §7.1.
+`python run_fake_hub.py` sends recorded frames to loopback, which the simulator shares with the Mac.

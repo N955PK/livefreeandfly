@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct AcroReplayApp: App {
+struct WingRockApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -1,8 +1,8 @@
-# acroReplay
+# WingRock (repo: acroReplay)
 
-Real-time aerobatic figure replay: a live 3D recreation of the aircraft driven
-by an OnFlight Hub's Wi-Fi data stream, so the pilot can review each figure
-right after flying it — during the repositioning leg — and iterate efficiently.
+WingRock is a live 3D view of your aerobatic flight in the box, driven by the OnFlight
+Hub's Wi-Fi data stream — on an iPhone in the cockpit (see `ios/`) or in a browser via the
+Python bridge — so you can see what the judges see and fix the figure on the next pass.
 
 Status: phase 0 (protocol decode) done — the Hub's 50 Hz UDP INS stream,
 identity message, WebSocket status frame, and HTTP config API are documented
