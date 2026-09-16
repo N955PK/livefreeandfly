@@ -550,7 +550,7 @@ function updateHud(now) {
   status.firstElementChild.textContent = text;
   status.className = `badge ${cls}`;
   if (!s) return;
-  hud.nz.textContent = s.nz.toFixed(1);
+  hud.nz.textContent = s.nz.toFixed(1).padStart(4, '\u2007');   // room for the minus sign so the strip doesn't shift
   hud.alt.textContent = Math.round(units.ftToUnit(s.alt));
   if (boxGroup && s.init) {
     const st = boxStatus(boxGroup, aircraft.position);
