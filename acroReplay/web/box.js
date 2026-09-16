@@ -27,7 +27,7 @@ export function boxFromJudges({ lat, lon, facingDeg, ...dims }) {
   const h = (facingDeg + 90) % 360;
   const mid = offsetLatLon(lat, lon, b.judgeSetbackM * Math.cos(facingDeg * DEG), b.judgeSetbackM * Math.sin(facingDeg * DEG));
   const [cLat, cLon] = offsetLatLon(mid[0], mid[1], -(b.widthM / 2) * Math.cos(h * DEG), -(b.widthM / 2) * Math.sin(h * DEG));
-  return { ...b, lat: cLat, lon: cLon, headingDeg: h };
+  return { ...b, lat: cLat, lon: cLon, headingDeg: h, anchor: 'judges', judges: { lat, lon, facingDeg } };
 }
 
 // Box from the aircraft entering it: the aircraft is over the middle of the entry edge, flying into the box
@@ -38,7 +38,7 @@ export function boxFromEntry({ lat, lon, trackDeg, ...dims }) {
   const h = ((trackDeg % 360) + 360) % 360;
   const towardJudges = (h + (b.judgeSide === 'left' ? -90 : 90)) * DEG;
   const [cLat, cLon] = offsetLatLon(lat, lon, (b.depthM / 2) * Math.cos(towardJudges), (b.depthM / 2) * Math.sin(towardJudges));
-  return { ...b, lat: cLat, lon: cLon, headingDeg: h };
+  return { ...b, lat: cLat, lon: cLon, headingDeg: h, anchor: 'entry', entry: { lat, lon, trackDeg } };
 }
 
 // Where the judges stand for a given box (inverse of the above), for display.

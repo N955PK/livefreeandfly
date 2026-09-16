@@ -18,72 +18,89 @@
     window.addEventListener('unhandledrejection', (e) => report('unhandled: ' + (e.reason && e.reason.stack || e.reason)));
     const origError = console.error.bind(console);
     console.error = (...a) => { report(a.map(String).join(' ')); origError(...a); };
-    setTimeout(() => {
-      const c = document.getElementById('view');
-      report(`diag viewport ${window.innerWidth}x${window.innerHeight} dpr ${devicePixelRatio} canvas ${c && c.width}x${c && c.height} ` +
-             `webgl ${!!(document.createElement('canvas').getContext('webgl2'))} app ${typeof window.acroReplay}`);
-    }, 2500);
   })();
 </script>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
 </head>
 <body>
 <canvas id="view"></canvas>
-<div id="hud">
-  <div class="row">
-    <span class="k">HDG</span><span class="v" id="hdg">---</span>
-    <span class="k">PITCH</span><span class="v" id="pitch">--.-</span>
-    <span class="k">ROLL</span><span class="v" id="roll">--.-</span>
-  </div>
-  <div class="row">
-    <span class="k">G</span><span class="v" id="nz">-.--</span>
-    <span class="k">ALT</span><span class="v" id="alt">----</span>
-    <span class="k">GS</span><span class="v" id="gs">---</span>
-  </div>
-  <div id="boxstat"></div>
-</div>
+
+<section id="hud" class="glass" aria-label="flight data">
+  <div class="stat"><span class="k">HDG</span><span class="v" id="hdg">---</span></div>
+  <div class="stat"><span class="k">PITCH</span><span class="v" id="pitch">--.-</span></div>
+  <div class="stat"><span class="k">ROLL</span><span class="v" id="roll">--.-</span></div>
+  <div class="stat"><span class="k">G</span><span class="v" id="nz">-.--</span></div>
+  <div class="stat"><span class="k">ALT ft</span><span class="v" id="alt">----</span></div>
+  <div class="stat"><span class="k">GS kt</span><span class="v" id="gs">---</span></div>
+  <div id="boxstat" class="chip"></div>
+</section>
+
 <div id="status" class="pill">connecting…</div>
-<div id="controls">
-  <button data-cam="judge">Judge</button>
-  <button data-cam="orbit" class="on">Orbit</button>
-  <button data-cam="chase">Chase</button>
-  <button id="clear">Clear</button>
-  <button id="box-toggle">Box</button>
-  <button id="ground-toggle">Sat</button>
-</div>
-<div id="boxpanel" class="panel hidden">
-  <div class="ptabs"><button class="ptab on" data-mode="aircraft">From aircraft</button><button class="ptab" data-mode="judges">From judges</button></div>
-  <div id="mode-aircraft" class="pmode">
-    <div class="muted">Fly into the box along its main axis and tap as you cross the middle of the entry edge. The box extends ahead of you; its axis follows your flight path.</div>
-    <div class="prow"><button id="box-set">Set entry edge here</button></div>
-    <label class="pinline">Judges<select id="box-side"><option value="right">on my right</option><option value="left">on my left</option></select></label>
-  </div>
-  <div id="mode-judges" class="pmode hidden">
-    <div class="pgrid">
-      <label>Judges lat<input id="j-lat" type="number" step="0.00001" placeholder="36.93575"></label>
-      <label>Judges lon<input id="j-lon" type="number" step="0.00001" placeholder="-121.78975"></label>
-      <label>Facing ° true<input id="j-hdg" type="number" step="1" placeholder="into the box"></label>
-      <label>Setback m<input id="j-set" type="number" step="10"></label>
-    </div>
-    <div class="prow"><button id="j-here">Use my location</button><button id="j-map">Pick on map</button></div>
-    <div class="prow"><button id="j-place">Place box</button></div>
-    <div id="j-msg" class="muted"></div>
-  </div>
-  <div class="pgrid">
-    <label>Width m<input id="box-w" type="number" step="50"></label>
-    <label>Depth m<input id="box-d" type="number" step="50"></label>
-    <label>Floor ft<input id="box-f" type="number" step="100"></label>
-    <label>Ceiling ft<input id="box-c" type="number" step="100"></label>
-  </div>
-  <div class="prow"><button id="box-clear">Clear box</button></div>
-  <div id="box-info" class="muted"></div>
-</div>
+
 <div id="zoom">
-  <button id="zoom-in" aria-label="zoom in">+</button>
-  <button id="zoom-out" aria-label="zoom out">−</button>
+  <button class="round" id="zoom-in" aria-label="zoom in">+</button>
+  <button class="round" id="zoom-out" aria-label="zoom out">−</button>
 </div>
+
+<nav id="controls">
+  <div class="seg" role="group" aria-label="camera">
+    <button data-cam="judge">Judge</button>
+    <button data-cam="orbit" class="on">Orbit</button>
+    <button data-cam="chase">Chase</button>
+  </div>
+  <button class="tool" id="clear">Clear</button>
+  <button class="tool" id="box-toggle">Box</button>
+  <button class="tool" id="ground-toggle">Sat</button>
+</nav>
+
+<section id="boxpanel" class="panel glass hidden" aria-label="aerobatic box">
+  <header class="phead">
+    <h2>Aerobatic box</h2>
+    <button class="close" id="box-close" aria-label="close">×</button>
+  </header>
+  <div class="ptabs">
+    <button class="ptab on" data-mode="aircraft">From aircraft</button>
+    <button class="ptab" data-mode="judges">From judges</button>
+  </div>
+
+  <div id="mode-aircraft" class="pmode">
+    <p class="hint">Fly into the box along its main axis and tap as you cross the middle of the entry edge. The box extends ahead of you; its axis follows your flight path.</p>
+    <button class="primary" id="box-set">Set entry edge here</button>
+    <label class="field inline"><span>Judges</span>
+      <select id="box-side"><option value="right">on my right</option><option value="left">on my left</option></select>
+    </label>
+  </div>
+
+  <div id="mode-judges" class="pmode hidden">
+    <div class="grid2">
+      <label class="field"><span>Judges latitude</span><div class="input"><input id="j-lat" type="number" step="0.00001" placeholder="36.93575"><em>°</em></div></label>
+      <label class="field"><span>Judges longitude</span><div class="input"><input id="j-lon" type="number" step="0.00001" placeholder="-121.78975"><em>°</em></div></label>
+      <label class="field"><span>Facing (true)</span><div class="input"><input id="j-hdg" type="number" step="1" placeholder="into the box"><em>°</em></div></label>
+      <label class="field"><span>Setback</span><div class="input"><input id="j-set" type="number" step="10"><em>m</em></div></label>
+    </div>
+    <div class="row">
+      <button class="secondary" id="j-here">Use my location</button>
+      <button class="secondary" id="j-map">Pick on map</button>
+    </div>
+    <button class="primary" id="j-place">Place box</button>
+    <p class="hint" id="j-msg"></p>
+  </div>
+
+  <h3>Dimensions</h3>
+  <div class="grid2">
+    <label class="field"><span>Width</span><div class="input"><input id="box-w" type="number" step="50"><em>m</em></div></label>
+    <label class="field"><span>Depth</span><div class="input"><input id="box-d" type="number" step="50"><em>m</em></div></label>
+    <label class="field"><span>Floor</span><div class="input"><input id="box-f" type="number" step="100"><em>ft</em></div></label>
+    <label class="field"><span>Ceiling</span><div class="input"><input id="box-c" type="number" step="100"><em>ft</em></div></label>
+  </div>
+  <footer class="pfoot">
+    <p id="box-info" class="hint"></p>
+    <button class="secondary danger" id="box-clear">Clear box</button>
+  </footer>
+</section>
+
+<div id="pickbar" class="pill glass hidden"><span id="pick-msg"></span><button class="primary small" id="pick-done">Done</button></div>
 <div id="attribution"></div>
-<div id="pickbar" class="pickbar hidden"><span id="pick-msg"></span><button id="pick-done">Done</button></div>
 <script type="module" src="./app.js"></script>
 </body>
 </html>

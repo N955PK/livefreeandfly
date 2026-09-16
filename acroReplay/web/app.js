@@ -106,11 +106,8 @@ function rebuildBox() {
   const info = document.getElementById('box-info');
   if (box) {
     const [jLat, jLon] = judgeLatLon(box);
-    info.textContent = `Saved box · ${box.widthM}×${box.depthM} m · ${box.floorFt}–${box.ceilFt} ft · edge ${Math.round(box.headingDeg)}° · judges at ${jLat.toFixed(5)}, ${jLon.toFixed(5)}`;
-    const facing = box.judgeSide === 'left' ? (box.headingDeg + 90) % 360 : (box.headingDeg + 270) % 360;
-    document.getElementById('j-lat').value = jLat.toFixed(5);
-    document.getElementById('j-lon').value = jLon.toFixed(5);
-    document.getElementById('j-hdg').value = Math.round(facing);
+    const how = box.anchor === 'judges' ? 'set from judges' : box.anchor === 'entry' ? 'set from flight path' : 'saved';
+    info.textContent = `Box ${how} · ${box.widthM}×${box.depthM} m · ${box.floorFt}–${box.ceilFt} ft · edge ${Math.round(box.headingDeg)}° · judges at ${jLat.toFixed(5)}, ${jLon.toFixed(5)}`;
   } else {
     info.textContent = 'No box set. Set it from the aircraft in flight, or from the judges\' position on the ground.';
   }
@@ -167,9 +164,8 @@ canvas.addEventListener('pointerup', (e) => {
     const setback = parseFloat(document.getElementById('j-set').value) || DEFAULT_BOX.judgeSetbackM;
     const depth = parseFloat(document.getElementById('box-d').value) || DEFAULT_BOX.depthM;
     document.getElementById('j-set').value = Math.max(20, Math.round(Math.hypot(dN, dE) - depth / 2)) || setback;
-    addPickMarker(g.world, 0x2395e7);
     pickState = null;
-    msg.textContent = `Facing ${Math.round(facing)}°. Tap Place box.`;
+    if (placeFromJudges(msg)) msg.textContent = `Judges placed, facing ${Math.round(facing)}°. Box saved — tap Done.`;
   }
 });
 document.getElementById('j-map').addEventListener('click', () => {
@@ -188,32 +184,51 @@ function endPick() {
   if (camMode === 'map') setCamMode(prevCamMode);
 }
 document.getElementById('pick-done').addEventListener('click', endPick);
-document.getElementById('j-place').addEventListener('click', () => {
+function placeFromJudges(msgEl) {
   const lat = parseFloat(document.getElementById('j-lat').value), lon = parseFloat(document.getElementById('j-lon').value);
   const facingDeg = parseFloat(document.getElementById('j-hdg').value);
-  const msg = document.getElementById('j-msg');
-  if (![lat, lon, facingDeg].every(Number.isFinite)) { msg.textContent = 'Need judges lat, lon and the facing direction.'; return; }
+  if (![lat, lon, facingDeg].every(Number.isFinite)) { msgEl.textContent = 'Need judges lat, lon and the facing direction.'; return false; }
   box = boxFromJudges({ lat, lon, facingDeg, ...readBoxInputs() });
   saveBox(box);
+  fillJudgeInputs(box);
   rebuildBox();
   pickMarkers.clear();
-  msg.textContent = 'Box placed and saved.';
-});
+  msgEl.textContent = 'Box placed and saved.';
+  return true;
+}
+document.getElementById('j-place').addEventListener('click', () => placeFromJudges(document.getElementById('j-msg')));
+function fillJudgeInputs(b) {
+  if (!b) return;
+  const [jLat, jLon] = judgeLatLon(b);
+  const facing = b.judges ? b.judges.facingDeg : (b.judgeSide === 'left' ? (b.headingDeg + 90) % 360 : (b.headingDeg + 270) % 360);
+  document.getElementById('j-lat').value = jLat.toFixed(5);
+  document.getElementById('j-lon').value = jLon.toFixed(5);
+  document.getElementById('j-hdg').value = Math.round(facing);
+}
+// Dimension edits re-derive the box from how it was anchored, so the judges (or the entry point) stay put.
+function rederiveBox(dims) {
+  if (box.anchor === 'judges' && box.judges) return boxFromJudges({ ...box.judges, ...dims });
+  if (box.anchor === 'entry' && box.entry) return boxFromEntry({ ...box.entry, ...dims });
+  return { ...box, ...dims };
+}
 writeBoxInputs(box || DEFAULT_BOX);
+fillJudgeInputs(box);
 rebuildBox();
 document.getElementById('box-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
+document.getElementById('box-close').addEventListener('click', () => document.getElementById('boxpanel').classList.add('hidden'));
 document.getElementById('box-set').addEventListener('click', () => {
   if (!latest || !latest.init || latest.lat === undefined) return;
   const trackDeg = latest.gs > 15 ? latest.trk : latest.hdg;   // flight path; fall back to heading when nearly stationary
   box = boxFromEntry({ ...readBoxInputs(), lat: latest.lat, lon: latest.lon, trackDeg });
   saveBox(box);
+  fillJudgeInputs(box);
   rebuildBox();
 });
 document.getElementById('box-clear').addEventListener('click', () => { box = null; saveBox(null); rebuildBox(); });
 for (const id of Object.values(boxInputs)) {
   document.getElementById(id).addEventListener('change', () => {
     if (!box) return;
-    box = { ...box, ...readBoxInputs() };
+    box = rederiveBox(readBoxInputs());
     saveBox(box);
     rebuildBox();
   });
@@ -519,7 +534,7 @@ function updateHud(now) {
   if (boxGroup && s.init) {
     const st = boxStatus(boxGroup, aircraft.position);
     hud.boxstat.textContent = st.text;
-    hud.boxstat.className = st.inBox ? 'in' : 'out';
+    hud.boxstat.className = `chip ${st.inBox ? 'in' : 'out'}`;
   } else {
     hud.boxstat.textContent = '';
   }
