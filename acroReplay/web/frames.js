@@ -12,6 +12,10 @@ export function nedFromLla(lat, lon, altM, [lat0, lon0, alt0]) {
   return [north, east, -(altM - alt0)];
 }
 
+export function offsetLatLon(lat, lon, northM, eastM) {
+  return [lat + northM / (EARTH_RADIUS_M * DEG), lon + eastM / (EARTH_RADIUS_M * DEG * Math.cos(lat * DEG))];
+}
+
 export function worldFromNed(north, east, down) {
   return [east, -down, -north];
 }

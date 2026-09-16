@@ -20,8 +20,18 @@ button.on { background: #2395e7; color: #fff; }
 #boxstat.in { color: #7bd88f; } #boxstat.out { color: #ffd166; }
 .panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 64px); width: min(360px, 92vw); background: rgba(0, 0, 0, .7); color: #fff; padding: 12px; border-radius: 12px; font-size: 14px; }
 .panel.hidden { display: none; }
+.panel { max-height: 72vh; overflow-y: auto; }
+.ptabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.ptab { flex: 1; background: rgba(255, 255, 255, .18); color: #fff; }
+.ptab.on { background: #2395e7; }
+.pmode.hidden { display: none; }
+.pinline { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 8px 0 4px; }
+.pinline select { font-size: 15px; padding: 5px 8px; border-radius: 8px; border: 0; }
+.pgrid { margin-top: 10px; }
 .prow { display: flex; gap: 8px; margin-bottom: 10px; } .prow button { flex: 1; }
 .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .pgrid label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; opacity: .85; }
 .pgrid input, .pgrid select { font-size: 16px; padding: 6px 8px; border-radius: 8px; border: 0; background: #fff; color: #111; width: 100%; box-sizing: border-box; }
 .muted { opacity: .75; font-size: 12px; margin-top: 10px; line-height: 1.35; }
+.pickbar { position: fixed; top: calc(env(safe-area-inset-top) + 92px); left: 50%; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,.7); color: #fff; padding: 10px 14px; border-radius: 12px; font-size: 15px; white-space: nowrap; }
+.pickbar.hidden { display: none; }

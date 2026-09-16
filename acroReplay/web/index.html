@@ -52,14 +52,30 @@
   <button id="ground-toggle">Sat</button>
 </div>
 <div id="boxpanel" class="panel hidden">
-  <div class="prow"><button id="box-set">Set corner here</button><button id="box-clear">Clear box</button></div>
+  <div class="ptabs"><button class="ptab on" data-mode="aircraft">From aircraft</button><button class="ptab" data-mode="judges">From judges</button></div>
+  <div id="mode-aircraft" class="pmode">
+    <div class="muted">Fly the judge line over the box corner, then tap. The box extends ahead and away from the judges.</div>
+    <div class="prow"><button id="box-set">Set corner here</button></div>
+    <label class="pinline">Judges<select id="box-side"><option value="right">on my right</option><option value="left">on my left</option></select></label>
+  </div>
+  <div id="mode-judges" class="pmode hidden">
+    <div class="pgrid">
+      <label>Judges lat<input id="j-lat" type="number" step="0.00001" placeholder="36.93575"></label>
+      <label>Judges lon<input id="j-lon" type="number" step="0.00001" placeholder="-121.78975"></label>
+      <label>Facing ° true<input id="j-hdg" type="number" step="1" placeholder="into the box"></label>
+      <label>Setback m<input id="j-set" type="number" step="10"></label>
+    </div>
+    <div class="prow"><button id="j-here">Use my location</button><button id="j-map">Pick on map</button></div>
+    <div class="prow"><button id="j-place">Place box</button></div>
+    <div id="j-msg" class="muted"></div>
+  </div>
   <div class="pgrid">
     <label>Width m<input id="box-w" type="number" step="50"></label>
     <label>Depth m<input id="box-d" type="number" step="50"></label>
     <label>Floor ft<input id="box-f" type="number" step="100"></label>
     <label>Ceiling ft<input id="box-c" type="number" step="100"></label>
-    <label>Judges<select id="box-side"><option value="right">on my right</option><option value="left">on my left</option></select></label>
   </div>
+  <div class="prow"><button id="box-clear">Clear box</button></div>
   <div id="box-info" class="muted"></div>
 </div>
 <div id="zoom">
@@ -67,6 +83,7 @@
   <button id="zoom-out" aria-label="zoom out">−</button>
 </div>
 <div id="attribution"></div>
+<div id="pickbar" class="pickbar hidden"><span id="pick-msg"></span><button id="pick-done">Done</button></div>
 <script type="module" src="./app.js"></script>
 </body>
 </html>

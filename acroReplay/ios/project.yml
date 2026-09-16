@@ -22,6 +22,7 @@ targets:
         UIViewControllerBasedStatusBarAppearance: false
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         NSLocalNetworkUsageDescription: acroReplay listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.
+        NSLocationWhenInUseUsageDescription: acroReplay uses your position to place the aerobatic box at the judges' location.
         ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: AcroReplay/AcroReplay.entitlements

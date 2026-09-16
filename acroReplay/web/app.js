@@ -8,7 +8,9 @@ import { LineGeometry } from 'three/addons/LineGeometry.js';
 import { decodeIns, base64ToBytes } from './onflight.js';
 import { Origin, sampleFromFrame, FT_TO_M } from './frames.js';
 import { buildTileGround, ATTRIBUTION } from './tiles.js';
-import { DEFAULT_BOX, loadBox, saveBox, buildBoxGroup, judgeWorldPosition, boxStatus } from './box.js';
+import { DEFAULT_BOX, loadBox, saveBox, buildBoxGroup, judgeWorldPosition, boxStatus, boxFromJudges, judgeLatLon } from './box.js';
+import { getItem, setItem } from './storage.js';
+import { offsetLatLon } from './frames.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -56,7 +58,7 @@ grid.position.y = 0.05;
 scene.add(grid);
 let tileGround = null;
 let originLatLon = null;
-let satellite = TILES && localStorage.getItem('acroReplay.ground') !== 'plain';
+let satellite = TILES && getItem('acroReplay.ground') !== 'plain';
 function applyGround() {
   if (tileGround && tileGround.visible !== undefined) tileGround.visible = satellite;
   grid.visible = !satellite;
@@ -75,7 +77,7 @@ function onOriginKnown(lat, lon) {
 }
 document.getElementById('ground-toggle').addEventListener('click', () => {
   satellite = !satellite;
-  localStorage.setItem('acroReplay.ground', satellite ? 'sat' : 'plain');
+  setItem('acroReplay.ground', satellite ? 'sat' : 'plain');
   applyGround();
 });
 
@@ -83,7 +85,7 @@ document.getElementById('ground-toggle').addEventListener('click', () => {
 // Aerobatic box: set from the aircraft's live position and heading; edges and limits editable in the panel.
 let box = loadBox();
 let boxGroup = null;
-const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeSide: 'box-side' };
+const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
 function readBoxInputs() {
   const v = {};
   for (const [k, id] of Object.entries(boxInputs)) {
@@ -101,10 +103,102 @@ function rebuildBox() {
     boxGroup = buildBoxGroup(box, originLatLon);
     scene.add(boxGroup);
   }
-  document.getElementById('box-info').textContent = box
-    ? `Corner ${box.lat.toFixed(5)}, ${box.lon.toFixed(5)} · edge ${Math.round(box.headingDeg)}° · ${box.widthM}×${box.depthM} m · ${box.floorFt}–${box.ceilFt} ft`
-    : 'No box set — fly over the corner along the judge line and tap "Set corner here".';
+  const info = document.getElementById('box-info');
+  if (box) {
+    const [jLat, jLon] = judgeLatLon(box);
+    info.textContent = `Saved box · ${box.widthM}×${box.depthM} m · ${box.floorFt}–${box.ceilFt} ft · edge ${Math.round(box.headingDeg)}° · judges at ${jLat.toFixed(5)}, ${jLon.toFixed(5)}`;
+    const facing = box.judgeSide === 'left' ? (box.headingDeg + 90) % 360 : (box.headingDeg + 270) % 360;
+    document.getElementById('j-lat').value = jLat.toFixed(5);
+    document.getElementById('j-lon').value = jLon.toFixed(5);
+    document.getElementById('j-hdg').value = Math.round(facing);
+  } else {
+    info.textContent = 'No box set. Set it from the aircraft in flight, or from the judges\' position on the ground.';
+  }
 }
+document.querySelectorAll('.ptab').forEach((tab) => tab.addEventListener('click', () => {
+  document.querySelectorAll('.ptab').forEach((b) => b.classList.toggle('on', b === tab));
+  document.getElementById('mode-aircraft').classList.toggle('hidden', tab.dataset.mode !== 'aircraft');
+  document.getElementById('mode-judges').classList.toggle('hidden', tab.dataset.mode !== 'judges');
+}));
+document.getElementById('j-here').addEventListener('click', () => {
+  const msg = document.getElementById('j-msg');
+  if (!navigator.geolocation) { msg.textContent = 'Location not available here (needs the app or https).'; return; }
+  msg.textContent = 'Getting position…';
+  navigator.geolocation.getCurrentPosition((pos) => {
+    document.getElementById('j-lat').value = pos.coords.latitude.toFixed(5);
+    document.getElementById('j-lon').value = pos.coords.longitude.toFixed(5);
+    msg.textContent = `Position set (±${Math.round(pos.coords.accuracy)} m). Enter the direction the judges face, then Place box.`;
+  }, (err) => { msg.textContent = `Location failed: ${err.message}`; }, { enableHighAccuracy: true, timeout: 15000 });
+});
+// Pick the judges on the map: first tap = where they stand, second tap = toward the box centre (sets facing).
+const raycaster = new THREE.Raycaster();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+function groundLatLon(clientX, clientY) {
+  if (!originLatLon) return null;
+  raycaster.setFromCamera(new THREE.Vector2((clientX / window.innerWidth) * 2 - 1, -(clientY / window.innerHeight) * 2 + 1), camera);
+  const hit = raycaster.ray.intersectPlane(groundPlane, new THREE.Vector3());
+  if (!hit) return null;
+  return { latLon: offsetLatLon(originLatLon[0], originLatLon[1], -hit.z, hit.x), world: hit };
+}
+function addPickMarker(world, color) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(6, 16, 12), new THREE.MeshBasicMaterial({ color }));
+  m.position.copy(world).setY(6);
+  pickMarkers.add(m);
+}
+let pickDown = null;
+canvas.addEventListener('pointerdown', (e) => { pickDown = [e.clientX, e.clientY]; });
+canvas.addEventListener('pointerup', (e) => {
+  if (!pickState || !pickDown || Math.hypot(e.clientX - pickDown[0], e.clientY - pickDown[1]) > 8) return;
+  const g = groundLatLon(e.clientX, e.clientY);
+  const msg = document.getElementById('pick-msg');
+  if (!g) { msg.textContent = 'Tap on the ground.'; return; }
+  if (pickState === 'judges') {
+    document.getElementById('j-lat').value = g.latLon[0].toFixed(5);
+    document.getElementById('j-lon').value = g.latLon[1].toFixed(5);
+    pickMarkers.clear();
+    addPickMarker(g.world, 0xff3b30);
+    pickState = 'facing';
+    msg.textContent = 'Judges placed. Now tap where the centre of the box should be.';
+  } else if (pickState === 'facing') {
+    const jLat = parseFloat(document.getElementById('j-lat').value), jLon = parseFloat(document.getElementById('j-lon').value);
+    const dN = (g.latLon[0] - jLat) * 111320, dE = (g.latLon[1] - jLon) * 111320 * Math.cos(jLat * Math.PI / 180);
+    const facing = (THREE.MathUtils.radToDeg(Math.atan2(dE, dN)) + 360) % 360;
+    document.getElementById('j-hdg').value = Math.round(facing);
+    const setback = parseFloat(document.getElementById('j-set').value) || DEFAULT_BOX.judgeSetbackM;
+    const depth = parseFloat(document.getElementById('box-d').value) || DEFAULT_BOX.depthM;
+    document.getElementById('j-set').value = Math.max(20, Math.round(Math.hypot(dN, dE) - depth / 2)) || setback;
+    addPickMarker(g.world, 0x2395e7);
+    pickState = null;
+    msg.textContent = `Facing ${Math.round(facing)}°. Tap Place box.`;
+  }
+});
+document.getElementById('j-map').addEventListener('click', () => {
+  if (!originLatLon) { document.getElementById('j-msg').textContent = 'Waiting for a position fix.'; return; }
+  if (camMode !== 'map') { prevCamMode = camMode; setCamMode('map'); }
+  document.getElementById('boxpanel').classList.add('hidden');
+  document.getElementById('pickbar').classList.remove('hidden');
+  pickState = 'judges';
+  document.getElementById('pick-msg').textContent = 'Tap where the judges stand.';
+});
+function endPick() {
+  pickState = null;
+  pickMarkers.clear();
+  document.getElementById('pickbar').classList.add('hidden');
+  document.getElementById('boxpanel').classList.remove('hidden');
+  if (camMode === 'map') setCamMode(prevCamMode);
+}
+document.getElementById('pick-done').addEventListener('click', endPick);
+document.getElementById('j-place').addEventListener('click', () => {
+  const lat = parseFloat(document.getElementById('j-lat').value), lon = parseFloat(document.getElementById('j-lon').value);
+  const facingDeg = parseFloat(document.getElementById('j-hdg').value);
+  const msg = document.getElementById('j-msg');
+  if (![lat, lon, facingDeg].every(Number.isFinite)) { msg.textContent = 'Need judges lat, lon and the facing direction.'; return; }
+  box = boxFromJudges({ lat, lon, facingDeg, ...readBoxInputs() });
+  saveBox(box);
+  rebuildBox();
+  pickMarkers.clear();
+  msg.textContent = 'Box placed and saved.';
+});
 writeBoxInputs(box || DEFAULT_BOX);
 rebuildBox();
 document.getElementById('box-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
@@ -320,6 +414,11 @@ function poseAt(t) {
 // Cameras. Orbit: OrbitControls around the aircraft (pinch/wheel zooms). Chase: rigidly attached to the
 // airframe — it rolls and pitches with the aircraft. Judge: fixed at the box's judging position.
 let camMode = 'orbit';
+let prevCamMode = 'orbit';
+const mapCam = { height: 2500 };
+let pickState = null;
+const pickMarkers = new THREE.Group();
+scene.add(pickMarkers);
 const camOffset = new THREE.Vector3(8, 4, 12);
 const chase = { dist: 16 };
 const judge = { fov: 22, zoom: 1 };   // auto FOV keeps the aircraft a constant size; ± scales it
@@ -329,10 +428,20 @@ const chaseOff = new THREE.Vector3();
 function setCamMode(mode) {
   camMode = mode;
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
-  controls.enabled = mode === 'orbit';
+  controls.enabled = mode === 'orbit' || mode === 'map';
+  controls.enableRotate = mode !== 'map';
+  controls.enablePan = mode === 'map';
+  controls.screenSpacePanning = true;
+  controls.maxPolarAngle = mode === 'map' ? 0.001 : Math.PI;
   camera.up.set(0, 1, 0);
   if (mode !== 'judge') { camera.fov = DEFAULT_FOV; camera.updateProjectionMatrix(); }
   if (mode === 'orbit') camera.position.copy(aircraft.position).add(camOffset);
+  if (mode === 'map') {
+    const c = boxGroup ? judgeWorldPosition(boxGroup, new THREE.Vector3()) : aircraft.position.clone();
+    controls.target.set(c.x, 0, c.z);
+    camera.position.set(c.x, mapCam.height, c.z + 0.01);
+    controls.update();
+  }
 }
 function zoomBy(f) {
   if (camMode === 'orbit') {
@@ -343,17 +452,21 @@ function zoomBy(f) {
     chase.dist = THREE.MathUtils.clamp(chase.dist * f, 5, 300);
   } else if (camMode === 'judge') {
     judge.zoom = THREE.MathUtils.clamp(judge.zoom * f, 0.1, 4);
+  } else if (camMode === 'map') {
+    mapCam.height = THREE.MathUtils.clamp(mapCam.height * f, 200, 30000);
+    camera.position.set(controls.target.x, mapCam.height, controls.target.z + 0.01);
+    controls.update();
   }
 }
 document.querySelectorAll('#controls [data-cam]').forEach(b => b.addEventListener('click', () => setCamMode(b.dataset.cam)));
 document.getElementById('clear').addEventListener('click', clearTrail);
 document.getElementById('zoom-in').addEventListener('click', () => zoomBy(0.75));
 document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1.33));
-canvas.addEventListener('wheel', (e) => { if (camMode !== 'orbit') { e.preventDefault(); zoomBy(Math.exp(e.deltaY * 0.0015)); } }, { passive: false });
+canvas.addEventListener('wheel', (e) => { if (camMode !== 'orbit' && camMode !== 'map') { e.preventDefault(); zoomBy(Math.exp(e.deltaY * 0.0015)); } }, { passive: false });
 let pinchDist = 0;
 canvas.addEventListener('touchstart', (e) => { if (e.touches.length === 2) pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }, { passive: true });
 canvas.addEventListener('touchmove', (e) => {
-  if (camMode === 'orbit' || e.touches.length !== 2) return;
+  if (camMode === 'orbit' || camMode === 'map' || e.touches.length !== 2) return;
   const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
   if (pinchDist > 0) zoomBy(pinchDist / d);
   pinchDist = d;
@@ -364,6 +477,8 @@ function updateCamera() {
   if (camMode === 'orbit') {
     camera.position.sub(controls.target).add(p);
     controls.target.copy(p);
+    controls.update();
+  } else if (camMode === 'map') {
     controls.update();
   } else if (camMode === 'judge') {
     if (boxGroup) judgeWorldPosition(boxGroup, camera.position); else camera.position.set(0, 1.7, JUDGE_DISTANCE_M);

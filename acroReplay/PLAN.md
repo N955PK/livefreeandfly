@@ -499,6 +499,13 @@ livefreeandfly/acroReplay/
 - 2026-09-15 — U4 resolved: the Hub's `ws://…/data` is a 101-byte status
   frame (pitch/roll/lat/lon, no heading or rates) → side channel only; the
   developer UDP stream stays the target for 3D. Capture v2 written.
+- 2026-09-16 — Box from the judges (Sean's asks): the box can also be placed from the judges'
+  position — typed coordinates, the phone's GPS ("Use my location"), or two taps on a top-down
+  map camera (where the judges stand, then toward the box centre, which also sets the setback) —
+  plus the direction they face. Judges are drawn as a red pole, ground disc, "JUDGES" label and
+  dashed sightline in every mode. Settings persist in localStorage and are mirrored to iOS
+  UserDefaults (`store:` messages → `window.acroStore`), so the box survives app closes.
+  data16 practice run trimmed to the wing-rocks→final-roll window (13:08–14:40) for the demo.
 - 2026-09-16 — Box + ground controls (Sean's asks): the aerobatic box is set in flight
   from the aircraft's live position/heading ("Set corner here": corner under the aircraft,
   front edge along the heading, box extends away from the judges), standard 1000×1000 m or

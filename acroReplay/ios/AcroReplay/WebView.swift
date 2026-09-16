@@ -11,6 +11,8 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
     override init() {
         let config = WKWebViewConfiguration()
         config.setURLSchemeHandler(BundleSchemeHandler(), forURLScheme: "acro")
+        config.userContentController.addUserScript(WKUserScript(source: WebController.storeScript(), injectionTime: .atDocumentStart,
+                                                                forMainFrameOnly: true))
         webView = WKWebView(frame: .zero, configuration: config)
         super.init()
         config.userContentController.add(self, name: "acro")
@@ -26,9 +28,32 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
         guard let body = message.body as? String else { return }
         if body == "ready" {
             listener.start { [weak self] data, wall in self?.push(data, wall: wall) }
+        } else if body.hasPrefix("store:") {
+            WebController.store(body)
         } else {
             NSLog("[web] %@", body)
         }
+    }
+
+    /// Settings the web app wants to survive app restarts (box, ground mode) live in UserDefaults under "web.<key>"
+    /// and are injected as `window.acroStore` before the page runs. Message format: `store:<key>:<value>`.
+    private static let storePrefix = "web."
+
+    private static func store(_ message: String) {
+        let payload = message.dropFirst("store:".count)
+        guard let sep = payload.firstIndex(of: ":") else { return }
+        let key = String(payload[..<sep]), value = String(payload[payload.index(after: sep)...])
+        if value.isEmpty { UserDefaults.standard.removeObject(forKey: storePrefix + key) }
+        else { UserDefaults.standard.set(value, forKey: storePrefix + key) }
+    }
+
+    private static func storeScript() -> String {
+        var saved: [String: String] = [:]
+        for (key, value) in UserDefaults.standard.dictionaryRepresentation() where key.hasPrefix(storePrefix) {
+            if let s = value as? String { saved[String(key.dropFirst(storePrefix.count))] = s }
+        }
+        let json = (try? JSONSerialization.data(withJSONObject: saved)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+        return "window.acroStore = \(json);"
     }
 
     private func push(_ data: Data, wall: TimeInterval) {

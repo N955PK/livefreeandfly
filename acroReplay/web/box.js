@@ -2,21 +2,53 @@
 // lengths. Set from the aircraft in flight ("I'm over the corner, flying along the judge line") and
 // persisted in localStorage so it survives app restarts and session origins.
 import * as THREE from 'three';
-import { nedFromLla, worldFromNed, FT_TO_M } from './frames.js';
+import { nedFromLla, worldFromNed, offsetLatLon, FT_TO_M } from './frames.js';
+import { getItem, setItem } from './storage.js';
 
 const STORAGE_KEY = 'acroReplay.box';
-export const DEFAULT_BOX = { widthM: 1000, depthM: 1000, floorFt: 1500, ceilFt: 3500, judgeSide: 'right' };
-const JUDGE_SETBACK_M = 150;
+export const DEFAULT_BOX = { widthM: 1000, depthM: 1000, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 150 };
+const DEG = Math.PI / 180;
 
 export function loadBox() {
   try {
-    const b = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const b = JSON.parse(getItem(STORAGE_KEY));
     return b && Number.isFinite(b.lat) ? { ...DEFAULT_BOX, ...b } : null;
   } catch (e) { return null; }
 }
 
 export function saveBox(box) {
-  if (box) localStorage.setItem(STORAGE_KEY, JSON.stringify(box)); else localStorage.removeItem(STORAGE_KEY);
+  setItem(STORAGE_KEY, box ? JSON.stringify(box) : null);
+}
+
+// Box from the judges' position: they stand `judgeSetbackM` outside the front edge at mid-width, facing
+// `facingDeg` (true) into the box. A pilot flying the front edge with the judges on the right heads facingDeg + 90.
+export function boxFromJudges({ lat, lon, facingDeg, ...dims }) {
+  const b = { ...DEFAULT_BOX, ...dims, judgeSide: 'right' };
+  const h = (facingDeg + 90) % 360;
+  const mid = offsetLatLon(lat, lon, b.judgeSetbackM * Math.cos(facingDeg * DEG), b.judgeSetbackM * Math.sin(facingDeg * DEG));
+  const [cLat, cLon] = offsetLatLon(mid[0], mid[1], -(b.widthM / 2) * Math.cos(h * DEG), -(b.widthM / 2) * Math.sin(h * DEG));
+  return { ...b, lat: cLat, lon: cLon, headingDeg: h };
+}
+
+// Where the judges stand for a given box (inverse of the above), for display.
+export function judgeLatLon(box) {
+  const h = box.headingDeg * DEG;
+  const side = box.judgeSide === 'left' ? 1 : -1;
+  const toJudges = h - side * Math.PI / 2;
+  const mid = offsetLatLon(box.lat, box.lon, (box.widthM / 2) * Math.cos(h), (box.widthM / 2) * Math.sin(h));
+  return offsetLatLon(mid[0], mid[1], box.judgeSetbackM * Math.cos(toJudges), box.judgeSetbackM * Math.sin(toJudges));
+}
+
+function labelSprite(text) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(0,0,0,0.55)'; g.beginPath(); g.roundRect(8, 8, 496, 112, 24); g.fill();
+  g.fillStyle = '#fff'; g.font = 'bold 76px -apple-system, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(text, 256, 66);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  sprite.scale.set(60, 15, 1);
+  return sprite;
 }
 
 // Local frame of the group: +x along the front edge (heading), +z to the pilot's right, y up from the ground.
@@ -42,10 +74,18 @@ export function buildBoxGroup(box, origin) {
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(w / 2, f, (z0 + z1) / 2);
   g.add(floor);
-  const judge = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 2, 16), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-  judge.position.set(w / 2, 1, -side * JUDGE_SETBACK_M);
-  g.add(judge);
-  g.userData.judgeLocal = new THREE.Vector3(w / 2, 1.7, -side * JUDGE_SETBACK_M);
+  // Judges: a disc on the ground, a striped pole, and a label readable from altitude.
+  const jz = -side * (box.judgeSetbackM || DEFAULT_BOX.judgeSetbackM);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(8, 32),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, depthWrite: false }));
+  disc.rotation.x = -Math.PI / 2; disc.position.set(w / 2, 0.6, jz); g.add(disc);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 12, 12), new THREE.MeshBasicMaterial({ color: 0xff3b30 }));
+  pole.position.set(w / 2, 6, jz); g.add(pole);
+  const label = labelSprite('JUDGES'); label.position.set(w / 2, 22, jz); g.add(label);
+  const sight = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(w / 2, 0.6, jz), new THREE.Vector3(w / 2, 0.6, 0)]),
+    new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 6, gapSize: 6, transparent: true, opacity: 0.7 }));
+  sight.computeLineDistances(); g.add(sight);
+  g.userData.judgeLocal = new THREE.Vector3(w / 2, 1.7, jz);
   g.userData.bounds = { w, zMin: Math.min(z0, z1), zMax: Math.max(z0, z1), f, c };
   return g;
 }
