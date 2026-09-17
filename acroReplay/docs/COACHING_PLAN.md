@@ -236,20 +236,29 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 - Cockpit workload and safety: audio must be short, low-frequency, and silent by default during manoeuvring.
 - Public repo: keep sequences, scores and any judge sheets Sean shares out of git unless he says otherwise.
 
-## 9. Open questions (answers change the design — none of these are assumed)
+## 9. Decisions so far (Sean, 2026-09-16)
 
-1. **Category and figure set to start with.** Sportsman? Intermediate? Which figures does your practice sequence
-   actually contain (an OLAN string or Form B would let me build the exact templates first)?
+- **First library = Primary figures only**: competition turn (180°), 45° up line, loop, one-turn spin (n half-turns
+  parameterised), half Cuban, slow roll. Templates and the detector are built and validated on these five/six first;
+  Sportsman figures follow once the Primary set scores credibly.
+- **Cue timing is a user setting**: after-figure debrief · during + after · on-demand only. Default to after-figure.
+- **Audio goes over Bluetooth to the headset** (model to confirm); phone speaker kept as the ground-test fallback.
+- **Validation data = data16 only**, graded against Sean's own judgement of the replay to start; real scores or
+  judge sheets are added when they exist. The other logs stay out of the loop for now.
+
+## 10. Open questions (answers change the design — none of these are assumed)
+
+1. ~~Category and figure set~~ — answered: Primary. Still needed: the exact Primary Known you fly (OLAN string /
+   Form B) so the templates match the sequence, not just the figure types.
 2. **Judging standard.** IAC rulebook (which year) or CIVA Appendix B? The IAC site blocks downloads — can you
    share the current IAC Rule Book PDF so I can diff its judging chapter against Appendix B?
-3. **When should the coach talk?** Only after each figure (a 5–10 s debrief), or also during the figure? How many
-   items per figure is useful in the cockpit?
-4. **Audio path.** Which headset/intercom, and does it take Bluetooth audio from the phone? Is the phone speaker
-   acceptable as a fallback?
+3. ~~When should the coach talk?~~ — answered: user setting (after / during + after / on demand). Still needed: how
+   many items per figure is useful in the cockpit.
+4. ~~Audio path~~ — answered: Bluetooth to the headset. Still needed: headset/intercom model (Bluetooth profile
+   and latency differ; some panels duck music under intercom audio).
 5. **Wind.** Enter winds aloft by hand before the flight, estimate from level lines, or ignore wind for the first
    version and coach on attitude only?
-6. **Ground truth.** Do you have ACROWRX or FCScore scores, video, or judge sheets for any logged flight? Are you
-   willing to hand-label figures in data16/17/18 (I'd give you a tool for it)?
+6. ~~Ground truth~~ — answered: data16 only, Sean's judgement first.
 7. **Aircraft.** Eagle only for the coaching phase? Any known ZLA/incidence figure for the Eagle, or shall we
    calibrate from your verticals?
 8. **Control-position sensing.** Is the OnFlight analog-input module (control positions) something you'd add? It
@@ -260,7 +269,7 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
     geometry (true radius, true heading), or both with the judge score as the headline?
 11. **Sequence mode timing.** Is sequence mode wanted soon, or is single-figure coaching the whole of this phase?
 
-## 10. Sources
+## 11. Sources
 
 - FAI Sporting Code Section 6 Part 1, version 2023-2, Rule 4.4 and Appendix B (civanews.com document store).
 - British Aerobatics judging pages: downgrades summary, loops, slow rolls, flick rolls, spins, stall turns, humpty
