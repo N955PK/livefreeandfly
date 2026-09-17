@@ -136,7 +136,43 @@ turns · 6 tail slides · 7 loops & eights · 8 combinations of lines, angles & 
 with Aresti numbers, K factors and drawing instructions: **OpenAero** `data/figures/figures.js` (GPL-3) — K values
 below are OpenAero's base-figure K for power. OLAN letters in the third column are what the sequence editor uses.
 
-### 3.1 First library (Primary → Intermediate figures; what the MVP should recognise)
+### 3.0 The IAC Primary Known (the first target)
+
+The IAC Primary Known has been the same sequence every year since at least 2021 (positioning notes differ only).
+OLAN, from OpenAero's sequence library (2026 IAC Primary Known, rules IAC 2025.1.11):
+
+```
+d iv`6s..'' .c.'2`+`` (-15,13) o 5% 2j+ 1
+```
+
+| # | Figure | OLAN | Aresti | K |
+|---|---|---|---|---|
+| 1 | 45° up line | `d` | 1.1.2.1 | 7 |
+| 2 | 1½-turn upright spin from level flight, vertical down line | `iv6s` | 1.1.6.3 + 9.11.1.6 | 10 + 3 |
+| 3 | Half Cuban with a half roll centred on the 45° down line | `c2` | 8.5.2.1 + 9.1.3.2 | 10 + 4 |
+| 4 | Loop | `o` | 7.4.1.1 | 10 |
+| 5 | 180° competition turn | `2j` | 2.2.1.1 | 4 |
+| 6 | Slow roll (one full roll) on a horizontal line | `1` | 1.1.1.1 + 9.1.3.4 | 2 + 8 |
+| | Total figure K | | | **58** (+ Presentation 5K) |
+
+Form B: https://openaero.net/?s=hFByaW1hcnmGMjAyNodwb3dlcmVkiEtub3duiUlBQ4o1izCNZCBpdmA2c66nIC5jLicyYCvgICgtMTUsMTMpIG8gNSUgMmorIDGPSUFDkDIwMjUuMS4xMZFC
+(OLAN roll digits are counts of *rolls*, not quarters: `1` = one roll, `2` = half, `3` = ¾, `4` = ¼, `5` = 1¼,
+`6` = 1½, `8` = two; `Ns` = spin of the same fraction of turns.)
+
+Element grammar for these six (what the detector must find, in order):
+
+1. `d`: LEVEL → ⅛ LOOP(+) → LINE(45 up) → ⅛ LOOP(−, push) → LEVEL. Criteria: 45° on ZLA, wings level, heading,
+   entry/exit lines present.
+2. `iv6s`: LEVEL (decelerating, CG not rising) → stall break (pitch down + yaw + roll together) → SPIN(1.5 turns)
+   → stop on heading → LINE(vertical down, ZLA) → ¼ LOOP(+) → LEVEL. Criteria: 28.24 / B.9.29.
+3. `c2`: LEVEL → ⅝ LOOP(+, constant radius) → LINE(45 down) with ROLL(½) centred (equal line before/after) →
+   ⅛ LOOP(+) → LEVEL. Criteria: radius by quarters, 45° on ZLA, roll centring 1/2/3/4-pt scale, exit heading.
+4. `o`: LEVEL → LOOP(360°, wind-corrected constant radius, wings level, on heading, same entry/exit altitude) → LEVEL.
+5. `2j`: LEVEL → ROLL(to ≥60° bank on heading) → TURN(180°, constant bank, altitude, rate) → ROLL(out, same
+   rate) → LEVEL on the reciprocal box axis.
+6. `1`: LEVEL → ROLL(360°, constant rate, crisp stop, flight path and heading held) → LEVEL.
+
+### 3.1 Wider library (Primary → Intermediate figures; what the library grows into)
 
 | Figure | Aresti | OLAN | Elements (grammar) | Category |
 |---|---|---|---|---|
@@ -274,9 +310,14 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 
 ## 9. Decisions so far (Sean, 2026-09-16)
 
-- **First library = Primary figures only**: competition turn (180°), 45° up line, loop, one-turn spin (n half-turns
-  parameterised), half Cuban, slow roll. Templates and the detector are built and validated on these five/six first;
-  Sportsman figures follow once the Primary set scores credibly.
+- **First library = the six figures of the IAC Primary Known** (§3.0): 45° up line, 1½-turn spin (turns
+  parameterised), half Cuban with half roll, loop, 180° competition turn, slow roll. Sportsman figures follow once
+  these score credibly.
+- **Both modes in this phase, both Primary-based**: single-figure coaching (arm one figure) and sequence mode (the
+  Primary Known as a whole, figure by figure, K-weighted total).
+- **Audio**: just play it through the phone's current audio route; if a headset is connected, that is where it goes.
+  No headset-specific handling.
+- **Critique length**: coach's call — the top two or three downgrades by points lost, then the score.
 - **Cue timing is a user setting**: after-figure debrief · during + after · on-demand only. Default to after-figure.
 - **Audio goes over Bluetooth to the headset** (model to confirm); phone speaker kept as the ground-test fallback.
 - **Validation data = data16 only**, graded against Sean's own judgement of the replay to start; real scores or
@@ -292,24 +333,23 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 
 ## 10. Open questions (answers change the design — none of these are assumed)
 
-1. ~~Category and figure set~~ — answered: Primary. Still needed: the exact Primary Known you fly (OLAN string /
-   Form B) so the templates match the sequence, not just the figure types.
+1. ~~Category and figure set~~ — answered: Primary; the Known is in §3.0 (from OpenAero's library, unchanged
+   since 2021).
 2. ~~Judging standard~~ — IAC. Rule Book 2025 obtained (§2.3). Still needed: the 2026 Rev B changes, if you can
    save the PDF or the "rule book changes summary" from iac.org into `docs/private/`.
-3. ~~When should the coach talk?~~ — answered: user setting (after / during + after / on demand). Still needed: how
-   many items per figure is useful in the cockpit.
-4. ~~Audio path~~ — answered: Bluetooth to the headset. Still needed: headset/intercom model (Bluetooth profile
-   and latency differ; some panels duck music under intercom audio).
+3. ~~When should the coach talk?~~ — answered: user setting (after / during + after / on demand); 2–3 items.
+4. ~~Audio path~~ — answered: play through whatever the phone is connected to; nothing headset-specific.
 5. ~~Wind~~ — answered: estimate from level lines.
 6. ~~Ground truth~~ — answered: data16 only, Sean's judgement first.
-7. **Aircraft.** Eagle only for the coaching phase? Any known ZLA/incidence figure for the Eagle, or shall we
-   calibrate from your verticals?
-8. **Control-position sensing.** Is the OnFlight analog-input module (control positions) something you'd add? It
-   turns "your inputs" from inference into measurement.
+7. **Aircraft / ZLA.** Eagle first. ZLA offset will be calibrated from your own vertical lines (see §5) unless
+   you'd rather type a number.
+8. ~~Control-position sensing~~ — parked. The Hub can take an optional Bolder Flight analog-input module wired to
+   stick/rudder position sensors; we don't have it, so control inputs are inferred from motion. Revisit only if the
+   "control correction" voice turns out to need it.
 9. ~~Scope of "correction"~~ — answered: user-selectable voice (aircraft-only / with control corrections / score
    only). Still needed: Sean's sign-off on the correction phrasing per figure before it ships.
 10. ~~Voice of the score~~ — answered: user-selectable, both present.
-11. **Sequence mode timing.** Is sequence mode wanted soon, or is single-figure coaching the whole of this phase?
+11. ~~Sequence mode timing~~ — answered: both single-figure and sequence mode in this phase, Primary-based.
 
 ## 11. Sources
 
