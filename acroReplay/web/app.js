@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { OBJLoader } from 'three/addons/OBJLoader.js';
 import { MTLLoader } from 'three/addons/MTLLoader.js';
 import { Line2 } from 'three/addons/Line2.js';
+import { LineSegments2 } from 'three/addons/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/LineMaterial.js';
 import { LineGeometry } from 'three/addons/LineGeometry.js';
 import { decodeIns, base64ToBytes } from './onflight.js';
@@ -15,7 +17,8 @@ import { offsetLatLon } from './frames.js';
 import * as units from './units.js';
 import { loadFlight } from './records.js';
 import { Detector, describe } from './coach/detector.js';
-import { gradeFigure, critique } from './coach/judge.js';
+import { gradeFigure, critique, matchFigure, PRIMARY, PRIMARY_KNOWN } from './coach/judge.js';
+import { idealFigure } from './coach/ghost.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -663,6 +666,11 @@ function replayTick(now) {
     const k = replay.figures.findIndex((fig) => replay.cursor >= fig.t1 + 0.3 && replay.cursor < fig.t1 + 1.5);
     if (k >= 0 && k !== replay.lastShown) { replay.lastShown = k; if (replay.figures[k].grade) showCoach(replay.figures[k].grade); }
   }
+  // Ghost for the figure under the cursor, else the one that just finished.
+  const inside = replay.figures.find((fig) => fig.grade && replay.cursor >= fig.t0 - 2 && replay.cursor <= fig.t1);
+  const recent = [...replay.figures].reverse().find((fig) => fig.grade && replay.cursor > fig.t1 && replay.cursor <= fig.t1 + 12);
+  const near = inside || recent;
+  if (near) showGhost(near, replay.samples); else if (ghostFor) clearGhost();
   const a = replay.samples;
   if (!a.length) return null;
   const i = Math.min(a.length - 1, replayIndex(replay.cursor));
@@ -704,6 +712,7 @@ function startReplay(samples, name, at, figures) {
 }
 function stopReplay() {
   replay.active = false; setPlaying(false);
+  clearGhost();
   rb.replaybar.classList.add('hidden');
   document.body.classList.remove('replaying');
   clearTrail();
@@ -755,22 +764,91 @@ let coachHideAt = 0;
 let coachVoice = getItem('acroReplay.voice') || 'aircraft';
 let coachSpeak = (getItem('acroReplay.speak') || 'on') === 'on';
 function coachContext() { return { axisDeg: boxGroup ? boxGroup.userData.headingDeg : NaN }; }
+// The correct-figure ghost: white line for the ideal path, thin ribs from the flown path to it.
+const ghostMat = new LineMaterial({ color: 0xffffff, linewidth: 4, worldUnits: false, transparent: true, opacity: 0.75 });
+const ribMat = new LineMaterial({ color: 0xffffff, linewidth: 1.5, worldUnits: false, transparent: true, opacity: 0.35 });
+let ghostLine = null, ribLines = null, ghostFor = null, ghostHideAt = 0;
+function clearGhost() {
+  if (ghostLine) { scene.remove(ghostLine); ghostLine.geometry.dispose(); ghostLine = null; }
+  if (ribLines) { scene.remove(ribLines); ribLines.geometry.dispose(); ribLines = null; }
+  ghostFor = null;
+}
+function showGhost(fig, pool) {
+  if (!fig.grade || !fig.grade.match) return;
+  if (ghostFor === fig) return;
+  clearGhost();
+  const flown = pool.filter((s) => s.t >= fig.t0 && s.t <= fig.t1 && s.v);
+  if (!flown.length) return;
+  const entryAz = fig.entry ? fig.entry.az1 : fig.elements[0].az0;
+  const g = idealFigure(fig.grade, fig.grade.match, flown[0].v, entryAz, flown, fig.grade.ctx || coachContext());   // same axis decision as the grade
+  if (!g) return;
+  const geo = new LineGeometry();
+  geo.setPositions(g.points.flatMap((p) => [p.x, p.y, p.z]));
+  ghostLine = new Line2(geo, ghostMat); ghostLine.computeLineDistances(); ghostLine.frustumCulled = false;
+  scene.add(ghostLine);
+  if (g.ribs.length) {
+    const rg = new LineSegmentsGeometry();
+    rg.setPositions(g.ribs.flatMap(([a, b]) => [a.x, a.y, a.z, b.x, b.y, b.z]));
+    ribLines = new LineSegments2(rg, ribMat); ribLines.frustumCulled = false;
+    scene.add(ribLines);
+  }
+  ghostFor = fig;
+}
+// Coach mode: any Primary figure, one armed figure type, or the Primary Known flown in order.
+let coachMode = getItem('acroReplay.coachFigure') || 'any';
+const seq = { index: 0, scores: [] };
+function seqLabel() { return coachMode === 'sequence' && seq.index < PRIMARY_KNOWN.length ? `${seq.index + 1}/${PRIMARY_KNOWN.length} · ` : ''; }
+function resetSequence() { seq.index = 0; seq.scores = []; coachCard.classList.add('hidden'); }
+function gradeForMode(fig) {
+  if (coachMode === 'any') return gradeFigure(fig, coachContext());
+  if (coachMode !== 'sequence') return matchFigure(fig, coachMode) ? gradeFigure(fig, coachContext(), coachMode) : null;
+  const expected = PRIMARY_KNOWN[seq.index];
+  if (!expected) return gradeFigure(fig, coachContext());
+  const g = matchFigure(fig, expected.type) ? gradeFigure(fig, coachContext(), expected.type) : null;
+  if (g) {
+    g.seq = { n: seq.index + 1, of: PRIMARY_KNOWN.length, k: expected.k };
+    seq.scores.push({ type: g.type, score: g.hz ? 0 : g.score, k: expected.k });
+    seq.index += 1;
+    if (seq.index === PRIMARY_KNOWN.length) {
+      const got = seq.scores.reduce((a, s) => a + s.score * s.k, 0), max = seq.scores.reduce((a, s) => a + 10 * s.k, 0);
+      g.sequenceTotal = { got, max, pct: Math.round((got / max) * 100) };
+      seq.index = 0; seq.scores = [];
+    }
+    return g;
+  }
+  const other = gradeFigure(fig, coachContext());
+  if (other) other.unexpected = expected.type;
+  return other;
+}
 function showCoach(g) {
   const name = g.type.replace(/^\w/, (c) => c.toUpperCase());
   const lines = g.hz ? [`Hard zero — ${g.hz}`] : g.items.slice(0, 3).map((it) => `−${it.pts % 1 ? it.pts.toFixed(1) : it.pts} ${it.text}${coachVoice === 'control' && it.fix ? ` — ${it.fix}` : ''}`);
-  coachCard.innerHTML = `<div class="chead"><span class="ctype">${name}</span><span class="cscore ${g.hz ? 'hz' : ''}">${g.hz ? 'HZ' : g.score.toFixed(1)}</span></div>`
+  if (g.unexpected) lines.unshift(`Expected ${g.unexpected} here — that would be a hard zero in competition`);
+  if (g.sequenceTotal) lines.push(`Sequence: ${Math.round(g.sequenceTotal.got)} of ${g.sequenceTotal.max} K-points (${g.sequenceTotal.pct} %)`);
+  const head = g.seq ? `${g.seq.n}/${g.seq.of} · ${name} · K${g.seq.k}` : name;
+  coachCard.innerHTML = `<div class="chead"><span class="ctype">${head}</span><span class="cscore ${g.hz ? 'hz' : ''}">${g.hz ? 'HZ' : g.score.toFixed(1)}</span></div>`
     + (lines.length ? `<ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p class="cok">Clean figure.</p>');
   coachCard.classList.remove('hidden');
   coachHideAt = performance.now() + 12000;
 }
 function say(text) { if (text && nativeHandler) nativeHandler.postMessage(`say:${text}`); else if (text && 'speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } }
 function onFigureDetected(fig, source) {
-  fig.grade = gradeFigure(fig, coachContext());
-  const line = fig.grade ? critique(fig.grade, coachVoice, 3) : '';
+  fig.grade = gradeForMode(fig);
+  let line = fig.grade ? critique(fig.grade, coachVoice, 3) : '';
+  if (fig.grade?.seq) line = `Figure ${fig.grade.seq.n}. ${line}`;
+  if (fig.grade?.unexpected) line = `Expected ${fig.grade.unexpected}. ${line}`;
+  if (fig.grade?.sequenceTotal) line += ` Sequence ${fig.grade.sequenceTotal.pct} percent.`;
   console.info(`[coach] figure (${source}) ${fmtClock(fig.dur)}: ${fig.elements.map(describe).join(' · ')}${line ? ` → ${line}` : ''}`);
   nativeLog(`figure ${fig.elements.map(describe).join(' | ')}${line ? ` → ${line}` : ''}`);
-  if (fig.grade && source === 'live') { showCoach(fig.grade); if (coachSpeak) say(line); }
+  if (fig.grade && source === 'live') {
+    showCoach(fig.grade);
+    showGhost(fig, history); ghostHideAt = performance.now() + 20000;
+    if (coachSpeak) say(line);
+  }
 }
+document.getElementById('coach-figure').value = coachMode;
+document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); });
+document.getElementById('coach-restart').addEventListener('click', resetSequence);
 coachCard.addEventListener('click', () => coachCard.classList.add('hidden'));
 document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
   btn.classList.toggle('on', btn.dataset.voice === coachVoice);
@@ -1029,6 +1107,8 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   trailMat.resolution.set(w, h);
+  ghostMat.resolution.set(w, h);
+  ribMat.resolution.set(w, h);
 }
 window.addEventListener('resize', resize);
 resize();
@@ -1058,6 +1138,7 @@ function frame() {
   updateCamera();
   updateHud(now);
   if (coachHideAt && now > coachHideAt) { coachCard.classList.add('hidden'); coachHideAt = 0; }
+  if (!replay.active && ghostHideAt && now > ghostHideAt) { clearGhost(); ghostHideAt = 0; }
   renderer.render(scene, camera);
   trailFullUpload = false;
   requestAnimationFrame(frame);
@@ -1067,5 +1148,6 @@ requestAnimationFrame(frame);
 window.wingrock = {
   trail: () => ({ len: trailLen, instances: trailGeo.instanceCount, visible: trail.visible, lastMs: trailLastMs, full: trailFullUpload, ranges: seg.updateRanges && seg.updateRanges.length }),
   replay: () => ({ active: replay.active, playing: replay.playing, cursor: replay.cursor, n: replay.samples.length, figures: replay.figures.length, parked, hangarMode }),
+  ghost: () => ({ for: ghostFor && Math.round(ghostFor.t0 - replay.t0), points: ghostLine ? ghostLine.geometry.attributes.instanceStart.count : 0, ribs: ribLines ? ribLines.geometry.attributes.instanceStart.count : 0 }),
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
 };

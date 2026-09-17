@@ -12,6 +12,11 @@ const RAD = Math.PI / 180;
 const M_TO_FT = 3.28084;
 
 export const PRIMARY = ['45 up line', 'spin', 'half cuban', 'loop', '180 turn', 'slow roll'];
+/// The IAC Primary Known in flying order with figure K (OpenAero, IAC 2025 rules); 58 K total.
+export const PRIMARY_KNOWN = [
+  { type: '45 up line', k: 7 }, { type: 'spin', k: 13 }, { type: 'half cuban', k: 14 },
+  { type: 'loop', k: 10 }, { type: '180 turn', k: 4 }, { type: 'slow roll', k: 10 },
+];
 
 // ---------------------------------------------------------------- helpers
 
@@ -316,7 +321,7 @@ function finish(type, m, rawItems, hz, measurements, fig, ctx) {
   const items = rawItems.filter(Boolean).sort((a, b) => b.pts - a.pts);
   const total = items.reduce((a, b) => a + b.pts, 0);
   const score = hz ? 0 : (total >= 9.75 ? 0 : half(10 - total));
-  return { type, fit: m.fit, hz, score, items, total: half(total), measurements, t0: fig.t0, t1: fig.t1, dur: fig.dur };
+  return { type, fit: m.fit, hz, score, items, total: half(total), measurements, t0: fig.t0, t1: fig.t1, dur: fig.dur, match: m, ctx };
 }
 
 /// One-line spoken/displayed critique. `voice`: 'aircraft' (what happened + points), 'control' (adds the
