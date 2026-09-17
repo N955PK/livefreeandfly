@@ -793,7 +793,9 @@ function regradeReplay() {
 // The Replay button doubles as Live, like Sat/Plain: it reads 'Replay' in live view and 'Live' while the replay
 // panel is up, and tapping it returns to live.
 function setReplayLabel() {
-  document.getElementById('replay-toggle').textContent = rb.replaybar.classList.contains('hidden') ? 'Replay' : 'Live';
+  const open = !rb.replaybar.classList.contains('hidden');
+  document.getElementById('replay-toggle').textContent = open ? 'Live' : 'Replay';
+  document.body.classList.toggle('rbopen', open);   // panel open -> lift the zoom/settings stack clear of it
 }
 function stopReplay() {
   replay.active = false; setPlaying(false);
@@ -824,6 +826,7 @@ async function startSim(name) {
   clearTrail(); clearGhost(); coachCard.classList.add('hidden');
   document.body.classList.remove('replaying');
   rb.replaybar.classList.remove('hidden');
+  setReplayLabel();
   sim = { samples: placed, i: 0, speed: 1, t0: placed[0].t, startWall: performance.now() };
   document.getElementById('rb-sim').textContent = 'Stop sim';
   rb['rb-time'].textContent = 'live sim';
@@ -1065,6 +1068,7 @@ function runPct() {
 }
 const hudRec = document.getElementById('hudrec');   // the recording strip lives on the always-visible HUD, not the
 function renderHudRec() {                            // score card (which the pilot can toggle off)
+  document.body.classList.toggle('seqactive', runState !== 'idle');   // the HUD grows a strip -> nudge the coach card down
   if (runState === 'recording') {
     const pct = runPct();
     hudRec.className = 'rec';

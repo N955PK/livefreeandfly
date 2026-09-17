@@ -180,10 +180,11 @@ body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
   #controls .seg { padding: 2px; }
   #replaybar { padding: 10px 12px; }
 }
-body.replaying #zoom { bottom: calc(var(--safe-b) + 224px); }
+body.rbopen #zoom { bottom: calc(var(--safe-b) + 244px); }
 
 #coachcard { position: fixed; top: calc(var(--safe-t) + 96px); left: 50%; transform: translateX(-50%); width: min(560px, calc(100vw - 20px)); border-radius: 16px; padding: 12px 15px; color: var(--text); font-size: 14px; line-height: 1.35; }
 #coachcard.hidden { display: none; }
+body.seqactive #coachcard { top: calc(var(--safe-t) + 128px); }
 @keyframes recpulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
 #coachcard .chead { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 9px; margin-bottom: 9px; border-bottom: 1px solid var(--glass-border); }
 #coachcard .ctype { font-weight: 700; letter-spacing: .05em; text-transform: uppercase; font-size: 13px; }
