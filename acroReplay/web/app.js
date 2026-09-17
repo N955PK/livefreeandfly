@@ -806,6 +806,40 @@ function stopReplay() {
   applyScene();
   setReplayLabel();
 }
+// Real-time simulation: play a saved flight THROUGH the live pipeline (onSample), so figures are recognised and
+// scored only as they complete — exactly as they would live, nothing known ahead — rather than the pre-scored
+// replay. Lets us test the real-time coaching from a recorded clip with no Hub connected.
+let sim = null;
+async function startSim(name) {
+  if (!name) return;
+  if (replay.active) stopReplay();
+  rb['rb-time'].textContent = 'loading\u2026';
+  let raw;
+  try { ({ samples: raw } = await loadFlight(`/flights/${name}`)); }
+  catch (e) { rb['rb-time'].textContent = String(e.message || e); return; }
+  const placed = raw.filter((s) => s.init && s.quat);
+  if (!placed.length) { rb['rb-time'].textContent = 'no INS data'; return; }
+  samples.length = 0; history.length = 0; hubOffset = null; latest = null; lastRecv = 0; originLatLon = null;
+  liveDetector.reset(); wingRock.reset(); resetRun();
+  clearTrail(); clearGhost(); coachCard.classList.add('hidden');
+  document.body.classList.remove('replaying');
+  rb.replaybar.classList.remove('hidden');
+  sim = { samples: placed, i: 0, speed: 1, t0: placed[0].t, startWall: performance.now() };
+  document.getElementById('rb-sim').textContent = 'Stop sim';
+  rb['rb-time'].textContent = 'live sim';
+}
+function simFeed(now) {
+  const clock = sim.t0 + ((now - sim.startWall) / 1000) * sim.speed;
+  while (sim.i < sim.samples.length && sim.samples[sim.i].t <= clock) { onSample(sim.samples[sim.i]); sim.i += 1; }
+  if (sim.i >= sim.samples.length) stopSim();
+}
+function stopSim() {
+  if (!sim) return;
+  sim = null;
+  liveDetector.reset(); wingRock.reset(); resetRun();
+  document.getElementById('rb-sim').textContent = 'Sim';
+  rb['rb-time'].textContent = '0:00';
+}
 function renderMarks() {
   rb['rb-marks'].innerHTML = '';
   const span = Math.max(1, replay.t1 - replay.t0);
@@ -1131,6 +1165,7 @@ rb['rb-load'].addEventListener('click', async () => {
   try { const { samples, box: flightBox, meta } = await loadFlight(`/flights/${name}`); if (meta && meta.model && MODELS[meta.model] && meta.model !== modelKey) setModel(meta.model); startReplay(samples, name, undefined, undefined, flightBox); }
   catch (e) { rb['rb-time'].textContent = String(e.message || e); }
 });
+document.getElementById('rb-sim').addEventListener('click', () => { if (sim) stopSim(); else startSim(rb['rb-flight'].value); });
 rb['rb-save'].addEventListener('click', async () => {
   const body = labelsBody();
   persistLabels();
@@ -1403,7 +1438,8 @@ function frame() {
   if (replay.active) {
     pose = replayTick(now);
   } else {
-    const flying = socketOpen && latest && latest.init && now - lastRecv < REST_AFTER_MS;
+    if (sim) simFeed(now);
+    const flying = (socketOpen || sim) && latest && latest.init && now - lastRecv < REST_AFTER_MS;
     pose = flying ? poseAt(now - RENDER_DELAY_MS) : null;
   }
   if (pose) {
