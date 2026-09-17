@@ -701,6 +701,90 @@ useful on the lines in every Primary figure and shakes out all the plumbing (rea
 - That the current `.spokenAudio` session plays a continuous tone out the active route (speaker or connected output) cleanly; switch to `.default` if not.
 - `RADIUS_TOL` value, tuned in the air.
 
+## 13. Aresti / OpenAero sequences — Knowns library, import, and reverse
+
+Goal: make a sequence a first-class object. Ship the 2026 IAC Knowns as selectable coaching targets, import an
+arbitrary sequence to view and grade against, and turn a flown flight back into Aresti notation.
+
+### 13.1 The notation (learned)
+
+**Aresti** (FAI catalogue; José Luis Aresti; adopted 1964). Nine families: 1 lines (horizontal / 45 / vertical),
+2 turns & rolling turns, 3 line combinations, 4 unused, 5 hammerheads, 6 tailslides, 7 loops & part-loops, 8 loop +
+line combinations, 9 rolls / snaps (flicks) / spins. Drawing grammar: **solid line = upright / positive-g, dashed =
+inverted / negative-g**; a **thick dot** marks the start, a **short perpendicular bar** the end; a **triangle** marks
+a stalled-wing element (spin or snap); **arrows with numbers** mark rolls (extent and number of points). Every figure
+carries an Aresti catalogue number (e.g. `7.4.1.1`) and a **K-factor**; the sequence score is Σ(figure score × K).
+
+**OpenAero / OLAN** is the compact ASCII interchange that both encodes a sequence and drives its drawing — this is
+what we parse and emit. Base figures are letters: lines `d` 45-up / `id` 45-down / `v` vertical-up / `iv`
+vertical-down; loops `o` loop / `io` outside / `qo` square / `dq` diamond, `a` split-S, `m` Immelmann; loop-line
+combos `c` half-Cuban / `rc` reverse, `g` goldfish, `p`/`rp` P-loop, `q`/`rq` Q-loop; `b` humpty / `pb` push-humpty,
+`h` hammerhead (`dh`/`hd`/`dhd` diagonal variants), `ta`/`ita` tailslide; turns `j` 90° (`2j`/`3j`/`4j` =
+180/270/360), `nj` rolling turn. Rotations are digits attached as prefix, postfix, or in parentheses for mid-figure
+positions: `1` full / `2` half / `3` ¾ / `4` ¼ / `5` 1¼ / `6` 1½ / `7` 1¾ / `9` two rolls; snaps `nf` (inverted
+`nif`); spins `ns` (inverted `nis`) — the Primary spin is `iv6s` (vertical down, 1½ turns). A second digit gives
+hesitation points (`44` 4-point, `88` 8-point). Modifiers: `-` inverted entry/exit, `i` inverted figure, `r`
+reverse; direction `>` up/down-wind toggle, `^` crossbox toggle, `ed`/`ej`/`eu` entry direction; `"@A".."@J"` tag
+Free-Known figures; `"text"` comments; a space separates figures.
+
+**Figure-database schema** (OpenAero `figures.js`, for reference): each entry is `"pattern arestiNumber(kPow:kGlider)
+drawing"`, e.g. `"+o_+ 7.4.1.1(10) ~''o!_''~"` — pattern with `+/-` attitude and `_` roll slots, the Aresti number,
+K (power:glider), then a drawing string over angle-letter primitives (`45d 90v 135z 180m 225c 270p 315r 360o`), `_`
+a roll position, `!` a looping segment.
+
+### 13.2 Data & licensing
+
+OpenAero is **GPL-3** (copyleft), so its code can't be copied into this public, non-GPL repo. The parser, catalogue
+and renderer are **reimplemented clean-room** from the grammar above; the catalogue data (Aresti numbers, K-factors)
+and the 2026 sequences are **facts** transcribed from the FAI catalogue and the official IAC 2026 Known PDFs
+(iac.org/sequences). **PyOlan / flightanalysis** (PyFlightCoach, permissively licensed) is a cleaner reference for
+cross-checking the OLAN grammar.
+
+### 13.3 Architecture (new, all in `web/coach/`)
+
+- `olan.js` — clean-room OLAN **parser** (string → figures: base, rolls with positions, attitude, direction, Aresti
+  key) and **serializer** (figures → string) for the reverse path.
+- `aresti.js` — the **catalogue**: OLAN base + rolls → Aresti number, K (power / glider), drawing primitives. Seeded
+  with the figures the 2026 Knowns use.
+- `arestidraw.js` — render a figure / sequence as an **Aresti-style SVG** (solid/dashed, start dot, end bar, roll
+  arrows, spin/snap triangles).
+- `knowns.js` — the **2026 library**: per category, the OLAN string + resolved figures + K total. Generalises the
+  hard-coded `PRIMARY_KNOWN`.
+- **Grading bridge** — `judge.js` / `detector.js` already grade against an ordered expected-figure list; generalise
+  that list to come from *any* parsed sequence, not only `PRIMARY_KNOWN`.
+- **Reverse mapping** — the live detector already classifies each figure with its parameters (turns, roll count);
+  map those to OLAN tokens and look up Aresti / K to emit "what you flew" as notation + drawing + estimated K.
+
+### 13.4 The three deliverables
+
+1. **2026 Knowns library** — the Settings "coach figure" grows from `any / Primary Known / <one figure>` to any 2026
+   category Known (Primary → Unlimited), each an OLAN string resolved to figures + K.
+2. **Import & view** — paste an OLAN string (or open a `.seq` file), parse → draw the Aresti card → optionally set as
+   the coaching target. ("Upload an Aresti" = the text / `.seq` interchange; recognising a *drawn/scanned* Aresti
+   image is OCR and out of scope for v1.)
+3. **Flown → Aresti** — after a run, emit the detected figures as an OLAN string + Aresti drawing + K total: a
+   shareable card of what was actually flown.
+
+### 13.5 The scope split that matters
+
+**Viewing / notation is achievable across every category; real-time grading is not — yet.** The detector + judge
+grade the six Primary figures well. Higher categories add snaps, negative / outside figures, rolling turns,
+tailslides and point rolls — each needs new detection and new judging criteria (the §2.4 measurement list), a
+per-family effort. So "all the Knowns" divides cleanly:
+
+- **Now, all categories:** library + Aresti view + import + flown-to-Aresti (notation & drawing only).
+- **Incremental, per figure family:** real-time grading beyond Primary.
+
+Build order: `olan.js` + `aresti.js` (catalogue for the 2026 figure set) → `arestidraw.js` → `knowns.js` (all
+categories) → import UI → reverse mapping → then grading extensions family by family.
+
+### 13.6 Open decisions
+1. Categories: IAC **Power** (Primary → Unlimited) first, or Power **and** Glider?
+2. "Upload an Aresti": the **OLAN string + `.seq`** interchange (tractable), or scanning a drawn/paper Aresti (OCR, a
+   separate research spike)?
+3. Grading depth now: ship **view / import / reverse for all categories** and keep grading at Primary, extending per
+   family — or hold the feature until grading covers a whole target category?
+
 ## 11. Sources
 
 - FAI Sporting Code Section 6 Part 1, version 2023-2, Rule 4.4 and Appendix B (civanews.com document store).
