@@ -97,8 +97,8 @@ that matter for a scorer:
 - **Presentation** is a separate grade weighted 5K in Primary, 10K Sportsman (29.2).
 - Primary competitors fly the Primary Known for every program (23.1a).
 
-The 2026 edition (Rev B) exists but is not archived; the IAC site refuses scripted downloads. The 2025 text is
-the working reference until the 2026 book or its change summary is available (Q2).
+The **IAC Rule Book 2025 is the judging standard for this phase** (Sean, 2026-09-16). The 2026 edition exists but
+isn't reachable; its changes are assumed minor and are not tracked.
 
 ### 2.4 Per-element criteria (the measurement list)
 
@@ -332,15 +332,14 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
   signed off by Sean) · score only.
 - **Score standard is a user setting, both present**: judge-like (quarter one sets the radius, 1 pt/5°, marks what a
   judge could see) and absolute geometry (true radius change, degrees). Judge-like is the default headline.
-- **Judging text**: CIVA Appendix B and the IAC Rule Book 2025 are both in hand (`docs/private/`, gitignored);
-  the scorer follows IAC where the two differ (§2.3).
+- **Judging standard = IAC Rule Book 2025**, with CIVA Appendix B filling anything the IAC text leaves open;
+  both PDFs are in `docs/private/` (gitignored). The 2026 edition is not tracked.
 
 ## 10. Open questions (answers change the design — none of these are assumed)
 
 1. ~~Category and figure set~~ — answered: Primary; the Known is in §3.0 (from OpenAero's library, unchanged
    since 2021).
-2. ~~Judging standard~~ — IAC. Rule Book 2025 obtained (§2.3). Still needed: the 2026 Rev B changes, if you can
-   save the PDF or the "rule book changes summary" from iac.org into `docs/private/`.
+2. ~~Judging standard~~ — answered: IAC Rule Book 2025 (§2.3), CIVA Appendix B where the IAC text is silent.
 3. ~~When should the coach talk?~~ — answered: user setting (after / during + after / on demand); 2–3 items.
 4. ~~Audio path~~ — answered: play through whatever the phone is connected to; nothing headset-specific.
 5. ~~Wind~~ — answered: estimate from level lines.
