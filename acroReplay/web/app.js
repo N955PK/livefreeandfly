@@ -221,12 +221,13 @@ document.querySelectorAll('.ptab[data-mode]').forEach((tab) => tab.addEventListe
   document.getElementById('mode-judges').classList.toggle('hidden', tab.dataset.mode !== 'judges');
 }));
 // Top-level panel tabs: Box vs Settings
-document.querySelectorAll('.ptab[data-panel]').forEach((tab) => tab.addEventListener('click', () => {
-  document.querySelectorAll('.ptab[data-panel]').forEach((b) => b.classList.toggle('on', b === tab));
-  document.getElementById('panel-box').classList.toggle('hidden', tab.dataset.panel !== 'box');
-  document.getElementById('panel-settings').classList.toggle('hidden', tab.dataset.panel !== 'settings');
-  document.getElementById('panel-title').textContent = tab.dataset.panel === 'settings' ? 'Settings' : 'Box';
-}));
+function showPanelTab(name) {
+  document.querySelectorAll('.ptab[data-panel]').forEach((b) => b.classList.toggle('on', b.dataset.panel === name));
+  document.getElementById('panel-box').classList.toggle('hidden', name !== 'box');
+  document.getElementById('panel-settings').classList.toggle('hidden', name !== 'settings');
+  document.getElementById('panel-title').textContent = name === 'settings' ? 'Settings' : 'Box';
+}
+document.querySelectorAll('.ptab[data-panel]').forEach((tab) => tab.addEventListener('click', () => showPanelTab(tab.dataset.panel)));
 function judgesFromPhone() {
   const msg = document.getElementById('j-msg');
   if (!phoneFix) { judgesWantPhoneFix = true; msg.textContent = 'Waiting for the phone\'s GPS…'; return; }
@@ -349,7 +350,12 @@ function rederiveBox(dims) {
 }
 fillJudgeInputs(box);
 applyUnits();
-document.getElementById('settings-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
+document.getElementById('settings-toggle').addEventListener('click', () => {
+  const panel = document.getElementById('boxpanel');
+  const opening = panel.classList.contains('hidden');
+  panel.classList.toggle('hidden');
+  if (opening) showPanelTab('settings');   // the gear always lands on Settings
+});
 document.getElementById('box-close').addEventListener('click', () => document.getElementById('boxpanel').classList.add('hidden'));
 // Tapping the empty 3D scene closes any open pop-over (the Box panel and the coach card); the replay bar and
 // the pick bar are active tools and stay. Called from the canvas tap handler.

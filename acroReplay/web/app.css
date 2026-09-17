@@ -66,7 +66,7 @@ button:active { transform: scale(.97); }
 .round { width: 46px; height: 46px; border-radius: 50%; background: var(--glass); border: 1px solid var(--glass-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-size: 24px; line-height: 1; display: flex; align-items: center; justify-content: center; }
 
 /* box panel */
-.panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-b) + 66px); width: min(380px, 94vw); max-height: min(70vh, 640px); overflow-y: auto; overflow-x: hidden; border-radius: 18px; padding: 14px 16px 16px; font-size: 14px; z-index: 30; }
+.panel { position: fixed; top: calc(var(--safe-t) + 8px); left: calc(var(--safe-l) + 8px); right: calc(var(--safe-r) + 8px); bottom: calc(var(--safe-b) + 8px); width: auto; max-height: none; overflow-y: auto; overflow-x: hidden; border-radius: 20px; padding: 16px 18px 28px; font-size: 14px; z-index: 30; }
 .phead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .phead h2 { margin: 0; font-size: 17px; font-weight: 700; }
 .close { width: 32px; height: 32px; border-radius: 50%; background: var(--field); font-size: 20px; line-height: 1; }
@@ -122,7 +122,6 @@ select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--f
   #controls { gap: 6px; padding: 0 8px; }
   .seg button { padding: 9px 12px; font-size: 14px; }
   .tool { padding: 11px 12px; font-size: 14px; }
-  .panel { bottom: calc(var(--safe-b) + 64px); }
 }
 .mdot.na { fill: rgba(255, 255, 255, .35); } .mhdg.na { display: none; }
 .chip.na { color: var(--muted); }
