@@ -23,6 +23,7 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
                                                                 forMainFrameOnly: true))
         webView = WKWebView(frame: .zero, configuration: config)
         super.init()
+        Self.activateAudioSession()   // Web Audio (the live cue + its Test) needs an active .playback session to sound
         config.userContentController.add(self, name: "acro")
         webView.isOpaque = true
         webView.backgroundColor = .black
@@ -112,11 +113,17 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
         }
     }
 
+    /// A `.playback` session so both Web Audio (live cue / Test) and speech sound, over the ring/silent switch and
+    /// out whatever route is active. Activated at startup, not only on first speech, so the cue works standalone.
+    private static func activateAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .default, options: [.duckOthers, .allowBluetoothA2DP])
+        try? session.setActive(true)
+    }
+
     /// Spoken critique through whatever the phone's audio is routed to (headset over Bluetooth, or the speaker).
     private func speak(_ text: String) {
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers, .allowBluetoothA2DP])
-        try? session.setActive(true)
+        Self.activateAudioSession()
         let utterance = AVSpeechUtterance(string: text)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         utterance.postUtteranceDelay = 0.2

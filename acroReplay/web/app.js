@@ -1460,6 +1460,7 @@ function dismissSplash() {
 // element; feeding update(0, 0) parks the tone inside its deadband so a stalled feed can't leave it hanging.
 let lastCue = { active: false, shape: 0, bank: 0 };
 function updateCue(now) {
+  if (liveCue.testing) return;   // a Test sample is playing — don't overwrite it with the live drive
   const live = !replay.active && now - lastRecv <= STALE_MS && !!liveDetector.lastF;
   // Drive the mapper every frame (advancing loop-radius capture) but feed the engine only with a live figure;
   // drive(null, null) resets per-element state when the feed drops so the next element re-captures cleanly.
@@ -1511,4 +1512,5 @@ window.wingrock = {
   run: () => ({ runState, runFigures: runFigures.length, rocks: (replay.rocks||[]).map((t)=>Math.round(t-replay.t0)), rockNext: replay.rockNext, cursor: Math.round(replay.cursor-replay.t0), fig0: replay.figures[0] ? Math.round(replay.figures[0].t0-replay.t0) : null }),
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
   cue: () => { const f = liveDetector.lastF; return { mode: cueMode, kind: liveDetector.current?.kind, el: f && Math.round(f.el), roll: f && Math.round(f.roll), active: lastCue.active, shape: Math.round(lastCue.shape), bank: Math.round(lastCue.bank) }; },
+  cueEngine: () => ({ mode: liveCue.mode, testing: liveCue.testing, ctx: liveCue.ctx?.state || null, envGain: liveCue.env ? +liveCue.env.gain.value.toFixed(3) : null, freq: liveCue.osc ? Math.round(liveCue.osc.frequency.value) : null }),
 };

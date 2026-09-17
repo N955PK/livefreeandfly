@@ -19,6 +19,7 @@ export class LiveCue {
     this.cur = { shape: 0, bank: 0 };
     this.ctx = null;
     this.blipTimer = null;
+    this.testing = false;     // while a Test sample plays, the per-frame live driver leaves the engine alone
   }
 
   setMode(mode) {
@@ -120,12 +121,14 @@ export class LiveCue {
   test() {
     this.ensure();
     if (!this.ctx) return;
+    this.testing = true;
     const restore = this.mode;
     this.mode = restore === 'off' ? 'constant' : restore;
     this.cur = { shape: SHAPE_SPAN * 0.55, bank: 0 };   // mid balloon, mid cadence, centred
     this.apply();
     clearTimeout(this._testStop);
     this._testStop = setTimeout(() => {
+      this.testing = false;
       this.mode = restore;
       this.cur = { shape: 0, bank: 0 };
       if (restore === 'off') this.silence(); else this.apply();
