@@ -20,7 +20,7 @@
 		2764DFC23A45C3711025762C /* WingRockApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WingRockApp.swift; sourceTree = "<group>"; };
 		3D38F91508FE721C9639E984 /* WingRock.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WingRock.entitlements; sourceTree = "<group>"; };
 		81CB65E2443D163765919381 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		964F1EE0F42B3CE5DC333208 /* WingRock.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WingRock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		964F1EE0F42B3CE5DC333208 /* WingRock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WingRock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A92D40E14E5FE3BC82465C02 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = web; path = ../web; sourceTree = SOURCE_ROOT; };
 		C8EFC388ED51E66BBD2EBDCE /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		E8FE00414EDCD14487259EB4 /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
@@ -102,7 +102,6 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DD0E3655941D1C6C3B6806EF = {
-						DevelopmentTeam = R6P52BJ2K9;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -280,7 +279,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = R6P52BJ2K9;
+				DEVELOPMENT_TEAM = 7JW4DDAANZ;
 				INFOPLIST_FILE = WingRock/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -301,7 +300,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = R6P52BJ2K9;
+				DEVELOPMENT_TEAM = 7JW4DDAANZ;
 				INFOPLIST_FILE = WingRock/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -43,6 +43,7 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
                            onError: { [weak self] msg in self?.eval("acroReplay.locationError(\(Self.jsString(msg)))") })
         } else if body.hasPrefix("store:") {
             WebController.store(body)
+            if body.hasPrefix("store:acroReplay.box:") { recorder.setBox(String(body.dropFirst("store:acroReplay.box:".count))) }
         } else if body.hasPrefix("say:") {
             speak(String(body.dropFirst("say:".count)))
         } else if body == "flights" {

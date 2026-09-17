@@ -96,6 +96,16 @@ function onOriginKnown(lat, lon) {
   ensureGround(lat, lon);
   rebuildBox();
 }
+// Move the whole scene origin to a flight's location: the imagery (Esri/USGS tiles) and box follow it, so a
+// loaded flight opens over the ground it was actually flown, not wherever the app was last originned.
+function originToFlight(s) {
+  if (!s || s.lat === undefined) return;
+  const [lat, lon] = s.pos ? inferOrigin(s) : [s.lat, s.lon];
+  if (originLatLon && Math.hypot(lat - originLatLon[0], lon - originLatLon[1]) < 5e-4) return;   // already there
+  originLatLon = [lat, lon, GROUND_M];
+  if (tileGround && tileGround.parent) { scene.remove(tileGround); tileGround = null; }
+  ensureGround(lat, lon);
+}
 // Without live data the aircraft waits in the hangar; imagery, box and trail belong to the flight view.
 // Map picking is the exception: it needs the ground, so it leaves the hangar while active.
 function applyScene() {
@@ -244,7 +254,8 @@ function addPickMarker(world, color) {
 let pickDown = null;
 canvas.addEventListener('pointerdown', (e) => { pickDown = [e.clientX, e.clientY]; });
 canvas.addEventListener('pointerup', (e) => {
-  if (!pickState || pickState === 'done' || !pickDown || Math.hypot(e.clientX - pickDown[0], e.clientY - pickDown[1]) > 8) return;
+  const tap = pickDown && Math.hypot(e.clientX - pickDown[0], e.clientY - pickDown[1]) <= 8;
+  if (!pickState || pickState === 'done' || !tap) return;
   const g = groundLatLon(e.clientX, e.clientY);
   const msg = document.getElementById('pick-msg');
   if (!g) { msg.textContent = 'Tap on the ground.'; return; }
@@ -332,6 +343,17 @@ fillJudgeInputs(box);
 applyUnits();
 document.getElementById('box-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
 document.getElementById('box-close').addEventListener('click', () => document.getElementById('boxpanel').classList.add('hidden'));
+// Tapping the empty 3D scene closes any open pop-over (the Box panel and the coach card); the replay bar and
+// the pick bar are active tools and stay. Called from the canvas tap handler.
+function closeMenus() {
+  document.getElementById('boxpanel').classList.add('hidden');
+  if (coachHideAt === 0) coachCard.classList.add('hidden');
+}
+document.addEventListener('pointerdown', (e) => {
+  const bp = document.getElementById('boxpanel');
+  if (!bp.classList.contains('hidden') && !bp.contains(e.target) && !e.target.closest('#box-toggle')) bp.classList.add('hidden');
+  if (coachHideAt === 0 && !coachCard.classList.contains('hidden') && !coachCard.contains(e.target)) coachCard.classList.add('hidden');
+}, true);
 document.getElementById('box-set').addEventListener('click', () => {
   if (!latest || !latest.init || latest.lat === undefined) { document.getElementById('a-msg').textContent = 'Needs live Hub data with the INS initialized.'; return; }
   document.getElementById('a-msg').textContent = '';
@@ -699,9 +721,13 @@ function seekTo(t, refillTrail = true) {
   const from = replayIndex(lower), to = replayIndex(replay.cursor);
   for (let i = from; i <= to; i += 2) { const s = replay.samples[i]; if (s.v) pushTrail(s.v, 0, true); }
 }
-function startReplay(samples, name, at, figures) {
+function startReplay(samples, name, at, figures, flightBox) {
   const placed = samples.filter((s) => s.init && s.quat);
   if (!placed.length) { rb['rb-time'].textContent = 'no INS data'; return; }
+  // Re-origin to this flight so the satellite imagery, ground and box are placed at where it was flown.
+  originToFlight(placed.find((s) => s.lat !== undefined) || placed[0]);
+  if (flightBox) { box = { ...DEFAULT_BOX, ...flightBox }; saveBox(box); fillJudgeInputs(box); }
+  rebuildBox();
   for (const s of placed) placeSample(s);
   replay.samples = placed; replay.name = name;
   replay.t0 = placed[0].t; replay.t1 = placed[placed.length - 1].t;
@@ -894,7 +920,8 @@ rb['rb-load'].addEventListener('click', async () => {
   const name = rb['rb-flight'].value;
   if (!name) return;
   rb['rb-time'].textContent = 'loading…';
-  try { startReplay(await loadFlight(`/flights/${name}`), name); } catch (e) { rb['rb-time'].textContent = String(e.message || e); }
+  try { const { samples, box: flightBox } = await loadFlight(`/flights/${name}`); startReplay(samples, name, undefined, undefined, flightBox); }
+  catch (e) { rb['rb-time'].textContent = String(e.message || e); }
 });
 rb['rb-save'].addEventListener('click', async () => {
   const body = JSON.stringify({ flight: replay.name, figures: replay.figures.map((fig) => ({ t0: fig.t0, t1: fig.t1, elements: fig.elements.map(describe), ...(labels[labelKey(fig)] || {}) })) }, null, 1);

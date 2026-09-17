@@ -17,10 +17,15 @@ final class FlightRecorder {
     private var sawInit = false
     private var lastInit = false
     private var buffer = Data()
+    private var boxJSON: String?      // latest aerobatic box; written as the first record of each flight file
 
     init() {
         try? FileManager.default.createDirectory(at: Self.directory, withIntermediateDirectories: true)
     }
+
+    /// The aerobatic box the pilot has set; embedded at the head of each new flight file so a reopened flight
+    /// comes back with its box.
+    func setBox(_ json: String) { queue.async { self.boxJSON = json.isEmpty ? nil : json } }
 
     func record(_ payload: Data, wall: TimeInterval) {
         let initialised = payload.count == HubListener.frameSize && (payload[1] & 0x08) != 0
@@ -57,6 +62,17 @@ final class FlightRecorder {
         handle = try? FileHandle(forWritingTo: url)
         self.url = url
         sawInit = false
+        if let boxJSON, let json = boxJSON.data(using: .utf8) {   // box record: <dH header, 0xB0 marker, JSON
+            var rec = Data(count: 10)
+            let n = 1 + json.count
+            rec.withUnsafeMutableBytes { raw in
+                raw.storeBytes(of: Double(0).bitPattern.littleEndian, toByteOffset: 0, as: UInt64.self)
+                raw.storeBytes(of: UInt16(n).littleEndian, toByteOffset: 8, as: UInt16.self)
+            }
+            rec.append(0xB0)
+            rec.append(json)
+            handle?.write(rec)
+        }
         NSLog("FlightRecorder: recording to %@", name)
     }
 
