@@ -526,7 +526,58 @@ just flew against the ideal.
 1. Run lifecycle: arm / run / stop (manual first, then auto-arm/auto-end), partial-sequence scoring, save the run.
 2. Audio-first polish: speech timing and queueing, priority phrasing, non-verbal cues, spoken end total.
 3. Between-figure replay: auto-surface the last figure with the ghost, one-tap loop, auto-clear.
-4. Robustness pass on live false-detection and latency, tuned against real flight data.
+4. Live guidance tones (§12.6) — start with the two most reliable cues (wing-low on lines, off-vertical) behind a
+   toggle, silence-heavy; expand once validated in the air.
+5. Robustness pass on live false-detection and latency, tuned against real flight data.
+
+### 12.6 Live guidance tones (in-figure feedback by ear)
+
+The idea: while a figure is being flown, **sonify the pilot's deviation from the ideal shape** so a drift is heard the
+instant it starts and corrected in the moment — the way an instructor says “watch the wing” as it sags, not after
+the figure. No words: words lag and saturate the pilot at high G. The baseline is **silence when on-shape**, so a
+clean figure is quiet and the tone only appears when the pilot drifts — and it **fades back to silence as they
+converge, grows as they diverge**, which is exactly the “am I getting it right?” signal. Pilots already fly this
+way (ILS glideslope audio, glider varios).
+
+**The mapping (two audio dimensions, no more).**
+
+- **Pitch = the primary signed shape error.** Higher pitch = “too far up” (ballooning a loop, past vertical, nose
+  high on a 45); lower pitch = “too tight / sagging” (pinching, nose falling back). On-shape sits at a centre
+  frequency that is only barely audible, or silent within a deadband.
+- **Stereo pan = wing-low / roll error.** In the Bluetooth headset the cue drifts toward the low wing (“the sound is
+  where the mistake is”). This is the “sagging a wing” case directly.
+- **Loudness / attack tracks magnitude**, and everything is zero inside a tolerance band, so small, acceptable
+  deviations stay silent. Hysteresis and smoothing keep it from chattering.
+
+**What each figure phase cues** (lines and loops are the sweet spot; rolls and spins get lighter, attitude-only cues):
+
+| Phase | Pitch (primary error) | Pan | Notes |
+| --- | --- | --- | --- |
+| Vertical up/down line | attitude − 90° (signed) | wing-low | the classic “falling off the top” is a downward pitch bend |
+| 45° up/down line | attitude − 45° | wing-low | |
+| Loop / part-loop | instantaneous radius − target radius (pinch = low, balloon = high) | wing-low | radius ≈ TAS ÷ pitch-rate, known per frame; target captured at the entry quadrant |
+| Level line | altitude drift | wing-low | |
+| Competition turn | altitude drift | bank vs target | |
+| Slow roll | flight-path sag (nose drop) | — | a rhythmic tick at the roll rate makes an uneven rate audible |
+| Spin | recovery down-line verticality only | — | mostly a discrete-event figure; little continuous shape to follow |
+
+**How it fits the rest.** The tone runs **during** the figure; the graded spoken critique still comes **at roll-out**;
+the ghost replay is the after-the-fact picture. The three never overlap — the tone ducks under speech. It is a
+per-frame read of the detector’s in-progress element (`this.current`), so it needs the detector to expose the live
+element/phase, not only closed figures. `features.js` already provides nose elevation, bank, flight-path, TAS and
+pitch rate per sample, which is everything the mappings need.
+
+**Architecture.** A `web/coach/livecue.js` module owning a small Web Audio graph (OscillatorNode → GainNode →
+StereoPannerNode → destination) with a `update(features, phase, target)` called from the live sample loop each frame;
+it sets frequency, gain and pan from the current deviation. Pure JavaScript, low latency, no native change to compute
+— but the app must keep an audio session active and routed to the headset for Web Audio (today only the speech path
+configures the session), so that’s the one native integration point to verify.
+
+**Safety and tuning (start conservative).** Silence-baseline and a generous deadband so it is quiet most of the time;
+cap at two dimensions at once; a Settings toggle plus an intensity control; validate in the air before widening the
+cue set. Open questions: does Web Audio reliably reach the Bluetooth headset from WKWebView; is the loop’s target
+radius best taken from the entry quadrant or a speed-based nominal; do pilots prefer a continuous modulated tone or
+discrete “correction blips” that quicken with error (offer both as a style setting and test).
 
 ## 11. Sources
 
