@@ -42,7 +42,7 @@ function normalize(elements) {
 function mergeElements(a, b) {
   const n = (a.samples?.length || 1) + (b.samples?.length || 1);
   return {
-    ...a, t1: b.t1, dur: b.t1 - a.t0, ip: a.ip + b.ip, iq: a.iq + b.iq, ir: a.ir + b.ir, dAz: a.dAz + b.dAz,
+    ...a, t1: b.t1, dur: b.t1 - a.t0, ip: a.ip + b.ip, iq: a.iq + b.iq, ir: a.ir + b.ir, iUp: (a.iUp || 0) + (b.iUp || 0), dAz: a.dAz + b.dAz,
     dAlt: a.dAlt + b.dAlt, altMin: Math.min(a.altMin, b.altMin), altMax: Math.max(a.altMax, b.altMax),
     nzMin: Math.min(a.nzMin, b.nzMin), nzMax: Math.max(a.nzMax, b.nzMax),
     elMean: (a.elMean * (a.samples?.length || 1) + b.elMean * (b.samples?.length || 1)) / n, el1: b.el1,
@@ -142,6 +142,11 @@ function axisError(az, ctx, expectedFromEntry) {
 }
 
 function item(pts, text, extra = {}) { return pts > 0 ? { pts: half(pts), text, ...extra } : null; }
+function meanAngle(degs) {
+  let x = 0, y = 0;
+  for (const d of degs) { x += Math.cos(d * RAD); y += Math.sin(d * RAD); }
+  return ((Math.atan2(y, x) / RAD) + 360) % 360;
+}
 
 // ---------------------------------------------------------------- templates
 
@@ -184,7 +189,7 @@ const T = {
     return { key: 'half cuban', loop, roll, lineBefore, lineAfter, exitPull, fit: 1 - Math.abs(Math.abs(loop.iq) - 225) / 180 };
   },
   spin(els) {
-    const spin = els.find((e) => e.kind === KIND.SPIN && Math.abs(e.dAz) > 200);
+    const spin = els.find((e) => e.kind === KIND.SPIN && Math.abs(e.iUp) > 200);
     if (!spin) return null;
     const i = els.indexOf(spin);
     const down = els.slice(i + 1).find((e) => e.kind === KIND.LINEV && e.elMean < 0) || null;
@@ -211,7 +216,9 @@ export function gradeFigure(fig, ctx = {}, want) {
   if (!m) return null;
   const items = [];
   const entry = fig.entry;
-  const entryAz = entry ? entry.az1 : m.els[0].az0;
+  // Entry heading from the settled part of the line before the figure (the last frames may already be moving).
+  const entryAz = entry?.samples?.length > 12 ? meanAngle(entry.samples.slice(-40, -10).map((f) => f.az)) : (entry ? entry.az1 : m.els[0].az0);
+  if (entry && entry.dur < 1.0) items.push(item(1, 'no distinct line before the figure', { detail: `${entry.dur.toFixed(1)} s level`, rule: '26.7.1', fix: 'show a horizontal line — a good second — before starting' }));
   let hz = null;
 
   // Entry line: wings level, horizontal, on axis (26.1.8, 27.6). Exit is checked per figure below.
@@ -298,7 +305,19 @@ export function gradeFigure(fig, ctx = {}, want) {
       return finish('half cuban', m, items, hz, { radii: radii.map((r) => Math.round(r)), lineBeforeM: Math.round(before), lineAfterM: Math.round(after), rollDeg: Math.round(Math.abs(m.roll.ip)) }, fig, ctx);
     }
     case 'spin': {
-      const turns = Math.abs(m.spin.dAz) / 360;
+      // Turns: whole turns from the integrated rotation about the vertical over the whole figure (the break
+      // starts rotating before the per-sample rule calls it a spin), the fraction from the heading where the
+      // rotation stopped relative to the entry heading. The gyros read ~10 % low, so the integral only picks n.
+      const lastIdx = m.els.indexOf(m.down || m.spin);
+      const iUpTotal = m.els.slice(0, lastIdx + 1).reduce((a, e) => a + (e.iUp || 0), 0);
+      const dir = Math.sign(iUpTotal || 1);
+      // Heading azimuth is meaningless with the nose near vertical, so the stop heading is read from the exit line.
+      const stopAz = exitAz;
+      const residual = ((dir * angleDiff(stopAz, entryAz)) + 360) % 360;   // 0..360 in the spin's direction
+      const target = Math.abs(iUpTotal) / 0.9;
+      let rotation = residual;
+      for (let k = 1; k <= 3; k += 1) { const c = k * 360 + residual; if (Math.abs(c - target) < Math.abs(rotation - target)) rotation = c; }
+      const turns = rotation / 360;
       const want = ctx.spinTurns ?? 1.5;
       const rotErr = (turns - want) * 360;
       if (Math.abs(rotErr) >= 90) hz = `spin stopped ${Math.round(Math.abs(rotErr))}° from the heading`;
@@ -310,8 +329,8 @@ export function gradeFigure(fig, ctx = {}, want) {
       }
       if (m.down) { const err = Math.abs(m.down.elMean) - 90; if (Math.abs(err) > 4) items.push(item(perFive(err), `down line ${Math.round(Math.abs(m.down.elMean))}°`, { rule: '27.3', fix: 'push to a true vertical after the rotation stops' })); }
       else items.push(item(1, 'no vertical down line shown', { rule: '28.24.8' }));
-      exitCheck(entryAz + want * 360);
-      return finish('spin', m, items, hz, { turns: Math.round(turns * 100) / 100, downDeg: m.down ? Math.round(Math.abs(m.down.elMean)) : null }, fig, ctx);
+      // The stop-heading error above is the exit-heading error (charged once, 26.6.2).
+      return finish('spin', m, items, hz, { turns: Math.round(turns * 100) / 100, iUpDeg: Math.round(iUpTotal), stopAz: Math.round(stopAz), downDeg: m.down ? Math.round(Math.abs(m.down.elMean)) : null }, fig, ctx);
     }
     default: return null;
   }

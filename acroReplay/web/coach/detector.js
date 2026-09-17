@@ -2,9 +2,10 @@
 // figure is built from — level flight, lines, looping segments, rolls, turns, spins, hammerhead pivots) and
 // groups them into figures: everything between two stretches of level flight.
 //
-// Thresholds were set on data16 (Christen Eagle): loops pull 12–45 °/s of pitch rate, slow rolls run
-// 100–150 °/s, the hammerhead pivot yaws 40–70 °/s below 25 kt. The Hub's gyros are low-passed at 3 Hz,
-// so peaks read ~10 % low — thresholds sit well under the real rates.
+// Thresholds were set on data16 (Christen Eagle, the Primary Known): loops pull 12–45 °/s of pitch rate,
+// slow rolls run 100–150 °/s, the 1½-turn spin yaws 40–70 °/s at 10–25 kt ground speed with the nose
+// 60–85° down. The Hub's gyros are low-passed at 3 Hz, so peaks read ~10 % low — thresholds sit well
+// under the real rates.
 import { features, angleDiff } from './features.js';
 
 export const KIND = {
@@ -13,22 +14,23 @@ export const KIND = {
 };
 
 // Minimum dwell (s) before a new raw label takes over; shorter blips stay with the current element.
-const DWELL = { level: 0.6, line45: 0.4, linev: 0.3, loop: 0.3, roll: 0.16, turn: 0.8, spin: 0.5, pivot: 0.3, other: 0.3 };
-const LEVEL_TO_CLOSE_S = 1.0;     // level flight this long ends a figure
+const DWELL = { level: 0.35, line45: 0.4, linev: 0.3, loop: 0.3, roll: 0.16, turn: 0.8, spin: 0.5, pivot: 0.3, other: 0.3 };
+const LEVEL_TO_CLOSE_S = 0.35;    // level flight this long ends a figure — Primary figures never show level mid-figure
 const MIN_FIGURE_S = 2.0;
 
 function rawKind(f, prev) {
   const ap = Math.abs(f.p), aq = Math.abs(f.q), ar = Math.abs(f.r);
   const slow = f.gs < 23;   // m/s ≈ 45 kt
-  if (ar >= 40 && f.el < -20 && f.gs < 36 && f.nz < 1.6) return KIND.SPIN;               // autorotation, nose down
-  if (slow && ar >= 25 && Math.abs(f.el) > 40) return KIND.PIVOT;                        // hammerhead turnaround
+  if (ar >= 35 && f.el < -20 && f.gs < 40 && f.nz < 1.8) return KIND.SPIN;               // autorotation, nose down
+  if (slow && ar >= 25 && f.el > 40) return KIND.PIVOT;                                  // hammerhead: yaw starts nose-up
   if (ap >= 45) return KIND.ROLL;
   // A steep level turn is mostly body pitch rate, so the turn test comes before the looping test.
   if (Number.isFinite(f.bank) && Math.abs(f.bank) >= 45 && Math.abs(f.fpa) < 20 && Math.abs(f.el) < 25) return KIND.TURN;
   if (aq >= 12) return KIND.LOOP;
   if (Math.abs(f.el) >= 72) return KIND.LINEV;
   if (Math.abs(Math.abs(f.el) - 45) <= 14) return KIND.LINE45;
-  if (Number.isFinite(f.bank) && Math.abs(f.bank) < 20 && Math.abs(f.el) < 14 && Math.abs(f.fpa) < 12 && aq < 10 && ap < 25) return KIND.LEVEL;
+  // Level is an attitude call (the flight path lags the nose after a push-over), so the path limit is loose.
+  if (Number.isFinite(f.bank) && Math.abs(f.bank) < 20 && Math.abs(f.el) < 14 && Math.abs(f.fpa) < 22 && aq < 10 && ap < 25 && ar < 15) return KIND.LEVEL;
   // Inverted level (bank ~180) counts as level for figure boundaries too.
   if (Number.isFinite(f.bank) && Math.abs(f.bank) > 160 && Math.abs(f.el) < 14 && aq < 10 && ap < 25) return KIND.LEVEL;
   return prev === KIND.LEVEL ? KIND.OTHER : (prev || KIND.OTHER);
@@ -37,7 +39,7 @@ function rawKind(f, prev) {
 function newElement(kind, f) {
   return {
     kind, t0: f.t, t1: f.t, n: 0,
-    ip: 0, iq: 0, ir: 0,              // integrated body rates, degrees
+    ip: 0, iq: 0, ir: 0, iUp: 0,      // integrated body rates and rotation about the vertical, degrees
     alt0: f.alt, alt1: f.alt, altMin: f.alt, altMax: f.alt,
     nzMin: f.nz, nzMax: f.nz,
     az0: f.az, az1: f.az, dAz: 0,     // nose azimuth change, unwrapped
@@ -53,7 +55,7 @@ function newElement(kind, f) {
 
 function accumulate(e, f, dt, prevF) {
   e.t1 = f.t; e.n += 1;
-  e.ip += f.p * dt; e.iq += f.q * dt; e.ir += f.r * dt;
+  e.ip += f.p * dt; e.iq += f.q * dt; e.ir += f.r * dt; e.iUp += f.wUp * dt;
   e.alt1 = f.alt; e.altMin = Math.min(e.altMin, f.alt); e.altMax = Math.max(e.altMax, f.alt);
   e.nzMin = Math.min(e.nzMin, f.nz); e.nzMax = Math.max(e.nzMax, f.nz);
   if (prevF) e.dAz += angleDiff(f.az, prevF.az);
@@ -73,7 +75,7 @@ export function elementSummary(e) {
   const qMean = e.qSum / n, qStd = Math.sqrt(Math.max(0, e.qSq / n - qMean * qMean));
   return {
     kind: e.kind, t0: e.t0, t1: e.t1, dur: e.t1 - e.t0,
-    ip: e.ip, iq: e.iq, ir: e.ir, dAz: e.dAz, dAlt: e.alt1 - e.alt0, altMin: e.altMin, altMax: e.altMax,
+    ip: e.ip, iq: e.iq, ir: e.ir, iUp: e.iUp, dAz: e.dAz, dAlt: e.alt1 - e.alt0, altMin: e.altMin, altMax: e.altMax,
     nzMin: e.nzMin, nzMax: e.nzMax, elMean, elStd, el0: e.el0, el1: e.el1,
     bankMean: e.bankN ? e.bankSum / e.bankN : NaN, gs0: e.gs0, gs1: e.gs1, gsMin: e.gsMin, gsMax: e.gsMax,
     pMean, pStd, qMean, qStd, inverted0: e.inverted0, inverted1: e.inverted1,
@@ -82,22 +84,24 @@ export function elementSummary(e) {
   };
 }
 
-// A hammerhead's turnaround looks like a spin to the per-sample rules (nose down, yawing, slow), and the
-// torque and pitch fragments around it come out as short rolls. Everything from the first slow yaw (and any
-// slow fragments just before it) to the down line is one PIVOT.
+// Autorotation comes out of the per-sample rules in pieces — SPIN frames with ROLL and OTHER fragments as
+// the roll and yaw rates trade off — and a hammerhead's nose-down half looks the same. Everything from the
+// first yawing element (and slow fragments just before it) to the down line is merged into one element:
+// a PIVOT when the yaw started nose-up (a hammerhead), otherwise a SPIN.
 function mergePivot(body) {
-  const yaw = body.findIndex((e) => e.kind === KIND.PIVOT || (e.kind === KIND.SPIN && e.gsMax < 30));
+  const yaw = body.findIndex((e) => e.kind === KIND.PIVOT || e.kind === KIND.SPIN);
   if (yaw < 0) return body;
+  const nosedUp = body[yaw].kind === KIND.PIVOT || body.slice(0, yaw).some((e) => e.kind === KIND.LINEV && e.elMean > 60);
   let start = yaw;
-  while (start > 0 && [KIND.ROLL, KIND.OTHER].includes(body[start - 1].kind) && body[start - 1].gsMin < 30) start -= 1;
+  while (start > 0 && [KIND.ROLL, KIND.OTHER, KIND.LOOP].includes(body[start - 1].kind) && body[start - 1].gsMin < 30 && body[start - 1].dur < 1.5) start -= 1;
   let down = body.findIndex((e, i) => i > yaw && e.kind === KIND.LINEV && e.elMean < -40);
-  if (down < 0) down = body.findIndex((e, i) => i > yaw && e.kind === KIND.LOOP && e.qMean > 0);
+  if (down < 0) down = body.findIndex((e, i) => i > yaw && e.kind === KIND.LOOP && e.qMean > 0 && e.gs0 > 25);
   if (down < 0) return body;
   const parts = body.slice(start, down);
   const sum = (k) => parts.reduce((a, e) => a + e[k], 0);
   const merged = {
-    ...parts[0], kind: KIND.PIVOT, t0: parts[0].t0, t1: parts[parts.length - 1].t1,
-    ip: sum('ip'), iq: sum('iq'), ir: sum('ir'), dAz: sum('dAz'),
+    ...parts[0], kind: nosedUp ? KIND.PIVOT : KIND.SPIN, t0: parts[0].t0, t1: parts[parts.length - 1].t1,
+    ip: sum('ip'), iq: sum('iq'), ir: sum('ir'), iUp: sum('iUp'), dAz: sum('dAz'),
     altMin: Math.min(...parts.map((e) => e.altMin)), altMax: Math.max(...parts.map((e) => e.altMax)),
     nzMin: Math.min(...parts.map((e) => e.nzMin)), nzMax: Math.max(...parts.map((e) => e.nzMax)),
     gsMin: Math.min(...parts.map((e) => e.gsMin)), gsMax: Math.max(...parts.map((e) => e.gsMax)),
@@ -216,8 +220,8 @@ export function describe(e) {
     case KIND.LINE45: return `45${e.elMean > 0 ? '↑' : '↓'} ${e.dur.toFixed(1)}s${e.inverted0 ? ' inv' : ''}`;
     case KIND.LINEV: return `vert${e.elMean > 0 ? '↑' : '↓'} ${e.dur.toFixed(1)}s`;
     case KIND.TURN: return `turn ${deg(Math.abs(e.dAz))} @${deg(Math.abs(e.bankMean))}`;
-    case KIND.SPIN: return `spin ${(Math.abs(e.dAz) / 360).toFixed(2)}t`;
-    case KIND.PIVOT: return `pivot ${deg(Math.abs(e.ir))}`;
+    case KIND.SPIN: return `spin ${(Math.abs(e.iUp) / 360).toFixed(2)}t`;
+    case KIND.PIVOT: return `pivot ${deg(Math.abs(e.iUp))}`;
     case KIND.LEVEL: return `level ${e.dur.toFixed(1)}s`;
     default: return `? ${e.dur.toFixed(1)}s`;
   }

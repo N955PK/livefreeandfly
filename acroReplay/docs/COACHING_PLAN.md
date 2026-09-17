@@ -7,8 +7,8 @@ Status 2026-09-16 (evening): first cut built and pushed — see §0. Research an
 | Piece | Where | State |
 |---|---|---|
 | Per-sample features (nose elevation/azimuth from the quaternion, bank, flight path) | `web/coach/features.js` | done |
-| Element detector (level, 45°/vertical lines, looping, roll, turn, spin, hammerhead pivot) → figures | `web/coach/detector.js` | done; tuned on data16 — all three runs come out as 45° line, hammerhead, half Cuban, loop, 180° turn, slow roll |
-| Primary templates, IAC-2025 grading, ranked critique with rule refs and corrections | `web/coach/judge.js` | done for the 6 Primary figures; spin criteria untested (no spin in data16) |
+| Element detector (level, 45°/vertical lines, looping, roll, turn, spin, hammerhead pivot) → figures | `web/coach/detector.js` | done; tuned on data16 — all three runs come out as the Primary Known: 45° line, 1½ spin, half Cuban, loop, 180° turn, slow roll. Spin turns = whole turns from rotation about the vertical + the exit-heading residual |
+| Primary templates, IAC-2025 grading, ranked critique with rule refs and corrections | `web/coach/judge.js` | done for the 6 Primary figures; data16 is three flights of the Primary Known, so every figure incl. the 1½-turn spin is exercised |
 | Correct-figure ghost + ribs | `web/coach/ghost.js` | done for all 6; shown live 20 s and in replay |
 | Replay mode (scrub, speeds, markers, Last figure / Live), 20-min history ring | `web/app.js`, `web/records.js` | done |
 | Flight files on the phone (`Documents/Flights`, Files app) and Flights list | `ios/WingRock/FlightRecorder.swift`, `WebView.swift` | done |
@@ -19,7 +19,7 @@ Status 2026-09-16 (evening): first cut built and pushed — see §0. Research an
 | Deviation tint on the flown trail, tap-a-rib numbers | — | not started |
 
 Bridge dev routes: `/flights/` lists `sessions/*.bin`, `/flights/<name>` serves one, `POST /dev/labels/<name>`
-stores labels. Browser: `http://localhost:8645/?flight=data16_udp2000.bin` loads the flight into replay.
+stores labels. Browser: `http://localhost:8645/?flight=data16_udp2000.bin` loads the flight into replay; `sessions/data16_primary1.bin` is the first sequence alone (87 s) for the fake Hub and quick tests.
 
 ## 1. What we are building
 

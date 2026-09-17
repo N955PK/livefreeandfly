@@ -7,6 +7,7 @@ const KT_TO_MPS = 0.514444;
 const FPM_TO_MPS = 0.00508;
 const nose = new THREE.Vector3();
 const right = new THREE.Vector3();
+const down = new THREE.Vector3();
 const q = new THREE.Quaternion();
 
 /// `s` is a sample with hdg/pitch/roll/nz/gs/trk/vs/alt/rates and quat [x,y,z,w].
@@ -15,6 +16,10 @@ export function features(s) {
   q.set(s.quat[0], s.quat[1], s.quat[2], s.quat[3]);
   nose.set(1, 0, 0).applyQuaternion(q);      // body x → world (x east, y up, z south)
   right.set(0, 1, 0).applyQuaternion(q);     // body y (right wing)
+  down.set(0, 0, 1).applyQuaternion(q);      // body z (belly)
+  // Body angular rate projected on the world vertical: rotation about the vertical axis in °/s, the honest
+  // measure of spin turns and turn rate when the nose is far from the horizon.
+  const wUp = s.rates[0] * nose.y + s.rates[1] * right.y + s.rates[2] * down.y;
   const el = Math.asin(THREE.MathUtils.clamp(nose.y, -1, 1)) * RAD;          // nose elevation above the horizon
   const az = ((Math.atan2(nose.x, -nose.z) * RAD) + 360) % 360;              // nose azimuth, degrees true
   // Bank as the judge sees it: the right wing's dip below the horizon; near-vertical noses make it meaningless.
@@ -24,7 +29,7 @@ export function features(s) {
   const fpa = Number.isFinite(s.fpa) ? s.fpa : Math.atan2(vs, Math.max(gs, 0.1)) * RAD;
   return {
     t: s.t, el, az, bank, fpa, trk: s.trk, gs, tas: Math.hypot(gs, vs),
-    p: s.rates[0], q: s.rates[1], r: s.rates[2], nz: s.nz, alt: s.alt,
+    p: s.rates[0], q: s.rates[1], r: s.rates[2], wUp, nz: s.nz, alt: s.alt,
     inverted: Number.isFinite(bank) && Math.abs(bank) > 135,
     roll: s.roll, hdg: s.hdg,
   };
