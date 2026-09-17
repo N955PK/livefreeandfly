@@ -14,7 +14,7 @@ const M_TO_FT = 3.28084;
 export const PRIMARY = ['45 up line', 'spin', 'half cuban', 'loop', '180 turn', 'slow roll'];
 /// The IAC Primary Known in flying order with figure K (OpenAero, IAC 2025 rules); 58 K total.
 export const PRIMARY_KNOWN = [
-  { type: '45 up line', k: 7 }, { type: 'spin', k: 13 }, { type: 'half cuban', k: 14 },
+  { type: '45 up line', k: 7 }, { type: 'spin', k: 13, turns: 1.5 }, { type: 'half cuban', k: 14 },
   { type: 'loop', k: 10 }, { type: '180 turn', k: 4 }, { type: 'slow roll', k: 10 },
 ];
 

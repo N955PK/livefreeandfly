@@ -59,6 +59,7 @@ button:active { transform: scale(.97); }
 .seg button { padding: 9px 15px; border-radius: 999px; background: transparent; font-weight: 600; font-size: 15px; }
 .seg button.on { background: var(--accent); }
 .tool { padding: 11px 15px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-weight: 600; font-size: 15px; }
+.tool.on { background: var(--accent); border-color: transparent; color: #fff; }
 #zoom { position: fixed; right: calc(var(--safe-r) + 12px); bottom: calc(var(--safe-b) + 84px); display: flex; flex-direction: column; gap: 10px; }
 .round { width: 46px; height: 46px; border-radius: 50%; background: var(--glass); border: 1px solid var(--glass-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font-size: 24px; line-height: 1; }
 
@@ -70,6 +71,10 @@ button:active { transform: scale(.97); }
 .ptabs { display: flex; padding: 3px; border-radius: 12px; background: var(--field); margin-bottom: 12px; }
 .ptab { flex: 1; padding: 8px 10px; border-radius: 9px; background: transparent; font-weight: 600; font-size: 14px; color: var(--muted); }
 .ptab.on { background: var(--accent); color: var(--text); }
+.subtabs { background: transparent; padding: 0; gap: 6px; margin-bottom: 10px; }
+.subtabs .ptab { padding: 6px 8px; font-size: 13px; border-radius: 9px; background: var(--field); color: var(--muted); }
+.subtabs .ptab.on { background: rgba(35,149,231,.26); color: var(--text); }
+.ppane > h3:first-child { margin-top: 2px; }
 h3 { margin: 16px 0 8px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 .hint { margin: 0 0 10px; font-size: 13px; line-height: 1.4; color: var(--muted); }
 .hint:empty { display: none; }

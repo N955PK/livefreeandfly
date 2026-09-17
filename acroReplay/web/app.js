@@ -214,10 +214,18 @@ function rebuildBox() {
     info.textContent = 'No box set. Set it from the aircraft in flight, or from the judges\' position on the ground.';
   }
 }
-document.querySelectorAll('.ptab').forEach((tab) => tab.addEventListener('click', () => {
-  document.querySelectorAll('.ptab').forEach((b) => b.classList.toggle('on', b === tab));
+// Box placement sub-tabs (From aircraft / From judges)
+document.querySelectorAll('.ptab[data-mode]').forEach((tab) => tab.addEventListener('click', () => {
+  document.querySelectorAll('.ptab[data-mode]').forEach((b) => b.classList.toggle('on', b === tab));
   document.getElementById('mode-aircraft').classList.toggle('hidden', tab.dataset.mode !== 'aircraft');
   document.getElementById('mode-judges').classList.toggle('hidden', tab.dataset.mode !== 'judges');
+}));
+// Top-level panel tabs: Box vs Settings
+document.querySelectorAll('.ptab[data-panel]').forEach((tab) => tab.addEventListener('click', () => {
+  document.querySelectorAll('.ptab[data-panel]').forEach((b) => b.classList.toggle('on', b === tab));
+  document.getElementById('panel-box').classList.toggle('hidden', tab.dataset.panel !== 'box');
+  document.getElementById('panel-settings').classList.toggle('hidden', tab.dataset.panel !== 'settings');
+  document.getElementById('panel-title').textContent = tab.dataset.panel === 'settings' ? 'Settings' : 'Box';
 }));
 function judgesFromPhone() {
   const msg = document.getElementById('j-msg');
@@ -917,7 +925,8 @@ function gradeForMode(fig) {
   if (coachMode !== 'sequence') return matchFigure(fig, coachMode) ? gradeFigure(fig, coachContext(), coachMode) : null;
   const expected = PRIMARY_KNOWN[seq.index];
   if (!expected) return gradeFigure(fig, coachContext());
-  const g = matchFigure(fig, expected.type) ? gradeFigure(fig, { ...coachContext(), spinTurns: 1.5 }, expected.type) : null;
+  const seqCtx = { ...coachContext(), ...(Number.isFinite(expected.turns) ? { spinTurns: expected.turns } : {}) };
+  const g = matchFigure(fig, expected.type) ? gradeFigure(fig, seqCtx, expected.type) : null;
   if (g) {
     g.seq = { n: seq.index + 1, of: PRIMARY_KNOWN.length, k: expected.k };
     seq.scores.push({ type: g.type, score: g.hz ? 0 : g.score, k: expected.k });
@@ -966,7 +975,7 @@ function showCoach(g) {
 function setCoachShow(on) {
   coachShow = on;
   setItem('acroReplay.coachShow', on ? 'on' : 'off');
-  document.getElementById('coach-toggle').classList.toggle('on', on);
+  for (const id of ['coach-toggle', 'rb-coach']) document.getElementById(id).classList.toggle('on', on);
   if (on && lastGrade) { renderCoach(lastGrade); coachCard.classList.remove('hidden'); }
   else if (!on) coachCard.classList.add('hidden');
 }
@@ -994,8 +1003,10 @@ spinTurnsInput.addEventListener('change', (e) => {
   const v = Math.max(0.25, Math.round(Number(e.target.value) * 4) / 4) || 1.5;   // quarter-turn granularity
   spinTurns = v; e.target.value = v; setItem('acroReplay.spinTurns', String(v)); regradeReplay();
 });
-document.getElementById('coach-toggle').classList.toggle('on', coachShow);
-document.getElementById('coach-toggle').addEventListener('click', () => setCoachShow(!coachShow));
+for (const id of ['coach-toggle', 'rb-coach']) {
+  document.getElementById(id).classList.toggle('on', coachShow);
+  document.getElementById(id).addEventListener('click', () => setCoachShow(!coachShow));
+}
 document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
   btn.classList.toggle('on', btn.dataset.voice === coachVoice);
   btn.addEventListener('click', () => { coachVoice = btn.dataset.voice; setItem('acroReplay.voice', coachVoice); document.querySelectorAll('#voice [data-voice]').forEach((b) => b.classList.toggle('on', b === btn)); });
