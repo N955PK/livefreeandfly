@@ -123,6 +123,9 @@ isn't reachable; its changes are assumed minor and are not tracked.
 | Square/diamond/octagon loops | equal lines, equal radii, driven by wind (not closed); overshoot-and-correct at corners 1 pt/5° | B.9.11 |
 | Horizontal / vertical S and 8s | matching radii of the big loops; 45s at exactly 45°; extremities at entry altitude | B.9.13–17 |
 
+Worked grades for each Primary figure, the rulebook's own examples and the IAC judges' exam scenarios are in
+[SCORING_EXAMPLES.md](SCORING_EXAMPLES.md).
+
 Practical notes from judges' training material (British Aerobatics judging pages, IAC "In the Loop" series):
 "pinched" tops, "L-shaped" loops (vertical diameter > horizontal), egg-shaped, "e-shaped" last quadrant; shallow
 45s are the most common Sportsman error and look far steeper from the cockpit than they are; half-Cuban roll
@@ -228,7 +231,9 @@ for its automated judging, so it is the right unit for scoring.
   generate an ideal template for the schedule → align flown data to the template (dynamic time warping; their
   repo shows DTW alignment plots) → measure each element → deterministic downgrades → score. Paper: "Enabling the
   Automated Assessment of Precision Aerobatic Manoeuvres" (AIAA SciTech 2022). Licence has business-use
-  restrictions — treat as reference design, not a dependency.
+  restrictions — treat as reference design, not a dependency. Their FCScore documentation publishes the
+  **IAC downgrade table** (per element: LINE, LOOP, SPIN, SNAP, STALLTURN, TAILSLIDE — which quantity is measured,
+  over which part of the element, with which criterion class), a ready checklist for §2.4.
 - **OpenAero** (GPL-3, JS): Aresti catalogue, OLAN parser, per-federation rules files (`data/rules/rules-iac.js`
   encodes IAC Sportsman Free K ≤ 128 with ≤ 12 base figures, etc.). Use it for the catalogue/OLAN parsing in
   sequence mode, isolated so the GPL stays contained.
