@@ -15,7 +15,7 @@ Status 2026-09-16 (evening): first cut built and pushed — see §0. Research an
 | Labelling list (type, grade, notes per detected figure) → `docs/private/labels_<flight>.json` via the bridge | Figures list in the replay bar | done; awaiting Sean's grades on data16 |
 | Coach card + spoken critique (AVSpeechSynthesizer / Web Speech), voice and speak settings | `WebView.swift`, `app.js` | done |
 | Coach figure setting: any / one armed figure / Primary Known sequence with K-weighted total | Box → Settings | done |
-| In-figure live cues (C5) | — | not started |
+| In-figure live cues (C5) | `web/coach/livecue.js` | engine built and tuned (Web Audio graph, Off/Constant/Blip + volume + Test in Settings); **nothing drives it in flight yet** — no `liveCue.update()` call, so today it only sounds on Test. Wiring plan in §12.7 |
 | Deviation tint on the flown trail, tap-a-rib numbers | — | not started |
 
 Bridge dev routes: `/flights/` lists `sessions/*.bin`, `/flights/<name>` serves one, `POST /dev/labels/<name>`
@@ -574,11 +574,13 @@ per-frame read of the detector’s in-progress element (`this.current`), so it n
 element/phase, not only closed figures. `features.js` already provides nose elevation, bank, flight-path, TAS and
 pitch rate per sample, which is everything the mappings need.
 
-**Architecture.** A `web/coach/livecue.js` module owning a small Web Audio graph (OscillatorNode → GainNode →
-StereoPannerNode → destination) with a `update(features, phase, target)` called from the live sample loop each frame;
-it sets frequency, gain and pan from the current deviation. Pure JavaScript, low latency, no native change to compute
-— but the app must keep an audio session active and routed to the headset for Web Audio (today only the speech path
-configures the session), so that’s the one native integration point to verify.
+**Architecture.** `web/coach/livecue.js` owns the Web Audio graph (oscillator → envelope → stereo panner →
+compressor → master) and is **built and tuned**. Its live interface is `update(shape, bank)` — a signed shape error
+in degrees and a signed bank in degrees — from which it derives pitch (±2 octaves over 30°), stereo pan (bank/45°)
+and blip cadence (shape only), silent inside a deadband. The remaining work is the per-frame code that turns the
+detector's in-progress element into that `(shape, bank)` pair and calls `update()`; that build is planned in §12.7.
+The audio session is already configured (`.playback`, `allowBluetoothA2DP` in `WebView.swift`), so the one thing left
+to verify natively is that a *continuous* Web Audio tone routes to the Bluetooth headset as cleanly as the speech does.
 
 **Setting (independent of the spoken critique).** A dedicated **Live cue** control in Settings with three states —
 **Off / Constant / Blip**. *Constant* is the continuous modulated tone described above; *Blip* is discrete correction
@@ -592,6 +594,101 @@ score with the live cue off).
 cap at two dimensions at once; add an intensity control alongside the Off/Constant/Blip choice; validate in the air
 before widening the cue set. Open questions: does Web Audio reliably reach the Bluetooth headset from WKWebView, and
 is the loop’s target radius best taken from the entry quadrant or a speed-based nominal.
+
+### 12.7 Live cue — build plan (lines → loops → rolls)
+
+The tone engine and its settings are done; what is missing is the per-frame driver that reads *what the pilot is
+flying right now* and feeds `liveCue.update(shape, bank)`. This is staged by element kind — lines first (cheap and
+highest value), then loops (needs a roundness model), then rolls (a different mapping) — because "ideal shape" is
+trivial for a line and a modelling exercise for a loop, and doing all figures at once is a rabbit hole.
+
+**The interface it hangs off (already present).** The live detector keeps `this.current`, the in-progress element,
+with its `kind` (one of `LEVEL / LINE45 / LINEV / LOOP / ROLL / TURN / SPIN / PIVOT / OTHER`), its start attitude
+(`el0`, `bank0`, `az0`), integrated pitch `iq` and azimuth sweep `dAz`, and `gsMin/Max`. `features.js` gives, per
+frame, nose elevation `el`, azimuth `az`, horizon bank `bank` (NaN above ~80° nose, i.e. near vertical), flight-path
+`fpa`, body roll `roll`, pitch rate `q`, and true airspeed `tas`. So each frame already knows the element and the
+instantaneous attitude — no detector rework, only a small read of `current` plus the frame's features.
+
+**Where it runs.** A new pure module `web/coach/cuemap.js` exports `cueDrive(kind, f, st) → { shape, bank, active }`,
+where `st` is per-element reference state (the target captured when the element began). It is called from `onSample`
+right after `liveDetector.push(s)`, gated on cue mode ≠ off **and** a live feed (`body.live`) **and** a cue-able
+element; when it returns `active:false` (or the cue is off) the driver calls `liveCue.update(0, 0)` so the tone falls
+into its deadband and goes silent. The detector exposes the feature it just computed (`this.lastF`) so `cuemap` reads
+the same values the detector labelled on, rather than recomputing `features(s)`. The engine itself is untouched.
+
+**Sign conventions (stated once, confirmed against a recorded flight before trusting them).** `shape > 0` = nose
+high / ballooning / past the target angle → higher pitch; `shape < 0` = short / sagging / pinched → lower pitch.
+`bank > 0` = right wing low → pan right. `roll`'s sign (does +roll mean right-wing-down?) is verified on data16 in
+Phase A and reused everywhere.
+
+**Phase A — lines (`LINEV`, `LINE45`).** The sweet spot: the target is a fixed drawn angle, the error is one
+subtraction, and line-angle and wing-drift are exactly what a pilot cannot feel without a reference. Lines are judged
+on *attitude* (the drawn/zero-lift line), so use `el`, not flight path.
+
+| Element | `shape` (→ pitch) | `bank` (→ pan) | Notes |
+| --- | --- | --- | --- |
+| `LINEV` | `el − sign(el)·90` | `roll` | `bank` is NaN near vertical, so pan uses body `roll` (which reads a dragged wing directly); "falling off the top" is `el < 90` → negative → lower pitch |
+| `LINE45` | `el − sign(el)·45` | `roll` | shallow on a down-45 reads nose-high vs the line → positive, which is correct |
+
+The target angle is snapped from the element's `el0` at entry (nearest of ±45/±90) and held for the element, so a
+line that drifts is measured against where it started, not a moving nearest-angle. `LEVEL` is excluded in v1 (it is
+the between-figure cruise and would nag); the engine's 3° deadband keeps small, acceptable errors silent. Exit
+criterion: replay data16 and confirm the cue is quiet on the clean up-45 and only rises where Sean's grade marks a
+line fault, then an in-air pass.
+
+**Phase B — loops / part-loops (`LOOP`).** Roundness is the fault. Instantaneous radius `R = tas / ω`, with
+`ω = q·π/180` (rad/s); the `LOOP` label requires `q ≥ 12°/s`, so the denominator is always safely away from zero.
+The target radius `R*` is **captured over the first quadrant** — the median `R` from element start until `|iq|`
+reaches 90° — on the theory that a loop's size is set at the pull and the fault is failing to hold it. Before the
+first quadrant closes there is no target, so the cue stays silent. Then:
+
+- `shape = clamp( 30 · (R/R* − 1) / RADIUS_TOL , ±30 )` — a pinch (`R < R*`) reads negative → lower pitch, a balloon
+  positive → higher pitch (matching §12.6). `RADIUS_TOL` (fraction of `R*` that counts as full-scale, ≈ 0.35–0.45) is
+  the one tuning knob; it converts the metres-scale radius error into the engine's ±30° "degrees" convention.
+- `bank`: use horizon `bank` on the sides of the loop and fall back to `roll` where `|el| > 80` (top and bottom,
+  where `bank` is NaN).
+
+Open tuning: entry-quadrant `R*` vs a speed-based nominal, and `RADIUS_TOL`. Exit criterion: on data16's loop the
+trace should sit near silence through a round quarter and swing on a deliberately pinched top.
+
+**Phase C — rolls (`ROLL`) and the spin down-line.** Bank sweeps by design, so the pan-toward-the-low-wing mapping is
+wrong here; the roll cue is pitch-only:
+
+- `shape = el − el0` (flight-path/attitude sag from the line the roll started on) → the classic slow-roll nose-drop
+  going inverted reads negative → lower pitch. `bank = 0` (no pan during a roll).
+- A **rate tick** — a blip locked to the roll rate so an uneven rate is audible — is a genuinely different audio path
+  (cadence today is shape-driven, not rate-driven) and is deferred as a research extension, not part of the first
+  roll cut.
+- **Spins** need no special handling: the only continuous shape to follow is the recovery down-line, which Phase A
+  already cues as a `LINEV` once the spin transitions out of autorotation.
+
+**Cross-cutting.**
+- *Per-element state* (`st`) resets whenever `current`'s identity changes (new element): re-snap the line target,
+  re-arm the loop first-quadrant capture, re-latch `el0` for a roll.
+- *Smoothing / anti-chatter* is already handled — the engine ramps parameters (~40 ms), the detector's `DWELL`
+  keeps brief label flickers from switching the element, and the gyros are 3 Hz low-passed. No extra filtering
+  should be needed; if it chatters at element boundaries, widen `DWELL` for the cue, don't filter the audio.
+- *Replay* driving the cue (hear a past flight's deviations while scrubbing) is a useful validation aid and an
+  optional later toggle; v1 is live-and-Test only.
+- *Debug hook*: `window.wingrock.cue` dumps the current `{kind, shape, bank, active}` so the mapping can be watched
+  frame-by-frame in the browser against a replayed flight.
+- *Native audio*: the session is `.playback` / `.spokenAudio` / `allowBluetoothA2DP`. `.spokenAudio` mode is tuned
+  for speech; verify a continuous oscillator routes to the Bluetooth headset and is not oddly ducked, and switch the
+  mode to `.default` if the tone sounds wrong. This is the only native touch and is verify-only unless it misbehaves.
+
+**Build order and exit criteria.** Ship each phase before starting the next; each is: write the `cuemap` case →
+validate offline by replaying data16 (silent on clean segments, rises on the known faults, cross-checked against
+Sean's grades) → verify the audio routes to the headset → fly it. Phase A alone turns the blips from silent to
+useful on the lines in every Primary figure and shakes out all the plumbing (reading `current`, gating, the
+`update()` call, the audio-session check). B and C reuse that plumbing unchanged.
+
+**Consolidated open questions.**
+1. Line targets: apply a fixed zero-lift-axis offset (a few degrees below the nose on the Eagle), or use raw `el`?
+2. Loop target radius: entry-quadrant median vs speed-based nominal; value of `RADIUS_TOL`.
+3. Confirm `roll` sign and that pan-off on rolls (no pan) feels right in the air.
+4. Is the shape-locked blip cadence enough for rolls, or is the rate tick worth building?
+5. Does the current `.spokenAudio` session route a continuous tone to the headset cleanly?
+6. Should the cue also run in replay for post-flight review?
 
 ## 11. Sources
 
