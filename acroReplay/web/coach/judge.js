@@ -218,6 +218,9 @@ export function gradeFigure(fig, ctx = {}, want) {
   const entry = fig.entry;
   // Entry heading from the settled part of the line before the figure (the last frames may already be moving).
   const entryAz = entry?.samples?.length > 12 ? meanAngle(entry.samples.slice(-40, -10).map((f) => f.az)) : (entry ? entry.az1 : m.els[0].az0);
+  // Direction of travel into the figure (ground track of the settled entry line), for figures graded by where
+  // the aircraft flew rather than where its nose pointed.
+  const entryTrk = entry?.samples?.length > 12 ? meanAngle(entry.samples.slice(-40, -10).map((f) => f.trk)) : NaN;
   if (entry && entry.dur < 1.0) items.push(item(1, 'no distinct line before the figure', { detail: `${entry.dur.toFixed(1)} s level`, rule: '26.7.1', fix: 'show a horizontal line — a good second — before starting' }));
   let hz = null;
 
@@ -311,9 +314,13 @@ export function gradeFigure(fig, ctx = {}, want) {
       const lastIdx = m.els.indexOf(m.down || m.spin);
       const iUpTotal = m.els.slice(0, lastIdx + 1).reduce((a, e) => a + (e.iUp || 0), 0);
       const dir = Math.sign(iUpTotal || 1);
-      // Heading azimuth is meaningless with the nose near vertical, so the stop heading is read from the exit line.
-      const stopAz = exitAz;
-      const residual = ((dir * angleDiff(stopAz, entryAz)) + 360) % 360;   // 0..360 in the spin's direction
+      // Direction of travel, not nose heading, defines the spin's entry and exit direction: the nose azimuth is
+      // meaningless near the vertical, and a crabbed entry/exit line points the nose off the line it flies. The
+      // turn count stays the aircraft's own heading rotation (iUpTotal); the residual is how far the exit direction
+      // of travel came round from the entry direction (28.24.6 — a 1.5-turn spin flies out 180° reversed).
+      const dirIn = Number.isFinite(entryTrk) ? entryTrk : entryAz;
+      const dirOut = Number.isFinite(fig.exitTrk) ? fig.exitTrk : exitAz;
+      const residual = ((dir * angleDiff(dirOut, dirIn)) + 360) % 360;   // 0..360 in the spin's direction
       const target = Math.abs(iUpTotal) / 0.9;
       let rotation = residual;
       for (let k = 1; k <= 3; k += 1) { const c = k * 360 + residual; if (Math.abs(c - target) < Math.abs(rotation - target)) rotation = c; }
@@ -330,7 +337,7 @@ export function gradeFigure(fig, ctx = {}, want) {
       if (m.down) { const err = Math.abs(m.down.elMean) - 90; if (Math.abs(err) > 4) items.push(item(perFive(err), `down line ${Math.round(Math.abs(m.down.elMean))}°`, { rule: '27.3', fix: 'push to a true vertical after the rotation stops' })); }
       else items.push(item(1, 'no vertical down line shown', { rule: '28.24.8' }));
       // The stop-heading error above is the exit-heading error (charged once, 26.6.2).
-      return finish('spin', m, items, hz, { turns: Math.round(turns * 100) / 100, iUpDeg: Math.round(iUpTotal), entryAz: Math.round(entryAz), exitAz: Math.round(stopAz), residual: Math.round(residual), want, downDeg: m.down ? Math.round(Math.abs(m.down.elMean)) : null }, fig, ctx);
+      return finish('spin', m, items, hz, { turns: Math.round(turns * 100) / 100, iUpDeg: Math.round(iUpTotal), entryTrk: Math.round(dirIn), exitTrk: Math.round(dirOut), residual: Math.round(residual), want, downDeg: m.down ? Math.round(Math.abs(m.down.elMean)) : null }, fig, ctx);
     }
     default: return null;
   }

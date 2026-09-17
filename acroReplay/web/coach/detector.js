@@ -192,6 +192,9 @@ export class Detector {
     // Exit heading: the settled part of the level line after the figure, not the first frames of the roll-out.
     const exitSamples = (this.current?.samples || []).slice(3, 20);
     figure.exitAz = exitSamples.length ? meanAngle(exitSamples.map((f) => f.az)) : (this.current ? this.current.az0 : NaN);
+    // Direction of travel out of the figure (ground track), for figures graded by where the aircraft flew, not
+    // where its nose pointed (spins near the vertical, crabbed lines).
+    figure.exitTrk = exitSamples.length ? meanAngle(exitSamples.map((f) => f.trk)) : NaN;
     this.figures.push(figure);
     if (this.onFigure) this.onFigure(figure);
     return figure;

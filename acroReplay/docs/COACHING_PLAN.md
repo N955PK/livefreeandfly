@@ -64,6 +64,26 @@ differences (to confirm, see Q2). Everything below is from Appendix B and Rule 4
 
 ### 2.2 Attitude vs flight path — the rule the software must get right
 
+**Direction reference (Sean's mental model, 2026-09-16, reconciled with the rules).** Every figure is set out along
+the box's main axis: the pilot flies line figures *parallel to the box, back and forth*, reversing 180° each pass, and
+the intended direction of travel is that axis (B.6.1.1 — entry and exit longitudinal axis must lie on the main or
+secondary box axis). "Measured by direction of travel, which aligns with the aircraft heading where appropriate" is
+right with two caveats the software has to respect:
+
+- **Azimuth is graded on the nose, not the ground track.** A crab off the axis is 1 pt/5° (B.7.1.5); drifting
+  *sideways* with the nose on the axis is free (B.7.1.6). Heading and ground track only coincide with no crosswind, so
+  for level/line figures the coach charges the aircraft heading against the box axis, and treats pure wind drift as
+  free — it does not penalise ground-track drift.
+- **Near the vertical the nose azimuth is meaningless, so direction of travel is read from the ground track** of the
+  settled entry/exit lines (spins, hammerheads, up/down verticals). The figure's rotation is then graded as the
+  aircraft heading swinging relative to that travel direction — e.g. a 1½-turn spin flies out on a track reversed 180°
+  from entry, and the turn count is the heading's rotation about the vertical (28.24.6). Implemented: the spin grader
+  takes entry/exit direction from `trk`, the turn count from the integrated yaw rate.
+
+The vertical/45 *attitude* criterion below (ZLA) is the pitch component and is judged separately from this azimuth
+reference.
+
+
 - **Horizontal lines and all looping segments are judged on the flight path** (the CG track, "CGT"), never on
   attitude (B.3.1, B.8.1.1, B.8.2.1).
 - **Vertical and 45° lines are judged on attitude**, specifically the **zero-lift axis (ZLA)**: the body attitude at

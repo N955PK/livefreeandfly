@@ -151,8 +151,8 @@ body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
   #controls { gap: 4px; padding: 0 6px; }
   #controls .seg { padding: 2px; }
   #replaybar { padding: 10px 12px; }
-  .lrow { grid-template-columns: 30px 5ch minmax(0, 1fr) 10ch 6ch; }
-  .lrow .lnotes { display: none; }
+  .lrow { grid-template-columns: 30px 4.5ch minmax(0, 1fr) 8.5ch 5.5ch; row-gap: 4px; }
+  .lrow .lnotes { grid-column: 1 / -1; }
 }
 body.replaying #zoom { bottom: calc(var(--safe-b) + 200px); }
 

@@ -756,6 +756,12 @@ function startReplay(samples, name, at, figures, flightBox) {
   applyScene();
   updateCamera();
 }
+function regradeReplay() {
+  if (!replay.active) return;   // the live coach path re-grades on the next figure on its own
+  for (const fig of replay.figures) fig.grade = gradeFigure(fig, coachContext());
+  replay.lastShown = -1;   // force the frame loop to refresh the card and ghost with the new grades
+  renderMarks(); renderList();
+}
 function stopReplay() {
   replay.active = false; setPlaying(false);
   clearGhost();
@@ -822,7 +828,8 @@ let coachShow = getItem('acroReplay.coachShow') !== 'off';   // the scoring box 
 let lastGrade = null;
 let coachVoice = getItem('acroReplay.voice') || 'aircraft';
 let coachSpeak = (getItem('acroReplay.speak') || 'on') === 'on';
-function coachContext() { return { axisDeg: boxGroup ? boxGroup.userData.headingDeg : NaN }; }
+let spinTurns = Number(getItem('acroReplay.spinTurns')) || 1.5;   // expected spin rotation, user-set; the Primary Known spin is fixed at 1.5
+function coachContext() { return { axisDeg: boxGroup ? boxGroup.userData.headingDeg : NaN, spinTurns }; }
 // The correct-figure ghost: white line for the ideal path, thin ribs from the flown path to it.
 const ghostMat = new LineMaterial({ color: 0xffffff, linewidth: 4, worldUnits: false, transparent: true, opacity: 0.75 });
 const ribMat = new LineMaterial({ color: 0xffffff, linewidth: 1.5, worldUnits: false, transparent: true, opacity: 0.35 });
@@ -863,7 +870,7 @@ function gradeForMode(fig) {
   if (coachMode !== 'sequence') return matchFigure(fig, coachMode) ? gradeFigure(fig, coachContext(), coachMode) : null;
   const expected = PRIMARY_KNOWN[seq.index];
   if (!expected) return gradeFigure(fig, coachContext());
-  const g = matchFigure(fig, expected.type) ? gradeFigure(fig, coachContext(), expected.type) : null;
+  const g = matchFigure(fig, expected.type) ? gradeFigure(fig, { ...coachContext(), spinTurns: 1.5 }, expected.type) : null;
   if (g) {
     g.seq = { n: seq.index + 1, of: PRIMARY_KNOWN.length, k: expected.k };
     seq.scores.push({ type: g.type, score: g.hz ? 0 : g.score, k: expected.k });
@@ -920,6 +927,12 @@ function onFigureDetected(fig, source) {
 document.getElementById('coach-figure').value = coachMode;
 document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); });
 document.getElementById('coach-restart').addEventListener('click', resetSequence);
+const spinTurnsInput = document.getElementById('spin-turns');
+spinTurnsInput.value = spinTurns;
+spinTurnsInput.addEventListener('change', (e) => {
+  const v = Math.max(0.25, Math.round(Number(e.target.value) * 4) / 4) || 1.5;   // quarter-turn granularity
+  spinTurns = v; e.target.value = v; setItem('acroReplay.spinTurns', String(v)); regradeReplay();
+});
 document.getElementById('coach-toggle').classList.toggle('on', coachShow);
 document.getElementById('coach-toggle').addEventListener('click', () => setCoachShow(!coachShow));
 document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
