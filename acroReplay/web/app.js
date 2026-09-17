@@ -644,7 +644,7 @@ function poseAt(t) {
 
 // Replay: scrub through a loaded flight file or the live history; the detector's figures become markers on
 // the bar and rows in the label list. Times are Hub seconds (sample.t).
-const replay = { active: false, playing: false, speed: 1, samples: [], cursor: 0, t0: 0, t1: 0, current: null, figures: [], name: '', lastNow: 0 };
+const replay = { active: false, playing: false, speed: 1, samples: [], cursor: 0, t0: 0, t1: 0, current: null, figures: [], name: '', lastNow: 0, loop: null };
 const rb = Object.fromEntries(['replaybar', 'rb-play', 'rb-scrub', 'rb-time', 'rb-speed', 'rb-live', 'rb-marks', 'rb-flight', 'rb-load', 'rb-last', 'rb-list', 'rb-toggle-list', 'rb-save']
   .map((id) => [id, document.getElementById(id)]));
 const FIGURE_TYPES = ['loop', 'spin', 'half cuban', '45 up line', '180 turn', 'slow roll', 'immelmann', 'hammerhead', 'split-s', 'humpty', 'other'];
@@ -659,18 +659,24 @@ function replayIndex(t) {
 function replayTick(now) {
   if (replay.playing) {
     replay.cursor += ((now - replay.lastNow) / 1000) * replay.speed;
-    if (replay.cursor >= replay.t1) { replay.cursor = replay.t1; setPlaying(false); }
+    const end = replay.loop ? replay.loop.t1 + 1.2 : replay.t1;
+    if (replay.cursor >= end) {
+      if (replay.loop) { replay.cursor = replay.loop.t0; clearTrail(); }   // loop this figure, trail from scratch
+      else { replay.cursor = replay.t1; setPlaying(false); }
+    }
   }
   replay.lastNow = now;
-  if (replay.playing) {
-    const k = replay.figures.findIndex((fig) => replay.cursor >= fig.t1 + 0.3 && replay.cursor < fig.t1 + 1.5);
-    if (k >= 0 && k !== replay.lastShown) { replay.lastShown = k; if (replay.figures[k].grade) showCoach(replay.figures[k].grade); }
+  // Show the figure's name, score and ghost from the moment the cursor reaches its entry (t0), and hold them
+  // through the figure and a couple of seconds after, so you watch the figure knowing what it scored.
+  const k = replay.figures.findIndex((fig) => fig.grade && replay.cursor >= fig.t0 - 0.5 && replay.cursor <= fig.t1 + 2.5);
+  if (k >= 0) {
+    if (k !== replay.lastShown) { replay.lastShown = k; showCoach(replay.figures[k].grade); highlightRow(k); }
+    showGhost(replay.figures[k], replay.samples);
+  } else {
+    replay.lastShown = -1;
+    if (ghostFor) clearGhost();
+    if (coachHideAt === 0) coachCard.classList.add('hidden');
   }
-  // Ghost for the figure under the cursor, else the one that just finished.
-  const inside = replay.figures.find((fig) => fig.grade && replay.cursor >= fig.t0 - 2 && replay.cursor <= fig.t1);
-  const recent = [...replay.figures].reverse().find((fig) => fig.grade && replay.cursor > fig.t1 && replay.cursor <= fig.t1 + 12);
-  const near = inside || recent;
-  if (near) showGhost(near, replay.samples); else if (ghostFor) clearGhost();
   const a = replay.samples;
   if (!a.length) return null;
   const i = Math.min(a.length - 1, replayIndex(replay.cursor));
@@ -689,7 +695,8 @@ function seekTo(t, refillTrail = true) {
   replay.lastNow = performance.now();
   if (!refillTrail) return;
   clearTrail();
-  const from = replayIndex(replay.cursor - 40), to = replayIndex(replay.cursor);
+  const lower = replay.loop ? Math.max(replay.loop.t0, replay.cursor - 40) : replay.cursor - 40;
+  const from = replayIndex(lower), to = replayIndex(replay.cursor);
   for (let i = from; i <= to; i += 2) { const s = replay.samples[i]; if (s.v) pushTrail(s.v, 0, true); }
 }
 function startReplay(samples, name, at, figures) {
@@ -706,6 +713,7 @@ function startReplay(samples, name, at, figures) {
   rb.replaybar.classList.remove('hidden');
   document.body.classList.add('replaying');
   renderMarks(); renderList();
+  replay.loop = null;
   seekTo(at !== undefined ? at : (replay.figures[0] ? replay.figures[0].t0 - 2 : replay.t0));
   applyScene();
   updateCamera();
@@ -729,7 +737,7 @@ function renderMarks() {
     m.style.width = `${Math.max(0.4, ((fig.t1 - fig.t0) / span) * 100)}%`;
     m.title = `${k + 1}: ${gradeText(fig.grade)}${fig.elements.map(describe).join(' · ')}`;
     if (fig.grade) m.classList.add('scored');
-    m.addEventListener('click', () => { seekTo(fig.t0 - 2); setPlaying(true); highlightRow(k); });
+    m.addEventListener('click', () => showFigure(k));
     rb['rb-marks'].appendChild(m);
   });
 }
@@ -747,7 +755,7 @@ function renderList() {
       + `<select class="ltype"><option value="">type…</option>${opts}</select>`
       + `<input class="lgrade" type="number" min="0" max="10" step="0.5" placeholder="grade" value="${lab.grade ?? ''}">`
       + `<input class="lnotes" type="text" placeholder="notes" value="${lab.notes ?? ''}">`;
-    row.querySelector('.lgo').addEventListener('click', () => { seekTo(fig.t0 - 2); setPlaying(true); highlightRow(k); });
+    row.querySelector('.lgo').addEventListener('click', () => showFigure(k));
     for (const cls of ['ltype', 'lgrade', 'lnotes']) {
       row.querySelector(`.${cls}`).addEventListener('change', () => {
         labels[labelKey(fig)] = { type: row.querySelector('.ltype').value, grade: parseFloat(row.querySelector('.lgrade').value), notes: row.querySelector('.lnotes').value };
@@ -757,6 +765,17 @@ function renderList() {
   });
 }
 function highlightRow(k) { rb['rb-list'].querySelectorAll('.lrow').forEach((r) => r.classList.toggle('on', Number(r.dataset.k) === k)); }
+function loopFigure(fig, k) {
+  replay.loop = { t0: fig.t0 - 0.5, t1: fig.t1, k };
+  replay.cursor = replay.loop.t0;
+  replay.lastNow = performance.now();
+  clearTrail();
+  replay.lastShown = k;
+  if (k !== undefined) highlightRow(k);
+  if (fig.grade) { showCoach(fig.grade); showGhost(fig, replay.samples); }
+  setPlaying(true);
+}
+function showFigure(k) { const fig = replay.figures[k]; if (fig) loopFigure(fig, k); }
 function gradeText(g) { return g ? `${g.type} ${g.hz ? 'HZ' : g.score.toFixed(1)} · ` : ''; }
 // Coach: grade each figure the detector closes, show the card, and speak it when enabled.
 const coachCard = document.getElementById('coachcard');
@@ -859,7 +878,7 @@ document.querySelectorAll('#speak [data-speak]').forEach((btn) => {
   btn.addEventListener('click', () => { coachSpeak = btn.dataset.speak === 'on'; setItem('acroReplay.speak', coachSpeak ? 'on' : 'off'); document.querySelectorAll('#speak [data-speak]').forEach((b) => b.classList.toggle('on', b === btn)); });
 });
 rb['rb-play'].addEventListener('click', () => setPlaying(!replay.playing));
-rb['rb-scrub'].addEventListener('input', () => { setPlaying(false); seekTo(replay.t0 + (rb['rb-scrub'].value / 1000) * (replay.t1 - replay.t0)); });
+rb['rb-scrub'].addEventListener('input', () => { setPlaying(false); replay.loop = null; seekTo(replay.t0 + (rb['rb-scrub'].value / 1000) * (replay.t1 - replay.t0)); });
 rb['rb-speed'].addEventListener('click', () => { const seq = [0.25, 0.5, 1, 2]; replay.speed = seq[(seq.indexOf(replay.speed) + 1) % seq.length]; rb['rb-speed'].textContent = `${replay.speed}×`; });
 rb['rb-live'].addEventListener('click', stopReplay);
 rb['rb-toggle-list'].addEventListener('click', () => rb['rb-list'].classList.toggle('hidden'));
@@ -868,8 +887,8 @@ rb['rb-last'].addEventListener('click', () => {
   if (!figs.length) { rb['rb-time'].textContent = 'no figure yet'; return; }
   const fig = figs[figs.length - 1];
   const slice = history.filter((s) => s.t >= fig.t0 - 4 && s.t <= fig.t1 + 4);
-  startReplay(slice, 'last figure', fig.t0 - 2, [fig]);   // keep the live detection and its grade
-  setPlaying(true);
+  startReplay(slice, 'last figure', fig.t0 - 0.5, [fig]);   // keep the live detection and its grade
+  loopFigure(fig, 0);   // loop just this figure with its own trail
 });
 rb['rb-load'].addEventListener('click', async () => {
   const name = rb['rb-flight'].value;
