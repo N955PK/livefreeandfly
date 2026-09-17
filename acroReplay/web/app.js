@@ -29,6 +29,7 @@ const HUD_INTERVAL_MS = 50;
 const HANGAR_VIEW = new THREE.Vector3(6.5, 2.2, -7);   // orbit camera start relative to the parked aircraft
 // Inside the iOS shell the native side pushes raw INS frames and phone GPS fixes instead of a bridge WebSocket.
 const nativeHandler = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.acro;
+const nativeLog = (msg) => { if (nativeHandler) nativeHandler.postMessage(`log: ${msg}`); };
 
 const canvas = document.getElementById('view');
 const hud = Object.fromEntries(['nz', 'alt', 'alt-u', 'boxstat', 'minis', 'plan-dot', 'plan-hdg', 'vert-dot'].map(id => [id, document.getElementById(id)]));
@@ -372,23 +373,37 @@ function showProp(spinning) {
   for (const m of propParts.blades) m.visible = !spinning;
   for (const d of propParts.disks) d.visible = spinning;
 }
-let modelNode = null;
 let modelKey = MODELS[getItem('acroReplay.model')] ? getItem('acroReplay.model') : 'eagle';
+let shownKey = null;       // model actually on screen (differs from modelKey while a pick is loading)
+let modelGeneration = 0;   // bumps on every pick; a load that finishes for an older generation is dropped
 scene.add(aircraft);
-function showModel(node) {
-  if (modelNode) aircraft.remove(modelNode);
-  modelNode = node;
-  if (!node) return;
+const modelMsg = document.getElementById('model-msg');
+// The aircraft group holds exactly one model; the old one stays up until its replacement has loaded.
+function showModel(node, key) {
+  aircraft.clear();
   aircraft.add(node);
+  shownKey = key;
   settleOnWheels();
+}
+function markModelButtons() {
+  document.querySelectorAll('#model [data-model]').forEach((btn) => btn.classList.toggle('on', btn.dataset.model === modelKey));
 }
 function loadAircraftModel(key) {
   const { dir, scale, offset } = MODELS[key];
   const path = `./models/${dir}/`;
+  const generation = modelGeneration;
+  const failed = (what) => (err) => {
+    nativeLog(`model ${key} ${what} failed: ${err && (err.message || err.type || err)}`);
+    if (generation !== modelGeneration) return;
+    modelMsg.textContent = `Couldn't load the ${dir} model${shownKey ? `; keeping the ${MODELS[shownKey].dir}` : ''}.`;
+    if (shownKey) { modelKey = shownKey; setItem('acroReplay.model', shownKey); markModelButtons(); }
+  };
   new MTLLoader().setPath(path).load(`${dir}.mtl`, (mtl) => {
     mtl.preload();
     new OBJLoader().setMaterials(mtl).setPath(path).load(`${dir}.obj`, (obj) => {
-      if (key !== modelKey) return;   // superseded by a later pick
+      if (generation !== modelGeneration) { nativeLog(`model ${key} loaded but superseded by ${modelKey}`); return; }
+      nativeLog(`model ${key} shown`);
+      modelMsg.textContent = '';
       const props = [];
       obj.traverse((m) => {
         if (!m.isMesh) return;
@@ -417,23 +432,23 @@ function loadAircraftModel(key) {
       pivot.scale.setScalar(scale);
       obj.position.fromArray(offset);
       pivot.add(obj);
-      showModel(pivot);
-    }, undefined, (err) => console.error(`${dir} model failed`, err));
-  }, undefined, (err) => console.error(`${dir} mtl failed`, err));
+      showModel(pivot, key);
+    }, undefined, failed('model'));
+  }, undefined, failed('materials'));
 }
 function setModel(key) {
+  nativeLog(`model pick ${key} (was ${modelKey})`);
   modelKey = key;
+  modelGeneration += 1;
   setItem('acroReplay.model', key);
-  document.querySelectorAll('#model [data-model]').forEach((btn) => btn.classList.toggle('on', btn.dataset.model === key));
-  propParts.blades = [];
-  propParts.disks = [];
-  showModel(null);
+  markModelButtons();
+  modelMsg.textContent = `Loading the ${MODELS[key].dir}…`;
   loadAircraftModel(key);
 }
 document.querySelectorAll('#model [data-model]').forEach((btn) => {
-  btn.classList.toggle('on', btn.dataset.model === modelKey);
   btn.addEventListener('click', () => { if (btn.dataset.model !== modelKey) setModel(btn.dataset.model); });
 });
+markModelButtons();
 loadAircraftModel(modelKey);
 // Parked pose shown until the INS is initialized and frames are flowing: all three wheels on the hangar floor.
 // The stance comes from the model's own wheel meshes once it has loaded.
