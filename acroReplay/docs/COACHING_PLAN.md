@@ -792,6 +792,34 @@ Build order: `olan.js` + `aresti.js` (catalogue for the 2026 power figure set) �
 power categories) → text import UI → flown-to-Aresti reverse → **Aresti-scan spike** (PDF first, then photo) → grading
 extensions per figure family.
 
+### 13.7 Implementation: OpenAero adopted (GPL-3)
+
+Decision (Sean, 2026-09-17): my clean-room `arestidraw.js` renderings were too crude, and there is no permissive
+Aresti-drawing library — OpenAero is the only complete one. With no existing repo licence to protect, we **adopt
+OpenAero (GPL-3)**: it is vendored whole under `web/vendor/openaero/`, and the repo root carries a **GPL-3 LICENSE**.
+This forecloses App Store / proprietary distribution (accepted — WingRock is a personal app), and gives us accurate
+drawings, the full figure catalogue (`data/figures/figures.js`: OLAN → Aresti number + K), and the IAC Known
+sequences (`data/rules/rules-iac.js`) for free.
+
+**How it is driven (verified).** OpenAero is a DOM/global-coupled monolith (`js/main.js` ~820 KB, everything hangs off
+a global `OA` object and an SVG root with id `sequence`), so we do **not** extract its engine. Instead we run it as a
+hidden black box and drive it: set `OA.sequenceText.innerText` to the OLAN string, call `checkSequenceChanged(true)`,
+then read the rendered `#sequence` group out of `OA.SVGRoot` and re-wrap it (with its `<defs>`) as a standalone SVG to
+display in WingRock. Proven in the browser on the Primary Known: 6 figures parsed, drawn correctly (spin triangle,
+dashed inverted lines, roll arrows, the 180° turn glyph), bbox 465×245. The vendored copy's PWA service-worker
+registration is disabled so it can't cache under the app origin.
+
+**What this supersedes / keeps.** OpenAero replaces the drawing (`arestidraw.js`) and the catalogue data (`aresti.js`
+gets its K/Aresti and figure identity from OpenAero's `figures.js` instead of hand-transcription), and provides the
+2026 Knowns from `rules-iac.js`. Our clean-room **`olan.js` stays** as the app-side glue: it structures OLAN for the
+grading bridge and, in reverse, the detector's figures are serialised to an OLAN string that OpenAero then draws.
+
+**Remaining build.** `oadraw.js` — a small module owning the hidden OpenAero iframe with a `renderSequence(olan) →
+svg` (and a ready/queue guard); a Sequences view (pick a Known / paste an import → show the OpenAero SVG → set as the
+coaching target); read the 2026 Power Knowns + K/Aresti from the vendored `rules-iac.js` / `figures.js`; the
+flown-to-Aresti reverse (detector figures → OLAN → `oadraw`); then the drawn-Aresti scan spike and grading per family.
+Trim the 11 MB vendored copy to what the drawing path needs before it ships in the iOS bundle.
+
 ## 11. Sources
 
 - FAI Sporting Code Section 6 Part 1, version 2023-2, Rule 4.4 and Appendix B (civanews.com document store).

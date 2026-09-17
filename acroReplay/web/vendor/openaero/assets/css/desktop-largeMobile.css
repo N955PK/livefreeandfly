@@ -1,0 +1,561 @@
+﻿/*
+ desktop-tablet.css
+ This file is part of OpenAero.
+
+  OpenAero was originally designed by Ringo Massa and built upon ideas
+  of Jose Luis Aresti, Michael Golan, Alan Cassidy and many others. 
+
+  OpenAero is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  OpenAero is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with OpenAero.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* This file defines all the css styles for desktop & tablet version */
+
+.tabSelector li {
+  min-width: 60px;
+}
+#topBlock {
+  display: block;
+  border-bottom: 1px solid #888;
+  -moz-box-shadow: 0 4px 5px -2px rgba(0,0,0,0.5);
+  -webkit-box-shadow: 0 4px 5px -2px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 5px -2px rgba(0,0,0,0.5);
+  width: 100%;
+  margin: 0;
+	transition: height 0.2s ease-in-out;
+}
+.version {
+  position: absolute;
+  top:5px;
+  right:10px;
+  text-align:right;
+}
+#sequenceTextContainer {
+  left: 56px;
+  right: 104px;
+}
+#sequence_text {
+  right: 0;
+  height: 38px;
+  padding: 4px;
+}
+#main {
+  position: absolute;
+  bottom: 2px;
+  width: 100%;
+  overflow: hidden;
+}
+#leftBlockContainer {
+  position: absolute;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 292px;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: transparent;
+	-webkit-overflow-scrolling: touch;
+}
+#leftBlock {
+  position: relative;
+  top: 0;
+  bottom: 0;
+  min-height: 99%;
+  min-height: calc(100% - 41px);
+  background: #f4f4f4;
+  background: -webkit-linear-gradient(top, #f4f4f4, #e8e8e8);
+  background: linear-gradient(top, #f4f4f4, #e8e8e8);
+  -moz-box-shadow: 2px 0 2px -2px rgba(0,0,0,0.5);
+  -webkit-box-shadow: 2px 0 2px -2px rgba(0,0,0,0.5);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  overflow: hidden;
+  width: 276px;
+  padding: 40px 0 0 0;
+}
+#leftBlockTop {
+  position: relative;
+  margin-top: 40px;
+  width: 1000px;
+}
+#sequenceInfo {
+  position: relative;
+  float: left;
+  width: 268px;
+  -webkit-transform: translateX(0);
+  transform: translateX(0);
+  transition: all 0.3s ease-in-out;
+}
+#sequenceInfo.hidden {
+  -webkit-transform: translateX(-280px);
+  transform: translateX(-280px);
+  visibility: visible;
+}
+#figureInfo {
+    position: relative;
+    float: left;
+    width: 268px;
+    -moz-transform: translateX(0);
+    -o-transform: translateX(0);
+    -ms-transform: translateX(0);
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+    transition: all 0.3s ease-in-out;
+}
+#figureInfo.hidden {
+  transform: translateX(280px);
+  visibility: visible;
+}
+
+#sequenceInfo div.form-group {
+	display: inline-block;
+	margin: 16px 4px 8px 0;
+}
+#sequenceInfo div.form-group:first-of-type {
+	width: 118px;
+}
+#sequenceInfo div.form-group:last-of-type {
+  width: 118px;
+}
+#positioningText {
+    position: absolute;
+    width: 118px;
+    top: 0;
+    right: 0;
+}
+.narrowRight div.form-group:first-of-type {
+  width: 148px !important;
+}
+.narrowRight div.form-group:last-of-type {
+  width: 88px !important;
+}
+
+#entryExit {
+  min-height: 46px;
+}
+.rollComment {
+  font-size: 16px;
+  height: 22px;
+}
+#alerts {
+	width: 268px;
+}
+
+#fileDropLogo {
+	margin: 8px 16px 0 0;
+}
+
+#leftBlockTabSelector {
+	position: absolute;
+	z-index: 5;
+  display: block;
+  margin-left: -4px !important;
+  margin-right: -4px !important;
+  width: 280px;
+}
+#leftBlockTabSelector li {
+  min-width: 116px;
+  max-width: 116px;
+}
+
+#sequenceArea {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: -1px;
+  left: 270px;
+  padding: 20px 10px 20px 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#mainOverlay.G #sequenceArea {
+  padding-right: 280px; /* create margin for gridInfo block */
+}
+#optimalSequenceArea {
+    position: absolute;
+    top: 20px;
+    left: 32px;
+    width: 580px;
+    height: 1080px;
+    border: 1px solid rgba(0,128,0,0.5);
+}
+#optimalSequenceArea.exceeded {
+    border: 1px solid #fb8c00;
+}
+#mainOverlay.C #optimalSequenceArea {
+    text-align: right;
+}
+#manual_html_optimal_sequence_area {
+    position: relative;
+    z-index: 1; /* ensures info is clickable */
+    padding: 0 !important;
+    margin: 0;
+}
+#optimalSequenceArea span {
+    display: none;
+    padding: 4px 4px 4px 2px;
+    vertical-align: middle;
+    background: #fb8c00;
+    color: white;
+}
+#optimalSequenceArea.exceeded span {
+  margin: -21px -1px 0 -1px;
+  padding: 3px;
+  display: inline-block;
+}
+#optimalSequenceArea.exceeded span span {
+  margin: initial;
+}
+#optimalSequenceArea .info {
+    display: inline-block;
+}
+#sequenceArea #t_windArrow {
+  position: fixed;
+  z-index: 1;
+  left: calc(100% - 98px);
+}
+#mainOverlay.C #t_windArrow {
+  left: 304px;
+}
+#sequenceArea svg {
+    position: relative;
+    left: 15px;
+    top: 0;
+    padding-top: 18px;
+    padding-right: 200px;
+}
+#sequenceArea.figureSelectorInView svg {
+    margin-right: 300px;
+}
+.sequenceOverlay {
+    left: -25px !important;
+    top: -20px !important;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    transition: background-color 2000ms ease;
+}
+#miniFormAContainer {
+  position: fixed;
+  z-index: 1;
+  background-color: white;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  overflow-y: scroll;
+  width: min-content;
+  right: 24px;
+  transition: all 0.2s ease-in-out;
+}
+#miniFormAContainer table {
+  min-width: 108px;
+}
+#miniFormAFooter {
+  font-size: 1.3em;
+}
+#gridInfo {
+	position: absolute;
+	overflow: hidden;
+  float: right;
+  top: 0;
+  right: 40px;
+  min-width: 120px;
+  padding: 4px 16px 4px 16px;
+  background-color: #f4f4f4;
+  border-radius: 0 0 2px 2px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+  z-index: 4;
+  transition: transform 0.3s ease-in-out;
+  cursor: move;
+}
+#gridInfo.dragging {
+  transition: none;
+}
+#gridInfo.hidden {
+  height: auto !important;
+  transform: translateY(-360px) !important;
+  visibility: visible;
+}
+#gridInfo .expand-toggle {
+  top: 4px;
+  right: 8px;
+}
+#gridInfo div div {
+  margin-top: 12px !important;
+}
+#gridInfo table, #gridInfo tr, #gridInfo tbody {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+#gridInfo td {
+  margin: 0;
+  padding: 0 16px 0 0;
+	max-width: 112px;
+}
+#gridInfo td:last-child {
+  padding: 0;
+}
+#gridColumnsContainer div span.form-group {
+	margin: -10px 0 0 0;
+	float: right;
+}
+#gridTotalK {
+  float: right;
+}
+#gridTotalK, #gridAdditionals {
+  text-align: right;
+  font-weight: bold;
+  font-size: 20px;
+}
+#gridAdditionals.remaining4 {
+  color: #006800;
+}
+#gridAdditionals.remaining3 {
+  color: #205000;
+}
+#gridAdditionals.remaining2 {
+  color: #404800;
+}
+#gridAdditionals.remaining1 {
+  color: #603000;
+}
+#gridAdditionals.remaining0 {
+  color: #801800;
+}
+#gridAdditionals.remaining-1 {
+  color: #a00000;
+}
+#t_gridSpeed {
+  text-align: center;
+}
+#t_proposalsCreateGroups {
+  width: 100%;
+  text-align: center;
+  margin: 0 -8px;
+}
+#proposalsFigureCount {
+  width: 48px;
+}
+#proposals {
+  padding: 16px;
+  margin: 0 16px 0 16px;
+  background-color: white;
+  border: 1px solid #ccc;
+  -webkit-touch-callout: initial;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  white-space: pre-wrap;       /* css-3 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+#proposalsSequenceSvgContainer {
+  overflow: auto;
+  height: 240px;
+  margin: 0 16px 0 16px;
+  background-color: white;
+  border: 1px solid #ccc;
+}
+
+#t_proposalsIncomplete {
+  color: red;
+}
+#manual_html_grid_system {
+  float: left;
+}
+#figureSelector {
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  right: -328px;
+  width: 300px;
+  padding: 12px;
+  z-index: 6;
+}
+#figureSelector.left {
+	left: -328px;
+	padding: 12px 8px;
+	width: 292px;
+}
+#figureSelector.left #figureGroup {
+	margin-top: 8px;
+}
+#figureSelector.active {
+  right: 0;
+}
+#figureSelector.left.active {
+	right: auto;
+	left: 0;
+}
+#figureInfo.hidden + #figureString {
+	display: none;
+}
+#hideFigureSelector:after {
+  content: "arrow_forward";
+}
+#figureSelector.left #hideFigureSelector:after {
+  content: "arrow_back";
+}
+#figureSelectorClose {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+}
+#figureSelector.left #figureSelectorClose {
+	right: auto;
+  left: 8px;
+}
+#figureSelector .info {
+	float: left;
+}
+#figureSelector.left .info {
+	float: right;
+}
+#hideIllegalFigures span, #hideRarelyUsedFigures span {
+  display: inline-block;
+  max-width: 246px;
+  margin: 8px 4px;
+}
+#figureChooser {
+  bottom: 32px;
+}
+#figureChooserTable td {
+  max-width: 58px;
+}
+#figureChooserColumns {
+  position: relative;
+  left: 12px;
+  width: 284px;
+}
+#referenceSequenceString {
+  width: 99%;
+  height: 4em;
+  margin: 16px 0;
+}
+
+/* alert message rule popup */
+.alertMsgRule div {
+  position: absolute;
+  z-index:10;
+  padding:4px;
+  font-size: 14px;
+  text-indent:0;
+  margin-top:4px;
+  margin-left:-20px;
+  width:240px;
+  color: #000;
+  border: none;
+  border-radius: 2px;
+  background: #ffcc80;
+  -moz-box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  -webkit-box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+}
+.alertMsgRule:hover div {
+  display: block;
+}
+.alertMsgRule:hover {
+  color: #400;
+  background-color: #ff8;
+}
+.box .alertMsgRule div {
+  position: relative;
+  top: -60px;
+  margin-bottom: -56px;
+  width: auto;
+}
+
+/* sections */
+.section3cols {
+  width: 31%;
+}
+.section2cols {
+  width: 48%;
+}
+
+#printDialog .box {
+  left: 5%;
+  width: 90%;
+}
+
+/* help box */
+#helpBox .box {
+	top: 5%;
+	left: 5%;
+	width: 90%;
+	height: 90%;
+}
+
+/* settings */
+#settingsDialog div.box {
+  min-width: 260px;
+}
+
+/* save dialog */
+#dlTextField {
+	font-size: 1.5rem;
+	line-height: 1.9rem;
+	padding-right: 48px;
+}
+#fileExt {
+	font-size: 1.5rem;
+	line-height: 1.9rem;
+	top: -1.95rem;
+}
+
+/* buttons */
+.undoRedoButton {
+  float: left;
+  margin: -1px 4px -1px 4px;
+}
+.button.small {
+  width: 22px;
+  height: 22px;
+  background-size: 20px;
+  margin: 1px;
+}
+#figEntryButton.button.small {
+  margin-right: 6px;
+}
+#figExitButton.button.small {
+  margin-left: 6px;
+}
+.minButton, .plusButton {
+	font-size: 24px !important;
+	height: 20px;
+  width: 20px;
+}
+.minButton {
+	line-height: 17px;
+}
+.plusButton {
+	line-height: 20px;
+}
+.plusMinText {
+  font-size: 16px;
+  box-sizing: border-box;
+  margin-top: 1px;
+  height: 22px;
+}
+#figureInfo select {
+	height: 20px !important;
+	line-height: 20px;
+	font-size: 16px;
+}
+#selectedFigure.active {
+	/* include border in box size */
+  width: 144px;
+  height: 144px;
+}
+#unknownFigureChooser {
+  width: 142px;
+}
