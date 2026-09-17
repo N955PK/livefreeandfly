@@ -1379,6 +1379,7 @@ function updateHud(now) {
   else { text = `${s.sats} sats · ±${units.fmtLen(s.hacc * units.FT_TO_M)}`; cls = 'good'; }
   status.firstElementChild.textContent = text;
   status.className = `badge ${cls}`;
+  document.body.classList.toggle('live', fresh && !replay.active);   // gates the Record button: only offer it with a live feed
   const positioned = fresh && s.init;
   hud.nz.textContent = positioned ? s.nz.toFixed(1).padStart(4, '\u2007') : '-.-';   // room for the minus sign so the strip doesn't shift
   hud.alt.textContent = positioned ? Math.round(units.ftToUnit(s.alt)) : '----';
