@@ -29,7 +29,7 @@ function fill(template, z, x, y) {
   return template.replace('{z}', z).replace('{x}', x).replace('{y}', y);
 }
 
-const LEVELS = [{ z: 16, radiusM: 1500 }, { z: 14, radiusM: 9000 }, { z: 12, radiusM: 45000 }, { z: 10, radiusM: 160000 }];
+const LEVELS = [{ z: 16, radiusM: 1500 }, { z: 14, radiusM: 9000 }, { z: 12, radiusM: 45000 }, { z: 10, radiusM: 160000 }, { z: 8, radiusM: 640000 }];
 
 // A bundled tile set announces itself with tiles/index.json; without it we go straight to the remote server.
 async function hasLocalTiles() {
@@ -55,7 +55,10 @@ export async function buildTileGround(scene, [lat0, lon0], levels = LEVELS) {
         const bb = tileBounds(x, y, lvl.z);
         const sw = toLocal(bb.south, bb.west), ne = toLocal(bb.north, bb.east);
         const cx = (sw.east + ne.east) / 2, cn = (sw.north + ne.north) / 2;
-        if (finerRadius.some((r) => Math.abs(cx) < r && Math.abs(cn) < r)) continue;
+        const hw = (ne.east - sw.east) / 2, hn = (ne.north - sw.north) / 2;
+        // Skip a coarse tile only when a finer ring covers all of it; one that straddles the ring's edge stays
+        // (the finer tiles draw over it), otherwise the part outside the ring would be a hole.
+        if (finerRadius.some((r) => Math.abs(cx) + hw <= r && Math.abs(cn) + hn <= r)) continue;
         // Ground layers don't write depth and draw coarse → fine, so imagery never z-fights the base plane.
         const mat = new THREE.MeshBasicMaterial({ color: 0x6f9a5c, depthWrite: false });
         const mesh = new THREE.Mesh(new THREE.PlaneGeometry(ne.east - sw.east, ne.north - sw.north), mat);

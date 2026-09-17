@@ -4,7 +4,8 @@
     python tools/fetch_tiles.py --lat 36.936 --lon -121.790            # KWVI area, default rings
 
 Writes web/tiles/{z}/{x}/{y}.jpg plus web/tiles/index.json (its presence tells the app to use the bundle).
-Rings mirror web/tiles.js LEVELS: z16 within 1.5 km, z14 within 9 km, z12 within 45 km, z10 within 160 km.
+Rings mirror web/tiles.js LEVELS: z16 within 1.5 km, z14 within 9 km, z12 within 45 km, z10 within 160 km,
+z8 within 640 km.
 Roughly 400 tiles / 10 MB. Imagery: Esri World Imagery, falling back to USGS. Check the providers' terms
 before bundling large areas.
 """
@@ -17,7 +18,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-LEVELS = [(16, 1500), (14, 9000), (12, 45000), (10, 160000)]
+LEVELS = [(16, 1500), (14, 9000), (12, 45000), (10, 160000), (8, 640000)]
 SOURCES = [
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}",

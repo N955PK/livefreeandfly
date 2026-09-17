@@ -488,6 +488,10 @@ livefreeandfly/acroReplay/
 
 ## 9. Decision log
 
+- 2026-09-16 — Map picking zooms out to 150 km (pinch or ±, bigger button steps) so a whole region is
+  visible from the judges' spot: the map camera gets its own clip range and switches the fog off while
+  open; a fifth imagery ring (z8 to 640 km) backs it. Coarse tiles that straddle a finer ring's edge are
+  kept (drawn under the finer ones) — skipping them left holes. App icon framed on the model's footprint.
 - 2026-09-16 — Aircraft picker (Sean): Eagle / Extra 330SC / RV-7 under Box → Settings, remembered
   in `acroReplay.model` (localStorage + UserDefaults) and used at the next launch. Models are described
   in one table (dir, scale, CG offset); every OBJ is Y-up, nose +Z. Picking swaps the model in place —

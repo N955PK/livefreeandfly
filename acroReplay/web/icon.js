@@ -13,11 +13,18 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0b1220);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 1.3));
 const sun = new THREE.DirectionalLight(0xffffff, 1.8); sun.position.set(-3, 10, 4); scene.add(sun);
-const half = 3.9;
-const camera = new THREE.OrthographicCamera(-half, half, half, -half, 0.1, 100);
-camera.position.set(0, 20, 0);
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 camera.up.set(0, 0, -1);           // north (nose) up on the icon
-camera.lookAt(0, 0, 0);
+// Frame the model's footprint: look straight down at its centre, square view a little wider than its longest extent.
+function frame(target) {
+  const bb = new THREE.Box3().setFromObject(target);
+  const c = bb.getCenter(new THREE.Vector3()), size = bb.getSize(new THREE.Vector3());
+  const half = Math.max(size.x, size.z) / 2 * 1.12;
+  camera.left = -half; camera.right = half; camera.top = half; camera.bottom = -half;
+  camera.position.set(c.x, 20, c.z);
+  camera.lookAt(c.x, 0, c.z);
+  camera.updateProjectionMatrix();
+}
 
 const path = './models/eagle/';
 new MTLLoader().setPath(path).load('eagle.mtl', (mtl) => {
@@ -36,6 +43,7 @@ new MTLLoader().setPath(path).load('eagle.mtl', (mtl) => {
     obj.position.set(0, 0, -30);
     pivot.add(obj);
     scene.add(pivot);
+    frame(pivot);
     renderer.render(scene, camera);
     canvas.toBlob(async (blob) => {
       const r = await fetch('/dev/icon', { method: 'POST', body: blob });

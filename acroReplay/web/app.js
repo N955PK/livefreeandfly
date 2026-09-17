@@ -37,8 +37,10 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
 const HORIZON = new THREE.Color(0xcfe0ee);
-scene.fog = new THREE.Fog(HORIZON, 15000, 170000);
-const camera = new THREE.PerspectiveCamera(55, 1, 1, 250000);
+const FOG = { near: 15000, far: 170000 };
+scene.fog = new THREE.Fog(HORIZON, FOG.near, FOG.far);
+const FLIGHT_CLIP = { near: 1, far: 250000 };
+const camera = new THREE.PerspectiveCamera(55, 1, FLIGHT_CLIP.near, FLIGHT_CLIP.far);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.enablePan = false;
@@ -59,7 +61,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(200000, 32, 16), new THREE.S
 sky.renderOrder = -100;
 scene.add(sky);
 
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(400000, 400000), new THREE.MeshLambertMaterial({ color: 0x6f9a5c, depthWrite: false }));
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000000, 2000000), new THREE.MeshLambertMaterial({ color: 0x6f9a5c, depthWrite: false }));
 ground.rotation.x = -Math.PI / 2;
 ground.renderOrder = -20;
 scene.add(ground);
@@ -623,7 +625,11 @@ function poseAt(t) {
 // airframe — it rolls and pitches with the aircraft. Judge: fixed at the box's judging position.
 let camMode = 'orbit';
 let prevCamMode = 'orbit';
-const mapCam = { height: 2500 };
+// Map picking looks straight down from `height`; it can pull back far enough to see a whole region, which
+// needs the fog off and a deep clip range (both restored when the map closes).
+const MAP_HEIGHT = { start: 2500, min: 150, max: 150000 };
+const MAP_CLIP = { near: 5, far: 1.2e6 };
+const mapCam = { height: MAP_HEIGHT.start };
 let pickState = null;
 const pickMarkers = new THREE.Group();
 scene.add(pickMarkers);
@@ -638,6 +644,14 @@ function setCamMode(mode) {
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
   applyScene();
   if (hangarMode) { hangarControls(); return; }   // in the hangar every mode orbits; the choice applies once airborne
+  const mapMode = mode === 'map';
+  controls.minDistance = mapMode ? MAP_HEIGHT.min : 4;
+  controls.maxDistance = mapMode ? MAP_HEIGHT.max : 3000;
+  camera.near = mapMode ? MAP_CLIP.near : FLIGHT_CLIP.near;
+  camera.far = mapMode ? MAP_CLIP.far : FLIGHT_CLIP.far;
+  scene.fog.near = mapMode ? 1e7 : FOG.near;
+  scene.fog.far = mapMode ? 2e7 : FOG.far;
+  camera.updateProjectionMatrix();
   controls.enabled = mode === 'orbit' || mode === 'map';
   controls.enableRotate = mode !== 'map';
   controls.enablePan = mode === 'map';
@@ -667,7 +681,7 @@ function zoomBy(f) {
   } else if (camMode === 'judge') {
     judge.zoom = THREE.MathUtils.clamp(judge.zoom * f, 0.1, 80);
   } else if (camMode === 'map') {
-    mapCam.height = THREE.MathUtils.clamp(mapCam.height * f, 200, 30000);
+    mapCam.height = THREE.MathUtils.clamp(mapCam.height * f * f, MAP_HEIGHT.min, MAP_HEIGHT.max);   // buttons take bigger steps on the map
     camera.position.set(controls.target.x, mapCam.height, controls.target.z + 0.01);
     controls.update();
   }
