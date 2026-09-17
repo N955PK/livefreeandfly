@@ -8,6 +8,19 @@
 <meta name="theme-color" content="#000000">
 <title>WingRock</title>
 <link rel="stylesheet" href="./app.css">
+<style>
+  #splash { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+    background: radial-gradient(120% 120% at 50% 30%, #16324f 0%, #0a1622 60%, #060d15 100%); color: #eaf1f8;
+    font: 600 17px/1.3 -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: .02em;
+    transition: opacity .5s ease; -webkit-user-select: none; user-select: none; }
+  #splash.gone { opacity: 0; pointer-events: none; }
+  #splash svg { width: 132px; height: 132px; animation: splashpulse 1.6s ease-in-out infinite; }
+  #splash .ring { transform-origin: 66px 66px; animation: splashspin 1.4s linear infinite; }
+  #splash .wm { font-size: 26px; font-weight: 800; letter-spacing: .06em; }
+  #splash .sub { font-size: 13px; font-weight: 600; color: #8fa6bd; margin-top: -12px; }
+  @keyframes splashspin { to { transform: rotate(360deg); } }
+  @keyframes splashpulse { 0%,100% { opacity: .92; } 50% { opacity: .62; } }
+</style>
 <script>
   // Inside the iOS shell, surface page errors in the native log (WKWebView has no visible console).
   (function () {
@@ -23,6 +36,27 @@
 <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/"}}</script>
 </head>
 <body>
+<div id="splash" role="status" aria-label="Loading WingRock">
+  <svg viewBox="0 0 132 132" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#1d6fd6"/><stop offset=".2" stop-color="#6a3fb5"/><stop offset=".4" stop-color="#d62828"/>
+        <stop offset=".6" stop-color="#f77f00"/><stop offset=".8" stop-color="#d62828"/><stop offset="1" stop-color="#1d6fd6"/>
+      </linearGradient>
+    </defs>
+    <circle class="ring" cx="66" cy="66" r="58" fill="none" stroke="#2f5a80" stroke-width="3" stroke-linecap="round" stroke-dasharray="60 300"/>
+    <!-- top-down biplane: two rainbow wings, fuselage, tail -->
+    <rect x="20" y="50" width="92" height="9" rx="4" fill="url(#wg)"/>
+    <rect x="28" y="70" width="76" height="8" rx="4" fill="url(#wg)"/>
+    <rect x="61" y="34" width="10" height="64" rx="5" fill="#dfe8f1"/>
+    <rect x="52" y="94" width="28" height="7" rx="3" fill="url(#wg)"/>
+    <circle cx="66" cy="40" r="6" fill="#0a1622" stroke="#dfe8f1" stroke-width="2"/>
+  </svg>
+  <div style="text-align:center">
+    <div class="wm">WingRock</div>
+    <div class="sub">loading…</div>
+  </div>
+</div>
 <canvas id="view"></canvas>
 
 <section id="hud" class="glass" aria-label="flight data">
@@ -68,7 +102,7 @@
 
 <div id="replaybar" class="glass hidden">
   <div class="rb-row rb-transport">
-    <button id="rb-play" class="round" aria-label="play">▶</button>
+    <button id="rb-play" class="round" aria-label="play"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5z" fill="currentColor"/></svg></button>
     <div class="rb-track"><input id="rb-scrub" type="range" min="0" max="1000" value="0"><div id="rb-marks"></div></div>
     <span id="rb-time">0:00</span>
     <button id="rb-speed" class="tool small">1×</button>

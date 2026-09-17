@@ -681,7 +681,7 @@ function replayIndex(t) {
 function replayTick(now) {
   if (replay.playing) {
     replay.cursor += ((now - replay.lastNow) / 1000) * replay.speed;
-    const end = replay.loop ? replay.loop.t1 + 1.2 : replay.t1;
+    const end = replay.loop ? replay.loop.t1 + 0.25 : replay.t1;   // small hold, then restart before the next figure
     if (replay.cursor >= end) {
       if (replay.loop) { replay.cursor = replay.loop.t0; clearTrail(); }   // loop this figure, trail from scratch
       else { replay.cursor = replay.t1; setPlaying(false); }
@@ -690,7 +690,13 @@ function replayTick(now) {
   replay.lastNow = now;
   // Show the figure's name, score and ghost from the moment the cursor reaches its entry (t0), and hold them
   // through the figure and a couple of seconds after, so you watch the figure knowing what it scored.
-  const k = replay.figures.findIndex((fig) => fig.grade && replay.cursor >= fig.t0 - 0.5 && replay.cursor <= fig.t1 + 2.5);
+  let k;
+  if (replay.loop) k = replay.loop.k;
+  else {
+    // The figure the cursor is inside; else the most recent one it just finished (so the card lingers briefly).
+    k = replay.figures.findIndex((fig) => fig.grade && replay.cursor >= fig.t0 - 0.5 && replay.cursor <= fig.t1 + 0.5);
+    if (k < 0) for (let i = replay.figures.length - 1; i >= 0; i -= 1) { const f = replay.figures[i]; if (f.grade && replay.cursor > f.t1 && replay.cursor <= f.t1 + 2.5) { k = i; break; } }
+  }
   if (k >= 0) {
     if (k !== replay.lastShown) { replay.lastShown = k; showCoach(replay.figures[k].grade); highlightRow(k); }
     showGhost(replay.figures[k], replay.samples);
@@ -711,7 +717,9 @@ function replayTick(now) {
   rV.lerpVectors(prev.v, b.v, f); rQ.slerpQuaternions(prev.q, b.q, f);
   return { v: rV, q: rQ };
 }
-function setPlaying(on) { replay.playing = on; rb['rb-play'].textContent = on ? '▮▮' : '▶'; }
+const PLAY_SVG = '<svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5z" fill="currentColor"/></svg>';
+const PAUSE_SVG = '<svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/></svg>';
+function setPlaying(on) { replay.playing = on; rb['rb-play'].innerHTML = on ? PAUSE_SVG : PLAY_SVG; rb['rb-play'].setAttribute('aria-label', on ? 'pause' : 'play'); }
 function seekTo(t, refillTrail = true) {
   replay.cursor = THREE.MathUtils.clamp(t, replay.t0, replay.t1);
   replay.lastNow = performance.now();
@@ -1161,6 +1169,13 @@ resize();
 setCamMode('orbit');
 applyScene();
 
+let booted = false;
+function dismissSplash() {
+  const el = document.getElementById('splash');
+  if (!el) return;
+  el.classList.add('gone');
+  setTimeout(() => el.remove(), 600);
+}
 function frame() {
   const now = performance.now();
   let pose;
@@ -1187,6 +1202,7 @@ function frame() {
   if (!replay.active && ghostHideAt && now > ghostHideAt) { clearGhost(); ghostHideAt = 0; }
   renderer.render(scene, camera);
   trailFullUpload = false;
+  if (!booted) { booted = true; dismissSplash(); }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
