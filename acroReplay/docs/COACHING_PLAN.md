@@ -412,7 +412,7 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
   fitted to the flown entry as a ghost over the flown trail; let the pilot scrub back and replay the last figure
   or the whole routine and compare (§6.1–6.2, phases C1b/C3/C6).
 - **Cue timing is a user setting**: after-figure debrief · during + after · on-demand only. Default to after-figure.
-- **Audio goes over Bluetooth to the headset** (model to confirm); phone speaker kept as the ground-test fallback.
+- **Audio plays out whatever route the phone is on** — the speaker by default, a wired or Bluetooth output if one is connected; nothing route-specific.
 - **Validation data = data16 only**, graded against Sean's own judgement of the replay to start; real scores or
   judge sheets are added when they exist. The other logs stay out of the loop for now.
 - **Wind is estimated from wings-level horizontal lines** (heading vs GPS track and groundspeed) before each
@@ -551,8 +551,10 @@ way (ILS glideslope audio, glider varios).
 - **Pitch = the primary signed shape error.** Higher pitch = “too far up” (ballooning a loop, past vertical, nose
   high on a 45); lower pitch = “too tight / sagging” (pinching, nose falling back). On-shape sits at a centre
   frequency that is only barely audible, or silent within a deadband.
-- **Stereo pan = wing-low / roll error.** In the Bluetooth headset the cue drifts toward the low wing (“the sound is
-  where the mistake is”). This is the “sagging a wing” case directly.
+- **Stereo pan = wing-low / roll error.** On a stereo output the cue drifts toward the low wing (“the sound is
+  where the mistake is”) — the “sagging a wing” case directly. On the phone’s mono speaker the pan collapses to
+  centre and the pitch/cadence carry the primary error unchanged, so the cue still works, just without the
+  which-wing hint.
 - **Loudness / attack tracks magnitude**, and everything is zero inside a tolerance band, so small, acceptable
   deviations stay silent. Hysteresis and smoothing keep it from chattering.
 
@@ -579,8 +581,9 @@ compressor → master) and is **built and tuned**. Its live interface is `update
 in degrees and a signed bank in degrees — from which it derives pitch (±2 octaves over 30°), stereo pan (bank/45°)
 and blip cadence (shape only), silent inside a deadband. The remaining work is the per-frame code that turns the
 detector's in-progress element into that `(shape, bank)` pair and calls `update()`; that build is planned in §12.7.
-The audio session is already configured (`.playback`, `allowBluetoothA2DP` in `WebView.swift`), so the one thing left
-to verify natively is that a *continuous* Web Audio tone routes to the Bluetooth headset as cleanly as the speech does.
+The audio session is already `.playback`, so the cue plays out the phone's active output route — the built-in
+speaker by default, or a wired/Bluetooth output when one is connected — with no route-specific handling. The one
+thing left to verify natively is that a *continuous* Web Audio tone plays out that route as cleanly as the speech does.
 
 **Setting (independent of the spoken critique).** A dedicated **Live cue** control in Settings with three states —
 **Off / Constant / Blip**. *Constant* is the continuous modulated tone described above; *Blip* is discrete correction
@@ -592,8 +595,9 @@ score with the live cue off).
 
 **Safety and tuning (start conservative).** Silence-baseline and a generous deadband so it is quiet most of the time;
 cap at two dimensions at once; add an intensity control alongside the Off/Constant/Blip choice; validate in the air
-before widening the cue set. Open questions: does Web Audio reliably reach the Bluetooth headset from WKWebView, and
-is the loop’s target radius best taken from the entry quadrant or a speed-based nominal.
+before widening the cue set. Open questions: does a continuous Web Audio tone play out the active route from
+WKWebView (speaker or connected output), and is the loop’s target radius best taken from the entry quadrant or a
+speed-based nominal.
 
 ### 12.7 Live cue — build plan (lines → loops → rolls)
 
@@ -672,13 +676,16 @@ wrong here; the roll cue is pitch-only:
   optional later toggle; v1 is live-and-Test only.
 - *Debug hook*: `window.wingrock.cue` dumps the current `{kind, shape, bank, active}` so the mapping can be watched
   frame-by-frame in the browser against a replayed flight.
-- *Native audio*: the session is `.playback` / `.spokenAudio` / `allowBluetoothA2DP`. `.spokenAudio` mode is tuned
-  for speech; verify a continuous oscillator routes to the Bluetooth headset and is not oddly ducked, and switch the
-  mode to `.default` if the tone sounds wrong. This is the only native touch and is verify-only unless it misbehaves.
+- *Native audio*: the session is `.playback` / `.spokenAudio` / `allowBluetoothA2DP`, so the cue already plays out
+  whatever route is active — the speaker by default, wired or Bluetooth if connected — with no route-specific code.
+  The stereo-pan dimension only carries on a stereo output; on the mono speaker the cue reduces to pitch/cadence,
+  which is the primary channel by design. `.spokenAudio` mode is tuned for speech; verify a continuous oscillator
+  plays out that route and is not oddly ducked, and switch the mode to `.default` if the tone sounds wrong. This is
+  the only native touch and is verify-only unless it misbehaves.
 
 **Build order and exit criteria.** Ship each phase before starting the next; each is: write the `cuemap` case →
 validate offline by replaying data16 (silent on clean segments, rises on the known faults, cross-checked against
-Sean's grades) → verify the audio routes to the headset → fly it. Phase A alone turns the blips from silent to
+Sean's grades) → verify the tone plays out the active audio route → fly it. Phase A alone turns the blips from silent to
 useful on the lines in every Primary figure and shakes out all the plumbing (reading `current`, gating, the
 `update()` call, the audio-session check). B and C reuse that plumbing unchanged.
 
@@ -687,7 +694,7 @@ useful on the lines in every Primary figure and shakes out all the plumbing (rea
 2. Loop target radius: entry-quadrant median vs speed-based nominal; value of `RADIUS_TOL`.
 3. Confirm `roll` sign and that pan-off on rolls (no pan) feels right in the air.
 4. Is the shape-locked blip cadence enough for rolls, or is the rate tick worth building?
-5. Does the current `.spokenAudio` session route a continuous tone to the headset cleanly?
+5. Does the current `.spokenAudio` session play a continuous tone out the active route (speaker or connected output) cleanly?
 6. Should the cue also run in replay for post-flight review?
 
 ## 11. Sources
