@@ -652,7 +652,8 @@ first quadrant closes there is no target, so the cue stays silent. Then:
 - `bank`: use horizon `bank` on the sides of the loop and fall back to `roll` where `|el| > 80` (top and bottom,
   where `bank` is NaN).
 
-Open tuning: entry-quadrant `R*` vs a speed-based nominal, and `RADIUS_TOL`. Exit criterion: on data16's loop the
+The target-radius source is the entry-quadrant median (Sean's call); a speed-based nominal is the fallback if that
+proves twitchy. `RADIUS_TOL` stays a tuning knob. Exit criterion: on data16's loop the
 trace should sit near silence through a round quarter and swing on a deliberately pinched top.
 
 **Phase C — rolls (`ROLL`) and the spin down-line.** Bank sweeps by design, so the pan-toward-the-low-wing mapping is
@@ -689,13 +690,16 @@ Sean's grades) → verify the tone plays out the active audio route → fly it. 
 useful on the lines in every Primary figure and shakes out all the plumbing (reading `current`, gating, the
 `update()` call, the audio-session check). B and C reuse that plumbing unchanged.
 
-**Consolidated open questions.**
-1. Line targets: apply a fixed zero-lift-axis offset (a few degrees below the nose on the Eagle), or use raw `el`?
-2. Loop target radius: entry-quadrant median vs speed-based nominal; value of `RADIUS_TOL`.
-3. Confirm `roll` sign and that pan-off on rolls (no pan) feels right in the air.
-4. Is the shape-locked blip cadence enough for rolls, or is the rate tick worth building?
-5. Does the current `.spokenAudio` session play a continuous tone out the active route (speaker or connected output) cleanly?
-6. Should the cue also run in replay for post-flight review?
+**Decisions (Sean, 2026-09-17).**
+1. Line targets use **raw nose elevation** `el` — the ZLA offset is small enough to live inside the deadband; revisit only if a data16 trace reads biased.
+2. Loop target radius is the **entry-quadrant median**; speed-based nominal is the fallback.
+3. Rolls ship a **sag cue only** (pitch, no pan); the roll-rate tick is deferred as a later research path.
+4. The cue runs **live and on Test only**; no replay playback in v1.
+
+**Still to verify (not decisions — I check these myself).**
+- `roll` sign (does +roll mean right-wing-down?) against data16, and that pan-off on rolls feels right in the air.
+- That the current `.spokenAudio` session plays a continuous tone out the active route (speaker or connected output) cleanly; switch to `.default` if not.
+- `RADIUS_TOL` value, tuned in the air.
 
 ## 11. Sources
 
