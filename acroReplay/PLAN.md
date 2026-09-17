@@ -488,6 +488,13 @@ livefreeandfly/acroReplay/
 
 ## 9. Decision log
 
+- 2026-09-16 — Aircraft picker (Sean): Eagle / Extra 330SC / RV-7 under Box → Settings, remembered
+  in `acroReplay.model` (localStorage + UserDefaults) and used at the next launch. Models are described
+  in one table (dir, scale, CG offset); every OBJ is Y-up, nose +Z. Picking swaps the model in place —
+  parked in the hangar when there's no data, in flight otherwise. The stance solver reads the wheel
+  meshes by role name (main_wheels / tail_wheel or the Eagle's Front_wheel / Rare_wheel); a taildragger
+  whose model has no tail wheel (the RV-7) hangs its tail cone at tail-wheel height, a tricycle sits
+  level. Chocks follow the main wheels. Prop blades of any count collapse to one disk at the hub.
 - 2026-09-16 — Offline behaviour (Sean's asks): with no live data the aircraft waits in a rendered
   hangar (web/hangar.js — procedural walls/roof/trusses/lights, real prop blades instead of the
   in-flight disk), all three wheels on the floor: the stance is solved at load from the model's

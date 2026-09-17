@@ -138,10 +138,12 @@ export function buildHangar(scene) {
   put(new THREE.Mesh(drum, blue), W / 2 - 1.4, 0.44, z1 - 1.0);
   put(new THREE.Mesh(drum, blue), W / 2 - 2.0, 0.44, z1 - 0.5);
   put(new THREE.Mesh(drum, yellow), -(W / 2 - 1.3), 0.44, z1 - 2.2);
-  for (const x of [-0.87, 0.87]) put(box(0.3, 0.12, 0.14, yellow), x, 0.06, -1.15);
+  const chocks = [-1, 1].map((sx) => put(box(0.3, 0.12, 0.14, yellow), sx * 0.87, 0.06, -1.15));
   put(plane(10, 2.5, new THREE.MeshBasicMaterial({ map: banner() })), 0, E - 2, z1 - 0.03, 0, Math.PI);
 
   g.userData.setLit = (on) => { for (const l of lights) l.intensity = on ? LIT_INTENSITY : 0; };
+  // Chocks sit just ahead of the main wheels: `lateral` = wheel offset from the centreline, `forward` = metres north of the origin.
+  g.userData.placeChocks = (lateral, forward) => { chocks.forEach((c, i) => c.position.set((i ? 1 : -1) * lateral, 0.06, -forward)); };
   g.visible = false;
   scene.add(g);
   return g;

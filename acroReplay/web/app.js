@@ -360,7 +360,7 @@ function propDiskTexture() {
 // Licensed aircraft models (web/models/, not in git). Every OBJ is Y up, nose +Z, right wing -X; `scale`
 // takes its units to metres and `offset` (model units) puts its origin on the CG. Mesh names carry the roles:
 // canopy (glass), propeller (blades → spinning disk), main_wheels / tail_wheel (parked stance).
-// Rotated into the FRD body frame; the procedural model stands in until the picked one loads.
+// Rotated into the FRD body frame; nothing is drawn until the picked model has loaded.
 const MODELS = {
   eagle: { dir: 'eagle', scale: 0.01, offset: [0, -1.6, -30] },
   extra: { dir: 'extra', scale: 1, offset: [0, 0, 0] },
@@ -372,14 +372,13 @@ function showProp(spinning) {
   for (const m of propParts.blades) m.visible = !spinning;
   for (const d of propParts.disks) d.visible = spinning;
 }
-const placeholder = buildAircraft();
-let modelNode = placeholder;
+let modelNode = null;
 let modelKey = MODELS[getItem('acroReplay.model')] ? getItem('acroReplay.model') : 'eagle';
-aircraft.add(placeholder);
 scene.add(aircraft);
 function showModel(node) {
-  aircraft.remove(modelNode);
+  if (modelNode) aircraft.remove(modelNode);
   modelNode = node;
+  if (!node) return;
   aircraft.add(node);
   settleOnWheels();
 }
@@ -428,7 +427,7 @@ function setModel(key) {
   document.querySelectorAll('#model [data-model]').forEach((btn) => btn.classList.toggle('on', btn.dataset.model === key));
   propParts.blades = [];
   propParts.disks = [];
-  if (modelNode !== placeholder) showModel(placeholder);
+  showModel(null);
   loadAircraftModel(key);
 }
 document.querySelectorAll('#model [data-model]').forEach((btn) => {
@@ -449,25 +448,56 @@ function wheelBox(root, pattern) {
   });
   return box.isEmpty() ? null : box;
 }
+// Lowest point (largest body z) of the model aft of `xMax`, in the body frame — where a tail skid or an
+// unmodelled tail wheel would hang from.
+function lowestPointAft(root, xMax) {
+  const toLocal = new THREE.Matrix4().copy(root.matrixWorld).invert();
+  const v = new THREE.Vector3(), local = new THREE.Matrix4();
+  let best = null;
+  root.traverse((m) => {
+    if (!m.isMesh) return;
+    local.multiplyMatrices(toLocal, m.matrixWorld);
+    const pos = m.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i += 1) {
+      v.fromBufferAttribute(pos, i).applyMatrix4(local);
+      if (v.x < xMax && (!best || v.z > best.z)) best = v.clone();
+    }
+  });
+  return best;
+}
+const TAILWHEEL_M = 0.45;   // tail-cone height above the floor for a taildragger whose model has no tail wheel
 function settleOnWheels() {
   aircraft.updateMatrixWorld(true);
   const main = wheelBox(aircraft, /front_wheel|main_wheel/i), tail = wheelBox(aircraft, /rare_wheel|rear_wheel|tail_wheel/i);
   if (!main) return;
-  if (!tail) {   // tricycle gear (or a model missing its nose wheel): level, mains on the floor
-    worldQuaternion(0, 0, 0, REST.quat);
-    REST.pos.set(0, main.max.z, 0);
-    if (parked) placeParked();
-    return;
+  const cm = main.getCenter(new THREE.Vector3());
+  const rm = (main.max.z - main.min.z) / 2;
+  let ct, rt;
+  if (tail) {
+    ct = tail.getCenter(new THREE.Vector3());
+    rt = (tail.max.z - tail.min.z) / 2;
+  } else {
+    // Mains well ahead of the body origin: a taildragger missing its tail wheel — hang the tail cone at
+    // tail-wheel height. Otherwise tricycle gear: level, mains on the floor.
+    const aft = cm.x > 0.2 ? lowestPointAft(aircraft, cm.x - 1.5) : null;
+    if (!aft) {
+      worldQuaternion(0, 0, 0, REST.quat);
+      REST.pos.set(0, main.max.z, 0);
+      hangar.userData.placeChocks(main.max.y - 0.1, cm.x + rm + 0.2);
+      if (parked) placeParked();
+      return;
+    }
+    ct = new THREE.Vector3(aft.x, 0, aft.z + TAILWHEEL_M);
+    rt = 0;
   }
-  // Body frame (x forward, z down): pitch nose-up by θ until both wheel bottoms share one plane, then lift by that depth.
-  const cm = main.getCenter(new THREE.Vector3()), ct = tail.getCenter(new THREE.Vector3());
-  const rm = (main.max.z - main.min.z) / 2, rt = (tail.max.z - tail.min.z) / 2;
+  // Body frame (x forward, z down): pitch nose-up by θ until both contact points share one plane, then lift by that depth.
   const a = cm.z - ct.z, b = cm.x - ct.x, c = rt - rm, r = Math.hypot(a, b);
   if (r < 1e-6 || Math.abs(c) > r) return;
   const theta = Math.acos(c / r) - Math.atan2(b, a);
   const depth = -cm.x * Math.sin(theta) + cm.z * Math.cos(theta) + rm;
   worldQuaternion(0, THREE.MathUtils.radToDeg(theta), 0, REST.quat);
   REST.pos.set(0, depth, 0);
+  hangar.userData.placeChocks(main.max.y - 0.1, cm.x * Math.cos(theta) + cm.z * Math.sin(theta) + rm + 0.2);
   if (parked) placeParked();
 }
 let parked = true;
