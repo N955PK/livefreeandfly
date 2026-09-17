@@ -663,7 +663,7 @@ function setCamMode(mode) {
   controls.maxPolarAngle = mode === 'map' ? 0.001 : Math.PI;
   camera.up.set(0, 1, 0);
   if (mode !== 'judge') { camera.fov = DEFAULT_FOV; camera.updateProjectionMatrix(); }
-  if (mode === 'orbit') camera.position.copy(aircraft.position).add(camOffset);
+  if (mode === 'orbit') { controls.target.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); }
   if (mode === 'map') {
     const c = boxGroup ? judgeWorldPosition(boxGroup, new THREE.Vector3()) : aircraft.position.clone();
     controls.target.set(c.x, 0, c.z);
