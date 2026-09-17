@@ -322,6 +322,13 @@ to how it was actually entered**, and draws it in 3D next to the flown trail:
   while the critique is spoken — the original phase‑3 idea from PLAN.md, now with the overlay.
 - Replay works on the ground too: after landing, with no Hub data, the app parks the aircraft in the hangar but
   the buffer is still there, so the whole routine can be replayed and compared as a debrief.
+- **Flights are saved on the phone** (Sean, 2026-09-16). The native shell writes every received frame to
+  `Documents/Flights/<date>_<time>.bin` in the same record format the bridge already uses for `sessions/*.bin`
+  (`<dH` wall‑clock + length header, 67‑byte payload), so the Python decoders and converters work on phone
+  files unchanged. A new file starts at each launch and whenever the INS re‑initialises; empty files are deleted.
+  Storage is trivial: 50 Hz × 77 bytes ≈ 14 MB per flying hour. The Flights folder is exposed to the iOS Files app
+  (file sharing enabled) for export and for pulling logs onto the Mac. A "Flights" list in the app opens any saved
+  flight in Replay mode, chaptered by detected figures.
 - Later: compare two attempts of the same figure (this loop vs the previous one, or vs the best one this
   session) by drawing both trails against one ideal.
 
@@ -331,7 +338,7 @@ to how it was actually entered**, and draws it in 3D next to the flown trail:
 |---|---|---|
 | **C0 Ground truth & labels** | Label the figures in the three real flights (data16/17/18) with start/end and figure type; collect any scores/judge sheets/ACROWRX–FCScore output for them (Q6) | A labelled set of ≥ 20 figures across ≥ 6 types |
 | **C1 Element detector** | `web/coach/` detector over the replay; tuned on C0; browser debug view showing detected elements over the trail | Element boundaries within ~0.3 s of labels on ≥ 90 % of labelled figures; no false figures on a non-aerobatic log |
-| **C1b Replay** | 20‑min sample ring buffer; Replay mode with scrub bar, speeds, "Last figure" (from the detector's figure boundaries), "Live" return; works parked on the ground | Any figure from the last 20 minutes can be replayed at the judge camera within two taps, live data uninterrupted |
+| **C1b Replay & flight files** | 20‑min sample ring buffer; Replay mode with scrub bar, speeds, "Last figure" (from the detector's figure boundaries), "Live" return; works parked on the ground; frames saved to `Documents/Flights/` and a Flights list that opens a saved flight in replay | Any figure from the last 20 minutes can be replayed at the judge camera within two taps, live data uninterrupted; yesterday's flight replays from the Flights list and its file opens with the Python tools |
 | **C2 Figure library & matcher** | Templates for §3.1 (Primary+Sportsman first); pick-a-figure UI; match flown elements to the armed figure | Every labelled figure of the armed type is matched; wrong-type figures are rejected |
 | **C3 Measurements, scoring & overlay** | Per-element measurements and §2.4 downgrades; HUD score card after each figure; the ideal‑figure ghost with deviation tint, ribs and annotations (§6.1), shown in replay and optionally live | Scores within ~1 point of Sean's grades on the labelled set; the ghost visibly explains every deduction the card lists |
 | **C4 Audio debrief** | Spoken critique in the app after each figure; headset routing; volume/verbosity settings | Sean can fly a practice session hands-off and get a useful call after each figure |
@@ -394,8 +401,7 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
    only). Still needed: Sean's sign-off on the correction phrasing per figure before it ships.
 10. ~~Voice of the score~~ — answered: user-selectable, both present.
 11. ~~Sequence mode timing~~ — answered: both single-figure and sequence mode in this phase, Primary-based.
-12. **Replay persistence.** Should flights be saved on the phone so a routine can be replayed after the app is
-    closed (and shared/exported), or is the current session's 20‑minute buffer enough for now?
+12. ~~Replay persistence~~ — answered: save flights on the phone (§6.2).
 
 ## 11. Sources
 
