@@ -210,7 +210,7 @@ export function gradeFigure(fig, ctx = {}, want) {
   let hz = null;
 
   // Entry line: wings level, horizontal, on axis (26.1.8, 27.6). Exit is checked per figure below.
-  if (Number.isFinite(ctx.axisDeg) && Math.min(...[0, 90, 180, 270].map((k) => Math.abs(angleDiff(entryAz, ctx.axisDeg + k)))) > 20) {
+  if (Number.isFinite(ctx.axisDeg) && Math.min(...[0, 90, 180, 270].map((k) => Math.abs(angleDiff(entryAz, ctx.axisDeg + k)))) > 30) {
     ctx = { ...ctx, axisDeg: NaN };   // not flying this box's axes — grade against the figure's own entry heading
   }
   if (entry && entry.samples?.length > 12) {

@@ -684,14 +684,14 @@ function seekTo(t, refillTrail = true) {
   const from = replayIndex(replay.cursor - 40), to = replayIndex(replay.cursor);
   for (let i = from; i <= to; i += 2) { const s = replay.samples[i]; if (s.v) pushTrail(s.v, 0, true); }
 }
-function startReplay(samples, name, at) {
+function startReplay(samples, name, at, figures) {
   const placed = samples.filter((s) => s.init && s.quat);
   if (!placed.length) { rb['rb-time'].textContent = 'no INS data'; return; }
   for (const s of placed) placeSample(s);
   replay.samples = placed; replay.name = name;
   replay.t0 = placed[0].t; replay.t1 = placed[placed.length - 1].t;
-  replay.figures = Detector.run(placed);
-  for (const fig of replay.figures) fig.grade = gradeFigure(fig, coachContext());
+  replay.figures = figures || Detector.run(placed);
+  for (const fig of replay.figures) if (!fig.grade) fig.grade = gradeFigure(fig, coachContext());
   replay.lastShown = -1;
   replay.active = true;
   setPlaying(false);
@@ -789,8 +789,8 @@ rb['rb-last'].addEventListener('click', () => {
   const figs = liveDetector.figures;
   if (!figs.length) { rb['rb-time'].textContent = 'no figure yet'; return; }
   const fig = figs[figs.length - 1];
-  const slice = history.filter((s) => s.t >= fig.t0 - 5 && s.t <= fig.t1 + 5);
-  startReplay(slice, 'last figure', fig.t0 - 2);
+  const slice = history.filter((s) => s.t >= fig.t0 - 4 && s.t <= fig.t1 + 4);
+  startReplay(slice, 'last figure', fig.t0 - 2, [fig]);   // keep the live detection and its grade
   setPlaying(true);
 });
 rb['rb-load'].addEventListener('click', async () => {
