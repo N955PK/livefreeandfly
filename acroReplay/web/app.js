@@ -888,8 +888,12 @@ function showGhost(fig, pool) {
   clearGhost();
   const flown = pool.filter((s) => s.t >= fig.t0 && s.t <= fig.t1 && s.v);
   if (!flown.length) return;
-  const entryAz = fig.entry ? fig.entry.az1 : fig.elements[0].az0;
-  const g = idealFigure(fig.grade, fig.grade.match, flown[0].v, entryAz, flown, fig.grade.ctx || coachContext());   // same axis decision as the grade
+  // The ideal aligns to the box, so pick the box axis from the settled direction of travel (the spin carries its
+  // entry ground track), not the last entry sample, which is already swinging into the figure.
+  const entryAz = Number.isFinite(fig.grade.measurements?.entryTrk) ? fig.grade.measurements.entryTrk
+    : (fig.entry ? fig.entry.az1 : fig.elements[0].az0);
+  const gctx = { ...(fig.grade.ctx || {}), axisDeg: coachContext().axisDeg };   // the live box edge, even if grading fell back off-axis
+  const g = idealFigure(fig.grade, fig.grade.match, flown[0].v, entryAz, flown, gctx);
   if (!g) return;
   const geo = new LineGeometry();
   geo.setPositions(g.points.flatMap((p) => [p.x, p.y, p.z]));

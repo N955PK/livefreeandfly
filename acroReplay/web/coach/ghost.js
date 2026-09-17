@@ -11,12 +11,13 @@ const KIND_LINE = 45;
 /// Unit horizontal direction for a true heading in the scene frame (x east, y up, z south).
 function headingDir(deg) { return new THREE.Vector3(Math.sin(deg * RAD), 0, -Math.cos(deg * RAD)); }
 
-/// Snap a heading to the nearest box axis (0/90/180/270 from the box heading) when a box exists.
+/// The nearest box axis (0/90/180/270 from the box heading) when a box exists — the ideal figure is flown parallel
+/// to the box edge, so its entry and exit align to the box, not to however the aircraft happened to be pointing.
 function snap(az, axisDeg) {
   if (!Number.isFinite(axisDeg)) return az;
   let best = az, bestErr = 1e9;
   for (const k of [0, 90, 180, 270]) { const a = (axisDeg + k) % 360, e = Math.abs(angleDiff(az, a)); if (e < bestErr) { bestErr = e; best = a; } }
-  return bestErr <= 30 ? best : az;
+  return best;
 }
 
 /// Pen that draws in the vertical plane of heading `dir`: `arc(deg, radius, sense)` pitches the path up (+)
