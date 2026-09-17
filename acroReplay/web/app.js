@@ -712,9 +712,6 @@ function replayTick(now) {
     }
     // Whole-sequence playback: clear the trail as each figure completes, so every manoeuvre draws its own.
     if (!replay.loop && replay.cursor > before && replay.figures.some((f) => f.grade && before < f.t1 && replay.cursor >= f.t1)) clearTrail();
-    if (replay.rocks && replay.cursor > before) {
-      while (replay.rockNext < replay.rocks.length && replay.cursor >= replay.rocks[replay.rockNext]) { onWingRock(); replay.rockNext += 1; }
-    }
   }
   replay.lastNow = now;
   // Show the figure's name, score and ghost from the moment the cursor reaches its entry (t0), and hold them
@@ -727,7 +724,7 @@ function replayTick(now) {
     if (k < 0) for (let i = replay.figures.length - 1; i >= 0; i -= 1) { const f = replay.figures[i]; if (f.grade && replay.cursor > f.t1 && replay.cursor <= f.t1 + 2.5) { k = i; break; } }
   }
   if (k >= 0) {
-    if (k !== replay.lastShown) { replay.lastShown = k; if (runState === 'recording' && replay.figures[k].grade) { runFigures.push(replay.figures[k].grade); renderHudRec(); } showCoach(replay.figures[k].grade); highlightRow(k); }
+    if (k !== replay.lastShown) { replay.lastShown = k; showCoach(replay.figures[k].grade); highlightRow(k); }
     showGhost(replay.figures[k], replay.samples);
   } else {
     replay.lastShown = -1;
@@ -751,7 +748,6 @@ function setPlaying(on) { replay.playing = on; rb['rb-play'].innerHTML = on ? PA
 function seekTo(t, refillTrail = true) {
   replay.cursor = THREE.MathUtils.clamp(t, replay.t0, replay.t1);
   replay.lastNow = performance.now();
-  if (replay.active && !replay.loop) seekRuns();   // keep the sequence indicator in step with the scrub
   if (!refillTrail) return;
   clearTrail();
   const lower = replay.loop ? Math.max(replay.loop.t0, replay.cursor - 40) : replay.cursor - 40;
@@ -771,7 +767,7 @@ function startReplay(samples, name, at, figures, flightBox) {
   replay.figures = figures || Detector.run(placed);
   restoreLabels(name);
   for (const fig of replay.figures) fig.grade = gradeOne(fig);
-  replay.rocks = scanReplayRocks(placed); replay.rockNext = 0; resetRun();
+  resetRun();
   replay.lastShown = -1;
   replay.active = true;
   setPlaying(false);
@@ -1100,23 +1096,10 @@ function renderHudRec() {                            // score card (which the pi
     hudRec.className = 'hidden';
   }
 }
-function scanReplayRocks(samples) {   // rock times in a loaded flight, so replay can light up the sequence brackets
-  const out = []; const d = new WingRockDetector((r) => out.push(r.t));
-  for (const smp of samples) if (smp.init) d.push(smp);
-  return out;
-}
 function resetRun() { runState = 'idle'; runFigures = []; renderHudRec(); }
-function seekRuns() {   // set the run state to match the scrubbed cursor, without speaking
-  if (!replay.rocks || !replay.rocks.length) return;
-  replay.rockNext = replay.rocks.filter((rt) => rt <= replay.cursor).length;
-  if (replay.rockNext % 2 === 1) {
-    runState = 'recording';
-    const from = replay.rocks[replay.rockNext - 1];
-    runFigures = replay.figures.filter((f) => f.grade && f.t0 >= from && f.t0 <= replay.cursor);
-    renderHudRec();
-  } else { resetRun(); }
-}
-function onWingRock() { if (runState === 'idle') startRun(); else stopRun(); }
+// The run/record lifecycle is live-only: replaying a flight that happens to contain wing rocks must never start a
+// recording, it is pure review. So the wing rock drives a run only when not replaying.
+function onWingRock() { if (replay.active) return; if (runState === 'idle') startRun(); else stopRun(); }
 function startRun() {
   runState = 'recording'; runFigures = []; resetSequence();
   if (nativeHandler && !replay.active) nativeHandler.postMessage(`seqstart:${seqName()}`);   // save this bracketed sequence as its own file, titled by the armed sequence (live only)
@@ -1519,7 +1502,7 @@ window.wingrock = {
     for (const smp of samples) if (smp.init) d.push(smp);
     return found;
   },
-  run: () => ({ runState, runFigures: runFigures.length, rocks: (replay.rocks||[]).map((t)=>Math.round(t-replay.t0)), rockNext: replay.rockNext, cursor: Math.round(replay.cursor-replay.t0), fig0: replay.figures[0] ? Math.round(replay.figures[0].t0-replay.t0) : null }),
+  run: () => ({ runState, runFigures: runFigures.length, cursor: Math.round(replay.cursor - replay.t0), fig0: replay.figures[0] ? Math.round(replay.figures[0].t0 - replay.t0) : null }),
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
   cue: () => { const f = liveDetector.lastF; return { mode: cueMode, kind: liveDetector.current?.kind, el: f && Math.round(f.el), roll: f && Math.round(f.roll), active: lastCue.active, shape: Math.round(lastCue.shape), bank: Math.round(lastCue.bank) }; },
   cueEngine: () => ({ mode: liveCue.mode, testing: liveCue.testing, ctx: liveCue.ctx?.state || null, envGain: liveCue.env ? +liveCue.env.gain.value.toFixed(3) : null, freq: liveCue.osc ? Math.round(liveCue.osc.frequency.value) : null }),
