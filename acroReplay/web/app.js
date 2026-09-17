@@ -711,6 +711,9 @@ function replayTick(now) {
     }
     // Whole-sequence playback: clear the trail as each figure completes, so every manoeuvre draws its own.
     if (!replay.loop && replay.cursor > before && replay.figures.some((f) => f.grade && before < f.t1 && replay.cursor >= f.t1)) clearTrail();
+    if (replay.rocks && replay.cursor > before) {
+      while (replay.rockNext < replay.rocks.length && replay.cursor >= replay.rocks[replay.rockNext]) { onWingRock(); replay.rockNext += 1; }
+    }
   }
   replay.lastNow = now;
   // Show the figure's name, score and ghost from the moment the cursor reaches its entry (t0), and hold them
@@ -723,7 +726,7 @@ function replayTick(now) {
     if (k < 0) for (let i = replay.figures.length - 1; i >= 0; i -= 1) { const f = replay.figures[i]; if (f.grade && replay.cursor > f.t1 && replay.cursor <= f.t1 + 2.5) { k = i; break; } }
   }
   if (k >= 0) {
-    if (k !== replay.lastShown) { replay.lastShown = k; showCoach(replay.figures[k].grade); highlightRow(k); }
+    if (k !== replay.lastShown) { replay.lastShown = k; if (runState === 'recording' && replay.figures[k].grade) { runFigures.push(replay.figures[k].grade); renderHudRec(); } showCoach(replay.figures[k].grade); highlightRow(k); }
     showGhost(replay.figures[k], replay.samples);
   } else {
     replay.lastShown = -1;
@@ -747,6 +750,7 @@ function setPlaying(on) { replay.playing = on; rb['rb-play'].innerHTML = on ? PA
 function seekTo(t, refillTrail = true) {
   replay.cursor = THREE.MathUtils.clamp(t, replay.t0, replay.t1);
   replay.lastNow = performance.now();
+  if (replay.active && !replay.loop) seekRuns();   // keep the sequence indicator in step with the scrub
   if (!refillTrail) return;
   clearTrail();
   const lower = replay.loop ? Math.max(replay.loop.t0, replay.cursor - 40) : replay.cursor - 40;
@@ -766,6 +770,7 @@ function startReplay(samples, name, at, figures, flightBox) {
   replay.figures = figures || Detector.run(placed);
   restoreLabels(name);
   for (const fig of replay.figures) fig.grade = gradeOne(fig);
+  replay.rocks = scanReplayRocks(placed); replay.rockNext = 0; resetRun();
   replay.lastShown = -1;
   replay.active = true;
   setPlaying(false);
@@ -797,6 +802,7 @@ function stopReplay() {
   rb.replaybar.classList.add('hidden');
   document.body.classList.remove('replaying');
   clearTrail();
+  resetRun();
   applyScene();
   setReplayLabel();
 }
@@ -979,12 +985,12 @@ function renderCoach(g) {
   coachCard.innerHTML =
       `<div class="chead"><span class="ctype">${head}</span>`
     +   `<span class="cscorewrap"><span class="cscorelbl">auto</span><span class="cscore${g.hz ? ' hz' : ''}">${scoreTxt}</span></span></div>`
-    + warn + body + seq + recFooter();
+    + warn + body + seq;
 }
 // Show the scoring box for a figure. It stays up until the user toggles it off (no timeout, no tap-to-dismiss).
 function showCoach(g) {
   lastGrade = g;
-  if (!coachShow && runState === 'idle') return;
+  if (!coachShow) return;
   renderCoach(g);
   coachCard.classList.remove('hidden');
 }
@@ -1005,7 +1011,7 @@ function onFigureDetected(fig, source) {
   console.info(`[coach] figure (${source}) ${fmtClock(fig.dur)}: ${fig.elements.map(describe).join(' · ')}${line ? ` → ${line}` : ''}`);
   nativeLog(`figure ${fig.elements.map(describe).join(' | ')}${line ? ` → ${line}` : ''}`);
   if (fig.grade && source === 'live') {
-    if (runState === 'recording') runFigures.push(fig.grade);
+    if (runState === 'recording') { runFigures.push(fig.grade); renderHudRec(); }
     showCoach(fig.grade);
     showGhost(fig, history); ghostHideAt = performance.now() + 20000;
     if (coachSpeak) say(line);
@@ -1023,38 +1029,49 @@ function runPct() {
   const max = runFigures.reduce((a, g) => a + 10 * (g.seq?.k || 1), 0);
   return Math.round((got / max) * 100);
 }
-function recFooter() {   // strip appended to the bottom of the coach card while a routine is recording
+const hudRec = document.getElementById('hudrec');   // the recording strip lives on the always-visible HUD, not the
+function renderHudRec() {                            // score card (which the pilot can toggle off)
   if (runState === 'recording') {
     const pct = runPct();
-    return `<div class="crec rec"><span class="dot"></span>REC · ${runFigures.length} fig${runFigures.length === 1 ? '' : 's'}${pct != null ? ` · ${pct}%` : ''}</div>`;
+    hudRec.className = 'rec';
+    hudRec.innerHTML = `<span class="dot"></span>REC \u00b7 SEQUENCE \u00b7 ${runFigures.length} fig${runFigures.length === 1 ? '' : 's'}${pct != null ? ` \u00b7 ${pct}%` : ''}`;
+  } else if (runState === 'done') {
+    hudRec.className = 'done'; hudRec.textContent = runDoneText;
+  } else {
+    hudRec.className = 'hidden';
   }
-  if (runState === 'done') return `<div class="crec done">${runDoneText}</div>`;
-  return '';
 }
-function refreshRunCard() {   // show the card with the latest figure (if any) plus the recording strip
-  if (lastGrade && coachShow) renderCoach(lastGrade);
-  else coachCard.innerHTML = `<div class="chead"><span class="ctype">Sequence</span></div>${recFooter()}`;
-  coachCard.classList.remove('hidden');
+function scanReplayRocks(samples) {   // rock times in a loaded flight, so replay can light up the sequence brackets
+  const out = []; const d = new WingRockDetector((r) => out.push(r.t));
+  for (const smp of samples) if (smp.init) d.push(smp);
+  return out;
+}
+function resetRun() { runState = 'idle'; runFigures = []; renderHudRec(); }
+function seekRuns() {   // set the run state to match the scrubbed cursor, without speaking
+  if (!replay.rocks || !replay.rocks.length) return;
+  replay.rockNext = replay.rocks.filter((rt) => rt <= replay.cursor).length;
+  if (replay.rockNext % 2 === 1) {
+    runState = 'recording';
+    const from = replay.rocks[replay.rockNext - 1];
+    runFigures = replay.figures.filter((f) => f.grade && f.t0 >= from && f.t0 <= replay.cursor);
+    renderHudRec();
+  } else { resetRun(); }
 }
 function onWingRock() { if (runState === 'idle') startRun(); else stopRun(); }
 function startRun() {
   runState = 'recording'; runFigures = []; resetSequence();
-  if (nativeHandler) nativeHandler.postMessage('seqstart');   // save this bracketed sequence as its own file
-  refreshRunCard();
+  if (nativeHandler && !replay.active) nativeHandler.postMessage('seqstart');   // save this bracketed sequence as its own file (live only)
+  renderHudRec();
   if (coachSpeak) say('Recording sequence');
 }
 function stopRun() {
   const pct = runPct();
   runState = 'done';
-  if (nativeHandler) nativeHandler.postMessage('seqend');
-  runDoneText = pct != null ? `Sequence saved · ${pct}%` : 'Sequence saved';
-  refreshRunCard();
+  if (nativeHandler && !replay.active) nativeHandler.postMessage('seqend');
+  runDoneText = pct != null ? `Sequence saved \u00b7 ${pct}%` : 'Sequence saved';
+  renderHudRec();
   if (coachSpeak) say(pct != null ? `Sequence complete. ${pct} percent.` : 'Sequence complete.');
-  setTimeout(() => {
-    if (runState !== 'done') return;
-    runState = 'idle';
-    if (coachShow && lastGrade) renderCoach(lastGrade); else coachCard.classList.add('hidden');
-  }, 6000);
+  setTimeout(() => { if (runState === 'done') { runState = 'idle'; renderHudRec(); } }, 6000);
 }
 document.getElementById('coach-figure').value = coachMode;
 document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); });
@@ -1420,5 +1437,6 @@ window.wingrock = {
     for (const smp of samples) if (smp.init) d.push(smp);
     return found;
   },
+  run: () => ({ runState, runFigures: runFigures.length, rocks: (replay.rocks||[]).map((t)=>Math.round(t-replay.t0)), rockNext: replay.rockNext, cursor: Math.round(replay.cursor-replay.t0), fig0: replay.figures[0] ? Math.round(replay.figures[0].t0-replay.t0) : null }),
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
 };
