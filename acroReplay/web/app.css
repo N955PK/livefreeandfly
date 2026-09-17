@@ -117,3 +117,23 @@ select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--f
 .mdot.na { fill: rgba(255, 255, 255, .35); } .mhdg.na { display: none; }
 .chip.na { color: var(--muted); }
 body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
+
+#replaybar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-b) + 68px); width: min(720px, 96vw); display: flex; flex-direction: column; gap: 8px; border-radius: 14px; padding: 10px 12px; font-size: 13px; color: var(--text); }
+#replaybar.hidden { display: none; }
+.rb-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.rb-track { position: relative; flex: 1; min-width: 0; padding-bottom: 12px; }
+.rb-track input[type=range] { width: 100%; margin: 0; accent-color: var(--accent); }
+#rb-marks { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; }
+#rb-marks .mark { position: absolute; top: 0; height: 10px; min-width: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--warn); opacity: .9; }
+#rb-time { min-width: 5ch; text-align: right; font-variant-numeric: tabular-nums; }
+.tool.small, .round.small { padding: 6px 10px; font-size: 13px; }
+.round.small { width: 34px; height: 34px; }
+#rb-flight { flex: 1; min-width: 0; background: rgba(255,255,255,.08); color: var(--text); border: 1px solid var(--glass-border); border-radius: 8px; padding: 6px 8px; font-size: 13px; }
+#rb-list { max-height: 38vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+#rb-list.hidden { display: none; }
+.lrow { display: grid; grid-template-columns: 34px 5ch minmax(0, 1fr) 11ch 7ch minmax(0, 1fr); gap: 6px; align-items: center; padding: 4px 6px; border-radius: 8px; background: rgba(255,255,255,.05); }
+.lrow.on { background: rgba(10,132,255,.25); }
+.lrow .lgo { padding: 4px 0; border-radius: 6px; background: var(--accent); font-weight: 700; }
+.lrow .lt { color: var(--muted); font-variant-numeric: tabular-nums; }
+.lrow .lel { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+.lrow select, .lrow input { background: rgba(255,255,255,.08); color: var(--text); border: 1px solid var(--glass-border); border-radius: 6px; padding: 4px 6px; font-size: 12px; min-width: 0; width: 100%; }

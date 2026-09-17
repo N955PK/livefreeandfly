@@ -55,12 +55,12 @@ export function sampleFromFrame(wall, f, origin) {
   const s = {
     wall, t: f.t, init: f.init, ok: f.ok, fix: f.fix, sats: f.sats, hacc: f.hacc,
     hdg: f.hdg, pitch: f.pitch, roll: f.roll, nz: f.nz, gs: f.gs, trk: f.trk, vs: f.vs, alt: f.alt,
-    rates: f.rates, pos: null, quat: null,
+    fpa: f.fpa, accel: f.accel, rates: f.rates, pos: null, quat: null,
   };
-  if (f.init && origin) {
-    s.pos = worldFromNed(...nedFromLla(f.lat, f.lon, f.alt * FT_TO_M, origin));
+  if (f.init) {
     const q = worldQuaternion(f.hdg, f.pitch, f.roll);
     s.quat = [q.x, q.y, q.z, q.w];
+    if (origin) s.pos = worldFromNed(...nedFromLla(f.lat, f.lon, f.alt * FT_TO_M, origin));
   }
   return s;
 }

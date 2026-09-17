@@ -13,6 +13,8 @@ import { DEFAULT_BOX, loadBox, saveBox, buildBoxGroup, judgeWorldPosition, boxSt
 import { getItem, setItem } from './storage.js';
 import { offsetLatLon } from './frames.js';
 import * as units from './units.js';
+import { loadFlight } from './records.js';
+import { Detector, describe } from './coach/detector.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -93,7 +95,7 @@ function onOriginKnown(lat, lon) {
 // Without live data the aircraft waits in the hangar; imagery, box and trail belong to the flight view.
 // Map picking is the exception: it needs the ground, so it leaves the hangar while active.
 function applyScene() {
-  const inHangar = parked && camMode !== 'map';
+  const inHangar = parked && camMode !== 'map' && !replay.active;
   if (inHangar === hangarMode) return;
   hangarMode = inHangar;
   hangar.visible = inHangar;
@@ -538,9 +540,12 @@ function writeSegment(i) {
   seg.array.set(trailPts.subarray(i * 3 + 3, i * 3 + 6), i * 6 + 3);
 }
 let trailFullUpload = false;
-function pushTrail(v, nowMs) {
-  if (nowMs - trailLastMs < 1000 / TRAIL_HZ) return;
-  trailLastMs = nowMs;
+// `force` appends without the 25 Hz gate and without touching the live clock (history seeding, replay refill).
+function pushTrail(v, nowMs, force = false) {
+  if (!force) {
+    if (nowMs - trailLastMs < 1000 / TRAIL_HZ) return;
+    trailLastMs = nowMs;
+  }
   if (trailLen === TRAIL_MAX) {
     const drop = Math.floor(TRAIL_MAX * 0.1);
     trailPts.copyWithin(0, drop * 3, trailLen * 3);
@@ -557,12 +562,25 @@ function pushTrail(v, nowMs) {
   else if (trailLen >= 2) seg.addUpdateRange((trailLen - 2) * 6, 6);
   seg.needsUpdate = true;
 }
-function clearTrail() { trailLen = 0; trailGeo.instanceCount = 0; }
+function clearTrail() { trailLen = 0; trailGeo.instanceCount = 0; trailLastMs = 0; if (seg.clearUpdateRanges) seg.clearUpdateRanges(); }
 
 const samples = [];
 let latest = null;
 let lastRecv = 0;
 let socketOpen = false;
+// Everything received in the last 20 minutes, for "last figure" replay; the live detector segments it as it comes.
+const HISTORY_MAX = 20 * 60 * 50;
+const history = [];
+const liveDetector = new Detector((fig) => onFigureDetected(fig, 'live'));
+function placeSample(s) {
+  if (!(s.init && s.lat !== undefined)) return false;
+  if (!originLatLon) onOriginKnown(...(s.pos ? inferOrigin(s) : [s.lat, s.lon]));
+  const ned = nedFromLla(s.lat, s.lon, s.alt * FT_TO_M, originLatLon);
+  s.pos = worldFromNed(ned[0], ned[1], ned[2]);
+  s.v = new THREE.Vector3(s.pos[0], Math.max(0.6, s.pos[1]), s.pos[2]);
+  s.q = new THREE.Quaternion(...s.quat);
+  return true;
+}
 // Frames are interpolated on the Hub's own 1 ms timestamps, mapped onto the render clock, so network and
 // IPC jitter (and batched delivery from the native shell) doesn't show up as motion. The offset follows the
 // fastest-arriving frames and creeps upward slowly so clock skew can't accumulate; a big jump (start of a
@@ -578,15 +596,14 @@ function localTime(s) {
 function onSample(s, seedOnly = false) {
   s.recv = performance.now();
   s.tl = seedOnly ? s.recv : localTime(s);
-  if (s.init && s.lat !== undefined) {
-    if (!originLatLon) onOriginKnown(...(s.pos ? inferOrigin(s) : [s.lat, s.lon]));
-    const ned = nedFromLla(s.lat, s.lon, s.alt * FT_TO_M, originLatLon);
-    s.pos = worldFromNed(ned[0], ned[1], ned[2]);
+  placeSample(s);
+  if (s.init && s.quat) {
+    history.push(s);
+    if (history.length > HISTORY_MAX) history.splice(0, history.length - HISTORY_MAX);
+    if (!seedOnly) liveDetector.push(s);
   }
   if (s.pos) {
-    s.v = new THREE.Vector3(s.pos[0], Math.max(0.6, s.pos[1]), s.pos[2]);
-    s.q = new THREE.Quaternion(...s.quat);
-    if (seedOnly) pushTrail(s.v, trailLastMs + 1000);
+    if (seedOnly) pushTrail(s.v, 0, true);
     if (!seedOnly) {
       const prev = samples[samples.length - 1];
       if (prev && s.tl <= prev.tl) s.tl = prev.tl + 1;
@@ -620,6 +637,151 @@ function poseAt(t) {
   tmpQ.slerpQuaternions(a.q, b.q, f);
   return { v: tmpV, q: tmpQ };
 }
+
+// Replay: scrub through a loaded flight file or the live history; the detector's figures become markers on
+// the bar and rows in the label list. Times are Hub seconds (sample.t).
+const replay = { active: false, playing: false, speed: 1, samples: [], cursor: 0, t0: 0, t1: 0, current: null, figures: [], name: '', lastNow: 0 };
+const rb = Object.fromEntries(['replaybar', 'rb-play', 'rb-scrub', 'rb-time', 'rb-speed', 'rb-live', 'rb-marks', 'rb-flight', 'rb-load', 'rb-last', 'rb-list', 'rb-toggle-list', 'rb-save']
+  .map((id) => [id, document.getElementById(id)]));
+const FIGURE_TYPES = ['loop', 'spin', 'half cuban', '45 up line', '180 turn', 'slow roll', 'immelmann', 'hammerhead', 'split-s', 'humpty', 'other'];
+let labels = {};   // t0 (rounded) → { type, grade, notes }
+const rV = new THREE.Vector3(), rQ = new THREE.Quaternion();
+function fmtClock(sec) { const m = Math.floor(sec / 60), s2 = Math.floor(sec % 60); return `${m}:${String(s2).padStart(2, '0')}`; }
+function replayIndex(t) {
+  const a = replay.samples; let lo = 0, hi = a.length - 1;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid].t < t) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+function replayTick(now) {
+  if (replay.playing) {
+    replay.cursor += ((now - replay.lastNow) / 1000) * replay.speed;
+    if (replay.cursor >= replay.t1) { replay.cursor = replay.t1; setPlaying(false); }
+  }
+  replay.lastNow = now;
+  const a = replay.samples;
+  if (!a.length) return null;
+  const i = Math.min(a.length - 1, replayIndex(replay.cursor));
+  const b = a[i], prev = a[Math.max(0, i - 1)];
+  replay.current = b;
+  if (now >= hudNext) { rb['rb-scrub'].value = Math.round(((replay.cursor - replay.t0) / Math.max(1, replay.t1 - replay.t0)) * 1000); rb['rb-time'].textContent = fmtClock(replay.cursor - replay.t0); }
+  if (!b.v) return prev.v ? { v: prev.v, q: prev.q } : null;
+  if (!prev.v || prev === b) return { v: b.v, q: b.q };
+  const f = THREE.MathUtils.clamp((replay.cursor - prev.t) / Math.max(1e-3, b.t - prev.t), 0, 1);
+  rV.lerpVectors(prev.v, b.v, f); rQ.slerpQuaternions(prev.q, b.q, f);
+  return { v: rV, q: rQ };
+}
+function setPlaying(on) { replay.playing = on; rb['rb-play'].textContent = on ? '❚❚' : '▶'; }
+function seekTo(t, refillTrail = true) {
+  replay.cursor = THREE.MathUtils.clamp(t, replay.t0, replay.t1);
+  replay.lastNow = performance.now();
+  if (!refillTrail) return;
+  clearTrail();
+  const from = replayIndex(replay.cursor - 40), to = replayIndex(replay.cursor);
+  for (let i = from; i <= to; i += 2) { const s = replay.samples[i]; if (s.v) pushTrail(s.v, 0, true); }
+}
+function startReplay(samples, name, at) {
+  const placed = samples.filter((s) => s.init && s.quat);
+  if (!placed.length) { rb['rb-time'].textContent = 'no INS data'; return; }
+  for (const s of placed) placeSample(s);
+  replay.samples = placed; replay.name = name;
+  replay.t0 = placed[0].t; replay.t1 = placed[placed.length - 1].t;
+  replay.figures = Detector.run(placed);
+  replay.active = true;
+  setPlaying(false);
+  rb.replaybar.classList.remove('hidden');
+  renderMarks(); renderList();
+  seekTo(at !== undefined ? at : (replay.figures[0] ? replay.figures[0].t0 - 2 : replay.t0));
+  applyScene();
+  updateCamera();
+}
+function stopReplay() {
+  replay.active = false; setPlaying(false);
+  rb.replaybar.classList.add('hidden');
+  clearTrail();
+  applyScene();
+}
+function renderMarks() {
+  rb['rb-marks'].innerHTML = '';
+  const span = Math.max(1, replay.t1 - replay.t0);
+  replay.figures.forEach((fig, k) => {
+    const m = document.createElement('button');
+    m.className = 'mark';
+    m.style.left = `${((fig.t0 - replay.t0) / span) * 100}%`;
+    m.style.width = `${Math.max(0.4, ((fig.t1 - fig.t0) / span) * 100)}%`;
+    m.title = `${k + 1}: ${fig.elements.map(describe).join(' · ')}`;
+    m.addEventListener('click', () => { seekTo(fig.t0 - 2); setPlaying(true); highlightRow(k); });
+    rb['rb-marks'].appendChild(m);
+  });
+}
+function labelKey(fig) { return String(Math.round(fig.t0)); }
+function renderList() {
+  const list = rb['rb-list'];
+  list.innerHTML = '';
+  replay.figures.forEach((fig, k) => {
+    const lab = labels[labelKey(fig)] || {};
+    const row = document.createElement('div');
+    row.className = 'lrow'; row.dataset.k = k;
+    const opts = FIGURE_TYPES.map((t2) => `<option value="${t2}"${lab.type === t2 ? ' selected' : ''}>${t2}</option>`).join('');
+    row.innerHTML = `<button class="lgo">${k + 1}</button><span class="lt">${fmtClock(fig.t0 - replay.t0)}</span>`
+      + `<span class="lel">${fig.elements.map(describe).join(' · ')}</span>`
+      + `<select class="ltype"><option value="">type…</option>${opts}</select>`
+      + `<input class="lgrade" type="number" min="0" max="10" step="0.5" placeholder="grade" value="${lab.grade ?? ''}">`
+      + `<input class="lnotes" type="text" placeholder="notes" value="${lab.notes ?? ''}">`;
+    row.querySelector('.lgo').addEventListener('click', () => { seekTo(fig.t0 - 2); setPlaying(true); highlightRow(k); });
+    for (const cls of ['ltype', 'lgrade', 'lnotes']) {
+      row.querySelector(`.${cls}`).addEventListener('change', () => {
+        labels[labelKey(fig)] = { type: row.querySelector('.ltype').value, grade: parseFloat(row.querySelector('.lgrade').value), notes: row.querySelector('.lnotes').value };
+      });
+    }
+    list.appendChild(row);
+  });
+}
+function highlightRow(k) { rb['rb-list'].querySelectorAll('.lrow').forEach((r) => r.classList.toggle('on', Number(r.dataset.k) === k)); }
+function onFigureDetected(fig, source) {
+  console.info(`[coach] figure (${source}) ${fmtClock(fig.dur)}: ${fig.elements.map(describe).join(' · ')}`);
+  nativeLog(`figure ${fig.elements.map(describe).join(' | ')}`);
+}
+rb['rb-play'].addEventListener('click', () => setPlaying(!replay.playing));
+rb['rb-scrub'].addEventListener('input', () => { setPlaying(false); seekTo(replay.t0 + (rb['rb-scrub'].value / 1000) * (replay.t1 - replay.t0)); });
+rb['rb-speed'].addEventListener('click', () => { const seq = [0.25, 0.5, 1, 2]; replay.speed = seq[(seq.indexOf(replay.speed) + 1) % seq.length]; rb['rb-speed'].textContent = `${replay.speed}×`; });
+rb['rb-live'].addEventListener('click', stopReplay);
+rb['rb-toggle-list'].addEventListener('click', () => rb['rb-list'].classList.toggle('hidden'));
+rb['rb-last'].addEventListener('click', () => {
+  const figs = liveDetector.figures;
+  if (!figs.length) { rb['rb-time'].textContent = 'no figure yet'; return; }
+  const fig = figs[figs.length - 1];
+  const slice = history.filter((s) => s.t >= fig.t0 - 5 && s.t <= fig.t1 + 5);
+  startReplay(slice, 'last figure', fig.t0 - 2);
+  setPlaying(true);
+});
+rb['rb-load'].addEventListener('click', async () => {
+  const name = rb['rb-flight'].value;
+  if (!name) return;
+  rb['rb-time'].textContent = 'loading…';
+  try { startReplay(await loadFlight(`/flights/${name}`), name); } catch (e) { rb['rb-time'].textContent = String(e.message || e); }
+});
+rb['rb-save'].addEventListener('click', async () => {
+  const body = JSON.stringify({ flight: replay.name, figures: replay.figures.map((fig) => ({ t0: fig.t0, t1: fig.t1, elements: fig.elements.map(describe), ...(labels[labelKey(fig)] || {}) })) }, null, 1);
+  setItem(`acroReplay.labels.${replay.name}`, body);
+  if (!nativeHandler) {
+    const r = await fetch(`/dev/labels/${encodeURIComponent(replay.name.replace(/\.bin$/, ''))}`, { method: 'POST', body });
+    rb['rb-time'].textContent = r.ok ? 'labels saved' : `save failed ${r.status}`;
+  } else rb['rb-time'].textContent = 'labels saved';
+});
+document.getElementById('replay-toggle').addEventListener('click', () => {
+  if (replay.active) { stopReplay(); return; }
+  rb.replaybar.classList.toggle('hidden');
+});
+async function listFlights() {
+  if (nativeHandler) return;
+  try {
+    const files = await (await fetch('/flights/')).json();
+    rb['rb-flight'].innerHTML = files.map((f) => `<option value="${f.name}">${f.name} (${(f.bytes / 1e6).toFixed(1)} MB)</option>`).join('');
+    const want = params.get('flight');
+    if (want && files.some((f) => f.name === want)) { rb['rb-flight'].value = want; rb['rb-load'].click(); }
+  } catch (e) { /* no bridge: nothing to list */ }
+}
+listFlights();
 
 // Cameras. Orbit: OrbitControls around the aircraft (pinch/wheel zooms). Chase: rigidly attached to the
 // airframe — it rolls and pitches with the aircraft. Judge: fixed at the box's judging position.
@@ -758,11 +920,12 @@ function setMinis(st, relHdgDeg) {
 function updateHud(now) {
   if (now < hudNext) return;
   hudNext = now + HUD_INTERVAL_MS;
-  const s = latest;
-  const fresh = !!s && socketOpen && now - lastRecv <= STALE_MS;
+  const s = replay.active ? replay.current : latest;
+  const fresh = replay.active ? !!s : (!!s && socketOpen && now - lastRecv <= STALE_MS);
   const gps = phoneFix ? ` · phone GPS ±${units.fmtLen(phoneFix.acc)}` : '';
   let text, cls;
-  if (!socketOpen) { text = `no Hub${gps}`; cls = 'bad'; }
+  if (replay.active) { text = `replay · ${replay.name}`; cls = ''; }
+  else if (!socketOpen) { text = `no Hub${gps}`; cls = 'bad'; }
   else if (!fresh) { text = `no data${gps}`; cls = 'bad'; }
   else if (!s.init) { text = `INS init · ${s.sats} sats`; cls = ''; }
   else if (!s.ok) { text = `INS degraded · ${s.sats} sats`; cls = ''; }
@@ -832,13 +995,18 @@ applyScene();
 
 function frame() {
   const now = performance.now();
-  const flying = socketOpen && latest && latest.init && now - lastRecv < REST_AFTER_MS;
-  const pose = flying ? poseAt(now - RENDER_DELAY_MS) : null;
+  let pose;
+  if (replay.active) {
+    pose = replayTick(now);
+  } else {
+    const flying = socketOpen && latest && latest.init && now - lastRecv < REST_AFTER_MS;
+    pose = flying ? poseAt(now - RENDER_DELAY_MS) : null;
+  }
   if (pose) {
     if (parked) { parked = false; applyScene(); }
     aircraft.position.copy(pose.v);
     aircraft.quaternion.copy(pose.q);
-    if (now - lastRecv < STALE_MS) pushTrail(pose.v, now);
+    if (replay.active ? replay.playing : now - lastRecv < STALE_MS) pushTrail(pose.v, now);
   } else if (!parked) {
     parked = true;
     samples.length = 0;
@@ -852,3 +1020,8 @@ function frame() {
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+// Debug hook for the browser console / simulator log.
+window.wingrock = {
+  trail: () => ({ len: trailLen, instances: trailGeo.instanceCount, visible: trail.visible, lastMs: trailLastMs, full: trailFullUpload, ranges: seg.updateRanges && seg.updateRanges.length }),
+  replay: () => ({ active: replay.active, playing: replay.playing, cursor: replay.cursor, n: replay.samples.length, figures: replay.figures.length, parked, hangarMode }),
+};

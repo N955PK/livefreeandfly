@@ -113,11 +113,30 @@ async def save_icon(request):
     return web.Response(text="ok")
 
 
+async def list_flights(request):
+    """Recorded flights the web app can replay: sessions/*.bin as JSON [{name, bytes}]."""
+    files = sorted(SESSION_DIR.glob("*.bin"))
+    return web.json_response([{"name": f.name, "bytes": f.stat().st_size} for f in files])
+
+
+async def save_labels(request):
+    """Dev helper for the labelling view: stores figure labels as docs/private/labels_<name>.json (gitignored)."""
+    name = "".join(ch for ch in request.match_info["name"] if ch.isalnum() or ch in "-_.")
+    data = await request.read()
+    out = ROOT / "docs" / "private"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / f"labels_{name}.json").write_bytes(data)
+    log.info("labels saved: %s (%d bytes)", name, len(data))
+    return web.Response(text="ok")
+
+
 def make_app(source, ground_ft=DEFAULT_GROUND_FT):
     app = web.Application()
     app["broadcaster"] = Broadcaster(ground_m=ground_ft * fr.FT_TO_M)
+    SESSION_DIR.mkdir(exist_ok=True)
     app.add_routes([web.get("/", index), web.get("/ws", ws_handler), web.post("/dev/icon", save_icon),
-                    web.static("/", WEB_DIR)])
+                    web.post("/dev/labels/{name}", save_labels), web.get("/flights/", list_flights),
+                    web.static("/flights", SESSION_DIR), web.static("/", WEB_DIR)])
 
     async def start_pump(app):
         app["pump"] = asyncio.create_task(app["broadcaster"].pump(source))

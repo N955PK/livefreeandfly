@@ -61,7 +61,26 @@
   <button class="tool" id="clear">Clear</button>
   <button class="tool" id="box-toggle">Box</button>
   <button class="tool" id="ground-toggle">Sat</button>
+  <button class="tool" id="replay-toggle">Replay</button>
 </nav>
+
+<div id="replaybar" class="glass hidden">
+  <div class="rb-row">
+    <button id="rb-play" class="round small" aria-label="play">▶</button>
+    <div class="rb-track"><input id="rb-scrub" type="range" min="0" max="1000" value="0"><div id="rb-marks"></div></div>
+    <span id="rb-time">0:00</span>
+    <button id="rb-speed" class="tool small">1×</button>
+    <button id="rb-live" class="tool small">Live</button>
+  </div>
+  <div class="rb-row">
+    <select id="rb-flight"></select>
+    <button id="rb-load" class="tool small">Load</button>
+    <button id="rb-last" class="tool small">Last figure</button>
+    <button id="rb-toggle-list" class="tool small">Figures</button>
+    <button id="rb-save" class="tool small">Save labels</button>
+  </div>
+  <div id="rb-list" class="hidden"></div>
+</div>
 
 <section id="boxpanel" class="panel glass hidden" aria-label="aerobatic box">
   <header class="phead">
