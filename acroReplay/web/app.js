@@ -676,7 +676,7 @@ function poseAt(t) {
 // Replay: scrub through a loaded flight file or the live history; the detector's figures become markers on
 // the bar and rows in the label list. Times are Hub seconds (sample.t).
 const replay = { active: false, playing: false, speed: 1, samples: [], cursor: 0, t0: 0, t1: 0, current: null, figures: [], name: '', lastNow: 0, loop: null };
-const rb = Object.fromEntries(['replaybar', 'rb-play', 'rb-scrub', 'rb-time', 'rb-speed', 'rb-live', 'rb-marks', 'rb-flight', 'rb-load', 'rb-last', 'rb-list', 'rb-toggle-list', 'rb-save']
+const rb = Object.fromEntries(['replaybar', 'rb-play', 'rb-scrub', 'rb-time', 'rb-speed', 'rb-marks', 'rb-flight', 'rb-load', 'rb-last', 'rb-list', 'rb-toggle-list', 'rb-save']
   .map((id) => [id, document.getElementById(id)]));
 const FIGURE_TYPES = ['loop', 'spin', 'half cuban', '45 up line', '180 turn', 'slow roll', 'immelmann', 'hammerhead', 'split-s', 'humpty', 'other'];
 // Per-figure "modifier": the one number that changes a figure's meaning (a spin's expected turns). Keyed by the
@@ -762,6 +762,7 @@ function startReplay(samples, name, at, figures, flightBox) {
   setPlaying(false);
   rb.replaybar.classList.remove('hidden');
   document.body.classList.add('replaying');
+  setReplayLabel();
   if (camMode === 'orbit') setCamMode('orbit');   // enable orbit pan for review
   renderMarks(); renderList();
   replay.loop = null;
@@ -775,6 +776,11 @@ function regradeReplay() {
   replay.lastShown = -1;   // force the frame loop to refresh the card and ghost with the new grades
   renderMarks(); renderList();
 }
+// The Replay button doubles as Live, like Sat/Plain: it reads 'Replay' in live view and 'Live' while the replay
+// panel is up, and tapping it returns to live.
+function setReplayLabel() {
+  document.getElementById('replay-toggle').textContent = rb.replaybar.classList.contains('hidden') ? 'Replay' : 'Live';
+}
 function stopReplay() {
   replay.active = false; setPlaying(false);
   clearGhost();
@@ -783,6 +789,7 @@ function stopReplay() {
   document.body.classList.remove('replaying');
   clearTrail();
   applyScene();
+  setReplayLabel();
 }
 function renderMarks() {
   rb['rb-marks'].innerHTML = '';
@@ -1016,7 +1023,6 @@ document.querySelectorAll('#speak [data-speak]').forEach((btn) => {
 rb['rb-play'].addEventListener('click', () => setPlaying(!replay.playing));
 rb['rb-scrub'].addEventListener('input', () => { setPlaying(false); replay.loop = null; seekTo(replay.t0 + (rb['rb-scrub'].value / 1000) * (replay.t1 - replay.t0)); });
 rb['rb-speed'].addEventListener('click', () => { const seq = [0.25, 0.5, 1, 2]; replay.speed = seq[(seq.indexOf(replay.speed) + 1) % seq.length]; rb['rb-speed'].textContent = `${replay.speed}×`; });
-rb['rb-live'].addEventListener('click', stopReplay);
 rb['rb-toggle-list'].addEventListener('click', () => rb['rb-list'].classList.toggle('hidden'));
 rb['rb-last'].addEventListener('click', () => {
   const figs = liveDetector.figures;
@@ -1042,10 +1048,11 @@ rb['rb-save'].addEventListener('click', async () => {
   } else rb['rb-time'].textContent = 'labels saved';
 });
 document.getElementById('replay-toggle').addEventListener('click', () => {
-  if (replay.active) { stopReplay(); return; }
-  const open = rb.replaybar.classList.toggle('hidden');
-  document.body.classList.toggle('replaying', !open);
-  if (!open) listFlights();
+  if (replay.active) { stopReplay(); return; }          // playing a flight -> go live
+  const nowHidden = rb.replaybar.classList.toggle('hidden');
+  document.body.classList.toggle('replaying', !nowHidden);
+  if (!nowHidden) listFlights();
+  setReplayLabel();
 });
 function showFlights(files) {
   rb['rb-flight'].innerHTML = files.map((f) => `<option value="${f.name}">${f.name} (${(f.bytes / 1e6).toFixed(1)} MB)</option>`).join('');
