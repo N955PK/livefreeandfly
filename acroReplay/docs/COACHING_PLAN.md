@@ -249,8 +249,10 @@ only with the optional air-data / analog-input modules), wind. So:
   aileron in a flick from the yaw/roll/pitch signature), pitch rate vs speed for loop radius, yaw rate during a
   hammerhead pivot, load factor drop and yaw-rate spike for the stall break. Feasible for the criteria in §2.3;
   true control-position coaching would need the analog-input module (Q9).
-- **ZLA** per aircraft: measure it from the pilot's own best verticals (the attitude at which GPS flight-path
-  angle is ±90° in calm air) or take a nominal value per type and let the pilot trim it.
+- **ZLA**: by Sean's ruling (2026-09-16) the wing's zero-lift line is taken as coincident with the IMU axis on
+  every aircraft — ZLA offset = 0°, so vertical and 45° lines are graded straight from the Hub's pitch. No
+  calibration flight. Revisit only if verticals graded from the replay look systematically off.
+- **No control-position data** and none coming: control-input coaching is inference from motion only.
 - **Wind** for judge-perspective flight paths: estimate from wings-level horizontal lines (heading vs track and
   groundspeed give the crosswind and a TAS estimate), or let the pilot enter winds aloft (Q5).
 - **Stall detection** for spins/flicks: no AoA, so use the kinematic signature (nz falling through ~0.5–0.8 g at
@@ -300,7 +302,7 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 ## 8. Risks and unknowns
 
 - Kinematic stall/autorotation detection without AoA (spins, flicks) — validate on real spins early (C1).
-- ZLA and wind: both change what "vertical" and "round" mean; both need a calibration story (Q5, Q7).
+- Wind changes what "round" means for loops; it is estimated from level lines (Q5). ZLA is fixed at zero by ruling.
 - Rate low-pass (3 Hz) blunts hesitation-roll stop detection and flick onset; may need the raw-gyro path from the
   SD log for tuning and accept the loss live.
 - Judge-like vs absolute: a judge takes quarter one as the radius standard and marks what they *see*; a coach could
@@ -318,6 +320,8 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 - **Audio**: just play it through the phone's current audio route; if a headset is connected, that is where it goes.
   No headset-specific handling.
 - **Critique length**: coach's call — the top two or three downgrades by points lost, then the score.
+- **ZLA offset is zero for all aircraft** (wing zero-lift line assumed in line with the IMU axis); no per-type
+  constant, no calibration. **No control-stick inputs** exist or are planned.
 - **Cue timing is a user setting**: after-figure debrief · during + after · on-demand only. Default to after-figure.
 - **Audio goes over Bluetooth to the headset** (model to confirm); phone speaker kept as the ground-test fallback.
 - **Validation data = data16 only**, graded against Sean's own judgement of the replay to start; real scores or
@@ -341,11 +345,8 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 4. ~~Audio path~~ — answered: play through whatever the phone is connected to; nothing headset-specific.
 5. ~~Wind~~ — answered: estimate from level lines.
 6. ~~Ground truth~~ — answered: data16 only, Sean's judgement first.
-7. **Aircraft / ZLA.** Eagle first. ZLA offset will be calibrated from your own vertical lines (see §5) unless
-   you'd rather type a number.
-8. ~~Control-position sensing~~ — parked. The Hub can take an optional Bolder Flight analog-input module wired to
-   stick/rudder position sensors; we don't have it, so control inputs are inferred from motion. Revisit only if the
-   "control correction" voice turns out to need it.
+7. ~~Aircraft / ZLA~~ — answered: assume the zero-lift line is in line with the IMU axis on all aircraft.
+8. ~~Control-position sensing~~ — answered: none available; control inputs are inferred from motion.
 9. ~~Scope of "correction"~~ — answered: user-selectable voice (aircraft-only / with control corrections / score
    only). Still needed: Sean's sign-off on the correction phrasing per figure before it ships.
 10. ~~Voice of the score~~ — answered: user-selectable, both present.
