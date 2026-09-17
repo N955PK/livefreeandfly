@@ -100,9 +100,17 @@ export function idealFigure(grade, m, entryPos, entryAz, flown, ctx = {}) {
       break;
     }
     case 'spin': {
+      // The exit direction follows the rotation: N turns leave the nose (N mod 1)\u00d7360\u00b0 round from entry, so a
+      // 1\u00bd-turn spin flies out reversed 180\u00b0, a 1-turn spin flies out the way it came in. Drawn as the entry line,
+      // a vertical autorotating descent, then a quarter-loop pull-out onto that recovery heading.
+      const turns = ctx.spinTurns ?? grade.measurements?.want ?? 1.5;
+      const sense = (grade.measurements?.iUpDeg || 0) < 0 ? -1 : 1;   // which way the nose went round
+      const exitOffset = ((turns * 360) % 360) * sense;
       const drop = Math.max(60, Math.abs(m.spin.dAlt || 0) * 0.3048);
       const rOut = Math.max(40, elLength(m.pull) / (90 * RAD) || 100);
-      pen.line(15).arc(-90, 25, 1).line(drop).arc(90, rOut, 1).line(30);
+      pen.line(15).arc(-90, 25, 1).line(drop);
+      pen.hdg = (pen.hdg + exitOffset + 360) % 360;
+      pen.arc(90, rOut, 1).line(30);
       break;
     }
     default: return null;

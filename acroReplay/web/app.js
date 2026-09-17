@@ -820,6 +820,7 @@ function renderList() {
       labels[labelKey(fig)] = next;
       fig.grade = gradeOne(fig);            // re-score against the declared type and modifier
       persistLabels();                      // keep the override across a reload of this flight
+      clearGhost();                         // the ideal overlay is cached per figure — force it to rebuild
       renderMarks(); renderList();          // refresh this row's readout and the timeline mark colours
       if (replay.loop && replay.figures[replay.loop.k] === fig && fig.grade) showCoach(fig.grade);
     };
