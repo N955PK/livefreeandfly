@@ -15,6 +15,7 @@ import { offsetLatLon } from './frames.js';
 import * as units from './units.js';
 import { loadFlight } from './records.js';
 import { Detector, describe } from './coach/detector.js';
+import { gradeFigure, critique } from './coach/judge.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -658,6 +659,10 @@ function replayTick(now) {
     if (replay.cursor >= replay.t1) { replay.cursor = replay.t1; setPlaying(false); }
   }
   replay.lastNow = now;
+  if (replay.playing) {
+    const k = replay.figures.findIndex((fig) => replay.cursor >= fig.t1 + 0.3 && replay.cursor < fig.t1 + 1.5);
+    if (k >= 0 && k !== replay.lastShown) { replay.lastShown = k; if (replay.figures[k].grade) showCoach(replay.figures[k].grade); }
+  }
   const a = replay.samples;
   if (!a.length) return null;
   const i = Math.min(a.length - 1, replayIndex(replay.cursor));
@@ -686,6 +691,8 @@ function startReplay(samples, name, at) {
   replay.samples = placed; replay.name = name;
   replay.t0 = placed[0].t; replay.t1 = placed[placed.length - 1].t;
   replay.figures = Detector.run(placed);
+  for (const fig of replay.figures) fig.grade = gradeFigure(fig, coachContext());
+  replay.lastShown = -1;
   replay.active = true;
   setPlaying(false);
   rb.replaybar.classList.remove('hidden');
@@ -711,7 +718,8 @@ function renderMarks() {
     m.setAttribute('aria-label', `figure ${k + 1}`);
     m.style.left = `${((fig.t0 - replay.t0) / span) * 100}%`;
     m.style.width = `${Math.max(0.4, ((fig.t1 - fig.t0) / span) * 100)}%`;
-    m.title = `${k + 1}: ${fig.elements.map(describe).join(' · ')}`;
+    m.title = `${k + 1}: ${gradeText(fig.grade)}${fig.elements.map(describe).join(' · ')}`;
+    if (fig.grade) m.classList.add('scored');
     m.addEventListener('click', () => { seekTo(fig.t0 - 2); setPlaying(true); highlightRow(k); });
     rb['rb-marks'].appendChild(m);
   });
@@ -726,7 +734,7 @@ function renderList() {
     row.className = 'lrow'; row.dataset.k = k;
     const opts = FIGURE_TYPES.map((t2) => `<option value="${t2}"${lab.type === t2 ? ' selected' : ''}>${t2}</option>`).join('');
     row.innerHTML = `<button class="lgo">${k + 1}</button><span class="lt">${fmtClock(fig.t0 - replay.t0)}</span>`
-      + `<span class="lel">${fig.elements.map(describe).join(' · ')}</span>`
+      + `<span class="lel"><b>${gradeText(fig.grade)}</b>${fig.elements.map(describe).join(' · ')}</span>`
       + `<select class="ltype"><option value="">type…</option>${opts}</select>`
       + `<input class="lgrade" type="number" min="0" max="10" step="0.5" placeholder="grade" value="${lab.grade ?? ''}">`
       + `<input class="lnotes" type="text" placeholder="notes" value="${lab.notes ?? ''}">`;
@@ -740,10 +748,38 @@ function renderList() {
   });
 }
 function highlightRow(k) { rb['rb-list'].querySelectorAll('.lrow').forEach((r) => r.classList.toggle('on', Number(r.dataset.k) === k)); }
-function onFigureDetected(fig, source) {
-  console.info(`[coach] figure (${source}) ${fmtClock(fig.dur)}: ${fig.elements.map(describe).join(' · ')}`);
-  nativeLog(`figure ${fig.elements.map(describe).join(' | ')}`);
+function gradeText(g) { return g ? `${g.type} ${g.hz ? 'HZ' : g.score.toFixed(1)} · ` : ''; }
+// Coach: grade each figure the detector closes, show the card, and speak it when enabled.
+const coachCard = document.getElementById('coachcard');
+let coachHideAt = 0;
+let coachVoice = getItem('acroReplay.voice') || 'aircraft';
+let coachSpeak = (getItem('acroReplay.speak') || 'on') === 'on';
+function coachContext() { return { axisDeg: boxGroup ? boxGroup.userData.headingDeg : NaN }; }
+function showCoach(g) {
+  const name = g.type.replace(/^\w/, (c) => c.toUpperCase());
+  const lines = g.hz ? [`Hard zero — ${g.hz}`] : g.items.slice(0, 3).map((it) => `−${it.pts % 1 ? it.pts.toFixed(1) : it.pts} ${it.text}${coachVoice === 'control' && it.fix ? ` — ${it.fix}` : ''}`);
+  coachCard.innerHTML = `<div class="chead"><span class="ctype">${name}</span><span class="cscore ${g.hz ? 'hz' : ''}">${g.hz ? 'HZ' : g.score.toFixed(1)}</span></div>`
+    + (lines.length ? `<ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p class="cok">Clean figure.</p>');
+  coachCard.classList.remove('hidden');
+  coachHideAt = performance.now() + 12000;
 }
+function say(text) { if (text && nativeHandler) nativeHandler.postMessage(`say:${text}`); else if (text && 'speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } }
+function onFigureDetected(fig, source) {
+  fig.grade = gradeFigure(fig, coachContext());
+  const line = fig.grade ? critique(fig.grade, coachVoice, 3) : '';
+  console.info(`[coach] figure (${source}) ${fmtClock(fig.dur)}: ${fig.elements.map(describe).join(' · ')}${line ? ` → ${line}` : ''}`);
+  nativeLog(`figure ${fig.elements.map(describe).join(' | ')}${line ? ` → ${line}` : ''}`);
+  if (fig.grade && source === 'live') { showCoach(fig.grade); if (coachSpeak) say(line); }
+}
+coachCard.addEventListener('click', () => coachCard.classList.add('hidden'));
+document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
+  btn.classList.toggle('on', btn.dataset.voice === coachVoice);
+  btn.addEventListener('click', () => { coachVoice = btn.dataset.voice; setItem('acroReplay.voice', coachVoice); document.querySelectorAll('#voice [data-voice]').forEach((b) => b.classList.toggle('on', b === btn)); });
+});
+document.querySelectorAll('#speak [data-speak]').forEach((btn) => {
+  btn.classList.toggle('on', (btn.dataset.speak === 'on') === coachSpeak);
+  btn.addEventListener('click', () => { coachSpeak = btn.dataset.speak === 'on'; setItem('acroReplay.speak', coachSpeak ? 'on' : 'off'); document.querySelectorAll('#speak [data-speak]').forEach((b) => b.classList.toggle('on', b === btn)); });
+});
 rb['rb-play'].addEventListener('click', () => setPlaying(!replay.playing));
 rb['rb-scrub'].addEventListener('input', () => { setPlaying(false); seekTo(replay.t0 + (rb['rb-scrub'].value / 1000) * (replay.t1 - replay.t0)); });
 rb['rb-speed'].addEventListener('click', () => { const seq = [0.25, 0.5, 1, 2]; replay.speed = seq[(seq.indexOf(replay.speed) + 1) % seq.length]; rb['rb-speed'].textContent = `${replay.speed}×`; });
@@ -1021,6 +1057,7 @@ function frame() {
   }
   updateCamera();
   updateHud(now);
+  if (coachHideAt && now > coachHideAt) { coachCard.classList.add('hidden'); coachHideAt = 0; }
   renderer.render(scene, camera);
   trailFullUpload = false;
   requestAnimationFrame(frame);
@@ -1030,4 +1067,5 @@ requestAnimationFrame(frame);
 window.wingrock = {
   trail: () => ({ len: trailLen, instances: trailGeo.instanceCount, visible: trail.visible, lastMs: trailLastMs, full: trailFullUpload, ranges: seg.updateRanges && seg.updateRanges.length }),
   replay: () => ({ active: replay.active, playing: replay.playing, cursor: replay.cursor, n: replay.samples.length, figures: replay.figures.length, parked, hangarMode }),
+  grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
 };

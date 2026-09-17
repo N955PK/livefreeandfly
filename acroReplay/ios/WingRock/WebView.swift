@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import WebKit
 
@@ -8,6 +9,7 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
     private let listener = HubListener()
     private let location = LocationProvider()
     private let recorder = FlightRecorder()
+    private let speech = AVSpeechSynthesizer()
     private var queued: [(String, TimeInterval)] = []
     private let queueLock = NSLock()
     private var flushScheduled = false
@@ -41,6 +43,8 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
                            onError: { [weak self] msg in self?.eval("acroReplay.locationError(\(Self.jsString(msg)))") })
         } else if body.hasPrefix("store:") {
             WebController.store(body)
+        } else if body.hasPrefix("say:") {
+            speak(String(body.dropFirst("say:".count)))
         } else if body == "flights" {
             let json = (try? JSONSerialization.data(withJSONObject: FlightRecorder.list())).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
             eval("acroReplay.flights(\(json))")
@@ -98,6 +102,17 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
             self.inFlight = false
             self.flush()
         }
+    }
+
+    /// Spoken critique through whatever the phone's audio is routed to (headset over Bluetooth, or the speaker).
+    private func speak(_ text: String) {
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers, .allowBluetoothA2DP])
+        try? session.setActive(true)
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        utterance.postUtteranceDelay = 0.2
+        speech.speak(utterance)
     }
 
     private func eval(_ script: String) {

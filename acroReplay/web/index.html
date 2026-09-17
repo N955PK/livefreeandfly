@@ -47,6 +47,8 @@
   <div id="boxstat" class="chip"></div>
 </section>
 
+<div id="coachcard" class="glass hidden" aria-live="polite"></div>
+
 <div id="zoom">
   <button class="round" id="zoom-in" aria-label="zoom in">+</button>
   <button class="round" id="zoom-out" aria-label="zoom out">−</button>
@@ -129,6 +131,12 @@
   </label>
   <label class="field inline"><span>Aircraft</span>
     <div class="seg small" id="model"><button data-model="eagle">Eagle</button><button data-model="extra">Extra</button><button data-model="rv7">RV</button></div>
+  </label>
+  <label class="field inline"><span>Coach voice</span>
+    <div class="seg small" id="voice"><button data-voice="aircraft">Aircraft</button><button data-voice="control">+ Fix</button><button data-voice="score">Score</button></div>
+  </label>
+  <label class="field inline"><span>Speak critiques</span>
+    <div class="seg small" id="speak"><button data-speak="on">On</button><button data-speak="off">Off</button></div>
   </label>
   <p class="hint" id="model-msg"></p>
   <footer class="pfoot">

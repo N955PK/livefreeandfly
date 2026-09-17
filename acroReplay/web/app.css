@@ -151,3 +151,15 @@ body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
   .lrow .lnotes { display: none; }
 }
 body.replaying #zoom { bottom: calc(var(--safe-b) + 200px); }
+
+#coachcard { position: fixed; top: calc(var(--safe-t) + 96px); left: 50%; transform: translateX(-50%); width: min(560px, calc(100vw - 20px)); border-radius: 14px; padding: 10px 14px; color: var(--text); font-size: 14px; line-height: 1.35; }
+#coachcard.hidden { display: none; }
+#coachcard .chead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+#coachcard .ctype { font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 13px; color: var(--muted); }
+#coachcard .cscore { font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums; color: var(--good); }
+#coachcard .cscore.hz { color: var(--bad); }
+#coachcard ul { margin: 6px 0 0; padding-left: 16px; }
+#coachcard li { margin: 2px 0; }
+#coachcard .cok { margin: 6px 0 0; color: var(--good); }
+#rb-marks .mark.scored { background: var(--good); }
+.lrow .lel b { color: var(--good); font-weight: 700; margin-right: 4px; }

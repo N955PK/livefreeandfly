@@ -78,6 +78,7 @@ export function elementSummary(e) {
     bankMean: e.bankN ? e.bankSum / e.bankN : NaN, gs0: e.gs0, gs1: e.gs1, gsMin: e.gsMin, gsMax: e.gsMax,
     pMean, pStd, qMean, qStd, inverted0: e.inverted0, inverted1: e.inverted1,
     trk0: e.trk0, trk1: e.trk1, az0: e.az0, az1: e.az1,
+    samples: e.samples,
   };
 }
 
@@ -101,6 +102,7 @@ function mergePivot(body) {
     nzMin: Math.min(...parts.map((e) => e.nzMin)), nzMax: Math.max(...parts.map((e) => e.nzMax)),
     gsMin: Math.min(...parts.map((e) => e.gsMin)), gsMax: Math.max(...parts.map((e) => e.gsMax)),
     el0: parts[0].el0, el1: parts[parts.length - 1].el1,
+    samples: parts.flatMap((e) => e.samples),
   };
   merged.dAlt = parts[parts.length - 1].altMin - parts[0].altMax;
   merged.dur = merged.t1 - merged.t0;
@@ -183,7 +185,9 @@ export class Detector {
     const t0 = elements[0].t0, t1 = elements[elements.length - 1].t1;
     if (t1 - t0 < MIN_FIGURE_S) return null;
     const figure = { t0, t1, dur: t1 - t0, elements, entry: els.find((e) => e.kind === KIND.LEVEL) || null };
-    figure.exitAz = this.current ? this.current.az0 : NaN;
+    // Exit heading: the settled part of the level line after the figure, not the first frames of the roll-out.
+    const exitSamples = (this.current?.samples || []).slice(3, 20);
+    figure.exitAz = exitSamples.length ? meanAngle(exitSamples.map((f) => f.az)) : (this.current ? this.current.az0 : NaN);
     this.figures.push(figure);
     if (this.onFigure) this.onFigure(figure);
     return figure;
@@ -195,6 +199,12 @@ export class Detector {
     for (const s of samples) if (s.init && s.quat) d.push(s);
     return d.figures;
   }
+}
+
+function meanAngle(degs) {
+  let x = 0, y = 0;
+  for (const d of degs) { x += Math.cos(d * Math.PI / 180); y += Math.sin(d * Math.PI / 180); }
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
 }
 
 /// Short human tag for an element, for timelines and logs.
