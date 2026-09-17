@@ -76,6 +76,7 @@
   <div id="mode-aircraft" class="pmode">
     <p class="hint">Fly into the box along its main axis and tap as you cross the middle of the entry edge. The box extends ahead of you; its axis follows your flight path.</p>
     <button class="primary" id="box-set">Set entry edge here</button>
+    <p class="hint" id="a-msg"></p>
     <label class="field inline"><span>Judges</span>
       <select id="box-side"><option value="right">on my right</option><option value="left">on my left</option></select>
     </label>
@@ -113,7 +114,7 @@
   </footer>
 </section>
 
-<div id="pickbar" class="pill glass hidden"><span id="pick-msg"></span><button class="primary small" id="pick-done">Done</button></div>
+<div id="pickbar" class="glass hidden"><span id="pick-msg"></span><div class="pickbtns"><button class="secondary small" id="pick-redo">Redo</button><button class="primary small" id="pick-done">Done</button></div></div>
 <div id="attribution"></div>
 <script type="module" src="./app.js"></script>
 </body>

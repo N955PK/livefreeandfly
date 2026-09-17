@@ -1,12 +1,17 @@
 import SwiftUI
 import WebKit
 
-/// Hosts the three.js web app (bundled `web/` folder, served over the `acro://app/` scheme so ES modules work)
-/// and pushes each raw INS frame from the Hub into it as base64.
+/// Hosts the three.js web app (bundled `web/` folder, served over the `acro://app/` scheme so ES modules work),
+/// pushes the Hub's raw INS frames into it as base64, and feeds it the phone's GPS position.
 final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
     let webView: WKWebView
     private let listener = HubListener()
-    private var pending = 0
+    private let location = LocationProvider()
+    private var queued: [(String, TimeInterval)] = []
+    private let queueLock = NSLock()
+    private var flushScheduled = false
+    private var inFlight = false
+    private static let maxQueued = 250   // 5 s of frames; beyond that the page is stuck and old frames are useless
 
     override init() {
         let config = WKWebViewConfiguration()
@@ -16,7 +21,7 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
         webView = WKWebView(frame: .zero, configuration: config)
         super.init()
         config.userContentController.add(self, name: "acro")
-        webView.isOpaque = false
+        webView.isOpaque = true
         webView.backgroundColor = .black
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.bounces = false
@@ -27,7 +32,9 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let body = message.body as? String else { return }
         if body == "ready" {
-            listener.start { [weak self] data, wall in self?.push(data, wall: wall) }
+            listener.start { [weak self] data, wall in self?.enqueue(data, wall: wall) }
+            location.start(onFix: { [weak self] lat, lon, acc in self?.eval("acroReplay.location(\(lat),\(lon),\(acc))") },
+                           onError: { [weak self] msg in self?.eval("acroReplay.locationError(\(Self.jsString(msg)))") })
         } else if body.hasPrefix("store:") {
             WebController.store(body)
         } else {
@@ -56,13 +63,44 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
         return "window.acroStore = \(json);"
     }
 
-    private func push(_ data: Data, wall: TimeInterval) {
-        let call = "acroReplay.frame('\(data.base64EncodedString())',\(wall))"
-        DispatchQueue.main.async {
-            guard self.pending < 5 else { return }
-            self.pending += 1
-            self.webView.evaluateJavaScript(call) { _, _ in self.pending -= 1 }
+    /// Frames arrive at 50 Hz on the socket thread. They're batched into one JavaScript call per main-thread
+    /// turn and delivered strictly one call at a time, so a slow render frame in the web process delays frames
+    /// rather than dropping them, and the page sees at most one interruption per display refresh.
+    private func enqueue(_ data: Data, wall: TimeInterval) {
+        queueLock.lock()
+        queued.append((data.base64EncodedString(), wall))
+        if queued.count > Self.maxQueued { queued.removeFirst(queued.count - Self.maxQueued) }
+        let schedule = !flushScheduled
+        flushScheduled = true
+        queueLock.unlock()
+        if schedule { DispatchQueue.main.async { self.flush() } }
+    }
+
+    private func flush() {
+        guard !inFlight else { return }   // the completion handler calls flush() again
+        queueLock.lock()
+        let batch = queued
+        queued.removeAll(keepingCapacity: true)
+        flushScheduled = false
+        queueLock.unlock()
+        guard !batch.isEmpty else { return }
+        let args = batch.map { "'\($0.0)',\($0.1)" }.joined(separator: ",")
+        inFlight = true
+        webView.evaluateJavaScript("acroReplay.frames([\(args)])") { [weak self] _, _ in
+            guard let self else { return }
+            self.inFlight = false
+            self.flush()
         }
+    }
+
+    private func eval(_ script: String) {
+        DispatchQueue.main.async { self.webView.evaluateJavaScript(script) { _, _ in } }
+    }
+
+    private static func jsString(_ s: String) -> String {
+        let data = try? JSONSerialization.data(withJSONObject: [s])
+        let array = data.flatMap { String(data: $0, encoding: .utf8) } ?? "[\"\"]"
+        return String(array.dropFirst().dropLast())
     }
 }
 

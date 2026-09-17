@@ -10,9 +10,11 @@ ios/
   WingRock.xcodeproj          generated (committed)
   WingRock/
     WingRockApp.swift         SwiftUI app: full screen, status bar hidden, screen never sleeps
-    WebView.swift             WKWebView + acro:// scheme serving the bundled web/ folder; frames pushed via
-                              evaluateJavaScript; web settings mirrored to UserDefaults (window.acroStore)
+    WebView.swift             WKWebView + acro:// scheme serving the bundled web/ folder; frames batched into one
+                              evaluateJavaScript per main-thread turn (acroReplay.frames); web settings mirrored
+                              to UserDefaults (window.acroStore)
     HubListener.swift         BSD UDP socket bound to 0.0.0.0:2000
+    LocationProvider.swift    CoreLocation → acroReplay.location(lat, lon, acc) for the judges' "Use my location"
     WingRock.entitlements     multicast entitlement — NOT wired in by default (see below)
     Assets.xcassets           app icon: the Eagle rendered top-down by web/icon.html
 ```

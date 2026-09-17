@@ -94,7 +94,9 @@ select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--f
 .pfoot .hint { margin: 0; }
 
 /* pick bar */
-#pickbar { top: calc(var(--safe-t) + 96px); left: 50%; right: auto; transform: translateX(-50%); display: flex; gap: 12px; align-items: center; color: var(--text); background: var(--glass); pointer-events: auto; padding: 8px 10px 8px 16px; font-size: 14px; }
+#pickbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-b) + 68px); width: min(440px, 94vw); display: flex; flex-direction: column; gap: 10px; align-items: stretch; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.35; color: var(--text); }
+.pickbtns { display: flex; gap: 10px; justify-content: flex-end; }
+.secondary.small { height: 34px; padding: 0 14px; font-size: 14px; }
 #attribution { position: fixed; right: calc(var(--safe-r) + 8px); bottom: calc(var(--safe-b) + 2px); font-size: 10px; color: rgba(255, 255, 255, .6); pointer-events: none; }
 #attribution:empty { display: none; }
 
@@ -107,9 +109,11 @@ select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--f
   .badge { margin-left: 4px; padding-right: 0; }
   .badge span { display: none; }
   #zoom { bottom: calc(var(--safe-b) + 78px); }
-  #pickbar { top: calc(var(--safe-t) + 118px); bottom: auto; }
   #controls { gap: 6px; padding: 0 8px; }
   .seg button { padding: 9px 12px; font-size: 14px; }
   .tool { padding: 11px 12px; font-size: 14px; }
   .panel { bottom: calc(var(--safe-b) + 64px); }
 }
+.mdot.na { fill: rgba(255, 255, 255, .35); } .mhdg.na { display: none; }
+.chip.na { color: var(--muted); }
+body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }

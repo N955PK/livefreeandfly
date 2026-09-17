@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0421E9CCA28EF02CBA6490B7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FBC349FD7B3BA945963691C4 /* Assets.xcassets */; };
 		13E5FBAF8F2F6F7A6CB62AB4 /* HubListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED832F287937B9ABFB188279 /* HubListener.swift */; };
+		5CBABCDDD330DB22E28829B2 /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8FE00414EDCD14487259EB4 /* LocationProvider.swift */; };
 		8C2009F7E5F0FF7447926155 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8EFC388ED51E66BBD2EBDCE /* WebView.swift */; };
 		99A4C7C3B10A531D08E6C7D0 /* WingRockApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2764DFC23A45C3711025762C /* WingRockApp.swift */; };
 		A0EE8F24AD8E9A337E7B7F08 /* web in Resources */ = {isa = PBXBuildFile; fileRef = A92D40E14E5FE3BC82465C02 /* web */; };
@@ -21,6 +22,7 @@
 		964F1EE0F42B3CE5DC333208 /* WingRock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WingRock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A92D40E14E5FE3BC82465C02 /* web */ = {isa = PBXFileReference; lastKnownFileType = folder; name = web; path = ../web; sourceTree = SOURCE_ROOT; };
 		C8EFC388ED51E66BBD2EBDCE /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		E8FE00414EDCD14487259EB4 /* LocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
 		ED832F287937B9ABFB188279 /* HubListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubListener.swift; sourceTree = "<group>"; };
 		FBC349FD7B3BA945963691C4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -58,6 +60,7 @@
 				FBC349FD7B3BA945963691C4 /* Assets.xcassets */,
 				ED832F287937B9ABFB188279 /* HubListener.swift */,
 				81CB65E2443D163765919381 /* Info.plist */,
+				E8FE00414EDCD14487259EB4 /* LocationProvider.swift */,
 				C8EFC388ED51E66BBD2EBDCE /* WebView.swift */,
 				3D38F91508FE721C9639E984 /* WingRock.entitlements */,
 				2764DFC23A45C3711025762C /* WingRockApp.swift */,
@@ -93,7 +96,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2700;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					DD0E3655941D1C6C3B6806EF = {
 						ProvisioningStyle = Automatic;
@@ -137,6 +140,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				13E5FBAF8F2F6F7A6CB62AB4 /* HubListener.swift in Sources */,
+				5CBABCDDD330DB22E28829B2 /* LocationProvider.swift in Sources */,
 				8C2009F7E5F0FF7447926155 /* WebView.swift in Sources */,
 				99A4C7C3B10A531D08E6C7D0 /* WingRockApp.swift in Sources */,
 			);
@@ -180,10 +184,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = R6P52BJ2K9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -204,7 +206,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -246,10 +247,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = R6P52BJ2K9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -263,7 +262,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -279,7 +277,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7JW4DDAANZ;
 				INFOPLIST_FILE = WingRock/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -301,7 +298,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7JW4DDAANZ;
 				INFOPLIST_FILE = WingRock/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_IPHONEOS_DEPLOYMENT_TARGET)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -488,6 +488,17 @@ livefreeandfly/acroReplay/
 
 ## 9. Decision log
 
+- 2026-09-16 — Offline behaviour (Sean's asks): with no live data the aircraft waits in a rendered
+  hangar (web/hangar.js — procedural walls/roof/trusses/lights, real prop blades instead of the
+  in-flight disk), all three wheels on the floor: the stance is solved at load from the model's
+  main- and tail-wheel meshes (≈10° nose-up for the Eagle). Imagery, box and trail belong to the
+  flight view; map picking leaves the hangar while active. The HUD keeps the box minimaps and
+  status up in every state — grey dots and "NO POSITION" / "NO BOX" without a fix. Phone GPS
+  comes from CoreLocation in the shell (the web view's own geolocation times out on the acro://
+  scheme) and feeds "Use my location" and the map origin. Frame delivery from Swift is batched
+  into one JavaScript call per main-thread turn and never dropped; the page interpolates on the
+  Hub's own timestamps (jitter-buffered offset) instead of packet arrival, uploads only the new
+  trail segment, and refreshes the HUD DOM at 20 Hz.
 - 2026-08-12 — Ground coaching descoped (Sean). Single-device, in-cockpit only.
 - 2026-08-12 — three.js over Cesium: local ENU box scene beats a globe for
   this use; prior three.js experience.
