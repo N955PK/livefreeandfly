@@ -1,0 +1,509 @@
+<!--
+  WingRock live guidance-tone prototype (throwaway design tool, not production).
+  Concept + mapping: acroReplay/docs/COACHING_PLAN.md section 12.6 "Live guidance tones".
+
+  Goal: let a pilot HEAR the sonification of their deviation from the ideal maneuver
+  shape before it is wired into the app. Silence when on-shape; the tone grows as the
+  pilot diverges and fades back to silence as they converge.
+
+  Two audio dimensions only (per the spec):
+    - PITCH  = signed shape error   (higher = too far up / ballooning, lower = pinching / sagging)
+    - PAN    = wing-low / bank      (sound drifts toward the low wing: "the sound is where the mistake is")
+  Loudness (Constant) or repeat rate (Blip) tracks the LARGER of the shape and wing errors
+  (a max, never a sum), so dragging a wing pans the sound sideways rather than beeping faster;
+  everything is silent inside a deadband.
+
+  The mapping lives in ONE pure function, computeCue(), so it lifts straight into the
+  real app's future web/coach/livecue.js.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WingRock — Live cue tuner</title>
+<style>
+  :root {
+    --bg0: #06090e;
+    --bg1: #0e141c;
+    --glass: rgba(16, 22, 30, .72);
+    --glass-border: rgba(255, 255, 255, .10);
+    --text: #f4f6f8;
+    --muted: rgba(244, 246, 248, .60);
+    --accent: #2395e7;
+    --accent-press: #1b7ac0;
+    --good: #3ecf72;
+    --warn: #ffcf5c;
+    --bad: #ff5f57;
+    --field: rgba(255, 255, 255, .07);
+    --field-border: rgba(255, 255, 255, .16);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; min-height: 100%;
+    background:
+      radial-gradient(1100px 700px at 20% -10%, #16324a 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  }
+  body { padding: max(18px, env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom)); }
+  .wrap { max-width: 620px; margin: 0 auto; }
+
+  header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: .01em; }
+  header .sub { font-size: 12px; color: var(--muted); }
+
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* Start / stop */
+  .power {
+    width: 100%; padding: 18px; border: 0; border-radius: var(--radius);
+    background: var(--accent); color: #fff; font-size: 18px; font-weight: 700;
+    letter-spacing: .02em; cursor: pointer; transition: background .15s, transform .05s;
+  }
+  .power:active { transform: scale(.99); }
+  .power.on { background: rgba(62, 207, 114, .16); color: var(--good); border: 1px solid rgba(62,207,114,.5); }
+  .power.on::before { content: "\25CF  "; }
+  .hint { margin-top: 8px; font-size: 12px; color: var(--muted); text-align: center; }
+
+  /* Segmented mode selector */
+  .seg { display: flex; gap: 6px; padding: 4px; border-radius: 999px; background: var(--field); border: 1px solid var(--field-border); }
+  .seg label { flex: 1; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span {
+    display: block; text-align: center; padding: 13px 8px; border-radius: 999px;
+    font-weight: 700; font-size: 15px; color: var(--muted); cursor: pointer; transition: background .12s, color .12s;
+  }
+  .seg input:checked + span { background: var(--accent); color: #fff; }
+  .seg-title { font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 700; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* Sliders */
+  .ctl { margin: 22px 0; }
+  .ctl:first-child { margin-top: 6px; }
+  .ctl:last-child { margin-bottom: 4px; }
+  .ctl .lab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .ctl .lab b { font-size: 15px; font-weight: 700; }
+  .ctl .lab .val { font-variant-numeric: tabular-nums; font-size: 14px; color: var(--accent); font-weight: 700; }
+  .ends { display: flex; justify-content: space-between; margin-top: 7px; font-size: 11px; color: var(--muted); }
+  .ends .mid { color: rgba(244,246,248,.4); }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; margin: 0; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 10px; border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.10));
+  }
+  input[type=range].bipolar::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(35,149,231,.22) 50%, rgba(255,255,255,.06));
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; margin-top: -12px;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--accent); box-shadow: 0 2px 10px rgba(0,0,0,.5);
+  }
+  input[type=range]::-moz-range-track { height: 10px; border-radius: 999px; background: rgba(255,255,255,.10); }
+  input[type=range]::-moz-range-thumb { width: 30px; height: 30px; border: 3px solid var(--accent); border-radius: 50%; background: #fff; }
+
+  /* Error meter */
+  .meter { height: 12px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; position: relative; }
+  .meter > i { display: block; height: 100%; width: 0%; border-radius: 999px; background: var(--good); transition: width .06s linear, background .12s; }
+  .meter .dead { position: absolute; top: -3px; bottom: -3px; width: 2px; background: rgba(255,255,255,.5); }
+
+  /* Readout */
+  .status { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--good); box-shadow: 0 0 10px var(--good); flex: none; }
+  .status.drift .dot { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
+  .status .s { font-size: 16px; font-weight: 800; letter-spacing: .02em; }
+  .status.on-shape .s { color: var(--good); }
+  .status.drift .s { color: var(--bad); }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat { background: var(--field); border: 1px solid var(--field-border); border-radius: 12px; padding: 11px 12px; }
+  .stat .k { font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  .stat .v { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 3px; }
+  .stat .v em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 3px; }
+  .stat.wide { grid-column: 1 / -1; }
+
+  footer { font-size: 11px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Live cue tuner</h1>
+    <span class="sub">WingRock — §12.6 guidance-tone prototype</span>
+  </header>
+
+  <!-- 1. Start audio (Web Audio needs a user gesture) -->
+  <div class="card">
+    <button id="power" class="power">Start audio</button>
+    <div class="hint" id="hint">Audio starts on tap. Headphones recommended to hear the stereo pan.</div>
+  </div>
+
+  <!-- 5. Live readout -->
+  <div class="card">
+    <div class="status on-shape" id="status">
+      <span class="dot"></span>
+      <span class="s" id="statusText">ON SHAPE (silent)</span>
+    </div>
+    <div class="meter" id="meter" title="total error magnitude"><i id="meterFill"></i><span class="dead" id="meterDead"></span></div>
+    <div class="grid" style="margin-top:14px;">
+      <div class="stat"><div class="k">Frequency</div><div class="v"><span id="rFreq">440</span><em>Hz</em></div></div>
+      <div class="stat"><div class="k">Pan</div><div class="v"><span id="rPan">0.00</span><em>L/R</em></div></div>
+      <div class="stat"><div class="k">Gain</div><div class="v"><span id="rGain">0.00</span></div></div>
+      <div class="stat"><div class="k">Blip rate</div><div class="v"><span id="rRate">--</span><em>/s</em></div></div>
+      <div class="stat"><div class="k">Shape norm</div><div class="v"><span id="rShapeN">0.00</span></div></div>
+      <div class="stat"><div class="k">Wing norm</div><div class="v"><span id="rBankN">0.00</span></div></div>
+      <div class="stat wide"><div class="k">Combined norm (max)</div><div class="v"><span id="rNorm">0.00</span><em>&nbsp;&nbsp;deadband <span id="rDead">0.10</span></em></div></div>
+    </div>
+  </div>
+
+  <!-- 3. Mode selector -->
+  <div class="card">
+    <div class="seg-title">Live cue mode</div>
+    <div class="seg" id="modeSeg">
+      <label><input type="radio" name="mode" value="off" checked><span>Off</span></label>
+      <label><input type="radio" name="mode" value="constant"><span>Constant</span></label>
+      <label><input type="radio" name="mode" value="blip"><span>Blip</span></label>
+    </div>
+  </div>
+
+  <!-- 2. Primary sliders -->
+  <div class="card">
+    <div class="ctl">
+      <div class="lab"><b>Shape error</b><span class="val" id="vShape">0&deg;</span></div>
+      <input id="shape" class="bipolar" type="range" min="-30" max="30" step="0.5" value="0">
+      <div class="ends"><span>&larr; pinch / nose-low / sagging</span><span class="mid">on shape</span><span>balloon / nose-high / past-vertical &rarr;</span></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><b>Wing / bank</b><span class="val" id="vBank">0&deg;</span></div>
+      <input id="bank" class="bipolar" type="range" min="-45" max="45" step="0.5" value="0">
+      <div class="ends"><span>&larr; left wing low</span><span class="mid">level</span><span>right wing low &rarr;</span></div>
+    </div>
+  </div>
+
+  <!-- 4. Tuning sliders -->
+  <div class="card">
+    <div class="ctl">
+      <div class="lab"><b>Deadband</b><span class="val" id="vDead">3.0&deg;</span></div>
+      <input id="dead" type="range" min="0" max="10" step="0.5" value="3">
+      <div class="ends"><span>tight (chatty)</span><span>generous (quiet)</span></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><b>Intensity / volume</b><span class="val" id="vInt">70%</span></div>
+      <input id="int" type="range" min="0" max="1" step="0.01" value="0.7">
+      <div class="ends"><span>soft</span><span>loud</span></div>
+    </div>
+  </div>
+
+  <footer>
+    Pitch = signed shape error (~&plusmn;2 octaves over the range). Pan follows the low / dragging wing.
+    Loudness (Constant) / repeat rate (Blip) grows with the larger of the shape and wing errors
+    (never their sum) and is silent inside the deadband.
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================================
+   MAPPING (the part meant to lift into web/coach/livecue.js)
+   ----------------------------------------------------------------------------
+   computeCue() is a PURE function: inputs -> the numbers the audio graph needs.
+   Keeping it pure means it is trivial to unit-test and to reuse from the live
+   sample loop in the real app.
+   ==========================================================================*/
+
+// Tunable constants for the mapping.
+const CENTER_HZ   = 440;   // on-shape / centre frequency
+const SHAPE_SPAN  = 30;    // deg of shape error that maps to the full pitch swing
+const BANK_SPAN   = 45;    // deg of bank that maps to full-left / full-right pan
+const PITCH_OCT   = 2;     // octaves of pitch swing (each direction) over the shape-error span
+const GAIN_CEIL   = 0.9;   // gain at full error before the intensity control scales it
+
+// Blip repeat rate (beeps/second): slow just past the deadband, fast far off shape.
+// Interpolated in rate-space so the quickening is clearly progressive.
+const SLOW_RATE   = 1.2;   // beeps/s near the deadband edge
+const FAST_RATE   = 20;    // beeps/s at full error
+
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+
+/**
+ * Map a pilot's deviation to audio parameters.
+ * @param {{shapeError:number, bank:number, deadband:number, intensity:number, mode:string}} p
+ *   shapeError deg (- pinch/nose-low .. + balloon/nose-high), bank deg (- left low .. + right low),
+ *   deadband deg, intensity 0..1, mode "off"|"constant"|"blip".
+ * @returns cue numbers used by both the audio graph and the readout.
+ */
+function computeCue(p) {
+  const shapeError = clamp(p.shapeError, -SHAPE_SPAN, SHAPE_SPAN);
+  const bank       = clamp(p.bank, -BANK_SPAN, BANK_SPAN);
+
+  // PITCH: centre * 2^(oct * err/span) => ~+-2 octaves over the shape-error range.
+  // Higher pitch when nose-high / ballooning, lower when pinching / sagging.
+  const freq = CENTER_HZ * Math.pow(2, PITCH_OCT * shapeError / SHAPE_SPAN);
+
+  // PAN: toward the low / dragging wing. +1 = right wing low, -1 = left. This is bank's ONLY job.
+  const pan = clamp(bank / BANK_SPAN, -1, 1);
+
+  // Two INDEPENDENT normalized errors (each 0..1). Bank no longer inflates cadence/loudness.
+  const shapeNorm = clamp(Math.abs(shapeError) / SHAPE_SPAN, 0, 1);
+  const bankNorm  = clamp(Math.abs(bank) / BANK_SPAN, 0, 1);
+
+  // Combined measure is the MAX (capped at 1), NEVER a sum: a wing drag on top of a balloon
+  // transfers the sound sideways (pan) instead of pushing the cadence past a max balloon.
+  const norm = Math.min(1, Math.max(shapeNorm, bankNorm));
+
+  // DEADBAND, expressed in the same normalized terms; on-shape (within tolerance) is silent.
+  const deadNorm = clamp(p.deadband / SHAPE_SPAN, 0, 1);
+  const drifting = p.mode !== "off" && norm > deadNorm;
+
+  // LOUDNESS drive: combined error above the deadband, renormalized 0..1, so the cue
+  // fades in from silence at the edge and reaches full at max error. Combined so a pure
+  // wing drag is still HEARD (and panned), not just a balloon/pinch.
+  const drive = clamp((norm - deadNorm) / Math.max(0.001, 1 - deadNorm), 0, 1);
+
+  // CADENCE drive: SHAPE error only, above the deadband. Bank/wing never enters the rate,
+  // so balloon+wing beeps at the SAME rate as the balloon alone; a pure wing drag stays at
+  // the slow/baseline rate.
+  const shapeDrive = clamp((shapeNorm - deadNorm) / Math.max(0.001, 1 - deadNorm), 0, 1);
+
+  // Constant-tone gain: proportional to the combined drive, zero inside the deadband.
+  const gain = drifting ? drive * GAIN_CEIL * p.intensity : 0;
+
+  // Blip: repeat rate quickens with SHAPE only (interpolated in rate-space). Tick loudness
+  // tracks the combined drive (0.4 floor) so a wing-only drag is audible though it never quickens.
+  const blipRate = drifting ? SLOW_RATE + (FAST_RATE - SLOW_RATE) * shapeDrive : 0;
+  const period   = 1 / (SLOW_RATE + (FAST_RATE - SLOW_RATE) * shapeDrive);
+  const tickGain = drifting ? (0.4 + 0.6 * drive) * GAIN_CEIL * p.intensity : 0;
+
+  return { shapeError, bank, freq, pan, shapeNorm, bankNorm, norm, deadNorm, drive, shapeDrive, drifting, gain, period, blipRate, tickGain };
+}
+
+/* ============================================================================
+   AUDIO GRAPH
+   Constant: OscillatorNode -> GainNode -> StereoPannerNode -> master -> destination
+   Blip:     per-tick OscillatorNode -> GainNode -> StereoPannerNode -> master
+   ==========================================================================*/
+
+const RAMP = 0.045; // 45 ms smoothing on gain/freq/pan so nothing clicks or zippers
+
+let ctx = null;
+let master = null, constOsc = null, constGain = null, constPan = null;
+let hasPan = false;
+let running = false;
+let blipTimer = null;
+
+// Current control state; the pure mapping reads from this snapshot.
+const state = { shapeError: 0, bank: 0, deadband: 3, intensity: 0.7, mode: "off" };
+
+function buildGraph() {
+  if (ctx) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  ctx = new AC();
+
+  master = ctx.createGain();
+  master.gain.value = 1;
+  master.connect(ctx.destination);
+
+  hasPan = typeof ctx.createStereoPanner === "function";
+
+  // Persistent oscillator for Constant mode: kept running (gain 0 when idle) so we
+  // never click by starting/stopping the node itself.
+  constGain = ctx.createGain();
+  constGain.gain.value = 0;
+  constOsc = ctx.createOscillator();
+  constOsc.type = "sine";
+  constOsc.frequency.value = CENTER_HZ;
+
+  if (hasPan) {
+    constPan = ctx.createStereoPanner();
+    constPan.pan.value = 0;
+    constOsc.connect(constGain); constGain.connect(constPan); constPan.connect(master);
+  } else {
+    constOsc.connect(constGain); constGain.connect(master);
+  }
+  constOsc.start();
+}
+
+// Guard against a suspended context (autoplay policy / backgrounding).
+function ensureRunning() {
+  if (ctx && ctx.state === "suspended") ctx.resume();
+}
+
+function rampParam(param, target, now) {
+  now = (now === undefined) ? ctx.currentTime : now;
+  param.cancelScheduledValues(now);
+  param.setValueAtTime(param.value, now);
+  param.linearRampToValueAtTime(target, now + RAMP);
+}
+
+// One discrete blip: a short enveloped sine at the current pitch/pan.
+function playTick(cue) {
+  const now = ctx.currentTime;
+  const A = 0.005, D = 0.09; // attack / decay seconds
+
+  const osc = ctx.createOscillator();
+  osc.type = "triangle";
+  osc.frequency.setValueAtTime(cue.freq, now);
+
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.linearRampToValueAtTime(Math.max(0.0002, cue.tickGain), now + A);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + A + D);
+
+  osc.connect(g);
+  let tail = g;
+  if (hasPan) {
+    const pan = ctx.createStereoPanner();
+    pan.pan.setValueAtTime(cue.pan, now);
+    g.connect(pan); tail = pan;
+  }
+  tail.connect(master);
+
+  osc.start(now);
+  osc.stop(now + A + D + 0.02);
+  osc.onended = () => { try { osc.disconnect(); g.disconnect(); tail.disconnect(); } catch (e) {} };
+}
+
+// Self-rescheduling blip loop: recomputes the cue each tick so the rate tracks the
+// sliders live. When silent it just polls slowly so it wakes up when error grows.
+function blipStep() {
+  if (!running || state.mode !== "blip") { blipTimer = null; return; }
+  ensureRunning();
+  const cue = computeCue(state);
+  if (cue.drifting) playTick(cue);
+  const nextMs = (cue.drifting ? cue.period : 0.18) * 1000;
+  blipTimer = setTimeout(blipStep, nextMs);
+}
+function startBlipLoop() { if (blipTimer === null) blipStep(); }
+function stopBlipLoop()  { if (blipTimer !== null) { clearTimeout(blipTimer); blipTimer = null; } }
+
+/* ============================================================================
+   SINGLE ENTRY POINT: take the control state, update the graph + readout.
+   ==========================================================================*/
+function updateAudio() {
+  const cue = computeCue(state);
+  renderReadout(cue);
+
+  if (!running || !ctx) return;
+  ensureRunning();
+  const now = ctx.currentTime;
+
+  if (state.mode === "constant") {
+    stopBlipLoop();
+    rampParam(constGain.gain, cue.gain, now);
+    rampParam(constOsc.frequency, cue.freq, now);
+    if (hasPan) rampParam(constPan.pan, cue.pan, now);
+  } else if (state.mode === "blip") {
+    rampParam(constGain.gain, 0, now); // silence the continuous tone
+    startBlipLoop();
+  } else { // off
+    stopBlipLoop();
+    rampParam(constGain.gain, 0, now);
+  }
+}
+
+/* ============================================================================
+   UI wiring
+   ==========================================================================*/
+const $ = (id) => document.getElementById(id);
+
+function renderReadout(cue) {
+  $("rFreq").textContent = Math.round(cue.freq);
+  $("rPan").textContent  = cue.pan.toFixed(2);
+  const shownGain = state.mode === "blip" ? cue.tickGain : cue.gain;
+  $("rGain").textContent = shownGain.toFixed(2);
+  $("rRate").textContent = (state.mode === "blip" && cue.drifting) ? cue.blipRate.toFixed(1) : "--";
+  $("rShapeN").textContent = cue.shapeNorm.toFixed(2);
+  $("rBankN").textContent  = cue.bankNorm.toFixed(2);
+  $("rNorm").textContent   = cue.norm.toFixed(2);
+  $("rDead").textContent   = cue.deadNorm.toFixed(2);
+
+  const status = $("status");
+  const silent = !cue.drifting;
+  status.classList.toggle("on-shape", silent);
+  status.classList.toggle("drift", !silent);
+  if (state.mode === "off") {
+    $("statusText").textContent = "OFF";
+  } else {
+    $("statusText").textContent = silent ? "ON SHAPE (silent)" : "DRIFTING";
+  }
+
+  // Error meter: fill = combined norm; marker = deadband threshold (both already 0..1).
+  const fill = $("meterFill");
+  fill.style.width = (cue.norm * 100) + "%";
+  fill.style.background = silent ? "var(--good)" : (cue.drive > 0.55 ? "var(--bad)" : "var(--warn)");
+  $("meterDead").style.left = (cue.deadNorm * 100) + "%";
+}
+
+// Sliders
+$("shape").addEventListener("input", (e) => {
+  state.shapeError = parseFloat(e.target.value);
+  $("vShape").textContent = (state.shapeError > 0 ? "+" : "") + state.shapeError + "°";
+  updateAudio();
+});
+$("bank").addEventListener("input", (e) => {
+  state.bank = parseFloat(e.target.value);
+  $("vBank").textContent = (state.bank > 0 ? "+" : "") + state.bank + "°";
+  updateAudio();
+});
+$("dead").addEventListener("input", (e) => {
+  state.deadband = parseFloat(e.target.value);
+  $("vDead").textContent = state.deadband.toFixed(1) + "°";
+  updateAudio();
+});
+$("int").addEventListener("input", (e) => {
+  state.intensity = parseFloat(e.target.value);
+  $("vInt").textContent = Math.round(state.intensity * 100) + "%";
+  updateAudio();
+});
+
+// Mode
+document.querySelectorAll('input[name="mode"]').forEach((r) => {
+  r.addEventListener("change", (e) => {
+    state.mode = e.target.value;
+    updateAudio();
+  });
+});
+
+// Start / stop
+const power = $("power");
+power.addEventListener("click", async () => {
+  if (!running) {
+    buildGraph();
+    if (ctx.state === "suspended") { try { await ctx.resume(); } catch (e) {} }
+    running = true;
+    power.classList.add("on");
+    power.textContent = "Audio live — tap to stop";
+    $("hint").textContent = "Move the sliders. Pick Constant or Blip to hear the cue.";
+    updateAudio();
+  } else {
+    running = false;
+    stopBlipLoop();
+    if (ctx) { rampParam(constGain.gain, 0); try { await ctx.suspend(); } catch (e) {} }
+    power.classList.remove("on");
+    power.textContent = "Start audio";
+    $("hint").textContent = "Stopped. Tap to resume.";
+    renderReadout(computeCue(state));
+  }
+});
+
+// Re-arm the context if the OS suspends it while backgrounded.
+document.addEventListener("visibilitychange", () => { if (!document.hidden && running) ensureRunning(); });
+
+// Initial paint.
+renderReadout(computeCue(state));
+</script>
+</body>
+</html>
