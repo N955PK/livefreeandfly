@@ -330,7 +330,7 @@ export function gradeFigure(fig, ctx = {}, want) {
       if (m.down) { const err = Math.abs(m.down.elMean) - 90; if (Math.abs(err) > 4) items.push(item(perFive(err), `down line ${Math.round(Math.abs(m.down.elMean))}°`, { rule: '27.3', fix: 'push to a true vertical after the rotation stops' })); }
       else items.push(item(1, 'no vertical down line shown', { rule: '28.24.8' }));
       // The stop-heading error above is the exit-heading error (charged once, 26.6.2).
-      return finish('spin', m, items, hz, { turns: Math.round(turns * 100) / 100, iUpDeg: Math.round(iUpTotal), stopAz: Math.round(stopAz), downDeg: m.down ? Math.round(Math.abs(m.down.elMean)) : null }, fig, ctx);
+      return finish('spin', m, items, hz, { turns: Math.round(turns * 100) / 100, iUpDeg: Math.round(iUpTotal), entryAz: Math.round(entryAz), exitAz: Math.round(stopAz), residual: Math.round(residual), want, downDeg: m.down ? Math.round(Math.abs(m.down.elMean)) : null }, fig, ctx);
     }
     default: return null;
   }

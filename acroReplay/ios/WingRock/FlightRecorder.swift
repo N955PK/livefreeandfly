@@ -18,6 +18,7 @@ final class FlightRecorder {
     private var lastInit = false
     private var buffer = Data()
     private var boxJSON: String?      // latest aerobatic box; written as the first record of each flight file
+    private var modelJSON: String?    // latest aircraft model, e.g. {"model":"eagle"}
 
     init() {
         try? FileManager.default.createDirectory(at: Self.directory, withIntermediateDirectories: true)
@@ -26,6 +27,7 @@ final class FlightRecorder {
     /// The aerobatic box the pilot has set; embedded at the head of each new flight file so a reopened flight
     /// comes back with its box.
     func setBox(_ json: String) { queue.async { self.boxJSON = json.isEmpty ? nil : json } }
+    func setModel(_ key: String) { queue.async { self.modelJSON = key.isEmpty ? nil : "{\"model\":\"\(key)\"}" } }
 
     func record(_ payload: Data, wall: TimeInterval) {
         let initialised = payload.count == HubListener.frameSize && (payload[1] & 0x08) != 0
@@ -62,18 +64,22 @@ final class FlightRecorder {
         handle = try? FileHandle(forWritingTo: url)
         self.url = url
         sawInit = false
-        if let boxJSON, let json = boxJSON.data(using: .utf8) {   // box record: <dH header, 0xB0 marker, JSON
-            var rec = Data(count: 10)
-            let n = 1 + json.count
-            rec.withUnsafeMutableBytes { raw in
-                raw.storeBytes(of: Double(0).bitPattern.littleEndian, toByteOffset: 0, as: UInt64.self)
-                raw.storeBytes(of: UInt16(n).littleEndian, toByteOffset: 8, as: UInt16.self)
-            }
-            rec.append(0xB0)
-            rec.append(json)
-            handle?.write(rec)
-        }
+        writeMeta(0xB0, boxJSON)      // box
+        writeMeta(0xB1, modelJSON)    // aircraft model
         NSLog("FlightRecorder: recording to %@", name)
+    }
+
+    private func writeMeta(_ marker: UInt8, _ jsonString: String?) {
+        guard let jsonString, let json = jsonString.data(using: .utf8) else { return }
+        var rec = Data(count: 10)
+        let n = 1 + json.count
+        rec.withUnsafeMutableBytes { raw in
+            raw.storeBytes(of: Double(0).bitPattern.littleEndian, toByteOffset: 0, as: UInt64.self)
+            raw.storeBytes(of: UInt16(n).littleEndian, toByteOffset: 8, as: UInt16.self)
+        }
+        rec.append(marker)
+        rec.append(json)
+        handle?.write(rec)
     }
 
     private func flush() {

@@ -44,6 +44,7 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
         } else if body.hasPrefix("store:") {
             WebController.store(body)
             if body.hasPrefix("store:acroReplay.box:") { recorder.setBox(String(body.dropFirst("store:acroReplay.box:".count))) }
+            if body.hasPrefix("store:acroReplay.model:") { recorder.setModel(String(body.dropFirst("store:acroReplay.model:".count))) }
         } else if body.hasPrefix("say:") {
             speak(String(body.dropFirst("say:".count)))
         } else if body == "flights" {

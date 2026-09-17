@@ -347,12 +347,10 @@ document.getElementById('box-close').addEventListener('click', () => document.ge
 // the pick bar are active tools and stay. Called from the canvas tap handler.
 function closeMenus() {
   document.getElementById('boxpanel').classList.add('hidden');
-  if (coachHideAt === 0) coachCard.classList.add('hidden');
 }
 document.addEventListener('pointerdown', (e) => {
   const bp = document.getElementById('boxpanel');
   if (!bp.classList.contains('hidden') && !bp.contains(e.target) && !e.target.closest('#box-toggle')) bp.classList.add('hidden');
-  if (coachHideAt === 0 && !coachCard.classList.contains('hidden') && !coachCard.contains(e.target)) coachCard.classList.add('hidden');
   // Tapping the scene (outside the replay bar) collapses the expanded Figures list.
   const rl = document.getElementById('rb-list'), rbar = document.getElementById('replaybar');
   if (rl && !rl.classList.contains('hidden') && !rbar.contains(e.target)) rl.classList.add('hidden');
@@ -682,6 +680,7 @@ function replayIndex(t) {
   return lo;
 }
 function replayTick(now) {
+  const before = replay.cursor;
   if (replay.playing) {
     replay.cursor += ((now - replay.lastNow) / 1000) * replay.speed;
     const end = replay.loop ? replay.loop.t1 + 0.25 : replay.t1;   // small hold, then restart before the next figure
@@ -689,6 +688,8 @@ function replayTick(now) {
       if (replay.loop) { replay.cursor = replay.loop.t0; clearTrail(); }   // loop this figure, trail from scratch
       else { replay.cursor = replay.t1; setPlaying(false); }
     }
+    // Whole-sequence playback: clear the trail as each figure completes, so every manoeuvre draws its own.
+    if (!replay.loop && replay.cursor > before && replay.figures.some((f) => f.grade && before < f.t1 && replay.cursor >= f.t1)) clearTrail();
   }
   replay.lastNow = now;
   // Show the figure's name, score and ghost from the moment the cursor reaches its entry (t0), and hold them
@@ -706,7 +707,6 @@ function replayTick(now) {
   } else {
     replay.lastShown = -1;
     if (ghostFor) clearGhost();
-    if (coachHideAt === 0) coachCard.classList.add('hidden');
   }
   const a = replay.samples;
   if (!a.length) return null;
@@ -749,6 +749,7 @@ function startReplay(samples, name, at, figures, flightBox) {
   setPlaying(false);
   rb.replaybar.classList.remove('hidden');
   document.body.classList.add('replaying');
+  if (camMode === 'orbit') setCamMode('orbit');   // enable orbit pan for review
   renderMarks(); renderList();
   replay.loop = null;
   seekTo(at !== undefined ? at : (replay.figures[0] ? replay.figures[0].t0 - 2 : replay.t0));
@@ -758,6 +759,7 @@ function startReplay(samples, name, at, figures, flightBox) {
 function stopReplay() {
   replay.active = false; setPlaying(false);
   clearGhost();
+  if (camMode === 'orbit') setCamMode('orbit');   // back to aircraft-locked orbit
   rb.replaybar.classList.add('hidden');
   document.body.classList.remove('replaying');
   clearTrail();
@@ -816,7 +818,8 @@ function showFigure(k) { const fig = replay.figures[k]; if (fig) loopFigure(fig,
 function gradeText(g) { return g ? `${g.type} ${g.hz ? 'HZ' : g.score.toFixed(1)} · ` : ''; }
 // Coach: grade each figure the detector closes, show the card, and speak it when enabled.
 const coachCard = document.getElementById('coachcard');
-let coachHideAt = 0;
+let coachShow = getItem('acroReplay.coachShow') !== 'off';   // the scoring box stays until the user toggles it off
+let lastGrade = null;
 let coachVoice = getItem('acroReplay.voice') || 'aircraft';
 let coachSpeak = (getItem('acroReplay.speak') || 'on') === 'on';
 function coachContext() { return { axisDeg: boxGroup ? boxGroup.userData.headingDeg : NaN }; }
@@ -876,7 +879,7 @@ function gradeForMode(fig) {
   if (other) other.unexpected = expected.type;
   return other;
 }
-function showCoach(g) {
+function renderCoach(g) {
   const name = g.type.replace(/^\w/, (c) => c.toUpperCase());
   const lines = g.hz ? [`Hard zero — ${g.hz}`] : g.items.slice(0, 3).map((it) => `−${it.pts % 1 ? it.pts.toFixed(1) : it.pts} ${it.text}${coachVoice === 'control' && it.fix ? ` — ${it.fix}` : ''}`);
   if (g.unexpected) lines.unshift(`Expected ${g.unexpected} here — that would be a hard zero in competition`);
@@ -884,8 +887,20 @@ function showCoach(g) {
   const head = g.seq ? `${g.seq.n}/${g.seq.of} · ${name} · K${g.seq.k}` : name;
   coachCard.innerHTML = `<div class="chead"><span class="ctype">${head}</span><span class="cscore ${g.hz ? 'hz' : ''}">${g.hz ? 'HZ' : g.score.toFixed(1)}</span></div>`
     + (lines.length ? `<ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p class="cok">Clean figure.</p>');
+}
+// Show the scoring box for a figure. It stays up until the user toggles it off (no timeout, no tap-to-dismiss).
+function showCoach(g) {
+  lastGrade = g;
+  if (!coachShow) return;
+  renderCoach(g);
   coachCard.classList.remove('hidden');
-  coachHideAt = performance.now() + 12000;
+}
+function setCoachShow(on) {
+  coachShow = on;
+  setItem('acroReplay.coachShow', on ? 'on' : 'off');
+  document.getElementById('coach-toggle').classList.toggle('on', on);
+  if (on && lastGrade) { renderCoach(lastGrade); coachCard.classList.remove('hidden'); }
+  else if (!on) coachCard.classList.add('hidden');
 }
 function say(text) { if (text && nativeHandler) nativeHandler.postMessage(`say:${text}`); else if (text && 'speechSynthesis' in window) { const u = new SpeechSynthesisUtterance(text); u.rate = 1.05; speechSynthesis.speak(u); } }
 function onFigureDetected(fig, source) {
@@ -905,7 +920,8 @@ function onFigureDetected(fig, source) {
 document.getElementById('coach-figure').value = coachMode;
 document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); });
 document.getElementById('coach-restart').addEventListener('click', resetSequence);
-coachCard.addEventListener('click', () => coachCard.classList.add('hidden'));
+document.getElementById('coach-toggle').classList.toggle('on', coachShow);
+document.getElementById('coach-toggle').addEventListener('click', () => setCoachShow(!coachShow));
 document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
   btn.classList.toggle('on', btn.dataset.voice === coachVoice);
   btn.addEventListener('click', () => { coachVoice = btn.dataset.voice; setItem('acroReplay.voice', coachVoice); document.querySelectorAll('#voice [data-voice]').forEach((b) => b.classList.toggle('on', b === btn)); });
@@ -931,7 +947,7 @@ rb['rb-load'].addEventListener('click', async () => {
   const name = rb['rb-flight'].value;
   if (!name) return;
   rb['rb-time'].textContent = 'loading…';
-  try { const { samples, box: flightBox } = await loadFlight(`/flights/${name}`); startReplay(samples, name, undefined, undefined, flightBox); }
+  try { const { samples, box: flightBox, meta } = await loadFlight(`/flights/${name}`); if (meta && meta.model && MODELS[meta.model] && meta.model !== modelKey) setModel(meta.model); startReplay(samples, name, undefined, undefined, flightBox); }
   catch (e) { rb['rb-time'].textContent = String(e.message || e); }
 });
 rb['rb-save'].addEventListener('click', async () => {
@@ -977,6 +993,10 @@ const judge = { fov: 22, zoom: 1 };   // auto FOV keeps the aircraft a constant 
 const DEFAULT_FOV = 55;
 const bodyUp = new THREE.Vector3();
 const chaseOff = new THREE.Vector3();
+// Orbit pan (replay only): a world-space offset the user drags the follow point by, on top of the aircraft.
+const orbitPan = new THREE.Vector3();
+const lastOrbitTarget = new THREE.Vector3();
+const camTmp = new THREE.Vector3();
 function setCamMode(mode) {
   camMode = mode;
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
@@ -990,18 +1010,21 @@ function setCamMode(mode) {
   scene.fog.near = mapMode ? 1e7 : FOG.near;
   scene.fog.far = mapMode ? 2e7 : FOG.far;
   camera.updateProjectionMatrix();
+  const orbitPanOn = mode === 'orbit' && replay.active;   // two-finger pan the scene while reviewing
   controls.enabled = mode === 'orbit' || mode === 'map';
   controls.enableRotate = mode !== 'map';
-  controls.enablePan = mode === 'map';
+  controls.enablePan = mode === 'map' || orbitPanOn;
   controls.screenSpacePanning = true;
-  // Map mode: one finger / left button pans the map; orbit mode: they rotate.
+  // Map mode: one finger pans. Orbit: one finger rotates; two fingers pan (in replay) or dolly.
   controls.mouseButtons.LEFT = mode === 'map' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+  controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
   controls.touches.ONE = mode === 'map' ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+  controls.touches.TWO = mode === 'map' ? THREE.TOUCH.DOLLY_PAN : (orbitPanOn ? THREE.TOUCH.DOLLY_PAN : THREE.TOUCH.DOLLY_ROTATE);
   controls.panSpeed = mode === 'map' ? 1.6 : 1;
   controls.maxPolarAngle = mode === 'map' ? 0.001 : Math.PI;
   camera.up.set(0, 1, 0);
   if (mode !== 'judge') { camera.fov = DEFAULT_FOV; camera.updateProjectionMatrix(); }
-  if (mode === 'orbit') { controls.target.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); }
+  if (mode === 'orbit') { orbitPan.set(0, 0, 0); controls.target.copy(aircraft.position); lastOrbitTarget.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); }
   if (mode === 'map') {
     const c = boxGroup ? judgeWorldPosition(boxGroup, new THREE.Vector3()) : aircraft.position.clone();
     controls.target.set(c.x, 0, c.z);
@@ -1042,8 +1065,11 @@ function updateCamera() {
   const p = aircraft.position;
   if (boxGroup) boxGroup.userData.judgeMarker.visible = camMode !== 'judge';   // the marker would fill the judge's view
   if (hangarMode || camMode === 'orbit') {
-    camera.position.sub(controls.target).add(p);
-    controls.target.copy(p);
+    if (camMode === 'orbit' && replay.active) orbitPan.add(camTmp.copy(controls.target).sub(lastOrbitTarget));   // absorb the user's pan
+    camTmp.copy(p).add(orbitPan);                 // follow point = aircraft + pan
+    camera.position.add(camTmp).sub(controls.target);
+    controls.target.copy(camTmp);
+    lastOrbitTarget.copy(camTmp);
     controls.update();
   } else if (camMode === 'map') {
     controls.update();
@@ -1203,7 +1229,6 @@ function frame() {
   }
   updateCamera();
   updateHud(now);
-  if (coachHideAt && now > coachHideAt) { coachCard.classList.add('hidden'); coachHideAt = 0; }
   if (!replay.active && ghostHideAt && now > ghostHideAt) { clearGhost(); ghostHideAt = 0; }
   renderer.render(scene, camera);
   trailFullUpload = false;

@@ -146,9 +146,10 @@ body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
 .round.dim { opacity: .75; font-size: 16px; }
 #replaybar .tool.small, #replaybar .round.small { white-space: nowrap; }
 @media (max-width: 430px) {
-  .tool { padding: 9px 11px; font-size: 13px; }
-  .seg button { padding: 8px 10px; font-size: 13px; }
-  #controls { gap: 6px; }
+  .tool { padding: 8px 9px; font-size: 12px; }
+  .seg button { padding: 7px 8px; font-size: 12px; }
+  #controls { gap: 4px; padding: 0 6px; }
+  #controls .seg { padding: 2px; }
   #replaybar { padding: 10px 12px; }
   .lrow { grid-template-columns: 30px 5ch minmax(0, 1fr) 10ch 6ch; }
   .lrow .lnotes { display: none; }

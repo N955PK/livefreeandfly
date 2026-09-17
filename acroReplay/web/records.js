@@ -10,6 +10,7 @@ import { sampleFromFrame } from './frames.js';
 
 const HEADER = 10;
 export const BOX_MARKER = 0xb0;
+export const META_MARKER = 0xb1;   // JSON {model, units}: settings that ride in the flight file
 
 export function parseRecords(buffer) {
   const dv = new DataView(buffer);
@@ -36,16 +37,27 @@ export function boxFromRecords(records) {
   return null;
 }
 
-/// One box record as bytes ready to write into a .bin (10-byte header + marker + JSON).
-export function boxRecordBytes(box) {
-  const json = new TextEncoder().encode(JSON.stringify(box));
+/// A tagged JSON record (10-byte header + marker + JSON), for the box or the meta settings.
+function jsonRecordBytes(marker, obj) {
+  const json = new TextEncoder().encode(JSON.stringify(obj));
   const rec = new Uint8Array(HEADER + 1 + json.length);
   const dv = new DataView(rec.buffer);
   dv.setFloat64(0, 0, true);
   dv.setUint16(8, 1 + json.length, true);
-  rec[HEADER] = BOX_MARKER;
+  rec[HEADER] = marker;
   rec.set(json, HEADER + 1);
   return rec;
+}
+export function boxRecordBytes(box) { return jsonRecordBytes(BOX_MARKER, box); }
+
+/// Flight settings embedded in the file (aircraft model, units), or null.
+export function metaFromRecords(records) {
+  for (const { payload } of records) {
+    if (payload.length > 1 && payload[0] === META_MARKER) {
+      try { return JSON.parse(new TextDecoder().decode(payload.subarray(1))); } catch (e) { return null; }
+    }
+  }
+  return null;
 }
 
 /// INS frames only, decoded into the same sample shape the live paths produce (position left for the caller,
@@ -66,5 +78,5 @@ export async function loadFlight(url) {
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
   const records = parseRecords(await res.arrayBuffer());
-  return { samples: samplesFromRecords(records), box: boxFromRecords(records) };
+  return { samples: samplesFromRecords(records), box: boxFromRecords(records), meta: metaFromRecords(records) };
 }
