@@ -126,6 +126,7 @@ export class Detector {
     this.elements = [];               // closed elements of the figure in progress
     this.figureOpen = false;
     this.prevF = null;
+    this.lastF = null;                // most recent feature, for the live cue to read alongside `current`
     this.lastLevelStart = null;
     this.figures = [];
   }
@@ -158,6 +159,7 @@ export class Detector {
     }
     if (!switched) accumulate(this.current, f, dt, prevF);
     this.prevF = f;
+    this.lastF = f;
 
     // Figure bookkeeping: a figure opens when we leave level flight, closes after LEVEL_TO_CLOSE_S of level.
     let figure = null;

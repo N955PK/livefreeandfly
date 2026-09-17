@@ -21,6 +21,7 @@ import { gradeFigure, critique, matchFigure, PRIMARY, PRIMARY_KNOWN } from './co
 import { idealFigure } from './coach/ghost.js';
 import { WingRockDetector } from './coach/wingrock.js';
 import { LiveCue } from './coach/livecue.js';
+import { cueDrive } from './coach/cuemap.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -1453,6 +1454,15 @@ function dismissSplash() {
   const wait = Math.max(0, SPLASH_MIN_MS - (performance.now() - splashT0));
   setTimeout(() => { el.classList.add('gone'); setTimeout(() => el.remove(), 600); }, wait);
 }
+// Live guidance tone: each frame, read the detector's in-progress element and feed the tone engine the current
+// deviation. Silent unless the cue is on, a fresh feed is arriving live (not replay), and we're on a cue-able
+// element; feeding update(0, 0) parks the tone inside its deadband so a stalled feed can't leave it hanging.
+function updateCue(now) {
+  if (cueMode === 'off') return;
+  if (replay.active || now - lastRecv > STALE_MS || !liveDetector.lastF) { liveCue.update(0, 0); return; }
+  const d = cueDrive(liveDetector.current, liveDetector.lastF);
+  liveCue.update(d.active ? d.shape : 0, d.active ? d.bank : 0);
+}
 function frame() {
   const now = performance.now();
   let pose;
@@ -1476,6 +1486,7 @@ function frame() {
   }
   updateCamera();
   updateHud(now);
+  updateCue(now);
   if (!replay.active && ghostHideAt && now > ghostHideAt) { clearGhost(); ghostHideAt = 0; }
   renderer.render(scene, camera);
   trailFullUpload = false;
@@ -1496,4 +1507,5 @@ window.wingrock = {
   },
   run: () => ({ runState, runFigures: runFigures.length, rocks: (replay.rocks||[]).map((t)=>Math.round(t-replay.t0)), rockNext: replay.rockNext, cursor: Math.round(replay.cursor-replay.t0), fig0: replay.figures[0] ? Math.round(replay.figures[0].t0-replay.t0) : null }),
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
+  cue: () => { const f = liveDetector.lastF; const d = cueDrive(liveDetector.current, f); return { mode: cueMode, kind: liveDetector.current?.kind, el: f && Math.round(f.el), roll: f && Math.round(f.roll), active: d.active, shape: Math.round(d.shape), bank: Math.round(d.bank) }; },
 };
