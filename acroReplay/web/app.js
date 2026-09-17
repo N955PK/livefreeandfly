@@ -1045,7 +1045,6 @@ function onFigureDetected(fig, source) {
   let line = fig.grade ? critique(fig.grade, coachVoice, 3) : '';
   if (fig.grade?.seq) line = `Figure ${fig.grade.seq.n}. ${line}`;
   if (fig.grade?.unexpected) line = `Expected ${fig.grade.unexpected}. ${line}`;
-  if (fig.grade?.sequenceTotal) line += ` Sequence ${fig.grade.sequenceTotal.pct} percent.`;
   console.info(`[coach] figure (${source}) ${fmtClock(fig.dur)}: ${fig.elements.map(describe).join(' · ')}${line ? ` → ${line}` : ''}`);
   nativeLog(`figure ${fig.elements.map(describe).join(' | ')}${line ? ` → ${line}` : ''}`);
   if (fig.grade && source === 'live') {
@@ -1062,21 +1061,32 @@ function onFigureDetected(fig, source) {
 let runState = 'idle';        // 'idle' | 'recording' | 'done'
 let runFigures = [];
 let runDoneText = '';
-function runPct() {
-  if (!runFigures.length) return null;
-  const got = runFigures.reduce((a, g) => a + (g.hz ? 0 : g.score) * (g.seq?.k || 1), 0);
-  const max = runFigures.reduce((a, g) => a + 10 * (g.seq?.k || 1), 0);
-  return Math.round((got / max) * 100);
+// The activated sequence's human name, so the pilot can verify the wing rock armed the one they meant to fly.
+function seqName() {
+  if (coachMode === 'sequence') return 'Primary Known';
+  if (coachMode === 'any') return 'Any figure';
+  return cap(coachMode);
+}
+// Sequence score as a running K-weighted point total that starts at the perfect maximum and only falls as each
+// figure's deductions land — shown as N/TOT so the pilot reads it like a competition score sheet. Only the ordered
+// Known has a fixed maximum; free practice has no total.
+function runTotal() {
+  if (coachMode !== 'sequence') return null;
+  const tot = PRIMARY_KNOWN.reduce((a, f) => a + 10 * f.k, 0);
+  const lost = runFigures.reduce((a, g) => a + (g.hz ? 10 : 10 - g.score) * (g.seq?.k || 0), 0);
+  return { n: Math.round(tot - lost), tot };
 }
 const hudRec = document.getElementById('hudrec');   // the recording strip lives on the always-visible HUD, not the
 function renderHudRec() {                            // score card (which the pilot can toggle off)
   document.body.classList.toggle('seqactive', runState !== 'idle');   // the HUD grows a strip -> nudge the coach card down
   if (runState === 'recording') {
-    const pct = runPct();
+    const total = runTotal();
     const last = runFigures[runFigures.length - 1];
-    const prog = last && last.seq ? `${last.seq.n}/${last.seq.of}` : `${runFigures.length} fig${runFigures.length === 1 ? '' : 's'}`;
+    const prog = last && last.seq ? `${last.seq.n}/${last.seq.of}`
+      : (runFigures.length ? `${runFigures.length} fig${runFigures.length === 1 ? '' : 's'}` : '');
+    const bits = [seqName(), prog, total ? `${total.n}/${total.tot}` : ''].filter(Boolean);
     hudRec.className = 'rec';
-    hudRec.innerHTML = `<span class="dot"></span>REC \u00b7 ${prog}${pct != null ? ` \u00b7 ${pct}% score` : ''}`;
+    hudRec.innerHTML = `<span class="dot"></span>${bits.join(' \u00b7 ')}`;
   } else if (runState === 'done') {
     hudRec.className = 'done'; hudRec.textContent = runDoneText;
   } else {
@@ -1104,15 +1114,15 @@ function startRun() {
   runState = 'recording'; runFigures = []; resetSequence();
   if (nativeHandler && !replay.active) nativeHandler.postMessage('seqstart');   // save this bracketed sequence as its own file (live only)
   renderHudRec();
-  if (coachSpeak) say('Recording sequence');
+  if (coachSpeak) say(`Recording ${seqName()}`);
 }
 function stopRun() {
-  const pct = runPct();
+  const total = runTotal();
   runState = 'done';
   if (nativeHandler && !replay.active) nativeHandler.postMessage('seqend');
-  runDoneText = pct != null ? `Sequence saved \u00b7 ${pct}%` : 'Sequence saved';
+  runDoneText = total ? `${seqName()} saved \u00b7 ${total.n}/${total.tot}` : 'Sequence saved';
   renderHudRec();
-  if (coachSpeak) say(pct != null ? `Sequence complete. ${pct} percent.` : 'Sequence complete.');
+  if (coachSpeak) say(total ? `${seqName()} complete. ${total.n} of ${total.tot}.` : 'Sequence complete.');
   setTimeout(() => { if (runState === 'done') { runState = 'idle'; renderHudRec(); } }, 6000);
 }
 document.getElementById('coach-figure').value = coachMode;
