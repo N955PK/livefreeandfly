@@ -778,12 +778,19 @@ per-family effort. So "all the Knowns" divides cleanly:
 Build order: `olan.js` + `aresti.js` (catalogue for the 2026 figure set) → `arestidraw.js` → `knowns.js` (all
 categories) → import UI → reverse mapping → then grading extensions family by family.
 
-### 13.6 Open decisions
-1. Categories: IAC **Power** (Primary → Unlimited) first, or Power **and** Glider?
-2. "Upload an Aresti": the **OLAN string + `.seq`** interchange (tractable), or scanning a drawn/paper Aresti (OCR, a
-   separate research spike)?
-3. Grading depth now: ship **view / import / reverse for all categories** and keep grading at Primary, extending per
-   family — or hold the feature until grading covers a whole target category?
+### 13.6 Decisions (Sean, 2026-09-17)
+1. Scope the library to **IAC Power, all levels** (Primary → Unlimited); glider later.
+2. "Upload an Aresti" accepts **both** the OLAN string / `.seq` interchange **and a scan of a drawn Aresti**. The
+   text path is the foundation (it defines the internal figure representation everything targets); the **image scan
+   is a distinct computer-vision workstream that produces that same representation**, so it is built *after* the text
+   core exists to feed into. Most tractable image source first: the official IAC 2026 PDFs (consistent vector/raster
+   rendering, possibly with extractable structure) before hand-drawn/photographed cards.
+3. **Ship view / import / reverse for all categories now**; keep real-time grading at Primary and extend it per
+   figure family.
+
+Build order: `olan.js` + `aresti.js` (catalogue for the 2026 power figure set) → `arestidraw.js` → `knowns.js` (all
+power categories) → text import UI → flown-to-Aresti reverse → **Aresti-scan spike** (PDF first, then photo) → grading
+extensions per figure family.
 
 ## 11. Sources
 
