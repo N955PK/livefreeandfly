@@ -468,7 +468,11 @@ the detector must not assume a level flight path. That is a natural, hands-free 
 The three grading modes ride on top of this:
 
 - **Individual figures — ambient.** Coach figure = Any or a specific figure; fly anything and hear each figure
-  graded. No wing rock needed. Best for drilling one figure repeatedly.
+  graded, with no wing rock and no manual start — the detector closes and scores each figure as you roll out (it only
+  needs a brief level line between attempts to bound them). For drilling one figure, surface the specific-figure
+  choice as a clear one-tap control rather than a buried dropdown, and show a per-attempt tally beside it, e.g.
+  `Loop 3: 8.5 · best 9.0 · avg 8.1`, so reps read at a glance. The box is not needed: a single figure is graded on
+  its own entry, and the grader already skips the box-axis deductions when no box is set.
 - **Full sequence — a bracketed run.** Coach figure = Primary Known; the two wing rocks bracket it and the total is
   announced at the closing rock.
 - **Partial sequence — closed early.** Same run, but the closing wing rock (or landing / a long level-off) comes
@@ -573,11 +577,18 @@ it sets frequency, gain and pan from the current deviation. Pure JavaScript, low
 — but the app must keep an audio session active and routed to the headset for Web Audio (today only the speech path
 configures the session), so that’s the one native integration point to verify.
 
+**Setting (independent of the spoken critique).** A dedicated **Live cue** control in Settings with three states —
+**Off / Constant / Blip**. *Constant* is the continuous modulated tone described above; *Blip* is discrete correction
+ticks that quicken as the error grows, using the same pitch/pan mapping, sampled rather than continuous; *Off* is
+silent. This is **separate from the existing “Speak critiques” and “Coach voice” settings**, which govern the
+spoken post-figure critique that already exists — the live cue and the spoken critique are switched on and off
+independently and can run in any combination (e.g. Constant tone in the figure with the spoken score off, or a spoken
+score with the live cue off).
+
 **Safety and tuning (start conservative).** Silence-baseline and a generous deadband so it is quiet most of the time;
-cap at two dimensions at once; a Settings toggle plus an intensity control; validate in the air before widening the
-cue set. Open questions: does Web Audio reliably reach the Bluetooth headset from WKWebView; is the loop’s target
-radius best taken from the entry quadrant or a speed-based nominal; do pilots prefer a continuous modulated tone or
-discrete “correction blips” that quicken with error (offer both as a style setting and test).
+cap at two dimensions at once; add an intensity control alongside the Off/Constant/Blip choice; validate in the air
+before widening the cue set. Open questions: does Web Audio reliably reach the Bluetooth headset from WKWebView, and
+is the loop’s target radius best taken from the entry quadrant or a speed-based nominal.
 
 ## 11. Sources
 
