@@ -412,6 +412,12 @@ low-rate flight for ~3 s. Auto-replay event → frontend plays the segment at
 the judge camera. Exit: segmentation F1 ≥ ~0.9 against hand-labeled X-Plane
 sessions + acceptable false-trigger rate on a real (non-aerobatic) flight log.
 
+**Next phase — real-time coaching (planned 2026-09-16).** Pick a figure from a library, fly it, hear the
+critique a judge would give and the correction; sequence mode later. Research (FAI Appendix B judging
+criteria, Aresti/OLAN catalogue, Flight Coach and ACROWRX prior art), figure library, element grammar,
+architecture, phases C0–C6 and the open questions are in [docs/COACHING_PLAN.md](docs/COACHING_PLAN.md).
+Supersedes the phase 3/5 segmenter notes below where they differ (the coach runs in the app, in JS).
+
 **Phase 4 — flight test.** Kneeboard iPad in an aerobatic aircraft, bridge on
 a pocketable host (§7.1). Iterate on sunlight readability, trigger tuning,
 replay pacing. Safety note: mount and use must not interfere with egress or
