@@ -290,17 +290,53 @@ replay, on the same sample stream the display uses. Python stays for offline ana
 - **Figure selection UI.** A "Coach" panel: category filter → figure list (name, Aresti drawing from OpenAero,
   K) → arm. Sequence mode later: paste an OLAN string, the app shows the figure list and coaches the next one.
 
+### 6.1 The "correct figure" overlay
+
+Once the flown figure has been matched to its template, the app builds the **ideal version of that figure, fitted
+to how it was actually entered**, and draws it in 3D next to the flown trail:
+
+- Anchored on the flown entry: same entry point, entry heading (snapped to the box axis) and entry altitude; the
+  ideal figure is what a 10.0 would have looked like *from there*.
+- Sized from the flight: loop radius from quarter one (judge‑like standard) or the best‑fit radius (absolute
+  standard), whichever standard is selected; line lengths from the first line flown; roll placed at the exact
+  centre; spin exit on the exact heading; vertical/45° lines at exactly 90°/45°.
+- Drawn as a translucent ghost line (white) alongside the flown trail (orange). Differences are made visible
+  two ways: the flown trail is tinted by local deviation (green → amber → red), and short "rib" lines connect
+  the flown path to the ideal at regular intervals so the gap reads at a glance. Tapping a rib shows the number
+  (metres / degrees / points).
+- Per‑element annotations along the ghost: "−1 pinched", "45° line 38°", "exit 10° R", the same items the
+  audio speaks.
+- This is the template‑and‑align idea Flight Coach uses for post‑flight scoring, done in the box frame, live.
+
+### 6.2 Replay: go back and watch it again
+
+- **Sample ring buffer** in the app: the full 50 Hz sample (pose, rates, g, position) for the last 20 minutes
+  (~60k samples, a few MB), replacing today's 2 s interpolation buffer as the source of truth. Live reception
+  keeps filling it during replay.
+- **Replay mode** (a fourth camera‑bar state next to Judge/Orbit/Chase): scrub bar with figure markers,
+  play/pause, 0.25× / 0.5× / 1×, step by element, "Last figure" and "Last routine" buttons, and a "Live" button
+  to return. All cameras work in replay; the judge camera is the default because that is what the score is about.
+- **Compare**: the ideal overlay is shown in replay by default; the score card and per‑element annotations follow
+  the scrubber; in sequence mode the scrub bar is chaptered per figure with each figure's grade and K.
+- **Auto‑replay** (optional setting): right after a figure ends, the view replays it once at the judge camera
+  while the critique is spoken — the original phase‑3 idea from PLAN.md, now with the overlay.
+- Replay works on the ground too: after landing, with no Hub data, the app parks the aircraft in the hangar but
+  the buffer is still there, so the whole routine can be replayed and compared as a debrief.
+- Later: compare two attempts of the same figure (this loop vs the previous one, or vs the best one this
+  session) by drawing both trails against one ideal.
+
 ## 7. Phases
 
 | Phase | Deliverable | Exit criterion |
 |---|---|---|
 | **C0 Ground truth & labels** | Label the figures in the three real flights (data16/17/18) with start/end and figure type; collect any scores/judge sheets/ACROWRX–FCScore output for them (Q6) | A labelled set of ≥ 20 figures across ≥ 6 types |
 | **C1 Element detector** | `web/coach/` detector over the replay; tuned on C0; browser debug view showing detected elements over the trail | Element boundaries within ~0.3 s of labels on ≥ 90 % of labelled figures; no false figures on a non-aerobatic log |
+| **C1b Replay** | 20‑min sample ring buffer; Replay mode with scrub bar, speeds, "Last figure" (from the detector's figure boundaries), "Live" return; works parked on the ground | Any figure from the last 20 minutes can be replayed at the judge camera within two taps, live data uninterrupted |
 | **C2 Figure library & matcher** | Templates for §3.1 (Primary+Sportsman first); pick-a-figure UI; match flown elements to the armed figure | Every labelled figure of the armed type is matched; wrong-type figures are rejected |
-| **C3 Measurements & scoring** | Per-element measurements and §2.3 downgrades; HUD score card after each figure | Scores within ~1 point of the reference scores from C0 on the labelled set (or Sean's own judgement where no reference exists) |
+| **C3 Measurements, scoring & overlay** | Per-element measurements and §2.4 downgrades; HUD score card after each figure; the ideal‑figure ghost with deviation tint, ribs and annotations (§6.1), shown in replay and optionally live | Scores within ~1 point of Sean's grades on the labelled set; the ghost visibly explains every deduction the card lists |
 | **C4 Audio debrief** | Spoken critique in the app after each figure; headset routing; volume/verbosity settings | Sean can fly a practice session hands-off and get a useful call after each figure |
 | **C5 In-figure cues** | Opt-in live cues for the low-risk criteria: heading drift on lines, wing-low on verticals, roll-rate change, pinching (pitch rate rising at the top) | Cue latency < 0.5 s, false cues rare enough that they are turned on and left on |
-| **C6 Sequence mode** | OLAN input via OpenAero's parser; figure-by-figure coaching; K-weighted sequence score | The whole Known flown with the app calling each figure |
+| **C6 Sequence mode** | OLAN input via OpenAero's parser (the Primary Known preloaded); figure-by-figure coaching; K-weighted sequence score; "Last routine" replay with a chaptered scrub bar | The whole Known flown with the app calling each figure, then replayed figure by figure with grades |
 
 C0–C3 can be done on the ground with the logs and the replay; C4 onward needs flying.
 
@@ -327,6 +363,9 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 - **Critique length**: coach's call — the top two or three downgrades by points lost, then the score.
 - **ZLA offset is zero for all aircraft** (wing zero-lift line assumed in line with the IMU axis); no per-type
   constant, no calibration. **No control-stick inputs** exist or are planned.
+- **Ideal‑figure overlay and replay are in scope** (Sean, 2026-09-16): after a figure, show the correct figure
+  fitted to the flown entry as a ghost over the flown trail; let the pilot scrub back and replay the last figure
+  or the whole routine and compare (§6.1–6.2, phases C1b/C3/C6).
 - **Cue timing is a user setting**: after-figure debrief · during + after · on-demand only. Default to after-figure.
 - **Audio goes over Bluetooth to the headset** (model to confirm); phone speaker kept as the ground-test fallback.
 - **Validation data = data16 only**, graded against Sean's own judgement of the replay to start; real scores or
@@ -355,6 +394,8 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
    only). Still needed: Sean's sign-off on the correction phrasing per figure before it ships.
 10. ~~Voice of the score~~ — answered: user-selectable, both present.
 11. ~~Sequence mode timing~~ — answered: both single-figure and sequence mode in this phase, Primary-based.
+12. **Replay persistence.** Should flights be saved on the phone so a routine can be replayed after the app is
+    closed (and shared/exported), or is the current session's 20‑minute buffer enough for now?
 
 ## 11. Sources
 
