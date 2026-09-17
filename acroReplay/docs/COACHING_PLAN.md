@@ -453,8 +453,10 @@ build: a **run lifecycle** (start/stop that scopes a scored routine), **audio-fi
 
 A routine is bracketed the way the pilot already brackets it for the judges: by **rocking the wings** (Sean's ruling
 2026-09-17). The signal is **three sharp banks to at least 45°** — the wings roll one way past 45°, back past 45°
-the other way, and again, within a couple of seconds, without ever going round into a roll and with the flight path
-staying roughly level. That is a natural, hands-free action already in the routine, so **no taps are needed at all**.
+the other way, and again, within a couple of seconds, without ever going round into a roll. It is flown at whatever
+pitch the pilot is at: often in the dive/descent used to build speed before the routine, not only in level flight, so
+the detector must not assume a level flight path. That is a natural, hands-free action already in the routine, so
+**no taps are needed at all**.
 
 - **First wing rock → start.** Arms and starts the run: sequence tracking begins at the next recognised figure, the
   running-total chip appears, and everything from here is captured as one distinct routine.
@@ -478,9 +480,11 @@ state and running total, e.g. `▶ 3/6 · 62%`.
 
 **Detection notes.** A wing rock is distinguished from a slow/point roll (which accumulates past 90° and comes back
 inverted) and from a competition turn (bank held, heading changing): the rock oscillates bank across ±45° about
-three times in ~2–3 s with a level flight path and little net heading or roll change. `features.js` already gives
-bank, roll and flight-path angle per sample, so this is a short pattern match on the bank trace. Tune the threshold
-(≥45°), the count (~3) and the window against real box entries/exits.
+three times in ~2–3 s, the wings returning toward level between banks (no net roll), with little net heading change.
+Pitch is not a discriminator — it can be level or a steep descent — so match on the **bank trace alone**, not the
+flight-path angle. `features.js` already gives bank, roll and flight-path angle per sample, so this is a short pattern
+match on the bank oscillation. Tune the threshold (≥45°), the count (~3) and the window against real box
+entries/exits, including diving entries.
 
 ### 12.2 Audio-first real-time polish
 
