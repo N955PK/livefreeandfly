@@ -975,7 +975,7 @@ function showCoach(g) {
 function setCoachShow(on) {
   coachShow = on;
   setItem('acroReplay.coachShow', on ? 'on' : 'off');
-  for (const id of ['coach-toggle', 'rb-coach']) document.getElementById(id).classList.toggle('on', on);
+  document.getElementById('coach-toggle').classList.toggle('on', on);
   if (on && lastGrade) { renderCoach(lastGrade); coachCard.classList.remove('hidden'); }
   else if (!on) coachCard.classList.add('hidden');
 }
@@ -1003,10 +1003,8 @@ spinTurnsInput.addEventListener('change', (e) => {
   const v = Math.max(0.25, Math.round(Number(e.target.value) * 4) / 4) || 1.5;   // quarter-turn granularity
   spinTurns = v; e.target.value = v; setItem('acroReplay.spinTurns', String(v)); regradeReplay();
 });
-for (const id of ['coach-toggle', 'rb-coach']) {
-  document.getElementById(id).classList.toggle('on', coachShow);
-  document.getElementById(id).addEventListener('click', () => setCoachShow(!coachShow));
-}
+document.getElementById('coach-toggle').classList.toggle('on', coachShow);
+document.getElementById('coach-toggle').addEventListener('click', () => setCoachShow(!coachShow));
 document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
   btn.classList.toggle('on', btn.dataset.voice === coachVoice);
   btn.addEventListener('click', () => { coachVoice = btn.dataset.voice; setItem('acroReplay.voice', coachVoice); document.querySelectorAll('#voice [data-voice]').forEach((b) => b.classList.toggle('on', b === btn)); });

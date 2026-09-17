@@ -66,39 +66,38 @@
   <button class="round dim" id="clear" aria-label="clear trail" title="Clear trail">×</button>
 </div>
 
-<nav id="controls">
-  <div class="seg" role="group" aria-label="camera">
-    <button data-cam="judge">Judge</button>
-    <button data-cam="orbit" class="on">Orbit</button>
-    <button data-cam="chase">Chase</button>
+<div id="dock">
+  <div id="replaybar" class="glass hidden">
+    <div class="rb-row rb-transport">
+      <button id="rb-play" class="round" aria-label="play"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5z" fill="currentColor"/></svg></button>
+      <div class="rb-track"><input id="rb-scrub" type="range" min="0" max="1000" value="0"><div id="rb-marks"></div></div>
+      <span id="rb-time">0:00</span>
+      <button id="rb-speed" class="tool small">1×</button>
+      <button id="rb-live" class="tool small">Live</button>
+    </div>
+    <div class="rb-row rb-flightrow">
+      <select id="rb-flight" aria-label="saved flight"></select>
+      <button id="rb-load" class="tool">Load</button>
+    </div>
+    <div class="rb-row rb-actions">
+      <button id="rb-last" class="tool">Last figure</button>
+      <button id="rb-toggle-list" class="tool">Figures</button>
+      <button id="rb-save" class="tool">Save labels</button>
+    </div>
+    <div id="rb-list" class="hidden"></div>
   </div>
-  <button class="tool" id="coach-toggle" aria-label="show or hide the scoring box">Score</button>
-  <button class="tool" id="box-toggle">Box</button>
-  <button class="tool" id="ground-toggle">Sat</button>
-  <button class="tool" id="replay-toggle">Replay</button>
-</nav>
-
-<div id="replaybar" class="glass hidden">
-  <div class="rb-row rb-transport">
-    <button id="rb-play" class="round" aria-label="play"><svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5l9 5.5-9 5.5z" fill="currentColor"/></svg></button>
-    <div class="rb-track"><input id="rb-scrub" type="range" min="0" max="1000" value="0"><div id="rb-marks"></div></div>
-    <span id="rb-time">0:00</span>
-    <button id="rb-speed" class="tool small">1×</button>
-    <button id="rb-live" class="tool small">Live</button>
-  </div>
-  <div class="rb-row rb-flightrow">
-    <select id="rb-flight" aria-label="saved flight"></select>
-    <button id="rb-load" class="tool">Load</button>
-  </div>
-  <div class="rb-row rb-actions">
-    <button id="rb-coach" class="tool">Score</button>
-    <button id="rb-last" class="tool">Last figure</button>
-    <button id="rb-toggle-list" class="tool">Figures</button>
-    <button id="rb-save" class="tool">Save labels</button>
-  </div>
-  <div id="rb-list" class="hidden"></div>
+  <nav id="controls">
+    <div class="seg" role="group" aria-label="camera">
+      <button data-cam="judge">Judge</button>
+      <button data-cam="orbit" class="on">Orbit</button>
+      <button data-cam="chase">Chase</button>
+    </div>
+    <button class="tool" id="coach-toggle" aria-label="show or hide the scoring box">Score</button>
+    <button class="tool" id="box-toggle">Box</button>
+    <button class="tool" id="ground-toggle">Sat</button>
+    <button class="tool" id="replay-toggle">Replay</button>
+  </nav>
 </div>
-
 <section id="boxpanel" class="panel glass hidden" aria-label="setup and settings">
   <header class="phead">
     <h2 id="panel-title">Box</h2>

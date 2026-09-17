@@ -54,7 +54,9 @@ button:active { transform: scale(.97); }
 .pill { position: fixed; padding: 7px 13px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text); pointer-events: none; white-space: nowrap; }
 
 /* controls */
-#controls { position: fixed; bottom: calc(var(--safe-b) + 12px); left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 0 10px; }
+#dock { position: fixed; left: 0; right: 0; bottom: calc(var(--safe-b) + 12px); z-index: 5; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
+#dock > * { pointer-events: auto; }
+#controls { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 0 10px; width: 100%; }
 .seg { display: flex; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--glass-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .seg button { padding: 9px 15px; border-radius: 999px; background: transparent; font-weight: 600; font-size: 15px; }
 .seg button.on { background: var(--accent); }
@@ -123,7 +125,7 @@ select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--f
 .chip.na { color: var(--muted); }
 body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
 
-#replaybar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-b) + 12px); width: min(560px, calc(100vw - 20px)); display: flex; flex-direction: column; gap: 10px; border-radius: 16px; padding: 12px 14px; font-size: 14px; color: var(--text); }
+#replaybar { width: min(560px, calc(100vw - 20px)); display: flex; flex-direction: column; gap: 10px; border-radius: 16px; padding: 12px 14px; font-size: 14px; color: var(--text); }
 #replaybar.hidden { display: none; }
 .rb-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .rb-track { position: relative; flex: 1; min-width: 0; padding-bottom: 12px; }
@@ -167,7 +169,7 @@ body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
   #controls .seg { padding: 2px; }
   #replaybar { padding: 10px 12px; }
 }
-body.replaying #zoom { bottom: calc(var(--safe-b) + 200px); }
+body.replaying #zoom { bottom: calc(var(--safe-b) + 224px); }
 
 #coachcard { position: fixed; top: calc(var(--safe-t) + 96px); left: 50%; transform: translateX(-50%); width: min(560px, calc(100vw - 20px)); border-radius: 16px; padding: 12px 15px; color: var(--text); font-size: 14px; line-height: 1.35; }
 #coachcard.hidden { display: none; }
