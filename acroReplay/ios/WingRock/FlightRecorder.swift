@@ -34,10 +34,10 @@ final class FlightRecorder {
 
     /// The wing rock brackets a sequence: `startSequence` opens a second file that captures just the bracketed
     /// stretch (with the same box/model header), `endSequence` closes it. The full flight file keeps recording too.
-    func startSequence() {
+    func startSequence(title: String) {
         queue.async {
             self.closeSequence()
-            let name = Self.stamp() + "_seq.bin"
+            let name = Self.sequenceFileName(title)
             let u = Self.directory.appendingPathComponent(name)
             FileManager.default.createFile(atPath: u.path, contents: nil)
             self.seqHandle = try? FileHandle(forWritingTo: u)
@@ -57,8 +57,12 @@ final class FlightRecorder {
         seqURL = nil
     }
 
-    private static func stamp() -> String {
-        let f = DateFormatter(); f.dateFormat = "yyyyMMdd_HHmmss"; return f.string(from: Date())
+    /// A sequence file is titled by the armed sequence/figure, then the date and time, so the pilot can tell
+    /// their saved routines apart at a glance — e.g. "Primary Known 2026-09-17 12-07-30.bin".
+    private static func sequenceFileName(_ title: String) -> String {
+        let clean = title.map { "/:\\".contains($0) ? "-" : String($0) }.joined().trimmingCharacters(in: .whitespaces)
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH-mm-ss"
+        return "\(clean.isEmpty ? "Sequence" : clean) \(f.string(from: Date())).bin"
     }
 
     func record(_ payload: Data, wall: TimeInterval) {

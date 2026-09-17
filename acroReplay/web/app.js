@@ -817,7 +817,7 @@ async function startSim(name) {
   if (replay.active) stopReplay();
   rb['rb-time'].textContent = 'loading\u2026';
   let raw;
-  try { ({ samples: raw } = await loadFlight(`/flights/${name}`)); }
+  try { ({ samples: raw } = await loadFlight(`/flights/${encodeURIComponent(name)}`)); }
   catch (e) { rb['rb-time'].textContent = String(e.message || e); return; }
   const placed = raw.filter((s) => s.init && s.quat);
   if (!placed.length) { rb['rb-time'].textContent = 'no INS data'; return; }
@@ -1112,7 +1112,7 @@ function seekRuns() {   // set the run state to match the scrubbed cursor, witho
 function onWingRock() { if (runState === 'idle') startRun(); else stopRun(); }
 function startRun() {
   runState = 'recording'; runFigures = []; resetSequence();
-  if (nativeHandler && !replay.active) nativeHandler.postMessage('seqstart');   // save this bracketed sequence as its own file (live only)
+  if (nativeHandler && !replay.active) nativeHandler.postMessage(`seqstart:${seqName()}`);   // save this bracketed sequence as its own file, titled by the armed sequence (live only)
   renderHudRec();
   if (coachSpeak) say(`Recording ${seqName()}`);
 }
@@ -1180,7 +1180,7 @@ rb['rb-load'].addEventListener('click', async () => {
   const name = rb['rb-flight'].value;
   if (!name) return;
   rb['rb-time'].textContent = 'loading…';
-  try { const { samples, box: flightBox, meta } = await loadFlight(`/flights/${name}`); if (meta && meta.model && MODELS[meta.model] && meta.model !== modelKey) setModel(meta.model); startReplay(samples, name, undefined, undefined, flightBox); }
+  try { const { samples, box: flightBox, meta } = await loadFlight(`/flights/${encodeURIComponent(name)}`); if (meta && meta.model && MODELS[meta.model] && meta.model !== modelKey) setModel(meta.model); startReplay(samples, name, undefined, undefined, flightBox); }
   catch (e) { rb['rb-time'].textContent = String(e.message || e); }
 });
 document.getElementById('rb-sim').addEventListener('click', () => { if (sim) stopSim(); else startSim(rb['rb-flight'].value); });
@@ -1486,7 +1486,7 @@ window.wingrock = {
   replay: () => ({ active: replay.active, playing: replay.playing, cursor: replay.cursor, n: replay.samples.length, figures: replay.figures.length, parked, hangarMode }),
   ghost: () => ({ for: ghostFor && Math.round(ghostFor.t0 - replay.t0), points: ghostLine ? ghostLine.geometry.attributes.instanceStart.count : 0, ribs: ribLines ? ribLines.geometry.attributes.instanceStart.count : 0 }),
   rocks: async (name) => {
-    const { samples } = await loadFlight(`/flights/${name || replay.name}`);
+    const { samples } = await loadFlight(`/flights/${encodeURIComponent(name || replay.name)}`);
     const found = []; const d = new WingRockDetector((r) => found.push({ t: Math.round(r.t - samples[0].t), dir: r.dir }));
     for (const smp of samples) if (smp.init) d.push(smp);
     return found;
