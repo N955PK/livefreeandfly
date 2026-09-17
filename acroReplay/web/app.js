@@ -353,6 +353,9 @@ document.addEventListener('pointerdown', (e) => {
   const bp = document.getElementById('boxpanel');
   if (!bp.classList.contains('hidden') && !bp.contains(e.target) && !e.target.closest('#box-toggle')) bp.classList.add('hidden');
   if (coachHideAt === 0 && !coachCard.classList.contains('hidden') && !coachCard.contains(e.target)) coachCard.classList.add('hidden');
+  // Tapping the scene (outside the replay bar) collapses the expanded Figures list.
+  const rl = document.getElementById('rb-list'), rbar = document.getElementById('replaybar');
+  if (rl && !rl.classList.contains('hidden') && !rbar.contains(e.target)) rl.classList.add('hidden');
 }, true);
 document.getElementById('box-set').addEventListener('click', () => {
   if (!latest || !latest.init || latest.lat === undefined) { document.getElementById('a-msg').textContent = 'Needs live Hub data with the INS initialized.'; return; }
@@ -1170,11 +1173,13 @@ setCamMode('orbit');
 applyScene();
 
 let booted = false;
+const SPLASH_MIN_MS = 3000;                 // hold the logo splash at least this long, even on a fast launch
+const splashT0 = performance.now();
 function dismissSplash() {
   const el = document.getElementById('splash');
   if (!el) return;
-  el.classList.add('gone');
-  setTimeout(() => el.remove(), 600);
+  const wait = Math.max(0, SPLASH_MIN_MS - (performance.now() - splashT0));
+  setTimeout(() => { el.classList.add('gone'); setTimeout(() => el.remove(), 600); }, wait);
 }
 function frame() {
   const now = performance.now();
