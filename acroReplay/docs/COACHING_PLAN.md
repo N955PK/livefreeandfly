@@ -64,7 +64,43 @@ Consequence for us: we need (a) attitude in the box frame, (b) the CG flight pat
 the judge sees it, and (c) a per-aircraft ZLA constant. The Hub gives us (a) and (b) directly (attitude, GPS track
 and groundspeed, lat/lon at 50 Hz); (c) is a calibration.
 
-### 2.3 Per-element criteria (the measurement list)
+### 2.3 IAC Official Contest Rules 2025 — what differs from CIVA
+
+The IAC Rule Book 2025 (obtained via the Internet Archive; kept in `docs/private/`, not in git) restates
+Appendix B as chapters 26–28 plus a "Judge's Quick Reference". Same 10.0 start, 1 pt/5°, HZ at 90°, ZLA for
+verticals/45s, flight path for horizontals and loops, wind-corrected looping lines, crab 1 pt/5°. The differences
+that matter for a scorer:
+
+- **Grades move in 0.5 steps** (26.1.4); unspecified deductions are proportional but never less than 0.5.
+- **Errors are downgraded, corrections aren't** (26.6): an over-rotation is charged once; a misaligned *entry* to
+  the next manoeuvre inside the same figure is not charged again (e.g. first point of a 4-point stops at 100°, the
+  second stops exactly at 180° — no second deduction).
+- **Line-length variation** thresholds are explicit: < 2:1 → 1 pt, 2:1–3:1 → 2 pts, ≥ 3:1 → 3 pts, no line on one
+  side → 4, none on either side → 2 (27.9.4).
+- **Loop radius has no standardised deduction** (27.10.4); two accepted methods are given — (1) 1 pt per
+  just-visible change, 2 per major; (2) quarter one is the basis, each other quarter 1 / 2 / 3 pts for visible /
+  1:2 / worse. Method (2) is what the coach should implement, exposed as the "judge-like" standard.
+- **Competition turn**: a pause is permitted between the roll and the heading change and between the stop and the
+  roll-out (28.5.2, 28.5.4); altitude 1 pt per 5° *or per 100 ft* (28.4.5); mismatched entry/exit roll rates 1 pt.
+- **Slow roll**: a *stop* mid-roll is graded as the full angular error to that point (28.20.2 example: stop at 130°
+  of a 180° roll then correct → 10-point downgrade), a *slow-down* is 1 pt plus the final angle error.
+- **Hesitation rolls**: every roll-rate segment differing from the first → 1 pt each; every pause duration differing
+  from the first → 1 pt each; an unseen pause → HZ (28.21).
+- **Snap rolls**: yaw may not lead pitch (1 pt/5° if it does); autorotation ceasing early → 1 pt/5° remaining
+  (28.22.3, 28.22.7). No CIVA-style 0.0 at >45° remaining.
+- **Spins**: stall must produce simultaneous pitch-down, yaw and roll — lag on any axis is 1 pt/5° (28.24.2, the
+  example gives 4 pts for 10° pitch + 10° roll before any yaw); autorotation stopping early → 1 pt/5° remaining;
+  downline established "at the same time as, or shortly after" rotation stops (28.24.8); spins need not be centred.
+- **Hammerhead pivot**: CG may displace up to ½ wingspan free, then 1 pt per additional half wingspan (28.8.3);
+  wind drift during the pivot is not a deduction (28.8.5). Tailslide shorter than ½ fuselage → **HZ** (CIVA: 4 pts).
+- **IAC-only figures**: Family 0 wingover (K 8) and quarter-clovers (K 16 / 13) with their own criteria (28.2–3).
+- **Presentation** is a separate grade weighted 5K in Primary, 10K Sportsman (29.2).
+- Primary competitors fly the Primary Known for every program (23.1a).
+
+The 2026 edition (Rev B) exists but is not archived; the IAC site refuses scripted downloads. The 2025 text is
+the working reference until the 2026 book or its change summary is available (Q2).
+
+### 2.4 Per-element criteria (the measurement list)
 
 | Element | What is measured | Downgrade | Source |
 |---|---|---|---|
@@ -245,33 +281,40 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 - **Audio goes over Bluetooth to the headset** (model to confirm); phone speaker kept as the ground-test fallback.
 - **Validation data = data16 only**, graded against Sean's own judgement of the replay to start; real scores or
   judge sheets are added when they exist. The other logs stay out of the loop for now.
+- **Wind is estimated from wings-level horizontal lines** (heading vs GPS track and groundspeed) before each
+  figure; no pilot entry. Loops and horizontal paths are judged wind-corrected, verticals/45s on attitude.
+- **Critique voice is a user setting**: what the aircraft did + points · aircraft + control correction (per-type,
+  signed off by Sean) · score only.
+- **Score standard is a user setting, both present**: judge-like (quarter one sets the radius, 1 pt/5°, marks what a
+  judge could see) and absolute geometry (true radius change, degrees). Judge-like is the default headline.
+- **Judging text**: CIVA Appendix B and the IAC Rule Book 2025 are both in hand (`docs/private/`, gitignored);
+  the scorer follows IAC where the two differ (§2.3).
 
 ## 10. Open questions (answers change the design — none of these are assumed)
 
 1. ~~Category and figure set~~ — answered: Primary. Still needed: the exact Primary Known you fly (OLAN string /
    Form B) so the templates match the sequence, not just the figure types.
-2. **Judging standard.** IAC rulebook (which year) or CIVA Appendix B? The IAC site blocks downloads — can you
-   share the current IAC Rule Book PDF so I can diff its judging chapter against Appendix B?
+2. ~~Judging standard~~ — IAC. Rule Book 2025 obtained (§2.3). Still needed: the 2026 Rev B changes, if you can
+   save the PDF or the "rule book changes summary" from iac.org into `docs/private/`.
 3. ~~When should the coach talk?~~ — answered: user setting (after / during + after / on demand). Still needed: how
    many items per figure is useful in the cockpit.
 4. ~~Audio path~~ — answered: Bluetooth to the headset. Still needed: headset/intercom model (Bluetooth profile
    and latency differ; some panels duck music under intercom audio).
-5. **Wind.** Enter winds aloft by hand before the flight, estimate from level lines, or ignore wind for the first
-   version and coach on attitude only?
+5. ~~Wind~~ — answered: estimate from level lines.
 6. ~~Ground truth~~ — answered: data16 only, Sean's judgement first.
 7. **Aircraft.** Eagle only for the coaching phase? Any known ZLA/incidence figure for the Eagle, or shall we
    calibrate from your verticals?
 8. **Control-position sensing.** Is the OnFlight analog-input module (control positions) something you'd add? It
    turns "your inputs" from inference into measurement.
-9. **Scope of "correction".** Should the coach say what the *aircraft* did ("pinched top") or attempt to say what
-   the *hands* should do ("less back pressure over the top")? The second needs per-type tuning and your sign-off.
-10. **Voice of the score.** Judge-like (quarter one sets the standard, marks what a judge would see) or absolute
-    geometry (true radius, true heading), or both with the judge score as the headline?
+9. ~~Scope of "correction"~~ — answered: user-selectable voice (aircraft-only / with control corrections / score
+   only). Still needed: Sean's sign-off on the correction phrasing per figure before it ships.
+10. ~~Voice of the score~~ — answered: user-selectable, both present.
 11. **Sequence mode timing.** Is sequence mode wanted soon, or is single-figure coaching the whole of this phase?
 
 ## 11. Sources
 
 - FAI Sporting Code Section 6 Part 1, version 2023-2, Rule 4.4 and Appendix B (civanews.com document store).
+- IAC Official Contest Rules 2025, chapters 22–23 and 26–29 plus the Judge's Quick Reference (iac.org, via the Internet Archive).
 - British Aerobatics judging pages: downgrades summary, loops, slow rolls, flick rolls, spins, stall turns, humpty
   bumps (aerobatics.org.uk/judging).
 - IAC: category descriptions (iac52.org, iacchapter26.org), "In the Loop" series by Gordon Penner (half Cuban,
