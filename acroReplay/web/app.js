@@ -342,28 +342,6 @@ for (const id of Object.values(boxInputs)) {
   });
 }
 
-function sunburstTexture(rays, spread) {
-  // Christen Eagle scheme: white base, rainbow "feather" rays fanning back from the nose along +v.
-  const c = document.createElement('canvas'); c.width = 512; c.height = 1024;
-  const g = c.getContext('2d');
-  g.fillStyle = '#f7f7f4'; g.fillRect(0, 0, c.width, c.height);
-  const colors = ['#d62828', '#f77f00', '#fcbf49', '#2a9d3f', '#1d6fd6', '#6a3fb5'];
-  const n = colors.length * rays;
-  for (let i = 0; i < n; i += 1) {
-    const x0 = c.width * (0.5 + (i / (n - 1) - 0.5) * spread);
-    g.fillStyle = colors[i % colors.length];
-    g.beginPath();
-    g.moveTo(c.width / 2, 40);
-    g.lineTo(x0 - 34, c.height);
-    g.lineTo(x0 + 34, c.height);
-    g.closePath();
-    g.fill();
-  }
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
 function propDiskTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d');
@@ -379,47 +357,15 @@ function propDiskTexture() {
   return tex;
 }
 
-function buildAircraft() {
-  const g = new THREE.Group();
-  const paint = new THREE.MeshStandardMaterial({ map: sunburstTexture(2, 1.6), roughness: 0.45, metalness: 0.05 });
-  const wingPaint = new THREE.MeshStandardMaterial({ map: sunburstTexture(3, 1.9), roughness: 0.45, metalness: 0.05 });
-  const white = new THREE.MeshStandardMaterial({ color: 0xf7f7f4, roughness: 0.5 });
-  const black = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
-  const glass = new THREE.MeshStandardMaterial({ color: 0x8fb7d8, transparent: true, opacity: 0.55, roughness: 0.1 });
-  const add = (mesh, x, y, z, rx = 0, ry = 0, rz = 0) => { mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz); g.add(mesh); return mesh; };
-
-  // Fuselage: lathe profile along its axis (nose at +x). Lathe axis is +y, so rotate onto +x.
-  const profile = [[0.02, 2.85], [0.28, 2.75], [0.44, 2.2], [0.5, 1.2], [0.52, 0.3], [0.46, -0.5], [0.34, -1.5], [0.2, -2.4], [0.05, -2.8], [0.0, -2.82]]
-    .map(([r, x]) => new THREE.Vector2(r, x));
-  add(new THREE.Mesh(new THREE.LatheGeometry(profile, 28), paint), 0, 0, 0, 0, 0, -Math.PI / 2);
-  add(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.35, 24, 1, false, 0, Math.PI), glass), 0.15, 0, -0.45, Math.PI / 2, 0, -Math.PI / 2);
-
-  // Wings: lower at z=+0.35, upper staggered forward at z=-1.05; span 6 m, chord 1.2 m.
-  const wingGeo = new THREE.BoxGeometry(1.2, 6.0, 0.11);
-  add(new THREE.Mesh(wingGeo, wingPaint), 0.1, 0, 0.35);
-  add(new THREE.Mesh(wingGeo, wingPaint), 0.55, 0, -1.05);
-  // Interplane I-struts and cabane struts.
-  const strut = new THREE.CylinderGeometry(0.03, 0.03, 1.4, 8);
-  for (const y of [-2.2, 2.2, -0.5, 0.5]) add(new THREE.Mesh(strut, white), 0.35, y, -0.35, 0, 0, Math.PI / 2 * 0 + (y > -1 && y < 1 ? 0 : 0)).rotation.set(Math.PI / 2, 0, 0);
-  for (const y of [-2.2, 2.2]) add(new THREE.Mesh(strut, white), 0.35, y, -0.35).rotation.set(Math.PI / 2, 0, 0);
-
-  // Tail: horizontal stabilizer/elevator, vertical fin/rudder (up is -z).
-  add(new THREE.Mesh(new THREE.BoxGeometry(0.75, 2.3, 0.07), wingPaint), -2.45, 0, -0.05);
-  add(new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.07, 1.05), paint), -2.45, 0, -0.6);
-
-  // Landing gear with wheel pants, tailwheel, prop and spinner.
-  for (const y of [-0.9, 0.9]) {
-    add(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.55), white), 1.0, y * 0.75, 0.6, 0, 0, y > 0 ? -0.5 : 0.5);
-    add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), white), 1.0, y, 0.85).scale.set(1.4, 0.45, 0.9);
-    add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.12, 16), black), 1.0, y, 0.98, Math.PI / 2, 0, 0).name = 'Front_wheel';
-  }
-  add(new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.06, 12), black), -2.6, 0, 0.3, Math.PI / 2, 0, 0).name = 'Rare_wheel';
-  add(new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.4, 16), white), 3.05, 0, 0, 0, 0, -Math.PI / 2);
-  add(new THREE.Mesh(new THREE.BoxGeometry(0.03, 1.9, 0.14), black), 2.9, 0, 0, 0.6, 0, 0);
-  return g;
-}
-// Licensed Christen Eagle model (web/models/, not in git): cm units, Y up, nose +Z, right wing -X.
-// Rotated into the FRD body frame and scaled to metres; the procedural model stands in until it loads.
+// Licensed aircraft models (web/models/, not in git). Every OBJ is Y up, nose +Z, right wing -X; `scale`
+// takes its units to metres and `offset` (model units) puts its origin on the CG. Mesh names carry the roles:
+// canopy (glass), propeller (blades → spinning disk), main_wheels / tail_wheel (parked stance).
+// Rotated into the FRD body frame; the procedural model stands in until the picked one loads.
+const MODELS = {
+  eagle: { dir: 'eagle', scale: 0.01, offset: [0, -1.6, -30] },
+  extra: { dir: 'extra', scale: 1, offset: [0, 0, 0] },
+  rv7: { dir: 'rv7', scale: 1, offset: [0, 0, 0] },
+};
 const aircraft = new THREE.Group();
 const propParts = { blades: [], disks: [] };
 function showProp(spinning) {
@@ -427,13 +373,23 @@ function showProp(spinning) {
   for (const d of propParts.disks) d.visible = spinning;
 }
 const placeholder = buildAircraft();
+let modelNode = placeholder;
+let modelKey = MODELS[getItem('acroReplay.model')] ? getItem('acroReplay.model') : 'eagle';
 aircraft.add(placeholder);
 scene.add(aircraft);
-function loadEagleModel() {
-  const path = './models/eagle/';
-  new MTLLoader().setPath(path).load('eagle.mtl', (mtl) => {
+function showModel(node) {
+  aircraft.remove(modelNode);
+  modelNode = node;
+  aircraft.add(node);
+  settleOnWheels();
+}
+function loadAircraftModel(key) {
+  const { dir, scale, offset } = MODELS[key];
+  const path = `./models/${dir}/`;
+  new MTLLoader().setPath(path).load(`${dir}.mtl`, (mtl) => {
     mtl.preload();
-    new OBJLoader().setMaterials(mtl).setPath(path).load('eagle.obj', (obj) => {
+    new OBJLoader().setMaterials(mtl).setPath(path).load(`${dir}.obj`, (obj) => {
+      if (key !== modelKey) return;   // superseded by a later pick
       const props = [];
       obj.traverse((m) => {
         if (!m.isMesh) return;
@@ -443,33 +399,45 @@ function loadEagleModel() {
       });
       // In flight a spinning prop reads as a translucent disk at the hub (model XY plane faces +Z = nose);
       // in the hangar the blades themselves show.
-      for (const m of props) {
-        const bb = new THREE.Box3().setFromObject(m);
+      propParts.blades = props;
+      propParts.disks = [];
+      if (props.length) {
+        const bb = new THREE.Box3();
+        for (const m of props) bb.expandByObject(m);
         const size = bb.getSize(new THREE.Vector3()), center = bb.getCenter(new THREE.Vector3());
         const disk = new THREE.Mesh(new THREE.CircleGeometry(Math.max(size.x, size.y) / 2, 48), new THREE.MeshBasicMaterial({
           map: propDiskTexture(), transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false,
         }));
         disk.position.copy(center);
         obj.add(disk);
-        propParts.blades.push(m);
         propParts.disks.push(disk);
       }
       showProp(!hangarMode);
       const pivot = new THREE.Group();
       pivot.setRotationFromMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(1, 0, 0)));
-      pivot.scale.setScalar(0.01);
-      obj.position.set(0, -1.6, -30);
+      pivot.scale.setScalar(scale);
+      obj.position.fromArray(offset);
       pivot.add(obj);
-      aircraft.remove(placeholder);
-      aircraft.add(pivot);
-      settleOnWheels();
-    }, undefined, (err) => console.error('eagle model failed', err));
-  }, undefined, (err) => console.error('eagle mtl failed', err));
+      showModel(pivot);
+    }, undefined, (err) => console.error(`${dir} model failed`, err));
+  }, undefined, (err) => console.error(`${dir} mtl failed`, err));
 }
-loadEagleModel();
+function setModel(key) {
+  modelKey = key;
+  setItem('acroReplay.model', key);
+  document.querySelectorAll('#model [data-model]').forEach((btn) => btn.classList.toggle('on', btn.dataset.model === key));
+  propParts.blades = [];
+  propParts.disks = [];
+  if (modelNode !== placeholder) showModel(placeholder);
+  loadAircraftModel(key);
+}
+document.querySelectorAll('#model [data-model]').forEach((btn) => {
+  btn.classList.toggle('on', btn.dataset.model === modelKey);
+  btn.addEventListener('click', () => { if (btn.dataset.model !== modelKey) setModel(btn.dataset.model); });
+});
+loadAircraftModel(modelKey);
 // Parked pose shown until the INS is initialized and frames are flowing: all three wheels on the hangar floor.
-// The stance comes from the wheel meshes of whichever model is showing, so the licensed model and the
-// placeholder both sit properly.
+// The stance comes from the model's own wheel meshes once it has loaded.
 const REST = { pos: new THREE.Vector3(0, 1.0, 0), quat: worldQuaternion(0, 10, 0) };
 function wheelBox(root, pattern) {
   const toLocal = new THREE.Matrix4().copy(root.matrixWorld).invert();
@@ -484,7 +452,13 @@ function wheelBox(root, pattern) {
 function settleOnWheels() {
   aircraft.updateMatrixWorld(true);
   const main = wheelBox(aircraft, /front_wheel|main_wheel/i), tail = wheelBox(aircraft, /rare_wheel|rear_wheel|tail_wheel/i);
-  if (!main || !tail) return;
+  if (!main) return;
+  if (!tail) {   // tricycle gear (or a model missing its nose wheel): level, mains on the floor
+    worldQuaternion(0, 0, 0, REST.quat);
+    REST.pos.set(0, main.max.z, 0);
+    if (parked) placeParked();
+    return;
+  }
   // Body frame (x forward, z down): pitch nose-up by θ until both wheel bottoms share one plane, then lift by that depth.
   const cm = main.getCenter(new THREE.Vector3()), ct = tail.getCenter(new THREE.Vector3());
   const rm = (main.max.z - main.min.z) / 2, rt = (tail.max.z - tail.min.z) / 2;
@@ -497,7 +471,6 @@ function settleOnWheels() {
   if (parked) placeParked();
 }
 let parked = true;
-settleOnWheels();
 placeParked();
 startPhoneLocation();
 
