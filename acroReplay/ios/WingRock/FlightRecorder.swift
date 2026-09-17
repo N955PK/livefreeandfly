@@ -19,6 +19,9 @@ final class FlightRecorder {
     private var buffer = Data()
     private var boxJSON: String?      // latest aerobatic box; written as the first record of each flight file
     private var modelJSON: String?    // latest aircraft model, e.g. {"model":"eagle"}
+    private var seqHandle: FileHandle?   // a second file for the current wing-rock-bracketed sequence, or nil
+    private var seqURL: URL?
+    private var seqBuffer = Data()
 
     init() {
         try? FileManager.default.createDirectory(at: Self.directory, withIntermediateDirectories: true)
@@ -28,6 +31,35 @@ final class FlightRecorder {
     /// comes back with its box.
     func setBox(_ json: String) { queue.async { self.boxJSON = json.isEmpty ? nil : json } }
     func setModel(_ key: String) { queue.async { self.modelJSON = key.isEmpty ? nil : "{\"model\":\"\(key)\"}" } }
+
+    /// The wing rock brackets a sequence: `startSequence` opens a second file that captures just the bracketed
+    /// stretch (with the same box/model header), `endSequence` closes it. The full flight file keeps recording too.
+    func startSequence() {
+        queue.async {
+            self.closeSequence()
+            let name = Self.stamp() + "_seq.bin"
+            let u = Self.directory.appendingPathComponent(name)
+            FileManager.default.createFile(atPath: u.path, contents: nil)
+            self.seqHandle = try? FileHandle(forWritingTo: u)
+            self.seqURL = u
+            self.seqBuffer.removeAll(keepingCapacity: true)
+            if let r = self.metaRecord(0xB0, self.boxJSON) { self.seqHandle?.write(r) }
+            if let r = self.metaRecord(0xB1, self.modelJSON) { self.seqHandle?.write(r) }
+            NSLog("FlightRecorder: sequence -> %@", name)
+        }
+    }
+    func endSequence() { queue.async { self.closeSequence() } }
+    private func closeSequence() {
+        guard seqHandle != nil else { return }
+        if !seqBuffer.isEmpty { seqHandle?.write(seqBuffer); seqBuffer.removeAll(keepingCapacity: true) }
+        try? seqHandle?.close()
+        seqHandle = nil
+        seqURL = nil
+    }
+
+    private static func stamp() -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyyMMdd_HHmmss"; return f.string(from: Date())
+    }
 
     func record(_ payload: Data, wall: TimeInterval) {
         let initialised = payload.count == HubListener.frameSize && (payload[1] & 0x08) != 0
@@ -44,6 +76,11 @@ final class FlightRecorder {
             self.buffer.append(header)
             self.buffer.append(payload)
             if self.buffer.count >= 16 * 1024 { self.flush() }
+            if self.seqHandle != nil {
+                self.seqBuffer.append(header)
+                self.seqBuffer.append(payload)
+                if self.seqBuffer.count >= 16 * 1024 { self.seqHandle?.write(self.seqBuffer); self.seqBuffer.removeAll(keepingCapacity: true) }
+            }
         }
     }
 
@@ -64,13 +101,13 @@ final class FlightRecorder {
         handle = try? FileHandle(forWritingTo: url)
         self.url = url
         sawInit = false
-        writeMeta(0xB0, boxJSON)      // box
-        writeMeta(0xB1, modelJSON)    // aircraft model
+        if let r = metaRecord(0xB0, boxJSON) { handle?.write(r) }      // box
+        if let r = metaRecord(0xB1, modelJSON) { handle?.write(r) }    // aircraft model
         NSLog("FlightRecorder: recording to %@", name)
     }
 
-    private func writeMeta(_ marker: UInt8, _ jsonString: String?) {
-        guard let jsonString, let json = jsonString.data(using: .utf8) else { return }
+    private func metaRecord(_ marker: UInt8, _ jsonString: String?) -> Data? {
+        guard let jsonString, let json = jsonString.data(using: .utf8) else { return nil }
         var rec = Data(count: 10)
         let n = 1 + json.count
         rec.withUnsafeMutableBytes { raw in
@@ -79,7 +116,7 @@ final class FlightRecorder {
         }
         rec.append(marker)
         rec.append(json)
-        handle?.write(rec)
+        return rec
     }
 
     private func flush() {
@@ -96,5 +133,5 @@ final class FlightRecorder {
         url = nil
     }
 
-    func finish() { queue.sync { close() } }
+    func finish() { queue.sync { closeSequence(); close() } }
 }

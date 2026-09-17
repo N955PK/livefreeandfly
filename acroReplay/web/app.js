@@ -20,6 +20,7 @@ import { Detector, describe } from './coach/detector.js';
 import { gradeFigure, critique, matchFigure, PRIMARY, PRIMARY_KNOWN } from './coach/judge.js';
 import { idealFigure } from './coach/ghost.js';
 import { WingRockDetector } from './coach/wingrock.js';
+import { LiveCue } from './coach/livecue.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -1032,21 +1033,23 @@ function recFooter() {   // strip appended to the bottom of the coach card while
 }
 function refreshRunCard() {   // show the card with the latest figure (if any) plus the recording strip
   if (lastGrade && coachShow) renderCoach(lastGrade);
-  else coachCard.innerHTML = `<div class="chead"><span class="ctype">Routine</span></div>${recFooter()}`;
+  else coachCard.innerHTML = `<div class="chead"><span class="ctype">Sequence</span></div>${recFooter()}`;
   coachCard.classList.remove('hidden');
 }
 function onWingRock() { if (runState === 'idle') startRun(); else stopRun(); }
 function startRun() {
   runState = 'recording'; runFigures = []; resetSequence();
+  if (nativeHandler) nativeHandler.postMessage('seqstart');   // save this bracketed sequence as its own file
   refreshRunCard();
-  if (coachSpeak) say('Recording routine');
+  if (coachSpeak) say('Recording sequence');
 }
 function stopRun() {
   const pct = runPct();
   runState = 'done';
-  runDoneText = pct != null ? `Routine saved · ${pct}%` : 'Routine saved';
+  if (nativeHandler) nativeHandler.postMessage('seqend');
+  runDoneText = pct != null ? `Sequence saved · ${pct}%` : 'Sequence saved';
   refreshRunCard();
-  if (coachSpeak) say(pct != null ? `Routine complete. ${pct} percent.` : 'Routine complete.');
+  if (coachSpeak) say(pct != null ? `Sequence complete. ${pct} percent.` : 'Sequence complete.');
   setTimeout(() => {
     if (runState !== 'done') return;
     runState = 'idle';
@@ -1072,6 +1075,26 @@ document.querySelectorAll('#speak [data-speak]').forEach((btn) => {
   btn.classList.toggle('on', (btn.dataset.speak === 'on') === coachSpeak);
   btn.addEventListener('click', () => { coachSpeak = btn.dataset.speak === 'on'; setItem('acroReplay.speak', coachSpeak ? 'on' : 'off'); document.querySelectorAll('#speak [data-speak]').forEach((b) => b.classList.toggle('on', b === btn)); });
 });
+
+// Live guidance tone (in-figure feedback by ear). Settings pick the mode and volume; the audio engine only wakes
+// on a user gesture (a mode tap or Test), which iOS requires. Live per-figure driving is wired via liveCue.update().
+const liveCue = new LiveCue();
+let cueMode = getItem('acroReplay.liveCue') || 'off';
+let cueVol = Number(getItem('acroReplay.cueVol'));
+if (!Number.isFinite(cueVol)) cueVol = 70;
+liveCue.mode = cueMode; liveCue.setVolume(cueVol / 100);
+document.querySelectorAll('#livecue [data-cue]').forEach((btn) => {
+  btn.classList.toggle('on', btn.dataset.cue === cueMode);
+  btn.addEventListener('click', () => {
+    cueMode = btn.dataset.cue; setItem('acroReplay.liveCue', cueMode);
+    document.querySelectorAll('#livecue [data-cue]').forEach((b) => b.classList.toggle('on', b === btn));
+    liveCue.setMode(cueMode);
+  });
+});
+const cueVolEl = document.getElementById('cue-vol');
+cueVolEl.value = cueVol;
+cueVolEl.addEventListener('input', () => { cueVol = Number(cueVolEl.value); setItem('acroReplay.cueVol', String(cueVol)); liveCue.setVolume(cueVol / 100); });
+document.getElementById('cue-test').addEventListener('click', () => liveCue.test());
 rb['rb-play'].addEventListener('click', () => setPlaying(!replay.playing));
 rb['rb-scrub'].addEventListener('input', () => { setPlaying(false); replay.loop = null; seekTo(replay.t0 + (rb['rb-scrub'].value / 1000) * (replay.t1 - replay.t0)); });
 rb['rb-speed'].addEventListener('click', () => { const seq = [0.25, 0.5, 1, 2]; replay.speed = seq[(seq.indexOf(replay.speed) + 1) % seq.length]; rb['rb-speed'].textContent = `${replay.speed}×`; });

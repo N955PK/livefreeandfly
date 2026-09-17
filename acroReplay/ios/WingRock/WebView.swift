@@ -47,6 +47,10 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
             if body.hasPrefix("store:acroReplay.model:") { recorder.setModel(String(body.dropFirst("store:acroReplay.model:".count))) }
         } else if body.hasPrefix("say:") {
             speak(String(body.dropFirst("say:".count)))
+        } else if body == "seqstart" {
+            recorder.startSequence()
+        } else if body == "seqend" {
+            recorder.endSequence()
         } else if body == "flights" {
             let json = (try? JSONSerialization.data(withJSONObject: FlightRecorder.list())).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
             eval("acroReplay.flights(\(json))")
