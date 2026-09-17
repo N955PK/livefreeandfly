@@ -89,6 +89,9 @@ h3 { margin: 16px 0 8px; font-size: 12px; letter-spacing: .06em; text-transform:
 .input input { flex: 1 1 0; width: 0; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
 .input input::-webkit-inner-spin-button, .input input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .input em { font-style: normal; color: var(--muted); font-size: 13px; margin-left: 6px; }
+.input.compact { width: auto; flex: 0 0 auto; height: 40px; padding: 0 10px; }
+.input.compact input { flex: 0 0 auto; width: 5ch; text-align: right; }
+#coach-restart { margin-top: 16px; }
 select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--field); border: 1px solid var(--field-border); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; }
 .row { display: flex; gap: 10px; margin: 10px 0; }
 .row > * { flex: 1; }
