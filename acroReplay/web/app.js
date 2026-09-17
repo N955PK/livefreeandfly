@@ -21,7 +21,7 @@ import { gradeFigure, critique, matchFigure, PRIMARY, PRIMARY_KNOWN } from './co
 import { idealFigure } from './coach/ghost.js';
 import { WingRockDetector } from './coach/wingrock.js';
 import { LiveCue } from './coach/livecue.js';
-import { cueDrive } from './coach/cuemap.js';
+import { LiveCueMap } from './coach/cuemap.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -1150,6 +1150,7 @@ document.querySelectorAll('#speak [data-speak]').forEach((btn) => {
 // Live guidance tone (in-figure feedback by ear). Settings pick the mode and volume; the audio engine only wakes
 // on a user gesture (a mode tap or Test), which iOS requires. Live per-figure driving is wired via liveCue.update().
 const liveCue = new LiveCue();
+const cueMapper = new LiveCueMap();
 let cueMode = getItem('acroReplay.liveCue') || 'off';
 let cueVol = Number(getItem('acroReplay.cueVol'));
 if (!Number.isFinite(cueVol)) cueVol = 70;
@@ -1457,11 +1458,13 @@ function dismissSplash() {
 // Live guidance tone: each frame, read the detector's in-progress element and feed the tone engine the current
 // deviation. Silent unless the cue is on, a fresh feed is arriving live (not replay), and we're on a cue-able
 // element; feeding update(0, 0) parks the tone inside its deadband so a stalled feed can't leave it hanging.
+let lastCue = { active: false, shape: 0, bank: 0 };
 function updateCue(now) {
-  if (cueMode === 'off') return;
-  if (replay.active || now - lastRecv > STALE_MS || !liveDetector.lastF) { liveCue.update(0, 0); return; }
-  const d = cueDrive(liveDetector.current, liveDetector.lastF);
-  liveCue.update(d.active ? d.shape : 0, d.active ? d.bank : 0);
+  const live = !replay.active && now - lastRecv <= STALE_MS && !!liveDetector.lastF;
+  // Drive the mapper every frame (advancing loop-radius capture) but feed the engine only with a live figure;
+  // drive(null, null) resets per-element state when the feed drops so the next element re-captures cleanly.
+  lastCue = live ? cueMapper.drive(liveDetector.current, liveDetector.lastF) : cueMapper.drive(null, null);
+  if (cueMode !== 'off') liveCue.update(lastCue.active ? lastCue.shape : 0, lastCue.active ? lastCue.bank : 0);
 }
 function frame() {
   const now = performance.now();
@@ -1507,5 +1510,5 @@ window.wingrock = {
   },
   run: () => ({ runState, runFigures: runFigures.length, rocks: (replay.rocks||[]).map((t)=>Math.round(t-replay.t0)), rockNext: replay.rockNext, cursor: Math.round(replay.cursor-replay.t0), fig0: replay.figures[0] ? Math.round(replay.figures[0].t0-replay.t0) : null }),
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
-  cue: () => { const f = liveDetector.lastF; const d = cueDrive(liveDetector.current, f); return { mode: cueMode, kind: liveDetector.current?.kind, el: f && Math.round(f.el), roll: f && Math.round(f.roll), active: d.active, shape: Math.round(d.shape), bank: Math.round(d.bank) }; },
+  cue: () => { const f = liveDetector.lastF; return { mode: cueMode, kind: liveDetector.current?.kind, el: f && Math.round(f.el), roll: f && Math.round(f.roll), active: lastCue.active, shape: Math.round(lastCue.shape), bank: Math.round(lastCue.bank) }; },
 };

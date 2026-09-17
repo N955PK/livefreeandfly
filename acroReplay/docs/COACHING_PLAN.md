@@ -15,7 +15,7 @@ Status 2026-09-16 (evening): first cut built and pushed — see §0. Research an
 | Labelling list (type, grade, notes per detected figure) → `docs/private/labels_<flight>.json` via the bridge | Figures list in the replay bar | done; awaiting Sean's grades on data16 |
 | Coach card + spoken critique (AVSpeechSynthesizer / Web Speech), voice and speak settings | `WebView.swift`, `app.js` | done |
 | Coach figure setting: any / one armed figure / Primary Known sequence with K-weighted total | Box → Settings | done |
-| In-figure live cues (C5) | `web/coach/livecue.js` | engine built and tuned (Web Audio graph, Off/Constant/Blip + volume + Test in Settings); **nothing drives it in flight yet** — no `liveCue.update()` call, so today it only sounds on Test. Wiring plan in §12.7 |
+| In-figure live cues (C5) | `web/coach/livecue.js`, `web/coach/cuemap.js` | engine + settings done; `cuemap.js` drives it each live frame — lines (attitude vs the drawn ±45/±90 angle), loops (normalised radius error after a first-quadrant target), rolls (nose-drop sag, no pan), silent on level/turn/spin. Verified on the data16 replay. In-air pending: `RADIUS_TOL` tuning, roll-sign/pan confirmation, and that a continuous tone routes to the phone's output. §12.7 |
 | Deviation tint on the flown trail, tap-a-rib numbers | — | not started |
 
 Bridge dev routes: `/flights/` lists `sessions/*.bin`, `/flights/<name>` serves one, `POST /dev/labels/<name>`
