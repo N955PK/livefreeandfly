@@ -1064,7 +1064,7 @@ let runDoneText = '';
 // The activated sequence's human name, so the pilot can verify the wing rock armed the one they meant to fly.
 function seqName() {
   if (coachMode === 'sequence') return 'Primary Known';
-  if (coachMode === 'any') return 'Any figure';
+  if (coachMode === 'any') return 'Freestyle';
   return cap(coachMode);
 }
 // Sequence score as a running K-weighted point total that starts at the perfect maximum and only falls as each
@@ -1079,6 +1079,7 @@ function runTotal() {
 const hudRec = document.getElementById('hudrec');   // the recording strip lives on the always-visible HUD, not the
 function renderHudRec() {                            // score card (which the pilot can toggle off)
   document.body.classList.toggle('seqactive', runState !== 'idle');   // the HUD grows a strip -> nudge the coach card down
+  document.body.classList.toggle('recording', runState === 'recording');   // flips the Record button to its stop state
   if (runState === 'recording') {
     const total = runTotal();
     const last = runFigures[runFigures.length - 1];
@@ -1120,9 +1121,9 @@ function stopRun() {
   const total = runTotal();
   runState = 'done';
   if (nativeHandler && !replay.active) nativeHandler.postMessage('seqend');
-  runDoneText = total ? `${seqName()} saved \u00b7 ${total.n}/${total.tot}` : 'Sequence saved';
+  runDoneText = total ? `${seqName()} saved \u00b7 ${total.n}/${total.tot}` : `${seqName()} saved`;
   renderHudRec();
-  if (coachSpeak) say(total ? `${seqName()} complete. ${total.n} of ${total.tot}.` : 'Sequence complete.');
+  if (coachSpeak) say(total ? `${seqName()} complete. ${total.n} of ${total.tot}.` : `${seqName()} saved.`);
   setTimeout(() => { if (runState === 'done') { runState = 'idle'; renderHudRec(); } }, 6000);
 }
 document.getElementById('coach-figure').value = coachMode;
@@ -1286,6 +1287,7 @@ function zoomBy(f) {
   }
 }
 document.querySelectorAll('#controls [data-cam]').forEach(b => b.addEventListener('click', () => setCamMode(b.dataset.cam)));
+document.getElementById('record-toggle').addEventListener('click', () => { if (!replay.active) onWingRock(); });   // manual start/stop, same toggle as the wing rock
 document.getElementById('clear').addEventListener('click', clearTrail);
 document.getElementById('zoom-in').addEventListener('click', () => zoomBy(0.75));
 document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1.33));
