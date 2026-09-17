@@ -441,6 +441,81 @@ C0–C3 can be done on the ground with the logs and the replay; C4 onward needs 
 11. ~~Sequence mode timing~~ — answered: both single-figure and sequence mode in this phase, Primary-based.
 12. ~~Replay persistence~~ — answered: save flights on the phone (§6.2).
 
+## 12. Phase 2 — real-time evaluation in the cockpit (next batch)
+
+The goal for this batch: a display that is trivial to use at 6 G with gloves on, gives useful spoken feedback the
+instant a figure ends, and lets the pilot review the figure they just flew before the next one. Three things to
+build: a **run lifecycle** (start/stop that scopes a scored routine), **audio-first real-time polish**, and
+**between-figure replay** (the app's original reason to exist). What exists today is always-on ambient grading —
+`liveDetector` grades every figure the moment it closes; there is no scoped run and no start/stop.
+
+### 12.1 The run lifecycle (start/stop)
+
+The interaction budget in the airplane is near zero during a figure, so the design leans on automatic detection with
+a single large manual override, rather than asking the pilot to tap between figures.
+
+- **Individual figures — ambient, no run.** Coach figure = Any (or a specific figure). Fly anything; each figure is
+  graded and spoken as it completes. This is today's behaviour and needs no start/stop. Best for practising one
+  figure over and over.
+- **Full sequence — an armed run.** Coach figure = Primary Known. The pilot **arms** the run once (one big tap, or
+  it auto-arms on box entry). The run **starts** on the first recognised figure, tracks the Known in order, speaks a
+  per-figure score, and **ends automatically** after the last Known figure (or after sustained wings-level flight /
+  box exit), announcing the total. Nothing is touched mid-routine.
+- **Partial sequence — stop early.** The same armed run, ended by a **Stop** tap (or by levelling off). It grades the
+  figures actually flown, reports a partial total, and says which Known figures were not attempted.
+
+Recommended control: one prominent **Start / Stop** button (glove-sized, in the control dock), plus **auto-arm on
+box entry** and **auto-end on level-off / box exit** so the hands-free path needs no taps at all. A **Redo** action
+discards the last figure when the entry was flubbed. During a run, a persistent glanceable chip shows state and
+running total, e.g. `▶ 3/6 · 62%`. Every run is saved as a flight (already supported) with its run boundaries and
+total, so it drops straight into replay.
+
+Open decision for Sean: **auto-detected runs with a manual override** (recommended, most hands-free) vs a **plain
+manual Start/End toggle** (simpler, more predictable) vs **keep it always-on ambient** and only add a "save this run"
+marker. This choice drives the rest of the build.
+
+### 12.2 Audio-first real-time polish
+
+The pilot cannot look at the screen during the figure, so the spoken channel is primary and must be tight.
+
+- **Timing:** speak the critique the moment the figure closes, not during it; never overlap two figures' speech
+  (queue, and drop stale ones if the pilot is already into the next figure).
+- **Brevity and priority:** one sentence, the biggest deduction first, in the pilot's chosen voice (aircraft / +fix /
+  score). A hard zero is called immediately and plainly.
+- **Non-verbal cues:** a short chime for a clean figure, a low buzz for a hard zero, so the pilot gets a glanceless
+  read without parsing words. Optional, user-toggle.
+- **Running total:** at sequence end, speak the percentage and the weakest figure ("Sequence 62 percent, the loop
+  cost you the most"). A mid-run total is on the chip, not spoken.
+- **Graceful disorder:** if a figure comes out of order or is the wrong type for the Known slot, say so once
+  ("expected a spin here") and let the pilot continue or Redo, without derailing the run.
+
+### 12.3 Between-figure replay in real time
+
+This is the original vision: seconds after a figure, while repositioning, the pilot glances down and sees what they
+just flew against the ideal.
+
+- **Auto-surface the last figure.** When a figure closes during a run, the coach card already shows; extend it to
+  optionally show the just-flown trace with the ideal ghost, fitted and box-aligned (the replay ghost work is done),
+  sized for a two-second glance.
+- **One-tap loop.** "Last figure" already replays the most recent figure; make it one big tap (or a voice word) and
+  have it loop with the ghost until dismissed, so the pilot can study the difference between figures.
+- **Non-intrusive:** the live HUD stays primary; the replay is a glance, not a takeover, and clears itself when the
+  next figure starts.
+
+### 12.4 Robustness for live use
+
+- Suppress false figures during climb-out, positioning and wind-correction (gentle turns already fall to OTHER; tune
+  the dwell and level thresholds against real box time).
+- Keep the frame pipeline low-latency end to end so the spoken critique lands within a second of the figure ending.
+- Wind and box awareness apply live, not just in replay (the box already travels in the file).
+
+### 12.5 Suggested build order
+
+1. Run lifecycle: arm / run / stop (manual first, then auto-arm/auto-end), partial-sequence scoring, save the run.
+2. Audio-first polish: speech timing and queueing, priority phrasing, non-verbal cues, spoken end total.
+3. Between-figure replay: auto-surface the last figure with the ghost, one-tap loop, auto-clear.
+4. Robustness pass on live false-detection and latency, tuned against real flight data.
+
 ## 11. Sources
 
 - FAI Sporting Code Section 6 Part 1, version 2023-2, Rule 4.4 and Appendix B (civanews.com document store).
