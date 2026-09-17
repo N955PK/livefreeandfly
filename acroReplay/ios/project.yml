@@ -18,7 +18,7 @@ targets:
         CFBundleDisplayName: WingRock
         UILaunchScreen: {}
         UIRequiresFullScreen: true
-        UIStatusBarHidden: true
+        UIStatusBarStyle: UIStatusBarStyleLightContent
         UIViewControllerBasedStatusBarAppearance: false
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         NSLocalNetworkUsageDescription: WingRock listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.

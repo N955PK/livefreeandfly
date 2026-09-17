@@ -6,8 +6,7 @@ struct WingRockApp: App {
         WindowGroup {
             ContentView()
                 .ignoresSafeArea()
-                .statusBarHidden(true)
-                .persistentSystemOverlays(.hidden)
+                .preferredColorScheme(.dark)
                 .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         }
     }

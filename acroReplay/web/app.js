@@ -82,7 +82,7 @@ let satellite = TILES && getItem('acroReplay.ground') !== 'plain';
 function applyGround() {
   if (tileGround && tileGround.visible !== undefined) tileGround.visible = satellite && !hangarMode;
   grid.visible = !satellite && !hangarMode;
-  document.getElementById('ground-toggle').textContent = satellite ? 'Sat' : 'Plain';
+  document.getElementById('ground-toggle').textContent = satellite ? 'Plain' : 'Sat';
   document.getElementById('attribution').textContent = satellite && tileGround && !hangarMode ? ATTRIBUTION : '';
 }
 function ensureGround(lat, lon) {
@@ -349,7 +349,7 @@ function rederiveBox(dims) {
 }
 fillJudgeInputs(box);
 applyUnits();
-document.getElementById('box-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
+document.getElementById('settings-toggle').addEventListener('click', () => document.getElementById('boxpanel').classList.toggle('hidden'));
 document.getElementById('box-close').addEventListener('click', () => document.getElementById('boxpanel').classList.add('hidden'));
 // Tapping the empty 3D scene closes any open pop-over (the Box panel and the coach card); the replay bar and
 // the pick bar are active tools and stay. Called from the canvas tap handler.
@@ -358,7 +358,7 @@ function closeMenus() {
 }
 document.addEventListener('pointerdown', (e) => {
   const bp = document.getElementById('boxpanel');
-  if (!bp.classList.contains('hidden') && !bp.contains(e.target) && !e.target.closest('#box-toggle')) bp.classList.add('hidden');
+  if (!bp.classList.contains('hidden') && !bp.contains(e.target) && !e.target.closest('#settings-toggle')) bp.classList.add('hidden');
   // Tapping the scene (outside the replay bar) collapses the expanded Figures list.
   const rl = document.getElementById('rb-list'), rbar = document.getElementById('replaybar');
   if (rl && !rl.classList.contains('hidden') && !rbar.contains(e.target)) rl.classList.add('hidden');
@@ -1078,6 +1078,7 @@ let pickState = null;
 const pickMarkers = new THREE.Group();
 scene.add(pickMarkers);
 const camOffset = new THREE.Vector3(8, 4, 12);
+const FREE_PAN_SQ = 4;   // panning ~2 m off the aircraft in orbit flips to the free, world-fixed view
 const chase = { dist: 16 };
 const judge = { fov: 22, zoom: 1 };   // auto FOV keeps the aircraft a constant size; ± scales it
 const DEFAULT_FOV = 55;
@@ -1088,6 +1089,7 @@ const orbitPan = new THREE.Vector3();
 const lastOrbitTarget = new THREE.Vector3();
 const camTmp = new THREE.Vector3();
 function setCamMode(mode) {
+  const prev = camMode;
   camMode = mode;
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
   applyScene();
@@ -1100,21 +1102,22 @@ function setCamMode(mode) {
   scene.fog.near = mapMode ? 1e7 : FOG.near;
   scene.fog.far = mapMode ? 2e7 : FOG.far;
   camera.updateProjectionMatrix();
-  const orbitPanOn = mode === 'orbit' && replay.active;   // two-finger pan the scene while reviewing
-  controls.enabled = mode === 'orbit' || mode === 'map';
+  const panning = mode === 'orbit' || mode === 'free';   // one finger rotates, two fingers pan (and dolly)
+  controls.enabled = mode === 'orbit' || mode === 'map' || mode === 'free';
   controls.enableRotate = mode !== 'map';
-  controls.enablePan = mode === 'map' || orbitPanOn;
+  controls.enablePan = mode === 'map' || panning;
   controls.screenSpacePanning = true;
   // Map mode: one finger pans. Orbit: one finger rotates; two fingers pan (in replay) or dolly.
   controls.mouseButtons.LEFT = mode === 'map' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
   controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
   controls.touches.ONE = mode === 'map' ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
-  controls.touches.TWO = mode === 'map' ? THREE.TOUCH.DOLLY_PAN : (orbitPanOn ? THREE.TOUCH.DOLLY_PAN : THREE.TOUCH.DOLLY_ROTATE);
+  controls.touches.TWO = (mode === 'map' || panning) ? THREE.TOUCH.DOLLY_PAN : THREE.TOUCH.DOLLY_ROTATE;
   controls.panSpeed = mode === 'map' ? 1.6 : 1;
   controls.maxPolarAngle = mode === 'map' ? 0.001 : Math.PI;
   camera.up.set(0, 1, 0);
   if (mode !== 'judge') { camera.fov = DEFAULT_FOV; camera.updateProjectionMatrix(); }
   if (mode === 'orbit') { orbitPan.set(0, 0, 0); controls.target.copy(aircraft.position); lastOrbitTarget.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); }
+  if (mode === 'free' && prev !== 'orbit' && prev !== 'free') { controls.target.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); controls.update(); }
   if (mode === 'map') {
     const c = boxGroup ? judgeWorldPosition(boxGroup, new THREE.Vector3()) : aircraft.position.clone();
     controls.target.set(c.x, 0, c.z);
@@ -1123,7 +1126,7 @@ function setCamMode(mode) {
   }
 }
 function zoomBy(f) {
-  if (hangarMode || camMode === 'orbit') {
+  if (hangarMode || camMode === 'orbit' || camMode === 'free') {
     const d = camera.position.clone().sub(controls.target);
     const len = THREE.MathUtils.clamp(d.length() * f, controls.minDistance, controls.maxDistance);
     camera.position.copy(controls.target).add(d.setLength(len));
@@ -1141,11 +1144,11 @@ document.querySelectorAll('#controls [data-cam]').forEach(b => b.addEventListene
 document.getElementById('clear').addEventListener('click', clearTrail);
 document.getElementById('zoom-in').addEventListener('click', () => zoomBy(0.75));
 document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1.33));
-canvas.addEventListener('wheel', (e) => { if (camMode !== 'orbit' && camMode !== 'map') { e.preventDefault(); zoomBy(Math.exp(e.deltaY * 0.0015)); } }, { passive: false });
+canvas.addEventListener('wheel', (e) => { if (camMode !== 'orbit' && camMode !== 'map' && camMode !== 'free') { e.preventDefault(); zoomBy(Math.exp(e.deltaY * 0.0015)); } }, { passive: false });
 let pinchDist = 0;
 canvas.addEventListener('touchstart', (e) => { if (e.touches.length === 2) pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }, { passive: true });
 canvas.addEventListener('touchmove', (e) => {
-  if (camMode === 'orbit' || camMode === 'map' || e.touches.length !== 2) return;
+  if (camMode === 'orbit' || camMode === 'free' || camMode === 'map' || e.touches.length !== 2) return;
   const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
   if (pinchDist > 0) zoomBy(pinchDist / d);
   pinchDist = d;
@@ -1155,12 +1158,17 @@ function updateCamera() {
   const p = aircraft.position;
   if (boxGroup) boxGroup.userData.judgeMarker.visible = camMode !== 'judge';   // the marker would fill the judge's view
   if (hangarMode || camMode === 'orbit') {
-    if (camMode === 'orbit' && replay.active) orbitPan.add(camTmp.copy(controls.target).sub(lastOrbitTarget));   // absorb the user's pan
+    if (camMode === 'orbit') {
+      orbitPan.add(camTmp.copy(controls.target).sub(lastOrbitTarget));   // absorb the user's pan
+      if (orbitPan.lengthSq() > FREE_PAN_SQ) { setCamMode('free'); return; }   // panned off the aircraft -> plant the view
+    }
     camTmp.copy(p).add(orbitPan);                 // follow point = aircraft + pan
     camera.position.add(camTmp).sub(controls.target);
     controls.target.copy(camTmp);
     lastOrbitTarget.copy(camTmp);
     controls.update();
+  } else if (camMode === 'free') {
+    controls.update();                            // world-fixed: the aircraft flies through, the view stays put
   } else if (camMode === 'map') {
     controls.update();
     mapCam.height = camera.position.y;
