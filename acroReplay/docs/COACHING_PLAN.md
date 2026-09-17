@@ -449,30 +449,38 @@ build: a **run lifecycle** (start/stop that scopes a scored routine), **audio-fi
 **between-figure replay** (the app's original reason to exist). What exists today is always-on ambient grading —
 `liveDetector` grades every figure the moment it closes; there is no scoped run and no start/stop.
 
-### 12.1 The run lifecycle (start/stop)
+### 12.1 The run lifecycle (start/stop = wing rock)
 
-The interaction budget in the airplane is near zero during a figure, so the design leans on automatic detection with
-a single large manual override, rather than asking the pilot to tap between figures.
+A routine is bracketed the way the pilot already brackets it for the judges: by **rocking the wings** (Sean's ruling
+2026-09-17). The signal is **three sharp banks to at least 45°** — the wings roll one way past 45°, back past 45°
+the other way, and again, within a couple of seconds, without ever going round into a roll and with the flight path
+staying roughly level. That is a natural, hands-free action already in the routine, so **no taps are needed at all**.
 
-- **Individual figures — ambient, no run.** Coach figure = Any (or a specific figure). Fly anything; each figure is
-  graded and spoken as it completes. This is today's behaviour and needs no start/stop. Best for practising one
-  figure over and over.
-- **Full sequence — an armed run.** Coach figure = Primary Known. The pilot **arms** the run once (one big tap, or
-  it auto-arms on box entry). The run **starts** on the first recognised figure, tracks the Known in order, speaks a
-  per-figure score, and **ends automatically** after the last Known figure (or after sustained wings-level flight /
-  box exit), announcing the total. Nothing is touched mid-routine.
-- **Partial sequence — stop early.** The same armed run, ended by a **Stop** tap (or by levelling off). It grades the
-  figures actually flown, reports a partial total, and says which Known figures were not attempted.
+- **First wing rock → start.** Arms and starts the run: sequence tracking begins at the next recognised figure, the
+  running-total chip appears, and everything from here is captured as one distinct routine.
+- **Second wing rock → stop.** Ends the run: totals the figures flown (a full or partial Primary Known), speaks the
+  result, and saves the bracketed routine as its own flight so it drops straight into replay.
+- **No wing rock detected → always-on.** Fall back to today’s ambient behaviour: every figure is still detected,
+  graded and spoken, just without a bounded routine or a total.
 
-Recommended control: one prominent **Start / Stop** button (glove-sized, in the control dock), plus **auto-arm on
-box entry** and **auto-end on level-off / box exit** so the hands-free path needs no taps at all. A **Redo** action
-discards the last figure when the entry was flubbed. During a run, a persistent glanceable chip shows state and
-running total, e.g. `▶ 3/6 · 62%`. Every run is saved as a flight (already supported) with its run boundaries and
-total, so it drops straight into replay.
+The three grading modes ride on top of this:
 
-Open decision for Sean: **auto-detected runs with a manual override** (recommended, most hands-free) vs a **plain
-manual Start/End toggle** (simpler, more predictable) vs **keep it always-on ambient** and only add a "save this run"
-marker. This choice drives the rest of the build.
+- **Individual figures — ambient.** Coach figure = Any or a specific figure; fly anything and hear each figure
+  graded. No wing rock needed. Best for drilling one figure repeatedly.
+- **Full sequence — a bracketed run.** Coach figure = Primary Known; the two wing rocks bracket it and the total is
+  announced at the closing rock.
+- **Partial sequence — closed early.** Same run, but the closing wing rock (or landing / a long level-off) comes
+  before the last Known figure; it grades what was flown and says which figures were not attempted.
+
+A small manual **Start/Stop** control still lives in the dock as a backup when the rock is missed or on the ground,
+plus a **Redo** to drop a flubbed figure, but the wing rock is the primary path. During a run a glanceable chip shows
+state and running total, e.g. `▶ 3/6 · 62%`.
+
+**Detection notes.** A wing rock is distinguished from a slow/point roll (which accumulates past 90° and comes back
+inverted) and from a competition turn (bank held, heading changing): the rock oscillates bank across ±45° about
+three times in ~2–3 s with a level flight path and little net heading or roll change. `features.js` already gives
+bank, roll and flight-path angle per sample, so this is a short pattern match on the bank trace. Tune the threshold
+(≥45°), the count (~3) and the window against real box entries/exits.
 
 ### 12.2 Audio-first real-time polish
 
