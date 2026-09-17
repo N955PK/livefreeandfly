@@ -671,6 +671,10 @@ const replay = { active: false, playing: false, speed: 1, samples: [], cursor: 0
 const rb = Object.fromEntries(['replaybar', 'rb-play', 'rb-scrub', 'rb-time', 'rb-speed', 'rb-live', 'rb-marks', 'rb-flight', 'rb-load', 'rb-last', 'rb-list', 'rb-toggle-list', 'rb-save']
   .map((id) => [id, document.getElementById(id)]));
 const FIGURE_TYPES = ['loop', 'spin', 'half cuban', '45 up line', '180 turn', 'slow roll', 'immelmann', 'hammerhead', 'split-s', 'humpty', 'other'];
+// Per-figure "modifier": the one number that changes a figure's meaning (a spin's expected turns). Keyed by the
+// figure type; extend as more figures gain parameters. `def` supplies the default shown until the pilot overrides.
+const MODIFIERS = { spin: { key: 'turns', label: 'Turns', min: 0.25, step: 0.25, def: () => spinTurns } };
+const cap = (x) => (x ? x.replace(/^\w/, (c) => c.toUpperCase()) : x);
 let labels = {};   // t0 (rounded) → { type, grade, notes }
 const rV = new THREE.Vector3(), rQ = new THREE.Quaternion();
 function fmtClock(sec) { const m = Math.floor(sec / 60), s2 = Math.floor(sec % 60); return `${m}:${String(s2).padStart(2, '0')}`; }
@@ -743,7 +747,8 @@ function startReplay(samples, name, at, figures, flightBox) {
   replay.samples = placed; replay.name = name;
   replay.t0 = placed[0].t; replay.t1 = placed[placed.length - 1].t;
   replay.figures = figures || Detector.run(placed);
-  for (const fig of replay.figures) if (!fig.grade) fig.grade = gradeFigure(fig, coachContext());
+  restoreLabels(name);
+  for (const fig of replay.figures) fig.grade = gradeOne(fig);
   replay.lastShown = -1;
   replay.active = true;
   setPlaying(false);
@@ -758,7 +763,7 @@ function startReplay(samples, name, at, figures, flightBox) {
 }
 function regradeReplay() {
   if (!replay.active) return;   // the live coach path re-grades on the next figure on its own
-  for (const fig of replay.figures) fig.grade = gradeFigure(fig, coachContext());
+  for (const fig of replay.figures) fig.grade = gradeOne(fig);
   replay.lastShown = -1;   // force the frame loop to refresh the card and ghost with the new grades
   renderMarks(); renderList();
 }
@@ -792,20 +797,34 @@ function renderList() {
   list.innerHTML = '';
   replay.figures.forEach((fig, k) => {
     const lab = labels[labelKey(fig)] || {};
+    const g = fig.grade;
+    const autoType = g ? g.type : 'other';
+    const chosen = lab.type || autoType;                 // the dropdown shows what the figure is being graded as
+    const scoreTxt = g ? (g.hz ? 'HZ' : g.score.toFixed(1)) : '\u2014';
+    const opts = FIGURE_TYPES.map((t2) => `<option value="${t2}"${chosen === t2 ? ' selected' : ''}>${t2}</option>`).join('');
+    const mod = MODIFIERS[chosen];
+    const modCtl = mod
+      ? `<label class="lfield lmodwrap">${mod.label}<input class="lmod" data-key="${mod.key}" type="number" min="${mod.min}" step="${mod.step}" value="${lab[mod.key] ?? mod.def()}"></label>`
+      : '';
     const row = document.createElement('div');
     row.className = 'lrow'; row.dataset.k = k;
-    const opts = FIGURE_TYPES.map((t2) => `<option value="${t2}"${lab.type === t2 ? ' selected' : ''}>${t2}</option>`).join('');
-    row.innerHTML = `<button class="lgo">${k + 1}</button><span class="lt">${fmtClock(fig.t0 - replay.t0)}</span>`
-      + `<span class="lel"><b>${gradeText(fig.grade)}</b>${fig.elements.map(describe).join(' · ')}</span>`
-      + `<select class="ltype"><option value="">type…</option>${opts}</select>`
-      + `<input class="lgrade" type="number" min="0" max="10" step="0.5" placeholder="grade" value="${lab.grade ?? ''}">`
-      + `<input class="lnotes" type="text" placeholder="notes" value="${lab.notes ?? ''}">`;
+    row.innerHTML =
+        `<div class="lhead"><button class="lgo">${k + 1}</button><span class="lt">${fmtClock(fig.t0 - replay.t0)}</span>`
+      +   `<span class="lname">${cap(autoType)}</span><span class="lscorewrap"><span class="lscorelbl">auto</span><span class="lscore${g && g.hz ? ' hz' : ''}">${scoreTxt}</span></span></div>`
+      + `<div class="lbreak">${fig.elements.map(describe).join(' \u00b7 ')}</div>`
+      + `<div class="lctl"><label class="lfield">Type<select class="ltype">${opts}</select></label>${modCtl}</div>`;
+    const applyOverride = () => {
+      const modEl = row.querySelector('.lmod');
+      const next = { ...(labels[labelKey(fig)] || {}), type: row.querySelector('.ltype').value };
+      if (modEl) { const v = parseFloat(modEl.value); if (Number.isFinite(v)) next[modEl.dataset.key] = v; }
+      labels[labelKey(fig)] = next;
+      fig.grade = gradeOne(fig);            // re-score against the declared type and modifier
+      persistLabels();                      // keep the override across a reload of this flight
+      renderMarks(); renderList();          // refresh this row's readout and the timeline mark colours
+      if (replay.loop && replay.figures[replay.loop.k] === fig && fig.grade) showCoach(fig.grade);
+    };
     row.querySelector('.lgo').addEventListener('click', () => showFigure(k));
-    for (const cls of ['ltype', 'lgrade', 'lnotes']) {
-      row.querySelector(`.${cls}`).addEventListener('change', () => {
-        labels[labelKey(fig)] = { type: row.querySelector('.ltype').value, grade: parseFloat(row.querySelector('.lgrade').value), notes: row.querySelector('.lnotes').value };
-      });
-    }
+    for (const el of row.querySelectorAll('.ltype, .lmod')) el.addEventListener('change', applyOverride);
     list.appendChild(row);
   });
 }
@@ -830,6 +849,29 @@ let coachVoice = getItem('acroReplay.voice') || 'aircraft';
 let coachSpeak = (getItem('acroReplay.speak') || 'on') === 'on';
 let spinTurns = Number(getItem('acroReplay.spinTurns')) || 1.5;   // expected spin rotation, user-set; the Primary Known spin is fixed at 1.5
 function coachContext() { return { axisDeg: boxGroup ? boxGroup.userData.headingDeg : NaN, spinTurns }; }
+// Per-figure grading overrides the user sets in the replay Figures list (its expected type, its spin turns), so a
+// maneuver is scored against what it was meant to be, not only what the detector guessed. Falls back to
+// auto-detection and the global spin-turns default when the user has not overridden the figure.
+function gradeOne(fig) {
+  const ov = labels[labelKey(fig)] || {};
+  const ctx = coachContext();
+  if (Number.isFinite(ov.turns)) ctx.spinTurns = ov.turns;
+  const want = PRIMARY.includes(ov.type) ? ov.type : undefined;
+  return gradeFigure(fig, ctx, want);
+}
+function restoreLabels(name) {
+  labels = {};
+  try {
+    const saved = JSON.parse(getItem(`acroReplay.labels.${name}`) || 'null');
+    if (saved && Array.isArray(saved.figures)) {
+      for (const f of saved.figures) labels[String(Math.round(f.t0))] = { type: f.type, grade: f.grade, notes: f.notes, turns: f.turns };
+    }
+  } catch (e) { /* ignore a malformed saved-labels blob */ }
+}
+function labelsBody() {
+  return JSON.stringify({ flight: replay.name, figures: replay.figures.map((fig) => ({ t0: fig.t0, t1: fig.t1, elements: fig.elements.map(describe), ...(labels[labelKey(fig)] || {}) })) }, null, 1);
+}
+function persistLabels() { if (replay.name) setItem(`acroReplay.labels.${replay.name}`, labelsBody()); }
 // The correct-figure ghost: white line for the ideal path, thin ribs from the flown path to it.
 const ghostMat = new LineMaterial({ color: 0xffffff, linewidth: 4, worldUnits: false, transparent: true, opacity: 0.75 });
 const ribMat = new LineMaterial({ color: 0xffffff, linewidth: 1.5, worldUnits: false, transparent: true, opacity: 0.35 });
@@ -887,13 +929,27 @@ function gradeForMode(fig) {
   return other;
 }
 function renderCoach(g) {
-  const name = g.type.replace(/^\w/, (c) => c.toUpperCase());
-  const lines = g.hz ? [`Hard zero — ${g.hz}`] : g.items.slice(0, 3).map((it) => `−${it.pts % 1 ? it.pts.toFixed(1) : it.pts} ${it.text}${coachVoice === 'control' && it.fix ? ` — ${it.fix}` : ''}`);
-  if (g.unexpected) lines.unshift(`Expected ${g.unexpected} here — that would be a hard zero in competition`);
-  if (g.sequenceTotal) lines.push(`Sequence: ${Math.round(g.sequenceTotal.got)} of ${g.sequenceTotal.max} K-points (${g.sequenceTotal.pct} %)`);
-  const head = g.seq ? `${g.seq.n}/${g.seq.of} · ${name} · K${g.seq.k}` : name;
-  coachCard.innerHTML = `<div class="chead"><span class="ctype">${head}</span><span class="cscore ${g.hz ? 'hz' : ''}">${g.hz ? 'HZ' : g.score.toFixed(1)}</span></div>`
-    + (lines.length ? `<ul>${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p class="cok">Clean figure.</p>');
+  const name = cap(g.type);
+  const head = g.seq ? `${g.seq.n}/${g.seq.of} \u00b7 ${name} \u00b7 K${g.seq.k}` : name;
+  const scoreTxt = g.hz ? 'HZ' : g.score.toFixed(1);
+  let body;
+  if (g.hz) {
+    body = `<ul class="citems"><li><span class="cpts hz">HZ</span><span class="ctext">${g.hz}</span></li></ul>`;
+  } else {
+    const items = g.items.slice(0, 3).map((it) => {
+      const pts = `\u2212${it.pts % 1 ? it.pts.toFixed(1) : it.pts}`;   // the score modifier (points off)
+      const detail = it.detail ? `<span class="cdetail">${it.detail}</span>` : '';   // the measured rationale
+      const fix = (coachVoice === 'control' && it.fix) ? `<span class="cfix">${it.fix}</span>` : '';
+      return `<li><span class="cpts">${pts}</span><span class="ctext">${it.text}${detail}${fix}</span></li>`;
+    });
+    body = items.length ? `<ul class="citems">${items.join('')}</ul>` : '<p class="cok">Clean figure.</p>';
+  }
+  const warn = g.unexpected ? `<p class="cwarn">Expected ${g.unexpected} here \u2014 a hard zero in competition</p>` : '';
+  const seq = g.sequenceTotal ? `<p class="cseq">Sequence ${Math.round(g.sequenceTotal.got)} / ${g.sequenceTotal.max} K \u00b7 ${g.sequenceTotal.pct}%</p>` : '';
+  coachCard.innerHTML =
+      `<div class="chead"><span class="ctype">${head}</span>`
+    +   `<span class="cscorewrap"><span class="cscorelbl">auto</span><span class="cscore${g.hz ? ' hz' : ''}">${scoreTxt}</span></span></div>`
+    + warn + body + seq;
 }
 // Show the scoring box for a figure. It stays up until the user toggles it off (no timeout, no tap-to-dismiss).
 function showCoach(g) {
@@ -964,8 +1020,8 @@ rb['rb-load'].addEventListener('click', async () => {
   catch (e) { rb['rb-time'].textContent = String(e.message || e); }
 });
 rb['rb-save'].addEventListener('click', async () => {
-  const body = JSON.stringify({ flight: replay.name, figures: replay.figures.map((fig) => ({ t0: fig.t0, t1: fig.t1, elements: fig.elements.map(describe), ...(labels[labelKey(fig)] || {}) })) }, null, 1);
-  setItem(`acroReplay.labels.${replay.name}`, body);
+  const body = labelsBody();
+  persistLabels();
   if (!nativeHandler) {
     const r = await fetch(`/dev/labels/${encodeURIComponent(replay.name.replace(/\.bin$/, ''))}`, { method: 'POST', body });
     rb['rb-time'].textContent = r.ok ? 'labels saved' : `save failed ${r.status}`;
