@@ -827,13 +827,14 @@ async function startSim(name) {
   document.body.classList.remove('replaying');
   rb.replaybar.classList.remove('hidden');
   setReplayLabel();
-  sim = { samples: placed, i: 0, speed: 1, t0: placed[0].t, startWall: performance.now() };
+  sim = { samples: placed, i: 0, t0: placed[0].t, clock: placed[0].t, lastNow: performance.now() };
   document.getElementById('rb-sim').textContent = 'Stop sim';
   rb['rb-time'].textContent = 'live sim';
 }
 function simFeed(now) {
-  const clock = sim.t0 + ((now - sim.startWall) / 1000) * sim.speed;
-  while (sim.i < sim.samples.length && sim.samples[sim.i].t <= clock) { onSample(sim.samples[sim.i]); sim.i += 1; }
+  sim.clock += ((now - sim.lastNow) / 1000) * replay.speed;   // the transport speed control drives the sim too
+  sim.lastNow = now;
+  while (sim.i < sim.samples.length && sim.samples[sim.i].t <= sim.clock) { onSample(sim.samples[sim.i]); sim.i += 1; }
   if (sim.i >= sim.samples.length) stopSim();
 }
 function stopSim() {
@@ -1052,6 +1053,7 @@ function onFigureDetected(fig, source) {
     showCoach(fig.grade);
     showGhost(fig, history); ghostHideAt = performance.now() + 20000;
     if (coachSpeak) say(line);
+    if (runState === 'recording' && fig.grade.sequenceTotal) stopRun();   // sequence complete (last Known figure) -> end
   }
 }
 
@@ -1071,8 +1073,10 @@ function renderHudRec() {                            // score card (which the pi
   document.body.classList.toggle('seqactive', runState !== 'idle');   // the HUD grows a strip -> nudge the coach card down
   if (runState === 'recording') {
     const pct = runPct();
+    const last = runFigures[runFigures.length - 1];
+    const prog = last && last.seq ? `${last.seq.n}/${last.seq.of}` : `${runFigures.length} fig${runFigures.length === 1 ? '' : 's'}`;
     hudRec.className = 'rec';
-    hudRec.innerHTML = `<span class="dot"></span>REC \u00b7 SEQUENCE \u00b7 ${runFigures.length} fig${runFigures.length === 1 ? '' : 's'}${pct != null ? ` \u00b7 ${pct}%` : ''}`;
+    hudRec.innerHTML = `<span class="dot"></span>REC \u00b7 ${prog}${pct != null ? ` \u00b7 ${pct}% score` : ''}`;
   } else if (runState === 'done') {
     hudRec.className = 'done'; hudRec.textContent = runDoneText;
   } else {
@@ -1152,7 +1156,7 @@ cueVolEl.addEventListener('input', () => { cueVol = Number(cueVolEl.value); setI
 document.getElementById('cue-test').addEventListener('click', () => liveCue.test());
 rb['rb-play'].addEventListener('click', () => setPlaying(!replay.playing));
 rb['rb-scrub'].addEventListener('input', () => { setPlaying(false); replay.loop = null; seekTo(replay.t0 + (rb['rb-scrub'].value / 1000) * (replay.t1 - replay.t0)); });
-rb['rb-speed'].addEventListener('click', () => { const seq = [0.25, 0.5, 1, 2]; replay.speed = seq[(seq.indexOf(replay.speed) + 1) % seq.length]; rb['rb-speed'].textContent = `${replay.speed}×`; });
+rb['rb-speed'].addEventListener('click', () => { const seq = [0.25, 0.5, 1, 2, 4, 8]; replay.speed = seq[(seq.indexOf(replay.speed) + 1) % seq.length]; rb['rb-speed'].textContent = `${replay.speed}×`; });
 rb['rb-toggle-list'].addEventListener('click', () => rb['rb-list'].classList.toggle('hidden'));
 rb['rb-last'].addEventListener('click', () => {
   const figs = liveDetector.figures;
