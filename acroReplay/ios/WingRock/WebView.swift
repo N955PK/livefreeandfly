@@ -7,6 +7,7 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
     let webView: WKWebView
     private let listener = HubListener()
     private let location = LocationProvider()
+    private let recorder = FlightRecorder()
     private var queued: [(String, TimeInterval)] = []
     private let queueLock = NSLock()
     private var flushScheduled = false
@@ -32,11 +33,17 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let body = message.body as? String else { return }
         if body == "ready" {
-            listener.start { [weak self] data, wall in self?.enqueue(data, wall: wall) }
+            listener.start { [weak self] data, wall in
+                self?.enqueue(data, wall: wall)
+                self?.recorder.record(data, wall: wall)
+            }
             location.start(onFix: { [weak self] lat, lon, acc in self?.eval("acroReplay.location(\(lat),\(lon),\(acc))") },
                            onError: { [weak self] msg in self?.eval("acroReplay.locationError(\(Self.jsString(msg)))") })
         } else if body.hasPrefix("store:") {
             WebController.store(body)
+        } else if body == "flights" {
+            let json = (try? JSONSerialization.data(withJSONObject: FlightRecorder.list())).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+            eval("acroReplay.flights(\(json))")
         } else {
             NSLog("[web] %@", body)
         }
@@ -117,7 +124,7 @@ final class BundleSchemeHandler: NSObject, WKURLSchemeHandler {
     private static let mimeTypes = [
         "html": "text/html", "js": "text/javascript", "mjs": "text/javascript", "css": "text/css",
         "json": "application/json", "png": "image/png", "jpg": "image/jpeg", "svg": "image/svg+xml", "ico": "image/x-icon",
-        "obj": "text/plain", "mtl": "text/plain",
+        "obj": "text/plain", "mtl": "text/plain", "bin": "application/octet-stream",
     ]
 
     func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
@@ -126,7 +133,10 @@ final class BundleSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         }
         let relative = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let file = webDir.appendingPathComponent(relative.isEmpty ? "index.html" : relative)
+        // Recorded flights live in Documents/Flights, everything else in the bundled web/ folder.
+        let file = relative.hasPrefix("flights/")
+            ? FlightRecorder.directory.appendingPathComponent(String(relative.dropFirst("flights/".count)).replacingOccurrences(of: "/", with: ""))
+            : webDir.appendingPathComponent(relative.isEmpty ? "index.html" : relative)
         guard let data = try? Data(contentsOf: file) else {
             task.didReceive(HTTPURLResponse(url: url, statusCode: 404, httpVersion: "HTTP/1.1", headerFields: nil)!)
             task.didFinish()

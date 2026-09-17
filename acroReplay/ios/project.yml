@@ -24,6 +24,8 @@ targets:
         NSLocalNetworkUsageDescription: WingRock listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.
         NSLocationWhenInUseUsageDescription: WingRock uses your position to place the aerobatic box at the judges' location.
         ITSAppUsesNonExemptEncryption: false
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.livefreeandfly.wingrock

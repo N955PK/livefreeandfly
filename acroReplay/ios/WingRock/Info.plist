@@ -22,10 +22,14 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>WingRock listens for the OnFlight Hub's flight-data broadcast on the Hub's Wi-Fi network.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>WingRock uses your position to place the aerobatic box at the judges' location.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>

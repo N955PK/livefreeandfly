@@ -137,3 +137,17 @@ body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
 .lrow .lt { color: var(--muted); font-variant-numeric: tabular-nums; }
 .lrow .lel { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
 .lrow select, .lrow input { background: rgba(255,255,255,.08); color: var(--text); border: 1px solid var(--glass-border); border-radius: 6px; padding: 4px 6px; font-size: 12px; min-width: 0; width: 100%; }
+
+.round.dim { opacity: .75; font-size: 16px; }
+#replaybar .tool.small, #replaybar .round.small { white-space: nowrap; }
+@media (max-width: 430px) {
+  .tool { padding: 9px 11px; font-size: 13px; }
+  .seg button { padding: 8px 10px; font-size: 13px; }
+  #controls { gap: 6px; }
+  #replaybar { padding: 8px 10px; gap: 6px; }
+  #replaybar .tool.small { padding: 6px 8px; font-size: 12px; }
+  #rb-flight { flex: 0 1 44px; }
+  .lrow { grid-template-columns: 30px 5ch minmax(0, 1fr) 10ch 6ch; }
+  .lrow .lnotes { display: none; }
+}
+body.replaying #zoom { bottom: calc(var(--safe-b) + 200px); }

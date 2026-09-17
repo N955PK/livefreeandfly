@@ -670,7 +670,7 @@ function replayTick(now) {
   rV.lerpVectors(prev.v, b.v, f); rQ.slerpQuaternions(prev.q, b.q, f);
   return { v: rV, q: rQ };
 }
-function setPlaying(on) { replay.playing = on; rb['rb-play'].textContent = on ? '❚❚' : '▶'; }
+function setPlaying(on) { replay.playing = on; rb['rb-play'].textContent = on ? '▮▮' : '▶'; }
 function seekTo(t, refillTrail = true) {
   replay.cursor = THREE.MathUtils.clamp(t, replay.t0, replay.t1);
   replay.lastNow = performance.now();
@@ -689,6 +689,7 @@ function startReplay(samples, name, at) {
   replay.active = true;
   setPlaying(false);
   rb.replaybar.classList.remove('hidden');
+  document.body.classList.add('replaying');
   renderMarks(); renderList();
   seekTo(at !== undefined ? at : (replay.figures[0] ? replay.figures[0].t0 - 2 : replay.t0));
   applyScene();
@@ -697,6 +698,7 @@ function startReplay(samples, name, at) {
 function stopReplay() {
   replay.active = false; setPlaying(false);
   rb.replaybar.classList.add('hidden');
+  document.body.classList.remove('replaying');
   clearTrail();
   applyScene();
 }
@@ -706,6 +708,7 @@ function renderMarks() {
   replay.figures.forEach((fig, k) => {
     const m = document.createElement('button');
     m.className = 'mark';
+    m.setAttribute('aria-label', `figure ${k + 1}`);
     m.style.left = `${((fig.t0 - replay.t0) / span) * 100}%`;
     m.style.width = `${Math.max(0.4, ((fig.t1 - fig.t0) / span) * 100)}%`;
     m.title = `${k + 1}: ${fig.elements.map(describe).join(' · ')}`;
@@ -770,16 +773,18 @@ rb['rb-save'].addEventListener('click', async () => {
 });
 document.getElementById('replay-toggle').addEventListener('click', () => {
   if (replay.active) { stopReplay(); return; }
-  rb.replaybar.classList.toggle('hidden');
+  const open = rb.replaybar.classList.toggle('hidden');
+  document.body.classList.toggle('replaying', !open);
+  if (!open) listFlights();
 });
+function showFlights(files) {
+  rb['rb-flight'].innerHTML = files.map((f) => `<option value="${f.name}">${f.name} (${(f.bytes / 1e6).toFixed(1)} MB)</option>`).join('');
+  const want = params.get('flight');
+  if (want && files.some((f) => f.name === want)) { rb['rb-flight'].value = want; rb['rb-load'].click(); }
+}
 async function listFlights() {
-  if (nativeHandler) return;
-  try {
-    const files = await (await fetch('/flights/')).json();
-    rb['rb-flight'].innerHTML = files.map((f) => `<option value="${f.name}">${f.name} (${(f.bytes / 1e6).toFixed(1)} MB)</option>`).join('');
-    const want = params.get('flight');
-    if (want && files.some((f) => f.name === want)) { rb['rb-flight'].value = want; rb['rb-load'].click(); }
-  } catch (e) { /* no bridge: nothing to list */ }
+  if (nativeHandler) { nativeHandler.postMessage('flights'); return; }   // answered via acroReplay.flights()
+  try { showFlights(await (await fetch('/flights/')).json()); } catch (e) { /* no bridge: nothing to list */ }
 }
 listFlights();
 
@@ -969,6 +974,7 @@ if (nativeHandler) {
     frame: ingest,
     frames(list) { for (let i = 0; i < list.length; i += 2) ingest(list[i], list[i + 1]); },   // [b64, wall, b64, wall, …]
     location: onPhoneFix,
+    flights: showFlights,
     locationError(msg) {
       if (!judgesWantPhoneFix) return;
       judgesWantPhoneFix = false;
