@@ -122,16 +122,17 @@ export class LiveCue {
     this.ensure();
     if (!this.ctx) return;
     this.testing = true;
-    const restore = this.mode;
-    this.mode = restore === 'off' ? 'constant' : restore;
+    const wasOff = this.mode === 'off';
+    if (wasOff) this.mode = 'constant';   // preview Off as a steady tone; otherwise keep the live mode
     this.cur = { shape: SHAPE_SPAN * 0.55, bank: 0 };   // mid balloon, mid cadence, centred
     this.apply();
     clearTimeout(this._testStop);
     this._testStop = setTimeout(() => {
       this.testing = false;
-      this.mode = restore;
       this.cur = { shape: 0, bank: 0 };
-      if (restore === 'off') this.silence(); else this.apply();
+      // Don't restore a snapshotted mode — read the mode as it is now, so switching Constant/Blip mid-test can't
+      // revert it (that desync is what made Constant sometimes emit blips).
+      if (wasOff) { this.mode = 'off'; this.silence(); } else this.apply();
     }, 2500);
   }
 }

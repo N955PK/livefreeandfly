@@ -801,7 +801,7 @@ function setReplayLabel() {
 function stopReplay() {
   replay.active = false; setPlaying(false);
   clearGhost();
-  if (camMode === 'orbit') setCamMode('orbit');   // back to aircraft-locked orbit
+  if (camMode === 'orbit' || camMode === 'free') setCamMode('orbit');   // re-lock orbit, and rescue a stuck Free view
   rb.replaybar.classList.add('hidden');
   document.body.classList.remove('replaying');
   clearTrail();
@@ -842,8 +842,13 @@ function stopSim() {
   if (!sim) return;
   sim = null;
   liveDetector.reset(); wingRock.reset(); resetRun();
+  latest = null; lastRecv = 0;   // drop the sim's last frame so the view returns to live (or the hangar) at once
   document.getElementById('rb-sim').textContent = 'Sim';
   rb['rb-time'].textContent = '0:00';
+  rb.replaybar.classList.add('hidden');
+  document.body.classList.remove('replaying');
+  if (camMode === 'orbit' || camMode === 'free') setCamMode('orbit');   // never leave the pilot stuck in the free/sky view
+  setReplayLabel();
 }
 function renderMarks() {
   rb['rb-marks'].innerHTML = '';
@@ -1226,7 +1231,8 @@ let pickState = null;
 const pickMarkers = new THREE.Group();
 scene.add(pickMarkers);
 const camOffset = new THREE.Vector3(8, 4, 12);
-const FREE_PAN_SQ = 4;   // panning ~2 m off the aircraft in orbit flips to the free, world-fixed view
+const FREE_PAN_SQ = 4;      // panning ~2 m off the aircraft in orbit flips to the free, world-fixed view
+const ORBIT_JUMP_SQ = 900;  // a >30 m/frame target jump is a teleport (sim end / mode switch), never a hand pan
 const chase = { dist: 16 };
 const judge = { fov: 22, zoom: 1 };   // auto FOV keeps the aircraft a constant size; ± scales it
 const DEFAULT_FOV = 55;
@@ -1259,7 +1265,9 @@ function setCamMode(mode) {
   controls.mouseButtons.LEFT = mode === 'map' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
   controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
   controls.touches.ONE = mode === 'map' ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
-  controls.touches.TWO = (mode === 'map' || panning) ? THREE.TOUCH.DOLLY_PAN : THREE.TOUCH.DOLLY_ROTATE;
+  // Orbit follows the aircraft: two fingers dolly + rotate but never pan, so a pinch-zoom can't drift the target
+  // off the aircraft and flip to Free. Free and Map are the pan-around views, so they keep dolly-pan.
+  controls.touches.TWO = (mode === 'map' || mode === 'free') ? THREE.TOUCH.DOLLY_PAN : THREE.TOUCH.DOLLY_ROTATE;
   controls.panSpeed = mode === 'map' ? 1.6 : 1;
   controls.maxPolarAngle = mode === 'map' ? 0.001 : Math.PI;
   camera.up.set(0, 1, 0);
@@ -1308,7 +1316,9 @@ function updateCamera() {
   if (boxGroup) boxGroup.userData.judgeMarker.visible = camMode !== 'judge';   // the marker would fill the judge's view
   if (hangarMode || camMode === 'orbit') {
     if (camMode === 'orbit') {
-      orbitPan.add(camTmp.copy(controls.target).sub(lastOrbitTarget));   // absorb the user's pan
+      const dpan = camTmp.copy(controls.target).sub(lastOrbitTarget);
+      if (dpan.lengthSq() > ORBIT_JUMP_SQ) orbitPan.set(0, 0, 0);   // aircraft teleported (sim end / mode switch), not a pan
+      else orbitPan.add(dpan);                                      // absorb the user's pan
       if (orbitPan.lengthSq() > FREE_PAN_SQ) { setCamMode('free'); return; }   // panned off the aircraft -> plant the view
     }
     camTmp.copy(p).add(orbitPan);                 // follow point = aircraft + pan
@@ -1513,4 +1523,5 @@ window.wingrock = {
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
   cue: () => { const f = liveDetector.lastF; return { mode: cueMode, kind: liveDetector.current?.kind, el: f && Math.round(f.el), roll: f && Math.round(f.roll), active: lastCue.active, shape: Math.round(lastCue.shape), bank: Math.round(lastCue.bank) }; },
   cueEngine: () => ({ mode: liveCue.mode, testing: liveCue.testing, ctx: liveCue.ctx?.state || null, envGain: liveCue.env ? +liveCue.env.gain.value.toFixed(3) : null, freq: liveCue.osc ? Math.round(liveCue.osc.frequency.value) : null }),
+  cam: () => ({ mode: camMode, parked, hangarMode, orbitPanSq: +orbitPan.lengthSq().toFixed(1) }),
 };
