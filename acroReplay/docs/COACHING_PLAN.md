@@ -452,11 +452,13 @@ build: a **run lifecycle** (start/stop that scopes a scored routine), **audio-fi
 ### 12.1 The run lifecycle (start/stop = wing rock)
 
 A routine is bracketed the way the pilot already brackets it for the judges: by **rocking the wings** (Sean's ruling
-2026-09-17). The signal is **three sharp banks to at least 45°** — the wings roll one way past 45°, back past 45°
-the other way, and again, within a couple of seconds, without ever going round into a roll. It is flown at whatever
-pitch the pilot is at: often in the dive/descent used to build speed before the routine, not only in level flight, so
-the detector must not assume a level flight path. That is a natural, hands-free action already in the routine, so
-**no taps are needed at all**.
+2026-09-17). The signal is **three sharp banks to the SAME side, each at least ~45°** — the wings roll one way past 45°, back to
+level, again past 45° the same way, back to level, and a third time, within a few seconds. Same-side (not
+alternating) is the discriminator, confirmed against the entry rocks flown in data16 (three left banks of ~50-67°
+returning to level; validated in `web/coach/wingrock.js`). It is flown at whatever pitch the pilot is at — often in
+the dive/descent used to build speed before the routine, not only in level flight — so the detector keys on the
+**bank trace alone**, not the flight path. That is a natural, hands-free action already in the routine, so **no taps
+are needed at all**.
 
 - **First wing rock → start.** Arms and starts the run: sequence tracking begins at the next recognised figure, the
   running-total chip appears, and everything from here is captured as one distinct routine.
@@ -482,13 +484,14 @@ A small manual **Start/Stop** control still lives in the dock as a backup when t
 plus a **Redo** to drop a flubbed figure, but the wing rock is the primary path. During a run a glanceable chip shows
 state and running total, e.g. `▶ 3/6 · 62%`.
 
-**Detection notes.** A wing rock is distinguished from a slow/point roll (which accumulates past 90° and comes back
-inverted) and from a competition turn (bank held, heading changing): the rock oscillates bank across ±45° about
-three times in ~2–3 s, the wings returning toward level between banks (no net roll), with little net heading change.
-Pitch is not a discriminator — it can be level or a steep descent — so match on the **bank trace alone**, not the
-flight-path angle. `features.js` already gives bank, roll and flight-path angle per sample, so this is a short pattern
-match on the bank oscillation. Tune the threshold (≥45°), the count (~3) and the window against real box
-entries/exits, including diving entries.
+**Detection notes.** A wing rock is three same-side bank PULSES: the bank rises past ~45° to a peak, returns to within ~18° of level,
+and repeats to the same side three times inside a ~5 s window. Same-side pulses that return to level tell it apart
+from a roll (bank goes round past 90° to inverted without returning to level — excluded by an upper bank cap), a
+Dutch-roll wobble (alternating sign) and a turn (bank held, heading changing). A refractory window after a detected
+rock keeps one vigorous rocking episode from firing more than once. Implemented in `web/coach/wingrock.js` and
+validated on real captures: it fires on the three data16 entry rocks and the entry rocks in the long captures, and
+does not fire across hours of rolls, loops and spins. Only the exact thresholds (peak angle, level-return, window)
+remain to tune once a closing "routine complete" rock is flown — the captures to date have entry rocks only.
 
 ### 12.2 Audio-first real-time polish
 

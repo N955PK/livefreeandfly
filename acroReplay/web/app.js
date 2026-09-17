@@ -19,6 +19,7 @@ import { loadFlight } from './records.js';
 import { Detector, describe } from './coach/detector.js';
 import { gradeFigure, critique, matchFigure, PRIMARY, PRIMARY_KNOWN } from './coach/judge.js';
 import { idealFigure } from './coach/ghost.js';
+import { WingRockDetector } from './coach/wingrock.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -613,6 +614,7 @@ let socketOpen = false;
 const HISTORY_MAX = 20 * 60 * 50;
 const history = [];
 const liveDetector = new Detector((fig) => onFigureDetected(fig, 'live'));
+const wingRock = new WingRockDetector((r) => onWingRock(r));   // entry/exit rock brackets a scored routine
 function placeSample(s) {
   if (!(s.init && s.lat !== undefined)) return false;
   if (!originLatLon) onOriginKnown(...(s.pos ? inferOrigin(s) : [s.lat, s.lon]));
@@ -641,7 +643,7 @@ function onSample(s, seedOnly = false) {
   if (s.init && s.quat) {
     history.push(s);
     if (history.length > HISTORY_MAX) history.splice(0, history.length - HISTORY_MAX);
-    if (!seedOnly) liveDetector.push(s);
+    if (!seedOnly) { liveDetector.push(s); wingRock.push(s); }
   }
   if (s.pos) {
     if (seedOnly) pushTrail(s.v, 0, true);
@@ -976,12 +978,12 @@ function renderCoach(g) {
   coachCard.innerHTML =
       `<div class="chead"><span class="ctype">${head}</span>`
     +   `<span class="cscorewrap"><span class="cscorelbl">auto</span><span class="cscore${g.hz ? ' hz' : ''}">${scoreTxt}</span></span></div>`
-    + warn + body + seq;
+    + warn + body + seq + recFooter();
 }
 // Show the scoring box for a figure. It stays up until the user toggles it off (no timeout, no tap-to-dismiss).
 function showCoach(g) {
   lastGrade = g;
-  if (!coachShow) return;
+  if (!coachShow && runState === 'idle') return;
   renderCoach(g);
   coachCard.classList.remove('hidden');
 }
@@ -1002,10 +1004,54 @@ function onFigureDetected(fig, source) {
   console.info(`[coach] figure (${source}) ${fmtClock(fig.dur)}: ${fig.elements.map(describe).join(' · ')}${line ? ` → ${line}` : ''}`);
   nativeLog(`figure ${fig.elements.map(describe).join(' | ')}${line ? ` → ${line}` : ''}`);
   if (fig.grade && source === 'live') {
+    if (runState === 'recording') runFigures.push(fig.grade);
     showCoach(fig.grade);
     showGhost(fig, history); ghostHideAt = performance.now() + 20000;
     if (coachSpeak) say(line);
   }
+}
+
+// Wing-rock run lifecycle. The pilot's entry rock starts recording a routine; the closing rock (or the next entry
+// rock) ends it. The recording status rides at the bottom of the coach card, which stays where it is.
+let runState = 'idle';        // 'idle' | 'recording' | 'done'
+let runFigures = [];
+let runDoneText = '';
+function runPct() {
+  if (!runFigures.length) return null;
+  const got = runFigures.reduce((a, g) => a + (g.hz ? 0 : g.score) * (g.seq?.k || 1), 0);
+  const max = runFigures.reduce((a, g) => a + 10 * (g.seq?.k || 1), 0);
+  return Math.round((got / max) * 100);
+}
+function recFooter() {   // strip appended to the bottom of the coach card while a routine is recording
+  if (runState === 'recording') {
+    const pct = runPct();
+    return `<div class="crec rec"><span class="dot"></span>REC · ${runFigures.length} fig${runFigures.length === 1 ? '' : 's'}${pct != null ? ` · ${pct}%` : ''}</div>`;
+  }
+  if (runState === 'done') return `<div class="crec done">${runDoneText}</div>`;
+  return '';
+}
+function refreshRunCard() {   // show the card with the latest figure (if any) plus the recording strip
+  if (lastGrade && coachShow) renderCoach(lastGrade);
+  else coachCard.innerHTML = `<div class="chead"><span class="ctype">Routine</span></div>${recFooter()}`;
+  coachCard.classList.remove('hidden');
+}
+function onWingRock() { if (runState === 'idle') startRun(); else stopRun(); }
+function startRun() {
+  runState = 'recording'; runFigures = []; resetSequence();
+  refreshRunCard();
+  if (coachSpeak) say('Recording routine');
+}
+function stopRun() {
+  const pct = runPct();
+  runState = 'done';
+  runDoneText = pct != null ? `Routine saved · ${pct}%` : 'Routine saved';
+  refreshRunCard();
+  if (coachSpeak) say(pct != null ? `Routine complete. ${pct} percent.` : 'Routine complete.');
+  setTimeout(() => {
+    if (runState !== 'done') return;
+    runState = 'idle';
+    if (coachShow && lastGrade) renderCoach(lastGrade); else coachCard.classList.add('hidden');
+  }, 6000);
 }
 document.getElementById('coach-figure').value = coachMode;
 document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); });
@@ -1345,5 +1391,11 @@ window.wingrock = {
   trail: () => ({ len: trailLen, instances: trailGeo.instanceCount, visible: trail.visible, lastMs: trailLastMs, full: trailFullUpload, ranges: seg.updateRanges && seg.updateRanges.length }),
   replay: () => ({ active: replay.active, playing: replay.playing, cursor: replay.cursor, n: replay.samples.length, figures: replay.figures.length, parked, hangarMode }),
   ghost: () => ({ for: ghostFor && Math.round(ghostFor.t0 - replay.t0), points: ghostLine ? ghostLine.geometry.attributes.instanceStart.count : 0, ribs: ribLines ? ribLines.geometry.attributes.instanceStart.count : 0 }),
+  rocks: async (name) => {
+    const { samples } = await loadFlight(`/flights/${name || replay.name}`);
+    const found = []; const d = new WingRockDetector((r) => found.push({ t: Math.round(r.t - samples[0].t), dir: r.dir }));
+    for (const smp of samples) if (smp.init) d.push(smp);
+    return found;
+  },
   grades: () => replay.figures.filter((f) => f.grade).map((f) => ({ t: Math.round(f.t0 - replay.t0), type: f.grade.type, score: f.grade.score, hz: f.grade.hz, items: f.grade.items.map((i) => `${i.pts} ${i.text} (${i.detail || ''})`), m: f.grade.measurements })),
 };
