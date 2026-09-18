@@ -37,7 +37,7 @@ function figureData(w) {
   const figs = (w.OA.activeSequence && w.OA.activeSequence.figures) || [];
   const out = [];
   for (const f of figs) {
-    if (!f || (f.aresti == null && f.k == null && !f.string)) continue;   // skip separators/moves/comments
+    if (!f || (f.aresti == null && f.k == null)) continue;   // skip separators / moves / comments (they carry no Aresti/K)
     const aresti = Array.isArray(f.aresti) ? f.aresti.filter(Boolean).join(' + ') : (f.aresti || null);
     const k = Array.isArray(f.k) ? f.k.reduce((a, n) => a + (Number(n) || 0), 0) : (Number(f.k) || null);
     const name = Array.isArray(f.description) ? f.description.filter(Boolean).join(', ') : (f.description || '');
@@ -71,6 +71,20 @@ export function renderSequence(olan) {
     try { w.checkSequenceChanged(true); } catch (e) { /* OpenAero surfaces parse errors in its own UI; we read what drew */ }
     await new Promise((r) => setTimeout(r, 250));
     return extractSVG(w);
+  }).catch((e) => ({ svg: '', figures: [], valid: false, error: String(e.message || e) }));
+  return queue;
+}
+
+/// Render a sequence from the vendored OpenAero library by its key (e.g. '2026 IAC Primary Known'). Resolves to
+/// { svg, figures, valid, k, olan } — olan is the sequence text OpenAero loaded, kept so the app can grade/store it.
+export function renderLibrary(key) {
+  queue = queue.then(async () => {
+    const w = await ensureFrame();
+    try { w.eval(`launchURL({url: library[${JSON.stringify(key)}]})`); } catch (e) { return { svg: '', figures: [], valid: false, error: `library load failed: ${e.message}` }; }
+    await new Promise((r) => setTimeout(r, 600));
+    const r = extractSVG(w);
+    r.olan = (w.OA.sequenceText.innerText || '').replace(/ /g, ' ').trim();
+    return r;
   }).catch((e) => ({ svg: '', figures: [], valid: false, error: String(e.message || e) }));
   return queue;
 }
