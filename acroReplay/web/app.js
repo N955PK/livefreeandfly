@@ -1131,9 +1131,17 @@ document.getElementById('coach-restart').addEventListener('click', resetSequence
 const knownPick = document.getElementById('known-pick');
 POWER_KNOWNS_2026.forEach((s) => { const o = document.createElement('option'); o.value = s.key; o.textContent = `${s.category} — K${s.k}, ${s.figs} figures`; knownPick.appendChild(o); });
 const arestiView = document.getElementById('aresti-view');
+const arestiActions = document.getElementById('aresti-actions');
+const arestiToggle = document.getElementById('aresti-toggle');
+const arestiOverlay = document.getElementById('aresti-overlay');
+const arestiOverlayBody = document.getElementById('aresti-overlay-body');
+let activeAresti = null;   // { svg, title } — the current drawing, available to export and to show on screen
 function showAresti(res, title) {
-  if (!res || !res.valid) { arestiView.innerHTML = `<div class="amsg">${res && res.error ? 'Could not draw that sequence.' : 'No figures recognised — check the notation.'}</div>`; return; }
+  if (!res || !res.valid) { arestiView.innerHTML = `<div class="amsg">${res && res.error ? 'Could not draw that sequence.' : 'No figures recognised — check the notation.'}</div>`; arestiActions.classList.add('hidden'); return; }
   arestiView.innerHTML = `<div class="ahead">${title} · K ${res.k} · ${res.figures.length} figure${res.figures.length === 1 ? '' : 's'}</div>${res.svg}`;
+  activeAresti = { svg: res.svg, title: `${title} · K ${res.k}` };
+  arestiActions.classList.remove('hidden');
+  arestiToggle.classList.remove('hidden');   // the on-screen reference toggle is now usable
 }
 knownPick.addEventListener('change', async () => {
   const key = knownPick.value;
@@ -1155,6 +1163,37 @@ document.getElementById('flown-draw').addEventListener('click', async () => {
   arestiView.innerHTML = '<div class="amsg">Drawing…</div>';
   showAresti(await renderFigureGrid(tokens), 'My last flight');
 });
+// Export the drawn sequence as a PNG — native share sheet on the phone, file download in the browser.
+function svgToPng(svg, targetW = 1600) {
+  return new Promise((resolve, reject) => {
+    const vb = (svg.match(/viewBox="([^"]+)"/) || [])[1] || '0 0 100 100';
+    const p = vb.split(/\s+/).map(Number); const aspect = (p[2] || 1) / (p[3] || 1);
+    const W = targetW; const H = Math.max(1, Math.round(targetW / aspect));
+    const sized = /<svg[^>]*\swidth=/.test(svg) ? svg : svg.replace('<svg', `<svg width="${W}" height="${H}"`);
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = W; c.height = H;
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.drawImage(img, 0, 0, W, H);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(sized);
+  });
+}
+document.getElementById('aresti-export').addEventListener('click', async () => {
+  if (!activeAresti) return;
+  const name = `${(activeAresti.title || 'sequence').replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}.png`;
+  try {
+    const png = await svgToPng(activeAresti.svg);
+    if (nativeHandler) nativeHandler.postMessage(`export:${name}:${png.split(',')[1]}`);   // Swift presents a share sheet
+    else { const a = document.createElement('a'); a.href = png; a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+  } catch (e) { nativeLog(`export failed: ${e.message || e}`); }
+});
+// On-screen reference overlay: show the active sequence beside the live view (half screen on a tablet, corner on a phone).
+function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); }
+document.getElementById('aresti-show').addEventListener('click', () => { openArestiOverlay(); document.getElementById('boxpanel').classList.add('hidden'); });
+arestiToggle.addEventListener('click', () => { if (arestiOverlay.classList.contains('hidden')) openArestiOverlay(); else arestiOverlay.classList.add('hidden'); });
+document.getElementById('aresti-overlay-close').addEventListener('click', () => arestiOverlay.classList.add('hidden'));
 const spinTurnsInput = document.getElementById('spin-turns');
 spinTurnsInput.value = spinTurns;
 spinTurnsInput.addEventListener('change', (e) => {

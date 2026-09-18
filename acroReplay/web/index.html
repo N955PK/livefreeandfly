@@ -70,6 +70,11 @@
   <button class="round" id="zoom-out" aria-label="zoom out">−</button>
   <button class="round dim" id="clear" aria-label="clear trail" title="Clear trail">×</button>
   <button id="settings-toggle" class="round" aria-label="settings" title="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  <button class="round hidden" id="aresti-toggle" aria-label="show reference sequence" title="Reference sequence"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="13" r="4"/><path d="M11 13h5l2-4"/></svg></button>
+</div>
+<div id="aresti-overlay" class="hidden glass" aria-label="reference sequence">
+  <button class="close" id="aresti-overlay-close" aria-label="close reference">×</button>
+  <div id="aresti-overlay-body"></div>
 </div>
 
 <div id="dock">
@@ -212,6 +217,10 @@
     </label>
     <h3>My flight</h3>
     <button class="secondary" id="flown-draw">Draw my last flight as Aresti</button>
+    <div id="aresti-actions" class="row hidden">
+      <button class="secondary small" id="aresti-export">Export image</button>
+      <button class="secondary small" id="aresti-show">Show on screen</button>
+    </div>
     <div id="aresti-view" class="arestiview" aria-live="polite"></div>
   </div>
 </section>

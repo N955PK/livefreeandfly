@@ -216,3 +216,13 @@ body.seqactive #coachcard { top: calc(var(--safe-t) + 128px); }
 .arestiview svg { width: 100%; height: auto; display: block; }
 .arestiview .ahead { font-size: 12px; color: #12213f; font-weight: 700; margin-bottom: 6px; }
 .arestiview .amsg { color: #33415c; font-size: 13px; padding: 6px 2px; }
+
+/* On-screen reference-sequence overlay: a small white card top-left under the HUD on a phone, ~half-screen on a
+   tablet. Shows a saved/selected Aresti while the live 3D view stays visible in the rest of the screen. */
+#aresti-overlay { position: fixed; z-index: 20; top: calc(var(--safe-t) + 96px); left: calc(var(--safe-l) + 10px); width: min(46vw, 230px); max-height: 42vh; overflow: auto; border-radius: 16px; padding: 10px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+#aresti-overlay svg { width: 100%; height: auto; display: block; }
+#aresti-overlay .close { position: sticky; top: 0; float: right; width: 26px; height: 26px; font-size: 17px; line-height: 1; background: rgba(18,33,63,.1); color: #12213f; }
+@media (min-width: 700px) {
+  #aresti-overlay { width: 44vw; max-height: none; top: calc(var(--safe-t) + 70px); bottom: calc(var(--safe-b) + 88px); left: calc(var(--safe-l) + 12px); display: flex; flex-direction: column; }
+  #aresti-overlay #aresti-overlay-body { margin: auto 0; }
+}

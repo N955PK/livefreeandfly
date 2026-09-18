@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import UIKit
 import WebKit
 
 /// Hosts the three.js web app (bundled `web/` folder, served over the `acro://app/` scheme so ES modules work),
@@ -57,6 +58,8 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
         } else if body == "flights" {
             let json = (try? JSONSerialization.data(withJSONObject: FlightRecorder.list())).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
             eval("acroReplay.flights(\(json))")
+        } else if body.hasPrefix("export:") {
+            exportImage(String(body.dropFirst("export:".count)))
         } else {
             NSLog("[web] %@", body)
         }
@@ -119,6 +122,23 @@ final class WebController: NSObject, ObservableObject, WKScriptMessageHandler {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .default, options: [.duckOthers, .allowBluetoothA2DP])
         try? session.setActive(true)
+    }
+
+    /// Save/share a PNG the web app exported (payload is "<filename>:<base64>"): write it to a temp file and present
+    /// the iOS share sheet (Photos, Files, AirDrop, Print).
+    private func exportImage(_ payload: String) {
+        guard let sep = payload.firstIndex(of: ":") else { return }
+        let name = String(payload[payload.startIndex..<sep])
+        guard let data = Data(base64Encoded: String(payload[payload.index(after: sep)...])) else { return }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name.isEmpty ? "sequence.png" : name)
+        try? data.write(to: url)
+        DispatchQueue.main.async {
+            guard let root = self.webView.window?.rootViewController else { return }
+            let av = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            av.popoverPresentationController?.sourceView = self.webView   // iPad needs a popover anchor
+            av.popoverPresentationController?.sourceRect = CGRect(x: self.webView.bounds.midX, y: self.webView.bounds.midY, width: 1, height: 1)
+            root.present(av, animated: true)
+        }
     }
 
     /// Spoken critique through whatever the phone's audio is routed to (headset over Bluetooth, or the speaker).

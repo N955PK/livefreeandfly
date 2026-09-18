@@ -86,7 +86,14 @@ export function renderLibrary(key) {
   queue = queue.then(async () => {
     const w = await ensureFrame();
     try { w.eval(`launchURL({url: library[${JSON.stringify(key)}]})`); } catch (e) { return { svg: '', figures: [], valid: false, error: `library load failed: ${e.message}` }; }
-    await new Promise((r) => setTimeout(r, 600));
+    // Poll until the load actually renders — on first use the rules worker may still be spinning up, and a Known
+    // always has several figures, so wait past the warm-up single figure (up to ~3 s).
+    const t0 = Date.now();
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 150));
+      const figs = ((w.OA.activeSequence && w.OA.activeSequence.figures) || []).filter((f) => f && f.aresti).length;
+      if (figs > 1 || Date.now() - t0 > 3000) break;
+    }
     const r = extractSVG(w);
     r.olan = (w.OA.sequenceText.innerText || '').replace(/ /g, ' ').trim();
     return r;
