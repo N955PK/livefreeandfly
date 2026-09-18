@@ -78,12 +78,11 @@ body.recording #record-toggle .recdot { border-radius: 3px; animation: recpulse 
 #record-toggle { display: none; }              /* only appears with a live feed (body.live), never during replay */
 body.live #record-toggle { display: flex; }
 
-/* Trail and zoom only do anything once there's a flight on screen (live feed or replay) — dim + disable them until then. */
-#clear, #zoom-in, #zoom-out { opacity: .3; pointer-events: none; }
-body.live #clear, body.replaying #clear,
-body.live #zoom-in, body.replaying #zoom-in,
-body.live #zoom-out, body.replaying #zoom-out { opacity: 1; pointer-events: auto; }
-body.live #clear, body.replaying #clear { opacity: .75; }   /* the clear button keeps its resting dim look when enabled */
+/* Axes, trail-clear and zoom only do anything on the flight view (live data, or a replay/sim actually playing) —
+   dim + disable them in the hangar, even with the replay bar open. */
+#clear, #zoom-in, #zoom-out, #axes-toggle { opacity: .3; pointer-events: none; }
+body.flying #clear, body.flying #zoom-in, body.flying #zoom-out, body.flying #axes-toggle { opacity: 1; pointer-events: auto; }
+body.flying #clear { opacity: .75; }   /* the clear button keeps its resting dim look when enabled */
 
 /* box panel */
 .panel { position: fixed; top: calc(var(--safe-t) + 8px); left: calc(var(--safe-l) + 8px); right: calc(var(--safe-r) + 8px); bottom: calc(var(--safe-b) + 8px); width: auto; max-height: none; overflow-y: auto; overflow-x: hidden; border-radius: 20px; padding: 16px 18px 28px; font-size: 14px; z-index: 30; }
@@ -251,5 +250,5 @@ body.seqactive #coachcard { top: calc(var(--safe-t) + 128px); }
 /* Reference-sequence toggle: light grey until a sequence is drawn, grey when off, blue while shown. */
 #aresti-toggle.pending { opacity: .45; }
 #aresti-toggle.on { background: var(--accent); border-color: transparent; color: #fff; }
-/* Axes toggle: blue when the aircraft/box axes are on, grey when off. */
-#axes-toggle.on { background: var(--accent); border-color: transparent; color: #fff; }
+/* Axes toggle: blue when on (only while flying — greyed in the hangar), grey when off. */
+body.flying #axes-toggle.on { background: var(--accent); border-color: transparent; color: #fff; }

@@ -120,6 +120,7 @@ function applyScene() {
   const inHangar = parked && camMode !== 'map' && !replay.active;
   if (inHangar === hangarMode) return;
   hangarMode = inHangar;
+  document.body.classList.toggle('flying', !inHangar);   // gates the axes/zoom/clear controls: only live on the flight view
   hangar.visible = inHangar;
   hangar.userData.setLit(inHangar);
   trail.visible = !inHangar;
