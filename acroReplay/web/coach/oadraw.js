@@ -94,5 +94,30 @@ export function renderLibrary(key) {
   return queue;
 }
 
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+/// Draw a list of OLAN figure tokens as a non-overlapping grid — each figure rendered on its own (so nothing can
+/// collide) and tiled with a number + token + K label. Used for "what you flew", where the figures carry no layout.
+/// Resolves to { svg, k, figures, valid }.
+export async function renderFigureGrid(tokens, { perRow = 3, cw = 190, ch = 158, pad = 8 } = {}) {
+  const list = (tokens || []).filter(Boolean);
+  const cells = [];
+  for (const t of list) { const r = await renderSequence(t); cells.push({ t, svg: r.svg, k: r.figures[0] ? r.figures[0].k : null }); }
+  if (!cells.length) return { svg: '', k: 0, figures: [], valid: false };
+  const rows = Math.ceil(cells.length / perRow) || 1;
+  let body = '';
+  cells.forEach((c, i) => {
+    const x = (i % perRow) * cw, y = Math.floor(i / perRow) * ch;
+    const vb = (c.svg.match(/viewBox="([^"]+)"/) || [])[1] || '0 0 100 100';
+    const inner = c.svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+    body += `<svg x="${x + pad}" y="${y + pad}" width="${cw - 2 * pad}" height="${ch - 32}" viewBox="${vb}" preserveAspectRatio="xMidYMid meet">${inner}</svg>`;
+    body += `<text x="${x + cw / 2}" y="${y + ch - 11}" text-anchor="middle" font-size="12" fill="currentColor" font-family="system-ui,sans-serif">${i + 1}. ${esc(c.t)}${c.k ? ` · K${c.k}` : ''}</text>`;
+  });
+  const W = perRow * cw, H = rows * ch;
+  const k = cells.reduce((a, c) => a + (c.k || 0), 0);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" style="color:#12213f;font-family:system-ui,sans-serif">${body}</svg>`;
+  return { svg, k, figures: cells.map((c) => ({ olan: c.t, k: c.k })), valid: true };
+}
+
 /// Warm up the engine ahead of first use (e.g. when the Sequences view opens).
 export function preload() { ensureFrame().catch(() => {}); }

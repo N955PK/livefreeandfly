@@ -23,7 +23,7 @@ import { WingRockDetector } from './coach/wingrock.js';
 import { LiveCue } from './coach/livecue.js';
 import { LiveCueMap } from './coach/cuemap.js';
 import { POWER_KNOWNS_2026 } from './coach/knowns.js';
-import { renderSequence, renderLibrary, preload as preloadAresti } from './coach/oadraw.js';
+import { renderSequence, renderLibrary, renderFigureGrid, preload as preloadAresti } from './coach/oadraw.js';
 import { flownToOlan } from './coach/flown.js';
 
 const params = new URLSearchParams(location.search);
@@ -1150,10 +1150,10 @@ document.getElementById('olan-draw').addEventListener('click', async () => {
 });
 document.getElementById('flown-draw').addEventListener('click', async () => {
   if (!lastFlown.length) { arestiView.innerHTML = '<div class="amsg">No flight recorded yet — fly a sequence first.</div>'; return; }
-  const olan = flownToOlan(lastFlown);
-  if (!olan) { arestiView.innerHTML = '<div class="amsg">No figures were recognised in the last flight.</div>'; return; }
+  const tokens = flownToOlan(lastFlown).split(' ').filter(Boolean);   // one figure per token -> drawn as a spaced grid
+  if (!tokens.length) { arestiView.innerHTML = '<div class="amsg">No figures were recognised in the last flight.</div>'; return; }
   arestiView.innerHTML = '<div class="amsg">Drawing…</div>';
-  showAresti(await renderSequence(olan), 'My last flight');
+  showAresti(await renderFigureGrid(tokens), 'My last flight');
 });
 const spinTurnsInput = document.getElementById('spin-turns');
 spinTurnsInput.value = spinTurns;
