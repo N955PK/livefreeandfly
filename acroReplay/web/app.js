@@ -57,6 +57,7 @@ const FLIGHT_CLIP = { near: 1, far: 250000 };
 const camera = new THREE.PerspectiveCamera(55, 1, FLIGHT_CLIP.near, FLIGHT_CLIP.far);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
+controls.autoRotateSpeed = -0.35;   // a gentle drift for the parked hangar view (~2.5 min per revolution)
 controls.enablePan = false;
 controls.minDistance = 4;
 controls.maxDistance = 3000;
@@ -127,6 +128,7 @@ function applyScene() {
   showProp(!inHangar);
   if (boxGroup) boxGroup.visible = !inHangar;
   applyGround();
+  controls.autoRotate = inHangar;   // slow ambient drift while parked; off the moment there's a flight to watch
   if (inHangar) {
     hangarControls();
     controls.target.copy(aircraft.position);
