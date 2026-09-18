@@ -33,8 +33,10 @@ const JUDGE_DISTANCE_M = 700;
 const RENDER_DELAY_MS = 100;
 const STALE_MS = 400;
 const TRAIL_HZ = 25;
-const TRAIL_SECONDS = 180;
-const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS;
+const TRAIL_SECONDS_MAX = 240;   // trail buffer ceiling; the Trail length setting caps live length at or below this
+const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS_MAX;
+let trailSeconds = Math.min(TRAIL_SECONDS_MAX, Math.max(10, Math.round(Number(getItem('acroReplay.trailSeconds')) || 180)));
+let trailCap = TRAIL_HZ * trailSeconds;   // effective max trail points, from the user's setting
 const REST_AFTER_MS = 3000;   // no frames this long → park the aircraft
 const HOME_FIELD = [36.93575, -121.78975];   // KWVI, used only when nothing else says where we are
 const HUD_INTERVAL_MS = 50;
@@ -121,6 +123,7 @@ function applyScene() {
   hangar.visible = inHangar;
   hangar.userData.setLit(inHangar);
   trail.visible = !inHangar;
+  bodyAxes.visible = axesOn && !inHangar;   // the attitude triad is a flight aid — hide it on the ground
   showProp(!inHangar);
   if (boxGroup) boxGroup.visible = !inHangar;
   applyGround();
@@ -173,9 +176,9 @@ document.getElementById('ground-toggle').addEventListener('click', () => {
 // Aerobatic box: set from the aircraft's live position and heading; edges and limits editable in the panel.
 let box = loadBox();
 let boxGroup = null;
-const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
+const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeAltFt: 'j-alt', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
 const LEN_M = new Set(['widthM', 'depthM', 'judgeSetbackM']);
-const LEN_FT = new Set(['floorFt', 'ceilFt']);
+const LEN_FT = new Set(['floorFt', 'ceilFt', 'judgeAltFt']);
 function readBoxInputs() {
   const v = {};
   for (const [k, id] of Object.entries(boxInputs)) {
@@ -422,6 +425,41 @@ const MODELS = {
   rv7: { dir: 'rv7', scale: 1, offset: [0, 0, 0] },
 };
 const aircraft = new THREE.Group();
+// Principal (body) axes drawn from the CG, in the FRD frame this app flies in: X forward = red, Y right = green,
+// Z down = blue (the typical RGB→XYZ convention). Solid unlit arrows so they read clearly against the scene.
+// Toggled from Settings; re-added after every model swap because showModel() clears the group.
+let axesOn = getItem('acroReplay.axes') !== 'off';
+function makeAxisLine(dir, color) {
+  const len = 4.4, r = 0.18;   // thick unlit rod, no arrowhead
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 14), new THREE.MeshBasicMaterial({ color }));
+  rod.position.y = len / 2;
+  const g = new THREE.Group();
+  g.add(rod);
+  g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);   // cylinders point +Y by default
+  return g;
+}
+const bodyAxes = new THREE.Group();
+bodyAxes.add(makeAxisLine(new THREE.Vector3(1, 0, 0), 0xff3b30));   // X forward, red
+bodyAxes.add(makeAxisLine(new THREE.Vector3(0, 1, 0), 0x2ecc40));   // Y right, green
+bodyAxes.add(makeAxisLine(new THREE.Vector3(0, 0, 1), 0x3b82f6));   // Z down, blue
+bodyAxes.visible = false;   // shown only in flight (applyScene gates on hangar state)
+// Grey reference lines centred on the aircraft but held in the box's orientation (they don't roll with the plane),
+// so the pilot can read attitude against the box axes. Each is a rod through the origin (both directions).
+function makeBoxLine(dir) {
+  const half = 5.5, r = 0.11;
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(r, r, half * 2, 12),
+    new THREE.MeshBasicMaterial({ color: 0xc2c8d0, transparent: true, opacity: 0.7 }));
+  const g = new THREE.Group();
+  g.add(rod);
+  g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  return g;
+}
+const boxAxes = new THREE.Group();
+boxAxes.add(makeBoxLine(new THREE.Vector3(1, 0, 0)));   // along the box front edge
+boxAxes.add(makeBoxLine(new THREE.Vector3(0, 1, 0)));   // box vertical
+boxAxes.add(makeBoxLine(new THREE.Vector3(0, 0, 1)));   // box depth
+boxAxes.visible = false;
+scene.add(boxAxes);
 const propParts = { blades: [], disks: [] };
 function showProp(spinning) {
   for (const m of propParts.blades) m.visible = !spinning;
@@ -437,7 +475,8 @@ function showModel(node, key) {
   aircraft.clear();
   aircraft.add(node);
   shownKey = key;
-  settleOnWheels();
+  settleOnWheels();          // stance is measured from the model's own meshes...
+  aircraft.add(bodyAxes);    // ...then re-add the axes (kept out of that measurement, and off the cleared group)
 }
 function markModelButtons() {
   document.querySelectorAll('#model [data-model]').forEach((btn) => btn.classList.toggle('on', btn.dataset.model === modelKey));
@@ -596,8 +635,8 @@ function pushTrail(v, nowMs, force = false) {
     if (nowMs - trailLastMs < 1000 / TRAIL_HZ) return;
     trailLastMs = nowMs;
   }
-  if (trailLen === TRAIL_MAX) {
-    const drop = Math.floor(TRAIL_MAX * 0.1);
+  if (trailLen >= trailCap) {
+    const drop = Math.max(1, Math.floor(trailCap * 0.1));
     trailPts.copyWithin(0, drop * 3, trailLen * 3);
     trailLen -= drop;
     for (let i = 0; i < trailLen - 1; i += 1) writeSegment(i);
@@ -613,6 +652,20 @@ function pushTrail(v, nowMs, force = false) {
   seg.needsUpdate = true;
 }
 function clearTrail() { trailLen = 0; trailGeo.instanceCount = 0; trailLastMs = 0; if (seg.clearUpdateRanges) seg.clearUpdateRanges(); }
+// User-set trail length (seconds). Lowering it trims the oldest points at once so the change is visible immediately.
+function setTrailSeconds(s) {
+  trailSeconds = Math.min(TRAIL_SECONDS_MAX, Math.max(10, Math.round(s) || 180));
+  trailCap = TRAIL_HZ * trailSeconds;
+  setItem('acroReplay.trailSeconds', String(trailSeconds));
+  if (trailLen > trailCap) {
+    const drop = trailLen - trailCap;
+    trailPts.copyWithin(0, drop * 3, trailLen * 3);
+    trailLen -= drop;
+    for (let i = 0; i < trailLen - 1; i += 1) writeSegment(i);
+    trailGeo.instanceCount = Math.max(0, trailLen - 1);
+    trailFullUpload = true;
+  }
+}
 
 const samples = [];
 let latest = null;
@@ -829,6 +882,7 @@ async function startSim(name) {
   clearTrail(); clearGhost(); coachCard.classList.add('hidden');
   document.body.classList.remove('replaying');
   rb.replaybar.classList.remove('hidden');
+  document.body.classList.add('simming');   // a sim mirrors real-time flight: hide the scrubber/transport chrome
   setReplayLabel();
   sim = { samples: placed, i: 0, t0: placed[0].t, clock: placed[0].t, lastNow: performance.now() };
   document.getElementById('rb-sim').textContent = 'Stop sim';
@@ -848,6 +902,7 @@ function stopSim() {
   document.getElementById('rb-sim').textContent = 'Sim';
   rb['rb-time'].textContent = '0:00';
   rb.replaybar.classList.add('hidden');
+  document.body.classList.remove('simming');
   document.body.classList.remove('replaying');
   if (camMode === 'orbit' || camMode === 'free') setCamMode('orbit');   // never leave the pilot stuck in the free/sky view
   setReplayLabel();
@@ -1197,12 +1252,21 @@ function positionArestiOverlay() {
   const ov = document.getElementById('aresti-overlay');   // by id (not the const) so an early renderHudRec can't hit the TDZ
   if (hud && ov && !ov.classList.contains('hidden')) ov.style.top = `${Math.round(hud.getBoundingClientRect().bottom) + 10}px`;
 }
-function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); arestiToggle.classList.add('on'); positionArestiOverlay(); }
+// With the reference sequence up (centred at the top), drop the aircraft into the lower part of the frame so it
+// reads as sitting below the Aresti. A negative Y view-offset shifts the rendered scene down; cleared when hidden.
+const ARESTI_VIEW_DROP = 0.2;
+function applyArestiViewShift() {
+  const w = window.innerWidth, h = window.innerHeight;
+  if (arestiOverlay.classList.contains('hidden')) camera.clearViewOffset();
+  else camera.setViewOffset(w, h, 0, -Math.round(h * ARESTI_VIEW_DROP), w, h);
+}
+function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); arestiToggle.classList.add('on'); positionArestiOverlay(); applyArestiViewShift(); }
+function closeArestiOverlay() { arestiOverlay.classList.add('hidden'); arestiToggle.classList.remove('on'); applyArestiViewShift(); }
 document.getElementById('aresti-show').addEventListener('click', () => { openArestiOverlay(); document.getElementById('boxpanel').classList.add('hidden'); });
 arestiToggle.addEventListener('click', () => {
   if (!activeAresti) return;   // nothing drawn yet (button is dimmed)
   if (arestiOverlay.classList.contains('hidden')) openArestiOverlay();
-  else { arestiOverlay.classList.add('hidden'); arestiToggle.classList.remove('on'); }
+  else closeArestiOverlay();
 });
 const spinTurnsInput = document.getElementById('spin-turns');
 spinTurnsInput.value = spinTurns;
@@ -1213,6 +1277,17 @@ spinTurnsInput.addEventListener('change', (e) => {
 // Spin turns only bites when the coached figure is a spin (in a sequence the count is fixed) — hide it otherwise.
 function syncSpinField() { document.getElementById('spin-turns-field').classList.toggle('hidden', coachMode !== 'spin'); }
 syncSpinField();
+const trailSecsInput = document.getElementById('trail-secs');
+trailSecsInput.value = trailSeconds;
+trailSecsInput.addEventListener('change', (e) => { setTrailSeconds(Number(e.target.value)); e.target.value = trailSeconds; });
+const axesToggle = document.getElementById('axes-toggle');
+axesToggle.classList.toggle('on', axesOn);
+axesToggle.addEventListener('click', () => {
+  axesOn = !axesOn;
+  setItem('acroReplay.axes', axesOn ? 'on' : 'off');
+  axesToggle.classList.toggle('on', axesOn);
+  bodyAxes.visible = axesOn && !hangarMode;   // box axes follow in the frame loop
+});
 document.getElementById('coach-toggle').classList.toggle('on', coachShow);
 document.getElementById('coach-toggle').addEventListener('click', () => setCoachShow(!coachShow));
 document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
@@ -1544,6 +1619,7 @@ function resize() {
   trailMat.resolution.set(w, h);
   ghostMat.resolution.set(w, h);
   ribMat.resolution.set(w, h);
+  applyArestiViewShift();   // recompute the view-offset against the new size (or leave it cleared)
 }
 window.addEventListener('resize', resize);
 resize();
@@ -1593,6 +1669,9 @@ function frame() {
     applyScene();
   }
   updateCamera();
+  // Box-aligned grey lines: centred on the aircraft, held in the box orientation (needs a box; flight only).
+  boxAxes.visible = axesOn && !hangarMode && !!boxGroup;
+  if (boxAxes.visible) { boxAxes.position.copy(aircraft.position); boxAxes.quaternion.copy(boxGroup.quaternion); }
   updateHud(now);
   updateCue(now);
   renderer.render(scene, camera);

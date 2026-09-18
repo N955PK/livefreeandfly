@@ -69,6 +69,7 @@
   <button class="round" id="zoom-in" aria-label="zoom in">+</button>
   <button class="round" id="zoom-out" aria-label="zoom out">−</button>
   <button class="round dim" id="clear" aria-label="clear trail" title="Clear trail">×</button>
+  <button class="round on" id="axes-toggle" aria-label="toggle axes" title="Aircraft &amp; box axes"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4v15h15"/><path d="M5 19 16 8"/></svg></button>
   <button class="round pending" id="aresti-toggle" aria-label="show reference sequence" title="Reference sequence"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="13" r="4"/><path d="M11 13h5l2-4"/></svg></button>
   <button id="settings-toggle" class="round" aria-label="settings" title="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </div>
@@ -155,6 +156,7 @@
       <label class="field"><span>Depth</span><div class="input"><input id="box-d" type="number" data-len step="50"><em class="u-len">m</em></div></label>
       <label class="field"><span>Floor</span><div class="input"><input id="box-f" type="number" data-len step="100"><em class="u-len">ft</em></div></label>
       <label class="field"><span>Ceiling</span><div class="input"><input id="box-c" type="number" data-len step="100"><em class="u-len">ft</em></div></label>
+      <label class="field"><span>Judge alt</span><div class="input"><input id="j-alt" type="number" data-len step="100"><em class="u-len">ft</em></div></label>
     </div>
 
     <footer class="pfoot">
@@ -172,6 +174,9 @@
       <div class="seg small" id="model"><button data-model="eagle">Eagle</button><button data-model="extra">Extra</button><button data-model="rv7">RV</button></div>
     </label>
     <p class="hint" id="model-msg"></p>
+    <label class="field inline"><span>Trail length</span>
+      <div class="input compact"><input id="trail-secs" type="number" step="10" min="10" max="240" value="180"><em>s</em></div>
+    </label>
 
     <h3>Coaching</h3>
     <label class="field inline"><span>Spoken critique</span>

@@ -166,6 +166,13 @@ body.picking #zoom { bottom: calc(var(--safe-b) + 190px); }
 .rb-actions .tool { flex: 1; text-align: center; }
 .rb-flightrow { gap: 8px; }
 .rb-flightrow #rb-load { flex: none; padding: 10px 18px; }
+/* A sim mirrors real-time flight — no scrubber, time, or file chrome; just a Stop sim control. */
+body.simming #replaybar .rb-transport,
+body.simming #replaybar .rb-actions,
+body.simming #replaybar #rb-flight,
+body.simming #replaybar #rb-load { display: none; }
+body.simming #replaybar .rb-flightrow { justify-content: center; }
+body.simming #replaybar #rb-sim { flex: none; padding: 10px 22px; }
 #rb-flight { flex: 1; min-width: 0; background: rgba(255,255,255,.1); color: var(--text); border: 1px solid var(--glass-border); border-radius: 10px; padding: 11px 12px; font-size: 15px; font-weight: 600; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23fff' d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
 #rb-list { max-height: 38vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
 #rb-list.hidden { display: none; }
@@ -230,8 +237,10 @@ body.seqactive #coachcard { top: calc(var(--safe-t) + 128px); }
 
 /* On-screen reference-sequence overlay: a small white card top-left under the HUD on a phone, ~half-screen on a
    tablet. Shows a saved/selected Aresti while the live 3D view stays visible in the rest of the screen. */
-#aresti-overlay { position: fixed; z-index: 20; top: calc(var(--safe-t) + 138px); left: calc(var(--safe-l) + 10px); width: min(56vw, 300px); max-height: 56vh; overflow: auto; border-radius: 14px; padding: 5px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+#aresti-overlay { position: fixed; z-index: 20; top: calc(var(--safe-t) + 138px); left: 50%; transform: translateX(-50%); width: min(72vw, 380px); max-height: 46vh; overflow: auto; border-radius: 14px; padding: 5px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
 #aresti-overlay svg { width: 100%; height: auto; display: block; }
 /* Reference-sequence toggle: light grey until a sequence is drawn, grey when off, blue while shown. */
 #aresti-toggle.pending { opacity: .45; }
 #aresti-toggle.on { background: var(--accent); border-color: transparent; color: #fff; }
+/* Axes toggle: blue when the aircraft/box axes are on, grey when off. */
+#axes-toggle.on { background: var(--accent); border-color: transparent; color: #fff; }

@@ -6,7 +6,7 @@ import { nedFromLla, worldFromNed, offsetLatLon, FT_TO_M } from './frames.js';
 import { getItem, setItem } from './storage.js';
 
 const STORAGE_KEY = 'acroReplay.box';
-export const DEFAULT_BOX = { widthM: 1000, depthM: 1000, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 150 };
+export const DEFAULT_BOX = { widthM: 1000, depthM: 1000, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 150, judgeAltFt: 6 };
 const DEG = Math.PI / 180;
 
 export function loadBox() {
@@ -93,12 +93,15 @@ export function buildBoxGroup(box, origin) {
   g.add(floor);
   // Judges: orange camera at the judging position, looking into the box.
   const jz = -side * (box.judgeSetbackM || DEFAULT_BOX.judgeSetbackM);
+  // Judge eye altitude above the field. Default is roughly standing height; raise it to keep a realistic angle to
+  // the box floor when practising high (e.g. set it a competition floor-height below a lifted floor).
+  const ja = (box.judgeAltFt != null ? box.judgeAltFt : DEFAULT_BOX.judgeAltFt) * FT_TO_M;
   const cam = judgesCamera();
-  cam.position.set(w / 2, 0, jz);
+  cam.position.set(w / 2, Math.max(0, ja - 1.7), jz);
   cam.rotation.y = side > 0 ? 0 : Math.PI;
   g.add(cam);
   g.userData.judgeMarker = cam;
-  g.userData.judgeLocal = new THREE.Vector3(w / 2, 1.7, jz);
+  g.userData.judgeLocal = new THREE.Vector3(w / 2, ja, jz);
   g.userData.bounds = { w, zMin: Math.min(z0, z1), zMax: Math.max(z0, z1), f, c };
   g.userData.judgeSide = box.judgeSide;
   g.userData.headingDeg = box.headingDeg;
