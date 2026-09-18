@@ -6,7 +6,7 @@ import { nedFromLla, worldFromNed, offsetLatLon, FT_TO_M } from './frames.js';
 import { getItem, setItem } from './storage.js';
 
 const STORAGE_KEY = 'acroReplay.box';
-export const DEFAULT_BOX = { widthM: 3300 * FT_TO_M, depthM: 3300 * FT_TO_M, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 500 * FT_TO_M, altRef: 'agl' };
+export const DEFAULT_BOX = { widthM: 1000, depthM: 1000, floorFt: 1500, ceilFt: 4000, judgeSide: 'right', judgeSetbackM: 500 * FT_TO_M, altRef: 'agl' };
 const DEG = Math.PI / 180;
 
 export function loadBox() {
@@ -97,10 +97,10 @@ export function buildBoxGroup(box, origin) {
   g.add(floor);
   // Judges: orange camera at the judging position, looking into the box.
   const jz = -side * (box.judgeSetbackM || DEFAULT_BOX.judgeSetbackM);
-  // Judge eye sits 1500 ft below the box floor, but never below the ground — a realistic look-up angle whatever the
-  // floor height. (floor AGL = the floor's height above the box-centre ground.)
+  // Judge eye height (AGL). Defaults to 1500 ft below the box floor but never below the ground — a realistic
+  // look-up angle whatever the floor height — and can be overridden per box (judgeAltFt).
   const floorAglFt = box.altRef === 'msl' ? box.floorFt - datumM / FT_TO_M : box.floorFt;
-  const ja = Math.max(0, floorAglFt - 1500) * FT_TO_M;
+  const ja = (box.judgeAltFt != null ? box.judgeAltFt : Math.max(0, floorAglFt - 1500)) * FT_TO_M;
   const cam = judgesCamera();
   cam.position.set(w / 2, Math.max(0, ja - 1.7), jz);
   cam.rotation.y = side > 0 ? 0 : Math.PI;

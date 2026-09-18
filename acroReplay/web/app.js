@@ -177,9 +177,15 @@ document.getElementById('ground-toggle').addEventListener('click', () => {
 // Aerobatic box: set from the aircraft's live position and heading; edges and limits editable in the panel.
 let box = loadBox();
 let boxGroup = null;
-const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
+const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeAltFt: 'j-alt', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
 const LEN_M = new Set(['widthM', 'depthM', 'judgeSetbackM']);
-const LEN_FT = new Set(['floorFt', 'ceilFt']);
+const LEN_FT = new Set(['floorFt', 'ceilFt', 'judgeAltFt']);
+// Judge eye height (AGL) shown in the field: an explicit override, or the default 1500 ft below the floor (>= ground).
+function judgeAltEffFt(b) {
+  if (b && b.judgeAltFt != null) return b.judgeAltFt;
+  const floorAglFt = b && b.altRef === 'msl' ? b.floorFt - (originLatLon ? originLatLon[2] : GROUND_M) / FT_TO_M : (b ? b.floorFt : 1500);
+  return Math.max(0, Math.round(floorAglFt - 1500));
+}
 // Box altitude reference: AGL (height above the box-centre ground, default) or MSL (absolute). Kept as a preference
 // so a fresh box inherits it; the box carries its own altRef once created.
 let altRefPref = getItem('acroReplay.altRef') === 'msl' ? 'msl' : 'agl';
@@ -197,7 +203,8 @@ function readBoxInputs() {
 function writeBoxInputs(b) {
   for (const [k, id] of Object.entries(boxInputs)) {
     const el = document.getElementById(id);
-    el.value = LEN_M.has(k) ? Math.round(units.mToUnit(b[k])) : LEN_FT.has(k) ? Math.round(units.ftToUnit(b[k])) : b[k];
+    const val = k === 'judgeAltFt' ? judgeAltEffFt(b) : b[k];   // judge field shows the override or the derived default
+    el.value = LEN_M.has(k) ? Math.round(units.mToUnit(val)) : LEN_FT.has(k) ? Math.round(units.ftToUnit(val)) : val;
   }
 }
 function applyUnits() {
@@ -422,12 +429,14 @@ function replaceLoadedSamples() {
   for (const s of history || []) if (s.lat !== undefined) placeSample(s);
   if (replay.active) seekTo(replay.cursor);
 }
-for (const id of Object.values(boxInputs)) {
+for (const [k, id] of Object.entries(boxInputs)) {
   document.getElementById(id).addEventListener('change', () => {
     if (!box) return;
     box = rederiveBox(readBoxInputs());
+    if (k === 'floorFt') box.judgeAltFt = null;   // floor changed -> let the judge re-derive to 1500 below the new floor
     saveBox(box);
     rebuildBox();
+    if (k === 'floorFt') writeBoxInputs(box);      // show the refreshed judge default
   });
 }
 // AGL/MSL toggle: switch the reference the box floor/ceiling are entered in, converting the numbers by the
