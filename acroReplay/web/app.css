@@ -139,8 +139,7 @@ select { height: 42px; padding: 0 12px; border-radius: 11px; background: var(--f
 #pickbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-b) + 68px); width: min(440px, 94vw); display: flex; flex-direction: column; gap: 10px; align-items: stretch; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.35; color: var(--text); }
 .pickbtns { display: flex; gap: 10px; justify-content: flex-end; }
 .secondary.small { height: 34px; padding: 0 14px; font-size: 14px; }
-#attribution { position: fixed; right: calc(var(--safe-r) + 8px); bottom: calc(var(--safe-b) + 2px); font-size: 10px; color: rgba(255, 255, 255, .6); pointer-events: none; }
-#attribution:empty { display: none; }
+#attribution { margin-top: 16px; font-size: 11px; color: var(--muted); }
 
 @media (max-width: 560px) {
   .hudmain { gap: 8px; padding: 6px 10px; }

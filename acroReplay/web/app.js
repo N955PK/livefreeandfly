@@ -91,7 +91,6 @@ function applyGround() {
   if (tileGround && tileGround.visible !== undefined) tileGround.visible = satellite && !hangarMode;
   grid.visible = !satellite && !hangarMode;
   document.getElementById('ground-toggle').textContent = satellite ? 'Plain' : 'Sat';
-  document.getElementById('attribution').textContent = satellite && tileGround && !hangarMode ? ATTRIBUTION : '';
 }
 function ensureGround(lat, lon) {
   if (tileGround || !TILES) return;
@@ -172,6 +171,7 @@ document.getElementById('ground-toggle').addEventListener('click', () => {
   setItem('acroReplay.ground', satellite ? 'sat' : 'plain');
   applyGround();
 });
+document.getElementById('attribution').textContent = ATTRIBUTION;   // shown at the foot of Settings, not over the map
 
 
 // Aerobatic box: set from the aircraft's live position and heading; edges and limits editable in the panel.
@@ -286,10 +286,27 @@ function addPickMarker(world, color) {
   m.position.copy(world).setY(6);
   pickMarkers.add(m);
 }
-let pickDown = null;
-canvas.addEventListener('pointerdown', (e) => { pickDown = [e.clientX, e.clientY]; });
+// A pick tap must be one finger, barely moved, and quick — so panning, pinch-zoom, or a slow drag never places.
+let pickDown = null;      // [x, y, t] of the first finger down
+let pickPointers = 0;     // fingers currently down
+let pickMulti = false;    // more than one finger touched during this gesture
+canvas.addEventListener('pointerdown', (e) => {
+  pickPointers += 1;
+  if (pickPointers > 1) { pickMulti = true; return; }
+  pickMulti = false;
+  pickDown = [e.clientX, e.clientY, performance.now()];
+});
+const endPickPointer = () => { pickPointers = Math.max(0, pickPointers - 1); };
+canvas.addEventListener('pointercancel', endPickPointer);
 canvas.addEventListener('pointerup', (e) => {
-  const tap = pickDown && Math.hypot(e.clientX - pickDown[0], e.clientY - pickDown[1]) <= 8;
+  const last = pickPointers <= 1;   // this is the final finger lifting
+  const wasMulti = pickMulti;
+  endPickPointer();
+  if (!last) return;
+  const tap = !wasMulti && pickDown
+    && Math.hypot(e.clientX - pickDown[0], e.clientY - pickDown[1]) <= 12
+    && performance.now() - pickDown[2] <= 600;
+  pickDown = null;
   if (!pickState || pickState === 'done' || !tap) return;
   const g = groundLatLon(e.clientX, e.clientY);
   const msg = document.getElementById('pick-msg');
@@ -306,6 +323,7 @@ canvas.addEventListener('pointerup', (e) => {
     const setback = units.unitToM(parseFloat(document.getElementById('j-set').value)) || DEFAULT_BOX.judgeSetbackM;
     const depth = units.unitToM(parseFloat(document.getElementById('box-d').value)) || DEFAULT_BOX.depthM;
     document.getElementById('j-set').value = Math.round(units.mToUnit(Math.max(20, Math.hypot(dN, dE) - depth / 2) || setback));
+    pickBoxCenter = g.world.clone();   // remember the tapped box centre so it can be marked
     if (placeFromJudges(msg)) setPickStep('done');
   }
 });
@@ -322,9 +340,13 @@ function setPickStep(step) {
   const msg = document.getElementById('pick-msg');
   pickMarkers.clear();
   const j = judgesFromInputs();
-  if (step === 'judges') msg.textContent = 'Tap where the judges stand. Drag to pan, pinch or ± to zoom.';
+  if (step === 'judges') { pickBoxCenter = null; msg.textContent = 'Tap where the judges stand. Drag to pan, pinch or ± to zoom.'; }
   else if (step === 'facing') { if (j) addPickMarker(worldOf(...j), 0xff3b30); msg.textContent = 'Now tap where the centre of the box should be.'; }
-  else if (step === 'done') { msg.textContent = 'Box placed and saved. Redo to move the judges, Done to finish.'; }
+  else if (step === 'done') {
+    if (j) addPickMarker(worldOf(...j), 0xff3b30);            // judge (red)
+    if (pickBoxCenter) addPickMarker(pickBoxCenter, 0x3b82f6);   // box centre (blue)
+    msg.textContent = 'Box placed and saved. Redo to move the judges, Done to finish.';
+  }
 }
 document.getElementById('j-map').addEventListener('click', () => {
   if (!originLatLon) onOriginKnown(...(phoneFix ? [phoneFix.lat, phoneFix.lon] : HOME_FIELD));
@@ -332,9 +354,10 @@ document.getElementById('j-map').addEventListener('click', () => {
   document.getElementById('boxpanel').classList.add('hidden');
   document.getElementById('pickbar').classList.remove('hidden');
   document.body.classList.add('picking');
+  pickPointers = 0; pickMulti = false; pickDown = null;   // clean tap state on entry
   const j = judgesFromInputs();
   if (j) { controls.target.copy(worldOf(...j)); camera.position.set(controls.target.x, mapCam.height, controls.target.z + 0.01); controls.update(); }
-  setPickStep(j ? 'facing' : 'judges');
+  setPickStep('judges');   // always place the judge first, even if a previous position is on file
 });
 function endPick() {
   pickState = null;
@@ -1489,6 +1512,7 @@ const MAP_HEIGHT = { start: 2500, min: 150, max: 150000 };
 const MAP_CLIP = { near: 5, far: 1.2e6 };
 const mapCam = { height: MAP_HEIGHT.start };
 let pickState = null;
+let pickBoxCenter = null;   // world position of the last-tapped box centre, for its map marker
 const pickMarkers = new THREE.Group();
 scene.add(pickMarkers);
 const camOffset = new THREE.Vector3(14, 11, 52);   // used to seat the Free view when entering it
