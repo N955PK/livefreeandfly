@@ -1400,7 +1400,7 @@ function updateOrbitChase(p) {
   camera.position.y += ORBIT_HEIGHT;
   camera.lookAt(p);
 }
-const chase = { dist: 22 };
+const chase = { dist: 32 };
 const judge = { fov: 22, zoom: 1 };   // auto FOV keeps the aircraft a constant size; ± scales it
 const DEFAULT_FOV = 55;
 const bodyUp = new THREE.Vector3();
