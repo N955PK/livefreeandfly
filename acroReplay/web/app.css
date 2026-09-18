@@ -210,3 +210,9 @@ body.seqactive #coachcard { top: calc(var(--safe-t) + 128px); }
 #coachcard .cwarn { margin: 0 0 8px; color: var(--warn); font-size: 13px; }
 #coachcard .cseq { margin: 9px 0 0; padding-top: 8px; border-top: 1px solid var(--glass-border); color: var(--muted); font-variant-numeric: tabular-nums; }
 #rb-marks .mark.scored { background: var(--good); }
+
+/* Aresti sequence viewer (Settings › Sequences): OpenAero renders black-on-white, so use a light card. */
+.arestiview { margin-top: 10px; background: #fff; border-radius: 12px; padding: 12px; min-height: 56px; overflow-x: auto; }
+.arestiview svg { width: 100%; height: auto; display: block; }
+.arestiview .ahead { font-size: 12px; color: #12213f; font-weight: 700; margin-bottom: 6px; }
+.arestiview .amsg { color: #33415c; font-size: 13px; padding: 6px 2px; }

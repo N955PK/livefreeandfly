@@ -21,7 +21,12 @@ function ensureFrame() {
     const poll = () => {
       let w = null;
       try { w = frame.contentWindow; } catch (e) { w = null; }
-      if (w && w.OA && w.OA.SVGRoot && typeof w.checkSequenceChanged === 'function' && w.OA.sequenceText) return resolve(w);
+      if (w && w.OA && w.OA.SVGRoot && typeof w.checkSequenceChanged === 'function'
+          && typeof w.launchURL === 'function' && w.OA.sequenceText) {
+        // Warm one draw so the first real render isn't a cold-start race (library/draw path not yet primed).
+        try { w.OA.sequenceText.innerText = 'o'; w.checkSequenceChanged(true); } catch (e) { /* ignore */ }
+        return setTimeout(() => resolve(w), 300);
+      }
       if (Date.now() - t0 > 20000) return reject(new Error('OpenAero did not initialise'));
       return setTimeout(poll, 150);
     };

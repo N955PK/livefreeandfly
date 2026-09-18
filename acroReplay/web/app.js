@@ -22,6 +22,8 @@ import { idealFigure } from './coach/ghost.js';
 import { WingRockDetector } from './coach/wingrock.js';
 import { LiveCue } from './coach/livecue.js';
 import { LiveCueMap } from './coach/cuemap.js';
+import { POWER_KNOWNS_2026 } from './coach/knowns.js';
+import { renderSequence, renderLibrary, preload as preloadAresti } from './coach/oadraw.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -357,7 +359,7 @@ document.getElementById('settings-toggle').addEventListener('click', () => {
   const panel = document.getElementById('boxpanel');
   const opening = panel.classList.contains('hidden');
   panel.classList.toggle('hidden');
-  if (opening) showPanelTab('settings');   // the gear always lands on Settings
+  if (opening) { showPanelTab('settings'); preloadAresti(); }   // the gear always lands on Settings; warm the Aresti engine
 });
 document.getElementById('box-close').addEventListener('click', () => document.getElementById('boxpanel').classList.add('hidden'));
 // Tapping the empty 3D scene closes any open pop-over (the Box panel and the coach card); the replay bar and
@@ -1118,6 +1120,28 @@ function stopRun() {
 document.getElementById('coach-figure').value = coachMode;
 document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); });
 document.getElementById('coach-restart').addEventListener('click', resetSequence);
+
+// Sequences view: pick a 2026 Known or paste an OLAN string and see it drawn as real Aresti (via vendored OpenAero).
+const knownPick = document.getElementById('known-pick');
+POWER_KNOWNS_2026.forEach((s) => { const o = document.createElement('option'); o.value = s.key; o.textContent = `${s.category} — K${s.k}, ${s.figs} figures`; knownPick.appendChild(o); });
+const arestiView = document.getElementById('aresti-view');
+function showAresti(res, title) {
+  if (!res || !res.valid) { arestiView.innerHTML = `<div class="amsg">${res && res.error ? 'Could not draw that sequence.' : 'No figures recognised — check the notation.'}</div>`; return; }
+  arestiView.innerHTML = `<div class="ahead">${title} · K ${res.k} · ${res.figures.length} figure${res.figures.length === 1 ? '' : 's'}</div>${res.svg}`;
+}
+knownPick.addEventListener('change', async () => {
+  const key = knownPick.value;
+  if (!key) { arestiView.innerHTML = ''; return; }
+  arestiView.innerHTML = '<div class="amsg">Drawing…</div>';
+  const meta = POWER_KNOWNS_2026.find((s) => s.key === key);
+  showAresti(await renderLibrary(key), meta ? `${meta.category} Known` : key);
+});
+document.getElementById('olan-draw').addEventListener('click', async () => {
+  const olan = document.getElementById('olan-import').value.trim();
+  if (!olan) return;
+  arestiView.innerHTML = '<div class="amsg">Drawing…</div>';
+  showAresti(await renderSequence(olan), 'Imported');
+});
 const spinTurnsInput = document.getElementById('spin-turns');
 spinTurnsInput.value = spinTurns;
 spinTurnsInput.addEventListener('change', (e) => {
