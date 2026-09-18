@@ -1297,11 +1297,29 @@ const mapCam = { height: MAP_HEIGHT.start };
 let pickState = null;
 const pickMarkers = new THREE.Group();
 scene.add(pickMarkers);
-// Orbit default: pulled well back, near-level (low elevation), offset mostly to the side of the box axis — so the
-// pilot sees a whole line/figure and can read verticality (vertical reads vertical). Pinch to zoom from here.
-const camOffset = new THREE.Vector3(14, 11, 52);
-const FREE_PAN_SQ = 4;      // panning ~2 m off the aircraft in orbit flips to the free, world-fixed view
-const ORBIT_JUMP_SQ = 900;  // a >30 m/frame target jump is a teleport (sim end / mode switch), never a hand pan
+const camOffset = new THREE.Vector3(14, 11, 52);   // used to seat the Free view when entering it
+// Orbit is a detached, heading-aligned chase: it sits behind the aircraft along its (smoothed) direction of travel,
+// stays world-upright, and eases rather than snapping — so you look down the flight line and can read a vertical's
+// left/right lean. It holds the last heading through verticals, where horizontal travel vanishes. Pinch to zoom.
+const orbitDir = new THREE.Vector3(0, 0, 1);   // smoothed horizontal travel direction the camera sits behind
+const orbitPrev = new THREE.Vector3();
+let orbitDist = 55;
+const ORBIT_HEIGHT = 11;
+const _ovel = new THREE.Vector3(), _odir = new THREE.Vector3();
+function updateOrbitChase(p) {
+  if (controls.enabled) controls.enabled = false;   // orbit drives itself in flight (hangar re-enables OrbitControls)
+  _ovel.copy(p).sub(orbitPrev); orbitPrev.copy(p);
+  _odir.set(_ovel.x, 0, _ovel.z);
+  if (_odir.lengthSq() > 0.02) {          // moving horizontally -> ease the follow heading toward the travel direction
+    _odir.normalize();
+    orbitDir.lerp(_odir, 0.05);
+    if (orbitDir.lengthSq() > 1e-6) orbitDir.normalize(); else orbitDir.set(0, 0, 1);
+  }
+  camera.up.set(0, 1, 0);
+  camera.position.copy(p).addScaledVector(orbitDir, -orbitDist);
+  camera.position.y += ORBIT_HEIGHT;
+  camera.lookAt(p);
+}
 const chase = { dist: 16 };
 const judge = { fov: 22, zoom: 1 };   // auto FOV keeps the aircraft a constant size; ± scales it
 const DEFAULT_FOV = 55;
@@ -1325,8 +1343,8 @@ function setCamMode(mode) {
   scene.fog.near = mapMode ? 1e7 : FOG.near;
   scene.fog.far = mapMode ? 2e7 : FOG.far;
   camera.updateProjectionMatrix();
-  const panning = mode === 'orbit' || mode === 'free';   // one finger rotates, two fingers pan (and dolly)
-  controls.enabled = mode === 'orbit' || mode === 'map' || mode === 'free';
+  const panning = mode === 'free';   // Free is the only user-orbited flight view; Orbit now drives itself
+  controls.enabled = mode === 'map' || mode === 'free';
   controls.enableRotate = mode !== 'map';
   controls.enablePan = mode === 'map' || panning;
   controls.screenSpacePanning = true;
@@ -1341,8 +1359,12 @@ function setCamMode(mode) {
   controls.maxPolarAngle = mode === 'map' ? 0.001 : Math.PI;
   camera.up.set(0, 1, 0);
   if (mode !== 'judge') { camera.fov = DEFAULT_FOV; camera.updateProjectionMatrix(); }
-  if (mode === 'orbit') { orbitPan.set(0, 0, 0); controls.target.copy(aircraft.position); lastOrbitTarget.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); }
-  if (mode === 'free' && prev !== 'orbit' && prev !== 'free') { controls.target.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); controls.update(); }
+  if (mode === 'orbit') {   // seed the chase heading from the aircraft's current facing so it starts aligned behind
+    orbitPrev.copy(aircraft.position);
+    _odir.set(1, 0, 0).applyQuaternion(aircraft.quaternion); _odir.y = 0;
+    if (_odir.lengthSq() > 0.02) orbitDir.copy(_odir.normalize());
+  }
+  if (mode === 'free' && prev !== 'free') { controls.target.copy(aircraft.position); camera.position.copy(aircraft.position).add(camOffset); controls.update(); }
   if (mode === 'map') {
     const c = boxGroup ? judgeWorldPosition(boxGroup, new THREE.Vector3()) : aircraft.position.clone();
     controls.target.set(c.x, 0, c.z);
@@ -1351,7 +1373,9 @@ function setCamMode(mode) {
   }
 }
 function zoomBy(f) {
-  if (hangarMode || camMode === 'orbit' || camMode === 'free') {
+  if (camMode === 'orbit' && !hangarMode) {
+    orbitDist = THREE.MathUtils.clamp(orbitDist * f, 15, 400);   // the self-driving chase owns its own distance
+  } else if (hangarMode || camMode === 'free') {
     const d = camera.position.clone().sub(controls.target);
     const len = THREE.MathUtils.clamp(d.length() * f, controls.minDistance, controls.maxDistance);
     camera.position.copy(controls.target).add(d.setLength(len));
@@ -1370,11 +1394,11 @@ document.getElementById('record-toggle').addEventListener('click', () => { if (!
 document.getElementById('clear').addEventListener('click', clearTrail);
 document.getElementById('zoom-in').addEventListener('click', () => zoomBy(0.75));
 document.getElementById('zoom-out').addEventListener('click', () => zoomBy(1.33));
-canvas.addEventListener('wheel', (e) => { if (camMode !== 'orbit' && camMode !== 'map' && camMode !== 'free') { e.preventDefault(); zoomBy(Math.exp(e.deltaY * 0.0015)); } }, { passive: false });
+canvas.addEventListener('wheel', (e) => { if (!controls.enabled) { e.preventDefault(); zoomBy(Math.exp(e.deltaY * 0.0015)); } }, { passive: false });   // OrbitControls dollies the enabled views; self-driving views zoom manually
 let pinchDist = 0;
 canvas.addEventListener('touchstart', (e) => { if (e.touches.length === 2) pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }, { passive: true });
 canvas.addEventListener('touchmove', (e) => {
-  if (camMode === 'orbit' || camMode === 'free' || camMode === 'map' || e.touches.length !== 2) return;
+  if (controls.enabled || e.touches.length !== 2) return;   // OrbitControls handles pinch for the enabled views
   const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
   if (pinchDist > 0) zoomBy(pinchDist / d);
   pinchDist = d;
@@ -1383,18 +1407,14 @@ canvas.addEventListener('touchmove', (e) => {
 function updateCamera() {
   const p = aircraft.position;
   if (boxGroup) boxGroup.userData.judgeMarker.visible = camMode !== 'judge';   // the marker would fill the judge's view
-  if (hangarMode || camMode === 'orbit') {
-    if (camMode === 'orbit') {
-      const dpan = camTmp.copy(controls.target).sub(lastOrbitTarget);
-      if (dpan.lengthSq() > ORBIT_JUMP_SQ) orbitPan.set(0, 0, 0);   // aircraft teleported (sim end / mode switch), not a pan
-      else orbitPan.add(dpan);                                      // absorb the user's pan
-      if (orbitPan.lengthSq() > FREE_PAN_SQ) { setCamMode('free'); return; }   // panned off the aircraft -> plant the view
-    }
-    camTmp.copy(p).add(orbitPan);                 // follow point = aircraft + pan
+  if (hangarMode) {                               // parked: orbit the plane at rest with OrbitControls
+    camTmp.copy(p).add(orbitPan);
     camera.position.add(camTmp).sub(controls.target);
     controls.target.copy(camTmp);
     lastOrbitTarget.copy(camTmp);
     controls.update();
+  } else if (camMode === 'orbit') {
+    updateOrbitChase(p);                          // detached, heading-aligned chase behind the flight line
   } else if (camMode === 'free') {
     controls.update();                            // world-fixed: the aircraft flies through, the view stays put
   } else if (camMode === 'map') {
