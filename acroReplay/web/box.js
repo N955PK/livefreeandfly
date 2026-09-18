@@ -6,7 +6,7 @@ import { nedFromLla, worldFromNed, offsetLatLon, FT_TO_M } from './frames.js';
 import { getItem, setItem } from './storage.js';
 
 const STORAGE_KEY = 'acroReplay.box';
-export const DEFAULT_BOX = { widthM: 3300 * FT_TO_M, depthM: 3300 * FT_TO_M, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 500 * FT_TO_M, judgeAltFt: 6 };
+export const DEFAULT_BOX = { widthM: 3300 * FT_TO_M, depthM: 3300 * FT_TO_M, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 500 * FT_TO_M, altRef: 'agl' };
 const DEG = Math.PI / 180;
 
 export function loadBox() {
@@ -78,7 +78,11 @@ export function buildBoxGroup(box, origin) {
   const w = box.widthM, d = box.depthM;
   const side = box.judgeSide === 'left' ? 1 : -1;
   const z0 = 0, z1 = side * d;
-  const f = box.floorFt * FT_TO_M, c = box.ceilFt * FT_TO_M;
+  // World y=0 sits at the box-centre ground (origin elevation, MSL). Floor/ceiling are entered either AGL (height
+  // above that ground, the default) or MSL (absolute), so an MSL value drops by the ground elevation to place it.
+  const datumM = origin[2];
+  const toWorld = (ft) => (box.altRef === 'msl' ? ft * FT_TO_M - datumM : ft * FT_TO_M);
+  const f = toWorld(box.floorFt), c = toWorld(box.ceilFt);
   const rect = (y) => [[0, y, z0], [w, y, z0], [w, y, z1], [0, y, z1]];
   const lines = [];
   const addRect = (pts) => { for (let i = 0; i < 4; i += 1) lines.push(...pts[i], ...pts[(i + 1) % 4]); };
@@ -93,9 +97,10 @@ export function buildBoxGroup(box, origin) {
   g.add(floor);
   // Judges: orange camera at the judging position, looking into the box.
   const jz = -side * (box.judgeSetbackM || DEFAULT_BOX.judgeSetbackM);
-  // Judge eye altitude above the field. Default is roughly standing height; raise it to keep a realistic angle to
-  // the box floor when practising high (e.g. set it a competition floor-height below a lifted floor).
-  const ja = (box.judgeAltFt != null ? box.judgeAltFt : DEFAULT_BOX.judgeAltFt) * FT_TO_M;
+  // Judge eye sits 1500 ft below the box floor, but never below the ground — a realistic look-up angle whatever the
+  // floor height. (floor AGL = the floor's height above the box-centre ground.)
+  const floorAglFt = box.altRef === 'msl' ? box.floorFt - datumM / FT_TO_M : box.floorFt;
+  const ja = Math.max(0, floorAglFt - 1500) * FT_TO_M;
   const cam = judgesCamera();
   cam.position.set(w / 2, Math.max(0, ja - 1.7), jz);
   cam.rotation.y = side > 0 ? 0 : Math.PI;

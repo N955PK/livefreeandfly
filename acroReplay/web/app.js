@@ -177,9 +177,12 @@ document.getElementById('ground-toggle').addEventListener('click', () => {
 // Aerobatic box: set from the aircraft's live position and heading; edges and limits editable in the panel.
 let box = loadBox();
 let boxGroup = null;
-const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeAltFt: 'j-alt', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
+const boxInputs = { widthM: 'box-w', depthM: 'box-d', floorFt: 'box-f', ceilFt: 'box-c', judgeSide: 'box-side', judgeSetbackM: 'j-set' };
 const LEN_M = new Set(['widthM', 'depthM', 'judgeSetbackM']);
-const LEN_FT = new Set(['floorFt', 'ceilFt', 'judgeAltFt']);
+const LEN_FT = new Set(['floorFt', 'ceilFt']);
+// Box altitude reference: AGL (height above the box-centre ground, default) or MSL (absolute). Kept as a preference
+// so a fresh box inherits it; the box carries its own altRef once created.
+let altRefPref = getItem('acroReplay.altRef') === 'msl' ? 'msl' : 'agl';
 function readBoxInputs() {
   const v = {};
   for (const [k, id] of Object.entries(boxInputs)) {
@@ -208,6 +211,9 @@ document.querySelectorAll('#units [data-unit]').forEach((btn) => btn.addEventLis
 function rebuildBox() {
   if (boxGroup) { scene.remove(boxGroup); boxGroup = null; }
   if (box && !originLatLon) { onOriginKnown(box.lat, box.lon); return; }
+  // The world datum (origin elevation) is the box-centre ground, once we know it; keeps AGL/MSL and the aircraft
+  // altitude consistent. Falls back to the default field elevation until an elevation lookup fills it in.
+  if (originLatLon) originLatLon[2] = (box && box.groundElevFt != null) ? box.groundElevFt * FT_TO_M : GROUND_M;
   if (box && originLatLon) {
     boxGroup = buildBoxGroup(box, originLatLon);
     boxGroup.visible = !hangarMode;
@@ -338,10 +344,11 @@ function placeFromJudges(msgEl) {
   const lat = parseFloat(document.getElementById('j-lat').value), lon = parseFloat(document.getElementById('j-lon').value);
   const facingDeg = parseFloat(document.getElementById('j-hdg').value);
   if (![lat, lon, facingDeg].every(Number.isFinite)) { msgEl.textContent = 'Need judges lat, lon and the facing direction.'; return false; }
-  box = boxFromJudges({ lat, lon, facingDeg, ...readBoxInputs() });
+  box = boxFromJudges({ lat, lon, facingDeg, altRef: altRefPref, ...readBoxInputs() });
   saveBox(box);
   fillJudgeInputs(box);
   rebuildBox();
+  updateBoxGroundElev();
   pickMarkers.clear();
   msgEl.textContent = 'Box placed and saved.';
   return true;
@@ -386,12 +393,35 @@ document.getElementById('box-set').addEventListener('click', () => {
   if (!latest || !latest.init || latest.lat === undefined) { document.getElementById('a-msg').textContent = 'Needs live Hub data with the INS initialized.'; return; }
   document.getElementById('a-msg').textContent = '';
   const trackDeg = latest.gs > 15 ? latest.trk : latest.hdg;   // flight path; fall back to heading when nearly stationary
-  box = boxFromEntry({ ...readBoxInputs(), lat: latest.lat, lon: latest.lon, trackDeg });
+  box = boxFromEntry({ altRef: altRefPref, ...readBoxInputs(), lat: latest.lat, lon: latest.lon, trackDeg });
   saveBox(box);
   fillJudgeInputs(box);
   rebuildBox();
+  updateBoxGroundElev();
 });
 document.getElementById('box-clear').addEventListener('click', () => { box = null; saveBox(null); rebuildBox(); });
+// Look up the box-centre ground elevation (MSL) and adopt it as the world datum, so AGL/MSL and the aircraft's
+// altitude line up with the real field. Cached on the box; falls back silently to the default field elevation.
+async function updateBoxGroundElev() {
+  if (!box || !Number.isFinite(box.lat) || !Number.isFinite(box.lon)) return;
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${box.lat.toFixed(5)}&longitude=${box.lon.toFixed(5)}`);
+    const j = await r.json();
+    const m = Array.isArray(j.elevation) ? j.elevation[0] : (typeof j.elevation === 'number' ? j.elevation : NaN);
+    if (!Number.isFinite(m) || !box) return;
+    box.groundElevFt = m / FT_TO_M;
+    saveBox(box);
+    replaceLoadedSamples();   // rebuildBox() adopts the new datum; re-place any loaded flight against it
+    rebuildBox();
+  } catch (e) { nativeLog(`elevation lookup failed: ${e.message || e}`); }
+}
+// Re-place already-loaded samples (a replay, or live history) after the world datum changes, and refill the trail.
+function replaceLoadedSamples() {
+  if (!originLatLon) return;
+  for (const s of replay.samples || []) if (s.lat !== undefined) placeSample(s);
+  for (const s of history || []) if (s.lat !== undefined) placeSample(s);
+  if (replay.active) seekTo(replay.cursor);
+}
 for (const id of Object.values(boxInputs)) {
   document.getElementById(id).addEventListener('change', () => {
     if (!box) return;
@@ -400,6 +430,24 @@ for (const id of Object.values(boxInputs)) {
     rebuildBox();
   });
 }
+// AGL/MSL toggle: switch the reference the box floor/ceiling are entered in, converting the numbers by the
+// box-centre ground elevation so the box itself stays put.
+function markAltRef(ref) { document.querySelectorAll('#alt-ref [data-altref]').forEach((b) => b.classList.toggle('on', b.dataset.altref === ref)); }
+document.querySelectorAll('#alt-ref [data-altref]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const ref = btn.dataset.altref;
+    if (ref === altRefPref) return;
+    const groundFt = Math.round((originLatLon ? originLatLon[2] : GROUND_M) / FT_TO_M);
+    if (box) {
+      const delta = ref === 'msl' ? groundFt : -groundFt;   // AGL->MSL adds the ground elevation; MSL->AGL removes it
+      box.floorFt += delta; box.ceilFt += delta; box.altRef = ref;
+      saveBox(box); writeBoxInputs(box); rebuildBox();
+    }
+    altRefPref = ref; setItem('acroReplay.altRef', ref);
+    markAltRef(ref);
+  });
+});
+markAltRef((box && box.altRef) || altRefPref);
 
 function propDiskTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
@@ -819,7 +867,7 @@ function startReplay(samples, name, at, figures, flightBox) {
   if (!placed.length) { rb['rb-time'].textContent = 'no INS data'; return; }
   // Re-origin to this flight so the satellite imagery, ground and box are placed at where it was flown.
   originToFlight(placed.find((s) => s.lat !== undefined) || placed[0]);
-  if (flightBox) { box = { ...DEFAULT_BOX, ...flightBox }; saveBox(box); fillJudgeInputs(box); }
+  if (flightBox) { box = { ...DEFAULT_BOX, ...flightBox }; saveBox(box); fillJudgeInputs(box); if (box.groundElevFt == null) updateBoxGroundElev(); }
   rebuildBox();
   for (const s of placed) placeSample(s);
   replay.samples = placed; replay.name = name;
