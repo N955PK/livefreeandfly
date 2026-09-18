@@ -143,6 +143,7 @@ function hangarControls() {
   controls.enablePan = false;
   controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
   controls.touches.ONE = THREE.TOUCH.ROTATE;
+  controls.minDistance = 4;
   controls.maxDistance = Math.min(HANGAR.width, HANGAR.depth) / 2 - 3;
   controls.maxPolarAngle = Math.PI / 2 - 0.03;
   camera.up.set(0, 1, 0);
@@ -1551,9 +1552,9 @@ function setCamMode(mode) {
   const prev = camMode;
   camMode = mode;
   document.querySelectorAll('#controls [data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === mode));
-  applyScene();
-  if (hangarMode) { hangarControls(); return; }   // in the hangar every mode orbits; the choice applies once airborne
   const mapMode = mode === 'map';
+  // Clip range, fog and dolly limits depend only on map-vs-flight. Set them before applyScene so a return to the
+  // hangar doesn't inherit the map's huge min-distance and clip (which left the hangar zoomed right out).
   controls.minDistance = mapMode ? MAP_HEIGHT.min : 4;
   controls.maxDistance = mapMode ? MAP_HEIGHT.max : 3000;
   camera.near = mapMode ? MAP_CLIP.near : FLIGHT_CLIP.near;
@@ -1561,6 +1562,8 @@ function setCamMode(mode) {
   scene.fog.near = mapMode ? 1e7 : FOG.near;
   scene.fog.far = mapMode ? 2e7 : FOG.far;
   camera.updateProjectionMatrix();
+  applyScene();
+  if (hangarMode) { hangarControls(); return; }   // in the hangar every mode orbits; the choice applies once airborne
   const panning = mode === 'free';   // Free is the only user-orbited flight view; Orbit now drives itself
   controls.enabled = mode === 'map' || mode === 'free';
   controls.enableRotate = mode !== 'map';
