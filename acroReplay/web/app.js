@@ -1102,6 +1102,7 @@ function renderHudRec() {                            // score card (which the pi
   } else {
     hudRec.className = 'hidden';
   }
+  positionArestiOverlay();   // the HUD height just changed; keep the reference overlay clear of it
 }
 function resetRun() { runState = 'idle'; runFigures = []; renderHudRec(); }
 // The run/record lifecycle is live-only: replaying a flight that happens to contain wing rocks must never start a
@@ -1190,7 +1191,14 @@ document.getElementById('aresti-export').addEventListener('click', async () => {
   } catch (e) { nativeLog(`export failed: ${e.message || e}`); }
 });
 // On-screen reference overlay: show the active sequence beside the live view (half screen on a tablet, corner on a phone).
-function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); }
+// Sit the overlay just under the HUD's actual bottom (which grows with the recording strip and can wrap on a phone),
+// so it never overlaps regardless of device or HUD state.
+function positionArestiOverlay() {
+  const hud = document.getElementById('hud');
+  const ov = document.getElementById('aresti-overlay');   // by id (not the const) so an early renderHudRec can't hit the TDZ
+  if (hud && ov && !ov.classList.contains('hidden')) ov.style.top = `${Math.round(hud.getBoundingClientRect().bottom) + 10}px`;
+}
+function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); positionArestiOverlay(); }
 document.getElementById('aresti-show').addEventListener('click', () => { openArestiOverlay(); document.getElementById('boxpanel').classList.add('hidden'); });
 arestiToggle.addEventListener('click', () => { if (arestiOverlay.classList.contains('hidden')) openArestiOverlay(); else arestiOverlay.classList.add('hidden'); });
 document.getElementById('aresti-overlay-close').addEventListener('click', () => arestiOverlay.classList.add('hidden'));
@@ -1289,7 +1297,9 @@ const mapCam = { height: MAP_HEIGHT.start };
 let pickState = null;
 const pickMarkers = new THREE.Group();
 scene.add(pickMarkers);
-const camOffset = new THREE.Vector3(8, 4, 12);
+// Orbit default: pulled well back, near-level (low elevation), offset mostly to the side of the box axis — so the
+// pilot sees a whole line/figure and can read verticality (vertical reads vertical). Pinch to zoom from here.
+const camOffset = new THREE.Vector3(14, 11, 52);
 const FREE_PAN_SQ = 4;      // panning ~2 m off the aircraft in orbit flips to the free, world-fixed view
 const ORBIT_JUMP_SQ = 900;  // a >30 m/frame target jump is a teleport (sim end / mode switch), never a hand pan
 const chase = { dist: 16 };
