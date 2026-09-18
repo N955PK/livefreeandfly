@@ -1173,6 +1173,7 @@ function startRun() {
 function stopRun() {
   const total = runTotal();
   lastFlown = runFigures.slice();   // keep the flown figures for "draw my last flight as Aresti"
+  if (lastFlown.length) document.getElementById('flown-draw').disabled = false;   // now there's a flight to draw
   runState = 'done';
   if (nativeHandler && !replay.active) nativeHandler.postMessage('seqend');
   runDoneText = total ? `${seqName()} saved \u00b7 ${total.n}/${total.tot}` : `${seqName()} saved`;
@@ -1197,13 +1198,13 @@ const arestiOverlay = document.getElementById('aresti-overlay');
 const arestiOverlayBody = document.getElementById('aresti-overlay-body');
 let activeAresti = null;   // { svg, title } — the current drawing, available to export and to show on screen
 function showAresti(res, title) {
-  if (!res || !res.valid) { arestiView.innerHTML = `<div class="amsg">${res && res.error ? 'Could not draw that sequence.' : 'No figures recognised — check the notation.'}</div>`; arestiExport.classList.add('hidden'); return; }
+  if (!res || !res.valid) { arestiView.innerHTML = `<div class="amsg">${res && res.error ? 'Could not draw that sequence.' : 'No figures recognised — check the notation.'}</div>`; arestiExport.disabled = true; return; }
   arestiView.innerHTML = `<div class="ahead">${title} · K ${res.k} · ${res.figures.length} figure${res.figures.length === 1 ? '' : 's'}</div>${res.svg}`;
   activeAresti = { svg: res.svg, title: `${title} · K ${res.k}` };
-  arestiExport.classList.remove('hidden');
+  arestiExport.disabled = false;   // there's a drawing to export now
   arestiToggle.classList.remove('pending');   // a sequence exists -> the on-screen toggle is now usable (grey, not dimmed)
 }
-function clearAresti() { arestiView.innerHTML = ''; activeAresti = null; arestiExport.classList.add('hidden'); arestiToggle.classList.add('pending'); }
+function clearAresti() { arestiView.innerHTML = ''; activeAresti = null; arestiExport.disabled = true; arestiToggle.classList.add('pending'); }
 
 // Single figures the coach grades one-off, mapped to an OLAN token so the menu can also draw them as a reference.
 const FIGURE_OLAN = { '45 up line': 'd', spin: '1s', 'half cuban': 'c', loop: 'o', '180 turn': '2j', 'slow roll': '1' };

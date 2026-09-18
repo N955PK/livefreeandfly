@@ -130,6 +130,7 @@ select { height: 42px; padding: 0 12px; border-radius: 11px; background: var(--f
 .primary:active { background: var(--accent-press); }
 .primary.small { width: auto; height: 34px; padding: 0 14px; font-size: 14px; margin: 0; }
 .secondary { height: 42px; border-radius: 12px; background: var(--field); border: 1px solid var(--field-border); font-weight: 600; font-size: 15px; }
+.secondary:disabled { opacity: .35; pointer-events: none; }
 .secondary.danger { color: var(--bad); }
 .pfoot { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
 .pfoot .hint { margin: 0; }
