@@ -1225,12 +1225,12 @@ async function applyLoadedSeq(value, draw) {
   else clearAresti();   // Freestyle: nothing to reference
 }
 seqSelect.addEventListener('change', (e) => applyLoadedSeq(e.target.value, true));
-// Restore the saved selection (migrating the old "sequence" value to the Primary Known key).
-let savedSeq = getItem('acroReplay.loadedSeq') || getItem('acroReplay.coachFigure') || 'any';
+// Restore the saved selection, defaulting to the Primary Known (migrating the old "sequence" value to its key).
+let savedSeq = getItem('acroReplay.loadedSeq') || getItem('acroReplay.coachFigure') || '2026 IAC Primary Known';
 if (savedSeq === 'sequence') savedSeq = '2026 IAC Primary Known';
-if (![...seqSelect.options].some((o) => o.value === savedSeq)) savedSeq = 'any';
+if (![...seqSelect.options].some((o) => o.value === savedSeq)) savedSeq = '2026 IAC Primary Known';
 seqSelect.value = savedSeq;
-applyLoadedSeq(savedSeq, false);
+applyLoadedSeq(savedSeq, true);   // draw the reference Aresti on boot so it's ready to view/overlay
 
 // Custom builder: tap figures to queue them in order, then draw the set as one Aresti sequence.
 const CUSTOM_FIGURES = [
