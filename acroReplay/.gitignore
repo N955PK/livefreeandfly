@@ -7,4 +7,5 @@ sessions/
 web/models/
 web/tiles/
 xcuserdata/
+ios/build/
 docs/private/

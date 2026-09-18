@@ -78,6 +78,13 @@ body.recording #record-toggle .recdot { border-radius: 3px; animation: recpulse 
 #record-toggle { display: none; }              /* only appears with a live feed (body.live), never during replay */
 body.live #record-toggle { display: flex; }
 
+/* Trail and zoom only do anything once there's a flight on screen (live feed or replay) — dim + disable them until then. */
+#clear, #zoom-in, #zoom-out { opacity: .3; pointer-events: none; }
+body.live #clear, body.replaying #clear,
+body.live #zoom-in, body.replaying #zoom-in,
+body.live #zoom-out, body.replaying #zoom-out { opacity: 1; pointer-events: auto; }
+body.live #clear, body.replaying #clear { opacity: .75; }   /* the clear button keeps its resting dim look when enabled */
+
 /* box panel */
 .panel { position: fixed; top: calc(var(--safe-t) + 8px); left: calc(var(--safe-l) + 8px); right: calc(var(--safe-r) + 8px); bottom: calc(var(--safe-b) + 8px); width: auto; max-height: none; overflow-y: auto; overflow-x: hidden; border-radius: 20px; padding: 16px 18px 28px; font-size: 14px; z-index: 30; }
 .phead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -104,8 +111,12 @@ h3 { margin: 16px 0 8px; font-size: 12px; letter-spacing: .06em; text-transform:
 .input em { font-style: normal; color: var(--muted); font-size: 13px; margin-left: 6px; }
 .input.compact { width: auto; flex: 0 0 auto; height: 40px; padding: 0 10px; }
 .input.compact input { flex: 0 0 auto; width: 5ch; text-align: right; }
-#coach-restart { margin-top: 16px; }
-select { height: 40px; padding: 0 12px; border-radius: 11px; background: var(--field); border: 1px solid var(--field-border); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; }
+select { height: 42px; padding: 0 12px; border-radius: 11px; background: var(--field); border: 1px solid var(--field-border); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; }
+/* Sequences import: a text field that matches its Draw button in height so the row reads as one control. */
+.seqrow { display: flex; align-items: stretch; gap: 10px; }
+.seqrow input[type=text] { flex: 1 1 0; min-width: 0; height: 42px; padding: 0 12px; border-radius: 11px; background: var(--field); border: 1px solid var(--field-border); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; outline: 0; }
+.seqrow input[type=text]:focus { border-color: var(--accent); }
+.seqrow .secondary { flex: 0 0 auto; padding: 0 18px; }
 .row { display: flex; gap: 10px; margin: 10px 0; }
 .row > * { flex: 1; }
 .primary { width: 100%; height: 46px; border-radius: 12px; background: var(--accent); font-weight: 700; font-size: 16px; margin-top: 6px; }
@@ -219,6 +230,8 @@ body.seqactive #coachcard { top: calc(var(--safe-t) + 128px); }
 
 /* On-screen reference-sequence overlay: a small white card top-left under the HUD on a phone, ~half-screen on a
    tablet. Shows a saved/selected Aresti while the live 3D view stays visible in the rest of the screen. */
-#aresti-overlay { position: fixed; z-index: 20; top: calc(var(--safe-t) + 138px); left: calc(var(--safe-l) + 10px); width: min(46vw, 240px); max-height: 46vh; overflow: auto; border-radius: 16px; padding: 10px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+#aresti-overlay { position: fixed; z-index: 20; top: calc(var(--safe-t) + 138px); left: calc(var(--safe-l) + 10px); width: min(56vw, 300px); max-height: 56vh; overflow: auto; border-radius: 14px; padding: 5px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
 #aresti-overlay svg { width: 100%; height: auto; display: block; }
-#aresti-overlay .close { position: sticky; top: 0; float: right; width: 26px; height: 26px; font-size: 17px; line-height: 1; background: rgba(18,33,63,.1); color: #12213f; }
+/* Reference-sequence toggle: light grey until a sequence is drawn, grey when off, blue while shown. */
+#aresti-toggle.pending { opacity: .45; }
+#aresti-toggle.on { background: var(--accent); border-color: transparent; color: #fff; }

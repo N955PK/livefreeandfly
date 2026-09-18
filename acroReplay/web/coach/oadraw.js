@@ -56,7 +56,7 @@ function extractSVG(w) {
   const seq = root && root.querySelector('#sequence');
   if (!seq) return { svg: '', figures: [], valid: false };
   const b = seq.getBBox();
-  const pad = 20;
+  const pad = 6;   // tight margin around the drawing so it fills its container with little whitespace
   const ns = 'http://www.w3.org/2000/svg';
   const defs = root.querySelector('defs');
   const w2 = (b.width + pad * 2).toFixed(1);

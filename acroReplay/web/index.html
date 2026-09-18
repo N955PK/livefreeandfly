@@ -69,11 +69,10 @@
   <button class="round" id="zoom-in" aria-label="zoom in">+</button>
   <button class="round" id="zoom-out" aria-label="zoom out">−</button>
   <button class="round dim" id="clear" aria-label="clear trail" title="Clear trail">×</button>
+  <button class="round pending" id="aresti-toggle" aria-label="show reference sequence" title="Reference sequence"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="13" r="4"/><path d="M11 13h5l2-4"/></svg></button>
   <button id="settings-toggle" class="round" aria-label="settings" title="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-  <button class="round hidden" id="aresti-toggle" aria-label="show reference sequence" title="Reference sequence"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="13" r="4"/><path d="M11 13h5l2-4"/></svg></button>
 </div>
-<div id="aresti-overlay" class="hidden glass" aria-label="reference sequence">
-  <button class="close" id="aresti-overlay-close" aria-label="close reference">×</button>
+<div id="aresti-overlay" class="hidden" aria-label="reference sequence">
   <div id="aresti-overlay-body"></div>
 </div>
 
@@ -188,7 +187,11 @@
     <label class="field inline"><span>Cue volume</span>
       <div class="cuevol"><input id="cue-vol" type="range" min="0" max="100"><button class="secondary small" id="cue-test">Test</button></div>
     </label>
-    <label class="field inline"><span>Coach figure</span>
+  </div>
+
+  <div id="panel-sequences" class="ppane hidden">
+    <h3>Coaching</h3>
+    <label class="field inline"><span>Figure</span>
       <select id="coach-figure">
         <option value="any">Freestyle (record anything)</option>
         <option value="sequence">Primary Known (sequence)</option>
@@ -200,26 +203,25 @@
         <option value="slow roll">Slow roll</option>
       </select>
     </label>
-    <label class="field inline"><span>Spin turns</span>
+    <label class="field inline hidden" id="spin-turns-field"><span>Spin turns</span>
       <div class="input compact"><input id="spin-turns" type="number" step="0.5" min="0.5" value="1.5"><em>turns</em></div>
     </label>
-    <button class="secondary" id="coach-restart">Restart sequence</button>
-  </div>
 
-  <div id="panel-sequences" class="ppane hidden">
     <h3>2026 IAC Known</h3>
     <label class="field inline"><span>Sequence</span>
       <select id="known-pick"><option value="">Choose a sequence…</option></select>
     </label>
+
     <h3>Import</h3>
     <label class="field"><span>Paste a sequence (OLAN)</span>
-      <div class="cuevol"><input id="olan-import" type="text" placeholder="e.g.  o 2j 1" spellcheck="false" autocapitalize="off" autocomplete="off"><button class="secondary small" id="olan-draw">Draw</button></div>
+      <div class="seqrow"><input id="olan-import" type="text" placeholder="e.g.  o 2j 1" spellcheck="false" autocapitalize="off" autocomplete="off"><button class="secondary" id="olan-draw">Draw</button></div>
     </label>
+
     <h3>My flight</h3>
     <button class="secondary" id="flown-draw">Draw my last flight as Aresti</button>
     <div id="aresti-actions" class="row hidden">
-      <button class="secondary small" id="aresti-export">Export image</button>
-      <button class="secondary small" id="aresti-show">Show on screen</button>
+      <button class="secondary" id="aresti-export">Export image</button>
+      <button class="secondary" id="aresti-show">Show on screen</button>
     </div>
     <div id="aresti-view" class="arestiview" aria-live="polite"></div>
   </div>

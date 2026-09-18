@@ -952,7 +952,7 @@ function persistLabels() { if (replay.name) setItem(`acroReplay.labels.${replay.
 // The correct-figure ghost: white line for the ideal path, thin ribs from the flown path to it.
 const ghostMat = new LineMaterial({ color: 0xffffff, linewidth: 4, worldUnits: false, transparent: true, opacity: 0.75 });
 const ribMat = new LineMaterial({ color: 0xffffff, linewidth: 1.5, worldUnits: false, transparent: true, opacity: 0.35 });
-let ghostLine = null, ribLines = null, ghostFor = null, ghostHideAt = 0;
+let ghostLine = null, ribLines = null, ghostFor = null;
 function clearGhost() {
   if (ghostLine) { scene.remove(ghostLine); ghostLine.geometry.dispose(); ghostLine = null; }
   if (ribLines) { scene.remove(ribLines); ribLines.geometry.dispose(); ribLines = null; }
@@ -1058,7 +1058,7 @@ function onFigureDetected(fig, source) {
   if (fig.grade && source === 'live') {
     if (runState === 'recording') { runFigures.push(fig.grade); renderHudRec(); }
     showCoach(fig.grade);
-    showGhost(fig, history); ghostHideAt = performance.now() + 20000;
+    // The ideal-figure ghost is a review aid, not a live overlay — it only draws while scrubbing a replay.
     if (coachSpeak) say(line);
     if (runState === 'recording' && fig.grade.sequenceTotal) stopRun();   // sequence complete (last Known figure) -> end
   }
@@ -1125,8 +1125,7 @@ function stopRun() {
   setTimeout(() => { if (runState === 'done') { runState = 'idle'; renderHudRec(); } }, 6000);
 }
 document.getElementById('coach-figure').value = coachMode;
-document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); });
-document.getElementById('coach-restart').addEventListener('click', resetSequence);
+document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); syncSpinField(); });
 
 // Sequences view: pick a 2026 Known or paste an OLAN string and see it drawn as real Aresti (via vendored OpenAero).
 const knownPick = document.getElementById('known-pick');
@@ -1142,7 +1141,7 @@ function showAresti(res, title) {
   arestiView.innerHTML = `<div class="ahead">${title} · K ${res.k} · ${res.figures.length} figure${res.figures.length === 1 ? '' : 's'}</div>${res.svg}`;
   activeAresti = { svg: res.svg, title: `${title} · K ${res.k}` };
   arestiActions.classList.remove('hidden');
-  arestiToggle.classList.remove('hidden');   // the on-screen reference toggle is now usable
+  arestiToggle.classList.remove('pending');   // a sequence exists -> the on-screen toggle is now usable (grey, not dimmed)
 }
 knownPick.addEventListener('change', async () => {
   const key = knownPick.value;
@@ -1198,16 +1197,22 @@ function positionArestiOverlay() {
   const ov = document.getElementById('aresti-overlay');   // by id (not the const) so an early renderHudRec can't hit the TDZ
   if (hud && ov && !ov.classList.contains('hidden')) ov.style.top = `${Math.round(hud.getBoundingClientRect().bottom) + 10}px`;
 }
-function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); positionArestiOverlay(); }
+function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); arestiToggle.classList.add('on'); positionArestiOverlay(); }
 document.getElementById('aresti-show').addEventListener('click', () => { openArestiOverlay(); document.getElementById('boxpanel').classList.add('hidden'); });
-arestiToggle.addEventListener('click', () => { if (arestiOverlay.classList.contains('hidden')) openArestiOverlay(); else arestiOverlay.classList.add('hidden'); });
-document.getElementById('aresti-overlay-close').addEventListener('click', () => arestiOverlay.classList.add('hidden'));
+arestiToggle.addEventListener('click', () => {
+  if (!activeAresti) return;   // nothing drawn yet (button is dimmed)
+  if (arestiOverlay.classList.contains('hidden')) openArestiOverlay();
+  else { arestiOverlay.classList.add('hidden'); arestiToggle.classList.remove('on'); }
+});
 const spinTurnsInput = document.getElementById('spin-turns');
 spinTurnsInput.value = spinTurns;
 spinTurnsInput.addEventListener('change', (e) => {
   const v = Math.max(0.25, Math.round(Number(e.target.value) * 4) / 4) || 1.5;   // quarter-turn granularity
   spinTurns = v; e.target.value = v; setItem('acroReplay.spinTurns', String(v)); regradeReplay();
 });
+// Spin turns only bites when the coached figure is a spin (in a sequence the count is fixed) — hide it otherwise.
+function syncSpinField() { document.getElementById('spin-turns-field').classList.toggle('hidden', coachMode !== 'spin'); }
+syncSpinField();
 document.getElementById('coach-toggle').classList.toggle('on', coachShow);
 document.getElementById('coach-toggle').addEventListener('click', () => setCoachShow(!coachShow));
 document.querySelectorAll('#voice [data-voice]').forEach((btn) => {
@@ -1590,7 +1595,6 @@ function frame() {
   updateCamera();
   updateHud(now);
   updateCue(now);
-  if (!replay.active && ghostHideAt && now > ghostHideAt) { clearGhost(); ghostHideAt = 0; }
   renderer.render(scene, camera);
   trailFullUpload = false;
   if (!booted) { booted = true; dismissSplash(); }
