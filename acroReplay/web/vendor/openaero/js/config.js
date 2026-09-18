@@ -38,6 +38,7 @@ This file is part of OpenAero.
 // migrate to having ALL globals in OA and OAconst to ease OpenAero
 // integration with other code
 const OA = {};
+window.OA = OA;   // WingRock: expose OA so the host page can drive this vendored copy from outside the iframe.
 
 // catalogueMode makes the figures show as they would in the Catalogue
 // OA.catalogueMode = true;
