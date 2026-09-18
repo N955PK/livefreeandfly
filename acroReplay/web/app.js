@@ -1179,31 +1179,85 @@ function stopRun() {
   if (coachSpeak) say(total ? `${seqName()} complete. ${total.n} of ${total.tot}.` : `${seqName()} saved.`);
   setTimeout(() => { if (runState === 'done') { runState = 'idle'; renderHudRec(); } }, 6000);
 }
-document.getElementById('coach-figure').value = coachMode;
-document.getElementById('coach-figure').addEventListener('change', (e) => { coachMode = e.target.value; setItem('acroReplay.coachFigure', coachMode); resetSequence(); syncSpinField(); });
-
-// Sequences view: pick a 2026 Known or paste an OLAN string and see it drawn as real Aresti (via vendored OpenAero).
-const knownPick = document.getElementById('known-pick');
-POWER_KNOWNS_2026.forEach((s) => { const o = document.createElement('option'); o.value = s.key; o.textContent = `${s.category} — K${s.k}, ${s.figs} figures`; knownPick.appendChild(o); });
+// The Sequences view: one "Loaded sequence" menu drives both live coaching and the reference Aresti. Freestyle and
+// single figures coach directly; the IAC Knowns and a Custom build load a reference drawing (vendored OpenAero).
+const seqSelect = document.getElementById('coach-figure');
+const knownGroup = document.getElementById('known-group');
+POWER_KNOWNS_2026.forEach((s) => {
+  const o = document.createElement('option');
+  o.value = s.key;                                          // e.g. "2026 IAC Primary Known" (year already in the name)
+  o.textContent = `${s.key.replace('IAC ', '')} · K${s.k}`;   // -> "2026 Primary Known · K58"
+  knownGroup.appendChild(o);
+});
 const arestiView = document.getElementById('aresti-view');
-const arestiActions = document.getElementById('aresti-actions');
+const arestiExport = document.getElementById('aresti-export');
 const arestiToggle = document.getElementById('aresti-toggle');
 const arestiOverlay = document.getElementById('aresti-overlay');
 const arestiOverlayBody = document.getElementById('aresti-overlay-body');
 let activeAresti = null;   // { svg, title } — the current drawing, available to export and to show on screen
 function showAresti(res, title) {
-  if (!res || !res.valid) { arestiView.innerHTML = `<div class="amsg">${res && res.error ? 'Could not draw that sequence.' : 'No figures recognised — check the notation.'}</div>`; arestiActions.classList.add('hidden'); return; }
+  if (!res || !res.valid) { arestiView.innerHTML = `<div class="amsg">${res && res.error ? 'Could not draw that sequence.' : 'No figures recognised — check the notation.'}</div>`; arestiExport.classList.add('hidden'); return; }
   arestiView.innerHTML = `<div class="ahead">${title} · K ${res.k} · ${res.figures.length} figure${res.figures.length === 1 ? '' : 's'}</div>${res.svg}`;
   activeAresti = { svg: res.svg, title: `${title} · K ${res.k}` };
-  arestiActions.classList.remove('hidden');
+  arestiExport.classList.remove('hidden');
   arestiToggle.classList.remove('pending');   // a sequence exists -> the on-screen toggle is now usable (grey, not dimmed)
 }
-knownPick.addEventListener('change', async () => {
-  const key = knownPick.value;
-  if (!key) { arestiView.innerHTML = ''; return; }
+function clearAresti() { arestiView.innerHTML = ''; activeAresti = null; arestiExport.classList.add('hidden'); arestiToggle.classList.add('pending'); }
+
+// Single figures the coach grades one-off, mapped to an OLAN token so the menu can also draw them as a reference.
+const FIGURE_OLAN = { '45 up line': 'd', spin: '1s', 'half cuban': 'c', loop: 'o', '180 turn': '2j', 'slow roll': '1' };
+const KNOWN_KEYS = new Set(POWER_KNOWNS_2026.map((s) => s.key));
+const customBuilder = document.getElementById('custom-builder');
+// Apply a "Loaded sequence" selection: set the coach grading mode and (optionally) draw its reference Aresti.
+async function applyLoadedSeq(value, draw) {
+  setItem('acroReplay.loadedSeq', value);
+  customBuilder.classList.toggle('hidden', value !== 'custom');
+  if (value === 'custom') { coachMode = 'any'; setItem('acroReplay.coachFigure', 'any'); resetSequence(); syncSpinField(); return; }
+  const known = KNOWN_KEYS.has(value);
+  coachMode = known ? (value === '2026 IAC Primary Known' ? 'sequence' : 'any') : value;   // only Primary is graded as a sequence
+  setItem('acroReplay.coachFigure', coachMode);
+  resetSequence(); syncSpinField();
+  if (!draw) return;
+  if (known) { arestiView.innerHTML = '<div class="amsg">Drawing…</div>'; showAresti(await renderLibrary(value), value.replace('IAC ', '')); }
+  else if (FIGURE_OLAN[value]) { arestiView.innerHTML = '<div class="amsg">Drawing…</div>'; showAresti(await renderSequence(FIGURE_OLAN[value]), cap(value)); }
+  else clearAresti();   // Freestyle: nothing to reference
+}
+seqSelect.addEventListener('change', (e) => applyLoadedSeq(e.target.value, true));
+// Restore the saved selection (migrating the old "sequence" value to the Primary Known key).
+let savedSeq = getItem('acroReplay.loadedSeq') || getItem('acroReplay.coachFigure') || 'any';
+if (savedSeq === 'sequence') savedSeq = '2026 IAC Primary Known';
+if (![...seqSelect.options].some((o) => o.value === savedSeq)) savedSeq = 'any';
+seqSelect.value = savedSeq;
+applyLoadedSeq(savedSeq, false);
+
+// Custom builder: tap figures to queue them in order, then draw the set as one Aresti sequence.
+const CUSTOM_FIGURES = [
+  ['Loop', 'o'], ['Half Cuban', 'c'], ['Immelmann', 'm'], ['Split-S', 'a'],
+  ['Hammerhead', 'h'], ['Humpty', 'b'], ['45° up', 'd'], ['45° down', 'id'],
+  ['Turn 180°', '2j'], ['Roll', '1'], ['Spin', '1s'], ['Snap', '1f'],
+];
+const customList = document.getElementById('custom-list');
+let customPicks = [];
+function renderCustomList() {
+  customList.innerHTML = customPicks.length
+    ? customPicks.map((p, i) => `<span class="chip">${i + 1}. ${p.name}</span>`).join('')
+    : '<span class="amsg">No figures yet</span>';
+}
+const customPalette = document.getElementById('custom-palette');
+CUSTOM_FIGURES.forEach(([name, olan]) => {
+  const b = document.createElement('button');
+  b.className = 'secondary small';
+  b.textContent = name;
+  b.addEventListener('click', () => { customPicks.push({ name, olan }); renderCustomList(); });
+  customPalette.appendChild(b);
+});
+renderCustomList();
+document.getElementById('custom-undo').addEventListener('click', () => { customPicks.pop(); renderCustomList(); });
+document.getElementById('custom-clear').addEventListener('click', () => { customPicks = []; renderCustomList(); });
+document.getElementById('custom-draw').addEventListener('click', async () => {
+  if (!customPicks.length) { arestiView.innerHTML = '<div class="amsg">Add some figures first.</div>'; return; }
   arestiView.innerHTML = '<div class="amsg">Drawing…</div>';
-  const meta = POWER_KNOWNS_2026.find((s) => s.key === key);
-  showAresti(await renderLibrary(key), meta ? `${meta.category} Known` : key);
+  showAresti(await renderSequence(customPicks.map((p) => p.olan).join(' ')), 'Custom');
 });
 document.getElementById('olan-draw').addEventListener('click', async () => {
   const olan = document.getElementById('olan-import').value.trim();
@@ -1262,7 +1316,6 @@ function applyArestiViewShift() {
 }
 function openArestiOverlay() { if (!activeAresti) return; arestiOverlayBody.innerHTML = activeAresti.svg; arestiOverlay.classList.remove('hidden'); arestiToggle.classList.add('on'); positionArestiOverlay(); applyArestiViewShift(); }
 function closeArestiOverlay() { arestiOverlay.classList.add('hidden'); arestiToggle.classList.remove('on'); applyArestiViewShift(); }
-document.getElementById('aresti-show').addEventListener('click', () => { openArestiOverlay(); document.getElementById('boxpanel').classList.add('hidden'); });
 arestiToggle.addEventListener('click', () => {
   if (!activeAresti) return;   // nothing drawn yet (button is dimmed)
   if (arestiOverlay.classList.contains('hidden')) openArestiOverlay();
