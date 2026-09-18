@@ -14,7 +14,8 @@
     font: 600 17px/1.3 -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: .02em;
     transition: opacity .5s ease; -webkit-user-select: none; user-select: none; }
   #splash.gone { opacity: 0; pointer-events: none; }
-  #splash-logo { width: 190px; height: 190px; filter: drop-shadow(0 12px 34px rgba(0,0,0,.5)); }
+  /* Background-image (not <img>): if the file is ever missing it shows nothing — no broken-image glyph, no alt text. */
+  #splash-logo { width: 190px; height: 190px; background: center / contain no-repeat url(./logo-splash.png); filter: drop-shadow(0 12px 34px rgba(0,0,0,.5)); }
 </style>
 <script>
   // Inside the iOS shell, surface page errors in the native log (WKWebView has no visible console).
@@ -32,7 +33,7 @@
 </head>
 <body>
 <div id="splash" role="status" aria-label="Loading WingRock">
-  <img id="splash-logo" src="./logo-splash.png" alt="WingRock" width="190" height="190">
+  <div id="splash-logo"></div>
 </div>
 <canvas id="view"></canvas>
 
@@ -209,6 +210,8 @@
     <label class="field"><span>Paste a sequence (OLAN)</span>
       <div class="cuevol"><input id="olan-import" type="text" placeholder="e.g.  o 2j 1" spellcheck="false" autocapitalize="off" autocomplete="off"><button class="secondary small" id="olan-draw">Draw</button></div>
     </label>
+    <h3>My flight</h3>
+    <button class="secondary" id="flown-draw">Draw my last flight as Aresti</button>
     <div id="aresti-view" class="arestiview" aria-live="polite"></div>
   </div>
 </section>

@@ -24,6 +24,7 @@ import { LiveCue } from './coach/livecue.js';
 import { LiveCueMap } from './coach/cuemap.js';
 import { POWER_KNOWNS_2026 } from './coach/knowns.js';
 import { renderSequence, renderLibrary, preload as preloadAresti } from './coach/oadraw.js';
+import { flownToOlan } from './coach/flown.js';
 
 const params = new URLSearchParams(location.search);
 const GROUND_M = (parseFloat(params.get('ground_ft')) || 163) * FT_TO_M;
@@ -1068,6 +1069,7 @@ function onFigureDetected(fig, source) {
 let runState = 'idle';        // 'idle' | 'recording' | 'done'
 let runFigures = [];
 let runDoneText = '';
+let lastFlown = [];           // the last completed run's figures, for "draw my last flight as Aresti"
 // The activated sequence's human name, so the pilot can verify the wing rock armed the one they meant to fly.
 function seqName() {
   if (coachMode === 'sequence') return 'Primary Known';
@@ -1113,6 +1115,7 @@ function startRun() {
 }
 function stopRun() {
   const total = runTotal();
+  lastFlown = runFigures.slice();   // keep the flown figures for "draw my last flight as Aresti"
   runState = 'done';
   if (nativeHandler && !replay.active) nativeHandler.postMessage('seqend');
   runDoneText = total ? `${seqName()} saved \u00b7 ${total.n}/${total.tot}` : `${seqName()} saved`;
@@ -1144,6 +1147,13 @@ document.getElementById('olan-draw').addEventListener('click', async () => {
   if (!olan) return;
   arestiView.innerHTML = '<div class="amsg">Drawing…</div>';
   showAresti(await renderSequence(olan), 'Imported');
+});
+document.getElementById('flown-draw').addEventListener('click', async () => {
+  if (!lastFlown.length) { arestiView.innerHTML = '<div class="amsg">No flight recorded yet — fly a sequence first.</div>'; return; }
+  const olan = flownToOlan(lastFlown);
+  if (!olan) { arestiView.innerHTML = '<div class="amsg">No figures were recognised in the last flight.</div>'; return; }
+  arestiView.innerHTML = '<div class="amsg">Drawing…</div>';
+  showAresti(await renderSequence(olan), 'My last flight');
 });
 const spinTurnsInput = document.getElementById('spin-turns');
 spinTurnsInput.value = spinTurns;
