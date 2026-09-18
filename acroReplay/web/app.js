@@ -226,11 +226,14 @@ document.querySelectorAll('.ptab[data-mode]').forEach((tab) => tab.addEventListe
   document.getElementById('mode-judges').classList.toggle('hidden', tab.dataset.mode !== 'judges');
 }));
 // Top-level panel tabs: Box vs Settings
+const PANEL_TITLES = { box: 'Box', settings: 'Settings', sequences: 'Sequences' };
 function showPanelTab(name) {
   document.querySelectorAll('.ptab[data-panel]').forEach((b) => b.classList.toggle('on', b.dataset.panel === name));
   document.getElementById('panel-box').classList.toggle('hidden', name !== 'box');
   document.getElementById('panel-settings').classList.toggle('hidden', name !== 'settings');
-  document.getElementById('panel-title').textContent = name === 'settings' ? 'Settings' : 'Box';
+  document.getElementById('panel-sequences').classList.toggle('hidden', name !== 'sequences');
+  document.getElementById('panel-title').textContent = PANEL_TITLES[name] || 'Box';
+  if (name === 'sequences') preloadAresti();   // warm the Aresti engine when the tab opens
 }
 document.querySelectorAll('.ptab[data-panel]').forEach((tab) => tab.addEventListener('click', () => showPanelTab(tab.dataset.panel)));
 function judgesFromPhone() {
@@ -359,7 +362,7 @@ document.getElementById('settings-toggle').addEventListener('click', () => {
   const panel = document.getElementById('boxpanel');
   const opening = panel.classList.contains('hidden');
   panel.classList.toggle('hidden');
-  if (opening) { showPanelTab('settings'); preloadAresti(); }   // the gear always lands on Settings; warm the Aresti engine
+  if (opening) showPanelTab('settings');   // the gear always lands on Settings
 });
 document.getElementById('box-close').addEventListener('click', () => document.getElementById('boxpanel').classList.add('hidden'));
 // Tapping the empty 3D scene closes any open pop-over (the Box panel and the coach card); the replay bar and
