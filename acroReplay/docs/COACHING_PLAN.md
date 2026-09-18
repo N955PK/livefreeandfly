@@ -814,11 +814,19 @@ gets its K/Aresti and figure identity from OpenAero's `figures.js` instead of ha
 2026 Knowns from `rules-iac.js`. Our clean-room **`olan.js` stays** as the app-side glue: it structures OLAN for the
 grading bridge and, in reverse, the detector's figures are serialised to an OLAN string that OpenAero then draws.
 
-**Remaining build.** `oadraw.js` — a small module owning the hidden OpenAero iframe with a `renderSequence(olan) →
-svg` (and a ready/queue guard); a Sequences view (pick a Known / paste an import → show the OpenAero SVG → set as the
-coaching target); read the 2026 Power Knowns + K/Aresti from the vendored `rules-iac.js` / `figures.js`; the
-flown-to-Aresti reverse (detector figures → OLAN → `oadraw`); then the drawn-Aresti scan spike and grading per family.
-Trim the 11 MB vendored copy to what the drawing path needs before it ships in the iOS bundle.
+**Status — shipped.** `oadraw.js` drives the hidden OpenAero iframe (`renderSequence(olan)` / `renderLibrary(key)`
+with a ready/queue guard, warm-up against a cold-start race). `knowns.js` lists the five 2026 IAC Power Knowns; the
+Sequences view is a top-level panel tab (Box · Settings · Sequences) with a Known picker, an OLAN import field, and a
+"draw my last flight as Aresti" reverse (`flown.js` maps detector figures → OLAN). K/Aresti come straight from
+OpenAero. The vendored copy is trimmed to 5.5 MB (dropped docs + UI images). `arestidraw.js`/`aresti.js` remain in the
+tree from the clean-room phase but are no longer the drawing/catalogue path.
+
+**Remaining (the deferred large pieces).** The **drawn-Aresti scan** (import by photographing/loading a drawn or PDF
+sequence) is a computer-vision spike — the text/OLAN import path covers everything else, and the five Knowns already
+come from OpenAero, so scan value is arbitrary third-party drawings. And **real-time grading beyond Primary** — each
+higher-category figure family (snaps, outside/negative figures, rolling turns, tailslides, point rolls) needs new
+detection + judging (the §2.4 measurement list). Both were staged as follow-on work; the notation/view/import/reverse
+scope is complete.
 
 ## 11. Sources
 
