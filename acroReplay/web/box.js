@@ -6,7 +6,7 @@ import { nedFromLla, worldFromNed, offsetLatLon, FT_TO_M } from './frames.js';
 import { getItem, setItem } from './storage.js';
 
 const STORAGE_KEY = 'acroReplay.box';
-export const DEFAULT_BOX = { widthM: 1000, depthM: 1000, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 150, judgeAltFt: 6 };
+export const DEFAULT_BOX = { widthM: 3300 * FT_TO_M, depthM: 3300 * FT_TO_M, floorFt: 1500, ceilFt: 3500, judgeSide: 'right', judgeSetbackM: 500 * FT_TO_M, judgeAltFt: 6 };
 const DEG = Math.PI / 180;
 
 export function loadBox() {

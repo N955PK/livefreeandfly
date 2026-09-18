@@ -35,7 +35,7 @@ const STALE_MS = 400;
 const TRAIL_HZ = 25;
 const TRAIL_SECONDS_MAX = 240;   // trail buffer ceiling; the Trail length setting caps live length at or below this
 const TRAIL_MAX = TRAIL_HZ * TRAIL_SECONDS_MAX;
-let trailSeconds = Math.min(TRAIL_SECONDS_MAX, Math.max(10, Math.round(Number(getItem('acroReplay.trailSeconds')) || 180)));
+let trailSeconds = Math.min(TRAIL_SECONDS_MAX, Math.max(5, Math.round(Number(getItem('acroReplay.trailSeconds')) || 15)));
 let trailCap = TRAIL_HZ * trailSeconds;   // effective max trail points, from the user's setting
 const REST_AFTER_MS = 3000;   // no frames this long → park the aircraft
 const HOME_FIELD = [36.93575, -121.78975];   // KWVI, used only when nothing else says where we are
@@ -654,7 +654,7 @@ function pushTrail(v, nowMs, force = false) {
 function clearTrail() { trailLen = 0; trailGeo.instanceCount = 0; trailLastMs = 0; if (seg.clearUpdateRanges) seg.clearUpdateRanges(); }
 // User-set trail length (seconds). Lowering it trims the oldest points at once so the change is visible immediately.
 function setTrailSeconds(s) {
-  trailSeconds = Math.min(TRAIL_SECONDS_MAX, Math.max(10, Math.round(s) || 180));
+  trailSeconds = Math.min(TRAIL_SECONDS_MAX, Math.max(5, Math.round(s) || 15));
   trailCap = TRAIL_HZ * trailSeconds;
   setItem('acroReplay.trailSeconds', String(trailSeconds));
   if (trailLen > trailCap) {
@@ -1331,8 +1331,10 @@ spinTurnsInput.addEventListener('change', (e) => {
 function syncSpinField() { document.getElementById('spin-turns-field').classList.toggle('hidden', coachMode !== 'spin'); }
 syncSpinField();
 const trailSecsInput = document.getElementById('trail-secs');
+const trailSecsVal = document.getElementById('trail-secs-val');
 trailSecsInput.value = trailSeconds;
-trailSecsInput.addEventListener('change', (e) => { setTrailSeconds(Number(e.target.value)); e.target.value = trailSeconds; });
+trailSecsVal.textContent = `${trailSeconds} s`;
+trailSecsInput.addEventListener('input', (e) => { setTrailSeconds(Number(e.target.value)); trailSecsVal.textContent = `${trailSeconds} s`; });
 const axesToggle = document.getElementById('axes-toggle');
 axesToggle.classList.toggle('on', axesOn);
 axesToggle.addEventListener('click', () => {

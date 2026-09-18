@@ -201,6 +201,7 @@ body.simming #replaybar #rb-sim { flex: none; padding: 10px 22px; }
 .lctl .ltype { min-width: 11ch; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; padding-right: 28px; }
 .cuevol { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
 .cuevol input[type=range] { width: 120px; accent-color: var(--accent); }
+#trail-secs-val { min-width: 3.5ch; text-align: right; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
 .cuevol .secondary.small { flex: 0 0 auto; }
 .lmodwrap .lmod { width: 7ch; padding-left: 6px; padding-right: 6px; text-align: center; font-variant-numeric: tabular-nums; background: rgba(10,132,255,.26); border-color: rgba(10,132,255,.5); font-weight: 700; }
 
