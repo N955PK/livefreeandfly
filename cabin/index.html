@@ -42,7 +42,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16p
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:none;border:0;cursor:pointer}
-html,body,button,a,label,input,select,textarea,dialog{touch-action:manipulation}
+html,body,button,a,label,input,select,textarea{touch-action:manipulation}
 button,a.btn,label.btn,.chip,.tabs,.legend,.dow{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 button:active,a.btn:active,label.btn:active{opacity:.6}
 a{color:var(--accent-ink)}
@@ -159,7 +159,12 @@ dd.code{font-family:var(--mono);letter-spacing:.06em}
 dialog{border:0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));background:var(--sheet);color:var(--ink);
   width:100%;max-width:620px;margin:auto auto 0;border-radius:20px 20px 0 0;max-height:90%;overflow:auto;
   border-top:1px solid var(--line)}
-dialog::backdrop{background:rgba(5,8,11,.62)}
+dialog{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
+dialog input,dialog select,dialog textarea{min-width:0;max-width:100%}
+input[type="date"]{-webkit-appearance:none;appearance:none;text-align:left}
+input[type="date"]::-webkit-date-and-time-value{text-align:left}
+html:has(dialog[open]){overflow:hidden}
+dialog::backdrop{background:rgba(5,8,11,.62);touch-action:none}
 dialog[open]{animation:up .14s ease-out}
 @keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){dialog[open]{animation:none}}
