@@ -68,6 +68,8 @@ create table house (
   guest_collector uuid references members(id),   -- the member guests and part-timers pay directly
   lease_paid    uuid[] not null default '{}',    -- part-timers whose lease has been received
   pot_paid_out  boolean not null default false,  -- the season pot has been split between full-timers
+  deposit_cents int not null default 44500,      -- security deposit each full-time member paid up front
+  deposit_withheld_cents int not null default 0, -- total withheld from the deposits at season end
   listing_url   text,                            -- the rental listing, for general information
   lease_start   date,                            -- first night of the lease
   lease_end     date,                            -- move-out day; the last night is the one before
@@ -156,6 +158,7 @@ begin
     new.guest_fee_cents := old.guest_fee_cents;
     new.lease_start := old.lease_start; new.lease_end := old.lease_end;
     new.guest_collector := old.guest_collector; new.pot_paid_out := old.pot_paid_out;
+    new.deposit_cents := old.deposit_cents; new.deposit_withheld_cents := old.deposit_withheld_cents;
     if not is_collector() then new.lease_paid := old.lease_paid; end if;
   end if;
   return new;

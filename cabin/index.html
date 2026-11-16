@@ -409,11 +409,14 @@ const canBook = (m, k) => !m || !m.part_time || ((!m.active_from || k >= m.activ
 const myDates = m => !m || !m.part_time || (!m.active_from && !m.active_until) ? '' : m.active_from && m.active_until ? `${fmtDay(m.active_from)} to ${fmtDay(m.active_until)}` : m.active_from ? `from ${fmtDay(m.active_from)}` : `until ${fmtDay(m.active_until)}`;
 const leaseOf = m => Math.max(0, Number(m.lease_cents) || 0);
 // The pot: guest money and leases the collector has actually received. Held until the admin pays it out.
+const depositEach = () => (S.house.deposit_cents === null || S.house.deposit_cents === undefined) ? 44500 : Math.max(0, Number(S.house.deposit_cents) || 0);
+const depositWithheld = () => Math.max(0, Number(S.house.deposit_withheld_cents) || 0);
 function pot(){
   const guests = guestPaidNights().reduce((n, x) => n + x.names.length * perGuest(x.st), 0);
   const leases = partTimers().filter(leasePaid).reduce((n, m) => n + leaseOf(m), 0);
   const leasesDue = partTimers().filter(m => !leasePaid(m)).reduce((n, m) => n + leaseOf(m), 0);
-  return { guests, leases, leasesDue, total: guests + leases, paidOut: !!S.house.pot_paid_out };
+  const each = depositEach(), heads = each ? fullTimers().length : 0, withheld = Math.min(depositWithheld(), each * heads), deposits = each * heads - withheld;
+  return { guests, leases, leasesDue, each, heads, withheld, deposits, total: guests + leases + deposits, paidOut: !!S.house.pot_paid_out };
 }
 // Guest money that has actually been received: one entry per night with at least one paid guest.
 const guestPaidNights = () => guestStays().map(st => ({ st, names: guestNames(st).filter(n => isPaid(st, n)) })).filter(x => x.names.length && perGuest(x.st) > 0);
@@ -526,6 +529,11 @@ function viewMoney(){
       ${myDates(S.me) ? `<span class="s">Your dates: ${myDates(S.me)}</span>` : ''}</span>
       <span class="amt${leasePaid(S.me) ? ' pos' : ' neg'}">${money(leaseOf(S.me))}</span></div>
       ${!leasePaid(S.me) && col && col.venmo ? `<div class="pay-btns"><a class="btn small primary" href="${esc(venmoUrl(col, 'pay', leaseOf(S.me), 'Part-time lease: ' + S.me.name))}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a></div>` : ''}</li></ul>` : '';
+  const pt0 = pot(), fullMe = S.me && !S.me.part_time && pt0.each > 0, cut = fullMe && pt0.heads ? Math.ceil(pt0.withheld / pt0.heads) : 0;
+  const myDeposit = fullMe ? `<h2>Your security deposit</h2>
+    <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${pt0.paidOut ? 'Returned in the pot payout' : 'Due back at the end of the season'}</span>
+      <span class="s">${cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : 'You paid it up front. It comes back in full unless some is withheld.'}</span></span>
+      <span class="amt">${money(pt0.each - cut)}</span></div></li></ul>` : '';
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
@@ -542,7 +550,7 @@ function viewMoney(){
       <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
     ...(pot().paidOut && col && pot().total ? [{ d:'9999', c:'', html:`<li><div class="rowi">
       <span class="grow"><span class="t">Season pot paid out</span>
-      <span class="s">Guest money and leases held by ${esc(first(col))}, split between full-time members</span></span>
+      <span class="s">Guest money, leases, and returned deposits held by ${esc(first(col))}</span></span>
       <span class="amt">${money(pot().total)}</span></div></li>` }] : [])
   ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
   return `${demoNote()}<h1>House money</h1>
@@ -550,7 +558,7 @@ function viewMoney(){
       ${mine < 0 ? `<div class="actions"><button class="btn primary wide" data-act="settle-open">Settle up</button></div>`
         : mine > 0 ? `<div class="actions"><button class="btn wide" data-act="settle-open">See who owes you</button></div>` : ''}</div>
     <div class="actions"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>${venmoNudge}
-    ${myLease}
+    ${myLease}${myDeposit}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest money</h2>${guestHtml}
     <h2>Expenses and payments</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
@@ -693,6 +701,16 @@ function sheetRoles(){
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save</button></div></form>`;
 }
+// Admin only.
+function sheetDeposit(){
+  return `<form data-form="deposit"><h2>Security deposits</h2>
+    <p class="sub">Each full-time member paid a deposit up front. It comes back through the pot at the end of the season, less anything withheld.</p>
+    <label>Deposit per person, in dollars<input name="each" inputmode="decimal" autocomplete="off" value="${(depositEach()/100).toFixed(2)}"></label>
+    <label>Withheld in total, in dollars<input name="withheld" inputmode="decimal" autocomplete="off" value="${(depositWithheld()/100).toFixed(2)}"></label>
+    <p class="each">Anything withheld comes off everyone’s share equally.</p>
+    <p class="err" id="err"></p>
+    <div class="actions"><button type="button" class="btn" data-act="pot-open">Cancel</button><button class="btn primary">Save deposits</button></div></form>`;
+}
 // The admin and the member who collects see this. Only the admin can pay the pot out.
 function sheetPot(){
   const pt = pot(), col = collector(), full = fullTimers(), parts = partTimers(), admin = isAdmin();
@@ -702,11 +720,12 @@ function sheetPot(){
       <span class="amt">${money(leaseOf(m))}</span></div>
       ${leaseOf(m) ? `<div class="pay-btns"><button class="btn small${leasePaid(m) ? ' quiet' : ''}" data-act="lease-paid" data-id="${m.id}" data-v="${leasePaid(m) ? 0 : 1}">${leasePaid(m) ? 'Mark unpaid' : 'Mark ' + money(leaseOf(m)) + ' paid'}</button></div>` : ''}</li>`).join('')}</ul>` : '';
   return `<h2>The pot and leases</h2>
-    <p class="sub">${col ? `Guest money and part-time leases that ${esc(first(col))} has received.` : 'Nobody is set to collect guest and lease money yet.'} It’s held until it’s paid out, then split equally between full-time members.</p>
-    <ul class="list" style="margin-top:14px">${line('Guest money received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('In the pot', admin && full.length ? `${money(Math.floor(pt.total / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}` : '', pt.total)}</ul>
+    <p class="sub">${col ? `Guest money and part-time leases that ${esc(first(col))} has received, plus the security deposits due back.` : 'Nobody is set to collect guest and lease money yet.'} It’s held until it’s paid out, then split equally between full-time members.</p>
+    <ul class="list" style="margin-top:14px">${line('Guest money received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('Security deposits', pt.each ? `${pt.heads} × ${money(pt.each)}${pt.withheld ? ', less ' + money(pt.withheld) + ' withheld' : ', nothing withheld'}` : 'None set', pt.deposits)}${line('In the pot', admin && full.length ? `${money(Math.floor(pt.total / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}` : '', pt.total)}</ul>
+    ${admin ? `<div class="actions"><button class="btn" data-act="deposit-open">Edit security deposits</button></div>` : ''}
     ${leases}
     <h2 style="margin:26px 0 4px">Payout</h2>
-    <p class="sub">${pt.paidOut ? `Paid out. ${col ? esc(first(col)) + ' now owes each full-time member their share, and pays it through Settle up.' : ''} Money received after this is added as it arrives.` : 'Not paid out yet. Nothing here affects anyone’s balance until it is.'}</p>
+    <p class="sub">${pt.paidOut ? `Paid out. ${col ? esc(first(col)) + ' now owes each full-time member their share, and pays it through Settle up.' : ''} Money received after this is added as it arrives.` : 'Not paid out yet. Nothing here affects anyone’s balance until it is. Pay it out once the deposits have come back.'}</p>
     ${admin ? `<div class="actions"><button class="btn${pt.paidOut ? '' : ' primary'}" data-act="pot-payout" data-v="${pt.paidOut ? 0 : 1}">${pt.paidOut ? 'Undo the payout' : 'Pay out the pot'}</button></div>` : ''}
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
@@ -813,6 +832,7 @@ function sheetManage(m){
     <label>Sign-in email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"></label>
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save email</button></div>
+    <div class="actions"><button type="button" class="btn" data-act="admin-toggle" data-id="${m.id}">${m.is_admin ? `Remove ${esc(first(m))} as an admin` : `Make ${esc(first(m))} an admin`}</button></div>
     <div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div></form>`;
 }
 
@@ -881,6 +901,17 @@ const actions = {
   'guest-quick'(el){ const st = myStay(el.dataset.night); if (st) addGuest(st, el.dataset.name); },
   'guests-open'(){ openSheet(sheetGuests(), { type:'guests' }); },
   'collector-open'(){ if (isAdmin()) openSheet(sheetCollector()); },
+  'deposit-open'(){ if (isAdmin()) openSheet(sheetDeposit()); },
+  async 'admin-toggle'(el){
+    const m = member(el.dataset.id); if (!m || !isAdmin() || m.id === S.me.id) return;
+    const on = !m.is_admin, ok = await confirmBox(on
+      ? `<h2>Make ${esc(first(m))} an admin?</h2><p class="sub">${esc(first(m))} will be able to do everything you can: manage members, set roles, leases, and fees, see and pay out the pot, and add or remove admins.</p>
+         <div class="actions"><button class="btn" data-confirm="no">Not now</button><button class="btn primary" data-confirm="yes">Make admin</button></div>`
+      : `<h2>Remove ${esc(first(m))} as an admin?</h2><p class="sub">${esc(first(m))} goes back to being a regular member.</p>
+         <div class="actions"><button class="btn" data-confirm="no">Leave it</button><button class="btn primary" data-confirm="yes">Remove admin</button></div>`);
+    if (!ok) return;
+    closeSheet(); save('members', { ...m, is_admin: on }); toast(on ? `${first(m)} is now an admin` : `${first(m)} is no longer an admin`);
+  },
   'roles-open'(){ if (isAdmin()) openSheet(sheetRoles()); },
   'pot-open'(){ if (canMarkGuests()) openSheet(sheetPot(), { type:'pot' }); },
   'lease-paid'(el){
@@ -1025,6 +1056,13 @@ const forms = {
     closeSheet();
     for (const row of changes){ if (S.me && row.id === S.me.id) S.me = row; save('members', row); }
     toast('Saved');
+  },
+  deposit(f){
+    if (!isAdmin()) return;
+    const each = toCents(f.each.value), withheld = toCents(f.withheld.value), most = each * fullTimers().length;
+    if (withheld > most) return void ($('#err').textContent = `That’s more than the ${money(most)} in deposits.`);
+    save('house', { ...S.house, deposit_cents: each, deposit_withheld_cents: withheld }); toast('Deposits saved');
+    openSheet(sheetPot(), { type:'pot' });
   },
   collector(f){
     if (!isAdmin()) return;
