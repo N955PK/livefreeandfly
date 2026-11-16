@@ -42,6 +42,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16p
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:none;border:0;cursor:pointer}
+html,body,button,a,label,input,select,textarea,dialog{touch-action:manipulation}
+button,a.btn,label.btn,.chip,.tabs,.legend,.dow{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button:active,a.btn:active,label.btn:active{opacity:.6}
 a{color:var(--accent-ink)}
 :focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:8px}
 
@@ -157,7 +160,7 @@ dialog{border:0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));b
   width:100%;max-width:620px;margin:auto auto 0;border-radius:20px 20px 0 0;max-height:90%;overflow:auto;
   border-top:1px solid var(--line)}
 dialog::backdrop{background:rgba(5,8,11,.62)}
-dialog[open]{animation:up .22s ease-out}
+dialog[open]{animation:up .14s ease-out}
 @keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){dialog[open]{animation:none}}
 dialog h2{margin:0 0 4px;font-size:17px}
@@ -172,6 +175,7 @@ textarea{min-height:84px;resize:vertical}
   border:1px solid var(--line);font-size:14px;color:var(--dim)}
 .pick button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
 .pick button[aria-pressed="false"] .chip{opacity:.3}
+.pick-all{display:flex;gap:8px;margin:0 0 10px}
 .each,.err{font-size:13.5px;margin-top:10px;color:var(--dim)}
 .err{color:var(--neg)}
 .err:empty{display:none}
@@ -558,7 +562,9 @@ function sheetExpense(e){
     <label>Amount<input name="amount" required inputmode="decimal" autocomplete="off" value="${e.amount_cents ? (e.amount_cents/100).toFixed(2) : ''}" placeholder="0.00"></label>
     <label>Paid by<select name="paid_by">${pool.map(m => `<option value="${m.id}"${m.id === e.paid_by ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>
     <label>Date<input type="date" name="spent_on" required value="${esc(e.spent_on)}"></label>
-    <fieldset><legend>Split evenly between</legend><div class="pick">${pool.map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${e.split_among.includes(m.id)}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
+    <fieldset><legend>Split evenly between</legend>
+      <div class="pick-all"><button type="button" class="btn small" data-act="split-all">Select all</button><button type="button" class="btn small" data-act="split-none">Deselect all</button></div>
+      <div class="pick">${pool.map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${e.split_among.includes(m.id)}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
     <p class="each" id="each"></p><p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save expense</button></div>
     ${isNew ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="exp-del" data-id="${e.id}">Delete expense</button></div>`}</form>`;
@@ -655,6 +661,8 @@ const actions = {
   'exp-edit'(el){ const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
   'exp-del'(el){ closeSheet(); del('expenses', el.dataset.id); toast('Expense deleted'); },
   split(el){ el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); updateEach(); },
+  'split-all'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'true')); updateEach(); },
+  'split-none'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'false')); updateEach(); },
   'pay-new'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
   'pay-venmo'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
   'pay-edit'(el){ const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
