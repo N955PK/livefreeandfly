@@ -1,4 +1,4 @@
-# cabin/time
+# ski/lease
 
 A small web app for the Tahoe ski lease: who is sleeping at the house on which nights, how many guests they are bringing, and who owes whom for house bills. It lives at `livefreeandfly.org/cabin/` and replaces the spreadsheet.
 

@@ -1,4 +1,4 @@
--- cabin/time: Supabase schema. Paste into the SQL editor and run once.
+-- ski/lease: Supabase schema. Paste into the SQL editor and run once.
 -- Edit the seed row at the bottom first so you can sign in.
 
 create extension if not exists pgcrypto;
