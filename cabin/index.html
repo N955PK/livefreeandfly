@@ -426,14 +426,13 @@ function viewGate(){
   if (S.gate === 'error') return `<div class="gate"><h1>Can’t reach the house</h1><p class="sub">The data didn’t load. Check your connection, then try again.</p>
     ${S.errText ? `<p class="demo" style="margin-top:14px;overflow-wrap:anywhere">${esc(S.errText)}</p>` : ''}
     <div class="actions"><button class="btn primary" data-act="retry">Try again</button></div></div>`;
-  if (S.gate === 'sent') return `<div class="gate"><h1>Check your email</h1><p class="sub">We sent a sign-in link to ${esc(S.sentTo)}. Open it on this device.</p>
-    <div class="actions"><button class="btn quiet" data-act="signin-again">Use a different email</button></div></div>`;
   if (S.gate === 'notmember') return `<div class="gate"><h1>You’re not on the lease list</h1>
     <p class="sub">${esc(sessionEmail)} isn’t a member yet. Ask someone in the house to add this email under House, then reload.</p>
     <div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div></div>`;
-  return `<div class="gate"><h1>Sign in to the house</h1><p class="sub">Enter the email the house has on file. We’ll send you a link; there’s no password.</p>
-    <form data-form="signin"><label>Email<input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
-    <p class="err" id="err"></p><div class="actions"><button class="btn primary wide">Email me a sign-in link</button></div></form></div>`;
+  return `<div class="gate"><h1>Sign in to the house</h1>
+    <p class="sub">Use the Google account whose email the house has on file.</p>
+    <div class="actions"><button class="btn primary wide" data-act="google">Continue with Google</button></div>
+    <p class="err" id="err">${esc(S.authErr || '')}</p></div>`;
 }
 
 function render(){
@@ -554,22 +553,14 @@ const actions = {
   'house-edit'(){ openSheet(sheetHouse()); },
   reset(){ try { localStorage.removeItem(KEY); } catch(e){} reload().then(() => { persist(); render(); toast('Sample data reset'); }); },
   async signout(){ if (sb) await sb.auth.signOut(); sessionEmail = null; S.gate = 'signin'; render(); },
-  'signin-again'(){ S.gate = 'signin'; render(); },
+  async google(){
+    const { error } = await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
+    if (error){ console.error(error); $('#err').textContent = 'Google sign-in didn’t start. ' + (error.message || ''); }
+  },
   retry(){ start(); }
 };
 
 const forms = {
-  async signin(f){
-    const email = f.email.value.trim().toLowerCase();
-    const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.origin + location.pathname } });
-    if (error){ console.error(error);
-      const known = { over_email_send_rate_limit:'The hourly limit on sign-in emails is used up. Try again in an hour.',
-        email_address_not_authorized:'The email service isn’t set up to send to this address yet.',
-        over_request_rate_limit:'Too many tries in a row. Wait a few minutes, then try again.' };
-      $('#err').textContent = known[error.code] || ('That didn’t send. ' + [error.status, error.code, error.message].filter(Boolean).join(' / '));
-      return; }
-    S.sentTo = email; S.gate = 'sent'; render();
-  },
   expense(f){
     const amount_cents = toCents(f.amount.value), split = [...f.querySelectorAll('.pick [aria-pressed="true"]')].map(b => b.dataset.id);
     if (amount_cents <= 0) return void ($('#err').textContent = 'Enter an amount above zero.');
@@ -621,6 +612,8 @@ window.addEventListener('hashchange', () => { const v = location.hash.slice(1); 
 async function start(){
   const t = today(); S.month = S.month || new Date(t.getFullYear(), t.getMonth(), 1);
   const v = location.hash.slice(1); if (VIEWS.includes(v)) S.view = v;
+  const back = new URLSearchParams((location.hash || '').slice(1) || location.search);
+  if (back.get('error_description')){ S.authErr = 'Sign-in didn’t finish: ' + back.get('error_description').replace(/\+/g, ' '); history.replaceState(null, '', location.pathname); }
   S.gate = 'loading'; render();
   try {
     if (LIVE){
