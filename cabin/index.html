@@ -587,8 +587,8 @@ function viewMoney(){
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
   const guestHtml = `<ul class="list">${guestRow('Owed so far', 'Nights that have happened, not yet received', gl.owed)}${guestRow('Received', 'In advance or after the stay', gl.paid)}${guestRow('Still to come', 'Upcoming guest nights, not yet received', gl.coming)}${guestRow('Expected total', '', gl.owed + gl.paid + gl.coming)}</ul>
     <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>
-    <p class="note">${col ? `Guests pay ${esc(col.name)} directly, ${money(guestRate())} for each night they stay.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}`
-      : `Guests pay ${money(guestRate())} for each night they stay. The admin hasn’t set who collects it yet.`} Guest fees go into the pot, which is paid out at the end of the lease.</p>`;
+    <p class="note">${col ? `Guests pay ${esc(col.name)} directly for each night they stay.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}`
+      : `The admin hasn’t set who guests pay yet.`} Guest fees go into the pot, which is paid out at the end of the lease.</p>`;
   const myLease = S.me && S.me.part_time && leaseOf(S.me) ? `<h2>Your part-time lease</h2>
     <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${leasePaid(S.me) ? 'Paid' : 'Due'}</span>
       <span class="s">${col ? `Pay ${esc(col.name)} directly. It’s separate from your house balance.` : 'The admin hasn’t set who collects it yet.'}</span>
@@ -645,14 +645,14 @@ function viewHouse(){
       <div><dt>Guest fee</dt><dd>${guestRate() ? money(guestRate()) + ' a night' : 'None'}</dd></div>
       <div><dt>House notes</dt>${v(h.notes)}</div></dl>
     ${isAdmin() ? `<div class="actions"><button class="btn" data-act="house-edit">Edit house info</button></div>` : ''}
-    ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button></div>`
-    : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}
     <h2>Members</h2>
     <p class="sub" style="margin:-4px 0 10px">Admins manage members, fees, and house settings.</p>
     <ul class="list">${mem}</ul>
-    <div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>${foot}`;
+    <div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>
+    ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button></div>`
+    : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}${foot}`;
 }
 
 function viewGate(){
@@ -695,7 +695,7 @@ function closeSheet(){ const d = $('#sheet'); if (d.open) d.close(); S.sheet = n
 // The guest list editor for one of my nights, shared by the three states of the night panel.
 function guestEditor(night, names, lead){
   const used = usedGuests(names);
-  return `<label>${lead}${guestRate() ? `, ${money(guestRate())} a night each` : ''}</label>
+  return `<label>${lead}</label>
       ${names.length ? `<ul class="list" style="margin-top:8px">${names.map((n, i) => `<li><div class="rowi"><span class="grow"><span class="t">${esc(n)}</span></span>
         <button class="btn small quiet" data-act="guest-remove" data-night="${night}" data-i="${i}" aria-label="Remove ${esc(n)}">Remove</button></div></li>`).join('')}</ul>` : ''}
       <form data-form="guest-add" data-night="${night}" class="guest-add"><input name="guest" maxlength="40" autocomplete="off" placeholder="Guest’s name" aria-label="Guest’s name"><button class="btn">Add guest</button></form>
@@ -710,7 +710,7 @@ function sheetNight(night){
       ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
     : `<p class="empty">Nobody’s signed up for this night.</p>`;
   const over = cap && hc > cap, names = mine ? guestNames(mine) : [];
-  const fee = mine && stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}.${col ? ` Your guest${names.length > 1 ? 's pay' : ' pays'} ${esc(first(col))} directly.` : ''}</p>` : '';
+  const fee = mine && names.length && col ? `<p class="each">Your guest${names.length > 1 ? 's pay' : ' pays'} ${esc(first(col))} directly.</p>` : '';
   const mineHtml = present ? `${guestEditor(night, names, 'Guests you’re bringing')}${fee}
       <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
       <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">Remove my night</button>
@@ -732,7 +732,7 @@ function sheetBulk(){
   const B = S.bulk, n = B.nights.length, used = usedGuests(B.guests);
   return `<h2>${n} night${n === 1 ? '' : 's'}</h2><p class="sub">${B.nights.map(fmtDay).join(', ')}</p>
     <label class="check"><input type="checkbox" data-change="bulkstay"${B.staying ? ' checked' : ''}>I’m staying these nights</label>
-    <label>Guests for these nights${guestRate() ? `, ${money(guestRate())} a night each` : ''}</label>
+    <label>Guests for these nights</label>
     ${B.guests.length ? `<ul class="list" style="margin-top:8px">${B.guests.map((g, i) => `<li><div class="rowi"><span class="grow"><span class="t">${esc(g)}</span></span>
       <button class="btn small quiet" data-act="bulk-guest-remove" data-i="${i}" aria-label="Remove ${esc(g)}">Remove</button></div></li>`).join('')}</ul>` : ''}
     <form data-form="bulk-guest" class="guest-add"><input name="guest" maxlength="40" autocomplete="off" placeholder="Guest’s name" aria-label="Guest’s name"><button class="btn">Add guest</button></form>
