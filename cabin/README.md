@@ -22,6 +22,8 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - Headcount includes guests and is compared to the number of beds. A night over capacity is flagged; nothing is blocked.
 - The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
+- Several nights can be picked at once from the calendar and booked together, for yourself, guests, or both.
+- A member can send guests on a night they aren't staying themselves.
 - Guests are added by name on the night they stay. Each costs a nightly fee, $60 by default and editable under House Info. Each night keeps the rate it was booked at.
 - Guests pay one member, chosen by the admin, directly. A detail panel lists every guest with their sponsor, nights, and amount, a Venmo pay link to send them, and a paid mark that the admin or the collecting member can set.
 - The admin marks each member full time or part time. A part-timer pays a lease, set per person, to the collecting member, can only book nights inside the dates the admin gives them, and is left out of new expenses by default.

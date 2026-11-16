@@ -26,6 +26,7 @@ create table stays (
   member_id  uuid not null references members(id) on delete cascade,
   night      date not null,                       -- the night slept at the house
   guests     int  not null default 0 check (guests between 0 and 12),
+  host_away  boolean not null default false,        -- guests only: the member isn't sleeping there
   guest_names text[] not null default '{}',        -- one name per guest; guests = how many
   guest_paid  text[] not null default '{}',        -- guests whose fee for this night has been received
   guest_fee_cents int,                            -- per-guest rate when this night was booked
@@ -150,17 +151,15 @@ drop trigger if exists members_guard on members;
 create trigger members_guard before insert or update on members
   for each row execute function members_guard();
 
--- Only the admin can change the guest fee, the lease dates, who guests pay, and the pot payout.
--- The admin or the collecting member can mark a part-timer's lease as paid.
+-- Only admins can change house info and settings.
+-- The collecting member can also mark a part-timer's lease as paid.
 create or replace function house_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
+declare paid uuid[] := new.lease_paid;
 begin
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
-    new.guest_fee_cents := old.guest_fee_cents;
-    new.lease_start := old.lease_start; new.lease_end := old.lease_end;
-    new.guest_collector := old.guest_collector; new.pot_paid_out := old.pot_paid_out;
-    new.deposit_cents := old.deposit_cents; new.deposit_withheld_cents := old.deposit_withheld_cents;
-    if not is_collector() then new.lease_paid := old.lease_paid; end if;
+    new := old;
+    if is_collector() then new.lease_paid := paid; end if;
   end if;
   return new;
 end $$;

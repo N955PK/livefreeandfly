@@ -73,7 +73,7 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 /* ---- member chip ---- */
 .chip{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;border-radius:50%;
   font-family:var(--mono);font-size:11px;font-weight:700;color:#0a0e13;letter-spacing:0}
-.chip.sm{width:9px;height:9px;font-size:0}
+.chip.sm{width:13px;height:13px;font-size:8px;line-height:1}
 .chip.emo{font-size:16px}
 .chip.lg{width:68px;height:68px;font-size:23px}
 .chip.lg.emo{font-size:36px}
@@ -107,7 +107,7 @@ a.btn{text-decoration:none}
 .wk button[aria-pressed="true"] .n,.wk button[aria-pressed="true"] .me{color:rgba(255,255,255,.86)}
 
 /* ---- month ---- */
-.mnav{display:flex;align-items:center;justify-content:space-between;margin:30px 0 10px}
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
 .mnav h2{margin:0}
 .mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -116,7 +116,8 @@ a.btn{text-decoration:none}
   padding:5px 5px 4px;display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left}
 .day .num{font-family:var(--mono);font-size:12.5px;font-weight:600;line-height:1}
 .day .cnt{position:absolute;top:5px;right:6px;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1}
-.day .dots{margin-top:auto;display:flex;flex-wrap:wrap;gap:2px;max-width:100%}
+.day .dots{margin:auto -2px 0;display:flex;flex-wrap:wrap;gap:1px;max-height:27px;overflow:hidden}
+.day .more{font-family:var(--mono);font-size:8px;font-weight:700;color:var(--dim);width:13px;height:13px;display:inline-flex;align-items:center;justify-content:center}
 .day.past{opacity:.5}
 .day.today .num{color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px}
 .day.mine{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--accent)}
@@ -124,6 +125,12 @@ a.btn{text-decoration:none}
 .blank{visibility:hidden}
 .day.off{opacity:.3;border-style:dashed;background:none}
 .day.out{opacity:.45}
+.day.mineg{border-color:var(--accent);border-style:dashed}
+.day.picked{outline:2px solid var(--accent-ink);outline-offset:-2px;background:rgba(163,31,52,.28)}
+.pickbar{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:14px;color:var(--dim)}
+.pickbar span{flex:1}
+.stack{display:flex;flex-direction:column;gap:10px}
+.stack .btn{width:100%}
 .wk button[aria-disabled="true"]{opacity:.45}
 .mnav button:disabled{opacity:.25;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:13px;color:var(--dim)}
@@ -151,6 +158,7 @@ a.btn{text-decoration:none}
   border:1px solid var(--line);font-size:15px;font-weight:600;color:var(--ink);background:var(--panel)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.small{min-height:36px;padding:0 12px;font-size:13px;border-radius:10px}
+.btn:disabled{opacity:.4;cursor:default}
 .btn.wide{width:100%}
 .btn.quiet{border-color:transparent;background:none;color:var(--dim);font-weight:500}
 .btn.danger{border-color:transparent;background:none;color:var(--neg);font-weight:500}
@@ -212,7 +220,7 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 #toast.on{opacity:1}
 
 .gate{max-width:420px;margin:12vh auto 0;padding:0 22px}
-@media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:11px;height:11px} }
+@media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:18px;height:18px;font-size:10px} .day .dots{gap:2px;max-height:38px} .day .more{width:18px;height:18px;font-size:10px} }
 </style>
 </head>
 <body>
@@ -276,7 +284,7 @@ const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/, HEX_RE =
 function chip(m, sm, cls){
   if (!m) return '';
   const bg = HEX_RE.test(m.color || '') ? m.color : '#8B959E', a = m.avatar || '', c = cls ? ' ' + cls : '';
-  if (sm) return `<span class="chip sm" style="background:${bg}"></span>`;
+  if (sm) return `<span class="chip sm" style="background:${bg}" aria-hidden="true">${esc((m.name || '?').trim()[0].toUpperCase())}</span>`;
   if (IMG_RE.test(a)) return `<span class="chip${c}" style="background:${bg} center/cover url(${a})" aria-hidden="true"></span>`;
   if (a.startsWith('emoji:')) return `<span class="chip emo${c}" style="background:${bg}" aria-hidden="true">${esc(a.slice(6, 14))}</span>`;
   return `<span class="chip${c}" style="background:${bg}" aria-hidden="true">${esc(initials(m))}</span>`;
@@ -379,7 +387,9 @@ async function del(t, id){
 
 /* ---------- derived ---------- */
 const staysOn = night => S.stays.filter(s => s.night === night && member(s.member_id));
-const headcount = night => staysOn(night).reduce((n, s) => n + 1 + (s.guests||0), 0);
+const headcount = night => staysOn(night).reduce((n, s) => n + (s.host_away ? 0 : 1) + (s.guests||0), 0);
+const usedGuests = not => [...new Set(S.stays.filter(x => S.me && x.member_id === S.me.id).flatMap(x => Array.isArray(x.guest_names) ? x.guest_names : []))]
+  .filter(n => !not.some(x => x.toLowerCase() === n.toLowerCase())).slice(0, 6);
 const myStay = night => S.me && S.stays.find(s => s.night === night && s.member_id === S.me.id);
 const beds = () => Number(S.house.beds) || 0;
 const leaseStart = () => S.house.lease_start || null, leaseEnd = () => S.house.lease_end || null;
@@ -509,33 +519,36 @@ function viewNights(){
     const span = a.getTime() === z.getTime() ? md(a) : a.getMonth() === z.getMonth() ? `${md(a)} to ${z.getDate()}` : `${md(a)} to ${md(z)}`;
     wkLabel = `${notYet ? 'First weekend of the lease' : [5,6,0].includes(t.getDay()) ? 'This weekend' : 'This coming weekend'}, ${span}`;
   }
-  const wk = wkDays.map(d => { const k = iso(d), hc = headcount(k), mine = !!myStay(k);
-    const blocked = !mine && !canBook(S.me, k);
+  const wk = wkDays.map(d => { const k = iso(d), hc = headcount(k), st0 = myStay(k), mine = !!(st0 && !st0.host_away), away = !!(st0 && st0.host_away);
+    const blocked = !st0 && !canBook(S.me, k);
     return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}"${blocked ? ' aria-disabled="true"' : ''}>
       <span class="d">${d.toLocaleDateString('en-US',{weekday:'short'})} ${d.getDate()}</span>
       <span class="n${cap && hc > cap ? ' over' : ''}">${hc ? `${hc} of ${cap} beds` : 'Nobody yet'}</span>
-      <span class="me">${mine ? 'You’re in' : blocked ? 'Outside your dates' : 'Tap to join'}</span></button>`; }).join('');
+      <span class="me">${mine ? 'You’re in' : away ? 'Your guests are in' : blocked ? 'Outside your dates' : 'Tap to join'}</span></button>`; }).join('');
   const m0 = S.month, y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
   let cells = '<span class="blank"></span>'.repeat(m0.getDay());
   for (let d = 1; d <= days; d++){
     const k = `${y}-${pad(mo+1)}-${pad(d)}`;
     if (!inLease(k)){ cells += `<span class="day off" aria-label="${esc(fmtLong(k))}. Outside the lease."><span class="num">${d}</span></span>`; continue; }
-    const st = staysOn(k), hc = headcount(k), mine = !!myStay(k);
-    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', cap && hc > cap ? 'over' : '', !mine && !canBook(S.me, k) ? 'out' : ''].filter(Boolean).join(' ');
-    const dots = st.slice(0,6).map(s => chip(member(s.member_id), true)).join('');
-    const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping' : 'Nobody yet'}.${mine ? ' You’re in.' : ''}`;
-    cells += `<button class="${cls}" data-act="night-open" data-night="${k}" aria-label="${esc(label)}">
+    const st = staysOn(k), hc = headcount(k), st0 = myStay(k), mine = !!(st0 && !st0.host_away), away = !!(st0 && st0.host_away), picked = !!(S.pick && S.pick.has(k));
+    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', away ? 'mineg' : '', picked ? 'picked' : '', cap && hc > cap ? 'over' : '', !st0 && !canBook(S.me, k) ? 'out' : ''].filter(Boolean).join(' ');
+    const dots = st.length > 6 ? st.slice(0,5).map(s => chip(member(s.member_id), true)).join('') + `<span class="more">+${st.length - 5}</span>` : st.map(s => chip(member(s.member_id), true)).join('');
+    const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping: ' + st.map(x => first(member(x.member_id))).join(', ') : 'Nobody yet'}.${mine ? ' You’re in.' : away ? ' Your guests are in.' : ''}${picked ? ' Picked.' : ''}`;
+    cells += `<button class="${cls}" data-act="${S.pick ? 'pick-toggle' : 'night-open'}" data-night="${k}" aria-label="${esc(label)}"${S.pick ? ` aria-pressed="${picked}"` : ''}>
       <span class="num">${d}</span>${hc ? `<span class="cnt">${hc}</span>` : ''}<span class="dots">${dots}</span></button>`;
   }
   const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
   const atStart = leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart())), atEnd = lastNight() && monthKey(m0) >= monthKey(parse(lastNight()));
   const lease = leaseText(), when = notYet ? `The lease starts ${fmtDay(leaseStart())}.` : over ? `The lease ended ${fmtDay(leaseEnd())}.` : lease ? `The lease runs ${lease}.` : '';
   return `${demoNote()}<h1>Who’s up</h1>
-    <p class="sub">Mark the nights you’ll sleep at the house. ${cap ? `It sleeps ${cap}.` : ''} ${when}${myDates(S.me) ? ` You’re part time, so you can book ${myDates(S.me)}.` : ''}</p>
-    ${wk ? `<h2 style="margin-top:22px">${wkLabel}</h2><div class="wk" style="margin-top:0">${wk}</div>` : ''}
+${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
+    ${wk ? `<h2 style="margin-top:16px">${wkLabel}</h2><div class="wk" style="margin-top:0">${wk}</div>` : ''}
     <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
       <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
       <button data-act="month" data-d="1" aria-label="Next month"${atEnd ? ' disabled' : ''}>›</button></div>
+    ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap the nights you want'}</span>
+        <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
+      : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
     <div class="dow" aria-hidden="true">${['S','M','T','W','T','F','S'].map(x => `<span>${x}</span>`).join('')}</div>
     <div class="grid">${cells}</div>
     <div class="legend">${legend}</div>`;
@@ -630,7 +643,11 @@ function viewHouse(){
       <div><dt>Beds</dt>${v(h.beds ? String(h.beds) : '')}</div>
       <div><dt>Guest fee</dt><dd>${guestRate() ? money(guestRate()) + ' a night' : 'None'}</dd></div>
       <div><dt>House notes</dt>${v(h.notes)}</div></dl>
-    <div class="actions"><button class="btn" data-act="house-edit">Edit house info</button></div>
+    ${isAdmin() ? `<div class="actions"><button class="btn" data-act="house-edit">Edit house info</button></div>` : ''}
+    ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button></div>`
+    : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}
     <h2>Members</h2>
     <p class="sub" style="margin:-4px 0 10px">Admins manage members, fees, and house settings.</p>
     <ul class="list">${mem}</ul>
@@ -664,6 +681,7 @@ function render(){
   if (S.sheet && S.sheet.type === 'guests' && $('#sheet').open) $('#sheet').innerHTML = sheetGuests();
   if (S.sheet && S.sheet.type === 'pot' && $('#sheet').open) $('#sheet').innerHTML = sheetPot();
   if (S.sheet && S.sheet.type === 'history' && $('#sheet').open) $('#sheet').innerHTML = sheetHistory();
+  if (S.sheet && S.sheet.type === 'bulk' && S.bulk && $('#sheet').open) $('#sheet').innerHTML = sheetBulk();
 }
 
 /* ---------- sheets ---------- */
@@ -673,32 +691,53 @@ function openSheet(html, state){ const d = $('#sheet'); S.sheet = state || {type
   d.scrollTop = 0; }
 function closeSheet(){ const d = $('#sheet'); if (d.open) d.close(); S.sheet = null; }
 
-function sheetNight(night){
-  const st = staysOn(night), hc = headcount(night), cap = beds(), mine = myStay(night);
-  const who = st.length ? `<ul class="list" style="margin-top:14px">${st.map(s => { const m = member(s.member_id); return `<li><div class="rowi">${chip(m)}
-      <span class="grow"><span class="t">${esc(m.name)}${s.guests ? ' with ' + guestNames(s).map(esc).join(', ') : ''}</span>
-      ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
-    : `<p class="empty">Nobody’s signed up for this night.</p>`;
-  const over = cap && hc > cap;
-  const names = mine ? guestNames(mine) : [];
-  const usedBefore = !mine ? [] : [...new Set(S.stays.filter(x => x.member_id === S.me.id).flatMap(x => Array.isArray(x.guest_names) ? x.guest_names : []))]
-    .filter(n => !names.some(x => x.toLowerCase() === n.toLowerCase())).slice(0, 6);
-  const mineHtml = mine ? `<label>Guests you’re bringing${guestRate() ? `, ${money(guestRate())} a night each` : ''}</label>
+// The guest list editor for one of my nights, shared by the three states of the night panel.
+function guestEditor(night, names, lead){
+  const used = usedGuests(names);
+  return `<label>${lead}${guestRate() ? `, ${money(guestRate())} a night each` : ''}</label>
       ${names.length ? `<ul class="list" style="margin-top:8px">${names.map((n, i) => `<li><div class="rowi"><span class="grow"><span class="t">${esc(n)}</span></span>
         <button class="btn small quiet" data-act="guest-remove" data-night="${night}" data-i="${i}" aria-label="Remove ${esc(n)}">Remove</button></div></li>`).join('')}</ul>` : ''}
       <form data-form="guest-add" data-night="${night}" class="guest-add"><input name="guest" maxlength="40" autocomplete="off" placeholder="Guest’s name" aria-label="Guest’s name"><button class="btn">Add guest</button></form>
-      ${usedBefore.length ? `<div class="pick" style="margin-top:10px">${usedBefore.map(n => `<button type="button" class="plain" data-act="guest-quick" data-night="${night}" data-name="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>` : ''}
-      <p class="err" id="err"></p>
-      ${stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}.${collector() ? ` Your guest${names.length > 1 ? 's pay' : ' pays'} ${esc(first(collector()))} directly.` : ''}</p>` : ''}
+      ${used.length ? `<div class="pick" style="margin-top:10px">${used.map(n => `<button type="button" class="plain" data-act="guest-quick" data-night="${night}" data-name="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>` : ''}
+      <p class="err" id="err"></p>`;
+}
+function sheetNight(night){
+  const st = staysOn(night), hc = headcount(night), cap = beds(), mine = myStay(night), present = !!(mine && !mine.host_away), col = collector();
+  const who = st.length ? `<ul class="list" style="margin-top:14px">${st.map(s => { const m = member(s.member_id), g = guestNames(s).map(esc).join(', '); return `<li><div class="rowi">${chip(m)}
+      <span class="grow"><span class="t">${s.host_away ? g : esc(m.name) + (s.guests ? ' with ' + g : '')}</span>
+      ${s.host_away ? `<span class="s">Guest${s.guests > 1 ? 's' : ''} of ${esc(first(m))}, who isn’t staying</span>` : ''}
+      ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
+    : `<p class="empty">Nobody’s signed up for this night.</p>`;
+  const over = cap && hc > cap, names = mine ? guestNames(mine) : [];
+  const fee = mine && stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}.${col ? ` Your guest${names.length > 1 ? 's pay' : ' pays'} ${esc(first(col))} directly.` : ''}</p>` : '';
+  const mineHtml = present ? `${guestEditor(night, names, 'Guests you’re bringing')}${fee}
       <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
       <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">Remove my night</button>
       <button class="btn primary" data-act="sheet-close">Done</button></div>`
+    : mine ? `<p class="each">You’re not staying this night, but your guest${names.length > 1 ? 's are' : ' is'}.</p>
+      ${guestEditor(night, names, 'Your guests')}${fee}
+      <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">I’m staying too</button>
+      <button class="btn primary" data-act="sheet-close">Done</button></div>`
     : canBook(S.me, night) ? `<div class="actions"><button class="btn" data-act="sheet-close">Close</button>
-      <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>`
+      <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>
+      ${guestEditor(night, [], 'Or send a guest without staying yourself')}`
     : `<p class="each">This night is outside your part-time dates${myDates(S.me) ? `, ${myDates(S.me)}` : ''}. Ask the admin if that needs changing.</p>
       <div class="actions"><button class="btn" data-act="sheet-close">Close</button></div>`;
   return `<h2>${fmtLong(night)}</h2>
     <p class="sub${over ? ' neg' : ''}">${hc ? `${hc} sleeping, ${cap} beds${over ? `. That’s ${hc - cap} over.` : ''}` : `${cap} beds open`}</p>${who}${mineHtml}`;
+}
+// Several nights at once: yourself, guests, or both.
+function sheetBulk(){
+  const B = S.bulk, n = B.nights.length, used = usedGuests(B.guests);
+  return `<h2>${n} night${n === 1 ? '' : 's'}</h2><p class="sub">${B.nights.map(fmtDay).join(', ')}</p>
+    <label class="check"><input type="checkbox" data-change="bulkstay"${B.staying ? ' checked' : ''}>I’m staying these nights</label>
+    <label>Guests for these nights${guestRate() ? `, ${money(guestRate())} a night each` : ''}</label>
+    ${B.guests.length ? `<ul class="list" style="margin-top:8px">${B.guests.map((g, i) => `<li><div class="rowi"><span class="grow"><span class="t">${esc(g)}</span></span>
+      <button class="btn small quiet" data-act="bulk-guest-remove" data-i="${i}" aria-label="Remove ${esc(g)}">Remove</button></div></li>`).join('')}</ul>` : ''}
+    <form data-form="bulk-guest" class="guest-add"><input name="guest" maxlength="40" autocomplete="off" placeholder="Guest’s name" aria-label="Guest’s name"><button class="btn">Add guest</button></form>
+    ${used.length ? `<div class="pick" style="margin-top:10px">${used.map(g => `<button type="button" class="plain" data-act="bulk-guest-quick" data-name="${esc(g)}">+ ${esc(g)}</button>`).join('')}</div>` : ''}
+    <p class="err" id="err"></p>
+    <div class="actions"><button class="btn" data-act="sheet-close">Cancel</button><button class="btn primary" data-act="bulk-save">Add to ${n} night${n === 1 ? '' : 's'}</button></div>`;
 }
 
 // Every guest, grouped by the member who brought them, with what each still owes the collector.
@@ -820,7 +859,7 @@ function sheetExpense(e){
     <label>Paid by<select name="paid_by">${pool.map(m => `<option value="${m.id}"${m.id === e.paid_by ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>
     <label>Date<input type="date" name="spent_on" required data-change="expdate" value="${esc(e.spent_on)}"></label>
     ${canPot ? `<label class="check"><input type="checkbox" name="from_pot" data-change="potflag"${e.from_pot ? ' checked' : ''}>Comes out of the pot</label>
-    <p class="each" style="margin-top:6px">For utilities and other house bills. It’s split between everyone on the lease in the month of the date above. Full-timers’ shares come off what they get back at the end of the season; part-timers are charged theirs now.</p>` : ''}
+    <p class="each" style="margin-top:6px">For house bills like utilities, split between everyone on the lease that month.</p>` : ''}
     <fieldset><legend>Split evenly between</legend>
       <div class="pick-all"><button type="button" class="btn small" data-act="split-all">Select all</button><button type="button" class="btn small" data-act="split-none">Deselect all</button></div>
       <div class="pick">${pool.map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${e.split_among.includes(m.id)}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
@@ -867,15 +906,7 @@ function sheetMember(m){
     <label>Phone<input type="tel" name="phone" required autocomplete="off" data-change="phone" value="${esc(fmtPhone(m.phone))}"></label>
     <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
-    ${self && isAdmin() ? `<h2 style="margin:28px 0 4px">House admin</h2>
-    <p class="sub">Only admins see this.</p>
-    <div class="actions"><button type="button" class="btn" data-act="collector-open">Who guests pay</button></div>
-    <div class="actions" style="margin-top:10px"><button type="button" class="btn" data-act="roles-open">Full time and part time</button></div>
-    <div class="actions" style="margin-top:10px"><button type="button" class="btn" data-act="pot-open">The pot and leases</button></div>`
-    : self && canMarkGuests() ? `<h2 style="margin:28px 0 4px">Money you collect</h2>
-    <p class="sub">Only you and the admins see this.</p>
-    <div class="actions"><button type="button" class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}</form>`;
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div></form>`;
 }
 
 // Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
@@ -914,24 +945,36 @@ function confirmBox(html){
     const d = $('#confirm'); d.innerHTML = html; d.showModal(); d.focus();
     const done = v => { d.removeEventListener('click', onClick); d.removeEventListener('close', onClose); if (d.open) d.close(); res(v); };
     const onClick = e => { const b = e.target.closest('[data-confirm]');
-      if (b) done(b.dataset.confirm === 'yes' ? (d.querySelector('select') ? d.querySelector('select').value : true) : false);
+      if (b) done(b.dataset.confirm === 'no' ? false : b.dataset.confirm === 'yes' ? (d.querySelector('select') ? d.querySelector('select').value : true) : b.dataset.confirm);
       else if (e.target === d) done(false); };
     const onClose = () => done(false);
     d.addEventListener('click', onClick); d.addEventListener('close', onClose);
   });
 }
+const cleanName = raw => String(raw || '').trim().replace(/\s+/g, ' ').slice(0, 40);
 function setGuests(st, names){
+  if (!names.length && st.host_away) return void del('stays', st.id);
   const row = { ...st, guests:names.length, guest_names:names };
   // Keep the rate the night was first booked at; a later rate change only affects new guest nights.
   if (names.length && !((st.guests || 0) > 0 && st.guest_fee_cents !== null && st.guest_fee_cents !== undefined)) row.guest_fee_cents = guestRate();
   save('stays', row);
 }
 function addGuest(st, raw){
-  const name = String(raw || '').trim().replace(/\s+/g, ' ').slice(0, 40), names = guestNames(st).slice(), err = m => { const e = $('#err'); if (e) e.textContent = m; return false; };
+  const name = cleanName(raw), names = guestNames(st).slice(), err = m => { const e = $('#err'); if (e) e.textContent = m; return false; };
   if (!name) return err('Type your guest’s name first.');
   if (names.some(n => n.toLowerCase() === name.toLowerCase())) return err(`${name} is already on this night.`);
   if (names.length >= 12) return err('That’s the most guests one person can add to a night.');
   names.push(name); setGuests(st, names); return true;
+}
+// Add a guest to one of my nights; if I'm not on that night, it becomes a guests-only night.
+function addGuestTo(night, raw){
+  const st = myStay(night); if (st) return addGuest(st, raw);
+  const name = cleanName(raw), err = m => { const e = $('#err'); if (e) e.textContent = m; return false; };
+  if (!S.me || !inLease(night)) return false;
+  if (!canBook(S.me, night)) return err('That night is outside your part-time dates.');
+  if (!name) return err('Type your guest’s name first.');
+  save('stays', { id:uid(), member_id:S.me.id, night, guests:1, guest_names:[name], guest_fee_cents:guestRate(), host_away:true, note:'' });
+  return true;
 }
 function backToHistory(){ if (S.backToHistory){ S.backToHistory = false; openSheet(sheetHistory(), { type:'history' }); } }
 function setAvatar(v){
@@ -939,12 +982,22 @@ function setAvatar(v){
   f.avatar.value = v;
   $('#avaPrev').innerHTML = chip({ name: f.name.value || '?', color: f.color.value, avatar: v }, false, 'lg');
 }
-function toggleNight(night){
+async function toggleNight(night){
   if (!S.me) return;
   const mine = myStay(night);
-  if (!mine && !inLease(night)) return;
-  if (!mine && !canBook(S.me, night)) return void toast(`That night is outside your part-time dates${myDates(S.me) ? ', ' + myDates(S.me) : ''}.`);
-  if (mine) del('stays', mine.id); else save('stays', { id:uid(), member_id:S.me.id, night, guests:0, note:'' });
+  if (!mine){
+    if (!inLease(night)) return;
+    if (!canBook(S.me, night)) return void toast(`That night is outside your part-time dates${myDates(S.me) ? ', ' + myDates(S.me) : ''}.`);
+    return void save('stays', { id:uid(), member_id:S.me.id, night, guests:0, note:'' });
+  }
+  if (mine.host_away) return void save('stays', { ...mine, host_away:false });      // join my guests
+  if (!(mine.guests > 0)) return void del('stays', mine.id);
+  const names = guestNames(mine), pick = await confirmBox(`<h2>Take yourself off ${fmtDay(night)}?</h2>
+    <p class="sub">You have ${names.length === 1 ? 'a guest' : 'guests'} on this night: ${names.map(esc).join(', ')}.</p>
+    <div class="stack" style="margin-top:16px"><button class="btn primary" data-confirm="me">Just me, ${names.length === 1 ? 'my guest stays' : 'my guests stay'}</button>
+      <button class="btn" data-confirm="all">Me and my guest${names.length === 1 ? '' : 's'}</button><button class="btn" data-confirm="no">Keep everything</button></div>`);
+  if (pick === 'me') save('stays', { ...mine, host_away:true });
+  else if (pick === 'all') del('stays', mine.id);
 }
 const actions = {
   tab(el){ go(el.dataset.view); },
@@ -952,7 +1005,32 @@ const actions = {
   'night-open'(el){ openSheet(sheetNight(el.dataset.night), { type:'night', night:el.dataset.night }); },
   'night-toggle'(el){ toggleNight(el.dataset.night); },
   'guest-remove'(el){ const st = myStay(el.dataset.night); if (!st) return; const names = guestNames(st).slice(); names.splice(Number(el.dataset.i), 1); setGuests(st, names); },
-  'guest-quick'(el){ const st = myStay(el.dataset.night); if (st) addGuest(st, el.dataset.name); },
+  'guest-quick'(el){ addGuestTo(el.dataset.night, el.dataset.name); },
+  'pick-start'(){ S.pick = new Set(); render(); },
+  'pick-cancel'(){ S.pick = null; render(); },
+  'pick-toggle'(el){ const k = el.dataset.night; if (!S.pick) return;
+    if (S.pick.has(k)) S.pick.delete(k);
+    else if (!myStay(k) && !canBook(S.me, k)) return void toast('That night is outside your part-time dates.');
+    else S.pick.add(k);
+    render(); },
+  'pick-next'(){ if (!S.pick || !S.pick.size) return; S.bulk = { nights:[...S.pick].sort(), staying:true, guests:[] }; openSheet(sheetBulk(), { type:'bulk' }); },
+  'bulk-guest-remove'(el){ S.bulk.guests.splice(Number(el.dataset.i), 1); render(); },
+  'bulk-guest-quick'(el){ S.bulk.guests.push(el.dataset.name); render(); },
+  'bulk-save'(){
+    const B = S.bulk; if (!B) return;
+    if (!B.staying && !B.guests.length) return void ($('#err').textContent = 'Tick that you’re staying, or add a guest.');
+    for (const night of B.nights){
+      const st = myStay(night);
+      if (!st){ save('stays', { id:uid(), member_id:S.me.id, night, guests:B.guests.length, note:'',
+        ...(B.guests.length ? { guest_names:[...B.guests], guest_fee_cents:guestRate() } : {}), ...(B.staying ? {} : { host_away:true }) }); continue; }
+      const names = guestNames(st).slice(); B.guests.forEach(g => { if (!names.some(n => n.toLowerCase() === g.toLowerCase())) names.push(g); });
+      const row = { ...st, guests:names.length };
+      if (names.length){ row.guest_names = names; if (!(st.guests > 0) || st.guest_fee_cents === null || st.guest_fee_cents === undefined) row.guest_fee_cents = guestRate(); }
+      if (B.staying && st.host_away) row.host_away = false;
+      save('stays', row);
+    }
+    const n = B.nights.length; S.pick = null; S.bulk = null; closeSheet(); render(); toast(`Added to ${n} night${n === 1 ? '' : 's'}`);
+  },
   'guests-open'(){ openSheet(sheetGuests(), { type:'guests' }); },
   'collector-open'(){ if (isAdmin()) openSheet(sheetCollector()); },
   'deposit-open'(){ if (isAdmin()) openSheet(sheetDeposit()); },
@@ -1026,7 +1104,12 @@ const actions = {
   'history-open'(){ openSheet(sheetHistory(), { type:'history' }); },
   'exp-new'(){ S.backToHistory = false; openSheet(sheetExpense()); updateEach(); },
   'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e && e.from_pot && !canMarkGuests()) return; if (e){ openSheet(sheetExpense(e)); updateEach(); } },
-  'exp-del'(el){ closeSheet(); del('expenses', el.dataset.id); toast('Expense deleted'); backToHistory(); },
+  async 'exp-del'(el){
+    const e = S.expenses.find(x => x.id === el.dataset.id); if (!e) return;
+    if (!await confirmBox(`<h2>Delete this expense?</h2><p class="sub">${esc(e.description)}, ${money(e.amount_cents)}. Everyone’s balance changes, and it can’t be undone.</p>
+      <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
+    closeSheet(); del('expenses', e.id); toast('Expense deleted'); backToHistory();
+  },
   split(el){ el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); updateEach(); },
   'split-all'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'true')); updateEach(); },
   'split-none'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'false')); updateEach(); },
@@ -1035,7 +1118,12 @@ const actions = {
   'pay-venmo'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
   'pay-blank'(){ S.backToSettle = false; S.backToHistory = false; if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
   'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
-  'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); backToHistory(); },
+  async 'pay-del'(el){
+    const p = S.payments.find(x => x.id === el.dataset.id); if (!p) return;
+    if (!await confirmBox(`<h2>Delete this payment?</h2><p class="sub">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))} ${money(p.amount_cents)}. Both balances change, and it can’t be undone.</p>
+      <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
+    closeSheet(); del('payments', p.id); toast('Payment deleted'); backToHistory();
+  },
   'member-new'(){ openSheet(sheetMember()); },
   'member-manage'(el){ const m = member(el.dataset.id); if (m && isAdmin()) openSheet(sheetManage(m)); },
   'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
@@ -1043,8 +1131,11 @@ const actions = {
   'ava-clear'(){ setAvatar(''); },
   'ava-color'(el){ const f = $('#sheet form[data-form="member"]'); if (!f) return; f.color.value = el.dataset.c;
     f.querySelectorAll('.sw-row button').forEach(b => b.setAttribute('aria-pressed', b === el)); setAvatar(f.avatar.value); },
-  'member-remove'(el){ const m = member(el.dataset.id); if (!m || !isAdmin() || m.id === S.me.id) return; closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
-  'house-edit'(){ openSheet(sheetHouse()); },
+  async 'member-remove'(el){ const m = member(el.dataset.id); if (!m || !isAdmin() || m.id === S.me.id) return;
+    if (!await confirmBox(`<h2>Remove ${esc(m.name)} from the house?</h2><p class="sub">${esc(first(m))} loses access right away. Their past expenses and payments stay on the books.</p>
+      <div class="actions"><button class="btn" data-confirm="no">Keep them</button><button class="btn primary" data-confirm="yes">Remove</button></div>`)) return;
+    closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
+  'house-edit'(){ if (isAdmin()) openSheet(sheetHouse()); },
   reset(){ try { localStorage.removeItem(KEY); } catch(e){} reload().then(() => { persist(); render(); toast('Sample data reset'); }); },
   async signout(){ if (sb) await sb.auth.signOut(); sessionEmail = null; S.gate = 'signin'; render(); },
   async google(){
@@ -1095,7 +1186,13 @@ const forms = {
     const mine = S.me && row.id === S.me.id; if (mine) S.me = row;
     closeSheet(); save('members', row); toast(mine ? 'Your details are saved' : 'Member saved');
   },
-  'guest-add'(f){ const st = myStay(f.dataset.night); if (st && addGuest(st, f.guest.value)){ const i = $('#sheet [name=guest]'); if (i) i.focus(); } },
+  'guest-add'(f){ if (addGuestTo(f.dataset.night, f.guest.value)){ const i = $('#sheet [name=guest]'); if (i) i.focus(); } },
+  'bulk-guest'(f){
+    const name = cleanName(f.guest.value), B = S.bulk; if (!B) return;
+    if (!name) return void ($('#err').textContent = 'Type your guest’s name first.');
+    if (B.guests.some(g => g.toLowerCase() === name.toLowerCase())) return void ($('#err').textContent = `${name} is already on the list.`);
+    B.guests.push(name); render(); const i = $('#sheet [name=guest]'); if (i) i.focus();
+  },
   roles(f){
     if (!isAdmin()) return;
     const changes = [];
@@ -1133,6 +1230,7 @@ const forms = {
     closeSheet(); save('members', { ...m, email }); toast('Email saved');
   },
   house(f){
+    if (!isAdmin()) return;
     const row = { ...S.house, id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
       wifi_name:f.wifi_name.value.trim(), wifi_password:f.wifi_password.value.trim(), beds:parseInt(f.beds.value, 10) || 0, notes:f.notes.value.trim() };
     const link = f.listing_url.value.trim();
@@ -1164,10 +1262,11 @@ document.addEventListener('change', e => {
     const f = e.target.form, ids = new Set((f.from_pot.checked ? onLeaseInMonth(f.spent_on.value) : fullTimers()).map(m => m.id));
     f.querySelectorAll('.pick button').forEach(b => b.setAttribute('aria-pressed', ids.has(b.dataset.id))); updateEach();
   }
+  if (k === 'bulkstay' && S.bulk) S.bulk.staying = e.target.checked;
   if (k === 'role'){ const l = document.getElementById('lease-' + e.target.dataset.id); if (l) l.hidden = e.target.value !== 'part'; }
   if (k === 'viewas'){ S.me = member(e.target.value); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
 });
-$('#sheet').addEventListener('close', () => { S.sheet = null; });
+$('#sheet').addEventListener('close', () => { S.sheet = null; S.bulk = null; });
 $('#sheet').addEventListener('click', e => { if (e.target === e.currentTarget) closeSheet(); });
 
 /* ---------- routing and start ---------- */
