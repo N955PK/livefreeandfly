@@ -424,7 +424,15 @@ function viewNights(){
   const t = today(), tIso = iso(t), cap = beds();
   const notYet = leaseStart() && tIso < leaseStart(), over = lastNight() && tIso > lastNight();
   const fri = weekendFriday(notYet ? parse(leaseStart()) : t);
-  const wk = over ? '' : [0,1,2].map(n => addDays(fri, n)).filter(d => inLease(iso(d))).map(d => { const k = iso(d), hc = headcount(k), mine = !!myStay(k);
+  const wkDays = over ? [] : [0,1,2].map(n => addDays(fri, n)).filter(d => inLease(iso(d)));
+  // The strip moves to the next weekend each Monday: Fri, Sat, and Sun count as "this weekend".
+  let wkLabel = '';
+  if (wkDays.length){
+    const a = wkDays[0], z = wkDays[wkDays.length - 1], md = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    const span = a.getTime() === z.getTime() ? md(a) : a.getMonth() === z.getMonth() ? `${md(a)} to ${z.getDate()}` : `${md(a)} to ${md(z)}`;
+    wkLabel = `${notYet ? 'First weekend of the lease' : [5,6,0].includes(t.getDay()) ? 'This weekend' : 'This coming weekend'}, ${span}`;
+  }
+  const wk = wkDays.map(d => { const k = iso(d), hc = headcount(k), mine = !!myStay(k);
     return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}">
       <span class="d">${d.toLocaleDateString('en-US',{weekday:'short'})} ${d.getDate()}</span>
       <span class="n${cap && hc > cap ? ' over' : ''}">${hc ? `${hc} of ${cap} beds` : 'Nobody yet'}</span>
@@ -443,10 +451,10 @@ function viewNights(){
   }
   const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
   const atStart = leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart())), atEnd = lastNight() && monthKey(m0) >= monthKey(parse(lastNight()));
-  const lease = leaseText(), when = notYet ? `The lease starts ${fmtDay(leaseStart())}, so here’s the first weekend.` : over ? `The lease ended ${fmtDay(leaseEnd())}.` : lease ? `The lease runs ${lease}.` : '';
+  const lease = leaseText(), when = notYet ? `The lease starts ${fmtDay(leaseStart())}.` : over ? `The lease ended ${fmtDay(leaseEnd())}.` : lease ? `The lease runs ${lease}.` : '';
   return `${demoNote()}<h1>Who’s up</h1>
     <p class="sub">Mark the nights you’ll sleep at the house. ${cap ? `It sleeps ${cap}.` : ''} ${when}</p>
-    ${wk ? `<div class="wk">${wk}</div>` : ''}
+    ${wk ? `<h2 style="margin-top:22px">${wkLabel}</h2><div class="wk" style="margin-top:0">${wk}</div>` : ''}
     <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
       <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
       <button data-act="month" data-d="1" aria-label="Next month"${atEnd ? ' disabled' : ''}>›</button></div>
