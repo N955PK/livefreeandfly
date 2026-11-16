@@ -475,7 +475,8 @@ function viewMoney(){
       <span class="amt">${money(g.c)}</span></div></li>`).join('')}</ul>` : `<p class="empty">No guest nights yet.</p>`;
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
-      <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span></span>
+      <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
+        ${m.venmo ? `<span class="links"><a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo @${esc(m.venmo)}</a></span>` : ''}</span>
       <span class="amt ${b[m.id] > 0 ? 'pos' : b[m.id] < 0 ? 'neg' : ''}">${b[m.id] > 0 ? '+' : ''}${money(b[m.id])}</span></div></li>`).join('');
   const feed = [
     ...S.expenses.map(e => ({ d:e.spent_on, c:e.created_at||'', html:`<li><button class="rowi" data-act="exp-edit" data-id="${e.id}">
