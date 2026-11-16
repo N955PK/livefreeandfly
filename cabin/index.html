@@ -499,7 +499,8 @@ function viewGate(){
     <p class="sub">${esc(sessionEmail)} isn’t a member yet. Ask someone in the house to add this email under House, then reload.</p>
     <div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div></div>`;
   return `<div class="gate"><h1>Sign in to the house</h1>
-    <p class="sub">Use the Google account whose email the house has on file.</p>
+    <p class="sub">cabin/time is a private app for the members of one shared ski house. It tracks who is staying which nights, guests, and shared house bills.</p>
+    <p class="sub">Use the Google account whose email the house has on file. Google sign-in is used only to check your email against the member list.</p>
     <div class="actions"><button class="btn primary wide" data-act="google">Continue with Google</button></div>
     <p class="err" id="err">${esc(S.authErr || '')}</p>
     <p class="note" style="margin-top:22px"><a href="privacy.html">Privacy policy</a></p></div>`;
