@@ -71,6 +71,17 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .chip{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;border-radius:50%;
   font-family:var(--mono);font-size:11px;font-weight:700;color:#0a0e13;letter-spacing:0}
 .chip.sm{width:9px;height:9px;font-size:0}
+.chip.emo{font-size:16px}
+.chip.lg{width:68px;height:68px;font-size:23px}
+.chip.lg.emo{font-size:36px}
+.ava{display:flex;align-items:center;gap:14px}
+.ava .btns{display:flex;flex-wrap:wrap;gap:8px}
+.ava label{margin:0}
+.emo-row,.sw-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.emo-row button{width:42px;height:42px;font-size:22px;border:1px solid var(--line);border-radius:10px}
+.sw-row button{width:38px;height:38px;border-radius:50%;border:2px solid transparent}
+.sw-row button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--sheet)}
+input[type="hidden"],input[hidden]{display:none}
 
 /* ---- weekend strip ---- */
 .wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
@@ -228,7 +239,26 @@ const member = id => S.members.find(m => m.id === id);
 const first = m => m ? m.name.trim().split(/\s+/)[0] : 'Someone';
 const active = () => S.members.filter(m => m.active !== false);
 const initials = m => { const p = m.name.trim().split(/\s+/); return ((p[0]?.[0]||'') + (p[1]?.[0] || p[0]?.[1] || '')).toUpperCase(); };
-const chip = (m, sm) => m ? `<span class="chip${sm?' sm':''}" style="background:${esc(m.color||'#8B959E')}" ${sm?'':'aria-hidden="true"'}>${sm?'':esc(initials(m))}</span>` : '';
+const EMOJI = ['🎿','🏂','⛷️','🏔️','❄️','☃️','🌲','🔥','🐻','🦌','🐕','☕','🍺','🚠'];
+const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/, HEX_RE = /^#[0-9a-f]{6}$/i;
+function chip(m, sm, cls){
+  if (!m) return '';
+  const bg = HEX_RE.test(m.color || '') ? m.color : '#8B959E', a = m.avatar || '', c = cls ? ' ' + cls : '';
+  if (sm) return `<span class="chip sm" style="background:${bg}"></span>`;
+  if (IMG_RE.test(a)) return `<span class="chip${c}" style="background:${bg} center/cover url(${a})" aria-hidden="true"></span>`;
+  if (a.startsWith('emoji:')) return `<span class="chip emo${c}" style="background:${bg}" aria-hidden="true">${esc(a.slice(6, 14))}</span>`;
+  return `<span class="chip${c}" style="background:${bg}" aria-hidden="true">${esc(initials(m))}</span>`;
+}
+async function fileToAvatar(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    const n = 128, cv = document.createElement('canvas'); cv.width = cv.height = n;
+    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    cv.getContext('2d').drawImage(img, (img.naturalWidth - side)/2, (img.naturalHeight - side)/2, side, side, 0, 0, n, n);
+    return cv.toDataURL('image/jpeg', .82);
+  } finally { URL.revokeObjectURL(url); }
+}
 const tel = p => String(p||'').replace(/[^0-9+]/g,'');
 let toastT;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
@@ -508,6 +538,14 @@ function sheetMember(m){
   const self = !isNew && S.me && m.id === S.me.id, lockEmail = self && LIVE;
   return `<form data-form="member" data-id="${isNew ? '' : m.id}"><h2>${isNew ? 'Add a member' : self ? 'Your details' : 'Edit member'}</h2>
     ${isNew ? `<p class="sub">They sign in with Google, so use the email of their Google account.</p>` : ''}
+    ${isNew ? '' : `<fieldset><legend>Picture</legend>
+      <div class="ava"><span id="avaPrev">${chip(m, false, 'lg')}</span>
+        <div class="btns"><label class="btn small" for="avaFile">Upload a photo</label>
+          <input type="file" id="avaFile" accept="image/*" data-change="avafile" hidden>
+          <button type="button" class="btn small quiet" data-act="ava-clear">Use initials</button></div></div>
+      <div class="emo-row">${EMOJI.map(e => `<button type="button" data-act="ava-emoji" data-e="${e}" aria-label="Use ${e} as the picture">${e}</button>`).join('')}</div>
+      <div class="sw-row">${PALETTE.map((c, i) => `<button type="button" data-act="ava-color" data-c="${c}" style="background:${c}" aria-label="Color ${i + 1}" aria-pressed="${(m.color || '').toLowerCase() === c}"></button>`).join('')}</div>
+      <input type="hidden" name="avatar" value="${esc(m.avatar || '')}"><input type="hidden" name="color" value="${esc(m.color || '')}"></fieldset>`}
     <label>${self ? 'Name shown to the house' : 'Name'}<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
     <label>Email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"${lockEmail ? ' readonly' : ''}></label>
     ${lockEmail ? `<p class="each">This is the Google account you sign in with, so it can’t be changed here.</p>` : ''}
@@ -531,6 +569,11 @@ function sheetHouse(){
 }
 
 /* ---------- actions ---------- */
+function setAvatar(v){
+  const f = $('#sheet form[data-form="member"]'); if (!f || !f.avatar) return;
+  f.avatar.value = v;
+  $('#avaPrev').innerHTML = chip({ name: f.name.value || '?', color: f.color.value, avatar: v }, false, 'lg');
+}
 function toggleNight(night){
   if (!S.me) return;
   const mine = myStay(night);
@@ -554,6 +597,10 @@ const actions = {
   'member-new'(){ openSheet(sheetMember()); },
   'member-edit'(el){ openSheet(sheetMember(member(el.dataset.id))); },
   'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
+  'ava-emoji'(el){ setAvatar('emoji:' + el.dataset.e); },
+  'ava-clear'(){ setAvatar(''); },
+  'ava-color'(el){ const f = $('#sheet form[data-form="member"]'); if (!f) return; f.color.value = el.dataset.c;
+    f.querySelectorAll('.sw-row button').forEach(b => b.setAttribute('aria-pressed', b === el)); setAvatar(f.avatar.value); },
   'member-remove'(el){ const m = member(el.dataset.id); if (!m) return; closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
   'house-edit'(){ openSheet(sheetHouse()); },
   reset(){ try { localStorage.removeItem(KEY); } catch(e){} reload().then(() => { persist(); render(); toast('Sample data reset'); }); },
@@ -590,6 +637,8 @@ const forms = {
     if (clash && clash.active !== false) return void ($('#err').textContent = `${clash.name} already uses that email.`);
     const base = old || clash || { id:uid(), color:PALETTE[S.members.length % PALETTE.length] };
     const row = { ...base, name:f.name.value.trim(), email, phone:f.phone.value.trim(), active:true };
+    if (f.avatar && f.avatar.value !== (base.avatar || '')) row.avatar = f.avatar.value || null;
+    if (f.color && HEX_RE.test(f.color.value)) row.color = f.color.value;
     const mine = S.me && row.id === S.me.id; if (mine) S.me = row;
     closeSheet(); save('members', row); toast(mine ? 'Your details are saved' : 'Member saved');
   },
@@ -606,6 +655,10 @@ document.addEventListener('input', e => { if (e.target.name === 'amount') update
 document.addEventListener('change', e => {
   const k = e.target.dataset.change;
   if (k === 'note'){ const s = myStay(e.target.dataset.night); if (s) save('stays', { ...s, note:e.target.value.trim() }); }
+  if (k === 'avafile' && e.target.files[0]){
+    fileToAvatar(e.target.files[0]).then(setAvatar).catch(() => { $('#err').textContent = 'That picture couldn’t be read. Try a different one.'; });
+    e.target.value = '';
+  }
   if (k === 'viewas'){ S.me = member(e.target.value); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
 });
 $('#sheet').addEventListener('close', () => { S.sheet = null; });

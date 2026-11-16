@@ -9,6 +9,7 @@ create table members (
   email      text not null,
   phone      text not null,
   color      text,
+  avatar     text check (avatar is null or length(avatar) < 60000),  -- small inline picture or 'emoji:…'
   active     boolean not null default true,
   created_at timestamptz not null default now()
 );
