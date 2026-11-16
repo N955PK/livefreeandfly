@@ -480,10 +480,9 @@ function viewMoney(){
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
   const charges = guestCharges(), tIso = iso(today()), gs = guestStays();
   const charged = gs.filter(x => x.night <= tIso).reduce((n, x) => n + stayFee(x), 0), coming = gs.filter(x => x.night > tIso).reduce((n, x) => n + stayFee(x), 0);
-  const sharers = poolMembers(), sharedBy = sharers.length === active().length ? 'all members' : sharers.map(first).join(', ');
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
-  const guestHtml = `<ul class="list">${guestRow('Charged so far', 'Guest nights that have happened', charged)}${guestRow('Still to come', 'Guest nights on the calendar', coming)}${guestRow('Expected from guests', '', charged + coming)}</ul>
-    <div class="actions"><button class="btn" data-act="guests-open">See every guest</button>${isAdmin() ? `<button class="btn" data-act="pool-open">Who shares it</button>` : ''}</div>`;
+  const guestHtml = `<ul class="list">${guestRow('Charged so far', 'Guest nights that have happened', charged)}${guestRow('Still to come', 'Guest nights on the calendar', coming)}${guestRow('Expected total', '', charged + coming)}</ul>
+    <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>`;
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
@@ -510,7 +509,7 @@ function viewMoney(){
     <div class="actions"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>${venmoNudge}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest money</h2>${guestHtml}
-    <p class="note">A guest is ${money(guestRate())} a night, charged to the member who brought them once the night has happened. That member collects from their guest.${isAdmin() ? ` Shared equally by ${esc(sharedBy)}. Only you see who shares it.` : ''}</p>
+    <p class="note">A guest is ${money(guestRate())} a night, charged to the member who brought them once the night has happened. That member collects from their guest.</p>
     <h2>Expenses, payments, and guest fees</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
 }
 
@@ -621,7 +620,7 @@ function sheetGuests(){
           ${g.future.length ? `<span class="s">Upcoming: ${dates(g.future)}${g.coming ? ', ' + money(g.coming) + ' still to come' : ''}</span>` : ''}</span>
           <span class="amt">${money(g.charged + g.coming)}</span></div></li>`; }).join('')}</ul>`; }).join('');
   return `<h2>Every guest</h2><p class="sub">Each guest’s sponsor is charged the nightly rate and collects from the guest directly.</p>${body}
-    <div class="grp"><span>Expected from guests</span><span class="amt">${money(all + allComing)}</span></div>
+    <div class="grp"><span>Expected total</span><span class="amt">${money(all + allComing)}</span></div>
     <p class="note">${money(all)} charged so far, ${money(allComing)} still to come.</p>
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
@@ -712,7 +711,10 @@ function sheetMember(m){
     <label>Phone<input type="tel" name="phone" required autocomplete="off" data-change="phone" value="${esc(fmtPhone(m.phone))}"></label>
     <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div></form>`;
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
+    ${self && isAdmin() ? `<h2 style="margin:28px 0 4px">House admin</h2>
+    <p class="sub">Only you see this.</p>
+    <div class="actions"><button type="button" class="btn" data-act="pool-open">Who shares the guest money</button></div>` : ''}</form>`;
 }
 
 // Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
