@@ -42,6 +42,7 @@ create table expenses (
   paid_by      uuid not null references members(id),
   split_among  uuid[] not null check (cardinality(split_among) > 0),  -- even split
   spent_on     date not null default current_date,
+  from_pot     boolean not null default false,   -- a house bill that comes out of the season pot
   created_at   timestamptz not null default now()
 );
 
@@ -191,6 +192,22 @@ end $$;
 drop trigger if exists stays_guard on stays;
 create trigger stays_guard before insert or update on stays
   for each row execute function stays_guard();
+
+-- Only an admin or the collecting member can log, change, or delete a pot expense.
+create or replace function expenses_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(auth.jwt() ->> 'email', '') = '' or is_admin() or is_collector() then
+    if tg_op = 'DELETE' then return old; end if; return new;
+  end if;
+  if tg_op = 'INSERT' then new.from_pot := false; return new; end if;
+  if old.from_pot then raise exception 'Only an admin can change a pot expense'; end if;
+  if tg_op = 'DELETE' then return old; end if;
+  new.from_pot := false; return new;
+end $$;
+drop trigger if exists expenses_guard on expenses;
+create trigger expenses_guard before insert or update or delete on expenses
+  for each row execute function expenses_guard();
 
 -- New Supabase projects no longer expose tables to the browser API by
 -- default, so grant signed-in users access explicitly. Row-level security

@@ -27,6 +27,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - The admin marks each member full time or part time. A part-timer pays a lease, set per person, to the collecting member, can only book nights inside the dates the admin gives them, and is left out of new expenses by default.
 - Each full-time member paid a security deposit up front ($445 by default). It comes back through the pot, less anything withheld, which comes off everyone equally.
 - There can be more than one admin; an admin can make another member an admin.
+- An admin or the collecting member can mark an expense as coming out of the pot, for utilities and other house bills. It is split between everyone on the lease in the month of its date. A part-timer's share is charged to them right away; a full-timer's share waits and comes off what they get back at payout.
 - Guest money and leases that have been received sit in a season pot. Nothing in it affects balances until the admin pays it out; then it is split equally between full-time members and the collecting member settles up with them.
 
 ### Money

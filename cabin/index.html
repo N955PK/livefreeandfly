@@ -197,6 +197,8 @@ textarea{min-height:84px;resize:vertical}
 .pick button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
 .pick button[aria-pressed="false"] .chip{opacity:.3}
 .pick-all{display:flex;gap:8px;margin:0 0 10px}
+label.check{display:flex;align-items:center;gap:12px;color:var(--ink);font-size:15.5px;margin-top:18px}
+input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24px;margin:0;padding:0;flex:0 0 auto;accent-color:var(--accent)}
 .each,.err{font-size:13.5px;margin-top:10px;color:var(--dim)}
 .err{color:var(--neg)}
 .err:empty{display:none}
@@ -414,12 +416,35 @@ const leaseOf = m => Math.max(0, Number(m.lease_cents) || 0);
 // The pot: guest money and leases the collector has actually received. Held until the admin pays it out.
 const depositEach = () => (S.house.deposit_cents === null || S.house.deposit_cents === undefined) ? 44500 : Math.max(0, Number(S.house.deposit_cents) || 0);
 const depositWithheld = () => Math.max(0, Number(S.house.deposit_withheld_cents) || 0);
+// How one expense divides, to the cent, between the people it's split among.
+function sharesOf(e){
+  const ids = (e.split_among || []).filter(id => member(id)).sort(), out = {}; if (!ids.length) return out;
+  const base = Math.floor(e.amount_cents / ids.length); let rem = e.amount_cents - base * ids.length;
+  ids.forEach(id => { out[id] = base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
+  return out;
+}
+// Pot expenses (utilities and the like): a part-timer's share is charged to them right away;
+// a full-timer's share waits and comes off what they get back when the pot is paid out.
+const potExpenses = () => S.expenses.filter(e => e.from_pot && member(e.paid_by));
+const isPart = id => { const m = member(id); return !!(m && m.part_time); };
+function potCosts(){
+  const mine = {}; let all = 0, part = 0, held = 0;
+  for (const e of potExpenses()){ const sh = sharesOf(e);
+    for (const id in sh){ all += sh[id]; if (isPart(id)) part += sh[id]; else { held += sh[id]; mine[id] = (mine[id] || 0) + sh[id]; } } }
+  return { all, part, held, mine };
+}
+// Everyone on the lease in the month a bill covers: full-timers, plus part-timers whose dates touch that month.
+function onLeaseInMonth(dateIso){
+  const d = parse(dateIso || iso(today())), a = iso(new Date(d.getFullYear(), d.getMonth(), 1)), z = iso(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+  return active().filter(m => !m.part_time || ((!m.active_from || m.active_from <= z) && (!m.active_until || m.active_until >= a)));
+}
 function pot(){
   const guests = guestPaidNights().reduce((n, x) => n + x.names.length * perGuest(x.st), 0);
   const leases = partTimers().filter(leasePaid).reduce((n, m) => n + leaseOf(m), 0);
   const leasesDue = partTimers().filter(m => !leasePaid(m)).reduce((n, m) => n + leaseOf(m), 0);
   const each = depositEach(), heads = each ? fullTimers().length : 0, withheld = Math.min(depositWithheld(), each * heads), deposits = each * heads - withheld;
-  return { guests, leases, leasesDue, each, heads, withheld, deposits, total: guests + leases + deposits, paidOut: !!S.house.pot_paid_out };
+  const costs = potCosts();
+  return { guests, leases, leasesDue, each, heads, withheld, deposits, costs, total: guests + leases + deposits, net: guests + leases + deposits - costs.held, paidOut: !!S.house.pot_paid_out };
 }
 // Guest money that has actually been received: one entry per night with at least one paid guest.
 const guestPaidNights = () => guestStays().map(st => ({ st, names: guestNames(st).filter(n => isPaid(st, n)) })).filter(x => x.names.length && perGuest(x.st) > 0);
@@ -440,10 +465,9 @@ const guestCharges = () => { const t = iso(today()); return S.stays.filter(s => 
 function balances(){
   const b = {}; S.members.forEach(m => b[m.id] = 0);
   for (const e of S.expenses){
-    const ids = (e.split_among||[]).filter(id => id in b).sort(); if (!ids.length || !(e.paid_by in b)) continue;
-    b[e.paid_by] += e.amount_cents;
-    const base = Math.floor(e.amount_cents / ids.length); let rem = e.amount_cents - base*ids.length;
-    ids.forEach(id => { b[id] -= base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
+    if (!(e.paid_by in b)) continue;
+    const sh = sharesOf(e), held = e.from_pot && !S.house.pot_paid_out;     // before payout, full-timers' pot shares wait
+    for (const id in sh){ if (held && !isPart(id)) continue; b[id] -= sh[id]; b[e.paid_by] += sh[id]; }
   }
   for (const p of S.payments){ if (!(p.from_member in b) || !(p.to_member in b)) continue; b[p.from_member] += p.amount_cents; b[p.to_member] -= p.amount_cents; }
   // The season pot: once the admin pays it out, the collector owes it to the full-time members.
@@ -520,10 +544,11 @@ function viewNights(){
 function historyHtml(){
   const col = collector();
   return [
-    ...S.expenses.map(e => ({ d:e.spent_on, c:e.created_at||'', html:`<li><button class="rowi" data-act="exp-edit" data-id="${e.id}">
-      <span class="grow"><span class="t">${esc(e.description)}</span>
+    ...S.expenses.map(e => { const locked = e.from_pot && !canMarkGuests(), tag = locked ? 'div' : 'button';
+      return { d:e.spent_on, c:e.created_at||'', html:`<li><${tag} class="rowi"${locked ? '' : ` data-act="exp-edit" data-id="${e.id}"`}>
+      <span class="grow"><span class="t">${esc(e.description)}${e.from_pot ? '<span class="tag">From the pot</span>' : ''}</span>
       <span class="s">${esc(first(member(e.paid_by)))} paid, split ${(e.split_among||[]).length} ways, ${fmtDay(e.spent_on)}</span></span>
-      <span class="amt">${money(e.amount_cents)}</span></button></li>` })),
+      <span class="amt">${money(e.amount_cents)}</span></${tag}></li>` }; }),
     ...S.payments.map(p => ({ d:p.paid_on, c:p.created_at||'', html:`<li><button class="rowi" data-act="pay-edit" data-id="${p.id}">
       <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
       <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
@@ -560,10 +585,12 @@ function viewMoney(){
   const cut = pt0.heads ? Math.ceil(pt0.withheld / pt0.heads) : 0, depBack = Math.max(0, pt0.each - cut), share = Math.floor((pt0.guests + pt0.leases) / n);
   const sees = isAdmin() || canMarkGuests() || pt0.paidOut;     // the pot's size stays with admins until it's paid out
   const backRow = (t, sub, v) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${v}</span></div></li>`;
+  const myCosts = (S.me && pt0.costs.mine[S.me.id]) || 0, net = depBack + (sees ? share : 0) - myCosts;
   const dueBack = fullMe ? `<h2>Due back to you at the end of the season</h2>
     <ul class="list">${pt0.each ? backRow('Security deposit', cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : 'Paid up front. Comes back in full unless some is withheld.', money(depBack)) : ''}
       ${backRow('Share of guest money and part-time leases', sees ? (pt0.paidOut ? '' : 'So far. It grows as more comes in.') : 'Worked out when the pot is paid out.', sees ? money(share) : 'At payout')}
-      ${sees ? backRow(pt0.paidOut ? 'Paid out to you' : 'Total so far', pt0.paidOut ? 'It’s in your balance above.' : '', money(depBack + share)) : ''}</ul>` : '';
+      ${myCosts || pt0.costs.all ? backRow('Your share of utilities and house costs', 'Comes off what you get back.', money(-myCosts)) : ''}
+      ${backRow(pt0.paidOut ? 'Paid out to you' : sees ? 'Total so far' : 'Deposit less costs so far', pt0.paidOut ? 'It’s in your balance above.' : net < 0 ? 'Costs are ahead of what’s due back, so you’d owe this at payout.' : '', `<span class="${net < 0 ? 'neg' : ''}">${money(net)}</span>`)}</ul>` : '';
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
@@ -741,8 +768,10 @@ function sheetPot(){
   return `<h2>The pot and leases</h2>
     <p class="sub">${col ? `Guest money and part-time leases that ${esc(first(col))} has received, plus the security deposits due back.` : 'Nobody is set to collect guest and lease money yet.'} It’s held until it’s paid out, then split equally between full-time members.</p>
     <h2 style="margin:22px 0 8px">What’s gone in</h2><ul class="list">${line('Guest money received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('Security deposits', pt.each ? `${pt.heads} × ${money(pt.each)}${pt.withheld ? ', less ' + money(pt.withheld) + ' withheld' : ', nothing withheld'}` : 'None set', pt.deposits)}</ul>
-    <div class="bal" style="margin-top:16px"><div class="l">In the pot</div><div class="v">${money(pt.total)}</div>
-      ${admin && full.length ? `<div class="l" style="margin-top:4px">${money(Math.floor(pt.total / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}</div>` : ''}</div>
+    <h2 style="margin:22px 0 8px">What’s come out</h2>
+    <ul class="list">${line('Utilities and house costs', pt.costs.all ? `${money(pt.costs.all)} in bills${pt.costs.part ? ', ' + money(pt.costs.part) + ' of it charged to part-timers' : ''}` : 'Nothing logged yet. Add an expense and tick “Comes out of the pot”.', -pt.costs.held)}</ul>
+    <div class="bal" style="margin-top:16px"><div class="l">In the pot</div><div class="v${pt.net < 0 ? ' neg' : ''}">${money(pt.net)}</div>
+      ${admin && full.length ? `<div class="l" style="margin-top:4px">About ${money(Math.trunc(pt.net / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}</div>` : ''}</div>
     ${admin ? `<div class="actions"><button class="btn" data-act="deposit-open">Edit security deposits</button></div>` : ''}
     ${leases}
     <h2 style="margin:26px 0 4px">Payout</h2>
@@ -783,12 +812,15 @@ function sheetSettle(){
 
 function sheetExpense(e){
   const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:fullTimers().map(m => m.id), description:'', amount_cents:0 };
+  const canPot = canMarkGuests();
   const pool = S.members.filter(m => m.active !== false || e.split_among.includes(m.id) || m.id === e.paid_by);
   return `<form data-form="expense" data-id="${isNew ? '' : e.id}"><h2>${isNew ? 'Add an expense' : 'Edit expense'}</h2>
     <label>What was it<input name="description" required maxlength="80" value="${esc(e.description)}" placeholder="Propane refill"></label>
     <label>Amount<input name="amount" required inputmode="decimal" autocomplete="off" value="${e.amount_cents ? (e.amount_cents/100).toFixed(2) : ''}" placeholder="0.00"></label>
     <label>Paid by<select name="paid_by">${pool.map(m => `<option value="${m.id}"${m.id === e.paid_by ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>
-    <label>Date<input type="date" name="spent_on" required value="${esc(e.spent_on)}"></label>
+    <label>Date<input type="date" name="spent_on" required data-change="expdate" value="${esc(e.spent_on)}"></label>
+    ${canPot ? `<label class="check"><input type="checkbox" name="from_pot" data-change="potflag"${e.from_pot ? ' checked' : ''}>Comes out of the pot</label>
+    <p class="each" style="margin-top:6px">For utilities and other house bills. It’s split between everyone on the lease in the month of the date above. Full-timers’ shares come off what they get back at the end of the season; part-timers are charged theirs now.</p>` : ''}
     <fieldset><legend>Split evenly between</legend>
       <div class="pick-all"><button type="button" class="btn small" data-act="split-all">Select all</button><button type="button" class="btn small" data-act="split-none">Deselect all</button></div>
       <div class="pick">${pool.map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${e.split_among.includes(m.id)}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
@@ -947,8 +979,8 @@ const actions = {
     const on = el.dataset.v === '1', pt = pot(), col = collector(), full = fullTimers();
     if (on && !col) return void toast('Set who guests pay first, so the app knows who is holding the pot.');
     const ok = await confirmBox(on
-      ? `<h2>Pay out the pot?</h2><p class="sub">${money(pt.total)} is split between ${full.length} full-time member${full.length === 1 ? '' : 's'}, ${money(Math.floor(pt.total / full.length))} each.</p>
-         <p class="sub">${esc(first(col))} is charged that amount and pays everyone through Settle up. Money received later is added as it arrives.</p>
+      ? `<h2>Pay out the pot?</h2><p class="sub">${money(pt.total)} came in and ${money(pt.costs.held)} of house costs come out, leaving ${money(pt.net)} for ${full.length} full-time member${full.length === 1 ? '' : 's'}.</p>
+         <p class="sub">Each gets an equal share of what came in, less their own share of the costs. ${esc(first(col))} holds the money and pays everyone through Settle up. Anything received or billed later is added as it arrives.</p>
          <div class="actions"><button class="btn" data-confirm="no">Not yet</button><button class="btn primary" data-confirm="yes">Pay it out</button></div>`
       : `<h2>Undo the payout?</h2><p class="sub">The pot comes back out of everyone’s balances and is held again. Payments already recorded stay as they are.</p>
          <div class="actions"><button class="btn" data-confirm="no">Leave it</button><button class="btn primary" data-confirm="yes">Undo payout</button></div>`);
@@ -993,7 +1025,7 @@ const actions = {
   'sheet-close'(){ closeSheet(); },
   'history-open'(){ openSheet(sheetHistory(), { type:'history' }); },
   'exp-new'(){ S.backToHistory = false; openSheet(sheetExpense()); updateEach(); },
-  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
+  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e && e.from_pot && !canMarkGuests()) return; if (e){ openSheet(sheetExpense(e)); updateEach(); } },
   'exp-del'(el){ closeSheet(); del('expenses', el.dataset.id); toast('Expense deleted'); backToHistory(); },
   split(el){ el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); updateEach(); },
   'split-all'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'true')); updateEach(); },
@@ -1030,6 +1062,8 @@ const forms = {
     const old = S.expenses.find(x => x.id === f.dataset.id);
     const row = { id: old ? old.id : uid(), description:f.description.value.trim(), amount_cents, paid_by:f.paid_by.value,
       split_among:split, spent_on:f.spent_on.value, created_at: old ? old.created_at : new Date().toISOString() };
+    const fromPot = f.from_pot ? f.from_pot.checked : !!(old && old.from_pot);
+    if (fromPot || (old && 'from_pot' in old)) row.from_pot = fromPot;
     closeSheet(); save('expenses', row); toast('Expense saved'); backToHistory();
   },
   payment(f){
@@ -1126,6 +1160,10 @@ document.addEventListener('change', e => {
     e.target.value = '';
   }
   if (k === 'phone') e.target.value = fmtPhone(e.target.value);
+  if (k === 'potflag' || (k === 'expdate' && e.target.form.from_pot && e.target.form.from_pot.checked)){
+    const f = e.target.form, ids = new Set((f.from_pot.checked ? onLeaseInMonth(f.spent_on.value) : fullTimers()).map(m => m.id));
+    f.querySelectorAll('.pick button').forEach(b => b.setAttribute('aria-pressed', ids.has(b.dataset.id))); updateEach();
+  }
   if (k === 'role'){ const l = document.getElementById('lease-' + e.target.dataset.id); if (l) l.hidden = e.target.value !== 'part'; }
   if (k === 'viewas'){ S.me = member(e.target.value); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
 });
