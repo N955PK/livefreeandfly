@@ -24,6 +24,7 @@ create table stays (
   night      date not null,                       -- the night slept at the house
   guests     int  not null default 0 check (guests between 0 and 12),
   guest_names text[] not null default '{}',        -- one name per guest; guests = how many
+  guest_paid  text[] not null default '{}',        -- guests whose fee for this night has been received
   guest_fee_cents int,                            -- per-guest rate when this night was booked
   note       text,
   created_at timestamptz not null default now(),
@@ -61,6 +62,7 @@ create table house (
   wifi_password text,
   beds          int not null default 8,
   guest_fee_cents int not null default 6000,     -- nightly fee per guest
+  guest_collector uuid references members(id),   -- the member guests pay directly
   listing_url   text,                            -- the rental listing, for general information
   lease_start   date,                            -- first night of the lease
   lease_end     date,                            -- move-out day; the last night is the one before
@@ -128,19 +130,36 @@ drop trigger if exists members_guard on members;
 create trigger members_guard before insert or update on members
   for each row execute function members_guard();
 
--- Only the admin can change the guest fee and the lease dates.
+-- Only the admin can change the guest fee, the lease dates, and who guests pay.
 create or replace function house_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
     new.guest_fee_cents := old.guest_fee_cents;
     new.lease_start := old.lease_start; new.lease_end := old.lease_end;
+    new.guest_collector := old.guest_collector;
   end if;
   return new;
 end $$;
 drop trigger if exists house_guard on house;
 create trigger house_guard before update on house
   for each row execute function house_guard();
+
+-- Only the admin or the member guests pay can mark a guest as paid.
+create or replace function stays_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare me text := lower(coalesce(auth.jwt() ->> 'email', ''));
+begin
+  if me <> '' and not is_admin() and not exists (
+    select 1 from house h join members m on m.id = h.guest_collector where lower(m.email) = me and m.active
+  ) then
+    if tg_op = 'INSERT' then new.guest_paid := '{}'; else new.guest_paid := old.guest_paid; end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists stays_guard on stays;
+create trigger stays_guard before insert or update on stays
+  for each row execute function stays_guard();
 
 -- New Supabase projects no longer expose tables to the browser API by
 -- default, so grant signed-in users access explicitly. Row-level security

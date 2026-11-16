@@ -320,6 +320,7 @@ function seed(){
   const payments = [{ id:uid(), from_member:M(5), to_member:M(1), amount_cents:7000, paid_on:iso(addDays(t,-4)), note:'Venmo' }];
   const house = { id:1, name:'Tahoe house', address:'', door_code:'4821', wifi_name:'CabinNet', wifi_password:'powderday', beds:8, guest_fee_cents:6000,
     notes:'Trash goes out Sunday night.\nLeave the heat at 55 when you’re the last one out.' };
+  house.guest_collector = members[1].id;
   return { members, stays, expenses, payments, house, meId:members[0].id };
 }
 function persist(){ try { localStorage.setItem(KEY, JSON.stringify({ members:S.members, stays:S.stays, expenses:S.expenses, payments:S.payments, house:S.house, meId:S.me && S.me.id })); } catch(e){} }
@@ -391,8 +392,19 @@ const guestRate = () => (S.house.guest_fee_cents === null || S.house.guest_fee_c
 const perGuest = s => (s.guest_fee_cents === null || s.guest_fee_cents === undefined) ? guestRate() : Number(s.guest_fee_cents) || 0;
 const guestNames = s => (Array.isArray(s.guest_names) && s.guest_names.length) ? s.guest_names : Array.from({ length: s.guests || 0 }, () => 'Guest');
 const guestStays = () => S.stays.filter(s => (s.guests || 0) > 0 && member(s.member_id));
-// Members the admin has picked to share guest money; everyone if none are picked.
-const poolMembers = () => { const e = active().filter(m => m.pool_share !== false); return e.length ? e : active(); };
+// Guests pay one member, picked by the admin, directly. This sits outside the house balances.
+const collector = () => member(S.house.guest_collector) || null;
+const canMarkGuests = () => isAdmin() || !!(S.me && collector() && collector().id === S.me.id);
+const isPaid = (st, name) => Array.isArray(st.guest_paid) && st.guest_paid.some(n => n.toLowerCase() === name.toLowerCase());
+function guestLedger(){
+  const tIso = iso(today()), by = {}, tot = { owed:0, paid:0, coming:0 };
+  for (const st of guestStays()) for (const n of guestNames(st)){
+    const sp = by[st.member_id] || (by[st.member_id] = {}), g = sp[n.toLowerCase()] || (sp[n.toLowerCase()] = { name:n, sponsor:st.member_id, nights:[], owed:0, paid:0, coming:0 });
+    const paid = isPaid(st, n), future = st.night > tIso, k = paid ? 'paid' : future ? 'coming' : 'owed';
+    g.nights.push({ night:st.night, paid, future }); g[k] += perGuest(st); tot[k] += perGuest(st);
+  }
+  return { by, tot };
+}
 const stayFee = s => (s.guests || 0) * ((s.guest_fee_cents === null || s.guest_fee_cents === undefined) ? guestRate() : Number(s.guest_fee_cents) || 0);
 // A guest night is owed once it has happened (tonight counts).
 const guestCharges = () => { const t = iso(today()); return S.stays.filter(s => (s.guests || 0) > 0 && s.night <= t && member(s.member_id) && stayFee(s) > 0); };
@@ -405,13 +417,6 @@ function balances(){
     ids.forEach(id => { b[id] -= base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
   }
   for (const p of S.payments){ if (!(p.from_member in b) || !(p.to_member in b)) continue; b[p.from_member] += p.amount_cents; b[p.to_member] -= p.amount_cents; }
-  // Guest fees: charged to the member who brought the guest, shared equally by the house.
-  const pool = poolMembers().map(m => m.id).sort();
-  if (pool.length) for (const st of guestCharges()){
-    const fee = stayFee(st); b[st.member_id] -= fee;
-    const base = Math.floor(fee / pool.length); let rem = fee - base*pool.length;
-    pool.forEach(id => { b[id] += base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
-  }
   return b;
 }
 // Works from net balances only. People are matched in a fixed order (not by who owes most),
@@ -478,11 +483,12 @@ function viewNights(){
 function viewMoney(){
   const b = balances(), mine = S.me ? b[S.me.id] : 0;
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
-  const charges = guestCharges(), tIso = iso(today()), gs = guestStays();
-  const charged = gs.filter(x => x.night <= tIso).reduce((n, x) => n + stayFee(x), 0), coming = gs.filter(x => x.night > tIso).reduce((n, x) => n + stayFee(x), 0);
+  const gl = guestLedger().tot, col = collector();
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
-  const guestHtml = `<ul class="list">${guestRow('Charged so far', 'Guest nights that have happened', charged)}${guestRow('Still to come', 'Guest nights on the calendar', coming)}${guestRow('Expected total', '', charged + coming)}</ul>
-    <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>`;
+  const guestHtml = `<ul class="list">${guestRow('Owed so far', 'Nights that have happened, not yet paid', gl.owed)}${guestRow('Paid', 'Marked as received', gl.paid)}${guestRow('Still to come', 'Guest nights on the calendar', gl.coming)}${guestRow('Expected total', '', gl.owed + gl.paid + gl.coming)}</ul>
+    <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>
+    <p class="note">${col ? `Guests pay ${esc(col.name)} directly, ${money(guestRate())} for each night they stay.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}`
+      : `Guests pay ${money(guestRate())} for each night they stay. The admin hasn’t set who collects it yet.`} This is separate from the house balances.</p>`;
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
@@ -496,11 +502,7 @@ function viewMoney(){
     ...S.payments.map(p => ({ d:p.paid_on, c:p.created_at||'', html:`<li><button class="rowi" data-act="pay-edit" data-id="${p.id}">
       <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
       <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
-      <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
-    ...charges.map(st => ({ d:st.night, c:'', html:`<li><div class="rowi">
-      <span class="grow"><span class="t">Guest fee: ${guestNames(st).map(esc).join(', ')}</span>
-      <span class="s">With ${esc(first(member(st.member_id)))}, ${st.guests} × ${money(perGuest(st))}, night of ${fmtDay(st.night)}</span></span>
-      <span class="amt">${money(stayFee(st))}</span></div></li>` }))
+      <span class="amt">${money(p.amount_cents)}</span></button></li>` }))
   ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
   return `${demoNote()}<h1>House money</h1>
     <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div>
@@ -509,8 +511,7 @@ function viewMoney(){
     <div class="actions"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>${venmoNudge}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest money</h2>${guestHtml}
-    <p class="note">A guest is ${money(guestRate())} a night, charged to the member who brought them once the night has happened. That member collects from their guest.</p>
-    <h2>Expenses, payments, and guest fees</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
+    <h2>Expenses and payments</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
 }
 
 function viewHouse(){
@@ -565,6 +566,7 @@ function render(){
   document.querySelectorAll('#tabs button').forEach(b => { if (b.dataset.view === S.view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.sheet && S.sheet.type === 'night' && $('#sheet').open) $('#sheet').innerHTML = sheetNight(S.sheet.night);
   if (S.sheet && S.sheet.type === 'settle' && $('#sheet').open) $('#sheet').innerHTML = sheetSettle();
+  if (S.sheet && S.sheet.type === 'guests' && $('#sheet').open) $('#sheet').innerHTML = sheetGuests();
 }
 
 /* ---------- sheets ---------- */
@@ -590,7 +592,7 @@ function sheetNight(night){
       <form data-form="guest-add" data-night="${night}" class="guest-add"><input name="guest" maxlength="40" autocomplete="off" placeholder="Guest’s name" aria-label="Guest’s name"><button class="btn">Add guest</button></form>
       ${usedBefore.length ? `<div class="pick" style="margin-top:10px">${usedBefore.map(n => `<button type="button" class="plain" data-act="guest-quick" data-night="${night}" data-name="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>` : ''}
       <p class="err" id="err"></p>
-      ${stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}. You collect it from your guest${names.length > 1 ? 's' : ''}.</p>` : ''}
+      ${stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}.${collector() ? ` Your guest${names.length > 1 ? 's pay' : ' pays'} ${esc(first(collector()))} directly.` : ''}</p>` : ''}
       <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
       <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">Remove my night</button>
       <button class="btn primary" data-act="sheet-close">Done</button></div>`
@@ -600,42 +602,47 @@ function sheetNight(night){
     <p class="sub${over ? ' neg' : ''}">${hc ? `${hc} sleeping, ${cap} beds${over ? `. That’s ${hc - cap} over.` : ''}` : `${cap} beds open`}</p>${who}${mineHtml}`;
 }
 
-// Every guest, grouped by the member who brought them.
+// Every guest, grouped by the member who brought them, with what each still owes the collector.
 function sheetGuests(){
-  const tIso = iso(today()), by = {};
-  for (const st of guestStays()) for (const n of guestNames(st)){
-    const sp = by[st.member_id] || (by[st.member_id] = {}), g = sp[n.toLowerCase()] || (sp[n.toLowerCase()] = { name:n, past:[], future:[], charged:0, coming:0 });
-    if (st.night <= tIso){ g.past.push(st.night); g.charged += perGuest(st); } else { g.future.push(st.night); g.coming += perGuest(st); }
-  }
+  const { by, tot } = guestLedger(), col = collector(), can = canMarkGuests();
   const sponsors = Object.keys(by).sort((a, b) => member(a).name.localeCompare(member(b).name));
   if (!sponsors.length) return `<h2>Every guest</h2><p class="empty">No guests yet. When someone adds a guest to a night, they show up here.</p>
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
-  const dates = a => a.sort().map(fmtDay).join(', '); let all = 0, allComing = 0;
+  const dates = a => a.map(x => x.night).sort().map(fmtDay).join(', ');
   const body = sponsors.map(id => {
-    const guests = Object.values(by[id]).sort((a, b) => a.name.localeCompare(b.name)), tot = guests.reduce((n, g) => n + g.charged + g.coming, 0);
-    return `<div class="grp">${chip(member(id))}<span>${esc(first(member(id)))}’s guests</span><span class="amt">${money(tot)}</span></div>
-      <ul class="list">${guests.map(g => { all += g.charged; allComing += g.coming; const n = g.past.length + g.future.length;
+    const guests = Object.values(by[id]).sort((a, b) => a.name.localeCompare(b.name));
+    return `<div class="grp">${chip(member(id))}<span>${esc(first(member(id)))}’s guests</span></div>
+      <ul class="list">${guests.map(g => {
+        const past = g.nights.filter(x => !x.future), future = g.nights.filter(x => x.future), n = g.nights.length;
+        const data = `data-sponsor="${id}" data-name="${esc(g.name)}"`;
+        const note = `${g.name}, guest of ${first(member(id))}: ${dates(past.filter(x => !x.paid))}`;
+        const url = g.owed && col && col.venmo ? venmoUrl(col, 'pay', g.owed, note) : '';
+        let btns = '';
+        if (url) btns += `<a class="btn small primary" href="${esc(url)}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a>
+          <button class="btn small" data-act="guest-share" data-url="${esc(url)}" data-text="${esc(`${g.name}: ${money(g.owed)} to ${col.name} for nights at the house (${dates(past.filter(x => !x.paid))}).`)}">Send pay link</button>`;
+        if (can && g.owed) btns += `<button class="btn small" data-act="guest-paid" data-v="1" ${data}>Mark paid</button>`;
+        if (can && !g.owed && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark unpaid</button>`;
         return `<li><div class="rowi"><span class="grow"><span class="t">${esc(g.name)}</span>
-          <span class="s">${n} night${n === 1 ? '' : 's'}${g.past.length ? ': ' + dates(g.past) : ''}</span>
-          ${g.future.length ? `<span class="s">Upcoming: ${dates(g.future)}${g.coming ? ', ' + money(g.coming) + ' still to come' : ''}</span>` : ''}</span>
-          <span class="amt">${money(g.charged + g.coming)}</span></div></li>`; }).join('')}</ul>`; }).join('');
-  return `<h2>Every guest</h2><p class="sub">Each guest’s sponsor is charged the nightly rate and collects from the guest directly.</p>${body}
-    <div class="grp"><span>Expected total</span><span class="amt">${money(all + allComing)}</span></div>
-    <p class="note">${money(all)} charged so far, ${money(allComing)} still to come.</p>
+          <span class="s">${n} night${n === 1 ? '' : 's'}${past.length ? ': ' + dates(past) : ''}</span>
+          ${future.length ? `<span class="s">Upcoming: ${dates(future)}${g.coming ? ', ' + money(g.coming) + ' still to come' : ''}</span>` : ''}
+          ${g.paid ? `<span class="s pos">Paid ${money(g.paid)}</span>` : ''}</span>
+          <span class="amt${g.owed ? ' neg' : ''}">${g.owed ? money(g.owed) + ' owed' : g.paid ? 'Paid' : money(g.coming)}</span></div>
+          ${btns ? `<div class="pay-btns">${btns}</div>` : ''}</li>`; }).join('')}</ul>`; }).join('');
+  return `<h2>Every guest</h2><p class="sub">${col ? `Guests pay ${esc(col.name)} directly.` : 'The admin hasn’t set who guests pay yet.'}${can ? ' You can mark guests as paid.' : ''}</p>${body}
+    <div class="grp"><span>Expected total</span><span class="amt">${money(tot.owed + tot.paid + tot.coming)}</span></div>
+    <p class="note">${money(tot.owed)} owed so far, ${money(tot.paid)} paid, ${money(tot.coming)} still to come.</p>
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
 // Admin only.
-function sheetPool(){
-  return `<form data-form="pool"><h2>Who shares the guest money</h2>
-    <p class="sub">Guest fees are split equally between the members you pick. Changing this re-splits every guest night, past and upcoming.</p>
-    <fieldset><legend>Gets a share</legend>
-      <div class="pick-all"><button type="button" class="btn small" data-act="split-all">Select all</button><button type="button" class="btn small" data-act="split-none">Deselect all</button></div>
-      <div class="pick">${active().map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${m.pool_share !== false}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
-    <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save who shares it</button></div></form>`;
+function sheetCollector(){
+  const cur = S.house.guest_collector || '';
+  return `<form data-form="collector"><h2>Who guests pay</h2>
+    <p class="sub">Guests pay this person directly for the nights they stay. Their Venmo is shown to the house, and they can mark guests as paid.</p>
+    <label>Guests pay<select name="who"><option value=""${cur ? '' : ' selected'}>Nobody yet</option>${active().map(m => `<option value="${m.id}"${m.id === cur ? ' selected' : ''}>${esc(m.name)}${m.venmo ? '' : ' (no Venmo yet)'}</option>`).join('')}</select></label>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save who guests pay</button></div></form>`;
 }
 
-const venmoUrl = (m, kind, amt) => `https://venmo.com/${encodeURIComponent(m.venmo)}?txn=${kind}&amount=${(amt/100).toFixed(2)}&note=${encodeURIComponent((S.house.name || 'Ski house') + ' settle up')}`;
+const venmoUrl = (m, kind, amt, note) => `https://venmo.com/${encodeURIComponent(m.venmo)}?txn=${kind}&amount=${(amt/100).toFixed(2)}&note=${encodeURIComponent(note || ((S.house.name || 'Ski house') + ' settle up'))}`;
 // Only your own lines: what you need to pay, and what's coming to you.
 function sheetSettle(){
   const plan = settle(balances()), me = S.me.id, pay = plan.filter(p => p.from === me), get = plan.filter(p => p.to === me);
@@ -714,7 +721,7 @@ function sheetMember(m){
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
     ${self && isAdmin() ? `<h2 style="margin:28px 0 4px">House admin</h2>
     <p class="sub">Only you see this.</p>
-    <div class="actions"><button type="button" class="btn" data-act="pool-open">Who shares the guest money</button></div>` : ''}</form>`;
+    <div class="actions"><button type="button" class="btn" data-act="collector-open">Who guests pay</button></div>` : ''}</form>`;
 }
 
 // Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
@@ -777,8 +784,25 @@ const actions = {
   'night-toggle'(el){ toggleNight(el.dataset.night); },
   'guest-remove'(el){ const st = myStay(el.dataset.night); if (!st) return; const names = guestNames(st).slice(); names.splice(Number(el.dataset.i), 1); setGuests(st, names); },
   'guest-quick'(el){ const st = myStay(el.dataset.night); if (st) addGuest(st, el.dataset.name); },
-  'guests-open'(){ openSheet(sheetGuests()); },
-  'pool-open'(){ if (isAdmin()) openSheet(sheetPool()); },
+  'guests-open'(){ openSheet(sheetGuests(), { type:'guests' }); },
+  'collector-open'(){ if (isAdmin()) openSheet(sheetCollector()); },
+  'guest-paid'(el){
+    if (!canMarkGuests()) return;
+    const name = el.dataset.name, on = el.dataset.v === '1', tIso = iso(today()), same = n => n.toLowerCase() === name.toLowerCase();
+    for (const st of guestStays()){
+      if (st.member_id !== el.dataset.sponsor || !guestNames(st).some(same)) continue;
+      const paid = Array.isArray(st.guest_paid) ? st.guest_paid : [];
+      if (on && st.night <= tIso && !paid.some(same)) save('stays', { ...st, guest_paid:[...paid, name] });
+      if (!on && paid.some(same)) save('stays', { ...st, guest_paid:paid.filter(n => !same(n)) });
+    }
+    toast(on ? `${name} marked as paid` : `${name} marked as unpaid`);
+  },
+  async 'guest-share'(el){
+    const url = el.dataset.url, text = el.dataset.text;
+    try { if (navigator.share){ await navigator.share({ text, url }); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(text + ' ' + url); toast('Pay link copied. Paste it in a text to your guest.'); }
+    catch(e){ toast('Couldn’t copy the link. Open it with the Venmo button instead.'); }
+  },
   'sheet-close'(){ closeSheet(); },
   'exp-new'(){ openSheet(sheetExpense()); updateEach(); },
   'exp-edit'(el){ const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
@@ -849,13 +873,9 @@ const forms = {
     closeSheet(); save('members', row); toast(mine ? 'Your details are saved' : 'Member saved');
   },
   'guest-add'(f){ const st = myStay(f.dataset.night); if (st && addGuest(st, f.guest.value)){ const i = $('#sheet [name=guest]'); if (i) i.focus(); } },
-  pool(f){
+  collector(f){
     if (!isAdmin()) return;
-    const picked = new Set([...f.querySelectorAll('.pick [aria-pressed="true"]')].map(b => b.dataset.id));
-    if (!picked.size) return void ($('#err').textContent = 'Pick at least one member.');
-    closeSheet();
-    for (const m of active()){ const want = picked.has(m.id); if ((m.pool_share !== false) !== want){ const row = { ...m, pool_share:want }; if (S.me && m.id === S.me.id) S.me = row; save('members', row); } }
-    toast('Guest money sharing saved');
+    closeSheet(); save('house', { ...S.house, guest_collector: f.who.value || null }); toast('Saved who guests pay');
   },
   manage(f){
     const m = member(f.dataset.id), email = f.email.value.trim().toLowerCase(); if (!m || !isAdmin()) return;
