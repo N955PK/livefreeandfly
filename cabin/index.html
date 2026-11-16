@@ -404,10 +404,12 @@ function balances(){
   }
   return b;
 }
+// Works from net balances only. People are matched in a fixed order (not by who owes most),
+// so finishing one payment never reshuffles the payments anyone else, or you, still has to make.
 function settle(b){
-  const owe = [], owed = [];
+  const byId = (x, y) => x.id < y.id ? -1 : x.id > y.id ? 1 : 0, owe = [], owed = [];
   for (const [id, c] of Object.entries(b)){ if (c < 0) owe.push({id, c:-c}); else if (c > 0) owed.push({id, c}); }
-  owe.sort((a,z) => z.c - a.c); owed.sort((a,z) => z.c - a.c);
+  owe.sort(byId); owed.sort(byId);
   const out = []; let i = 0, j = 0;
   while (i < owe.length && j < owed.length){
     const amt = Math.min(owe[i].c, owed[j].c);
@@ -464,24 +466,8 @@ function viewNights(){
 }
 
 function viewMoney(){
-  const b = balances(), mine = S.me ? b[S.me.id] : 0, plan = settle(b);
+  const b = balances(), mine = S.me ? b[S.me.id] : 0;
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
-  const note = encodeURIComponent((S.house.name || 'Ski house') + ' settle up');
-  const venmoUrl = (m, kind, amt) => `https://venmo.com/${encodeURIComponent(m.venmo)}?txn=${kind}&amount=${(amt/100).toFixed(2)}&note=${note}`;
-  const mineFirst = p => S.me && (p.from === S.me.id || p.to === S.me.id) ? 0 : 1;
-  plan.sort((x, y) => mineFirst(x) - mineFirst(y));
-  const planHtml = plan.length ? `<ul class="list">${plan.map(p => {
-      const from = member(p.from), to = member(p.to), iPay = S.me && p.from === S.me.id, iGet = S.me && p.to === S.me.id;
-      const title = iPay ? `You pay ${esc(first(to))}` : iGet ? `${esc(first(from))} pays you` : `${esc(first(from))} pays ${esc(first(to))}`;
-      const data = `data-from="${p.from}" data-to="${p.to}" data-amt="${p.amt}"`;
-      let btns = '';
-      if (iPay && to.venmo) btns += `<a class="btn small primary" href="${venmoUrl(to, 'pay', p.amt)}" target="_blank" rel="noopener" data-act="pay-venmo" ${data}>Pay on Venmo</a>`;
-      if (iGet && from.venmo) btns += `<a class="btn small" href="${venmoUrl(from, 'charge', p.amt)}" target="_blank" rel="noopener">Request on Venmo</a>`;
-      btns += `<button class="btn small" data-act="pay-new" ${data}>${iPay ? 'Mark as paid' : 'Record payment'}</button>`;
-      const hint = iPay && !to.venmo ? `<span class="s">${esc(first(to))} hasn’t added a Venmo username yet.</span>` : '';
-      return `<li><div class="rowi"><span class="grow"><span class="t">${title}</span>${hint}</span><span class="amt">${money(p.amt)}</span></div>
-        <div class="pay-btns">${btns}</div></li>`; }).join('')}</ul>`
-    : `<p class="empty">Everyone’s square.</p>`;
   const charges = guestCharges(), byHost = {};
   charges.forEach(st => { const g = byHost[st.member_id] || (byHost[st.member_id] = { n:0, c:0 }); g.n += st.guests; g.c += stayFee(st); });
   const guestHtml = Object.keys(byHost).length ? `<ul class="list">${Object.entries(byHost).sort((x, y) => y[1].c - x[1].c).map(([id, g]) => `<li><div class="rowi">${chip(member(id))}
@@ -506,9 +492,10 @@ function viewMoney(){
       <span class="amt">${money(stayFee(st))}</span></div></li>` }))
   ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
   return `${demoNote()}<h1>House money</h1>
-    <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div></div>
-    <div class="actions"><button class="btn primary" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>
-    <h2>Settle up</h2>${planHtml}${venmoNudge}
+    <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div>
+      ${mine < 0 ? `<div class="actions"><button class="btn primary wide" data-act="settle-open">Settle up</button></div>`
+        : mine > 0 ? `<div class="actions"><button class="btn wide" data-act="settle-open">See who owes you</button></div>` : ''}</div>
+    <div class="actions"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>${venmoNudge}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest fees</h2>${guestHtml}
     <p class="note">Each guest is ${money(guestRate())} a night. It’s charged to the member who brought them and shared equally by the house, once the night has happened.</p>
@@ -566,6 +553,7 @@ function render(){
   $('#main').innerHTML = gated ? viewGate() : S.view === 'money' ? viewMoney() : S.view === 'house' ? viewHouse() : viewNights();
   document.querySelectorAll('#tabs button').forEach(b => { if (b.dataset.view === S.view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.sheet && S.sheet.type === 'night' && $('#sheet').open) $('#sheet').innerHTML = sheetNight(S.sheet.night);
+  if (S.sheet && S.sheet.type === 'settle' && $('#sheet').open) $('#sheet').innerHTML = sheetSettle();
 }
 
 /* ---------- sheets ---------- */
@@ -594,6 +582,28 @@ function sheetNight(night){
       <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>`;
   return `<h2>${fmtLong(night)}</h2>
     <p class="sub${over ? ' neg' : ''}">${hc ? `${hc} sleeping, ${cap} beds${over ? `. That’s ${hc - cap} over.` : ''}` : `${cap} beds open`}</p>${who}${mineHtml}`;
+}
+
+const venmoUrl = (m, kind, amt) => `https://venmo.com/${encodeURIComponent(m.venmo)}?txn=${kind}&amount=${(amt/100).toFixed(2)}&note=${encodeURIComponent((S.house.name || 'Ski house') + ' settle up')}`;
+// Only your own lines: what you need to pay, and what's coming to you.
+function sheetSettle(){
+  const plan = settle(balances()), me = S.me.id, pay = plan.filter(p => p.from === me), get = plan.filter(p => p.to === me);
+  const sum = a => a.reduce((n, p) => n + p.amt, 0);
+  const row = (p, mine) => {
+    const o = member(mine ? p.to : p.from), data = `data-from="${p.from}" data-to="${p.to}" data-amt="${p.amt}"`;
+    let btns = '';
+    if (mine && o.venmo) btns += `<a class="btn small primary" href="${venmoUrl(o, 'pay', p.amt)}" target="_blank" rel="noopener" data-act="pay-venmo" ${data}>Pay on Venmo</a>`;
+    if (!mine && o.venmo) btns += `<a class="btn small" href="${venmoUrl(o, 'charge', p.amt)}" target="_blank" rel="noopener">Request on Venmo</a>`;
+    btns += `<button class="btn small" data-act="pay-new" ${data}>${mine ? 'Mark as paid' : 'Mark as received'}</button>`;
+    return `<li><div class="rowi">${chip(o)}<span class="grow"><span class="t">${mine ? 'Pay ' + esc(first(o)) : esc(first(o)) + ' pays you'}</span>
+      ${mine && !o.venmo ? `<span class="s">${esc(first(o))} hasn’t added a Venmo username yet.</span>` : ''}</span><span class="amt">${money(p.amt)}</span></div>
+      <div class="pay-btns">${btns}</div></li>`; };
+  return `<h2>Settle up</h2>
+    ${pay.length ? `<p class="sub">You owe ${money(sum(pay))}. ${pay.length === 1 ? 'One payment squares you' : pay.length + ' payments square you'} with the house.</p>
+      <ul class="list" style="margin-top:14px">${pay.map(p => row(p, true)).join('')}</ul>`
+      : `<p class="sub">You don’t owe anyone right now.</p>`}
+    ${get.length ? `<h2 style="margin:26px 0 0">Coming to you, ${money(sum(get))}</h2><ul class="list" style="margin-top:10px">${get.map(p => row(p, false)).join('')}</ul>` : ''}
+    <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
 
 function sheetExpense(e){
@@ -708,9 +718,10 @@ const actions = {
   split(el){ el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); updateEach(); },
   'split-all'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'true')); updateEach(); },
   'split-none'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'false')); updateEach(); },
-  'pay-new'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
-  'pay-venmo'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
-  'pay-blank'(){ if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
+  'settle-open'(){ if (S.me) openSheet(sheetSettle(), { type:'settle' }); },
+  'pay-new'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
+  'pay-venmo'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
+  'pay-blank'(){ S.backToSettle = false; if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
   'pay-edit'(el){ const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
   'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); },
   'member-new'(){ openSheet(sheetMember()); },
@@ -749,7 +760,9 @@ const forms = {
     const old = S.payments.find(x => x.id === f.dataset.id);
     const row = { id: old ? old.id : uid(), from_member:f.from_member.value, to_member:f.to_member.value, amount_cents,
       paid_on:f.paid_on.value, note:f.note.value.trim(), created_at: old ? old.created_at : new Date().toISOString() };
+    const back = S.backToSettle; S.backToSettle = false;
     closeSheet(); save('payments', row); toast('Payment saved');
+    if (back && settle(balances()).some(x => x.from === S.me.id || x.to === S.me.id)) openSheet(sheetSettle(), { type:'settle' });
   },
   member(f){
     const email = f.email.value.trim().toLowerCase(), old = member(f.dataset.id);

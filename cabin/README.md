@@ -28,7 +28,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 
 - Add an expense: what, how much, who paid, the date, and who it is split between. The split is even and defaults to everyone.
 - Your balance at the top: you are owed, you owe, or you are settled up.
-- “Settle up” lists the fewest payments that square everyone. If the person you owe has a Venmo username on file, Pay on Venmo opens Venmo with the amount and a note filled in; the app then asks you to confirm so the balances update. People who are owed get a Request on Venmo link.
+- Each person has a Settle up button that shows only their own payments, worked out so the house needs as few payments as possible. If the person you owe has a Venmo username on file, Pay on Venmo opens Venmo with the amount and a note filled in; the app then asks you to confirm so the balances update. People who are owed get a Request on Venmo link.
 - Balances for every member, and a running list of expenses and payments. Tap one to edit or delete it.
 - Amounts are stored in cents. Leftover pennies from an uneven division are handed out one at a time so the books always sum to zero.
 
