@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e13">
+<meta name="robots" content="noindex">
+<title>cabin/time</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.v4.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.v4.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.v4.png">
+<style>
+:root{
+  --bg:#eef1f4; --ink:#0a0e13; --dim:#55616c; --line:rgba(10,14,19,.16);
+  --accent:#A31F34; --accent-ink:#A31F34; --panel:rgba(255,255,255,.72); --sheet:#f7f9fa;
+  --pos:#0b7d5e; --neg:#a85a00; --field:#ffffff;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --line:rgba(233,237,241,.14);
+    --accent-ink:#ef6f81; --panel:rgba(16,22,29,.6); --sheet:#10161d;
+    --pos:#39d0a4; --neg:#ffa32e; --field:#0a0e13;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --line:rgba(233,237,241,.14);
+  --accent-ink:#ef6f81; --panel:rgba(16,22,29,.6); --sheet:#10161d;
+  --pos:#39d0a4; --neg:#ffa32e; --field:#0a0e13;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;
+  min-height:100%;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+a{color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:8px}
+
+/* ---- frame ---- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  max-width:620px;margin:0 auto;padding:14px 18px 10px}
+.brand{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink);text-decoration:none}
+.brand .slash{color:var(--accent-ink);font-weight:700}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim)}
+main{max-width:620px;margin:0 auto;padding:6px 18px 110px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.tabs button{font-family:var(--mono);font-size:13px;letter-spacing:.05em;padding:16px 4px 15px;color:var(--dim);
+  border-top:2px solid transparent;margin-top:-1px}
+.tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--accent)}
+
+/* ---- type ---- */
+h1{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:.01em;line-height:1.2;margin-top:10px}
+h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;margin:30px 0 10px}
+.sub{color:var(--dim);font-size:14px;margin-top:4px}
+.demo{font-size:12.5px;color:var(--dim);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px}
+
+/* ---- member chip ---- */
+.chip{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;border-radius:50%;
+  font-family:var(--mono);font-size:11px;font-weight:700;color:#0a0e13;letter-spacing:0}
+.chip.sm{width:9px;height:9px;font-size:0}
+
+/* ---- weekend strip ---- */
+.wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.wk button{text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:12px 12px 11px;min-height:96px;
+  display:flex;flex-direction:column;gap:2px}
+.wk .d{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.03em}
+.wk .n{font-size:12.5px;color:var(--dim)}
+.wk .n.over{color:var(--neg)}
+.wk .me{margin-top:auto;font-size:12.5px;color:var(--dim)}
+.wk button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
+.wk button[aria-pressed="true"] .n,.wk button[aria-pressed="true"] .me{color:rgba(255,255,255,.86)}
+
+/* ---- month ---- */
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:30px 0 10px}
+.mnav h2{margin:0}
+.mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow span{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;padding-bottom:4px}
+.day{position:relative;aspect-ratio:1/1.12;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  padding:5px 5px 4px;display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left}
+.day .num{font-family:var(--mono);font-size:12.5px;font-weight:600;line-height:1}
+.day .cnt{position:absolute;top:5px;right:6px;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1}
+.day .dots{margin-top:auto;display:flex;flex-wrap:wrap;gap:2px;max-width:100%}
+.day.past{opacity:.5}
+.day.today .num{color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px}
+.day.mine{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--accent)}
+.day.over .cnt{color:var(--neg);font-weight:700}
+.blank{visibility:hidden}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:13px;color:var(--dim)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+/* ---- lists ---- */
+.list{list-style:none;border-top:1px solid var(--line)}
+.list>li{border-bottom:1px solid var(--line)}
+.rowi{display:flex;align-items:center;gap:12px;padding:12px 2px;width:100%;text-align:left;min-height:52px}
+.rowi .grow{flex:1;min-width:0}
+.rowi .t{display:block;overflow-wrap:anywhere}
+.rowi .s{display:block;font-size:13px;color:var(--dim);overflow-wrap:anywhere}
+.rowi .amt{font-family:var(--mono);font-size:14px;white-space:nowrap}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
+.links{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;margin-top:2px}
+.empty{color:var(--dim);font-size:14px;padding:14px 2px}
+
+/* ---- money ---- */
+.bal{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px}
+.bal .l{font-size:14px;color:var(--dim)}
+.bal .v{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+
+/* ---- buttons ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:12px;
+  border:1px solid var(--line);font-size:15px;font-weight:600;color:var(--ink);background:var(--panel)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.small{min-height:36px;padding:0 12px;font-size:13px;border-radius:10px}
+.btn.wide{width:100%}
+.btn.quiet{border-color:transparent;background:none;color:var(--dim);font-weight:500}
+.btn.danger{border-color:transparent;background:none;color:var(--neg);font-weight:500}
+.actions{display:flex;gap:10px;margin-top:16px}
+.actions .btn{flex:1}
+
+/* ---- house ---- */
+dl{border-top:1px solid var(--line);margin-top:16px}
+dl div{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line)}
+dt{color:var(--dim);font-size:14px}
+dd{overflow-wrap:anywhere;white-space:pre-line}
+dd.code{font-family:var(--mono);letter-spacing:.06em}
+.unset{color:var(--dim)}
+
+/* ---- sheet ---- */
+dialog{border:0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));background:var(--sheet);color:var(--ink);
+  width:100%;max-width:620px;margin:auto auto 0;border-radius:20px 20px 0 0;max-height:90%;overflow:auto;
+  border-top:1px solid var(--line)}
+dialog::backdrop{background:rgba(5,8,11,.62)}
+dialog[open]{animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){dialog[open]{animation:none}}
+dialog h2{margin:0 0 4px;font-size:17px}
+label,legend{display:block;font-size:13.5px;color:var(--dim);margin-top:14px}
+legend{padding:0;margin-bottom:8px}
+fieldset{border:0;margin-top:14px}
+input,select,textarea{display:block;width:100%;margin-top:5px;min-height:46px;padding:10px 12px;border-radius:10px;
+  border:1px solid var(--line);background:var(--field);font-size:16px}
+textarea{min-height:84px;resize:vertical}
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick button{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 12px 0 6px;border-radius:999px;
+  border:1px solid var(--line);font-size:14px;color:var(--dim)}
+.pick button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.pick button[aria-pressed="false"] .chip{opacity:.3}
+.each,.err{font-size:13.5px;margin-top:10px;color:var(--dim)}
+.err{color:var(--neg)}
+.err:empty{display:none}
+.step{display:flex;align-items:center;gap:14px;margin-top:6px}
+.step button{width:46px;height:46px;border:1px solid var(--line);border-radius:12px;font-size:20px;font-family:var(--mono)}
+.step output{font-family:var(--mono);font-size:20px;min-width:24px;text-align:center}
+
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;
+  background:var(--ink);color:var(--bg);font-size:14px;padding:10px 16px;border-radius:999px;max-width:88%;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+
+.gate{max-width:420px;margin:12vh auto 0;padding:0 22px}
+@media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:11px;height:11px} }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">cabin<span class="slash">/</span>time</a>
+  <div class="who" id="who"></div>
+</header>
+<main id="main"></main>
+<nav class="tabs" id="tabs" aria-label="Sections" hidden><div>
+  <button data-act="tab" data-view="nights">Nights</button>
+  <button data-act="tab" data-view="money">Money</button>
+  <button data-act="tab" data-view="house">House</button>
+</div></nav>
+<dialog id="sheet"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ------------------------------------------------------------------
+   Setup: paste your Supabase project URL and anon key here to go live.
+   Left blank, the app runs on sample data kept in this browser only.
+   The anon key is safe to publish; row-level security in schema.sql
+   is what keeps house data to members.
+------------------------------------------------------------------- */
+const CONFIG = {
+  supabaseUrl: '',
+  supabaseAnonKey: ''
+};
+const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+const LIVE = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
+const KEY = 'cabin-time-demo-v1';
+const PALETTE = ['#39d0a4','#3aa8ff','#ffa32e','#d95ce8','#e8d34f','#8f9bff','#ff5c39','#5fd0e8','#b5e05a','#ff8fb1'];
+const VIEWS = ['nights','money','house'];
+
+const S = { me:null, members:[], stays:[], expenses:[], payments:[], house:{id:1}, month:null, view:'nights', sheet:null, gate:null };
+
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() :
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16); }));
+const pad = n => String(n).padStart(2,'0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate()+n);
+const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+const fmtDay = s => parse(s).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+const fmtLong = s => parse(s).toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'});
+const money = c => (c < 0 ? '−' : '') + '$' + (Math.abs(c)/100).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const toCents = v => { const n = parseFloat(String(v).replace(/[^0-9.]/g,'')); return Number.isFinite(n) ? Math.round(n*100) : 0; };
+const member = id => S.members.find(m => m.id === id);
+const first = m => m ? m.name.trim().split(/\s+/)[0] : 'Someone';
+const active = () => S.members.filter(m => m.active !== false);
+const initials = m => { const p = m.name.trim().split(/\s+/); return ((p[0]?.[0]||'') + (p[1]?.[0] || p[0]?.[1] || '')).toUpperCase(); };
+const chip = (m, sm) => m ? `<span class="chip${sm?' sm':''}" style="background:${esc(m.color||'#8B959E')}" ${sm?'':'aria-hidden="true"'}>${sm?'':esc(initials(m))}</span>` : '';
+const tel = p => String(p||'').replace(/[^0-9+]/g,'');
+let toastT;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+
+/* ---------- data: demo (this browser) ---------- */
+function weekendFriday(){ const t = today(), dow = t.getDay(); // Fri, Sat, Sun count as the current weekend
+  const back = dow === 5 ? 0 : dow === 6 ? 1 : dow === 0 ? 2 : -((5 - dow));
+  return addDays(t, -back); }
+
+function seed(){
+  const names = ['Priya Raman','Marcus Bell','Elena Ortiz','Tom Whitaker','Jules Fontaine','Wen Zhao'];
+  const members = names.map((name,i) => ({ id:uid(), name, email:name.split(' ')[0].toLowerCase()+'@example.com',
+    phone:'(530) 555-01'+(40+i), color:PALETTE[i], active:true }));
+  const fri = weekendFriday(), t = today(), stays = [], M = i => members[i].id;
+  const stay = (i, off, guests=0, note='') => stays.push({ id:uid(), member_id:M(i), night:iso(addDays(fri,off)), guests, note });
+  stay(0,-7); stay(4,-7); stay(0,-6); stay(3,-6); stay(4,-6,1); stay(5,-6);
+  stay(0,0); stay(1,0); stay(3,0);
+  stay(0,1,1,'Bringing my sister'); stay(1,1); stay(2,1,2); stay(3,1); stay(4,1);
+  stay(2,2); stay(4,2);
+  stay(3,4,0,'Working from the house');
+  stay(2,7); stay(5,7); stay(1,8); stay(2,8); stay(5,8,2,'Brother and his girlfriend');
+  const all = members.map(m => m.id);
+  const exp = (description, amount_cents, i, ago, split=all) => ({ id:uid(), description, amount_cents, paid_by:M(i), split_among:split, spent_on:iso(addDays(t,-ago)), created_at:new Date().toISOString() });
+  const expenses = [
+    exp('Driveway plowing deposit', 30000, 2, 15),
+    exp('Propane refill', 18640, 0, 12),
+    exp('Firewood, one cord', 42000, 1, 9),
+    exp('Internet, this month', 7999, 0, 6),
+    exp('Costco run', 21237, 3, 2, [M(0),M(1),M(3),M(4)]),
+    exp('Cleaning supplies', 4618, 4, 1)
+  ];
+  const payments = [{ id:uid(), from_member:M(5), to_member:M(1), amount_cents:7000, paid_on:iso(addDays(t,-4)), note:'Venmo' }];
+  const house = { id:1, name:'Tahoe house', address:'', door_code:'4821', wifi_name:'CabinNet', wifi_password:'powderday', beds:8,
+    notes:'Trash goes out Sunday night.\nLeave the heat at 55 when you’re the last one out.' };
+  return { members, stays, expenses, payments, house, meId:members[0].id };
+}
+function persist(){ try { localStorage.setItem(KEY, JSON.stringify({ members:S.members, stays:S.stays, expenses:S.expenses, payments:S.payments, house:S.house, meId:S.me && S.me.id })); } catch(e){} }
+const Local = {
+  async load(){ let d = null; try { d = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e){} return (d && Array.isArray(d.members)) ? d : seed(); },
+  async upsert(){ persist(); },
+  async remove(){ persist(); }
+};
+
+/* ---------- data: live (Supabase) ---------- */
+let sb = null, sessionEmail = null;
+const Live = {
+  init(){ return new Promise((ok, no) => { const s = document.createElement('script'); s.src = SUPABASE_JS;
+    s.onload = () => { sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey); ok(); };
+    s.onerror = () => no(new Error('Could not load Supabase')); document.head.appendChild(s); }); },
+  async load(){
+    const r = await Promise.all(['members','stays','expenses','payments','house'].map(t => sb.from(t).select('*')));
+    for (const x of r) if (x.error) throw x.error;
+    return { members:r[0].data, stays:r[1].data, expenses:r[2].data, payments:r[3].data, house:r[4].data[0] || {id:1} };
+  },
+  async upsert(t, row){ const { error } = await sb.from(t).upsert(row); if (error) throw error; },
+  async remove(t, id){ const { error } = await sb.from(t).delete().eq('id', id); if (error) throw error; }
+};
+const backend = LIVE ? Live : Local;
+
+async function reload(){
+  const d = await backend.load();
+  S.members = d.members.sort((a,b) => a.name.localeCompare(b.name));
+  S.stays = d.stays; S.expenses = d.expenses; S.payments = d.payments; S.house = d.house || {id:1};
+  if (LIVE) S.me = S.members.find(m => m.active !== false && m.email.toLowerCase() === (sessionEmail||'').toLowerCase()) || null;
+  else S.me = member(d.meId) || active()[0] || null;
+  S.gate = S.me ? null : (LIVE ? 'notmember' : null);
+}
+function fail(e){ console.error(e); toast('Couldn’t save. Check your connection and try again.'); reload().then(render).catch(() => {}); }
+async function save(t, row){
+  if (t === 'house') S.house = row;
+  else { const i = S[t].findIndex(r => r.id === row.id); if (i >= 0) S[t][i] = row; else S[t].push(row); }
+  render();
+  try { await backend.upsert(t, row); } catch(e){ fail(e); }
+}
+async function del(t, id){
+  S[t] = S[t].filter(r => r.id !== id); render();
+  try { await backend.remove(t, id); } catch(e){ fail(e); }
+}
+
+/* ---------- derived ---------- */
+const staysOn = night => S.stays.filter(s => s.night === night && member(s.member_id));
+const headcount = night => staysOn(night).reduce((n, s) => n + 1 + (s.guests||0), 0);
+const myStay = night => S.me && S.stays.find(s => s.night === night && s.member_id === S.me.id);
+const beds = () => Number(S.house.beds) || 0;
+
+function balances(){
+  const b = {}; S.members.forEach(m => b[m.id] = 0);
+  for (const e of S.expenses){
+    const ids = (e.split_among||[]).filter(id => id in b).sort(); if (!ids.length || !(e.paid_by in b)) continue;
+    b[e.paid_by] += e.amount_cents;
+    const base = Math.floor(e.amount_cents / ids.length); let rem = e.amount_cents - base*ids.length;
+    ids.forEach(id => { b[id] -= base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
+  }
+  for (const p of S.payments){ if (!(p.from_member in b) || !(p.to_member in b)) continue; b[p.from_member] += p.amount_cents; b[p.to_member] -= p.amount_cents; }
+  return b;
+}
+function settle(b){
+  const owe = [], owed = [];
+  for (const [id, c] of Object.entries(b)){ if (c < 0) owe.push({id, c:-c}); else if (c > 0) owed.push({id, c}); }
+  owe.sort((a,z) => z.c - a.c); owed.sort((a,z) => z.c - a.c);
+  const out = []; let i = 0, j = 0;
+  while (i < owe.length && j < owed.length){
+    const amt = Math.min(owe[i].c, owed[j].c);
+    out.push({ from:owe[i].id, to:owed[j].id, amt });
+    owe[i].c -= amt; owed[j].c -= amt; if (!owe[i].c) i++; if (!owed[j].c) j++;
+  }
+  return out;
+}
+
+/* ---------- views ---------- */
+const demoNote = () => LIVE ? '' : `<p class="demo">Sample data, saved in this browser only. Tap around; nothing is shared yet.</p>`;
+
+function viewNights(){
+  const t = today(), tIso = iso(t), fri = weekendFriday(), cap = beds();
+  const wk = [0,1,2].map(n => { const d = addDays(fri, n), k = iso(d), hc = headcount(k), mine = !!myStay(k);
+    return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}">
+      <span class="d">${d.toLocaleDateString('en-US',{weekday:'short'})} ${d.getDate()}</span>
+      <span class="n${cap && hc > cap ? ' over' : ''}">${hc ? `${hc} of ${cap} beds` : 'Nobody yet'}</span>
+      <span class="me">${mine ? 'You’re in' : 'Tap to join'}</span></button>`; }).join('');
+  const m0 = S.month, y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
+  let cells = '<span class="blank"></span>'.repeat(m0.getDay());
+  for (let d = 1; d <= days; d++){
+    const k = `${y}-${pad(mo+1)}-${pad(d)}`, st = staysOn(k), hc = headcount(k), mine = !!myStay(k);
+    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', cap && hc > cap ? 'over' : ''].filter(Boolean).join(' ');
+    const dots = st.slice(0,6).map(s => chip(member(s.member_id), true)).join('');
+    const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping' : 'Nobody yet'}.${mine ? ' You’re in.' : ''}`;
+    cells += `<button class="${cls}" data-act="night-open" data-night="${k}" aria-label="${esc(label)}">
+      <span class="num">${d}</span>${hc ? `<span class="cnt">${hc}</span>` : ''}<span class="dots">${dots}</span></button>`;
+  }
+  const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
+  return `${demoNote()}<h1>Who’s up</h1>
+    <p class="sub">Mark the nights you’ll sleep at the house. ${cap ? `It sleeps ${cap}.` : ''}</p>
+    <div class="wk">${wk}</div>
+    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month">‹</button>
+      <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
+      <button data-act="month" data-d="1" aria-label="Next month">›</button></div>
+    <div class="dow" aria-hidden="true">${['S','M','T','W','T','F','S'].map(x => `<span>${x}</span>`).join('')}</div>
+    <div class="grid">${cells}</div>
+    <div class="legend">${legend}</div>`;
+}
+
+function viewMoney(){
+  const b = balances(), mine = S.me ? b[S.me.id] : 0, plan = settle(b);
+  const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
+  const planHtml = plan.length ? `<ul class="list">${plan.map(p => `<li><div class="rowi">
+      <span class="grow"><span class="t">${esc(first(member(p.from)))} pays ${esc(first(member(p.to)))}</span></span>
+      <span class="amt">${money(p.amt)}</span>
+      <button class="btn small" data-act="pay-new" data-from="${p.from}" data-to="${p.to}" data-amt="${p.amt}">Record payment</button></div></li>`).join('')}</ul>`
+    : `<p class="empty">Everyone’s square.</p>`;
+  const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
+      <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span></span>
+      <span class="amt ${b[m.id] > 0 ? 'pos' : b[m.id] < 0 ? 'neg' : ''}">${b[m.id] > 0 ? '+' : ''}${money(b[m.id])}</span></div></li>`).join('');
+  const feed = [
+    ...S.expenses.map(e => ({ d:e.spent_on, c:e.created_at||'', html:`<li><button class="rowi" data-act="exp-edit" data-id="${e.id}">
+      <span class="grow"><span class="t">${esc(e.description)}</span>
+      <span class="s">${esc(first(member(e.paid_by)))} paid, split ${(e.split_among||[]).length} ways, ${fmtDay(e.spent_on)}</span></span>
+      <span class="amt">${money(e.amount_cents)}</span></button></li>` })),
+    ...S.payments.map(p => ({ d:p.paid_on, c:p.created_at||'', html:`<li><button class="rowi" data-act="pay-edit" data-id="${p.id}">
+      <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
+      <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
+      <span class="amt">${money(p.amount_cents)}</span></button></li>` }))
+  ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
+  return `${demoNote()}<h1>House money</h1>
+    <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div></div>
+    <div class="actions"><button class="btn primary" data-act="exp-new">Add an expense</button></div>
+    <h2>To settle up</h2>${planHtml}
+    <h2>Balances</h2><ul class="list">${balHtml}</ul>
+    <h2>Expenses and payments</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
+}
+
+function viewHouse(){
+  const h = S.house, v = (x, cls='') => x ? `<dd class="${cls}">${esc(x)}</dd>` : `<dd class="unset">Not set</dd>`;
+  const mem = active().map(m => `<li><div class="rowi">${chip(m)}
+    <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
+      <span class="s">${esc(m.email)}, ${esc(m.phone)}</span>
+      <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a></span></span>
+    <button class="btn small" data-act="member-edit" data-id="${m.id}">Edit</button></div></li>`).join('');
+  const foot = LIVE
+    ? `<div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div>`
+    : `<h2>Trying it out</h2>
+       <label>See the app as<select data-change="viewas">${active().map(m => `<option value="${m.id}"${S.me && m.id === S.me.id ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>
+       <div class="actions"><button class="btn quiet" data-act="reset">Reset sample data</button></div>`;
+  return `${demoNote()}<h1>${esc(h.name || 'The house')}</h1>
+    <dl><div><dt>Address</dt>${v(h.address)}</div>
+      <div><dt>Door code</dt>${v(h.door_code,'code')}</div>
+      <div><dt>Wi-Fi</dt>${h.wifi_name ? `<dd>${esc(h.wifi_name)}${h.wifi_password ? `<br><span class="code" style="font-family:var(--mono)">${esc(h.wifi_password)}</span>` : ''}</dd>` : `<dd class="unset">Not set</dd>`}</div>
+      <div><dt>Beds</dt>${v(h.beds ? String(h.beds) : '')}</div>
+      <div><dt>House notes</dt>${v(h.notes)}</div></dl>
+    <div class="actions"><button class="btn" data-act="house-edit">Edit house info</button></div>
+    <h2>Members</h2><ul class="list">${mem}</ul>
+    <div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>${foot}`;
+}
+
+function viewGate(){
+  if (S.gate === 'loading') return `<div class="gate"><p class="sub">Loading the house…</p></div>`;
+  if (S.gate === 'error') return `<div class="gate"><h1>Can’t reach the house</h1><p class="sub">The data didn’t load. Check your connection, then try again.</p>
+    <div class="actions"><button class="btn primary" data-act="retry">Try again</button></div></div>`;
+  if (S.gate === 'sent') return `<div class="gate"><h1>Check your email</h1><p class="sub">We sent a sign-in link to ${esc(S.sentTo)}. Open it on this device.</p>
+    <div class="actions"><button class="btn quiet" data-act="signin-again">Use a different email</button></div></div>`;
+  if (S.gate === 'notmember') return `<div class="gate"><h1>You’re not on the lease list</h1>
+    <p class="sub">${esc(sessionEmail)} isn’t a member yet. Ask someone in the house to add this email under House, then reload.</p>
+    <div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div></div>`;
+  return `<div class="gate"><h1>Sign in to the house</h1><p class="sub">Enter the email the house has on file. We’ll send you a link; there’s no password.</p>
+    <form data-form="signin"><label>Email<input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
+    <p class="err" id="err"></p><div class="actions"><button class="btn primary wide">Email me a sign-in link</button></div></form></div>`;
+}
+
+function render(){
+  const gated = !!S.gate;
+  $('#tabs').hidden = gated;
+  $('#who').innerHTML = (!gated && S.me) ? `${chip(S.me)}<span>${esc(first(S.me))}</span>` : '';
+  $('#main').innerHTML = gated ? viewGate() : S.view === 'money' ? viewMoney() : S.view === 'house' ? viewHouse() : viewNights();
+  document.querySelectorAll('#tabs button').forEach(b => { if (b.dataset.view === S.view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  if (S.sheet && S.sheet.type === 'night' && $('#sheet').open) $('#sheet').innerHTML = sheetNight(S.sheet.night);
+}
+
+/* ---------- sheets ---------- */
+function openSheet(html, state){ const d = $('#sheet'); S.sheet = state || {type:'form'}; d.innerHTML = html; if (!d.open) d.showModal(); d.scrollTop = 0; }
+function closeSheet(){ const d = $('#sheet'); if (d.open) d.close(); S.sheet = null; }
+
+function sheetNight(night){
+  const st = staysOn(night), hc = headcount(night), cap = beds(), mine = myStay(night);
+  const who = st.length ? `<ul class="list" style="margin-top:14px">${st.map(s => { const m = member(s.member_id); return `<li><div class="rowi">${chip(m)}
+      <span class="grow"><span class="t">${esc(m.name)}${s.guests ? ` and ${s.guests} guest${s.guests > 1 ? 's' : ''}` : ''}</span>
+      ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
+    : `<p class="empty">Nobody’s signed up for this night.</p>`;
+  const over = cap && hc > cap;
+  const mineHtml = mine ? `<label>Guests you’re bringing</label>
+      <div class="step"><button data-act="guests" data-night="${night}" data-d="-1" aria-label="One fewer guest">−</button>
+      <output>${mine.guests||0}</output>
+      <button data-act="guests" data-night="${night}" data-d="1" aria-label="One more guest">+</button></div>
+      <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
+      <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">Remove my night</button>
+      <button class="btn primary" data-act="sheet-close">Done</button></div>`
+    : `<div class="actions"><button class="btn" data-act="sheet-close">Close</button>
+      <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>`;
+  return `<h2>${fmtLong(night)}</h2>
+    <p class="sub${over ? ' neg' : ''}">${hc ? `${hc} sleeping, ${cap} beds${over ? `. That’s ${hc - cap} over.` : ''}` : `${cap} beds open`}</p>${who}${mineHtml}`;
+}
+
+function sheetExpense(e){
+  const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:active().map(m => m.id), description:'', amount_cents:0 };
+  const pool = S.members.filter(m => m.active !== false || e.split_among.includes(m.id) || m.id === e.paid_by);
+  return `<form data-form="expense" data-id="${isNew ? '' : e.id}"><h2>${isNew ? 'Add an expense' : 'Edit expense'}</h2>
+    <label>What was it<input name="description" required maxlength="80" value="${esc(e.description)}" placeholder="Propane refill"></label>
+    <label>Amount<input name="amount" required inputmode="decimal" autocomplete="off" value="${e.amount_cents ? (e.amount_cents/100).toFixed(2) : ''}" placeholder="0.00"></label>
+    <label>Paid by<select name="paid_by">${pool.map(m => `<option value="${m.id}"${m.id === e.paid_by ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>
+    <label>Date<input type="date" name="spent_on" required value="${esc(e.spent_on)}"></label>
+    <fieldset><legend>Split evenly between</legend><div class="pick">${pool.map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${e.split_among.includes(m.id)}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
+    <p class="each" id="each"></p><p class="err" id="err"></p>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save expense</button></div>
+    ${isNew ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="exp-del" data-id="${e.id}">Delete expense</button></div>`}</form>`;
+}
+function updateEach(){
+  const f = $('#sheet form[data-form="expense"]'); if (!f) return;
+  const n = f.querySelectorAll('.pick [aria-pressed="true"]').length, c = toCents(f.amount.value);
+  $('#each').textContent = n && c ? `${money(Math.round(c/n))} each, ${n} ${n === 1 ? 'person' : 'people'}` : '';
+}
+
+function sheetPayment(p, isNew){
+  const opts = sel => S.members.filter(m => m.active !== false || m.id === sel).map(m => `<option value="${m.id}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+  return `<form data-form="payment" data-id="${isNew ? '' : p.id}"><h2>${isNew ? 'Record a payment' : 'Edit payment'}</h2>
+    <p class="sub">For money that already changed hands, by Venmo, cash, or anything else.</p>
+    <label>Who paid<select name="from_member">${opts(p.from_member)}</select></label>
+    <label>Who got paid<select name="to_member">${opts(p.to_member)}</select></label>
+    <label>Amount<input name="amount" required inputmode="decimal" autocomplete="off" value="${p.amount_cents ? (p.amount_cents/100).toFixed(2) : ''}" placeholder="0.00"></label>
+    <label>Date<input type="date" name="paid_on" required value="${esc(p.paid_on)}"></label>
+    <label>Note<input name="note" maxlength="60" value="${esc(p.note||'')}" placeholder="Venmo"></label>
+    <p class="err" id="err"></p>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save payment</button></div>
+    ${isNew ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="pay-del" data-id="${p.id}">Delete payment</button></div>`}</form>`;
+}
+
+function sheetMember(m){
+  const isNew = !m; m = m || { name:'', email:'', phone:'' };
+  return `<form data-form="member" data-id="${isNew ? '' : m.id}"><h2>${isNew ? 'Add a member' : 'Edit member'}</h2>
+    ${isNew ? `<p class="sub">They sign in with this email, so it has to be one they can open.</p>` : ''}
+    <label>Name<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
+    <label>Email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"></label>
+    <label>Phone<input type="tel" name="phone" required autocomplete="off" value="${esc(m.phone)}"></label>
+    <p class="err" id="err"></p>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save member</button></div>
+    ${isNew || (S.me && m.id === S.me.id) ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div>`}</form>`;
+}
+
+function sheetHouse(){
+  const h = S.house;
+  return `<form data-form="house"><h2>Edit house info</h2>
+    <label>House name<input name="name" maxlength="40" value="${esc(h.name||'')}"></label>
+    <label>Address<input name="address" maxlength="120" value="${esc(h.address||'')}"></label>
+    <label>Door code<input name="door_code" maxlength="20" autocomplete="off" value="${esc(h.door_code||'')}"></label>
+    <label>Wi-Fi network<input name="wifi_name" maxlength="40" autocomplete="off" value="${esc(h.wifi_name||'')}"></label>
+    <label>Wi-Fi password<input name="wifi_password" maxlength="60" autocomplete="off" value="${esc(h.wifi_password||'')}"></label>
+    <label>Beds<input name="beds" inputmode="numeric" maxlength="2" value="${esc(h.beds||'')}"></label>
+    <label>House notes<textarea name="notes" maxlength="600">${esc(h.notes||'')}</textarea></label>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save house info</button></div></form>`;
+}
+
+/* ---------- actions ---------- */
+function toggleNight(night){
+  if (!S.me) return;
+  const mine = myStay(night);
+  if (mine) del('stays', mine.id); else save('stays', { id:uid(), member_id:S.me.id, night, guests:0, note:'' });
+}
+const actions = {
+  tab(el){ go(el.dataset.view); },
+  month(el){ S.month = new Date(S.month.getFullYear(), S.month.getMonth() + Number(el.dataset.d), 1); render(); },
+  'night-open'(el){ openSheet(sheetNight(el.dataset.night), { type:'night', night:el.dataset.night }); },
+  'night-toggle'(el){ toggleNight(el.dataset.night); },
+  guests(el){ const s = myStay(el.dataset.night); if (!s) return; const g = Math.max(0, Math.min(12, (s.guests||0) + Number(el.dataset.d)));
+    if (g !== (s.guests||0)) save('stays', { ...s, guests:g }); },
+  'sheet-close'(){ closeSheet(); },
+  'exp-new'(){ openSheet(sheetExpense()); updateEach(); },
+  'exp-edit'(el){ const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
+  'exp-del'(el){ closeSheet(); del('expenses', el.dataset.id); toast('Expense deleted'); },
+  split(el){ el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); updateEach(); },
+  'pay-new'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
+  'pay-edit'(el){ const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
+  'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); },
+  'member-new'(){ openSheet(sheetMember()); },
+  'member-edit'(el){ openSheet(sheetMember(member(el.dataset.id))); },
+  'member-remove'(el){ const m = member(el.dataset.id); if (!m) return; closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
+  'house-edit'(){ openSheet(sheetHouse()); },
+  reset(){ try { localStorage.removeItem(KEY); } catch(e){} reload().then(() => { persist(); render(); toast('Sample data reset'); }); },
+  async signout(){ if (sb) await sb.auth.signOut(); sessionEmail = null; S.gate = 'signin'; render(); },
+  'signin-again'(){ S.gate = 'signin'; render(); },
+  retry(){ start(); }
+};
+
+const forms = {
+  async signin(f){
+    const email = f.email.value.trim().toLowerCase();
+    const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.origin + location.pathname } });
+    if (error){ $('#err').textContent = 'That didn’t send. Wait a minute and try again.'; return; }
+    S.sentTo = email; S.gate = 'sent'; render();
+  },
+  expense(f){
+    const amount_cents = toCents(f.amount.value), split = [...f.querySelectorAll('.pick [aria-pressed="true"]')].map(b => b.dataset.id);
+    if (amount_cents <= 0) return void ($('#err').textContent = 'Enter an amount above zero.');
+    if (!split.length) return void ($('#err').textContent = 'Pick at least one person to split it between.');
+    const old = S.expenses.find(x => x.id === f.dataset.id);
+    const row = { id: old ? old.id : uid(), description:f.description.value.trim(), amount_cents, paid_by:f.paid_by.value,
+      split_among:split, spent_on:f.spent_on.value, created_at: old ? old.created_at : new Date().toISOString() };
+    closeSheet(); save('expenses', row); toast('Expense saved');
+  },
+  payment(f){
+    const amount_cents = toCents(f.amount.value);
+    if (amount_cents <= 0) return void ($('#err').textContent = 'Enter an amount above zero.');
+    if (f.from_member.value === f.to_member.value) return void ($('#err').textContent = 'Pick two different people.');
+    const old = S.payments.find(x => x.id === f.dataset.id);
+    const row = { id: old ? old.id : uid(), from_member:f.from_member.value, to_member:f.to_member.value, amount_cents,
+      paid_on:f.paid_on.value, note:f.note.value.trim(), created_at: old ? old.created_at : new Date().toISOString() };
+    closeSheet(); save('payments', row); toast('Payment saved');
+  },
+  member(f){
+    const email = f.email.value.trim().toLowerCase(), old = member(f.dataset.id);
+    const clash = S.members.find(m => m.email.toLowerCase() === email && (!old || m.id !== old.id));
+    if (clash && clash.active !== false) return void ($('#err').textContent = `${clash.name} already uses that email.`);
+    const base = old || clash || { id:uid(), color:PALETTE[S.members.length % PALETTE.length] };
+    const row = { ...base, name:f.name.value.trim(), email, phone:f.phone.value.trim(), active:true };
+    closeSheet(); save('members', row); toast('Member saved');
+  },
+  house(f){
+    const row = { id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
+      wifi_name:f.wifi_name.value.trim(), wifi_password:f.wifi_password.value.trim(), beds:parseInt(f.beds.value, 10) || 0, notes:f.notes.value.trim() };
+    closeSheet(); save('house', row); toast('House info saved');
+  }
+};
+
+document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
+document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
+document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
+document.addEventListener('change', e => {
+  const k = e.target.dataset.change;
+  if (k === 'note'){ const s = myStay(e.target.dataset.night); if (s) save('stays', { ...s, note:e.target.value.trim() }); }
+  if (k === 'viewas'){ S.me = member(e.target.value); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
+});
+$('#sheet').addEventListener('close', () => { S.sheet = null; });
+$('#sheet').addEventListener('click', e => { if (e.target === e.currentTarget) closeSheet(); });
+
+/* ---------- routing and start ---------- */
+function go(v){ S.view = VIEWS.includes(v) ? v : 'nights'; if (location.hash.slice(1) !== S.view) history.replaceState(null, '', '#' + S.view); render(); window.scrollTo(0, 0); }
+window.addEventListener('hashchange', () => { const v = location.hash.slice(1); if (VIEWS.includes(v) && v !== S.view){ S.view = v; render(); } });
+
+async function start(){
+  const t = today(); S.month = S.month || new Date(t.getFullYear(), t.getMonth(), 1);
+  const v = location.hash.slice(1); if (VIEWS.includes(v)) S.view = v;
+  S.gate = 'loading'; render();
+  try {
+    if (LIVE){
+      if (!sb){
+        await Live.init();
+        sb.auth.onAuthStateChange((ev, session) => { const em = session && session.user && session.user.email || null;
+          if (em !== sessionEmail && (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT')){ sessionEmail = em; setTimeout(start, 0); } });
+      }
+      const { data } = await sb.auth.getSession();
+      sessionEmail = data.session && data.session.user.email || null;
+      if (!sessionEmail){ S.gate = 'signin'; return render(); }
+    }
+    await reload(); if (!LIVE) persist();
+  } catch(e){ console.error(e); S.gate = 'error'; }
+  render();
+}
+// Other people's changes show up when you come back to the tab.
+document.addEventListener('visibilitychange', () => { if (LIVE && !document.hidden && S.me && !$('#sheet').open) reload().then(render).catch(() => {}); });
+start();
+})();
+</script>
+</body>
+</html>
