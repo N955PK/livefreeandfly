@@ -501,7 +501,8 @@ function viewGate(){
   return `<div class="gate"><h1>Sign in to the house</h1>
     <p class="sub">Use the Google account whose email the house has on file.</p>
     <div class="actions"><button class="btn primary wide" data-act="google">Continue with Google</button></div>
-    <p class="err" id="err">${esc(S.authErr || '')}</p></div>`;
+    <p class="err" id="err">${esc(S.authErr || '')}</p>
+    <p class="note" style="margin-top:22px"><a href="privacy.html">Privacy policy</a></p></div>`;
 }
 
 function render(){
