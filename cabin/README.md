@@ -20,6 +20,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - A month calendar. Each night shows a dot per member and a headcount. Your nights are marked in red.
 - Tap any night to see who is in, set how many guests you are bringing, and leave a short note (“arriving late”).
 - Headcount includes guests and is compared to the number of beds. A night over capacity is flagged; nothing is blocked.
+- The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
 - Guests cost a nightly fee, $60 by default and editable under House. The fee is charged to the member who brought them and shared equally by all members, once the night has happened. Each night keeps the rate it was booked at.
 

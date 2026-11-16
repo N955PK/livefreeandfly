@@ -116,6 +116,8 @@ a.btn{text-decoration:none}
 .day.mine{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--accent)}
 .day.over .cnt{color:var(--neg);font-weight:700}
 .blank{visibility:hidden}
+.day.off{opacity:.3;border-style:dashed;background:none}
+.mnav button:disabled{opacity:.25;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:13px;color:var(--dim)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 
@@ -284,7 +286,7 @@ let toastT;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
 
 /* ---------- data: demo (this browser) ---------- */
-function weekendFriday(){ const t = today(), dow = t.getDay(); // Fri, Sat, Sun count as the current weekend
+function weekendFriday(from){ const t = from || today(), dow = t.getDay(); // Fri, Sat, Sun count as the current weekend
   const back = dow === 5 ? 0 : dow === 6 ? 1 : dow === 0 ? 2 : -((5 - dow));
   return addDays(t, -back); }
 
@@ -363,6 +365,22 @@ const staysOn = night => S.stays.filter(s => s.night === night && member(s.membe
 const headcount = night => staysOn(night).reduce((n, s) => n + 1 + (s.guests||0), 0);
 const myStay = night => S.me && S.stays.find(s => s.night === night && s.member_id === S.me.id);
 const beds = () => Number(S.house.beds) || 0;
+const leaseStart = () => S.house.lease_start || null, leaseEnd = () => S.house.lease_end || null;
+const inLease = k => (!leaseStart() || k >= leaseStart()) && (!leaseEnd() || k < leaseEnd());
+const lastNight = () => leaseEnd() ? iso(addDays(parse(leaseEnd()), -1)) : null;
+const monthKey = d => d.getFullYear() * 12 + d.getMonth();
+function leaseText(){
+  const a = leaseStart(), b = leaseEnd(); if (!a && !b) return '';
+  const f = (k, yr) => parse(k).toLocaleDateString('en-US', yr ? { month:'short', day:'numeric', year:'numeric' } : { month:'short', day:'numeric' });
+  return a && b ? `${f(a, a.slice(0,4) !== b.slice(0,4))} to ${f(b, true)}` : a ? `from ${f(a, true)}` : `until ${f(b, true)}`;
+}
+// Open the calendar where the lease is: its first month before it starts, its last month after it ends.
+function defaultMonth(){
+  const t = today(), k = iso(t); let d = t;
+  if (leaseStart() && k < leaseStart()) d = parse(leaseStart());
+  else if (lastNight() && k > lastNight()) d = parse(lastNight());
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
 
 const guestRate = () => (S.house.guest_fee_cents === null || S.house.guest_fee_cents === undefined) ? 6000 : Number(S.house.guest_fee_cents) || 0;
 const stayFee = s => (s.guests || 0) * ((s.guest_fee_cents === null || s.guest_fee_cents === undefined) ? guestRate() : Number(s.guest_fee_cents) || 0);
@@ -403,8 +421,10 @@ function settle(b){
 const demoNote = () => LIVE ? '' : `<p class="demo">Sample data, saved in this browser only. Tap around; nothing is shared yet.</p>`;
 
 function viewNights(){
-  const t = today(), tIso = iso(t), fri = weekendFriday(), cap = beds();
-  const wk = [0,1,2].map(n => { const d = addDays(fri, n), k = iso(d), hc = headcount(k), mine = !!myStay(k);
+  const t = today(), tIso = iso(t), cap = beds();
+  const notYet = leaseStart() && tIso < leaseStart(), over = lastNight() && tIso > lastNight();
+  const fri = weekendFriday(notYet ? parse(leaseStart()) : t);
+  const wk = over ? '' : [0,1,2].map(n => addDays(fri, n)).filter(d => inLease(iso(d))).map(d => { const k = iso(d), hc = headcount(k), mine = !!myStay(k);
     return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}">
       <span class="d">${d.toLocaleDateString('en-US',{weekday:'short'})} ${d.getDate()}</span>
       <span class="n${cap && hc > cap ? ' over' : ''}">${hc ? `${hc} of ${cap} beds` : 'Nobody yet'}</span>
@@ -412,7 +432,9 @@ function viewNights(){
   const m0 = S.month, y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
   let cells = '<span class="blank"></span>'.repeat(m0.getDay());
   for (let d = 1; d <= days; d++){
-    const k = `${y}-${pad(mo+1)}-${pad(d)}`, st = staysOn(k), hc = headcount(k), mine = !!myStay(k);
+    const k = `${y}-${pad(mo+1)}-${pad(d)}`;
+    if (!inLease(k)){ cells += `<span class="day off" aria-label="${esc(fmtLong(k))}. Outside the lease."><span class="num">${d}</span></span>`; continue; }
+    const st = staysOn(k), hc = headcount(k), mine = !!myStay(k);
     const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', cap && hc > cap ? 'over' : ''].filter(Boolean).join(' ');
     const dots = st.slice(0,6).map(s => chip(member(s.member_id), true)).join('');
     const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping' : 'Nobody yet'}.${mine ? ' You’re in.' : ''}`;
@@ -420,12 +442,14 @@ function viewNights(){
       <span class="num">${d}</span>${hc ? `<span class="cnt">${hc}</span>` : ''}<span class="dots">${dots}</span></button>`;
   }
   const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
+  const atStart = leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart())), atEnd = lastNight() && monthKey(m0) >= monthKey(parse(lastNight()));
+  const lease = leaseText(), when = notYet ? `The lease starts ${fmtDay(leaseStart())}, so here’s the first weekend.` : over ? `The lease ended ${fmtDay(leaseEnd())}.` : lease ? `The lease runs ${lease}.` : '';
   return `${demoNote()}<h1>Who’s up</h1>
-    <p class="sub">Mark the nights you’ll sleep at the house. ${cap ? `It sleeps ${cap}.` : ''}</p>
-    <div class="wk">${wk}</div>
-    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month">‹</button>
+    <p class="sub">Mark the nights you’ll sleep at the house. ${cap ? `It sleeps ${cap}.` : ''} ${when}</p>
+    ${wk ? `<div class="wk">${wk}</div>` : ''}
+    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
       <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
-      <button data-act="month" data-d="1" aria-label="Next month">›</button></div>
+      <button data-act="month" data-d="1" aria-label="Next month"${atEnd ? ' disabled' : ''}>›</button></div>
     <div class="dow" aria-hidden="true">${['S','M','T','W','T','F','S'].map(x => `<span>${x}</span>`).join('')}</div>
     <div class="grid">${cells}</div>
     <div class="legend">${legend}</div>`;
@@ -498,7 +522,8 @@ function viewHouse(){
        <label>See the app as<select data-change="viewas">${active().map(m => `<option value="${m.id}"${S.me && m.id === S.me.id ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>
        <div class="actions"><button class="btn quiet" data-act="reset">Reset sample data</button></div>`;
   return `${demoNote()}<h1>${esc(h.name || 'The house')}</h1>
-    <dl><div><dt>Address</dt>${v(h.address)}</div>
+    <dl><div><dt>Address</dt>${h.address ? `<dd><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.address)}" target="_blank" rel="noopener">${esc(h.address)}</a></dd>` : `<dd class="unset">Not set</dd>`}</div>
+      <div><dt>Lease</dt>${v(leaseText())}</div>
       <div><dt>Door code</dt>${v(h.door_code,'code')}</div>
       <div><dt>Wi-Fi</dt>${h.wifi_name ? `<dd>${esc(h.wifi_name)}${h.wifi_password ? `<br><span class="code" style="font-family:var(--mono)">${esc(h.wifi_password)}</span>` : ''}</dd>` : `<dd class="unset">Not set</dd>`}</div>
       <div><dt>Beds</dt>${v(h.beds ? String(h.beds) : '')}</div>
@@ -639,7 +664,9 @@ function sheetHouse(){
     <label>Wi-Fi network<input name="wifi_name" maxlength="40" autocomplete="off" value="${esc(h.wifi_name||'')}"></label>
     <label>Wi-Fi password<input name="wifi_password" maxlength="60" autocomplete="off" value="${esc(h.wifi_password||'')}"></label>
     <label>Beds<input name="beds" inputmode="numeric" maxlength="2" value="${esc(h.beds||'')}"></label>
-    ${isAdmin() ? `<label>Guest fee per night, in dollars<input name="guest_fee" inputmode="decimal" autocomplete="off" value="${(guestRate()/100).toFixed(2)}"></label>
+    ${isAdmin() ? `<label>Lease starts, first night<input type="date" name="lease_start" value="${esc(h.lease_start || '')}"></label>
+    <label>Lease ends, move-out day<input type="date" name="lease_end" value="${esc(h.lease_end || '')}"></label>
+    <label>Guest fee per night, in dollars<input name="guest_fee" inputmode="decimal" autocomplete="off" value="${(guestRate()/100).toFixed(2)}"></label>
     <p class="each">Only you can change this. A new rate applies to guest nights added after the change. Enter 0 for no fee.</p>` : ''}
     <label>House notes<textarea name="notes" maxlength="600">${esc(h.notes||'')}</textarea></label>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save house info</button></div></form>`;
@@ -654,6 +681,7 @@ function setAvatar(v){
 function toggleNight(night){
   if (!S.me) return;
   const mine = myStay(night);
+  if (!mine && !inLease(night)) return;
   if (mine) del('stays', mine.id); else save('stays', { id:uid(), member_id:S.me.id, night, guests:0, note:'' });
 }
 const actions = {
@@ -738,8 +766,14 @@ const forms = {
   house(f){
     const row = { ...S.house, id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
       wifi_name:f.wifi_name.value.trim(), wifi_password:f.wifi_password.value.trim(), beds:parseInt(f.beds.value, 10) || 0, notes:f.notes.value.trim() };
+    if (f.lease_start && isAdmin()){
+      const a = f.lease_start.value || null, b = f.lease_end.value || null;
+      if (a && b && b <= a) return void toast('The lease has to end after it starts.');
+      if ('lease_start' in S.house || a) row.lease_start = a;
+      if ('lease_end' in S.house || b) row.lease_end = b;
+    }
     if (f.guest_fee && isAdmin()){ const fee = toCents(f.guest_fee.value); if ('guest_fee_cents' in S.house || fee !== 6000) row.guest_fee_cents = fee; }
-    closeSheet(); save('house', row); toast('House info saved');
+    closeSheet(); save('house', row); S.month = defaultMonth(); toast('House info saved');
   }
 };
 
@@ -765,6 +799,7 @@ window.addEventListener('hashchange', () => { const v = location.hash.slice(1); 
 
 async function start(){
   const t = today(); S.month = S.month || new Date(t.getFullYear(), t.getMonth(), 1);
+  const firstLoad = !S.loaded;
   const v = location.hash.slice(1); if (VIEWS.includes(v)) S.view = v;
   const back = new URLSearchParams((location.hash || '').slice(1) || location.search);
   if (back.get('error_description')){ S.authErr = 'Sign-in didn’t finish: ' + back.get('error_description').replace(/\+/g, ' '); history.replaceState(null, '', location.pathname); }
@@ -781,6 +816,7 @@ async function start(){
       if (!sessionEmail){ S.gate = 'signin'; return render(); }
     }
     await reload(); if (!LIVE) persist();
+    if (firstLoad){ S.month = defaultMonth(); S.loaded = true; }
   } catch(e){ console.error(e); S.gate = 'error'; S.errText = [e && e.code, e && e.message].filter(Boolean).join(': '); }
   render();
 }

@@ -59,6 +59,8 @@ create table house (
   wifi_password text,
   beds          int not null default 8,
   guest_fee_cents int not null default 6000,     -- nightly fee per guest
+  lease_start   date,                            -- first night of the lease
+  lease_end     date,                            -- move-out day; the last night is the one before
   notes         text
 );
 insert into house (id, name) values (1, 'Tahoe house');
@@ -123,12 +125,13 @@ drop trigger if exists members_guard on members;
 create trigger members_guard before insert or update on members
   for each row execute function members_guard();
 
--- Only the admin can change the guest fee.
+-- Only the admin can change the guest fee and the lease dates.
 create or replace function house_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
     new.guest_fee_cents := old.guest_fee_cents;
+    new.lease_start := old.lease_start; new.lease_end := old.lease_end;
   end if;
   return new;
 end $$;
