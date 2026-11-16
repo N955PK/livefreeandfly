@@ -12,6 +12,7 @@ create table members (
   venmo      text,
   avatar     text check (avatar is null or length(avatar) < 60000),  -- small inline picture or 'emoji:…'
   active     boolean not null default true,
+  is_admin   boolean not null default false,        -- can remove members, fix emails, set the guest fee
   created_at timestamptz not null default now()
 );
 create unique index members_email_key on members (lower(email));
@@ -84,12 +85,64 @@ begin
   end loop;
 end $$;
 
+-- Profiles belong to their owner. Any member can add someone, but only you
+-- can edit your own row; the admin can also correct an email or remove a member.
+create or replace function is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from members
+    where lower(email) = lower(auth.jwt() ->> 'email') and active and is_admin
+  );
+$$;
+
+drop policy if exists "members only" on members;
+drop policy if exists "members read" on members;
+drop policy if exists "members add" on members;
+drop policy if exists "members edit own" on members;
+create policy "members read" on members for select to authenticated using (is_member());
+create policy "members add"  on members for insert to authenticated with check (is_member());
+create policy "members edit own" on members for update to authenticated
+  using (is_admin() or lower(email) = lower(auth.jwt() ->> 'email'))
+  with check (is_member());
+
+-- Signed-in non-admins cannot change who is an admin, anyone's sign-in email,
+-- or whether someone is active. (Edits made in the Supabase dashboard are not affected.)
+create or replace function members_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
+    if tg_op = 'INSERT' then
+      new.is_admin := false; new.active := true;
+    else
+      new.is_admin := old.is_admin; new.email := old.email; new.active := old.active;
+    end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists members_guard on members;
+create trigger members_guard before insert or update on members
+  for each row execute function members_guard();
+
+-- Only the admin can change the guest fee.
+create or replace function house_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
+    new.guest_fee_cents := old.guest_fee_cents;
+  end if;
+  return new;
+end $$;
+drop trigger if exists house_guard on house;
+create trigger house_guard before update on house
+  for each row execute function house_guard();
+
 -- New Supabase projects no longer expose tables to the browser API by
 -- default, so grant signed-in users access explicitly. Row-level security
 -- above still decides which rows they get. Nothing is granted to anon.
 grant select, insert, update, delete on members, stays, expenses, payments, house to authenticated;
 grant execute on function is_member() to authenticated;
+grant execute on function is_admin() to authenticated;
 
 -- Seed yourself, then add everyone else from the House tab.
-insert into members (name, email, phone, color)
-values ('Your Name', 'you@example.com', '(530) 555-0100', '#39d0a4');
+insert into members (name, email, phone, color, is_admin)
+values ('Your Name', 'you@example.com', '(530) 555-0100', '#39d0a4', true);

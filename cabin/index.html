@@ -241,6 +241,7 @@ const toCents = v => { const n = parseFloat(String(v).replace(/[^0-9.]/g,'')); r
 const member = id => S.members.find(m => m.id === id);
 const first = m => m ? m.name.trim().split(/\s+/)[0] : 'Someone';
 const active = () => S.members.filter(m => m.active !== false);
+const isAdmin = () => !!(S.me && S.me.is_admin);
 const initials = m => { const p = m.name.trim().split(/\s+/); return ((p[0]?.[0]||'') + (p[1]?.[0] || p[0]?.[1] || '')).toUpperCase(); };
 const EMOJI = ['🎿','🏂','⛷️','🏔️','❄️','☃️','🌲','🔥','🐻','🦌','🐕','☕','🍺','🚠'];
 const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/, HEX_RE = /^#[0-9a-f]{6}$/i;
@@ -274,7 +275,7 @@ function weekendFriday(){ const t = today(), dow = t.getDay(); // Fri, Sat, Sun 
 function seed(){
   const names = ['Priya Raman','Marcus Bell','Elena Ortiz','Tom Whitaker','Jules Fontaine','Wen Zhao'];
   const members = names.map((name,i) => ({ id:uid(), name, email:name.split(' ')[0].toLowerCase()+'@example.com',
-    phone:'(530) 555-01'+(40+i), color:PALETTE[i], active:true, venmo: i % 2 ? name.replace(' ', '-').toLowerCase() : '' }));
+    phone:'(530) 555-01'+(40+i), color:PALETTE[i], active:true, is_admin: i === 0, venmo: i % 2 ? name.replace(' ', '-').toLowerCase() : '' }));
   const fri = weekendFriday(), t = today(), stays = [], M = i => members[i].id;
   const stay = (i, off, guests=0, note='') => stays.push({ id:uid(), member_id:M(i), night:iso(addDays(fri,off)), guests, note, ...(guests ? { guest_fee_cents:6000 } : {}) });
   stay(0,-7); stay(4,-7); stay(0,-6); stay(3,-6); stay(4,-6,1); stay(5,-6);
@@ -472,7 +473,8 @@ function viewHouse(){
     <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
       <span class="s">${esc(m.email)}, ${esc(m.phone)}</span>
       <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a>${m.venmo ? `<a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo</a>` : ''}</span></span>
-    <button class="btn small" data-act="member-edit" data-id="${m.id}">Edit</button></div></li>`).join('');
+    ${S.me && m.id === S.me.id ? `<button class="btn small" data-act="me-edit">Edit</button>`
+      : isAdmin() ? `<button class="btn small" data-act="member-manage" data-id="${m.id}">Manage</button>` : ''}</div></li>`).join('');
   const foot = LIVE
     ? `<div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div>`
     : `<h2>Trying it out</h2>
@@ -593,8 +595,17 @@ function sheetMember(m){
     <label>Phone<input type="tel" name="phone" required autocomplete="off" value="${esc(m.phone)}"></label>
     <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
-    ${isNew || self ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div>`}</form>`;
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div></form>`;
+}
+
+// Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
+function sheetManage(m){
+  return `<form data-form="manage" data-id="${m.id}"><h2>Manage ${esc(first(m))}</h2>
+    <p class="sub">Only ${esc(first(m))} can change their name, picture, phone, and Venmo. You can correct the email they sign in with, or remove them.</p>
+    <label>Sign-in email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"></label>
+    <p class="err" id="err"></p>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save email</button></div>
+    <div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div></form>`;
 }
 
 function sheetHouse(){
@@ -606,8 +617,8 @@ function sheetHouse(){
     <label>Wi-Fi network<input name="wifi_name" maxlength="40" autocomplete="off" value="${esc(h.wifi_name||'')}"></label>
     <label>Wi-Fi password<input name="wifi_password" maxlength="60" autocomplete="off" value="${esc(h.wifi_password||'')}"></label>
     <label>Beds<input name="beds" inputmode="numeric" maxlength="2" value="${esc(h.beds||'')}"></label>
-    <label>Guest fee per night, in dollars<input name="guest_fee" inputmode="decimal" autocomplete="off" value="${(guestRate()/100).toFixed(2)}"></label>
-    <p class="each">A new rate applies to guest nights added after the change. Enter 0 for no fee.</p>
+    ${isAdmin() ? `<label>Guest fee per night, in dollars<input name="guest_fee" inputmode="decimal" autocomplete="off" value="${(guestRate()/100).toFixed(2)}"></label>
+    <p class="each">Only you can change this. A new rate applies to guest nights added after the change. Enter 0 for no fee.</p>` : ''}
     <label>House notes<textarea name="notes" maxlength="600">${esc(h.notes||'')}</textarea></label>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save house info</button></div></form>`;
 }
@@ -642,13 +653,13 @@ const actions = {
   'pay-edit'(el){ const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
   'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); },
   'member-new'(){ openSheet(sheetMember()); },
-  'member-edit'(el){ openSheet(sheetMember(member(el.dataset.id))); },
+  'member-manage'(el){ const m = member(el.dataset.id); if (m && isAdmin()) openSheet(sheetManage(m)); },
   'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
   'ava-emoji'(el){ setAvatar('emoji:' + el.dataset.e); },
   'ava-clear'(){ setAvatar(''); },
   'ava-color'(el){ const f = $('#sheet form[data-form="member"]'); if (!f) return; f.color.value = el.dataset.c;
     f.querySelectorAll('.sw-row button').forEach(b => b.setAttribute('aria-pressed', b === el)); setAvatar(f.avatar.value); },
-  'member-remove'(el){ const m = member(el.dataset.id); if (!m) return; closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
+  'member-remove'(el){ const m = member(el.dataset.id); if (!m || !isAdmin() || m.id === S.me.id) return; closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
   'house-edit'(){ openSheet(sheetHouse()); },
   reset(){ try { localStorage.removeItem(KEY); } catch(e){} reload().then(() => { persist(); render(); toast('Sample data reset'); }); },
   async signout(){ if (sb) await sb.auth.signOut(); sessionEmail = null; S.gate = 'signin'; render(); },
@@ -680,8 +691,10 @@ const forms = {
   },
   member(f){
     const email = f.email.value.trim().toLowerCase(), old = member(f.dataset.id);
+    if (old && !(S.me && old.id === S.me.id)) return;                       // a profile belongs to its owner
     const clash = S.members.find(m => m.email.toLowerCase() === email && (!old || m.id !== old.id));
     if (clash && clash.active !== false) return void ($('#err').textContent = `${clash.name} already uses that email.`);
+    if (clash && !isAdmin()) return void ($('#err').textContent = 'That email belongs to someone who was removed. Ask the house admin to add them back.');
     const venmo = f.venmo.value.trim().replace(/^https?:\/\/(www\.)?venmo\.com\/(u\/)?/i, '').replace(/^@/, '').replace(/[?\/].*$/, '');
     if (!/^[A-Za-z0-9_-]{0,40}$/.test(venmo)) return void ($('#err').textContent = 'Venmo usernames use only letters, numbers, dashes, and underscores.');
     const base = old || clash || { id:uid(), color:PALETTE[S.members.length % PALETTE.length] };
@@ -692,10 +705,16 @@ const forms = {
     const mine = S.me && row.id === S.me.id; if (mine) S.me = row;
     closeSheet(); save('members', row); toast(mine ? 'Your details are saved' : 'Member saved');
   },
+  manage(f){
+    const m = member(f.dataset.id), email = f.email.value.trim().toLowerCase(); if (!m || !isAdmin()) return;
+    const clash = S.members.find(x => x.email.toLowerCase() === email && x.id !== m.id);
+    if (clash) return void ($('#err').textContent = `${clash.name} already uses that email.`);
+    closeSheet(); save('members', { ...m, email }); toast('Email saved');
+  },
   house(f){
-    const row = { id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
+    const row = { ...S.house, id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
       wifi_name:f.wifi_name.value.trim(), wifi_password:f.wifi_password.value.trim(), beds:parseInt(f.beds.value, 10) || 0, notes:f.notes.value.trim() };
-    const fee = toCents(f.guest_fee.value); if ('guest_fee_cents' in S.house || fee !== 6000) row.guest_fee_cents = fee;
+    if (f.guest_fee && isAdmin()){ const fee = toCents(f.guest_fee.value); if ('guest_fee_cents' in S.house || fee !== 6000) row.guest_fee_cents = fee; }
     closeSheet(); save('house', row); toast('House info saved');
   }
 };

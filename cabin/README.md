@@ -35,7 +35,8 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 
 - Address, door code, Wi-Fi, bed count, and house notes, editable by any member.
 - The member list with call, text, and email links.
-- Add a member with name, email, and phone. Removing someone keeps their past expenses on the books.
+- Any member can add a member with name, email, and phone. After that, a profile (name, picture, phone, Venmo) can only be edited by its owner.
+- One member is the admin. The admin can correct a sign-in email, remove a member, and set the guest fee. Removing someone keeps their past expenses on the books.
 
 ## Left out on purpose
 
