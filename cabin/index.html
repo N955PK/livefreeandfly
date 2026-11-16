@@ -562,7 +562,12 @@ const forms = {
   async signin(f){
     const email = f.email.value.trim().toLowerCase();
     const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.origin + location.pathname } });
-    if (error){ $('#err').textContent = 'That didn’t send. Wait a minute and try again.'; return; }
+    if (error){ console.error(error);
+      const known = { over_email_send_rate_limit:'The hourly limit on sign-in emails is used up. Try again in an hour.',
+        email_address_not_authorized:'The email service isn’t set up to send to this address yet.',
+        over_request_rate_limit:'Too many tries in a row. Wait a few minutes, then try again.' };
+      $('#err').textContent = known[error.code] || ('That didn’t send. ' + [error.status, error.code, error.message].filter(Boolean).join(' / '));
+      return; }
     S.sentTo = email; S.gate = 'sent'; render();
   },
   expense(f){
