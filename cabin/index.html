@@ -88,6 +88,7 @@ input[type="hidden"],input[hidden]{display:none}
 a.btn{text-decoration:none}
 .pay-btns{display:flex;flex-wrap:wrap;gap:8px;padding:0 2px 14px}
 .note{font-size:13px;color:var(--dim);margin:8px 2px 0}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--accent-ink);border:1px solid currentColor;border-radius:6px;padding:1px 6px;margin-left:8px;vertical-align:2px;white-space:nowrap}
 .guest-add{display:flex;gap:8px;margin-top:8px}
 .guest-add input{flex:1;margin-top:0}
 .pick button.plain{padding:0 14px}
@@ -567,7 +568,7 @@ function viewMoney(){
 function viewHouse(){
   const h = S.house, v = (x, cls='') => x ? `<dd class="${cls}">${esc(x)}</dd>` : `<dd class="unset">Not set</dd>`;
   const mem = active().map(m => `<li><div class="rowi">${chip(m)}
-    <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
+    <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}${m.is_admin ? '<span class="tag">Admin</span>' : ''}</span>
       <span class="s">${esc(m.email)}</span>
       <span class="s" style="white-space:nowrap">${esc(fmtPhone(m.phone))}</span>
       <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a>${m.venmo ? `<a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo</a>` : ''}</span></span>
@@ -588,7 +589,9 @@ function viewHouse(){
       <div><dt>Guest fee</dt><dd>${guestRate() ? money(guestRate()) + ' a night' : 'None'}</dd></div>
       <div><dt>House notes</dt>${v(h.notes)}</div></dl>
     <div class="actions"><button class="btn" data-act="house-edit">Edit house info</button></div>
-    <h2>Members</h2><ul class="list">${mem}</ul>
+    <h2>Members</h2>
+    <p class="sub" style="margin:-4px 0 10px">Admins manage members, fees, and house settings.</p>
+    <ul class="list">${mem}</ul>
     <div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>${foot}`;
 }
 
