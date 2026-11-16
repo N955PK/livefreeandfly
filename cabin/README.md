@@ -23,7 +23,8 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
 - Guests are added by name on the night they stay. Each costs a nightly fee, $60 by default and editable under House Info. Each night keeps the rate it was booked at.
-- Guests pay one member, chosen by the admin, directly. This is tracked separately from the house balances. The Money tab totals what guests owe, have paid, and will owe, and a detail panel lists every guest with their sponsor, nights, and amount, a Venmo pay link to send them, and a paid mark that the admin or the collecting member can set.
+- Guests pay one member, chosen by the admin, directly. A detail panel lists every guest with their sponsor, nights, and amount, a Venmo pay link to send them, and a paid mark that the admin or the collecting member can set.
+- Once a guest is marked paid, the collecting member is holding that money for the guest pool. It is split equally in the house balances between the members the admin has picked, a choice only the admin sees.
 
 ### Money
 
