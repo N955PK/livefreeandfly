@@ -510,7 +510,7 @@ function viewMoney(){
     <div class="actions"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>${venmoNudge}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest money</h2>${guestHtml}
-    <p class="note">A guest is ${money(guestRate())} a night, charged to the member who brought them once the night has happened. That member collects from their guest. The money is shared equally by ${esc(sharedBy)}.</p>
+    <p class="note">A guest is ${money(guestRate())} a night, charged to the member who brought them once the night has happened. That member collects from their guest.${isAdmin() ? ` Shared equally by ${esc(sharedBy)}. Only you see who shares it.` : ''}</p>
     <h2>Expenses, payments, and guest fees</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
 }
 
