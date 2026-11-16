@@ -371,8 +371,8 @@ const lastNight = () => leaseEnd() ? iso(addDays(parse(leaseEnd()), -1)) : null;
 const monthKey = d => d.getFullYear() * 12 + d.getMonth();
 function leaseText(){
   const a = leaseStart(), b = leaseEnd(); if (!a && !b) return '';
-  const f = (k, yr) => parse(k).toLocaleDateString('en-US', yr ? { month:'short', day:'numeric', year:'numeric' } : { month:'short', day:'numeric' });
-  return a && b ? `${f(a, a.slice(0,4) !== b.slice(0,4))} to ${f(b, true)}` : a ? `from ${f(a, true)}` : `until ${f(b, true)}`;
+  const f = k => parse(k).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  return a && b ? `${f(a)} to ${f(b)}` : a ? `from ${f(a)}` : `until ${f(b)}`;
 }
 // Open the calendar where the lease is: its first month before it starts, its last month after it ends.
 function defaultMonth(){
