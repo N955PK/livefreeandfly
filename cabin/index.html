@@ -176,6 +176,7 @@ dialog[open]{animation:up .14s ease-out}
 @keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){dialog[open]{animation:none}}
 dialog:focus,dialog:focus-visible{outline:none}
+#confirm{margin:auto;width:calc(100% - 36px);max-width:380px;border-radius:18px;border:1px solid var(--line);padding:20px 18px;max-height:80%}
 dialog h2{margin:0 0 4px;font-size:17px}
 label,legend{display:block;font-size:13.5px;color:var(--dim);margin-top:14px}
 legend{padding:0;margin-bottom:8px}
@@ -217,6 +218,7 @@ textarea{min-height:84px;resize:vertical}
   <button data-act="tab" data-view="house">House Info</button>
 </div></nav>
 <dialog id="sheet" tabindex="-1"></dialog>
+<dialog id="confirm" tabindex="-1"></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -638,6 +640,7 @@ function sheetGuests(){
           <button class="btn small" data-act="guest-share" data-url="${esc(url)}" data-text="${esc(`${g.name}: ${money(due)} to ${col.name} for nights at the house (${dates(unpaid)}).`)}">Send pay link</button>`;
         if (can && due) btns += `<button class="btn small" data-act="guest-paid" data-v="1" ${data}>Mark ${money(due)} paid</button>`;
         if (can && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark unpaid</button>`;
+        btns += `<button class="btn small quiet" data-act="guest-cancel" ${data}>Cancel a night</button>`;
         return `<li><div class="rowi"><span class="grow"><span class="t">${esc(g.name)}</span>
           <span class="s">${n} night${n === 1 ? '' : 's'}${past.length ? ': ' + dates(past) : ''}</span>
           ${future.length ? `<span class="s">Upcoming: ${dates(future)}</span>` : ''}
@@ -780,6 +783,18 @@ function sheetHouse(){
 }
 
 /* ---------- actions ---------- */
+// Ask before doing something that's easy to do by accident. Resolves false, true, or the picked option.
+function confirmBox(html){
+  return new Promise(res => {
+    const d = $('#confirm'); d.innerHTML = html; d.showModal(); d.focus();
+    const done = v => { d.removeEventListener('click', onClick); d.removeEventListener('close', onClose); if (d.open) d.close(); res(v); };
+    const onClick = e => { const b = e.target.closest('[data-confirm]');
+      if (b) done(b.dataset.confirm === 'yes' ? (d.querySelector('select') ? d.querySelector('select').value : true) : false);
+      else if (e.target === d) done(false); };
+    const onClose = () => done(false);
+    d.addEventListener('click', onClick); d.addEventListener('close', onClose);
+  });
+}
 function setGuests(st, names){
   const row = { ...st, guests:names.length, guest_names:names };
   // Keep the rate the night was first booked at; a later rate change only affects new guest nights.
@@ -824,6 +839,24 @@ const actions = {
       if (!on && paid.some(same)) save('stays', { ...st, guest_paid:paid.filter(n => !same(n)) });
     }
     toast(on ? `${name} marked as paid` : `${name} marked as unpaid`);
+  },
+  async 'guest-cancel'(el){
+    const name = el.dataset.name, sponsor = member(el.dataset.sponsor), same = n => n.toLowerCase() === name.toLowerCase(), col = collector();
+    const nights = guestStays().filter(st => st.member_id === el.dataset.sponsor && guestNames(st).some(same)).sort((a, b) => a.night < b.night ? -1 : 1);
+    if (!nights.length || !sponsor) return;
+    const one = nights.length === 1, paidOne = one && isPaid(nights[0], name);
+    const pick = await confirmBox(`<h2>Cancel a night for ${esc(name)}?</h2>
+      ${one ? `<p class="sub">This takes ${esc(name)} off ${fmtLong(nights[0].night)}.</p>`
+        : `<label>Which night<select>${nights.map(st => `<option value="${st.night}">${fmtLong(st.night)}${isPaid(st, name) ? ', paid' : ''}</option>`).join('')}</select></label>`}
+      <p class="sub">${esc(first(sponsor))}’s own night stays on the calendar.</p>
+      ${paidOne ? `<p class="sub neg">${esc(name)} already paid for this night${col ? `, so ${esc(first(col))} owes them a refund` : ''}.</p>`
+        : !one && nights.some(st => isPaid(st, name)) ? `<p class="sub">If you cancel a night that was paid${col ? `, ${esc(first(col))} owes ${esc(name)} a refund` : ', it needs refunding'}.</p>` : ''}
+      <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Cancel night</button></div>`);
+    if (!pick) return;
+    const st = one ? nights[0] : S.stays.find(x => x.member_id === el.dataset.sponsor && x.night === pick);
+    if (!st) return;
+    setGuests(st, guestNames(st).filter(n => !same(n)));
+    toast(`${name} is off ${fmtDay(st.night)}`);
   },
   async 'guest-share'(el){
     const url = el.dataset.url, text = el.dataset.text;
@@ -936,7 +969,7 @@ const forms = {
   }
 };
 
-document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
+document.addEventListener('click', e => { if (e.target.closest('#confirm')) return; const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 document.addEventListener('change', e => {
