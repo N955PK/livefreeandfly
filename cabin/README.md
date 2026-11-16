@@ -22,7 +22,8 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - Headcount includes guests and is compared to the number of beds. A night over capacity is flagged; nothing is blocked.
 - The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
-- Guests cost a nightly fee, $60 by default and editable under House Info. The fee is charged to the member who brought them and shared equally by all members, once the night has happened. Each night keeps the rate it was booked at.
+- Guests are added by name on the night they stay. Each costs a nightly fee, $60 by default and editable under House Info. The fee is charged to the member who brought them (their sponsor), who collects from the guest privately, once the night has happened. Each night keeps the rate it was booked at.
+- Guest money is shared equally by the members the admin picks. The Money tab totals what is expected from guests, and a detail panel lists every guest with their sponsor, nights, and amount.
 
 ### Money
 

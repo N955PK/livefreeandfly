@@ -88,6 +88,11 @@ input[type="hidden"],input[hidden]{display:none}
 a.btn{text-decoration:none}
 .pay-btns{display:flex;flex-wrap:wrap;gap:8px;padding:0 2px 14px}
 .note{font-size:13px;color:var(--dim);margin:8px 2px 0}
+.guest-add{display:flex;gap:8px;margin-top:8px}
+.guest-add input{flex:1;margin-top:0}
+.pick button.plain{padding:0 14px}
+.grp{display:flex;align-items:center;gap:10px;margin:24px 0 8px;font-family:var(--mono);font-size:14px;font-weight:600}
+.grp .amt{margin-left:auto;font-weight:400}
 
 /* ---- weekend strip ---- */
 .wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
@@ -295,13 +300,13 @@ function seed(){
   const members = names.map((name,i) => ({ id:uid(), name, email:name.split(' ')[0].toLowerCase()+'@example.com',
     phone:'(530) 555-01'+(40+i), color:PALETTE[i], active:true, is_admin: i === 0, venmo: i % 2 ? name.replace(' ', '-').toLowerCase() : '' }));
   const fri = weekendFriday(), t = today(), stays = [], M = i => members[i].id;
-  const stay = (i, off, guests=0, note='') => stays.push({ id:uid(), member_id:M(i), night:iso(addDays(fri,off)), guests, note, ...(guests ? { guest_fee_cents:6000 } : {}) });
-  stay(0,-7); stay(4,-7); stay(0,-6); stay(3,-6); stay(4,-6,1); stay(5,-6);
+  const stay = (i, off, names=[], note='') => stays.push({ id:uid(), member_id:M(i), night:iso(addDays(fri,off)), guests:names.length, note, ...(names.length ? { guest_names:names, guest_fee_cents:6000 } : {}) });
+  stay(0,-7); stay(4,-7); stay(0,-6); stay(3,-6); stay(4,-6,['Dana']); stay(5,-6);
   stay(0,0); stay(1,0); stay(3,0);
-  stay(0,1,1,'Bringing my sister'); stay(1,1); stay(2,1,2); stay(3,1); stay(4,1);
+  stay(0,1,['Asha'],'Bringing my sister'); stay(1,1); stay(2,1,['Luis','Carmen']); stay(3,1); stay(4,1);
   stay(2,2); stay(4,2);
-  stay(3,4,0,'Working from the house');
-  stay(2,7); stay(5,7); stay(1,8); stay(2,8); stay(5,8,2,'Brother and his girlfriend');
+  stay(3,4,[],'Working from the house');
+  stay(2,7); stay(5,7); stay(1,8); stay(2,8); stay(5,8,['Ming','Tess'],'Brother and his girlfriend');
   const all = members.map(m => m.id);
   const exp = (description, amount_cents, i, ago, split=all) => ({ id:uid(), description, amount_cents, paid_by:M(i), split_among:split, spent_on:iso(addDays(t,-ago)), created_at:new Date().toISOString() });
   const expenses = [
@@ -383,6 +388,11 @@ function defaultMonth(){
 }
 
 const guestRate = () => (S.house.guest_fee_cents === null || S.house.guest_fee_cents === undefined) ? 6000 : Number(S.house.guest_fee_cents) || 0;
+const perGuest = s => (s.guest_fee_cents === null || s.guest_fee_cents === undefined) ? guestRate() : Number(s.guest_fee_cents) || 0;
+const guestNames = s => (Array.isArray(s.guest_names) && s.guest_names.length) ? s.guest_names : Array.from({ length: s.guests || 0 }, () => 'Guest');
+const guestStays = () => S.stays.filter(s => (s.guests || 0) > 0 && member(s.member_id));
+// Members the admin has picked to share guest money; everyone if none are picked.
+const poolMembers = () => { const e = active().filter(m => m.pool_share !== false); return e.length ? e : active(); };
 const stayFee = s => (s.guests || 0) * ((s.guest_fee_cents === null || s.guest_fee_cents === undefined) ? guestRate() : Number(s.guest_fee_cents) || 0);
 // A guest night is owed once it has happened (tonight counts).
 const guestCharges = () => { const t = iso(today()); return S.stays.filter(s => (s.guests || 0) > 0 && s.night <= t && member(s.member_id) && stayFee(s) > 0); };
@@ -396,7 +406,7 @@ function balances(){
   }
   for (const p of S.payments){ if (!(p.from_member in b) || !(p.to_member in b)) continue; b[p.from_member] += p.amount_cents; b[p.to_member] -= p.amount_cents; }
   // Guest fees: charged to the member who brought the guest, shared equally by the house.
-  const pool = active().map(m => m.id).sort();
+  const pool = poolMembers().map(m => m.id).sort();
   if (pool.length) for (const st of guestCharges()){
     const fee = stayFee(st); b[st.member_id] -= fee;
     const base = Math.floor(fee / pool.length); let rem = fee - base*pool.length;
@@ -468,11 +478,12 @@ function viewNights(){
 function viewMoney(){
   const b = balances(), mine = S.me ? b[S.me.id] : 0;
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
-  const charges = guestCharges(), byHost = {};
-  charges.forEach(st => { const g = byHost[st.member_id] || (byHost[st.member_id] = { n:0, c:0 }); g.n += st.guests; g.c += stayFee(st); });
-  const guestHtml = Object.keys(byHost).length ? `<ul class="list">${Object.entries(byHost).sort((x, y) => y[1].c - x[1].c).map(([id, g]) => `<li><div class="rowi">${chip(member(id))}
-      <span class="grow"><span class="t">${esc(member(id).name)}</span><span class="s">${g.n} guest night${g.n === 1 ? '' : 's'}</span></span>
-      <span class="amt">${money(g.c)}</span></div></li>`).join('')}</ul>` : `<p class="empty">No guest nights yet.</p>`;
+  const charges = guestCharges(), tIso = iso(today()), gs = guestStays();
+  const charged = gs.filter(x => x.night <= tIso).reduce((n, x) => n + stayFee(x), 0), coming = gs.filter(x => x.night > tIso).reduce((n, x) => n + stayFee(x), 0);
+  const sharers = poolMembers(), sharedBy = sharers.length === active().length ? 'all members' : sharers.map(first).join(', ');
+  const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
+  const guestHtml = `<ul class="list">${guestRow('Charged so far', 'Guest nights that have happened', charged)}${guestRow('Still to come', 'Guest nights on the calendar', coming)}${guestRow('Expected from guests', '', charged + coming)}</ul>
+    <div class="actions"><button class="btn" data-act="guests-open">See every guest</button>${isAdmin() ? `<button class="btn" data-act="pool-open">Who shares it</button>` : ''}</div>`;
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
@@ -488,8 +499,8 @@ function viewMoney(){
       <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
       <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
     ...charges.map(st => ({ d:st.night, c:'', html:`<li><div class="rowi">
-      <span class="grow"><span class="t">${esc(first(member(st.member_id)))}’s guest${st.guests > 1 ? 's' : ''}</span>
-      <span class="s">Guest fee, ${st.guests} × ${money(stayFee(st) / st.guests)}, night of ${fmtDay(st.night)}</span></span>
+      <span class="grow"><span class="t">Guest fee: ${guestNames(st).map(esc).join(', ')}</span>
+      <span class="s">With ${esc(first(member(st.member_id)))}, ${st.guests} × ${money(perGuest(st))}, night of ${fmtDay(st.night)}</span></span>
       <span class="amt">${money(stayFee(st))}</span></div></li>` }))
   ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
   return `${demoNote()}<h1>House money</h1>
@@ -498,8 +509,8 @@ function viewMoney(){
         : mine > 0 ? `<div class="actions"><button class="btn wide" data-act="settle-open">See who owes you</button></div>` : ''}</div>
     <div class="actions"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>${venmoNudge}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
-    <h2>Guest fees</h2>${guestHtml}
-    <p class="note">Each guest is ${money(guestRate())} a night. It’s charged to the member who brought them and shared equally by the house, once the night has happened.</p>
+    <h2>Guest money</h2>${guestHtml}
+    <p class="note">A guest is ${money(guestRate())} a night, charged to the member who brought them once the night has happened. That member collects from their guest. The money is shared equally by ${esc(sharedBy)}.</p>
     <h2>Expenses, payments, and guest fees</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
 }
 
@@ -567,15 +578,20 @@ function closeSheet(){ const d = $('#sheet'); if (d.open) d.close(); S.sheet = n
 function sheetNight(night){
   const st = staysOn(night), hc = headcount(night), cap = beds(), mine = myStay(night);
   const who = st.length ? `<ul class="list" style="margin-top:14px">${st.map(s => { const m = member(s.member_id); return `<li><div class="rowi">${chip(m)}
-      <span class="grow"><span class="t">${esc(m.name)}${s.guests ? ` and ${s.guests} guest${s.guests > 1 ? 's' : ''}` : ''}</span>
+      <span class="grow"><span class="t">${esc(m.name)}${s.guests ? ' with ' + guestNames(s).map(esc).join(', ') : ''}</span>
       ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
     : `<p class="empty">Nobody’s signed up for this night.</p>`;
   const over = cap && hc > cap;
+  const names = mine ? guestNames(mine) : [];
+  const usedBefore = !mine ? [] : [...new Set(S.stays.filter(x => x.member_id === S.me.id).flatMap(x => Array.isArray(x.guest_names) ? x.guest_names : []))]
+    .filter(n => !names.some(x => x.toLowerCase() === n.toLowerCase())).slice(0, 6);
   const mineHtml = mine ? `<label>Guests you’re bringing${guestRate() ? `, ${money(guestRate())} a night each` : ''}</label>
-      <div class="step"><button data-act="guests" data-night="${night}" data-d="-1" aria-label="One fewer guest">−</button>
-      <output>${mine.guests||0}</output>
-      <button data-act="guests" data-night="${night}" data-d="1" aria-label="One more guest">+</button></div>
-      ${stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}</p>` : ''}
+      ${names.length ? `<ul class="list" style="margin-top:8px">${names.map((n, i) => `<li><div class="rowi"><span class="grow"><span class="t">${esc(n)}</span></span>
+        <button class="btn small quiet" data-act="guest-remove" data-night="${night}" data-i="${i}" aria-label="Remove ${esc(n)}">Remove</button></div></li>`).join('')}</ul>` : ''}
+      <form data-form="guest-add" data-night="${night}" class="guest-add"><input name="guest" maxlength="40" autocomplete="off" placeholder="Guest’s name" aria-label="Guest’s name"><button class="btn">Add guest</button></form>
+      ${usedBefore.length ? `<div class="pick" style="margin-top:10px">${usedBefore.map(n => `<button type="button" class="plain" data-act="guest-quick" data-night="${night}" data-name="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>` : ''}
+      <p class="err" id="err"></p>
+      ${stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}. You collect it from your guest${names.length > 1 ? 's' : ''}.</p>` : ''}
       <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
       <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">Remove my night</button>
       <button class="btn primary" data-act="sheet-close">Done</button></div>`
@@ -583,6 +599,41 @@ function sheetNight(night){
       <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>`;
   return `<h2>${fmtLong(night)}</h2>
     <p class="sub${over ? ' neg' : ''}">${hc ? `${hc} sleeping, ${cap} beds${over ? `. That’s ${hc - cap} over.` : ''}` : `${cap} beds open`}</p>${who}${mineHtml}`;
+}
+
+// Every guest, grouped by the member who brought them.
+function sheetGuests(){
+  const tIso = iso(today()), by = {};
+  for (const st of guestStays()) for (const n of guestNames(st)){
+    const sp = by[st.member_id] || (by[st.member_id] = {}), g = sp[n.toLowerCase()] || (sp[n.toLowerCase()] = { name:n, past:[], future:[], charged:0, coming:0 });
+    if (st.night <= tIso){ g.past.push(st.night); g.charged += perGuest(st); } else { g.future.push(st.night); g.coming += perGuest(st); }
+  }
+  const sponsors = Object.keys(by).sort((a, b) => member(a).name.localeCompare(member(b).name));
+  if (!sponsors.length) return `<h2>Every guest</h2><p class="empty">No guests yet. When someone adds a guest to a night, they show up here.</p>
+    <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
+  const dates = a => a.sort().map(fmtDay).join(', '); let all = 0, allComing = 0;
+  const body = sponsors.map(id => {
+    const guests = Object.values(by[id]).sort((a, b) => a.name.localeCompare(b.name)), tot = guests.reduce((n, g) => n + g.charged + g.coming, 0);
+    return `<div class="grp">${chip(member(id))}<span>${esc(first(member(id)))}’s guests</span><span class="amt">${money(tot)}</span></div>
+      <ul class="list">${guests.map(g => { all += g.charged; allComing += g.coming; const n = g.past.length + g.future.length;
+        return `<li><div class="rowi"><span class="grow"><span class="t">${esc(g.name)}</span>
+          <span class="s">${n} night${n === 1 ? '' : 's'}${g.past.length ? ': ' + dates(g.past) : ''}</span>
+          ${g.future.length ? `<span class="s">Upcoming: ${dates(g.future)}${g.coming ? ', ' + money(g.coming) + ' still to come' : ''}</span>` : ''}</span>
+          <span class="amt">${money(g.charged + g.coming)}</span></div></li>`; }).join('')}</ul>`; }).join('');
+  return `<h2>Every guest</h2><p class="sub">Each guest’s sponsor is charged the nightly rate and collects from the guest directly.</p>${body}
+    <div class="grp"><span>Expected from guests</span><span class="amt">${money(all + allComing)}</span></div>
+    <p class="note">${money(all)} charged so far, ${money(allComing)} still to come.</p>
+    <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
+}
+// Admin only.
+function sheetPool(){
+  return `<form data-form="pool"><h2>Who shares the guest money</h2>
+    <p class="sub">Guest fees are split equally between the members you pick. Changing this re-splits every guest night, past and upcoming.</p>
+    <fieldset><legend>Gets a share</legend>
+      <div class="pick-all"><button type="button" class="btn small" data-act="split-all">Select all</button><button type="button" class="btn small" data-act="split-none">Deselect all</button></div>
+      <div class="pick">${active().map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${m.pool_share !== false}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
+    <p class="err" id="err"></p>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save who shares it</button></div></form>`;
 }
 
 const venmoUrl = (m, kind, amt) => `https://venmo.com/${encodeURIComponent(m.venmo)}?txn=${kind}&amount=${(amt/100).toFixed(2)}&note=${encodeURIComponent((S.house.name || 'Ski house') + ' settle up')}`;
@@ -693,6 +744,19 @@ function sheetHouse(){
 }
 
 /* ---------- actions ---------- */
+function setGuests(st, names){
+  const row = { ...st, guests:names.length, guest_names:names };
+  // Keep the rate the night was first booked at; a later rate change only affects new guest nights.
+  if (names.length && !((st.guests || 0) > 0 && st.guest_fee_cents !== null && st.guest_fee_cents !== undefined)) row.guest_fee_cents = guestRate();
+  save('stays', row);
+}
+function addGuest(st, raw){
+  const name = String(raw || '').trim().replace(/\s+/g, ' ').slice(0, 40), names = guestNames(st).slice(), err = m => { const e = $('#err'); if (e) e.textContent = m; return false; };
+  if (!name) return err('Type your guest’s name first.');
+  if (names.some(n => n.toLowerCase() === name.toLowerCase())) return err(`${name} is already on this night.`);
+  if (names.length >= 12) return err('That’s the most guests one person can add to a night.');
+  names.push(name); setGuests(st, names); return true;
+}
 function setAvatar(v){
   const f = $('#sheet form[data-form="member"]'); if (!f || !f.avatar) return;
   f.avatar.value = v;
@@ -709,10 +773,10 @@ const actions = {
   month(el){ S.month = new Date(S.month.getFullYear(), S.month.getMonth() + Number(el.dataset.d), 1); render(); },
   'night-open'(el){ openSheet(sheetNight(el.dataset.night), { type:'night', night:el.dataset.night }); },
   'night-toggle'(el){ toggleNight(el.dataset.night); },
-  guests(el){ const s = myStay(el.dataset.night); if (!s) return; const g = Math.max(0, Math.min(12, (s.guests||0) + Number(el.dataset.d)));
-    if (g === (s.guests||0)) return;
-    const row = { ...s, guests:g }; if (g > 0) row.guest_fee_cents = guestRate();   // keep the rate this night was booked at
-    save('stays', row); },
+  'guest-remove'(el){ const st = myStay(el.dataset.night); if (!st) return; const names = guestNames(st).slice(); names.splice(Number(el.dataset.i), 1); setGuests(st, names); },
+  'guest-quick'(el){ const st = myStay(el.dataset.night); if (st) addGuest(st, el.dataset.name); },
+  'guests-open'(){ openSheet(sheetGuests()); },
+  'pool-open'(){ if (isAdmin()) openSheet(sheetPool()); },
   'sheet-close'(){ closeSheet(); },
   'exp-new'(){ openSheet(sheetExpense()); updateEach(); },
   'exp-edit'(el){ const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
@@ -781,6 +845,15 @@ const forms = {
     if (f.color && HEX_RE.test(f.color.value)) row.color = f.color.value;
     const mine = S.me && row.id === S.me.id; if (mine) S.me = row;
     closeSheet(); save('members', row); toast(mine ? 'Your details are saved' : 'Member saved');
+  },
+  'guest-add'(f){ const st = myStay(f.dataset.night); if (st && addGuest(st, f.guest.value)){ const i = $('#sheet [name=guest]'); if (i) i.focus(); } },
+  pool(f){
+    if (!isAdmin()) return;
+    const picked = new Set([...f.querySelectorAll('.pick [aria-pressed="true"]')].map(b => b.dataset.id));
+    if (!picked.size) return void ($('#err').textContent = 'Pick at least one member.');
+    closeSheet();
+    for (const m of active()){ const want = picked.has(m.id); if ((m.pool_share !== false) !== want){ const row = { ...m, pool_share:want }; if (S.me && m.id === S.me.id) S.me = row; save('members', row); } }
+    toast('Guest money sharing saved');
   },
   manage(f){
     const m = member(f.dataset.id), email = f.email.value.trim().toLowerCase(); if (!m || !isAdmin()) return;

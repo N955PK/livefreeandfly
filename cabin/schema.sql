@@ -12,6 +12,7 @@ create table members (
   venmo      text,
   avatar     text check (avatar is null or length(avatar) < 60000),  -- small inline picture or 'emoji:…'
   active     boolean not null default true,
+  pool_share boolean not null default true,          -- gets a cut of guest fees (admin sets this)
   is_admin   boolean not null default false,        -- can remove members, fix emails, set the guest fee
   created_at timestamptz not null default now()
 );
@@ -22,6 +23,7 @@ create table stays (
   member_id  uuid not null references members(id) on delete cascade,
   night      date not null,                       -- the night slept at the house
   guests     int  not null default 0 check (guests between 0 and 12),
+  guest_names text[] not null default '{}',        -- one name per guest; guests = how many
   guest_fee_cents int,                            -- per-guest rate when this night was booked
   note       text,
   created_at timestamptz not null default now(),
@@ -109,15 +111,15 @@ create policy "members edit own" on members for update to authenticated
   with check (is_member());
 
 -- Signed-in non-admins cannot change who is an admin, anyone's sign-in email,
--- or whether someone is active. (Edits made in the Supabase dashboard are not affected.)
+-- whether someone is active, or who shares guest money. (Edits made in the Supabase dashboard are not affected.)
 create or replace function members_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
     if tg_op = 'INSERT' then
-      new.is_admin := false; new.active := true;
+      new.is_admin := false; new.active := true; new.pool_share := true;
     else
-      new.is_admin := old.is_admin; new.email := old.email; new.active := old.active;
+      new.is_admin := old.is_admin; new.email := old.email; new.active := old.active; new.pool_share := old.pool_share;
     end if;
   end if;
   return new;
