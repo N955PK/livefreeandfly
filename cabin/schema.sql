@@ -80,6 +80,12 @@ begin
   end loop;
 end $$;
 
+-- New Supabase projects no longer expose tables to the browser API by
+-- default, so grant signed-in users access explicitly. Row-level security
+-- above still decides which rows they get. Nothing is granted to anon.
+grant select, insert, update, delete on members, stays, expenses, payments, house to authenticated;
+grant execute on function is_member() to authenticated;
+
 -- Seed yourself, then add everyone else from the House tab.
 insert into members (name, email, phone, color)
 values ('Your Name', 'you@example.com', '(530) 555-0100', '#39d0a4');

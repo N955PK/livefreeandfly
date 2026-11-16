@@ -424,6 +424,7 @@ function viewHouse(){
 function viewGate(){
   if (S.gate === 'loading') return `<div class="gate"><p class="sub">Loading the house…</p></div>`;
   if (S.gate === 'error') return `<div class="gate"><h1>Can’t reach the house</h1><p class="sub">The data didn’t load. Check your connection, then try again.</p>
+    ${S.errText ? `<p class="demo" style="margin-top:14px;overflow-wrap:anywhere">${esc(S.errText)}</p>` : ''}
     <div class="actions"><button class="btn primary" data-act="retry">Try again</button></div></div>`;
   if (S.gate === 'sent') return `<div class="gate"><h1>Check your email</h1><p class="sub">We sent a sign-in link to ${esc(S.sentTo)}. Open it on this device.</p>
     <div class="actions"><button class="btn quiet" data-act="signin-again">Use a different email</button></div></div>`;
@@ -628,7 +629,7 @@ async function start(){
       if (!sessionEmail){ S.gate = 'signin'; return render(); }
     }
     await reload(); if (!LIVE) persist();
-  } catch(e){ console.error(e); S.gate = 'error'; }
+  } catch(e){ console.error(e); S.gate = 'error'; S.errText = [e && e.code, e && e.message].filter(Boolean).join(': '); }
   render();
 }
 // Other people's changes show up when you come back to the tab.
