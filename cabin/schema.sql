@@ -59,6 +59,7 @@ create table house (
   wifi_password text,
   beds          int not null default 8,
   guest_fee_cents int not null default 6000,     -- nightly fee per guest
+  listing_url   text,                            -- the rental listing, for general information
   lease_start   date,                            -- first night of the lease
   lease_end     date,                            -- move-out day; the last night is the one before
   notes         text

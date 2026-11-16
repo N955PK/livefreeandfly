@@ -520,6 +520,7 @@ function viewHouse(){
   return `${demoNote()}<h1>${esc(h.name || 'The house')}</h1>
     <dl><div><dt>Address</dt>${h.address ? `<dd><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.address)}" target="_blank" rel="noopener">${esc(h.address)}</a></dd>` : `<dd class="unset">Not set</dd>`}</div>
       <div><dt>Lease</dt>${v(leaseText())}</div>
+      ${/^https?:\/\//i.test(h.listing_url || '') ? `<div><dt>Listing</dt><dd><a href="${esc(h.listing_url)}" target="_blank" rel="noopener">Rental listing, photos, and details</a></dd></div>` : ''}
       <div><dt>Door code</dt>${v(h.door_code,'code')}</div>
       <div><dt>Wi-Fi</dt>${h.wifi_name ? `<dd>${esc(h.wifi_name)}${h.wifi_password ? `<br><span class="code" style="font-family:var(--mono)">${esc(h.wifi_password)}</span>` : ''}</dd>` : `<dd class="unset">Not set</dd>`}</div>
       <div><dt>Beds</dt>${v(h.beds ? String(h.beds) : '')}</div>
@@ -679,6 +680,7 @@ function sheetHouse(){
   return `<form data-form="house"><h2>Edit house info</h2>
     <label>House name<input name="name" maxlength="40" value="${esc(h.name||'')}"></label>
     <label>Address<input name="address" maxlength="120" value="${esc(h.address||'')}"></label>
+    <label>Rental listing link, optional<input type="url" name="listing_url" maxlength="300" autocomplete="off" autocapitalize="none" spellcheck="false" value="${esc(h.listing_url||'')}" placeholder="https://"></label>
     <label>Door code<input name="door_code" maxlength="20" autocomplete="off" value="${esc(h.door_code||'')}"></label>
     <label>Wi-Fi network<input name="wifi_name" maxlength="40" autocomplete="off" value="${esc(h.wifi_name||'')}"></label>
     <label>Wi-Fi password<input name="wifi_password" maxlength="60" autocomplete="off" value="${esc(h.wifi_password||'')}"></label>
@@ -790,6 +792,9 @@ const forms = {
   house(f){
     const row = { ...S.house, id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
       wifi_name:f.wifi_name.value.trim(), wifi_password:f.wifi_password.value.trim(), beds:parseInt(f.beds.value, 10) || 0, notes:f.notes.value.trim() };
+    const link = f.listing_url.value.trim();
+    if (link && !/^https?:\/\//i.test(link)) return void toast('The listing link has to start with https://');
+    if ('listing_url' in S.house || link) row.listing_url = link || null;
     if (f.lease_start && isAdmin()){
       const a = f.lease_start.value || null, b = f.lease_end.value || null;
       if (a && b && b <= a) return void toast('The lease has to end after it starts.');
