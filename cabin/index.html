@@ -496,7 +496,7 @@ function viewMoney(){
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
   const gl = guestLedger().tot, col = collector();
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
-  const guestHtml = `<ul class="list">${guestRow('Owed so far', 'Nights that have happened, not yet paid', gl.owed)}${guestRow('Paid', 'Marked as received', gl.paid)}${guestRow('Still to come', 'Guest nights on the calendar', gl.coming)}${guestRow('Expected total', '', gl.owed + gl.paid + gl.coming)}</ul>
+  const guestHtml = `<ul class="list">${guestRow('Owed so far', 'Nights that have happened, not yet paid', gl.owed)}${guestRow('Paid', 'Marked as received, in advance or after', gl.paid)}${guestRow('Still to come', 'Upcoming guest nights, not yet paid', gl.coming)}${guestRow('Expected total', '', gl.owed + gl.paid + gl.coming)}</ul>
     <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>
     <p class="note">${col ? `Guests pay ${esc(col.name)} directly, ${money(guestRate())} for each night they stay.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}`
       : `Guests pay ${money(guestRate())} for each night they stay. The admin hasn’t set who collects it yet.`} ${col ? `Once ${esc(first(col))} marks a guest as paid, that money counts in the house balances.` : ''}</p>`;
@@ -630,18 +630,19 @@ function sheetGuests(){
       <ul class="list">${guests.map(g => {
         const past = g.nights.filter(x => !x.future), future = g.nights.filter(x => x.future), n = g.nights.length;
         const data = `data-sponsor="${id}" data-name="${esc(g.name)}"`;
-        const note = `${g.name}, guest of ${first(member(id))}: ${dates(past.filter(x => !x.paid))}`;
-        const url = g.owed && col && col.venmo ? venmoUrl(col, 'pay', g.owed, note) : '';
+        const unpaid = g.nights.filter(x => !x.paid), due = g.owed + g.coming;      // everything not yet paid, upcoming nights included
+        const note = `${g.name}, guest of ${first(member(id))}: ${dates(unpaid)}`;
+        const url = due && col && col.venmo ? venmoUrl(col, 'pay', due, note) : '';
         let btns = '';
         if (url) btns += `<a class="btn small primary" href="${esc(url)}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a>
-          <button class="btn small" data-act="guest-share" data-url="${esc(url)}" data-text="${esc(`${g.name}: ${money(g.owed)} to ${col.name} for nights at the house (${dates(past.filter(x => !x.paid))}).`)}">Send pay link</button>`;
-        if (can && g.owed) btns += `<button class="btn small" data-act="guest-paid" data-v="1" ${data}>Mark paid</button>`;
-        if (can && !g.owed && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark unpaid</button>`;
+          <button class="btn small" data-act="guest-share" data-url="${esc(url)}" data-text="${esc(`${g.name}: ${money(due)} to ${col.name} for nights at the house (${dates(unpaid)}).`)}">Send pay link</button>`;
+        if (can && due) btns += `<button class="btn small" data-act="guest-paid" data-v="1" ${data}>Mark ${money(due)} paid</button>`;
+        if (can && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark unpaid</button>`;
         return `<li><div class="rowi"><span class="grow"><span class="t">${esc(g.name)}</span>
           <span class="s">${n} night${n === 1 ? '' : 's'}${past.length ? ': ' + dates(past) : ''}</span>
-          ${future.length ? `<span class="s">Upcoming: ${dates(future)}${g.coming ? ', ' + money(g.coming) + ' still to come' : ''}</span>` : ''}
-          ${g.paid ? `<span class="s pos">Paid ${money(g.paid)}</span>` : ''}</span>
-          <span class="amt${g.owed ? ' neg' : ''}">${g.owed ? money(g.owed) + ' owed' : g.paid ? 'Paid' : money(g.coming)}</span></div>
+          ${future.length ? `<span class="s">Upcoming: ${dates(future)}</span>` : ''}
+          ${g.paid ? `<span class="s pos">Paid ${money(g.paid)}${future.some(x => x.paid) ? ', including upcoming nights' : ''}</span>` : ''}</span>
+          <span class="amt${g.owed ? ' neg' : ''}">${g.owed ? money(g.owed) + ' owed' : g.coming ? money(g.coming) + ' to come' : 'Paid'}</span></div>
           ${btns ? `<div class="pay-btns">${btns}</div>` : ''}</li>`; }).join('')}</ul>`; }).join('');
   return `<h2>Every guest</h2><p class="sub">${col ? `Guests pay ${esc(col.name)} directly.` : 'The admin hasn’t set who guests pay yet.'}${can ? ' You can mark guests as paid.' : ''}</p>${body}
     <div class="grp"><span>Expected total</span><span class="amt">${money(tot.owed + tot.paid + tot.coming)}</span></div>
@@ -815,11 +816,11 @@ const actions = {
   'pool-open'(){ if (isAdmin()) openSheet(sheetPool()); },
   'guest-paid'(el){
     if (!canMarkGuests()) return;
-    const name = el.dataset.name, on = el.dataset.v === '1', tIso = iso(today()), same = n => n.toLowerCase() === name.toLowerCase();
+    const name = el.dataset.name, on = el.dataset.v === '1', same = n => n.toLowerCase() === name.toLowerCase();
     for (const st of guestStays()){
       if (st.member_id !== el.dataset.sponsor || !guestNames(st).some(same)) continue;
       const paid = Array.isArray(st.guest_paid) ? st.guest_paid : [];
-      if (on && st.night <= tIso && !paid.some(same)) save('stays', { ...st, guest_paid:[...paid, name] });
+      if (on && !paid.some(same)) save('stays', { ...st, guest_paid:[...paid, name] });
       if (!on && paid.some(same)) save('stays', { ...st, guest_paid:paid.filter(n => !same(n)) });
     }
     toast(on ? `${name} marked as paid` : `${name} marked as unpaid`);
