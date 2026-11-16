@@ -264,6 +264,12 @@ async function fileToAvatar(file){
   } finally { URL.revokeObjectURL(url); }
 }
 const tel = p => String(p||'').replace(/[^0-9+]/g,'');
+// US numbers show as (304) 482-2506 however they were typed; anything else is left alone.
+function fmtPhone(p){
+  const raw = String(p || '').trim(); let d = raw.replace(/\D/g, '');
+  if (d.length === 11 && d[0] === '1') d = d.slice(1);
+  return d.length === 10 && !/^\+(?!1)/.test(raw) ? `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}` : raw;
+}
 let toastT;
 function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
 
@@ -471,7 +477,7 @@ function viewHouse(){
   const h = S.house, v = (x, cls='') => x ? `<dd class="${cls}">${esc(x)}</dd>` : `<dd class="unset">Not set</dd>`;
   const mem = active().map(m => `<li><div class="rowi">${chip(m)}
     <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
-      <span class="s">${esc(m.email)}, ${esc(m.phone)}</span>
+      <span class="s">${esc(m.email)}, ${esc(fmtPhone(m.phone))}</span>
       <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a>${m.venmo ? `<a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo</a>` : ''}</span></span>
     ${S.me && m.id === S.me.id ? `<button class="btn small" data-act="me-edit">Edit</button>`
       : isAdmin() ? `<button class="btn small" data-act="member-manage" data-id="${m.id}">Manage</button>` : ''}</div></li>`).join('');
@@ -592,7 +598,7 @@ function sheetMember(m){
     <label>${self ? 'Name shown to the house' : 'Name'}<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
     <label>Email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"${lockEmail ? ' readonly' : ''}></label>
     ${lockEmail ? `<p class="each">This is the Google account you sign in with, so it can’t be changed here.</p>` : ''}
-    <label>Phone<input type="tel" name="phone" required autocomplete="off" value="${esc(m.phone)}"></label>
+    <label>Phone<input type="tel" name="phone" required autocomplete="off" data-change="phone" value="${esc(fmtPhone(m.phone))}"></label>
     <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div></form>`;
@@ -698,7 +704,7 @@ const forms = {
     const venmo = f.venmo.value.trim().replace(/^https?:\/\/(www\.)?venmo\.com\/(u\/)?/i, '').replace(/^@/, '').replace(/[?\/].*$/, '');
     if (!/^[A-Za-z0-9_-]{0,40}$/.test(venmo)) return void ($('#err').textContent = 'Venmo usernames use only letters, numbers, dashes, and underscores.');
     const base = old || clash || { id:uid(), color:PALETTE[S.members.length % PALETTE.length] };
-    const row = { ...base, name:f.name.value.trim(), email, phone:f.phone.value.trim(), active:true };
+    const row = { ...base, name:f.name.value.trim(), email, phone:fmtPhone(f.phone.value), active:true };
     if (venmo || base.venmo) row.venmo = venmo || null;
     if (f.avatar && f.avatar.value !== (base.avatar || '')) row.avatar = f.avatar.value || null;
     if (f.color && HEX_RE.test(f.color.value)) row.color = f.color.value;
@@ -729,6 +735,7 @@ document.addEventListener('change', e => {
     fileToAvatar(e.target.files[0]).then(setAvatar).catch(() => { $('#err').textContent = 'That picture couldn’t be read. Try a different one.'; });
     e.target.value = '';
   }
+  if (k === 'phone') e.target.value = fmtPhone(e.target.value);
   if (k === 'viewas'){ S.me = member(e.target.value); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
 });
 $('#sheet').addEventListener('close', () => { S.sheet = null; });
