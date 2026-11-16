@@ -12,7 +12,8 @@ create table members (
   venmo      text,
   avatar     text check (avatar is null or length(avatar) < 60000),  -- small inline picture or 'emoji:…'
   active     boolean not null default true,
-  pool_share boolean not null default true,          -- gets a cut of guest fees (admin sets this)
+  part_time  boolean not null default false,         -- part-timers pay a lease into the pot; full-timers split it
+  lease_cents int not null default 0,                -- a part-timer's lease for the season
   is_admin   boolean not null default false,        -- can remove members, fix emails, set the guest fee
   created_at timestamptz not null default now()
 );
@@ -62,7 +63,9 @@ create table house (
   wifi_password text,
   beds          int not null default 8,
   guest_fee_cents int not null default 6000,     -- nightly fee per guest
-  guest_collector uuid references members(id),   -- the member guests pay directly
+  guest_collector uuid references members(id),   -- the member guests and part-timers pay directly
+  lease_paid    uuid[] not null default '{}',    -- part-timers whose lease has been received
+  pot_paid_out  boolean not null default false,  -- the season pot has been split between full-timers
   listing_url   text,                            -- the rental listing, for general information
   lease_start   date,                            -- first night of the lease
   lease_end     date,                            -- move-out day; the last night is the one before
@@ -102,6 +105,15 @@ language sql stable security definer set search_path = public as $$
   );
 $$;
 
+-- The member guests and part-timers pay.
+create or replace function is_collector() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from house h join members m on m.id = h.guest_collector
+    where lower(m.email) = lower(auth.jwt() ->> 'email') and m.active
+  );
+$$;
+
 drop policy if exists "members only" on members;
 drop policy if exists "members read" on members;
 drop policy if exists "members add" on members;
@@ -113,15 +125,16 @@ create policy "members edit own" on members for update to authenticated
   with check (is_member());
 
 -- Signed-in non-admins cannot change who is an admin, anyone's sign-in email,
--- whether someone is active, or who shares guest money. (Edits made in the Supabase dashboard are not affected.)
+-- whether someone is active, or who is part time and what their lease is. (Edits made in the Supabase dashboard are not affected.)
 create or replace function members_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
     if tg_op = 'INSERT' then
-      new.is_admin := false; new.active := true; new.pool_share := true;
+      new.is_admin := false; new.active := true; new.part_time := false; new.lease_cents := 0;
     else
-      new.is_admin := old.is_admin; new.email := old.email; new.active := old.active; new.pool_share := old.pool_share;
+      new.is_admin := old.is_admin; new.email := old.email; new.active := old.active;
+      new.part_time := old.part_time; new.lease_cents := old.lease_cents;
     end if;
   end if;
   return new;
@@ -130,14 +143,16 @@ drop trigger if exists members_guard on members;
 create trigger members_guard before insert or update on members
   for each row execute function members_guard();
 
--- Only the admin can change the guest fee, the lease dates, and who guests pay.
+-- Only the admin can change the guest fee, the lease dates, who guests pay, and the pot payout.
+-- The admin or the collecting member can mark a part-timer's lease as paid.
 create or replace function house_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
     new.guest_fee_cents := old.guest_fee_cents;
     new.lease_start := old.lease_start; new.lease_end := old.lease_end;
-    new.guest_collector := old.guest_collector;
+    new.guest_collector := old.guest_collector; new.pot_paid_out := old.pot_paid_out;
+    if not is_collector() then new.lease_paid := old.lease_paid; end if;
   end if;
   return new;
 end $$;
@@ -148,11 +163,8 @@ create trigger house_guard before update on house
 -- Only the admin or the member guests pay can mark a guest as paid.
 create or replace function stays_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
-declare me text := lower(coalesce(auth.jwt() ->> 'email', ''));
 begin
-  if me <> '' and not is_admin() and not exists (
-    select 1 from house h join members m on m.id = h.guest_collector where lower(m.email) = me and m.active
-  ) then
+  if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() and not is_collector() then
     if tg_op = 'INSERT' then new.guest_paid := '{}'; else new.guest_paid := old.guest_paid; end if;
   end if;
   return new;
@@ -167,6 +179,7 @@ create trigger stays_guard before insert or update on stays
 grant select, insert, update, delete on members, stays, expenses, payments, house to authenticated;
 grant execute on function is_member() to authenticated;
 grant execute on function is_admin() to authenticated;
+grant execute on function is_collector() to authenticated;
 
 -- Seed yourself, then add everyone else from the House tab.
 insert into members (name, email, phone, color, is_admin)

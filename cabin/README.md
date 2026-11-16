@@ -24,7 +24,8 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
 - Guests are added by name on the night they stay. Each costs a nightly fee, $60 by default and editable under House Info. Each night keeps the rate it was booked at.
 - Guests pay one member, chosen by the admin, directly. A detail panel lists every guest with their sponsor, nights, and amount, a Venmo pay link to send them, and a paid mark that the admin or the collecting member can set.
-- Once a guest is marked paid, the collecting member is holding that money for the guest pool. It is split equally in the house balances between the members the admin has picked, a choice only the admin sees.
+- The admin marks each member full time or part time. A part-timer pays a lease, set per person, to the collecting member, and is left out of new expenses by default.
+- Guest money and leases that have been received sit in a season pot. Nothing in it affects balances until the admin pays it out; then it is split equally between full-time members and the collecting member settles up with them.
 
 ### Money
 
