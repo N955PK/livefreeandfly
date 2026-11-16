@@ -51,7 +51,8 @@ a{color:var(--accent-ink)}
   max-width:620px;margin:0 auto;padding:14px 18px 10px}
 .brand{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink);text-decoration:none}
 .brand .slash{color:var(--accent-ink);font-weight:700}
-.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim)}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dim);min-height:40px;padding:0 2px 0 8px;border-radius:999px}
+.who[hidden]{display:none}
 main{max-width:620px;margin:0 auto;padding:6px 18px 110px}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -176,7 +177,7 @@ textarea{min-height:84px;resize:vertical}
 <body>
 <header class="top">
   <a class="brand" href="/">cabin<span class="slash">/</span>time</a>
-  <div class="who" id="who"></div>
+  <button class="who" id="who" data-act="me-edit" aria-label="Change your name and details" hidden></button>
 </header>
 <main id="main"></main>
 <nav class="tabs" id="tabs" aria-label="Sections" hidden><div>
@@ -438,7 +439,8 @@ function viewGate(){
 function render(){
   const gated = !!S.gate;
   $('#tabs').hidden = gated;
-  $('#who').innerHTML = (!gated && S.me) ? `${chip(S.me)}<span>${esc(first(S.me))}</span>` : '';
+  $('#who').hidden = gated || !S.me;
+  $('#who').innerHTML = (!gated && S.me) ? `<span>${esc(first(S.me))}</span>${chip(S.me)}` : '';
   $('#main').innerHTML = gated ? viewGate() : S.view === 'money' ? viewMoney() : S.view === 'house' ? viewHouse() : viewNights();
   document.querySelectorAll('#tabs button').forEach(b => { if (b.dataset.view === S.view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.sheet && S.sheet.type === 'night' && $('#sheet').open) $('#sheet').innerHTML = sheetNight(S.sheet.night);
@@ -503,14 +505,16 @@ function sheetPayment(p, isNew){
 
 function sheetMember(m){
   const isNew = !m; m = m || { name:'', email:'', phone:'' };
-  return `<form data-form="member" data-id="${isNew ? '' : m.id}"><h2>${isNew ? 'Add a member' : 'Edit member'}</h2>
-    ${isNew ? `<p class="sub">They sign in with this email, so it has to be one they can open.</p>` : ''}
-    <label>Name<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
-    <label>Email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"></label>
+  const self = !isNew && S.me && m.id === S.me.id, lockEmail = self && LIVE;
+  return `<form data-form="member" data-id="${isNew ? '' : m.id}"><h2>${isNew ? 'Add a member' : self ? 'Your details' : 'Edit member'}</h2>
+    ${isNew ? `<p class="sub">They sign in with Google, so use the email of their Google account.</p>` : ''}
+    <label>${self ? 'Name shown to the house' : 'Name'}<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
+    <label>Email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"${lockEmail ? ' readonly' : ''}></label>
+    ${lockEmail ? `<p class="each">This is the Google account you sign in with, so it can’t be changed here.</p>` : ''}
     <label>Phone<input type="tel" name="phone" required autocomplete="off" value="${esc(m.phone)}"></label>
     <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save member</button></div>
-    ${isNew || (S.me && m.id === S.me.id) ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div>`}</form>`;
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
+    ${isNew || self ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div>`}</form>`;
 }
 
 function sheetHouse(){
@@ -549,6 +553,7 @@ const actions = {
   'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); },
   'member-new'(){ openSheet(sheetMember()); },
   'member-edit'(el){ openSheet(sheetMember(member(el.dataset.id))); },
+  'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
   'member-remove'(el){ const m = member(el.dataset.id); if (!m) return; closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
   'house-edit'(){ openSheet(sheetHouse()); },
   reset(){ try { localStorage.removeItem(KEY); } catch(e){} reload().then(() => { persist(); render(); toast('Sample data reset'); }); },
@@ -585,7 +590,8 @@ const forms = {
     if (clash && clash.active !== false) return void ($('#err').textContent = `${clash.name} already uses that email.`);
     const base = old || clash || { id:uid(), color:PALETTE[S.members.length % PALETTE.length] };
     const row = { ...base, name:f.name.value.trim(), email, phone:f.phone.value.trim(), active:true };
-    closeSheet(); save('members', row); toast('Member saved');
+    const mine = S.me && row.id === S.me.id; if (mine) S.me = row;
+    closeSheet(); save('members', row); toast(mine ? 'Your details are saved' : 'Member saved');
   },
   house(f){
     const row = { id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
