@@ -477,7 +477,8 @@ function viewHouse(){
   const h = S.house, v = (x, cls='') => x ? `<dd class="${cls}">${esc(x)}</dd>` : `<dd class="unset">Not set</dd>`;
   const mem = active().map(m => `<li><div class="rowi">${chip(m)}
     <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
-      <span class="s">${esc(m.email)}, ${esc(fmtPhone(m.phone))}</span>
+      <span class="s">${esc(m.email)}</span>
+      <span class="s" style="white-space:nowrap">${esc(fmtPhone(m.phone))}</span>
       <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a>${m.venmo ? `<a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo</a>` : ''}</span></span>
     ${S.me && m.id === S.me.id ? `<button class="btn small" data-act="me-edit">Edit</button>`
       : isAdmin() ? `<button class="btn small" data-act="member-manage" data-id="${m.id}">Manage</button>` : ''}</div></li>`).join('');
