@@ -14,6 +14,8 @@ create table members (
   active     boolean not null default true,
   part_time  boolean not null default false,         -- part-timers pay a lease into the pot; full-timers split it
   lease_cents int not null default 0,                -- a part-timer's lease for the season
+  active_from date,                                  -- a part-timer's first bookable night
+  active_until date,                                 -- and last bookable night (both included)
   is_admin   boolean not null default false,        -- can remove members, fix emails, set the guest fee
   created_at timestamptz not null default now()
 );
@@ -132,9 +134,11 @@ begin
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() then
     if tg_op = 'INSERT' then
       new.is_admin := false; new.active := true; new.part_time := false; new.lease_cents := 0;
+      new.active_from := null; new.active_until := null;
     else
       new.is_admin := old.is_admin; new.email := old.email; new.active := old.active;
       new.part_time := old.part_time; new.lease_cents := old.lease_cents;
+      new.active_from := old.active_from; new.active_until := old.active_until;
     end if;
   end if;
   return new;
@@ -160,10 +164,22 @@ drop trigger if exists house_guard on house;
 create trigger house_guard before update on house
   for each row execute function house_guard();
 
+-- Part-timers can only book inside their dates.
 -- Only the admin or the member guests pay can mark a guest as paid.
 create or replace function stays_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
+declare m members%rowtype;
 begin
+  -- A part-timer can only book nights inside their dates.
+  if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin()
+     and (tg_op = 'INSERT' or new.night is distinct from old.night) then
+    select * into m from members where id = new.member_id;
+    if m.part_time and ((m.active_from is not null and new.night < m.active_from)
+                     or (m.active_until is not null and new.night > m.active_until))
+       and not exists (select 1 from stays where member_id = new.member_id and night = new.night) then
+      raise exception 'That night is outside this member''s part-time dates';
+    end if;
+  end if;
   if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() and not is_collector() then
     if tg_op = 'INSERT' then new.guest_paid := '{}'; else new.guest_paid := old.guest_paid; end if;
   end if;

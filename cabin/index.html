@@ -122,6 +122,8 @@ a.btn{text-decoration:none}
 .day.over .cnt{color:var(--neg);font-weight:700}
 .blank{visibility:hidden}
 .day.off{opacity:.3;border-style:dashed;background:none}
+.day.out{opacity:.45}
+.wk button[aria-disabled="true"]{opacity:.45}
 .mnav button:disabled{opacity:.25;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:13px;color:var(--dim)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -179,6 +181,7 @@ dialog:focus,dialog:focus-visible{outline:none}
 #confirm{margin:auto;width:calc(100% - 36px);max-width:380px;border-radius:18px;border:1px solid var(--line);padding:20px 18px;max-height:80%}
 dialog h2{margin:0 0 4px;font-size:17px}
 label[hidden]{display:none}
+div[hidden]{display:none}
 label,legend{display:block;font-size:13.5px;color:var(--dim);margin-top:14px}
 legend{padding:0;margin-bottom:8px}
 fieldset{border:0;margin-top:14px}
@@ -401,6 +404,9 @@ const collector = () => member(S.house.guest_collector) || null;
 const fullTimers = () => { const e = active().filter(m => !m.part_time); return e.length ? e : active(); };
 const partTimers = () => active().filter(m => m.part_time);
 const leasePaid = m => Array.isArray(S.house.lease_paid) && S.house.lease_paid.includes(m.id);
+// A part-timer can only book nights inside the dates the admin gave them (both ends included).
+const canBook = (m, k) => !m || !m.part_time || ((!m.active_from || k >= m.active_from) && (!m.active_until || k <= m.active_until));
+const myDates = m => !m || !m.part_time || (!m.active_from && !m.active_until) ? '' : m.active_from && m.active_until ? `${fmtDay(m.active_from)} to ${fmtDay(m.active_until)}` : m.active_from ? `from ${fmtDay(m.active_from)}` : `until ${fmtDay(m.active_until)}`;
 const leaseOf = m => Math.max(0, Number(m.lease_cents) || 0);
 // The pot: guest money and leases the collector has actually received. Held until the admin pays it out.
 function pot(){
@@ -474,17 +480,18 @@ function viewNights(){
     wkLabel = `${notYet ? 'First weekend of the lease' : [5,6,0].includes(t.getDay()) ? 'This weekend' : 'This coming weekend'}, ${span}`;
   }
   const wk = wkDays.map(d => { const k = iso(d), hc = headcount(k), mine = !!myStay(k);
-    return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}">
+    const blocked = !mine && !canBook(S.me, k);
+    return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}"${blocked ? ' aria-disabled="true"' : ''}>
       <span class="d">${d.toLocaleDateString('en-US',{weekday:'short'})} ${d.getDate()}</span>
       <span class="n${cap && hc > cap ? ' over' : ''}">${hc ? `${hc} of ${cap} beds` : 'Nobody yet'}</span>
-      <span class="me">${mine ? 'You’re in' : 'Tap to join'}</span></button>`; }).join('');
+      <span class="me">${mine ? 'You’re in' : blocked ? 'Outside your dates' : 'Tap to join'}</span></button>`; }).join('');
   const m0 = S.month, y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
   let cells = '<span class="blank"></span>'.repeat(m0.getDay());
   for (let d = 1; d <= days; d++){
     const k = `${y}-${pad(mo+1)}-${pad(d)}`;
     if (!inLease(k)){ cells += `<span class="day off" aria-label="${esc(fmtLong(k))}. Outside the lease."><span class="num">${d}</span></span>`; continue; }
     const st = staysOn(k), hc = headcount(k), mine = !!myStay(k);
-    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', cap && hc > cap ? 'over' : ''].filter(Boolean).join(' ');
+    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', cap && hc > cap ? 'over' : '', !mine && !canBook(S.me, k) ? 'out' : ''].filter(Boolean).join(' ');
     const dots = st.slice(0,6).map(s => chip(member(s.member_id), true)).join('');
     const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping' : 'Nobody yet'}.${mine ? ' You’re in.' : ''}`;
     cells += `<button class="${cls}" data-act="night-open" data-night="${k}" aria-label="${esc(label)}">
@@ -494,7 +501,7 @@ function viewNights(){
   const atStart = leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart())), atEnd = lastNight() && monthKey(m0) >= monthKey(parse(lastNight()));
   const lease = leaseText(), when = notYet ? `The lease starts ${fmtDay(leaseStart())}.` : over ? `The lease ended ${fmtDay(leaseEnd())}.` : lease ? `The lease runs ${lease}.` : '';
   return `${demoNote()}<h1>Who’s up</h1>
-    <p class="sub">Mark the nights you’ll sleep at the house. ${cap ? `It sleeps ${cap}.` : ''} ${when}</p>
+    <p class="sub">Mark the nights you’ll sleep at the house. ${cap ? `It sleeps ${cap}.` : ''} ${when}${myDates(S.me) ? ` You’re part time, so you can book ${myDates(S.me)}.` : ''}</p>
     ${wk ? `<h2 style="margin-top:22px">${wkLabel}</h2><div class="wk" style="margin-top:0">${wk}</div>` : ''}
     <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
       <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
@@ -515,7 +522,8 @@ function viewMoney(){
       : `Guests pay ${money(guestRate())} for each night they stay. The admin hasn’t set who collects it yet.`} Guest money goes into the season pot, which is paid out at the end of the lease.</p>`;
   const myLease = S.me && S.me.part_time && leaseOf(S.me) ? `<h2>Your part-time lease</h2>
     <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${leasePaid(S.me) ? 'Paid' : 'Due'}</span>
-      <span class="s">${col ? `Pay ${esc(col.name)} directly. It’s separate from your house balance.` : 'The admin hasn’t set who collects it yet.'}</span></span>
+      <span class="s">${col ? `Pay ${esc(col.name)} directly. It’s separate from your house balance.` : 'The admin hasn’t set who collects it yet.'}</span>
+      ${myDates(S.me) ? `<span class="s">Your dates: ${myDates(S.me)}</span>` : ''}</span>
       <span class="amt${leasePaid(S.me) ? ' pos' : ' neg'}">${money(leaseOf(S.me))}</span></div>
       ${!leasePaid(S.me) && col && col.venmo ? `<div class="pay-btns"><a class="btn small primary" href="${esc(venmoUrl(col, 'pay', leaseOf(S.me), 'Part-time lease: ' + S.me.name))}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a></div>` : ''}</li></ul>` : '';
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
@@ -631,8 +639,10 @@ function sheetNight(night){
       <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
       <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">Remove my night</button>
       <button class="btn primary" data-act="sheet-close">Done</button></div>`
-    : `<div class="actions"><button class="btn" data-act="sheet-close">Close</button>
-      <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>`;
+    : canBook(S.me, night) ? `<div class="actions"><button class="btn" data-act="sheet-close">Close</button>
+      <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>`
+    : `<p class="each">This night is outside your part-time dates${myDates(S.me) ? `, ${myDates(S.me)}` : ''}. Ask the admin if that needs changing.</p>
+      <div class="actions"><button class="btn" data-act="sheet-close">Close</button></div>`;
   return `<h2>${fmtLong(night)}</h2>
     <p class="sub${over ? ' neg' : ''}">${hc ? `${hc} sleeping, ${cap} beds${over ? `. That’s ${hc - cap} over.` : ''}` : `${cap} beds open`}</p>${who}${mineHtml}`;
 }
@@ -673,10 +683,13 @@ function sheetGuests(){
 // Admin only.
 function sheetRoles(){
   return `<form data-form="roles"><h2>Full time and part time</h2>
-    <p class="sub">Full-time members split the season pot. A part-timer pays the lease you set here into it instead, and is left out of new expenses unless picked.</p>
+    <p class="sub">Full-time members split the season pot. A part-timer pays the lease you set here into it instead, can only book nights inside their dates, and is left out of new expenses unless picked. Leave the dates blank for no limit.</p>
     ${active().map(m => `<div class="rowi" style="flex-wrap:wrap;border-bottom:1px solid var(--line)">${chip(m)}<span class="grow"><span class="t">${esc(m.name)}</span></span>
       <select name="type-${m.id}" data-change="role" data-id="${m.id}" aria-label="${esc(m.name)}" style="width:auto;margin:0;min-height:40px"><option value="full"${m.part_time ? '' : ' selected'}>Full time</option><option value="part"${m.part_time ? ' selected' : ''}>Part time</option></select>
-      <label id="lease-${m.id}" style="flex-basis:100%;margin:0 0 6px"${m.part_time ? '' : ' hidden'}>Lease for the season, in dollars<input name="lease-${m.id}" inputmode="decimal" autocomplete="off" value="${leaseOf(m) ? (leaseOf(m)/100).toFixed(2) : ''}" placeholder="0.00"></label></div>`).join('')}
+      <div id="lease-${m.id}" style="flex-basis:100%;margin:0 0 10px"${m.part_time ? '' : ' hidden'}>
+        <label style="margin-top:0">Lease, in dollars<input name="lease-${m.id}" inputmode="decimal" autocomplete="off" value="${leaseOf(m) ? (leaseOf(m)/100).toFixed(2) : ''}" placeholder="0.00"></label>
+        <label>First night they can book<input type="date" name="from-${m.id}" value="${esc(m.active_from || '')}"></label>
+        <label>Last night they can book<input type="date" name="until-${m.id}" value="${esc(m.active_until || '')}"></label></div></div>`).join('')}
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save</button></div></form>`;
 }
@@ -856,6 +869,7 @@ function toggleNight(night){
   if (!S.me) return;
   const mine = myStay(night);
   if (!mine && !inLease(night)) return;
+  if (!mine && !canBook(S.me, night)) return void toast(`That night is outside your part-time dates${myDates(S.me) ? ', ' + myDates(S.me) : ''}.`);
   if (mine) del('stays', mine.id); else save('stays', { id:uid(), member_id:S.me.id, night, guests:0, note:'' });
 }
 const actions = {
@@ -998,7 +1012,14 @@ const forms = {
     const changes = [];
     for (const m of active()){
       const part = f['type-' + m.id].value === 'part', lease = part ? toCents(f['lease-' + m.id].value) : 0;
-      if (part !== !!m.part_time || lease !== leaseOf(m)) changes.push({ ...m, part_time:part, lease_cents:lease });
+      const from = part ? (f['from-' + m.id].value || null) : null, until = part ? (f['until-' + m.id].value || null) : null;
+      if (from && until && until < from) return void ($('#err').textContent = `${first(m)}’s last night is before their first night.`);
+      if (part !== !!m.part_time || lease !== leaseOf(m) || from !== (m.active_from || null) || until !== (m.active_until || null)){
+        const row = { ...m, part_time:part, lease_cents:lease };
+        if ('active_from' in m || from) row.active_from = from;
+        if ('active_until' in m || until) row.active_until = until;
+        changes.push(row);
+      }
     }
     if (active().every(m => f['type-' + m.id].value === 'part')) return void ($('#err').textContent = 'At least one member has to be full time.');
     closeSheet();
