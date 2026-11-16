@@ -507,7 +507,7 @@ function viewMoney(){
   ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
   return `${demoNote()}<h1>House money</h1>
     <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div></div>
-    <div class="actions"><button class="btn primary" data-act="exp-new">Add an expense</button></div>
+    <div class="actions"><button class="btn primary" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>
     <h2>Settle up</h2>${planHtml}${venmoNudge}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest fees</h2>${guestHtml}
@@ -618,14 +618,14 @@ function updateEach(){
 }
 
 function sheetPayment(p, isNew, viaVenmo){
-  const opts = sel => S.members.filter(m => m.active !== false || m.id === sel).map(m => `<option value="${m.id}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+  const opts = sel => (sel ? '' : `<option value="" selected disabled>Choose a person</option>`) + S.members.filter(m => m.active !== false || m.id === sel).map(m => `<option value="${m.id}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
   return `<form data-form="payment" data-id="${isNew ? '' : p.id}"><h2>${viaVenmo ? 'Did the Venmo payment go through?' : isNew ? 'Record a payment' : 'Edit payment'}</h2>
-    <p class="sub">${viaVenmo ? 'Once you’ve sent it in Venmo, save it here so the house balances update.' : 'For money that already changed hands, by Venmo, cash, or anything else.'}</p>
+    <p class="sub">${viaVenmo ? 'Once you’ve sent it in Venmo, save it here so the house balances update.' : 'For money one member already gave another, by Venmo, cash, or anything else. It can be any amount, not only what the app suggests.'}</p>
     <label>Who paid<select name="from_member">${opts(p.from_member)}</select></label>
     <label>Who got paid<select name="to_member">${opts(p.to_member)}</select></label>
     <label>Amount<input name="amount" required inputmode="decimal" autocomplete="off" value="${p.amount_cents ? (p.amount_cents/100).toFixed(2) : ''}" placeholder="0.00"></label>
     <label>Date<input type="date" name="paid_on" required value="${esc(p.paid_on)}"></label>
-    <label>Note<input name="note" maxlength="60" value="${esc(p.note||'')}" placeholder="Venmo"></label>
+    <label>What it was for, optional<input name="note" maxlength="60" value="${esc(p.note||'')}" placeholder="Venmo, cash for lift tickets…"></label>
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save payment</button></div>
     ${isNew ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="pay-del" data-id="${p.id}">Delete payment</button></div>`}</form>`;
@@ -710,6 +710,7 @@ const actions = {
   'split-none'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'false')); updateEach(); },
   'pay-new'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
   'pay-venmo'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
+  'pay-blank'(){ if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
   'pay-edit'(el){ const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
   'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); },
   'member-new'(){ openSheet(sheetMember()); },
@@ -743,6 +744,7 @@ const forms = {
   payment(f){
     const amount_cents = toCents(f.amount.value);
     if (amount_cents <= 0) return void ($('#err').textContent = 'Enter an amount above zero.');
+    if (!f.to_member.value) return void ($('#err').textContent = 'Choose who got paid.');
     if (f.from_member.value === f.to_member.value) return void ($('#err').textContent = 'Pick two different people.');
     const old = S.payments.find(x => x.id === f.dataset.id);
     const row = { id: old ? old.id : uid(), from_member:f.from_member.value, to_member:f.to_member.value, amount_cents,
