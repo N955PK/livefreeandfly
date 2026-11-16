@@ -21,12 +21,13 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - Tap any night to see who is in, set how many guests you are bringing, and leave a short note (“arriving late”).
 - Headcount includes guests and is compared to the number of beds. A night over capacity is flagged; nothing is blocked.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
+- Guests cost a nightly fee, $60 by default and editable under House. The fee is charged to the member who brought them and shared equally by all members, once the night has happened. Each night keeps the rate it was booked at.
 
 ### Money
 
 - Add an expense: what, how much, who paid, the date, and who it is split between. The split is even and defaults to everyone.
 - Your balance at the top: you are owed, you owe, or you are settled up.
-- “To settle up” lists the fewest payments that square everyone, each with a Record payment button for money that already moved by Venmo or cash.
+- “Settle up” lists the fewest payments that square everyone. If the person you owe has a Venmo username on file, Pay on Venmo opens Venmo with the amount and a note filled in; the app then asks you to confirm so the balances update. People who are owed get a Request on Venmo link.
 - Balances for every member, and a running list of expenses and payments. Tap one to edit or delete it.
 - Amounts are stored in cents. Leftover pennies from an uneven division are handed out one at a time so the books always sum to zero.
 

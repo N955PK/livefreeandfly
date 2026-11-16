@@ -82,6 +82,9 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .sw-row button{width:38px;height:38px;border-radius:50%;border:2px solid transparent}
 .sw-row button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--sheet)}
 input[type="hidden"],input[hidden]{display:none}
+a.btn{text-decoration:none}
+.pay-btns{display:flex;flex-wrap:wrap;gap:8px;padding:0 2px 14px}
+.note{font-size:13px;color:var(--dim);margin:8px 2px 0}
 
 /* ---- weekend strip ---- */
 .wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
@@ -271,9 +274,9 @@ function weekendFriday(){ const t = today(), dow = t.getDay(); // Fri, Sat, Sun 
 function seed(){
   const names = ['Priya Raman','Marcus Bell','Elena Ortiz','Tom Whitaker','Jules Fontaine','Wen Zhao'];
   const members = names.map((name,i) => ({ id:uid(), name, email:name.split(' ')[0].toLowerCase()+'@example.com',
-    phone:'(530) 555-01'+(40+i), color:PALETTE[i], active:true }));
+    phone:'(530) 555-01'+(40+i), color:PALETTE[i], active:true, venmo: i % 2 ? name.replace(' ', '-').toLowerCase() : '' }));
   const fri = weekendFriday(), t = today(), stays = [], M = i => members[i].id;
-  const stay = (i, off, guests=0, note='') => stays.push({ id:uid(), member_id:M(i), night:iso(addDays(fri,off)), guests, note });
+  const stay = (i, off, guests=0, note='') => stays.push({ id:uid(), member_id:M(i), night:iso(addDays(fri,off)), guests, note, ...(guests ? { guest_fee_cents:6000 } : {}) });
   stay(0,-7); stay(4,-7); stay(0,-6); stay(3,-6); stay(4,-6,1); stay(5,-6);
   stay(0,0); stay(1,0); stay(3,0);
   stay(0,1,1,'Bringing my sister'); stay(1,1); stay(2,1,2); stay(3,1); stay(4,1);
@@ -291,7 +294,7 @@ function seed(){
     exp('Cleaning supplies', 4618, 4, 1)
   ];
   const payments = [{ id:uid(), from_member:M(5), to_member:M(1), amount_cents:7000, paid_on:iso(addDays(t,-4)), note:'Venmo' }];
-  const house = { id:1, name:'Tahoe house', address:'', door_code:'4821', wifi_name:'CabinNet', wifi_password:'powderday', beds:8,
+  const house = { id:1, name:'Tahoe house', address:'', door_code:'4821', wifi_name:'CabinNet', wifi_password:'powderday', beds:8, guest_fee_cents:6000,
     notes:'Trash goes out Sunday night.\nLeave the heat at 55 when you’re the last one out.' };
   return { members, stays, expenses, payments, house, meId:members[0].id };
 }
@@ -344,6 +347,10 @@ const headcount = night => staysOn(night).reduce((n, s) => n + 1 + (s.guests||0)
 const myStay = night => S.me && S.stays.find(s => s.night === night && s.member_id === S.me.id);
 const beds = () => Number(S.house.beds) || 0;
 
+const guestRate = () => (S.house.guest_fee_cents === null || S.house.guest_fee_cents === undefined) ? 6000 : Number(S.house.guest_fee_cents) || 0;
+const stayFee = s => (s.guests || 0) * ((s.guest_fee_cents === null || s.guest_fee_cents === undefined) ? guestRate() : Number(s.guest_fee_cents) || 0);
+// A guest night is owed once it has happened (tonight counts).
+const guestCharges = () => { const t = iso(today()); return S.stays.filter(s => (s.guests || 0) > 0 && s.night <= t && member(s.member_id) && stayFee(s) > 0); };
 function balances(){
   const b = {}; S.members.forEach(m => b[m.id] = 0);
   for (const e of S.expenses){
@@ -353,6 +360,13 @@ function balances(){
     ids.forEach(id => { b[id] -= base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
   }
   for (const p of S.payments){ if (!(p.from_member in b) || !(p.to_member in b)) continue; b[p.from_member] += p.amount_cents; b[p.to_member] -= p.amount_cents; }
+  // Guest fees: charged to the member who brought the guest, shared equally by the house.
+  const pool = active().map(m => m.id).sort();
+  if (pool.length) for (const st of guestCharges()){
+    const fee = stayFee(st); b[st.member_id] -= fee;
+    const base = Math.floor(fee / pool.length); let rem = fee - base*pool.length;
+    pool.forEach(id => { b[id] += base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
+  }
   return b;
 }
 function settle(b){
@@ -403,11 +417,28 @@ function viewNights(){
 function viewMoney(){
   const b = balances(), mine = S.me ? b[S.me.id] : 0, plan = settle(b);
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
-  const planHtml = plan.length ? `<ul class="list">${plan.map(p => `<li><div class="rowi">
-      <span class="grow"><span class="t">${esc(first(member(p.from)))} pays ${esc(first(member(p.to)))}</span></span>
-      <span class="amt">${money(p.amt)}</span>
-      <button class="btn small" data-act="pay-new" data-from="${p.from}" data-to="${p.to}" data-amt="${p.amt}">Record payment</button></div></li>`).join('')}</ul>`
+  const note = encodeURIComponent((S.house.name || 'Ski house') + ' settle up');
+  const venmoUrl = (m, kind, amt) => `https://venmo.com/${encodeURIComponent(m.venmo)}?txn=${kind}&amount=${(amt/100).toFixed(2)}&note=${note}`;
+  const mineFirst = p => S.me && (p.from === S.me.id || p.to === S.me.id) ? 0 : 1;
+  plan.sort((x, y) => mineFirst(x) - mineFirst(y));
+  const planHtml = plan.length ? `<ul class="list">${plan.map(p => {
+      const from = member(p.from), to = member(p.to), iPay = S.me && p.from === S.me.id, iGet = S.me && p.to === S.me.id;
+      const title = iPay ? `You pay ${esc(first(to))}` : iGet ? `${esc(first(from))} pays you` : `${esc(first(from))} pays ${esc(first(to))}`;
+      const data = `data-from="${p.from}" data-to="${p.to}" data-amt="${p.amt}"`;
+      let btns = '';
+      if (iPay && to.venmo) btns += `<a class="btn small primary" href="${venmoUrl(to, 'pay', p.amt)}" target="_blank" rel="noopener" data-act="pay-venmo" ${data}>Pay on Venmo</a>`;
+      if (iGet && from.venmo) btns += `<a class="btn small" href="${venmoUrl(from, 'charge', p.amt)}" target="_blank" rel="noopener">Request on Venmo</a>`;
+      btns += `<button class="btn small" data-act="pay-new" ${data}>${iPay ? 'Mark as paid' : 'Record payment'}</button>`;
+      const hint = iPay && !to.venmo ? `<span class="s">${esc(first(to))} hasn’t added a Venmo username yet.</span>` : '';
+      return `<li><div class="rowi"><span class="grow"><span class="t">${title}</span>${hint}</span><span class="amt">${money(p.amt)}</span></div>
+        <div class="pay-btns">${btns}</div></li>`; }).join('')}</ul>`
     : `<p class="empty">Everyone’s square.</p>`;
+  const charges = guestCharges(), byHost = {};
+  charges.forEach(st => { const g = byHost[st.member_id] || (byHost[st.member_id] = { n:0, c:0 }); g.n += st.guests; g.c += stayFee(st); });
+  const guestHtml = Object.keys(byHost).length ? `<ul class="list">${Object.entries(byHost).sort((x, y) => y[1].c - x[1].c).map(([id, g]) => `<li><div class="rowi">${chip(member(id))}
+      <span class="grow"><span class="t">${esc(member(id).name)}</span><span class="s">${g.n} guest night${g.n === 1 ? '' : 's'}</span></span>
+      <span class="amt">${money(g.c)}</span></div></li>`).join('')}</ul>` : `<p class="empty">No guest nights yet.</p>`;
+  const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span></span>
       <span class="amt ${b[m.id] > 0 ? 'pos' : b[m.id] < 0 ? 'neg' : ''}">${b[m.id] > 0 ? '+' : ''}${money(b[m.id])}</span></div></li>`).join('');
@@ -419,14 +450,20 @@ function viewMoney(){
     ...S.payments.map(p => ({ d:p.paid_on, c:p.created_at||'', html:`<li><button class="rowi" data-act="pay-edit" data-id="${p.id}">
       <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
       <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
-      <span class="amt">${money(p.amount_cents)}</span></button></li>` }))
+      <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
+    ...charges.map(st => ({ d:st.night, c:'', html:`<li><div class="rowi">
+      <span class="grow"><span class="t">${esc(first(member(st.member_id)))}’s guest${st.guests > 1 ? 's' : ''}</span>
+      <span class="s">Guest fee, ${st.guests} × ${money(stayFee(st) / st.guests)}, night of ${fmtDay(st.night)}</span></span>
+      <span class="amt">${money(stayFee(st))}</span></div></li>` }))
   ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
   return `${demoNote()}<h1>House money</h1>
     <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div></div>
     <div class="actions"><button class="btn primary" data-act="exp-new">Add an expense</button></div>
-    <h2>To settle up</h2>${planHtml}
+    <h2>Settle up</h2>${planHtml}${venmoNudge}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
-    <h2>Expenses and payments</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
+    <h2>Guest fees</h2>${guestHtml}
+    <p class="note">Each guest is ${money(guestRate())} a night. It’s charged to the member who brought them and shared equally by the house, once the night has happened.</p>
+    <h2>Expenses, payments, and guest fees</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
 }
 
 function viewHouse(){
@@ -434,7 +471,7 @@ function viewHouse(){
   const mem = active().map(m => `<li><div class="rowi">${chip(m)}
     <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
       <span class="s">${esc(m.email)}, ${esc(m.phone)}</span>
-      <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a></span></span>
+      <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a>${m.venmo ? `<a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo</a>` : ''}</span></span>
     <button class="btn small" data-act="member-edit" data-id="${m.id}">Edit</button></div></li>`).join('');
   const foot = LIVE
     ? `<div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div>`
@@ -446,6 +483,7 @@ function viewHouse(){
       <div><dt>Door code</dt>${v(h.door_code,'code')}</div>
       <div><dt>Wi-Fi</dt>${h.wifi_name ? `<dd>${esc(h.wifi_name)}${h.wifi_password ? `<br><span class="code" style="font-family:var(--mono)">${esc(h.wifi_password)}</span>` : ''}</dd>` : `<dd class="unset">Not set</dd>`}</div>
       <div><dt>Beds</dt>${v(h.beds ? String(h.beds) : '')}</div>
+      <div><dt>Guest fee</dt><dd>${guestRate() ? money(guestRate()) + ' a night' : 'None'}</dd></div>
       <div><dt>House notes</dt>${v(h.notes)}</div></dl>
     <div class="actions"><button class="btn" data-act="house-edit">Edit house info</button></div>
     <h2>Members</h2><ul class="list">${mem}</ul>
@@ -487,10 +525,11 @@ function sheetNight(night){
       ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
     : `<p class="empty">Nobody’s signed up for this night.</p>`;
   const over = cap && hc > cap;
-  const mineHtml = mine ? `<label>Guests you’re bringing</label>
+  const mineHtml = mine ? `<label>Guests you’re bringing${guestRate() ? `, ${money(guestRate())} a night each` : ''}</label>
       <div class="step"><button data-act="guests" data-night="${night}" data-d="-1" aria-label="One fewer guest">−</button>
       <output>${mine.guests||0}</output>
       <button data-act="guests" data-night="${night}" data-d="1" aria-label="One more guest">+</button></div>
+      ${stayFee(mine) ? `<p class="each">Guest fee for this night: ${money(stayFee(mine))}</p>` : ''}
       <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
       <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">Remove my night</button>
       <button class="btn primary" data-act="sheet-close">Done</button></div>`
@@ -519,10 +558,10 @@ function updateEach(){
   $('#each').textContent = n && c ? `${money(Math.round(c/n))} each, ${n} ${n === 1 ? 'person' : 'people'}` : '';
 }
 
-function sheetPayment(p, isNew){
+function sheetPayment(p, isNew, viaVenmo){
   const opts = sel => S.members.filter(m => m.active !== false || m.id === sel).map(m => `<option value="${m.id}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
-  return `<form data-form="payment" data-id="${isNew ? '' : p.id}"><h2>${isNew ? 'Record a payment' : 'Edit payment'}</h2>
-    <p class="sub">For money that already changed hands, by Venmo, cash, or anything else.</p>
+  return `<form data-form="payment" data-id="${isNew ? '' : p.id}"><h2>${viaVenmo ? 'Did the Venmo payment go through?' : isNew ? 'Record a payment' : 'Edit payment'}</h2>
+    <p class="sub">${viaVenmo ? 'Once you’ve sent it in Venmo, save it here so the house balances update.' : 'For money that already changed hands, by Venmo, cash, or anything else.'}</p>
     <label>Who paid<select name="from_member">${opts(p.from_member)}</select></label>
     <label>Who got paid<select name="to_member">${opts(p.to_member)}</select></label>
     <label>Amount<input name="amount" required inputmode="decimal" autocomplete="off" value="${p.amount_cents ? (p.amount_cents/100).toFixed(2) : ''}" placeholder="0.00"></label>
@@ -550,6 +589,7 @@ function sheetMember(m){
     <label>Email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"${lockEmail ? ' readonly' : ''}></label>
     ${lockEmail ? `<p class="each">This is the Google account you sign in with, so it can’t be changed here.</p>` : ''}
     <label>Phone<input type="tel" name="phone" required autocomplete="off" value="${esc(m.phone)}"></label>
+    <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
     ${isNew || self ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div>`}</form>`;
@@ -564,6 +604,8 @@ function sheetHouse(){
     <label>Wi-Fi network<input name="wifi_name" maxlength="40" autocomplete="off" value="${esc(h.wifi_name||'')}"></label>
     <label>Wi-Fi password<input name="wifi_password" maxlength="60" autocomplete="off" value="${esc(h.wifi_password||'')}"></label>
     <label>Beds<input name="beds" inputmode="numeric" maxlength="2" value="${esc(h.beds||'')}"></label>
+    <label>Guest fee per night, in dollars<input name="guest_fee" inputmode="decimal" autocomplete="off" value="${(guestRate()/100).toFixed(2)}"></label>
+    <p class="each">A new rate applies to guest nights added after the change. Enter 0 for no fee.</p>
     <label>House notes<textarea name="notes" maxlength="600">${esc(h.notes||'')}</textarea></label>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save house info</button></div></form>`;
 }
@@ -585,13 +627,16 @@ const actions = {
   'night-open'(el){ openSheet(sheetNight(el.dataset.night), { type:'night', night:el.dataset.night }); },
   'night-toggle'(el){ toggleNight(el.dataset.night); },
   guests(el){ const s = myStay(el.dataset.night); if (!s) return; const g = Math.max(0, Math.min(12, (s.guests||0) + Number(el.dataset.d)));
-    if (g !== (s.guests||0)) save('stays', { ...s, guests:g }); },
+    if (g === (s.guests||0)) return;
+    const row = { ...s, guests:g }; if (g > 0) row.guest_fee_cents = guestRate();   // keep the rate this night was booked at
+    save('stays', row); },
   'sheet-close'(){ closeSheet(); },
   'exp-new'(){ openSheet(sheetExpense()); updateEach(); },
   'exp-edit'(el){ const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
   'exp-del'(el){ closeSheet(); del('expenses', el.dataset.id); toast('Expense deleted'); },
   split(el){ el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); updateEach(); },
   'pay-new'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
+  'pay-venmo'(el){ openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
   'pay-edit'(el){ const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
   'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); },
   'member-new'(){ openSheet(sheetMember()); },
@@ -635,8 +680,11 @@ const forms = {
     const email = f.email.value.trim().toLowerCase(), old = member(f.dataset.id);
     const clash = S.members.find(m => m.email.toLowerCase() === email && (!old || m.id !== old.id));
     if (clash && clash.active !== false) return void ($('#err').textContent = `${clash.name} already uses that email.`);
+    const venmo = f.venmo.value.trim().replace(/^https?:\/\/(www\.)?venmo\.com\/(u\/)?/i, '').replace(/^@/, '').replace(/[?\/].*$/, '');
+    if (!/^[A-Za-z0-9_-]{0,40}$/.test(venmo)) return void ($('#err').textContent = 'Venmo usernames use only letters, numbers, dashes, and underscores.');
     const base = old || clash || { id:uid(), color:PALETTE[S.members.length % PALETTE.length] };
     const row = { ...base, name:f.name.value.trim(), email, phone:f.phone.value.trim(), active:true };
+    if (venmo || base.venmo) row.venmo = venmo || null;
     if (f.avatar && f.avatar.value !== (base.avatar || '')) row.avatar = f.avatar.value || null;
     if (f.color && HEX_RE.test(f.color.value)) row.color = f.color.value;
     const mine = S.me && row.id === S.me.id; if (mine) S.me = row;
@@ -645,6 +693,7 @@ const forms = {
   house(f){
     const row = { id:1, name:f.name.value.trim(), address:f.address.value.trim(), door_code:f.door_code.value.trim(),
       wifi_name:f.wifi_name.value.trim(), wifi_password:f.wifi_password.value.trim(), beds:parseInt(f.beds.value, 10) || 0, notes:f.notes.value.trim() };
+    const fee = toCents(f.guest_fee.value); if ('guest_fee_cents' in S.house || fee !== 6000) row.guest_fee_cents = fee;
     closeSheet(); save('house', row); toast('House info saved');
   }
 };

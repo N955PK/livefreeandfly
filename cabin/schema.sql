@@ -9,6 +9,7 @@ create table members (
   email      text not null,
   phone      text not null,
   color      text,
+  venmo      text,
   avatar     text check (avatar is null or length(avatar) < 60000),  -- small inline picture or 'emoji:…'
   active     boolean not null default true,
   created_at timestamptz not null default now()
@@ -20,6 +21,7 @@ create table stays (
   member_id  uuid not null references members(id) on delete cascade,
   night      date not null,                       -- the night slept at the house
   guests     int  not null default 0 check (guests between 0 and 12),
+  guest_fee_cents int,                            -- per-guest rate when this night was booked
   note       text,
   created_at timestamptz not null default now(),
   unique (member_id, night)
@@ -55,6 +57,7 @@ create table house (
   wifi_name     text,
   wifi_password text,
   beds          int not null default 8,
+  guest_fee_cents int not null default 6000,     -- nightly fee per guest
   notes         text
 );
 insert into house (id, name) values (1, 'Tahoe house');
