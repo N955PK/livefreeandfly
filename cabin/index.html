@@ -156,6 +156,8 @@ a.btn{text-decoration:none}
 .btn.danger{border-color:transparent;background:none;color:var(--neg);font-weight:500}
 .actions{display:flex;gap:10px;margin-top:16px}
 .actions .btn{flex:1}
+.actions.three{gap:8px}
+.actions.three .btn{padding:0 6px;font-size:14px;white-space:nowrap}
 
 /* ---- house ---- */
 dl{border-top:1px solid var(--line);margin-top:16px}
@@ -515,6 +517,30 @@ function viewNights(){
     <div class="legend">${legend}</div>`;
 }
 
+function historyHtml(){
+  const col = collector();
+  return [
+    ...S.expenses.map(e => ({ d:e.spent_on, c:e.created_at||'', html:`<li><button class="rowi" data-act="exp-edit" data-id="${e.id}">
+      <span class="grow"><span class="t">${esc(e.description)}</span>
+      <span class="s">${esc(first(member(e.paid_by)))} paid, split ${(e.split_among||[]).length} ways, ${fmtDay(e.spent_on)}</span></span>
+      <span class="amt">${money(e.amount_cents)}</span></button></li>` })),
+    ...S.payments.map(p => ({ d:p.paid_on, c:p.created_at||'', html:`<li><button class="rowi" data-act="pay-edit" data-id="${p.id}">
+      <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
+      <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
+      <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
+    ...(pot().paidOut && col && pot().total ? [{ d:'9999', c:'', html:`<li><div class="rowi">
+      <span class="grow"><span class="t">Season pot paid out</span>
+      <span class="s">Guest money, leases, and returned deposits held by ${esc(first(col))}</span></span>
+      <span class="amt">${money(pot().total)}</span></div></li>` }] : [])
+  ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
+}
+function sheetHistory(){
+  const feed = historyHtml();
+  return `<h2>Expenses and payments</h2><p class="sub">Tap one to change or delete it.</p>
+    ${feed ? `<ul class="list" style="margin-top:12px">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}
+    <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
+}
+
 function viewMoney(){
   const b = balances(), mine = S.me ? b[S.me.id] : 0;
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
@@ -530,39 +556,28 @@ function viewMoney(){
       ${myDates(S.me) ? `<span class="s">Your dates: ${myDates(S.me)}</span>` : ''}</span>
       <span class="amt${leasePaid(S.me) ? ' pos' : ' neg'}">${money(leaseOf(S.me))}</span></div>
       ${!leasePaid(S.me) && col && col.venmo ? `<div class="pay-btns"><a class="btn small primary" href="${esc(venmoUrl(col, 'pay', leaseOf(S.me), 'Part-time lease: ' + S.me.name))}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a></div>` : ''}</li></ul>` : '';
-  const pt0 = pot(), fullMe = S.me && !S.me.part_time && pt0.each > 0, cut = fullMe && pt0.heads ? Math.ceil(pt0.withheld / pt0.heads) : 0;
-  const myDeposit = fullMe ? `<h2>Your security deposit</h2>
-    <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${pt0.paidOut ? 'Returned in the pot payout' : 'Due back at the end of the season'}</span>
-      <span class="s">${cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : 'You paid it up front. It comes back in full unless some is withheld.'}</span></span>
-      <span class="amt">${money(pt0.each - cut)}</span></div></li></ul>` : '';
+  const pt0 = pot(), fullMe = !!(S.me && fullTimers().some(m => m.id === S.me.id)), n = fullTimers().length || 1;
+  const cut = pt0.heads ? Math.ceil(pt0.withheld / pt0.heads) : 0, depBack = Math.max(0, pt0.each - cut), share = Math.floor((pt0.guests + pt0.leases) / n);
+  const sees = isAdmin() || canMarkGuests() || pt0.paidOut;     // the pot's size stays with admins until it's paid out
+  const backRow = (t, sub, v) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${v}</span></div></li>`;
+  const dueBack = fullMe ? `<h2>Due back to you at the end of the season</h2>
+    <ul class="list">${pt0.each ? backRow('Security deposit', cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : 'Paid up front. Comes back in full unless some is withheld.', money(depBack)) : ''}
+      ${backRow('Share of guest money and part-time leases', sees ? (pt0.paidOut ? '' : 'So far. It grows as more comes in.') : 'Worked out when the pot is paid out.', sees ? money(share) : 'At payout')}
+      ${sees ? backRow(pt0.paidOut ? 'Paid out to you' : 'Total so far', pt0.paidOut ? 'It’s in your balance above.' : '', money(depBack + share)) : ''}</ul>` : '';
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
         ${m.venmo ? `<span class="links"><a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo @${esc(m.venmo)}</a></span>` : ''}</span>
       <span class="amt ${b[m.id] > 0 ? 'pos' : b[m.id] < 0 ? 'neg' : ''}">${b[m.id] > 0 ? '+' : ''}${money(b[m.id])}</span></div></li>`).join('');
-  const feed = [
-    ...S.expenses.map(e => ({ d:e.spent_on, c:e.created_at||'', html:`<li><button class="rowi" data-act="exp-edit" data-id="${e.id}">
-      <span class="grow"><span class="t">${esc(e.description)}</span>
-      <span class="s">${esc(first(member(e.paid_by)))} paid, split ${(e.split_among||[]).length} ways, ${fmtDay(e.spent_on)}</span></span>
-      <span class="amt">${money(e.amount_cents)}</span></button></li>` })),
-    ...S.payments.map(p => ({ d:p.paid_on, c:p.created_at||'', html:`<li><button class="rowi" data-act="pay-edit" data-id="${p.id}">
-      <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
-      <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
-      <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
-    ...(pot().paidOut && col && pot().total ? [{ d:'9999', c:'', html:`<li><div class="rowi">
-      <span class="grow"><span class="t">Season pot paid out</span>
-      <span class="s">Guest money, leases, and returned deposits held by ${esc(first(col))}</span></span>
-      <span class="amt">${money(pot().total)}</span></div></li>` }] : [])
-  ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
   return `${demoNote()}<h1>House money</h1>
     <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div>
       ${mine < 0 ? `<div class="actions"><button class="btn primary wide" data-act="settle-open">Settle up</button></div>`
         : mine > 0 ? `<div class="actions"><button class="btn wide" data-act="settle-open">See who owes you</button></div>` : ''}</div>
-    <div class="actions"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add an expense</button><button class="btn" data-act="pay-blank">Record a payment</button></div>${venmoNudge}
-    ${myLease}${myDeposit}
+    <div class="actions three"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add expense</button><button class="btn" data-act="pay-blank">Add payment</button><button class="btn" data-act="history-open">History</button></div>${venmoNudge}
+    ${myLease}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest money</h2>${guestHtml}
-    <h2>Expenses and payments</h2>${feed ? `<ul class="list">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}`;
+    ${dueBack}`;
 }
 
 function viewHouse(){
@@ -621,6 +636,7 @@ function render(){
   if (S.sheet && S.sheet.type === 'settle' && $('#sheet').open) $('#sheet').innerHTML = sheetSettle();
   if (S.sheet && S.sheet.type === 'guests' && $('#sheet').open) $('#sheet').innerHTML = sheetGuests();
   if (S.sheet && S.sheet.type === 'pot' && $('#sheet').open) $('#sheet').innerHTML = sheetPot();
+  if (S.sheet && S.sheet.type === 'history' && $('#sheet').open) $('#sheet').innerHTML = sheetHistory();
 }
 
 /* ---------- sheets ---------- */
@@ -724,7 +740,9 @@ function sheetPot(){
       ${leaseOf(m) ? `<div class="pay-btns"><button class="btn small${leasePaid(m) ? ' quiet' : ''}" data-act="lease-paid" data-id="${m.id}" data-v="${leasePaid(m) ? 0 : 1}">${leasePaid(m) ? 'Mark unpaid' : 'Mark ' + money(leaseOf(m)) + ' paid'}</button></div>` : ''}</li>`).join('')}</ul>` : '';
   return `<h2>The pot and leases</h2>
     <p class="sub">${col ? `Guest money and part-time leases that ${esc(first(col))} has received, plus the security deposits due back.` : 'Nobody is set to collect guest and lease money yet.'} It’s held until it’s paid out, then split equally between full-time members.</p>
-    <ul class="list" style="margin-top:14px">${line('Guest money received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('Security deposits', pt.each ? `${pt.heads} × ${money(pt.each)}${pt.withheld ? ', less ' + money(pt.withheld) + ' withheld' : ', nothing withheld'}` : 'None set', pt.deposits)}${line('In the pot', admin && full.length ? `${money(Math.floor(pt.total / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}` : '', pt.total)}</ul>
+    <h2 style="margin:22px 0 8px">What’s gone in</h2><ul class="list">${line('Guest money received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('Security deposits', pt.each ? `${pt.heads} × ${money(pt.each)}${pt.withheld ? ', less ' + money(pt.withheld) + ' withheld' : ', nothing withheld'}` : 'None set', pt.deposits)}</ul>
+    <div class="bal" style="margin-top:16px"><div class="l">In the pot</div><div class="v">${money(pt.total)}</div>
+      ${admin && full.length ? `<div class="l" style="margin-top:4px">${money(Math.floor(pt.total / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}</div>` : ''}</div>
     ${admin ? `<div class="actions"><button class="btn" data-act="deposit-open">Edit security deposits</button></div>` : ''}
     ${leases}
     <h2 style="margin:26px 0 4px">Payout</h2>
@@ -819,12 +837,12 @@ function sheetMember(m){
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
     ${self && isAdmin() ? `<h2 style="margin:28px 0 4px">House admin</h2>
-    <p class="sub">Only you see this.</p>
+    <p class="sub">Only admins see this.</p>
     <div class="actions"><button type="button" class="btn" data-act="collector-open">Who guests pay</button></div>
     <div class="actions" style="margin-top:10px"><button type="button" class="btn" data-act="roles-open">Full time and part time</button></div>
     <div class="actions" style="margin-top:10px"><button type="button" class="btn" data-act="pot-open">The pot and leases</button></div>`
     : self && canMarkGuests() ? `<h2 style="margin:28px 0 4px">Money you collect</h2>
-    <p class="sub">Only you and the admin see this.</p>
+    <p class="sub">Only you and the admins see this.</p>
     <div class="actions"><button type="button" class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}</form>`;
 }
 
@@ -852,7 +870,7 @@ function sheetHouse(){
     ${isAdmin() ? `<label>Lease starts, first night<input type="date" name="lease_start" value="${esc(h.lease_start || '')}"></label>
     <label>Lease ends, move-out day<input type="date" name="lease_end" value="${esc(h.lease_end || '')}"></label>
     <label>Guest fee per night, in dollars<input name="guest_fee" inputmode="decimal" autocomplete="off" value="${(guestRate()/100).toFixed(2)}"></label>
-    <p class="each">Only you can change this. A new rate applies to guest nights added after the change. Enter 0 for no fee.</p>` : ''}
+    <p class="each">Only admins can change this. A new rate applies to guest nights added after the change. Enter 0 for no fee.</p>` : ''}
     <label>House notes<textarea name="notes" maxlength="600">${esc(h.notes||'')}</textarea></label>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save house info</button></div></form>`;
 }
@@ -883,6 +901,7 @@ function addGuest(st, raw){
   if (names.length >= 12) return err('That’s the most guests one person can add to a night.');
   names.push(name); setGuests(st, names); return true;
 }
+function backToHistory(){ if (S.backToHistory){ S.backToHistory = false; openSheet(sheetHistory(), { type:'history' }); } }
 function setAvatar(v){
   const f = $('#sheet form[data-form="member"]'); if (!f || !f.avatar) return;
   f.avatar.value = v;
@@ -972,18 +991,19 @@ const actions = {
     catch(e){ toast('Couldn’t copy the link. Open it with the Venmo button instead.'); }
   },
   'sheet-close'(){ closeSheet(); },
-  'exp-new'(){ openSheet(sheetExpense()); updateEach(); },
-  'exp-edit'(el){ const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
-  'exp-del'(el){ closeSheet(); del('expenses', el.dataset.id); toast('Expense deleted'); },
+  'history-open'(){ openSheet(sheetHistory(), { type:'history' }); },
+  'exp-new'(){ S.backToHistory = false; openSheet(sheetExpense()); updateEach(); },
+  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ openSheet(sheetExpense(e)); updateEach(); } },
+  'exp-del'(el){ closeSheet(); del('expenses', el.dataset.id); toast('Expense deleted'); backToHistory(); },
   split(el){ el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); updateEach(); },
   'split-all'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'true')); updateEach(); },
   'split-none'(){ document.querySelectorAll('#sheet .pick button').forEach(b => b.setAttribute('aria-pressed', 'false')); updateEach(); },
   'settle-open'(){ if (S.me) openSheet(sheetSettle(), { type:'settle' }); },
   'pay-new'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
   'pay-venmo'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
-  'pay-blank'(){ S.backToSettle = false; if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
-  'pay-edit'(el){ const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
-  'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); },
+  'pay-blank'(){ S.backToSettle = false; S.backToHistory = false; if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
+  'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
+  'pay-del'(el){ closeSheet(); del('payments', el.dataset.id); toast('Payment deleted'); backToHistory(); },
   'member-new'(){ openSheet(sheetMember()); },
   'member-manage'(el){ const m = member(el.dataset.id); if (m && isAdmin()) openSheet(sheetManage(m)); },
   'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
@@ -1010,7 +1030,7 @@ const forms = {
     const old = S.expenses.find(x => x.id === f.dataset.id);
     const row = { id: old ? old.id : uid(), description:f.description.value.trim(), amount_cents, paid_by:f.paid_by.value,
       split_among:split, spent_on:f.spent_on.value, created_at: old ? old.created_at : new Date().toISOString() };
-    closeSheet(); save('expenses', row); toast('Expense saved');
+    closeSheet(); save('expenses', row); toast('Expense saved'); backToHistory();
   },
   payment(f){
     const amount_cents = toCents(f.amount.value);
@@ -1023,6 +1043,7 @@ const forms = {
     const back = S.backToSettle; S.backToSettle = false;
     closeSheet(); save('payments', row); toast('Payment saved');
     if (back && settle(balances()).some(x => x.from === S.me.id || x.to === S.me.id)) openSheet(sheetSettle(), { type:'settle' });
+    else backToHistory();
   },
   member(f){
     const email = f.email.value.trim().toLowerCase(), old = member(f.dataset.id);
