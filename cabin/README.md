@@ -14,7 +14,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 
 ## What it does (v1, built)
 
-### Nights
+### Calendar
 
 - A strip for the current weekend (Friday, Saturday, Sunday nights). Tap a night to add or remove yourself.
 - A month calendar. Each night shows a dot per member and a headcount. Your nights are marked in red.
@@ -22,7 +22,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - Headcount includes guests and is compared to the number of beds. A night over capacity is flagged; nothing is blocked.
 - The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
-- Guests cost a nightly fee, $60 by default and editable under House. The fee is charged to the member who brought them and shared equally by all members, once the night has happened. Each night keeps the rate it was booked at.
+- Guests cost a nightly fee, $60 by default and editable under House Info. The fee is charged to the member who brought them and shared equally by all members, once the night has happened. Each night keeps the rate it was booked at.
 
 ### Money
 
@@ -32,7 +32,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - Balances for every member, and a running list of expenses and payments. Tap one to edit or delete it.
 - Amounts are stored in cents. Leftover pennies from an uneven division are handed out one at a time so the books always sum to zero.
 
-### House
+### House Info
 
 - Address, door code, Wi-Fi, bed count, and house notes, editable by any member.
 - The member list with call, text, and email links.
