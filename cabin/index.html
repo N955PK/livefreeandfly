@@ -717,10 +717,10 @@ function sheetNight(night){
       <button class="btn primary" data-act="sheet-close">Done</button></div>`
     : mine ? `<p class="each">You’re not staying this night, but your guest${names.length > 1 ? 's are' : ' is'}.</p>
       ${guestEditor(night, names, 'Your guests')}${fee}
-      <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">I’m staying too</button>
+      <div class="actions"><button class="btn" data-act="night-toggle" data-night="${night}">I’m in too</button>
       <button class="btn primary" data-act="sheet-close">Done</button></div>`
     : canBook(S.me, night) ? `<div class="actions"><button class="btn" data-act="sheet-close">Close</button>
-      <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m staying this night</button></div>
+      <button class="btn primary" data-act="night-toggle" data-night="${night}">I’m in</button></div>
       ${guestEditor(night, [], 'Or send a guest without staying yourself')}`
     : `<p class="each">This night is outside your part-time dates${myDates(S.me) ? `, ${myDates(S.me)}` : ''}. Ask the admin if that needs changing.</p>
       <div class="actions"><button class="btn" data-act="sheet-close">Close</button></div>`;
