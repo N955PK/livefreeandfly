@@ -416,7 +416,7 @@ const guestNames = s => (Array.isArray(s.guest_names) && s.guest_names.length) ?
 const guestStays = () => S.stays.filter(s => (s.guests || 0) > 0 && member(s.member_id));
 // Guests pay one member, picked by the admin, directly. This sits outside the house balances.
 const collector = () => member(S.house.guest_collector) || null;
-// Full-time members split the season pot. Part-timers pay a lease into it instead.
+// Full-time members split the pot. Part-timers pay a lease into it instead.
 const fullTimers = () => { const e = active().filter(m => !m.part_time); return e.length ? e : active(); };
 const partTimers = () => active().filter(m => m.part_time);
 const leasePaid = m => Array.isArray(S.house.lease_paid) && S.house.lease_paid.includes(m.id);
@@ -424,7 +424,7 @@ const leasePaid = m => Array.isArray(S.house.lease_paid) && S.house.lease_paid.i
 const canBook = (m, k) => !m || !m.part_time || ((!m.active_from || k >= m.active_from) && (!m.active_until || k <= m.active_until));
 const myDates = m => !m || !m.part_time || (!m.active_from && !m.active_until) ? '' : m.active_from && m.active_until ? `${fmtDay(m.active_from)} to ${fmtDay(m.active_until)}` : m.active_from ? `from ${fmtDay(m.active_from)}` : `until ${fmtDay(m.active_until)}`;
 const leaseOf = m => Math.max(0, Number(m.lease_cents) || 0);
-// The pot: guest money and leases the collector has actually received. Held until the admin pays it out.
+// The pot: guest fees and leases the collector has actually received. Held until the admin pays it out.
 const depositEach = () => (S.house.deposit_cents === null || S.house.deposit_cents === undefined) ? 44500 : Math.max(0, Number(S.house.deposit_cents) || 0);
 const depositWithheld = () => Math.max(0, Number(S.house.deposit_withheld_cents) || 0);
 // How one expense divides, to the cent, between the people it's split among.
@@ -457,7 +457,7 @@ function pot(){
   const costs = potCosts();
   return { guests, leases, leasesDue, each, heads, withheld, deposits, costs, total: guests + leases + deposits, net: guests + leases + deposits - costs.held, paidOut: !!S.house.pot_paid_out };
 }
-// Guest money that has actually been received: one entry per night with at least one paid guest.
+// Guest fees that have actually been received: one entry per night with at least one paid guest.
 const guestPaidNights = () => guestStays().map(st => ({ st, names: guestNames(st).filter(n => isPaid(st, n)) })).filter(x => x.names.length && perGuest(x.st) > 0);
 const canMarkGuests = () => isAdmin() || !!(S.me && collector() && collector().id === S.me.id);
 const isPaid = (st, name) => Array.isArray(st.guest_paid) && st.guest_paid.some(n => n.toLowerCase() === name.toLowerCase());
@@ -481,7 +481,7 @@ function balances(){
     for (const id in sh){ if (held && !isPart(id)) continue; b[id] -= sh[id]; b[e.paid_by] += sh[id]; }
   }
   for (const p of S.payments){ if (!(p.from_member in b) || !(p.to_member in b)) continue; b[p.from_member] += p.amount_cents; b[p.to_member] -= p.amount_cents; }
-  // The season pot: once the admin pays it out, the collector owes it to the full-time members.
+  // The pot: once the admin pays it out, the collector owes it to the full-time members.
   const col = collector(), pool = fullTimers().map(m => m.id).sort(), pt = pot();
   if (pt.paidOut && col && pool.length && pt.total){
     b[col.id] -= pt.total;
@@ -568,8 +568,8 @@ function historyHtml(){
       <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
       <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
     ...(pot().paidOut && col && pot().total ? [{ d:'9999', c:'', html:`<li><div class="rowi">
-      <span class="grow"><span class="t">Season pot paid out</span>
-      <span class="s">Guest money, leases, and returned deposits held by ${esc(first(col))}</span></span>
+      <span class="grow"><span class="t">The pot was paid out</span>
+      <span class="s">Guest fees, leases, and returned deposits held by ${esc(first(col))}</span></span>
       <span class="amt">${money(pot().total)}</span></div></li>` }] : [])
   ].sort((a,z) => (z.d + z.c).localeCompare(a.d + a.c)).map(x => x.html).join('');
 }
@@ -585,10 +585,10 @@ function viewMoney(){
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
   const gl = guestLedger().tot, col = collector();
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
-  const guestHtml = `<ul class="list">${guestRow('Owed so far', 'Nights that have happened, not yet paid', gl.owed)}${guestRow('Paid', 'Marked as received, in advance or after', gl.paid)}${guestRow('Still to come', 'Upcoming guest nights, not yet paid', gl.coming)}${guestRow('Expected total', '', gl.owed + gl.paid + gl.coming)}</ul>
+  const guestHtml = `<ul class="list">${guestRow('Owed so far', 'Nights that have happened, not yet received', gl.owed)}${guestRow('Received', 'In advance or after the stay', gl.paid)}${guestRow('Still to come', 'Upcoming guest nights, not yet received', gl.coming)}${guestRow('Expected total', '', gl.owed + gl.paid + gl.coming)}</ul>
     <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>
     <p class="note">${col ? `Guests pay ${esc(col.name)} directly, ${money(guestRate())} for each night they stay.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}`
-      : `Guests pay ${money(guestRate())} for each night they stay. The admin hasn’t set who collects it yet.`} Guest money goes into the season pot, which is paid out at the end of the lease.</p>`;
+      : `Guests pay ${money(guestRate())} for each night they stay. The admin hasn’t set who collects it yet.`} Guest fees go into the pot, which is paid out at the end of the lease.</p>`;
   const myLease = S.me && S.me.part_time && leaseOf(S.me) ? `<h2>Your part-time lease</h2>
     <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${leasePaid(S.me) ? 'Paid' : 'Due'}</span>
       <span class="s">${col ? `Pay ${esc(col.name)} directly. It’s separate from your house balance.` : 'The admin hasn’t set who collects it yet.'}</span>
@@ -602,9 +602,9 @@ function viewMoney(){
   const myCosts = (S.me && pt0.costs.mine[S.me.id]) || 0, net = depBack + (sees ? share : 0) - myCosts;
   const dueBack = fullMe ? `<h2>Due back to you at the end of the season</h2>
     <ul class="list">${pt0.each ? backRow('Security deposit', cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : 'Paid up front. Comes back in full unless some is withheld.', money(depBack)) : ''}
-      ${backRow('Share of guest money and part-time leases', sees ? (pt0.paidOut ? '' : 'So far. It grows as more comes in.') : 'Worked out when the pot is paid out.', sees ? money(share) : 'At payout')}
-      ${myCosts || pt0.costs.all ? backRow('Your share of utilities and house costs', 'Comes off what you get back.', money(-myCosts)) : ''}
-      ${backRow(pt0.paidOut ? 'Paid out to you' : sees ? 'Total so far' : 'Deposit less costs so far', pt0.paidOut ? 'It’s in your balance above.' : net < 0 ? 'Costs are ahead of what’s due back, so you’d owe this at payout.' : '', `<span class="${net < 0 ? 'neg' : ''}">${money(net)}</span>`)}</ul>` : '';
+      ${backRow('Share of guest fees and part-time leases', sees ? (pt0.paidOut ? '' : 'So far. It grows as more comes in.') : 'Worked out when the pot is paid out.', sees ? money(share) : 'At payout')}
+      ${myCosts || pt0.costs.all ? backRow('Your share of house bills', 'Comes off what you get back.', money(-myCosts)) : ''}
+      ${backRow(pt0.paidOut ? 'Paid out to you' : sees ? 'Total so far' : 'Deposit less house bills so far', pt0.paidOut ? 'It’s in your balance above.' : net < 0 ? 'House bills are ahead of what’s due back, so you’d owe this at payout.' : '', `<span class="${net < 0 ? 'neg' : ''}">${money(net)}</span>`)}</ul>` : '';
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
   const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
@@ -617,7 +617,7 @@ function viewMoney(){
     <div class="actions three"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add expense</button><button class="btn" data-act="pay-blank">Add payment</button><button class="btn" data-act="history-open">History</button></div>${venmoNudge}
     ${myLease}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
-    <h2>Guest money</h2>${guestHtml}
+    <h2>Guest fees</h2>${guestHtml}
     ${dueBack}`;
 }
 
@@ -760,24 +760,24 @@ function sheetGuests(){
         let btns = '';
         if (url) btns += `<a class="btn small primary" href="${esc(url)}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a>
           <button class="btn small" data-act="guest-share" data-url="${esc(url)}" data-text="${esc(`${g.name}: ${money(due)} to ${col.name} for nights at the house (${dates(unpaid)}).`)}">Send pay link</button>`;
-        if (can && due) btns += `<button class="btn small" data-act="guest-paid" data-v="1" ${data}>Mark ${money(due)} paid</button>`;
-        if (can && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark unpaid</button>`;
+        if (can && due) btns += `<button class="btn small" data-act="guest-paid" data-v="1" ${data}>Mark ${money(due)} received</button>`;
+        if (can && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark not received</button>`;
         btns += `<button class="btn small quiet" data-act="guest-cancel" ${data}>Cancel a night</button>`;
         return `<li><div class="rowi"><span class="grow"><span class="t">${esc(g.name)}</span>
           <span class="s">${n} night${n === 1 ? '' : 's'}${past.length ? ': ' + dates(past) : ''}</span>
           ${future.length ? `<span class="s">Upcoming: ${dates(future)}</span>` : ''}
-          ${g.paid ? `<span class="s pos">Paid ${money(g.paid)}${future.some(x => x.paid) ? ', including upcoming nights' : ''}</span>` : ''}</span>
-          <span class="amt${g.owed ? ' neg' : ''}">${g.owed ? money(g.owed) + ' owed' : g.coming ? money(g.coming) + ' to come' : 'Paid'}</span></div>
+          ${g.paid ? `<span class="s pos">Received ${money(g.paid)}${future.some(x => x.paid) ? ', including upcoming nights' : ''}</span>` : ''}</span>
+          <span class="amt${g.owed ? ' neg' : ''}">${g.owed ? money(g.owed) + ' owed' : g.coming ? money(g.coming) + ' to come' : 'Received'}</span></div>
           ${btns ? `<div class="pay-btns">${btns}</div>` : ''}</li>`; }).join('')}</ul>`; }).join('');
-  return `<h2>Every guest</h2><p class="sub">${col ? `Guests pay ${esc(col.name)} directly.` : 'The admin hasn’t set who guests pay yet.'}${can ? ' You can mark guests as paid.' : ''}</p>${body}
+  return `<h2>Every guest</h2><p class="sub">${col ? `Guests pay ${esc(col.name)} directly.` : 'The admin hasn’t set who guests pay yet.'}${can ? ' You can mark their fees as received.' : ''}</p>${body}
     <div class="grp"><span>Expected total</span><span class="amt">${money(tot.owed + tot.paid + tot.coming)}</span></div>
-    <p class="note">${money(tot.owed)} owed so far, ${money(tot.paid)} paid, ${money(tot.coming)} still to come.</p>
+    <p class="note">${money(tot.owed)} owed so far, ${money(tot.paid)} received, ${money(tot.coming)} still to come.</p>
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
 // Admin only.
 function sheetRoles(){
   return `<form data-form="roles"><h2>Full time and part time</h2>
-    <p class="sub">Full-time members split the season pot. A part-timer pays the lease you set here into it instead, can only book nights inside their dates, and is left out of new expenses unless picked. Leave the dates blank for no limit.</p>
+    <p class="sub">Full-time members split the pot. A part-timer pays the lease you set here into it instead, can only book nights inside their dates, and is left out of new expenses unless picked. Leave the dates blank for no limit.</p>
     ${active().map(m => `<div class="rowi" style="flex-wrap:wrap;border-bottom:1px solid var(--line)">${chip(m)}<span class="grow"><span class="t">${esc(m.name)}</span></span>
       <select name="type-${m.id}" data-change="role" data-id="${m.id}" aria-label="${esc(m.name)}" style="width:auto;margin:0;min-height:40px"><option value="full"${m.part_time ? '' : ' selected'}>Full time</option><option value="part"${m.part_time ? ' selected' : ''}>Part time</option></select>
       <div id="lease-${m.id}" style="flex-basis:100%;margin:0 0 10px"${m.part_time ? '' : ' hidden'}>
@@ -802,14 +802,14 @@ function sheetPot(){
   const pt = pot(), col = collector(), full = fullTimers(), parts = partTimers(), admin = isAdmin();
   const line = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
   const leases = parts.length ? `<h2 style="margin:26px 0 8px">Part-time leases</h2><ul class="list">${parts.map(m => `<li><div class="rowi">${chip(m)}
-      <span class="grow"><span class="t">${esc(m.name)}</span><span class="s${leasePaid(m) ? ' pos' : ''}">${leaseOf(m) ? (leasePaid(m) ? 'Paid' : 'Not paid yet') : 'No lease amount set'}</span></span>
+      <span class="grow"><span class="t">${esc(m.name)}</span><span class="s${leasePaid(m) ? ' pos' : ''}">${leaseOf(m) ? (leasePaid(m) ? 'Received' : 'Not received yet') : 'No lease amount set'}</span></span>
       <span class="amt">${money(leaseOf(m))}</span></div>
-      ${leaseOf(m) ? `<div class="pay-btns"><button class="btn small${leasePaid(m) ? ' quiet' : ''}" data-act="lease-paid" data-id="${m.id}" data-v="${leasePaid(m) ? 0 : 1}">${leasePaid(m) ? 'Mark unpaid' : 'Mark ' + money(leaseOf(m)) + ' paid'}</button></div>` : ''}</li>`).join('')}</ul>` : '';
+      ${leaseOf(m) ? `<div class="pay-btns"><button class="btn small${leasePaid(m) ? ' quiet' : ''}" data-act="lease-paid" data-id="${m.id}" data-v="${leasePaid(m) ? 0 : 1}">${leasePaid(m) ? 'Mark not received' : 'Mark ' + money(leaseOf(m)) + ' received'}</button></div>` : ''}</li>`).join('')}</ul>` : '';
   return `<h2>The pot and leases</h2>
-    <p class="sub">${col ? `Guest money and part-time leases that ${esc(first(col))} has received, plus the security deposits due back.` : 'Nobody is set to collect guest and lease money yet.'} It’s held until it’s paid out, then split equally between full-time members.</p>
-    <h2 style="margin:22px 0 8px">What’s gone in</h2><ul class="list">${line('Guest money received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('Security deposits', pt.each ? `${pt.heads} × ${money(pt.each)}${pt.withheld ? ', less ' + money(pt.withheld) + ' withheld' : ', nothing withheld'}` : 'None set', pt.deposits)}</ul>
+    <p class="sub">${col ? `Guest fees and part-time leases that ${esc(first(col))} has received, plus the security deposits due back.` : 'Nobody is set to collect guest and lease money yet.'} It’s held until it’s paid out, then split equally between full-time members.</p>
+    <h2 style="margin:22px 0 8px">What’s gone in</h2><ul class="list">${line('Guest fees received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('Security deposits', pt.each ? `${pt.heads} × ${money(pt.each)}${pt.withheld ? ', less ' + money(pt.withheld) + ' withheld' : ', nothing withheld'}` : 'None set', pt.deposits)}</ul>
     <h2 style="margin:22px 0 8px">What’s come out</h2>
-    <ul class="list">${line('Utilities and house costs', pt.costs.all ? `${money(pt.costs.all)} in bills${pt.costs.part ? ', ' + money(pt.costs.part) + ' of it charged to part-timers' : ''}` : 'Nothing logged yet. Add an expense and tick “Comes out of the pot”.', -pt.costs.held)}</ul>
+    <ul class="list">${line('House bills', pt.costs.all ? `${money(pt.costs.all)} in bills${pt.costs.part ? ', ' + money(pt.costs.part) + ' of it charged to part-timers' : ''}` : 'Nothing logged yet. Add an expense and tick “Comes out of the pot”.', -pt.costs.held)}</ul>
     <div class="bal" style="margin-top:16px"><div class="l">In the pot</div><div class="v${pt.net < 0 ? ' neg' : ''}">${money(pt.net)}</div>
       ${admin && full.length ? `<div class="l" style="margin-top:4px">About ${money(Math.trunc(pt.net / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}</div>` : ''}</div>
     ${admin ? `<div class="actions"><button class="btn" data-act="deposit-open">Edit security deposits</button></div>` : ''}
@@ -823,7 +823,7 @@ function sheetPot(){
 function sheetCollector(){
   const cur = S.house.guest_collector || '';
   return `<form data-form="collector"><h2>Who guests pay</h2>
-    <p class="sub">Guests pay this person directly for the nights they stay. Their Venmo is shown to the house, and they can mark guests as paid.</p>
+    <p class="sub">Guests pay this person directly for the nights they stay. Their Venmo is shown to the house, and they can mark guest fees and leases as received.</p>
     <label>Guests pay<select name="who"><option value=""${cur ? '' : ' selected'}>Nobody yet</option>${active().map(m => `<option value="${m.id}"${m.id === cur ? ' selected' : ''}>${esc(m.name)}${m.venmo ? '' : ' (no Venmo yet)'}</option>`).join('')}</select></label>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save who guests pay</button></div></form>`;
 }
@@ -1051,15 +1051,15 @@ const actions = {
     if (!canMarkGuests()) return;
     const m = member(el.dataset.id), on = el.dataset.v === '1', cur = Array.isArray(S.house.lease_paid) ? S.house.lease_paid : []; if (!m) return;
     save('house', { ...S.house, lease_paid: on ? [...new Set([...cur, m.id])] : cur.filter(id => id !== m.id) });
-    toast(on ? `${first(m)}’s lease marked as paid` : `${first(m)}’s lease marked as unpaid`);
+    toast(on ? `${first(m)}’s lease marked as received` : `${first(m)}’s lease marked as not received`);
   },
   async 'pot-payout'(el){
     if (!isAdmin()) return;
     const on = el.dataset.v === '1', pt = pot(), col = collector(), full = fullTimers();
     if (on && !col) return void toast('Set who guests pay first, so the app knows who is holding the pot.');
     const ok = await confirmBox(on
-      ? `<h2>Pay out the pot?</h2><p class="sub">${money(pt.total)} came in and ${money(pt.costs.held)} of house costs come out, leaving ${money(pt.net)} for ${full.length} full-time member${full.length === 1 ? '' : 's'}.</p>
-         <p class="sub">Each gets an equal share of what came in, less their own share of the costs. ${esc(first(col))} holds the money and pays everyone through Settle up. Anything received or billed later is added as it arrives.</p>
+      ? `<h2>Pay out the pot?</h2><p class="sub">${money(pt.total)} came in and ${money(pt.costs.held)} of house bills come out, leaving ${money(pt.net)} for ${full.length} full-time member${full.length === 1 ? '' : 's'}.</p>
+         <p class="sub">Each gets an equal share of what came in, less their own share of the house bills. ${esc(first(col))} holds the money and pays everyone through Settle up. Anything received or billed later is added as it arrives.</p>
          <div class="actions"><button class="btn" data-confirm="no">Not yet</button><button class="btn primary" data-confirm="yes">Pay it out</button></div>`
       : `<h2>Undo the payout?</h2><p class="sub">The pot comes back out of everyone’s balances and is held again. Payments already recorded stay as they are.</p>
          <div class="actions"><button class="btn" data-confirm="no">Leave it</button><button class="btn primary" data-confirm="yes">Undo payout</button></div>`);
@@ -1075,7 +1075,7 @@ const actions = {
       if (on && !paid.some(same)) save('stays', { ...st, guest_paid:[...paid, name] });
       if (!on && paid.some(same)) save('stays', { ...st, guest_paid:paid.filter(n => !same(n)) });
     }
-    toast(on ? `${name} marked as paid` : `${name} marked as unpaid`);
+    toast(on ? `${name}’s fee marked as received` : `${name}’s fee marked as not received`);
   },
   async 'guest-cancel'(el){
     const name = el.dataset.name, sponsor = member(el.dataset.sponsor), same = n => n.toLowerCase() === name.toLowerCase(), col = collector();

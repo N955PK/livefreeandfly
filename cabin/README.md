@@ -25,12 +25,12 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - Several nights can be picked at once from the calendar and booked together, for yourself, guests, or both.
 - A member can send guests on a night they aren't staying themselves.
 - Guests are added by name on the night they stay. Each costs a nightly fee, $60 by default and editable under House Info. Each night keeps the rate it was booked at.
-- Guests pay one member, chosen by the admin, directly. A detail panel lists every guest with their sponsor, nights, and amount, a Venmo pay link to send them, and a paid mark that the admin or the collecting member can set.
+- Guests pay one member, chosen by the admin, directly. A detail panel lists every guest with their sponsor, nights, and amount, a Venmo pay link to send them, and a received mark that the admin or the collecting member can set.
 - The admin marks each member full time or part time. A part-timer pays a lease, set per person, to the collecting member, can only book nights inside the dates the admin gives them, and is left out of new expenses by default.
 - Each full-time member paid a security deposit up front ($445 by default). It comes back through the pot, less anything withheld, which comes off everyone equally.
 - There can be more than one admin; an admin can make another member an admin.
 - An admin or the collecting member can mark an expense as coming out of the pot, for utilities and other house bills. It is split between everyone on the lease in the month of its date. A part-timer's share is charged to them right away; a full-timer's share waits and comes off what they get back at payout.
-- Guest money and leases that have been received sit in a season pot. Nothing in it affects balances until the admin pays it out; then it is split equally between full-time members and the collecting member settles up with them.
+- Guest fees and leases that have been received sit in the pot. Nothing in it affects balances until the admin pays it out; then it is split equally between full-time members and the collecting member settles up with them.
 
 ### Money
 
