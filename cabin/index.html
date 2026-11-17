@@ -622,6 +622,7 @@ function viewMoney(){
 }
 
 function viewHouse(){
+  if (isAdmin() && LIVE) setTimeout(() => loadXlsx().catch(() => {}), 0);
   const h = S.house, v = (x, cls='') => x ? `<dd class="${cls}">${esc(x)}</dd>` : `<dd class="unset">Not set</dd>`;
   const mem = active().map(m => `<li><div class="rowi">${chip(m)}
     <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}${m.is_admin ? '<span class="tag">Admin</span>' : ''}</span>
@@ -978,31 +979,29 @@ function addGuestTo(night, raw){
   return true;
 }
 /* ---------- export: every number in the app, laid out for checking by hand ---------- */
-function financeCsv(){
-  const num = c => (c / 100).toFixed(2), yes = v => v ? 'Yes' : 'No';
-  const cell = v => { let t = v === null || v === undefined ? '' : String(v);
-    if (/^[=+\-@]/.test(t) && !/^-?\d+(\.\d+)?$/.test(t)) t = "'" + t;          // never let a name run as a formula; plain numbers are fine
-    return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
-  const rows = [], add = (...r) => rows.push(r.map(cell).join(',')), gap = () => rows.push('');
+// One table per tab. Money is kept as real numbers so a spreadsheet can add it up.
+function financeTables(){
+  const num = c => Math.round(c) / 100, txt = c => (c / 100).toFixed(2), yes = v => v ? 'Yes' : 'No';
+  const tabs = []; let cur; const tab = name => { cur = { name, rows: [] }; tabs.push(cur); }, add = (...r) => cur.rows.push(r), gap = () => cur.rows.push([]);
   const people = S.members.slice().sort((a, b) => a.name.localeCompare(b.name)), col = collector(), pt = pot(), full = fullTimers(), n = full.length || 1;
   const b = balances(), tIso = iso(today());
   const cut = pt.heads ? Math.ceil(pt.withheld / pt.heads) : 0, depBack = Math.max(0, pt.each - cut), share = Math.floor((pt.guests + pt.leases) / n);
 
-  add('SKI/LEASE FINANCES'); add('House', S.house.name || ''); add('Exported', new Date().toLocaleString('en-US'));
+  tab('Members');
+  add('ski/lease finances'); add('House', S.house.name || ''); add('Exported', new Date().toLocaleString('en-US'));
   add('Lease', leaseText()); add('Guest fee per night', num(guestRate())); add('Guests and part-timers pay', col ? col.name : 'Not set');
   add('Pot paid out', yes(pt.paidOut)); gap();
-
-  add('1. MEMBERS');
   add('Member', 'Role', 'Balance now', 'Deposit due back', 'Share of guest fees and leases', 'Share of house bills', 'Due back from the pot', 'Lease', 'Lease received');
   for (const m of people){ if (m.active === false && !b[m.id]) continue;
     const isFull = full.some(f => f.id === m.id), bills = pt.costs.mine[m.id] || 0;
     add(m.name + (m.active === false ? ' (removed)' : ''), m.part_time ? 'Part time' : 'Full time', num(b[m.id] || 0),
       isFull ? num(depBack) : '', isFull ? num(share) : '', isFull ? num(-bills) : '', isFull ? num(depBack + share - bills) : '',
       m.part_time ? num(leaseOf(m)) : '', m.part_time ? yes(leasePaid(m)) : ''); }
-  add('Total', '', num(people.reduce((x, m) => x + (b[m.id] || 0), 0))); 
-  add(pt.paidOut ? 'The pot has been paid out, so "Due back from the pot" is already inside "Balance now".' : 'The pot has not been paid out, so "Due back from the pot" is not yet inside "Balance now".'); gap();
+  add('Total', '', num(people.reduce((x, m) => x + (b[m.id] || 0), 0))); gap();
+  add(pt.paidOut ? 'The pot has been paid out, so "Due back from the pot" is already inside "Balance now".' : 'The pot has not been paid out, so "Due back from the pot" is not yet inside "Balance now".');
 
-  add('2. BALANCE LEDGER', 'Each row shows how it changed each person. Plus means owed money; minus means owes. The columns add up to "Balance now".');
+  tab('Balance ledger');
+  add('Each row shows how it changed each person. Plus means owed money; minus means owes. Each column adds up to that person\'s balance.'); gap();
   add('Date', 'Type', 'Description', 'Paid by', 'Amount', 'Held until payout', ...people.map(m => m.name));
   const led = [];
   for (const e of S.expenses){ if (!member(e.paid_by)) continue;
@@ -1017,30 +1016,55 @@ function financeCsv(){
     led.push({ d:'9999', c:'', r:['', 'Pot payout', 'Guest fees, leases, and deposits split between full-time members', col.name, num(pt.total), ''], eff }); }
   led.sort((x, y) => (x.d + x.c).localeCompare(y.d + y.c));
   const sums = {}; for (const l of led){ add(...l.r, ...people.map(m => l.eff[m.id] ? num(l.eff[m.id]) : '')); for (const id in l.eff) sums[id] = (sums[id] || 0) + l.eff[id]; }
-  add('', '', 'Balance now', '', '', '', ...people.map(m => num(sums[m.id] || 0))); gap();
+  add('', '', 'Balance now', '', '', '', ...people.map(m => num(sums[m.id] || 0)));
 
-  add('3. THE POT'); add('Item', 'Detail', 'Amount');
-  add('Guest fees received', '', num(pt.guests)); add('Leases received', pt.leasesDue ? num(pt.leasesDue) + ' still to collect' : '', num(pt.leases));
-  add('Security deposits', `${pt.heads} x ${num(pt.each)}, less ${num(pt.withheld)} withheld`, num(pt.deposits));
-  add('House bills', `${num(pt.costs.all)} in bills, ${num(pt.costs.part)} charged to part-timers`, num(-pt.costs.held)); add('In the pot', `${full.length} full-time members`, num(pt.net)); gap();
+  tab('The pot'); add('Item', 'Detail', 'Amount');
+  add('Guest fees received', '', num(pt.guests)); add('Leases received', pt.leasesDue ? txt(pt.leasesDue) + ' still to collect' : '', num(pt.leases));
+  add('Security deposits', `${pt.heads} x ${txt(pt.each)}, less ${txt(pt.withheld)} withheld`, num(pt.deposits));
+  add('House bills', `${txt(pt.costs.all)} in bills, ${txt(pt.costs.part)} charged to part-timers`, num(-pt.costs.held)); add('In the pot', `${full.length} full-time members`, num(pt.net));
 
-  add('4. HOUSE BILLS', 'Each person\'s share. A part-timer\'s share is in the ledger above; a full-timer\'s comes off the pot.');
+  tab('House bills');
+  add('Each person\'s share. A part-timer\'s share is in the balance ledger; a full-timer\'s comes off the pot.'); gap();
   add('Date', 'Description', 'Paid by', 'Amount', ...people.map(m => m.name));
   const bt = {}; for (const e of potExpenses().slice().sort((x, y) => x.spent_on.localeCompare(y.spent_on))){ const sh = sharesOf(e);
     add(e.spent_on, e.description, member(e.paid_by).name, num(e.amount_cents), ...people.map(m => sh[m.id] ? num(sh[m.id]) : '')); for (const id in sh) bt[id] = (bt[id] || 0) + sh[id]; }
-  add('', 'Total', '', num(potExpenses().reduce((x, e) => x + e.amount_cents, 0)), ...people.map(m => bt[m.id] ? num(bt[m.id]) : '')); gap();
+  add('', 'Total', '', num(potExpenses().reduce((x, e) => x + e.amount_cents, 0)), ...people.map(m => bt[m.id] ? num(bt[m.id]) : ''));
 
-  add('5. GUEST FEES'); add('Night', 'Guest', 'Guest of', 'Member staying', 'Fee', 'Received', 'When');
+  tab('Guest fees'); add('Night', 'Guest', 'Guest of', 'Member staying', 'Fee', 'Received', 'When');
   let gOwed = 0, gGot = 0, gCome = 0;
   for (const st of guestStays().slice().sort((x, y) => x.night.localeCompare(y.night))) for (const g of guestNames(st)){
     const fee = perGuest(st), got = isPaid(st, g), fut = st.night > tIso; if (got) gGot += fee; else if (fut) gCome += fee; else gOwed += fee;
     add(st.night, g, member(st.member_id).name, yes(!st.host_away), num(fee), yes(got), fut ? 'Upcoming' : 'Stayed'); }
-  add('', 'Received', '', '', num(gGot)); add('', 'Owed so far', '', '', num(gOwed)); add('', 'Still to come', '', '', num(gCome)); add('', 'Expected total', '', '', num(gGot + gOwed + gCome)); gap();
+  gap(); add('', 'Received', '', '', num(gGot)); add('', 'Owed so far', '', '', num(gOwed)); add('', 'Still to come', '', '', num(gCome)); add('', 'Expected total', '', '', num(gGot + gOwed + gCome));
 
-  add('6. PART-TIME LEASES'); add('Member', 'First night', 'Last night', 'Lease', 'Received');
+  tab('Part-time leases'); add('Member', 'First night', 'Last night', 'Lease', 'Received');
   for (const m of partTimers()) add(m.name, m.active_from || '', m.active_until || '', num(leaseOf(m)), yes(leasePaid(m)));
-  add('Total', '', '', num(partTimers().reduce((x, m) => x + leaseOf(m), 0)), num(pt.leases) + ' received');
-  return rows.join('\r\n');
+  add('Total', '', '', num(partTimers().reduce((x, m) => x + leaseOf(m), 0)), txt(pt.leases) + ' received');
+  return tabs;
+}
+// Fallback when the spreadsheet library can't load: the same tables, one after another, as CSV.
+function financeCsv(tabs){
+  const cell = v => { let t = typeof v === 'number' ? v.toFixed(2) : v === null || v === undefined ? '' : String(v);
+    if (typeof v !== 'number' && /^[=+\-@]/.test(t)) t = "'" + t;                // never let a name run as a formula
+    return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  return tabs.map((t, i) => [`${i + 1}. ${t.name.toUpperCase()}`, ...t.rows.map(r => r.map(cell).join(','))].join('\r\n')).join('\r\n\r\n');
+}
+const XLSX_JS = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mini.min.js';
+let xlsxLoading = null;
+const loadXlsx = () => xlsxLoading || (xlsxLoading = new Promise((ok, no) => { if (window.XLSX) return ok();
+  const el = document.createElement('script'); el.src = XLSX_JS; el.onload = () => ok(); el.onerror = () => { xlsxLoading = null; no(new Error('library')); }; document.head.appendChild(el); }));
+// A real spreadsheet file (.xlsx) with a tab per table. Google Sheets, Excel, and Numbers all open it.
+function financeXlsx(tabs){
+  const X = window.XLSX, wb = X.utils.book_new();
+  for (const t of tabs){
+    const ws = X.utils.aoa_to_sheet(t.rows), widths = [];
+    t.rows.forEach((r, ri) => r.forEach((v, ci) => {
+      const c = ws[X.utils.encode_cell({ r:ri, c:ci })]; if (c && typeof v === 'number') c.z = '#,##0.00';
+      if (r.length > 1) widths[ci] = Math.min(46, Math.max(widths[ci] || 8, String(typeof v === 'number' ? v.toFixed(2) : v || '').length + 2)); }));
+    ws['!cols'] = widths.map(w => ({ wch: w || 10 }));
+    X.utils.book_append_sheet(wb, ws, t.name);
+  }
+  return X.write(wb, { bookType:'xlsx', type:'array' });
 }
 function backToHistory(){ if (S.backToHistory){ S.backToHistory = false; openSheet(sheetHistory(), { type:'history' }); } }
 function setAvatar(v){
@@ -1110,11 +1134,19 @@ const actions = {
     if (!ok) return;
     closeSheet(); save('members', { ...m, is_admin: on }); toast(on ? `${first(m)} is now an admin` : `${first(m)} is no longer an admin`);
   },
-  'export-csv'(){
+  async 'export-csv'(){
     if (!isAdmin()) return;
-    const name = `ski-lease-finances-${iso(today())}.csv`, url = URL.createObjectURL(new Blob(['\uFEFF' + financeCsv()], { type:'text/csv;charset=utf-8' }));
-    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000); toast('Spreadsheet downloaded. Open it in Google Sheets or Excel.');
+    const tabs = financeTables(), base = `ski-lease-finances-${iso(today())}`; let blob, name;
+    try { await loadXlsx(); blob = new Blob([financeXlsx(tabs)], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }); name = base + '.xlsx'; }
+    catch(e){ console.error(e); blob = new Blob(['\uFEFF' + financeCsv(tabs)], { type:'text/csv;charset=utf-8' }); name = base + '.csv'; }
+    // On a phone, hand the file to the share sheet so it can go straight to Sheets, Numbers, Files, or Mail.
+    try {
+      const file = new File([blob], name, { type: blob.type });
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && navigator.canShare && navigator.canShare({ files:[file] })){ await navigator.share({ files:[file], title:name }); return; }
+    } catch(e){ if (e && e.name === 'AbortError') return; }
+    const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast(name.endsWith('.xlsx') ? 'Spreadsheet downloaded. It opens in Google Sheets, Excel, or Numbers.' : 'Downloaded as a CSV file, since the spreadsheet format couldn’t load.');
   },
   'roles-open'(){ if (isAdmin()) openSheet(sheetRoles()); },
   'pot-open'(){ if (canMarkGuests()) openSheet(sheetPot(), { type:'pot' }); },
