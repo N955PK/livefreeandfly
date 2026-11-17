@@ -650,7 +650,7 @@ function viewHouse(){
     <ul class="list">${mem}</ul>
     <div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>
     ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button></div>`
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
     : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
       <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}${foot}`;
 }
@@ -977,6 +977,71 @@ function addGuestTo(night, raw){
   save('stays', { id:uid(), member_id:S.me.id, night, guests:1, guest_names:[name], guest_fee_cents:guestRate(), host_away:true, note:'' });
   return true;
 }
+/* ---------- export: every number in the app, laid out for checking by hand ---------- */
+function financeCsv(){
+  const num = c => (c / 100).toFixed(2), yes = v => v ? 'Yes' : 'No';
+  const cell = v => { let t = v === null || v === undefined ? '' : String(v);
+    if (/^[=+\-@]/.test(t) && !/^-?\d+(\.\d+)?$/.test(t)) t = "'" + t;          // never let a name run as a formula; plain numbers are fine
+    return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const rows = [], add = (...r) => rows.push(r.map(cell).join(',')), gap = () => rows.push('');
+  const people = S.members.slice().sort((a, b) => a.name.localeCompare(b.name)), col = collector(), pt = pot(), full = fullTimers(), n = full.length || 1;
+  const b = balances(), tIso = iso(today());
+  const cut = pt.heads ? Math.ceil(pt.withheld / pt.heads) : 0, depBack = Math.max(0, pt.each - cut), share = Math.floor((pt.guests + pt.leases) / n);
+
+  add('SKI/LEASE FINANCES'); add('House', S.house.name || ''); add('Exported', new Date().toLocaleString('en-US'));
+  add('Lease', leaseText()); add('Guest fee per night', num(guestRate())); add('Guests and part-timers pay', col ? col.name : 'Not set');
+  add('Pot paid out', yes(pt.paidOut)); gap();
+
+  add('1. MEMBERS');
+  add('Member', 'Role', 'Balance now', 'Deposit due back', 'Share of guest fees and leases', 'Share of house bills', 'Due back from the pot', 'Lease', 'Lease received');
+  for (const m of people){ if (m.active === false && !b[m.id]) continue;
+    const isFull = full.some(f => f.id === m.id), bills = pt.costs.mine[m.id] || 0;
+    add(m.name + (m.active === false ? ' (removed)' : ''), m.part_time ? 'Part time' : 'Full time', num(b[m.id] || 0),
+      isFull ? num(depBack) : '', isFull ? num(share) : '', isFull ? num(-bills) : '', isFull ? num(depBack + share - bills) : '',
+      m.part_time ? num(leaseOf(m)) : '', m.part_time ? yes(leasePaid(m)) : ''); }
+  add('Total', '', num(people.reduce((x, m) => x + (b[m.id] || 0), 0))); 
+  add(pt.paidOut ? 'The pot has been paid out, so "Due back from the pot" is already inside "Balance now".' : 'The pot has not been paid out, so "Due back from the pot" is not yet inside "Balance now".'); gap();
+
+  add('2. BALANCE LEDGER', 'Each row shows how it changed each person. Plus means owed money; minus means owes. The columns add up to "Balance now".');
+  add('Date', 'Type', 'Description', 'Paid by', 'Amount', 'Held until payout', ...people.map(m => m.name));
+  const led = [];
+  for (const e of S.expenses){ if (!member(e.paid_by)) continue;
+    const sh = sharesOf(e), held = e.from_pot && !pt.paidOut, eff = {}; let wait = 0;
+    for (const id in sh){ if (held && !isPart(id)){ wait += sh[id]; continue; } eff[id] = (eff[id] || 0) - sh[id]; eff[e.paid_by] = (eff[e.paid_by] || 0) + sh[id]; }
+    led.push({ d:e.spent_on, c:e.created_at || '', r:[e.spent_on, e.from_pot ? 'House bill' : 'Expense', e.description, member(e.paid_by).name, num(e.amount_cents), wait ? num(wait) : ''], eff }); }
+  for (const p of S.payments){ if (!member(p.from_member) || !member(p.to_member)) continue;
+    led.push({ d:p.paid_on, c:p.created_at || '', r:[p.paid_on, 'Payment', `${member(p.from_member).name} paid ${member(p.to_member).name}${p.note ? ' (' + p.note + ')' : ''}`, member(p.from_member).name, num(p.amount_cents), ''],
+      eff:{ [p.from_member]: p.amount_cents, [p.to_member]: -p.amount_cents } }); }
+  if (pt.paidOut && col && pt.total){ const eff = { [col.id]: -pt.total }, ids = full.map(m => m.id).sort(), base = Math.floor(pt.total / ids.length); let rem = pt.total - base * ids.length;
+    ids.forEach(id => { eff[id] = (eff[id] || 0) + base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
+    led.push({ d:'9999', c:'', r:['', 'Pot payout', 'Guest fees, leases, and deposits split between full-time members', col.name, num(pt.total), ''], eff }); }
+  led.sort((x, y) => (x.d + x.c).localeCompare(y.d + y.c));
+  const sums = {}; for (const l of led){ add(...l.r, ...people.map(m => l.eff[m.id] ? num(l.eff[m.id]) : '')); for (const id in l.eff) sums[id] = (sums[id] || 0) + l.eff[id]; }
+  add('', '', 'Balance now', '', '', '', ...people.map(m => num(sums[m.id] || 0))); gap();
+
+  add('3. THE POT'); add('Item', 'Detail', 'Amount');
+  add('Guest fees received', '', num(pt.guests)); add('Leases received', pt.leasesDue ? num(pt.leasesDue) + ' still to collect' : '', num(pt.leases));
+  add('Security deposits', `${pt.heads} x ${num(pt.each)}, less ${num(pt.withheld)} withheld`, num(pt.deposits));
+  add('House bills', `${num(pt.costs.all)} in bills, ${num(pt.costs.part)} charged to part-timers`, num(-pt.costs.held)); add('In the pot', `${full.length} full-time members`, num(pt.net)); gap();
+
+  add('4. HOUSE BILLS', 'Each person\'s share. A part-timer\'s share is in the ledger above; a full-timer\'s comes off the pot.');
+  add('Date', 'Description', 'Paid by', 'Amount', ...people.map(m => m.name));
+  const bt = {}; for (const e of potExpenses().slice().sort((x, y) => x.spent_on.localeCompare(y.spent_on))){ const sh = sharesOf(e);
+    add(e.spent_on, e.description, member(e.paid_by).name, num(e.amount_cents), ...people.map(m => sh[m.id] ? num(sh[m.id]) : '')); for (const id in sh) bt[id] = (bt[id] || 0) + sh[id]; }
+  add('', 'Total', '', num(potExpenses().reduce((x, e) => x + e.amount_cents, 0)), ...people.map(m => bt[m.id] ? num(bt[m.id]) : '')); gap();
+
+  add('5. GUEST FEES'); add('Night', 'Guest', 'Guest of', 'Member staying', 'Fee', 'Received', 'When');
+  let gOwed = 0, gGot = 0, gCome = 0;
+  for (const st of guestStays().slice().sort((x, y) => x.night.localeCompare(y.night))) for (const g of guestNames(st)){
+    const fee = perGuest(st), got = isPaid(st, g), fut = st.night > tIso; if (got) gGot += fee; else if (fut) gCome += fee; else gOwed += fee;
+    add(st.night, g, member(st.member_id).name, yes(!st.host_away), num(fee), yes(got), fut ? 'Upcoming' : 'Stayed'); }
+  add('', 'Received', '', '', num(gGot)); add('', 'Owed so far', '', '', num(gOwed)); add('', 'Still to come', '', '', num(gCome)); add('', 'Expected total', '', '', num(gGot + gOwed + gCome)); gap();
+
+  add('6. PART-TIME LEASES'); add('Member', 'First night', 'Last night', 'Lease', 'Received');
+  for (const m of partTimers()) add(m.name, m.active_from || '', m.active_until || '', num(leaseOf(m)), yes(leasePaid(m)));
+  add('Total', '', '', num(partTimers().reduce((x, m) => x + leaseOf(m), 0)), num(pt.leases) + ' received');
+  return rows.join('\r\n');
+}
 function backToHistory(){ if (S.backToHistory){ S.backToHistory = false; openSheet(sheetHistory(), { type:'history' }); } }
 function setAvatar(v){
   const f = $('#sheet form[data-form="member"]'); if (!f || !f.avatar) return;
@@ -1044,6 +1109,12 @@ const actions = {
          <div class="actions"><button class="btn" data-confirm="no">Leave it</button><button class="btn primary" data-confirm="yes">Remove admin</button></div>`);
     if (!ok) return;
     closeSheet(); save('members', { ...m, is_admin: on }); toast(on ? `${first(m)} is now an admin` : `${first(m)} is no longer an admin`);
+  },
+  'export-csv'(){
+    if (!isAdmin()) return;
+    const name = `ski-lease-finances-${iso(today())}.csv`, url = URL.createObjectURL(new Blob(['\uFEFF' + financeCsv()], { type:'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000); toast('Spreadsheet downloaded. Open it in Google Sheets or Excel.');
   },
   'roles-open'(){ if (isAdmin()) openSheet(sheetRoles()); },
   'pot-open'(){ if (canMarkGuests()) openSheet(sheetPot(), { type:'pot' }); },
