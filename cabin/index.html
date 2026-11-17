@@ -829,7 +829,7 @@ function sheetSettle(){
 }
 
 function sheetExpense(e){
-  const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:fullTimers().map(m => m.id), description:'', amount_cents:0 };
+  const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:[], description:'', amount_cents:0 };
   const canPot = canMarkGuests();
   const pool = S.members.filter(m => m.active !== false || e.split_among.includes(m.id) || m.id === e.paid_by);
   return `<form data-form="expense" data-id="${isNew ? '' : e.id}"><h2>${isNew ? 'Add an expense' : 'Edit expense'}</h2>
