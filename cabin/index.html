@@ -123,6 +123,8 @@ a.btn{text-decoration:none}
 .wk button[aria-pressed="true"] .n.crowded,.wk .n.crowded,.day.crowded .cnt,.sub.crowded{color:var(--crowded);font-weight:700}
 .wk button[aria-pressed="true"] .n.very-crowded,.wk .n.very-crowded,.day.very-crowded .cnt,.sub.very-crowded{color:var(--very-crowded);font-weight:700}
 .wk button[aria-pressed="true"] .n:is(.crowded,.very-crowded){background:var(--bg);border-radius:4px;padding:0 4px}
+.grid.picking,.grid.picking .day{touch-action:none;user-select:none;-webkit-user-select:none}
+.grid.picking .day{cursor:crosshair}
 .blank{visibility:hidden}
 .day.off{opacity:.3;border-style:dashed;background:none}
 .day.out{opacity:.45}
@@ -550,11 +552,11 @@ ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(
     <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
       <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
       <button data-act="month" data-d="1" aria-label="Next month"${atEnd ? ' disabled' : ''}>›</button></div>
-    ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap the nights you want'}</span>
+    ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap or drag across nights'}</span>
         <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
       : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
     <div class="dow" aria-hidden="true">${['S','M','T','W','T','F','S'].map(x => `<span>${x}</span>`).join('')}</div>
-    <div class="grid">${cells}</div>
+    <div class="grid${S.pick ? ' picking' : ''}">${cells}</div>
     <div class="legend">${legend}</div>`;
 }
 
@@ -1357,7 +1359,60 @@ const forms = {
   }
 };
 
-document.addEventListener('click', e => { if (e.target.closest('#confirm')) return; const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
+// Keep the calendar DOM stable during a gesture so pointer capture and focus survive.
+// Each move rebuilds the range from the original selection, so dragging back shrinks it.
+let nightDrag = null, suppressPickClickUntil = 0;
+function pickedRange(original, start, end, selecting){
+  const picked = new Set(original), lo = start < end ? start : end, hi = start < end ? end : start;
+  for (let d = parse(lo); iso(d) <= hi; d = addDays(d, 1)){
+    const k = iso(d);
+    if (!selecting) picked.delete(k);
+    else if (inLease(k) && (myStay(k) || canBook(S.me, k))) picked.add(k);
+  }
+  return picked;
+}
+function paintPicked(){
+  document.querySelectorAll('[data-act="pick-toggle"]').forEach(el => {
+    const picked = S.pick.has(el.dataset.night);
+    el.classList.toggle('picked', picked); el.setAttribute('aria-pressed', String(picked));
+  });
+  const label = $('.pickbar span'), next = $('[data-act="pick-next"]');
+  if (label) label.textContent = S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap or drag across nights';
+  if (next) next.disabled = !S.pick.size;
+}
+document.addEventListener('pointerdown', e => {
+  if (nightDrag || !e.isPrimary || e.button !== 0) return;
+  suppressPickClickUntil = 0;
+  const el = e.target.closest('[data-act="pick-toggle"]');
+  if (!el || !S.pick) return;
+  const k = el.dataset.night;
+  if (!S.pick.has(k) && !myStay(k) && !canBook(S.me, k)) return;
+  const grid = el.closest('.grid');
+  nightDrag = { id:e.pointerId, grid, start:k, end:k, original:new Set(S.pick), selecting:!S.pick.has(k) };
+  grid.setPointerCapture(e.pointerId); el.focus({preventScroll:true}); e.preventDefault();
+  S.pick = pickedRange(nightDrag.original, k, k, nightDrag.selecting); paintPicked();
+});
+document.addEventListener('pointermove', e => {
+  const drag = nightDrag; if (!drag || e.pointerId !== drag.id) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-act="pick-toggle"]');
+  if (!el || !drag.grid.contains(el) || el.dataset.night === drag.end) return;
+  drag.end = el.dataset.night;
+  S.pick = pickedRange(drag.original, drag.start, drag.end, drag.selecting); paintPicked();
+});
+function finishNightDrag(e){
+  const drag = nightDrag; if (!drag || e.pointerId !== drag.id) return;
+  nightDrag = null;
+  if (e.type !== 'pointerup') S.pick = drag.original;
+  suppressPickClickUntil = Date.now() + 700;
+  if (drag.grid.hasPointerCapture(drag.id)) drag.grid.releasePointerCapture(drag.id);
+  render();
+  $(`[data-act="pick-toggle"][data-night="${drag.end}"]`)?.focus({preventScroll:true});
+}
+document.addEventListener('pointerup', finishNightDrag);
+document.addEventListener('pointercancel', finishNightDrag);
+document.addEventListener('lostpointercapture', finishNightDrag);
+
+document.addEventListener('click', e => { if (e.target.closest('#confirm')) return; if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 document.addEventListener('change', e => {

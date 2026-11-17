@@ -22,7 +22,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - Headcount includes guests. Occupancy text is normal for 0–7 people, amber for 8–11, and red for 12 or more. Night details say “Getting crowded” or “Very crowded.” These are informational: there is no occupancy or per-member guest cap.
 - The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
-- Several nights can be picked at once from the calendar and booked together, for yourself, guests, or both.
+- Several nights can be picked at once from the calendar and booked together, for yourself, guests, or both. In “Pick several nights,” tap individual dates or drag across a range (mouse, touch, or pen). Start on a selected night to deselect a range. Dragging back shrinks the range; dates outside your booking window are skipped. On phones, scroll outside the calendar while selecting.
 - A member can send guests on a night they aren't staying themselves.
 - Guests are added by name on the night they stay. Each costs a nightly fee, $60 by default and editable under House Info. Each night keeps the rate it was booked at.
 - Guests pay one member, chosen by the admin, directly. A detail panel lists every guest with their sponsor, nights, and amount, a Venmo pay link to send them, and a received mark that the admin or the collecting member can set.
