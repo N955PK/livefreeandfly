@@ -1241,7 +1241,11 @@ const actions = {
     closeSheet(); save('members', { ...m, active:false }); toast(`${first(m)} removed. Their past expenses stay on the books.`); },
   'house-edit'(){ if (isAdmin()) openSheet(sheetHouse()); },
   reset(){ try { localStorage.removeItem(KEY); } catch(e){} reload().then(() => { persist(); render(); toast('Sample data reset'); }); },
-  async signout(){ if (sb) await sb.auth.signOut(); sessionEmail = null; S.gate = 'signin'; render(); },
+  async signout(){
+    if (S.me && !await confirmBox(`<h2>Sign out?</h2><p class="sub">You’ll need to sign in with Google again to get back in.</p>
+      <div class="actions"><button class="btn" data-confirm="no">Stay signed in</button><button class="btn primary" data-confirm="yes">Sign out</button></div>`)) return;
+    if (sb) await sb.auth.signOut(); sessionEmail = null; S.gate = 'signin'; render();
+  },
   async google(){
     const { error } = await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
     if (error){ console.error(error); $('#err').textContent = 'Google sign-in didn’t start. ' + (error.message || ''); }
