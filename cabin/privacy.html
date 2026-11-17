@@ -16,9 +16,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
 main{max-width:640px;margin:0 auto;padding:22px 20px 80px}
-.brand{display:inline-flex;align-items:center;font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.01em;color:var(--ink);text-decoration:none;-webkit-user-select:none;user-select:none}
-.brand .word{display:inline-flex;align-items:center;gap:3px}
-.brand .mark{display:block;width:46px;height:36px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink);text-decoration:none;-webkit-user-select:none;user-select:none}
+.brand .slash{color:var(--accent-ink);font-weight:700}
+.brand .mark{display:block;width:42px;height:26px}
 h1{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1.2;margin-top:34px}
 h2{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.03em;margin:32px 0 8px}
 p,li{color:var(--ink)}
@@ -31,7 +31,7 @@ a{color:var(--accent-ink)}
 </head>
 <body>
 <main>
-  <a class="brand" href="/cabin/" aria-label="ski/lease"><span class="word" aria-hidden="true">ski<img class="mark" src="logo-full.png" alt="" width="46" height="36">lease</span></a>
+  <a class="brand" href="/cabin/"><img class="mark" src="skier-mark.png" alt="" width="42" height="26"><span>ski<span class="slash">/</span>lease</span></a>
   <h1>Privacy policy</h1>
   <p class="dim">Effective November 16, 2026</p>
 
