@@ -643,7 +643,7 @@ function viewHouse(){
       <div><dt>Door code</dt>${v(h.door_code,'code')}</div>
       <div><dt>Wi-Fi</dt>${h.wifi_name ? `<dd>${esc(h.wifi_name)}${h.wifi_password ? `<br><span class="code" style="font-family:var(--mono)">${esc(h.wifi_password)}</span>` : ''}</dd>` : `<dd class="unset">Not set</dd>`}</div>
       <div><dt>Beds</dt>${v(h.beds ? String(h.beds) : '')}</div>
-      <div><dt>Guest fee</dt><dd>${guestRate() ? money(guestRate()) + ' a night' : 'None'}</dd></div>
+      <div><dt>Guest fee</dt><dd>${guestRate() ? (guestRate() % 100 ? money(guestRate()) : '$' + (guestRate() / 100).toLocaleString('en-US')) + ' / night' : 'None'}</dd></div>
       <div><dt>House notes</dt>${v(h.notes)}</div></dl>
     ${isAdmin() ? `<div class="actions"><button class="btn" data-act="house-edit">Edit house info</button></div>` : ''}
     <h2>Members</h2>
