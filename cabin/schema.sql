@@ -25,7 +25,7 @@ create table stays (
   id         uuid primary key default gen_random_uuid(),
   member_id  uuid not null references members(id) on delete cascade,
   night      date not null,                       -- the night slept at the house
-  guests     int  not null default 0 check (guests between 0 and 12),
+  guests     int  not null default 0 check (guests >= 0),
   host_away  boolean not null default false,        -- guests only: the member isn't sleeping there
   guest_names text[] not null default '{}',        -- one name per guest; guests = how many
   guest_paid  text[] not null default '{}',        -- guests whose fee for this night has been received

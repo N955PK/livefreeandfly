@@ -19,7 +19,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - A strip for the current weekend (Friday, Saturday, Sunday nights). Tap a night to add or remove yourself.
 - A month calendar. Each night shows a dot per member and a headcount. Your nights are marked in red.
 - Tap any night to see who is in, set how many guests you are bringing, and leave a short note (“arriving late”).
-- Headcount includes guests and is compared to the number of beds. A night over capacity is flagged; nothing is blocked.
+- Headcount includes guests. Occupancy text is normal for 0–7 people, amber for 8–11, and red for 12 or more. Night details say “Getting crowded” or “Very crowded.” These are informational: there is no occupancy or per-member guest cap.
 - The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.
 - Several nights can be picked at once from the calendar and booked together, for yourself, guests, or both.
@@ -90,6 +90,10 @@ A signed-in person counts as a member when their email is on the active member l
 
 Two things to check on Supabase’s current free plan before relying on it: whether idle projects are paused (weekly use in season should keep it awake, summer may not), and how many sign-in emails per hour the built-in mailer allows. If the email limit is tight, connecting an email service such as Resend fixes it.
 
+### Updating an existing database
+
+For the occupancy indicators and removal of the guest cap, run `cabin/migrations/20261117_remove_guest_cap.sql` in the Supabase SQL editor. Updating the static site alone does not remove the old database constraint. Fresh databases use the updated `schema.sql`.
+
 ## Next (not built)
 
 1. **Weekly digest.** A scheduled GitHub Action that reads the weekend’s stays and open balances and emails the group on Thursday. It needs a mail service and a Supabase service key stored as a repo secret. Email first; texting through Twilio means carrier registration, which is more setup than a group this size wants.
@@ -100,7 +104,7 @@ Two things to check on Supabase’s current free plan before relying on it: whet
 
 ## Open questions for the house
 
-- Is there a rule for busy nights, such as a guest cap or members-first on holiday weekends? The app flags over-capacity nights but does not stop them.
+- Crowding indicators are informational only; busy nights remain bookable.
 - Do rent and the deposit go through this, or only running costs?
 - Should removing a member require their balance to be zero?
 - Is `/cabin/` linked from the home page, or reachable only by people who have the link? The data is private either way.

@@ -13,7 +13,7 @@
 :root{
   --bg:#eef1f4; --ink:#0a0e13; --dim:#55616c; --line:rgba(10,14,19,.16);
   --accent:#A31F34; --accent-ink:#A31F34; --panel:rgba(255,255,255,.72); --sheet:#f7f9fa;
-  --pos:#0b7d5e; --neg:#a85a00; --field:#ffffff;
+  --pos:#0b7d5e; --neg:#a85a00; --crowded:#8a5700; --very-crowded:#b42318; --field:#ffffff;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   color-scheme:light;
@@ -25,14 +25,14 @@
   :root:not([data-theme="light"]){
     --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --line:rgba(233,237,241,.14);
     --accent-ink:#ef6f81; --panel:rgba(16,22,29,.6); --sheet:#10161d;
-    --pos:#39d0a4; --neg:#ffa32e; --field:#0a0e13;
+    --pos:#39d0a4; --neg:#ffa32e; --crowded:#ffd166; --very-crowded:#ff6b6b; --field:#0a0e13;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --line:rgba(233,237,241,.14);
   --accent-ink:#ef6f81; --panel:rgba(16,22,29,.6); --sheet:#10161d;
-  --pos:#39d0a4; --neg:#ffa32e; --field:#0a0e13;
+  --pos:#39d0a4; --neg:#ffa32e; --crowded:#ffd166; --very-crowded:#ff6b6b; --field:#0a0e13;
   color-scheme:dark;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -101,7 +101,6 @@ a.btn{text-decoration:none}
   display:flex;flex-direction:column;gap:2px}
 .wk .d{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.03em}
 .wk .n{font-size:12.5px;color:var(--dim)}
-.wk .n.over{color:var(--neg)}
 .wk .me{margin-top:auto;font-size:12.5px;color:var(--dim)}
 .wk button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
 .wk button[aria-pressed="true"] .n,.wk button[aria-pressed="true"] .me{color:rgba(255,255,255,.86)}
@@ -121,7 +120,9 @@ a.btn{text-decoration:none}
 .day.past{opacity:.5}
 .day.today .num{color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px}
 .day.mine{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--accent)}
-.day.over .cnt{color:var(--neg);font-weight:700}
+.wk button[aria-pressed="true"] .n.crowded,.wk .n.crowded,.day.crowded .cnt,.sub.crowded{color:var(--crowded);font-weight:700}
+.wk button[aria-pressed="true"] .n.very-crowded,.wk .n.very-crowded,.day.very-crowded .cnt,.sub.very-crowded{color:var(--very-crowded);font-weight:700}
+.wk button[aria-pressed="true"] .n:is(.crowded,.very-crowded){background:var(--bg);border-radius:4px;padding:0 4px}
 .blank{visibility:hidden}
 .day.off{opacity:.3;border-style:dashed;background:none}
 .day.out{opacity:.45}
@@ -389,6 +390,8 @@ async function del(t, id){
 /* ---------- derived ---------- */
 const staysOn = night => S.stays.filter(s => s.night === night && member(s.member_id));
 const headcount = night => staysOn(night).reduce((n, s) => n + (s.host_away ? 0 : 1) + (s.guests||0), 0);
+const crowdClass = n => n >= 12 ? 'very-crowded' : n >= 8 ? 'crowded' : '';
+const crowdLabel = n => n >= 12 ? 'Very crowded' : n >= 8 ? 'Getting crowded' : '';
 const usedGuests = not => [...new Set(S.stays.filter(x => S.me && x.member_id === S.me.id).flatMap(x => Array.isArray(x.guest_names) ? x.guest_names : []))]
   .filter(n => !not.some(x => x.toLowerCase() === n.toLowerCase())).slice(0, 6);
 const myStay = night => S.me && S.stays.find(s => s.night === night && s.member_id === S.me.id);
@@ -509,7 +512,7 @@ function settle(b){
 const demoNote = () => LIVE ? '' : `<p class="demo">Sample data, saved in this browser only. Tap around; nothing is shared yet.</p>`;
 
 function viewNights(){
-  const t = today(), tIso = iso(t), cap = beds();
+  const t = today(), tIso = iso(t);
   const notYet = leaseStart() && tIso < leaseStart(), over = lastNight() && tIso > lastNight();
   const fri = weekendFriday(notYet ? parse(leaseStart()) : t);
   const wkDays = over ? [] : [0,1,2].map(n => addDays(fri, n)).filter(d => inLease(iso(d)));
@@ -524,7 +527,7 @@ function viewNights(){
     const blocked = !st0 && !canBook(S.me, k);
     return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}"${blocked ? ' aria-disabled="true"' : ''}>
       <span class="d">${d.toLocaleDateString('en-US',{weekday:'short'})} ${d.getDate()}</span>
-      <span class="n${cap && hc > cap ? ' over' : ''}">${hc ? `${hc} of ${cap} beds` : 'Nobody yet'}</span>
+      <span class="n ${crowdClass(hc)}">${hc ? `${hc} staying` : 'Nobody yet'}</span>
       <span class="me">${mine ? 'You’re in' : away ? 'Your guests are in' : blocked ? 'Outside your dates' : 'Tap to join'}</span></button>`; }).join('');
   const m0 = S.month, y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
   let cells = '<span class="blank"></span>'.repeat(m0.getDay());
@@ -532,9 +535,9 @@ function viewNights(){
     const k = `${y}-${pad(mo+1)}-${pad(d)}`;
     if (!inLease(k)){ cells += `<span class="day off" aria-label="${esc(fmtLong(k))}. Outside the lease."><span class="num">${d}</span></span>`; continue; }
     const st = staysOn(k), hc = headcount(k), st0 = myStay(k), mine = !!(st0 && !st0.host_away), away = !!(st0 && st0.host_away), picked = !!(S.pick && S.pick.has(k));
-    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', away ? 'mineg' : '', picked ? 'picked' : '', cap && hc > cap ? 'over' : '', !st0 && !canBook(S.me, k) ? 'out' : ''].filter(Boolean).join(' ');
+    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', away ? 'mineg' : '', picked ? 'picked' : '', crowdClass(hc), !st0 && !canBook(S.me, k) ? 'out' : ''].filter(Boolean).join(' ');
     const dots = st.length > 6 ? st.slice(0,5).map(s => chip(member(s.member_id), true)).join('') + `<span class="more">+${st.length - 5}</span>` : st.map(s => chip(member(s.member_id), true)).join('');
-    const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping: ' + st.map(x => first(member(x.member_id))).join(', ') : 'Nobody yet'}.${mine ? ' You’re in.' : away ? ' Your guests are in.' : ''}${picked ? ' Picked.' : ''}`;
+    const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping: ' + st.map(x => first(member(x.member_id))).join(', ') : 'Nobody yet'}.${mine ? ' You’re in.' : away ? ' Your guests are in.' : ''}${picked ? ' Picked.' : ''}${crowdLabel(hc) ? ' ' + crowdLabel(hc) + '.' : ''}`;
     cells += `<button class="${cls}" data-act="${S.pick ? 'pick-toggle' : 'night-open'}" data-night="${k}" aria-label="${esc(label)}"${S.pick ? ` aria-pressed="${picked}"` : ''}>
       <span class="num">${d}</span>${hc ? `<span class="cnt">${hc}</span>` : ''}<span class="dots">${dots}</span></button>`;
   }
@@ -704,13 +707,13 @@ function guestEditor(night, names, lead){
       <p class="err" id="err"></p>`;
 }
 function sheetNight(night){
-  const st = staysOn(night), hc = headcount(night), cap = beds(), mine = myStay(night), present = !!(mine && !mine.host_away), col = collector();
+  const st = staysOn(night), hc = headcount(night), mine = myStay(night), present = !!(mine && !mine.host_away), col = collector();
   const who = st.length ? `<ul class="list" style="margin-top:14px">${st.map(s => { const m = member(s.member_id), g = guestNames(s).map(esc).join(', '); return `<li><div class="rowi">${chip(m)}
       <span class="grow"><span class="t">${s.host_away ? g : esc(m.name) + (s.guests ? ' with ' + g : '')}</span>
       ${s.host_away ? `<span class="s">Guest${s.guests > 1 ? 's' : ''} of ${esc(first(m))}, who isn’t staying</span>` : ''}
       ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
     : `<p class="empty">Nobody’s signed up for this night.</p>`;
-  const over = cap && hc > cap, names = mine ? guestNames(mine) : [];
+  const names = mine ? guestNames(mine) : [];
   const fee = mine && names.length && col ? `<p class="each">Your guest${names.length > 1 ? 's pay' : ' pays'} ${esc(first(col))} directly.</p>` : '';
   const mineHtml = present ? `${guestEditor(night, names, 'Guests you’re bringing')}${fee}
       <label>Note for the house<input data-change="note" data-night="${night}" maxlength="80" value="${esc(mine.note||'')}" placeholder="Arriving late, bringing the dog…"></label>
@@ -726,7 +729,7 @@ function sheetNight(night){
     : `<p class="each">This night is outside your part-time dates${myDates(S.me) ? `, ${myDates(S.me)}` : ''}. Ask the admin if that needs changing.</p>
       <div class="actions"><button class="btn" data-act="sheet-close">Close</button></div>`;
   return `<h2>${fmtLong(night)}</h2>
-    <p class="sub${over ? ' neg' : ''}">${hc ? `${hc} sleeping, ${cap} beds${over ? `. That’s ${hc - cap} over.` : ''}` : `${cap} beds open`}</p>${who}${mineHtml}`;
+    <p class="sub ${crowdClass(hc)}">${hc ? `${hc} staying${crowdLabel(hc) ? ' · ' + crowdLabel(hc) : ''}` : 'Nobody staying yet'}</p>${who}${mineHtml}`;
 }
 // Several nights at once: yourself, guests, or both.
 function sheetBulk(){
@@ -965,7 +968,6 @@ function addGuest(st, raw){
   const name = cleanName(raw), names = guestNames(st).slice(), err = m => { const e = $('#err'); if (e) e.textContent = m; return false; };
   if (!name) return err('Type your guest’s name first.');
   if (names.some(n => n.toLowerCase() === name.toLowerCase())) return err(`${name} is already on this night.`);
-  if (names.length >= 12) return err('That’s the most guests one person can add to a night.');
   names.push(name); setGuests(st, names); return true;
 }
 // Add a guest to one of my nights; if I'm not on that night, it becomes a guests-only night.
