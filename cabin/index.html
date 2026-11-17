@@ -370,11 +370,11 @@ async function save(t, row){
   if (t === 'house') S.house = row;
   else { const i = S[t].findIndex(r => r.id === row.id); if (i >= 0) S[t][i] = row; else S[t].push(row); }
   render();
-  try { await backend.upsert(t, row); } catch(e){ fail(e); }
+  try { await backend.upsert(t, row); return true; } catch(e){ fail(e); return false; }
 }
 async function del(t, id){
   S[t] = S[t].filter(r => r.id !== id); render();
-  try { await backend.remove(t, id); } catch(e){ fail(e); }
+  try { await backend.remove(t, id); return true; } catch(e){ fail(e); return false; }
 }
 
 /* ---------- derived ---------- */
@@ -706,6 +706,7 @@ function sheetNight(night){
 // Several nights at once: yourself, guests, or both.
 function sheetBulk(){
   const B = S.bulk, n = B.nights.length, used = usedGuests(B.guests);
+  const booked = B.nights.filter(k => myStay(k)).length;
   return `<h2>${n} night${n === 1 ? '' : 's'}</h2><p class="sub">${B.nights.map(fmtDay).join(', ')}</p>
     <label class="check"><input type="checkbox" data-change="bulkstay"${B.staying ? ' checked' : ''}>I’m staying these nights</label>
     <label>Guests for these nights</label>
@@ -714,7 +715,8 @@ function sheetBulk(){
     <form data-form="bulk-guest" class="guest-add"><input name="guest" maxlength="40" autocomplete="off" placeholder="Guest’s name" aria-label="Guest’s name"><button class="btn">Add guest</button></form>
     ${used.length ? `<div class="pick" style="margin-top:10px">${used.map(g => `<button type="button" class="plain" data-act="bulk-guest-quick" data-name="${esc(g)}">+ ${esc(g)}</button>`).join('')}</div>` : ''}
     <p class="err" id="err"></p>
-    <div class="actions"><button class="btn" data-act="sheet-close">Cancel</button><button class="btn primary" data-act="bulk-save">Add to ${n} night${n === 1 ? '' : 's'}</button></div>`;
+    <div class="actions"><button class="btn" data-act="sheet-close">Cancel</button><button class="btn primary" data-act="bulk-save">Add to ${n} night${n === 1 ? '' : 's'}</button></div>
+    ${booked ? `<div class="actions"><button class="btn danger" data-act="bulk-remove"${S.removingNights ? ' disabled' : ''}>Remove my nights (${booked})</button></div>` : ''}`;
 }
 
 // Every guest, grouped by the member who brought them, with what each still owes the collector.
@@ -1078,6 +1080,35 @@ const actions = {
     else S.pick.add(k);
     render(); },
   'pick-next'(){ if (!S.pick || !S.pick.size) return; S.bulk = { nights:[...S.pick].sort(), staying:true, guests:[] }; openSheet(sheetBulk(), { type:'bulk' }); },
+  async 'bulk-remove'(){
+    if (!S.bulk || S.removingNights) return;
+    const nights = [...S.bulk.nights], stays = nights.map(myStay).filter(Boolean);
+    if (!stays.length) return;
+    S.removingNights = true;
+    try {
+      const hasGuests = stays.some(st => st.guests > 0);
+      const paid = stays.some(st => guestNames(st).some(n => isPaid(st, n)));
+      const pick = await confirmBox(`<h2>Remove selected nights?</h2>
+        <p class="sub">${stays.map(st => fmtDay(st.night)).join(', ')}. Only your bookings are affected; other members stay on the calendar.</p>
+        ${paid ? '<p class="sub">If you remove paid guests, arrange their refunds with the collecting member.</p>' : ''}
+        <div class="stack" style="margin-top:16px">
+        ${hasGuests ? `<button class="btn primary" data-confirm="me">Just me, keep my guests</button><button class="btn danger" data-confirm="all">Me and my guests</button>`
+          : '<button class="btn danger" data-confirm="all">Remove my nights</button>'}
+        <button class="btn" data-confirm="no">Keep everything</button></div>`);
+      if (!pick) return;
+      let removed = 0;
+      for (const night of nights){
+        const st = myStay(night); if (!st || (pick === 'me' && st.host_away)) continue;
+        const ok = pick === 'me' && st.guests > 0
+          ? await save('stays', { ...st, host_away:true })
+          : await del('stays', st.id);
+        if (!ok){ toast('Some nights couldn’t be removed. Check the calendar and try again.'); return; }
+        removed++;
+      }
+      S.pick = null; S.bulk = null; closeSheet(); render();
+      toast(removed ? `Removed from ${removed} night${removed === 1 ? '' : 's'}${pick === 'me' && hasGuests ? '; your guests are still booked' : ''}` : 'You weren’t staying on those nights. Your guests are still booked.');
+    } finally { S.removingNights = false; render(); }
+  },
   'bulk-guest-remove'(el){ S.bulk.guests.splice(Number(el.dataset.i), 1); render(); },
   'bulk-guest-quick'(el){ S.bulk.guests.push(el.dataset.name); render(); },
   'bulk-save'(){
