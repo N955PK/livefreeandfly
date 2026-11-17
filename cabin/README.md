@@ -8,7 +8,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 
 ## Principles
 
-- **One tap for the common thing.** Saying “I’m up Saturday” is a single tap from the first screen.
+- **Calendar first.** Open a night to join, or pick several nights by tapping or dragging on the month calendar.
 - **No maintenance.** No admin role, no approvals, no categories to curate. Any member can add or fix anything, the way a shared spreadsheet works.
 - **Fits the repo.** One self-contained `index.html`, no build step, same look as the rest of the site.
 
@@ -16,7 +16,6 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 
 ### Calendar
 
-- A strip for the current weekend (Friday, Saturday, Sunday nights). Tap a night to add or remove yourself.
 - A month calendar. Each night shows a dot per member and a headcount. Your nights are marked in red.
 - Tap any night to see who is in, set how many guests you are bringing, and leave a short note (“arriving late”).
 - Headcount includes guests. Occupancy text is normal for 0–7 people, amber for 8–11, and red for 12 or more. Night details say “Getting crowded” or “Very crowded.” These are informational: there is no occupancy or per-member guest cap.

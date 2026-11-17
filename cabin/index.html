@@ -95,16 +95,6 @@ a.btn{text-decoration:none}
 .grp{display:flex;align-items:center;gap:10px;margin:24px 0 8px;font-family:var(--mono);font-size:14px;font-weight:600}
 .grp .amt{margin-left:auto;font-weight:400}
 
-/* ---- weekend strip ---- */
-.wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
-.wk button{text-align:left;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:12px 12px 11px;min-height:96px;
-  display:flex;flex-direction:column;gap:2px}
-.wk .d{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.03em}
-.wk .n{font-size:12.5px;color:var(--dim)}
-.wk .me{margin-top:auto;font-size:12.5px;color:var(--dim)}
-.wk button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:#fff}
-.wk button[aria-pressed="true"] .n,.wk button[aria-pressed="true"] .me{color:rgba(255,255,255,.86)}
-
 /* ---- month ---- */
 .mnav{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
 .mnav h2{margin:0}
@@ -120,9 +110,8 @@ a.btn{text-decoration:none}
 .day.past{opacity:.5}
 .day.today .num{color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px}
 .day.mine{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--accent)}
-.wk button[aria-pressed="true"] .n.crowded,.wk .n.crowded,.day.crowded .cnt,.sub.crowded{color:var(--crowded);font-weight:700}
-.wk button[aria-pressed="true"] .n.very-crowded,.wk .n.very-crowded,.day.very-crowded .cnt,.sub.very-crowded{color:var(--very-crowded);font-weight:700}
-.wk button[aria-pressed="true"] .n:is(.crowded,.very-crowded){background:var(--bg);border-radius:4px;padding:0 4px}
+.day.crowded .cnt,.sub.crowded{color:var(--crowded);font-weight:700}
+.day.very-crowded .cnt,.sub.very-crowded{color:var(--very-crowded);font-weight:700}
 .grid.picking,.grid.picking .day{touch-action:none;user-select:none;-webkit-user-select:none}
 .grid.picking .day{cursor:crosshair}
 .blank{visibility:hidden}
@@ -134,7 +123,6 @@ a.btn{text-decoration:none}
 .pickbar span{flex:1}
 .stack{display:flex;flex-direction:column;gap:10px}
 .stack .btn{width:100%}
-.wk button[aria-disabled="true"]{opacity:.45}
 .mnav button:disabled{opacity:.25;cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:13px;color:var(--dim)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -515,22 +503,6 @@ const demoNote = () => LIVE ? '' : `<p class="demo">Sample data, saved in this b
 
 function viewNights(){
   const t = today(), tIso = iso(t);
-  const notYet = leaseStart() && tIso < leaseStart(), over = lastNight() && tIso > lastNight();
-  const fri = weekendFriday(notYet ? parse(leaseStart()) : t);
-  const wkDays = over ? [] : [0,1,2].map(n => addDays(fri, n)).filter(d => inLease(iso(d)));
-  // The strip moves to the next weekend each Monday: Fri, Sat, and Sun count as "this weekend".
-  let wkLabel = '';
-  if (wkDays.length){
-    const a = wkDays[0], z = wkDays[wkDays.length - 1], md = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
-    const span = a.getTime() === z.getTime() ? md(a) : a.getMonth() === z.getMonth() ? `${md(a)} to ${z.getDate()}` : `${md(a)} to ${md(z)}`;
-    wkLabel = `${notYet ? 'First weekend of the lease' : [5,6,0].includes(t.getDay()) ? 'This weekend' : 'This coming weekend'}, ${span}`;
-  }
-  const wk = wkDays.map(d => { const k = iso(d), hc = headcount(k), st0 = myStay(k), mine = !!(st0 && !st0.host_away), away = !!(st0 && st0.host_away);
-    const blocked = !st0 && !canBook(S.me, k);
-    return `<button data-act="night-toggle" data-night="${k}" aria-pressed="${mine}"${blocked ? ' aria-disabled="true"' : ''}>
-      <span class="d">${d.toLocaleDateString('en-US',{weekday:'short'})} ${d.getDate()}</span>
-      <span class="n ${crowdClass(hc)}">${hc ? `${hc} staying` : 'Nobody yet'}</span>
-      <span class="me">${mine ? 'You’re in' : away ? 'Your guests are in' : blocked ? 'Outside your dates' : 'Tap to join'}</span></button>`; }).join('');
   const m0 = S.month, y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
   let cells = '<span class="blank"></span>'.repeat(m0.getDay());
   for (let d = 1; d <= days; d++){
@@ -545,10 +517,8 @@ function viewNights(){
   }
   const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
   const atStart = leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart())), atEnd = lastNight() && monthKey(m0) >= monthKey(parse(lastNight()));
-  const lease = leaseText(), when = notYet ? `The lease starts ${fmtDay(leaseStart())}.` : over ? `The lease ended ${fmtDay(leaseEnd())}.` : lease ? `The lease runs ${lease}.` : '';
   return `${demoNote()}<h1>Who’s up</h1>
 ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
-    ${wk ? `<h2 style="margin-top:16px">${wkLabel}</h2><div class="wk" style="margin-top:0">${wk}</div>` : ''}
     <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
       <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
       <button data-act="month" data-d="1" aria-label="Next month"${atEnd ? ' disabled' : ''}>›</button></div>
