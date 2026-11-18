@@ -98,6 +98,7 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .emo-row button{display:flex;align-items:center;justify-content:center;width:100%;height:auto;aspect-ratio:1/1;padding:0;line-height:1;font-size:clamp(18px,6vw,24px);border:1px solid var(--line);border-radius:10px}
 .emo-row:not(.open) .xtra{display:none}
 .emo-row button.more-btn{font-size:11.5px;line-height:1.1;padding:0 2px;color:var(--dim)}
+.emoji-catcher{position:absolute;left:0;width:1px;height:1px;min-height:0;margin:0;padding:0;border:0;opacity:0;pointer-events:none;font-size:16px}
 .sw-row{display:grid;grid-template-columns:repeat(5,44px);justify-content:space-between;row-gap:10px;margin-top:14px}
 .sw-row button{width:44px;height:44px;border-radius:50%;border:2px solid transparent}
 .sw-row button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--sheet)}
@@ -929,7 +930,7 @@ function sheetMember(m){
           <input type="file" id="avaFile" accept="image/*" data-change="avafile" hidden>
           <button type="button" class="btn small quiet" data-act="ava-clear">Use initials</button></div></div>
       <div class="emo-row">${EMOJI.map((e, i) => `<button type="button"${i >= EMOJI_SHOWN ? ' class="xtra"' : ''} data-act="ava-emoji" data-e="${e}" aria-label="Use ${e} as the picture">${e}</button>`).join('')}<button type="button" class="more-btn" data-act="emoji-more" aria-expanded="false">More</button></div>
-      <label style="margin-top:14px">Or use any emoji from your keyboard<input type="text" name="anyemoji" value="${esc((m.avatar || '').startsWith('emoji:') ? m.avatar.slice(6) : '')}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" maxlength="40" placeholder="Tap here, then the 😀 or 🌐 key"></label>
+      <p class="each" id="emoHint" hidden></p><input type="text" name="anyemoji" class="emoji-catcher" tabindex="-1" aria-label="Type any emoji" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" maxlength="40">
       <div class="sw-row">${PALETTE.map((c, i) => `<button type="button" data-act="ava-color" data-c="${c}" style="background:${c}" aria-label="Color ${i + 1}" aria-pressed="${(m.color || '').toLowerCase() === c}"></button>`).join('')}</div>
       <input type="hidden" name="avatar" value="${esc(m.avatar || '')}"><input type="hidden" name="color" value="${esc(m.color || '')}"></fieldset>`}
     <label>${self ? 'Name shown to the house' : 'Name'}<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
@@ -1100,7 +1101,6 @@ function setAvatar(v){
   const f = $('#sheet form[data-form="member"]'); if (!f || !f.avatar) return;
   f.avatar.value = v;
   $('#avaPrev').innerHTML = chip({ name: f.name.value || '?', color: f.color.value, avatar: v }, false, 'lg');
-  if (f.anyemoji && document.activeElement !== f.anyemoji) f.anyemoji.value = v.startsWith('emoji:') ? v.slice(6) : '';
 }
 async function toggleNight(night){
   if (!S.me) return;
@@ -1299,7 +1299,7 @@ const actions = {
       return;
     }
     const box = $('#sheet [name=anyemoji]');                    // after that: open the phone's keyboard for any emoji
-    if (box){ box.focus(); try { box.scrollIntoView({ block:'center', behavior:'smooth' }); } catch(e){} }
+    if (box){ box.focus(); const h = $('#emoHint'); if (h) h.scrollIntoView({ block:'nearest', behavior:'smooth' }); }
   },
   'ava-color'(el){ const f = $('#sheet form[data-form="member"]'); if (!f) return; f.color.value = el.dataset.c;
     f.querySelectorAll('.sw-row button').forEach(b => b.setAttribute('aria-pressed', b === el)); setAvatar(f.avatar.value); },
@@ -1481,14 +1481,15 @@ document.addEventListener('submit', e => { const f = e.target.closest('form[data
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 document.addEventListener('input', e => {
   if (e.target.name !== 'anyemoji' || e.isComposing) return;
-  const g = firstEmoji(e.target.value), err = $('#err');
-  if (e.target.value && !g){ e.target.value = ''; if (err) err.textContent = 'That isn’t an emoji. Switch to your emoji keyboard with the 😀 or 🌐 key.'; return; }
-  if (err) err.textContent = '';
-  if (g){ e.target.value = g; setAvatar('emoji:' + g); }
+  const g = firstEmoji(e.target.value), hint = $('#emoHint');
+  if (e.target.value && !g){ e.target.value = ''; if (hint){ hint.textContent = 'That isn’t an emoji. Tap the 😀 or 🌐 key on your keyboard.'; hint.hidden = false; } return; }
+  if (!g) return;
+  e.target.value = ''; setAvatar('emoji:' + g); e.target.blur();               // closes the keyboard
+  const pv = $('#avaPrev'); if (pv) pv.scrollIntoView({ block:'nearest', behavior:'smooth' });
 });
-// Tapping the box starts fresh; leaving it shows the emoji that's currently chosen. Return closes the keyboard instead of saving.
-document.addEventListener('focusin', e => { if (e.target.name === 'anyemoji') e.target.value = ''; });
-document.addEventListener('focusout', e => { if (e.target.name !== 'anyemoji') return; const f = e.target.form, v = f && f.avatar ? f.avatar.value : ''; e.target.value = v.startsWith('emoji:') ? v.slice(6) : ''; });
+// The field is invisible, so a hint stands in while the keyboard is open. Return closes the keyboard instead of saving.
+document.addEventListener('focusin', e => { if (e.target.name !== 'anyemoji') return; e.target.value = ''; const h = $('#emoHint'); if (h){ h.textContent = 'Tap the 😀 or 🌐 key on your keyboard, then pick an emoji.'; h.hidden = false; } });
+document.addEventListener('focusout', e => { if (e.target.name !== 'anyemoji') return; e.target.value = ''; const h = $('#emoHint'); if (h) h.hidden = true; });
 document.addEventListener('keydown', e => { if (e.target.name === 'anyemoji' && e.key === 'Enter'){ e.preventDefault(); e.target.blur(); } });
 document.addEventListener('change', e => {
   const k = e.target.dataset.change;
