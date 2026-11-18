@@ -14,7 +14,7 @@
 <style>
 :root{
   --bg:#eef1f4; --ink:#0a0e13; --dim:#55616c; --ink2:#34414d; --line:rgba(10,14,19,.16);
-  --accent:#A31F34; --on-accent:#fff; --accent-ink:var(--accent-ink-l,#A31F34); --panel:rgba(255,255,255,.72); --sheet:#f7f9fa;
+  --accent:#A31F34; --on-accent:#fff; --logo-color:var(--accent); --accent-ink:var(--accent-ink-l,#A31F34); --panel:rgba(255,255,255,.72); --sheet:#f7f9fa;
   --pos:#0b7d5e; --neg:#a85a00; --crowded:#8a5700; --very-crowded:#b42318; --field:#ffffff;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -28,14 +28,14 @@
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --ink2:#c3cad1; --line:rgba(233,237,241,.14);
-    --accent-ink:var(--accent-ink-d,#ef6f81); --panel:rgba(16,22,29,.6); --sheet:#10161d;
+    --accent-ink:var(--accent-ink-d,#ef6f81); --logo-color:color-mix(in srgb,var(--accent) 80%,#fff); --panel:rgba(16,22,29,.6); --sheet:#10161d;
     --pos:#39d0a4; --neg:#ffa32e; --crowded:#ffd166; --very-crowded:#ff6b6b; --field:#0a0e13;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --ink2:#c3cad1; --line:rgba(233,237,241,.14);
-  --accent-ink:var(--accent-ink-d,#ef6f81); --panel:rgba(16,22,29,.6); --sheet:#10161d;
+  --accent-ink:var(--accent-ink-d,#ef6f81); --logo-color:color-mix(in srgb,var(--accent) 80%,#fff); --panel:rgba(16,22,29,.6); --sheet:#10161d;
   --pos:#39d0a4; --neg:#ffa32e; --crowded:#ffd166; --very-crowded:#ff6b6b; --field:#0a0e13;
   color-scheme:dark;
 }
@@ -47,7 +47,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:none;border:0;cursor:pointer}
 html,body,button,a,label,input,select,textarea{touch-action:manipulation}
-button,a.btn,label.btn,.chip,.tabs,.legend,.dow{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button,a.btn,label.btn,.chip,.tabs,.dow{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 button:active,a.btn:active,label.btn:active{opacity:.6}
 a{color:var(--accent-ink)}
 :focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:8px}
@@ -58,7 +58,8 @@ a{color:var(--accent-ink)}
   max-width:620px;margin:0 auto;padding:10px 18px 8px}
 .brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink);text-decoration:none;-webkit-user-select:none;user-select:none}
 .brand .slash{color:var(--accent-ink);font-weight:700}
-.brand .mark{display:block;width:42px;height:26px;filter:hue-rotate(var(--logo-rot,0deg))}
+.brand .mark{display:block;width:42px;height:26px;background:url(skier-mark.png) center/contain no-repeat}
+:root[data-accent]:not([data-accent="chairlift"]) .brand .mark{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
 .who{display:flex;align-items:center;gap:8px;font-size:var(--t-cap);color:var(--dim);min-height:40px;padding:0 2px 0 8px;border-radius:999px}
 .who[hidden]{display:none}
 main{max-width:620px;margin:0 auto;padding:6px 18px 110px}
@@ -124,6 +125,7 @@ a.btn{text-decoration:none}
 .mnav{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
 .mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
 .mnav button:disabled{opacity:.25;cursor:default}
+.mnav.low{margin:14px 0 0}
 .mnav h2{margin:0;font-size:var(--t-widget);text-transform:none;letter-spacing:.04em;color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .pager{position:relative;overflow:hidden;margin:-2px -4px;padding:2px 4px;touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
@@ -161,10 +163,6 @@ a.btn{text-decoration:none}
 .day .num,.day .dots{position:relative;z-index:1}
 .day .cnt{z-index:1}
 .sw{display:inline-block;flex:0 0 auto;width:16px;height:16px;border-radius:5px;border:1px solid var(--line);vertical-align:-3px;margin-right:6px;background-image:repeating-linear-gradient(135deg,rgba(214,153,46,.6) 0 3px,transparent 3px 6px)}
-.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px 8px;margin-top:16px;font-size:var(--t-cap);color:var(--dim)}
-.legend > span{display:flex;align-items:center;gap:8px;min-width:0;padding:2px 0}
-.legend .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.legend .chip.sm{width:16px;height:16px;font-size:9px}
 
 /* ---- looks: each person picks light or dark and an accent color ---- */
 .seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:6px}
@@ -176,13 +174,20 @@ a.btn{text-decoration:none}
 .accents button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .accents .dot{flex:0 0 auto;width:16px;height:16px;border-radius:50%}
 .accents .dot.disco{background:conic-gradient(#ff5c39,#ffd23f,#39d0a4,#3aa8ff,#d95ce8,#ff5c39)}
+.accents .dot.wheeldot{background:conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.wheelbox{margin-top:14px}
+.wheelwrap{position:relative;width:200px;height:200px;margin:0 auto 14px;touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
+.wheel{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle closest-side,#fff,rgba(255,255,255,0)),conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);filter:brightness(var(--wv,1))}
+.knob{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.4);pointer-events:none}
+.wheelrow{display:grid;grid-template-columns:1fr 104px;gap:12px;align-items:end}
+.wheelrow input[type=range]{padding:0;min-height:46px;border:0;background:transparent;accent-color:var(--accent)}
 .accents button[aria-pressed="true"]{border-color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--accent-ink)}
 .accents button[aria-pressed="true"] .dot{animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
 @keyframes pop{0%{transform:scale(.55)}100%{transform:scale(1)}}
 /* Disco: the accent drifts through every colour. The lightness is chosen so text stays readable at every hue. */
 @property --disco{syntax:'<number>';inherits:true;initial-value:0}
 @keyframes disco{to{--disco:360}}
-:root[data-accent="disco"]{--accent:hsl(var(--disco) 75% 26%);--on-accent:#fff;--accent-ink-l:hsl(var(--disco) 80% 22%);--accent-ink-d:hsl(var(--disco) 95% 74%);--logo-rot:calc(var(--disco) * 1deg - 350deg);animation:disco 24s steps(240) infinite}
+:root[data-accent="disco"]{--accent:hsl(var(--disco) 75% 26%);--on-accent:#fff;--accent-ink-l:hsl(var(--disco) 80% 22%);--accent-ink-d:hsl(var(--disco) 95% 74%);--logo-color:hsl(var(--disco) 85% 52%);animation:disco 24s steps(240) infinite}
 @media (prefers-reduced-motion:reduce){:root[data-accent="disco"]{animation:none}.accents button[aria-pressed="true"] .dot{animation:none}}
 
 /* ---- lists ---- */
@@ -289,7 +294,7 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 </head>
 <body>
 <header class="top">
-  <span class="brand"><img class="mark" src="skier-mark.png" alt="" width="42" height="26"><span>ski<span class="slash">/</span>lease</span></span>
+  <span class="brand"><span class="mark" aria-hidden="true"></span><span>ski<span class="slash">/</span>lease</span></span>
   <button class="who" id="who" data-act="me-edit" aria-label="Change your name and details" hidden></button>
 </header>
 <main id="main"></main>
@@ -677,17 +682,15 @@ function monthBounds(){
 
 function viewNights(){
   const m0 = S.month, bounds = monthBounds(), monthName = d => d.toLocaleDateString('en-US', { month:'long' }), prevName = monthName(monthAt(-1)), nextName = monthName(monthAt(1));
-  const legend = active().map(m => `<span>${chip(m,true)}<span class="nm">${esc(first(m))}</span></span>`).join('');
+  const arrows = cls => `<div class="mnav${cls}"><button data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹</button>__MID__<button data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>›</button></div>`;
   return `${demoNote()}<h1>The shredule</h1>
 ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
-    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹</button>
-      <h2>${monthLabel(m0)}</h2>
-      <button data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>›</button></div>
+    ${arrows('').replace('__MID__', `<h2>${monthLabel(m0)}</h2>`)}
     ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap or drag across nights'}</span>
         <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
       : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
     <div class="pager" id="pager"><div class="track"><div class="mpage">${monthPage(m0)}</div></div></div>
-    <div class="legend">${legend}</div>`;
+    ${arrows(' low').replace('__MID__', '')}`;
 }
 
 function historyHtml(){
@@ -1015,40 +1018,87 @@ const ACCENTS = [
   { id:'lemon',     name:'Lemonade',   a:'#e6b800', on:'#1a1400', inkL:'#7a5c00', inkD:'#ffd84a' },
   { id:'cocoa',     name:'Hot Cocoa',  a:'#7a4a32', on:'#ffffff', inkL:'#6a3e29', inkD:'#d9a284' },
   { id:'slate',     name:'Slate',      a:'#4b5d73', on:'#ffffff', inkL:'#3c4b5e', inkD:'#a9bbd0' },
-  { id:'disco',     name:'Disco',      disco:true }
+  { id:'disco',     name:'Disco',      disco:true },
+  { id:'custom',    name:'Custom',     custom:true }
 ];
+const DEFAULT_CUSTOM = '#e8590c';
 const LOOK_KEY = 'shredule-look';
 let appLook = (() => { try { return JSON.parse(localStorage.getItem(LOOK_KEY)) || {}; } catch(e){ return {}; } })();
 const saveLook = () => { try { localStorage.setItem(LOOK_KEY, JSON.stringify(appLook)); } catch(e){} };
-function hexHue(h){
-  const r = parseInt(h.slice(1, 3), 16) / 255, g = parseInt(h.slice(3, 5), 16) / 255, b = parseInt(h.slice(5, 7), 16) / 255, mx = Math.max(r, g, b), d = mx - Math.min(r, g, b);
-  if (!d) return 0; const hue = 60 * (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4); return hue < 0 ? hue + 360 : hue;
+// ---- small color helpers, so a custom color can be made readable ----
+const hexToRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const rgbToHex = c => '#' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+const relLum = c => { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); };
+const contrastOf = (a, b) => { const x = relLum(a), y = relLum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+function rgbToHsv([r, g, b]){
+  r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), d = mx - Math.min(r, g, b); let h = 0;
+  if (d){ h = 60 * (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4); if (h < 0) h += 360; }
+  return [h, mx ? d / mx : 0, mx];
+}
+function hsvToRgb(h, s, v){
+  const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+}
+const LIGHT_PAGE = [[238, 241, 244], [247, 249, 250]], DARK_PAGE = [[10, 14, 19], [16, 22, 29]];
+// Whatever color is picked, button text is black or white (whichever reads better), and link colors are nudged just far enough to be readable.
+function customColors(hex){
+  const rgb = hexToRgb(hex), on = contrastOf(rgb, [255, 255, 255]) >= contrastOf(rgb, [0, 0, 0]) ? '#ffffff' : '#000000';      // whichever is better is always at least 4.58
+  const toward = (bgs, end) => { for (let k = 0; k <= 1.0001; k += .02){ const c = rgb.map((v, i) => v + (end[i] - v) * k); if (bgs.every(b => contrastOf(c, b) >= 4.6)) return rgbToHex(c); } return rgbToHex(end); };
+  return { a: hex, on, inkL: toward(LIGHT_PAGE, [0, 0, 0]), inkD: toward(DARK_PAGE, [255, 255, 255]) };
 }
 function paintToolbar(){                                                                       // the color the browser paints behind its own toolbars
   const dark = appLook.mode === 'dark' || (appLook.mode !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
   const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0a0e13' : '#eef1f4');
 }
 function applyLook(){
-  const root = document.documentElement, acc = ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0];
+  const root = document.documentElement; let acc = ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0];
+  if (acc.custom) acc = { ...acc, ...customColors(/^#[0-9a-f]{6}$/i.test(appLook.custom || '') ? appLook.custom : DEFAULT_CUSTOM) };
   if (appLook.mode === 'light' || appLook.mode === 'dark') root.dataset.theme = appLook.mode; else delete root.dataset.theme;
   root.dataset.accent = acc.id;
-  ['--accent', '--on-accent', '--accent-ink-l', '--accent-ink-d', '--logo-rot'].forEach(v => root.style.removeProperty(v));
+  ['--accent', '--on-accent', '--accent-ink-l', '--accent-ink-d'].forEach(v => root.style.removeProperty(v));
   if (!acc.disco && acc.id !== 'chairlift'){                                                    // the original and Disco are defined in the stylesheet
     root.style.setProperty('--accent', acc.a); root.style.setProperty('--on-accent', acc.on); root.style.setProperty('--accent-ink-l', acc.inkL); root.style.setProperty('--accent-ink-d', acc.inkD);
-    root.style.setProperty('--logo-rot', Math.round(hexHue(acc.a) - 350.5) + 'deg');            // the skier follows the accent
   }
   paintToolbar();
 }
 function lookInner(){                                                                          // the look controls, drawn inside the profile modal
-  const mode = appLook.mode || 'auto', acc = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id;
+  const mode = appLook.mode || 'auto', acc = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id, custom = /^#[0-9a-f]{6}$/i.test(appLook.custom || '') ? appLook.custom : DEFAULT_CUSTOM;
+  const dot = a => a.disco ? '<i class="dot disco"></i>' : a.custom ? `<i class="dot${acc === 'custom' ? '' : ' wheeldot'}"${acc === 'custom' ? ` style="background:${custom}"` : ''}></i>` : `<i class="dot" style="background:${a.a}"></i>`;
   return `<fieldset><legend>Light or dark</legend>
       <div class="seg" role="group" aria-label="Light or dark">${[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(([v, t]) => `<button type="button" data-act="look-mode" data-v="${v}" aria-pressed="${mode === v}">${t}</button>`).join('')}</div></fieldset>
     <fieldset><legend>Accent color</legend>
-      <div class="accents">${ACCENTS.map(a => `<button type="button" data-act="look-accent" data-v="${a.id}" aria-pressed="${acc === a.id}"><i class="dot${a.disco ? ' disco' : ''}"${a.disco ? '' : ` style="background:${a.a}"`}></i><span>${a.name}</span></button>`).join('')}</div></fieldset>
-    <div class="actions"><button type="button" class="btn" data-act="look-surprise">🎲 Surprise me</button></div>`;
+      <div class="accents">${ACCENTS.map(a => `<button type="button" data-act="look-accent" data-v="${a.id}" aria-pressed="${acc === a.id}">${dot(a)}<span>${a.name}</span></button>`).join('')}</div>
+      ${acc === 'custom' ? `<div class="wheelbox"><div class="wheelwrap" id="wheelWrap" role="img" aria-label="Color wheel. Drag to pick a color."><div class="wheel"></div><i class="knob" id="wheelKnob"></i></div>
+        <div class="wheelrow"><label>Brightness<input type="range" id="wheelV" min="35" max="100" step="1"></label><label>Hex<input id="wheelHex" maxlength="7" autocomplete="off" autocapitalize="none" spellcheck="false"></label></div></div>` : ''}</fieldset>`;
 }
-function refreshLook(){ const box = $('#lookBox'); if (box) box.innerHTML = lookInner(); }       // only this box, so anything typed above is left alone
-let shuffling = false;
+let wheelHS = [0, 1], wheelDrag = null;                                                         // hue and saturation of the wheel, kept so brightness changes don't drift them
+function paintWheel(){                                                                          // knob, brightness, hex, and the Custom swatch follow the chosen color
+  const wrap = $('#wheelWrap'); if (!wrap) return;
+  const hex = appLook.custom || DEFAULT_CUSTOM, [h, s, v] = rgbToHsv(hexToRgb(hex)), R = wrap.clientWidth / 2;
+  if (!wheelDrag){ if (s > .005) wheelHS = [h, s]; else wheelHS = [wheelHS[0], 0]; }
+  const [hh, ss] = wheelHS, a = hh * Math.PI / 180, knob = $('#wheelKnob');
+  knob.style.transform = `translate(${Math.sin(a) * ss * R}px, ${-Math.cos(a) * ss * R}px)`; knob.style.background = hex;
+  wrap.style.setProperty('--wv', v); const sl = $('#wheelV'); if (sl) sl.value = Math.round(v * 100);
+  const hx = $('#wheelHex'); if (hx && document.activeElement !== hx) hx.value = hex;
+  const d = $('.accents button[data-v="custom"] .dot'); if (d){ d.classList.remove('wheeldot'); d.style.background = hex; }
+}
+function setCustom(hex, save){ appLook.accent = 'custom'; appLook.custom = hex; applyLook(); if (save) saveLook(); }
+function pickFromWheel(e){
+  const r = wheelDrag.w.getBoundingClientRect(), R = r.width / 2, dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+  wheelHS = [(Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360, Math.min(1, Math.hypot(dx, dy) / R)];
+  setCustom(rgbToHex(hsvToRgb(wheelHS[0], wheelHS[1], Number($('#wheelV').value) / 100)), false); paintWheel();
+}
+document.addEventListener('pointerdown', e => { const w = e.target.closest && e.target.closest('#wheelWrap'); if (!w || !e.isPrimary) return; wheelDrag = { id:e.pointerId, w }; try { w.setPointerCapture(e.pointerId); } catch(_){} pickFromWheel(e); });
+document.addEventListener('pointermove', e => { if (wheelDrag && e.pointerId === wheelDrag.id) pickFromWheel(e); });
+const endWheel = e => { if (wheelDrag && e.pointerId === wheelDrag.id){ wheelDrag = null; saveLook(); } };
+document.addEventListener('pointerup', endWheel); document.addEventListener('pointercancel', endWheel);
+document.addEventListener('input', e => { if (e.target.id === 'wheelV'){ setCustom(rgbToHex(hsvToRgb(wheelHS[0], wheelHS[1], Number(e.target.value) / 100)), false); paintWheel(); } });
+document.addEventListener('change', e => {
+  if (e.target.id === 'wheelV') saveLook();
+  if (e.target.id === 'wheelHex'){ const v = '#' + e.target.value.trim().replace(/^#/, '').toLowerCase(); if (/^#[0-9a-f]{6}$/.test(v)){ const [h, s] = rgbToHsv(hexToRgb(v)); if (s > .005) wheelHS = [h, s]; setCustom(v, true); } paintWheel(); }
+});
+function refreshLook(){ const box = $('#lookBox'); if (box){ box.innerHTML = lookInner(); paintWheel(); } }     // only this box, so anything typed above is left alone
 function sheetExpense(e){
   const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:[], description:'', amount_cents:0 };
   const canPot = canMarkGuests();
@@ -1351,14 +1401,13 @@ const actions = {
   },
   'venmo-qr'(){ const c = collector(); if (!c || !c.venmo) return; loadQr().then(() => openSheet(sheetQr(), { type:'qr' })).catch(() => toast('Couldn’t load the QR code. Check your connection.')); },
   'look-mode'(el){ appLook.mode = el.dataset.v === 'auto' ? undefined : el.dataset.v; saveLook(); applyLook(); refreshLook(); },
-  'look-accent'(el){ appLook.accent = el.dataset.v; saveLook(); applyLook(); refreshLook(); },
-  'look-surprise'(){                                                                           // flick through a few colors and land on a random one
-    if (shuffling) return;
-    const now = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id;                  // the color in use, even if none was ever chosen
-    const others = ACCENTS.filter(a => a.id !== now), final = others[Math.floor(Math.random() * others.length)];
-    const tease = ACCENTS.filter(a => a.id !== final.id).sort(() => Math.random() - .5).slice(0, 4), seq = reducedMotion() ? [final] : [...tease, final];
-    shuffling = true;
-    seq.forEach((a, i) => setTimeout(() => { appLook.accent = a.id; applyLook(); refreshLook(); if (i === seq.length - 1){ saveLook(); shuffling = false; } }, i * 110));
+  'look-accent'(el){
+    const id = el.dataset.v;
+    if (id === 'custom' && !/^#[0-9a-f]{6}$/i.test(appLook.custom || '')){                       // start from the color in use, so the wheel picks up where you are
+      const cur = ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]; appLook.custom = cur.a || DEFAULT_CUSTOM;
+    }
+    appLook.accent = id; saveLook(); applyLook(); refreshLook();
+    if (id === 'custom'){ const w = $('.wheelbox'); if (w) w.scrollIntoView({ block:'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' }); }
   },
   'guests-open'(){ openSheet(sheetGuests(), { type:'guests' }); },
   'collector-open'(){ if (isAdmin()) openSheet(sheetCollector()); },
@@ -1469,7 +1518,7 @@ const actions = {
   },
   'member-new'(){ if (isAdmin()) openSheet(sheetMember()); },
   'member-manage'(el){ const m = member(el.dataset.id); if (m && isAdmin()) openSheet(sheetManage(m)); },
-  'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
+  'me-edit'(){ if (S.me){ openSheet(sheetMember(S.me)); paintWheel(); } },
   'ava-emoji'(el){ setAvatar('emoji:' + el.dataset.e); },
   'ava-clear'(){ setAvatar(''); },
   'emoji-more'(el){
