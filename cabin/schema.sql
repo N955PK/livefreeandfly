@@ -45,6 +45,8 @@ create table expenses (
   split_among  uuid[] not null check (cardinality(split_among) > 0),  -- even split
   spent_on     date not null default current_date,
   from_pot     boolean not null default false,   -- a house bill that comes out of the season pot
+  season       boolean not null default false,   -- part of the up-front season costs, shown there instead of in the payment history
+  items        jsonb check (items is null or length(items::text) < 4000),   -- optional breakdown of a season cost: [{label, cents, refundable}]
   created_at   timestamptz not null default now()
 );
 
@@ -55,6 +57,7 @@ create table payments (
   amount_cents int  not null check (amount_cents > 0),
   paid_on      date not null default current_date,
   note         text,
+  season       boolean not null default false,   -- a payment toward the up-front season costs
   created_at   timestamptz not null default now(),
   check (from_member <> to_member)
 );
@@ -196,8 +199,16 @@ create trigger stays_guard before insert or update on stays
 -- Only an admin or the collecting member can log, change, or delete a pot expense.
 create or replace function expenses_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
+declare privileged boolean := coalesce(auth.jwt() ->> 'email', '') = '' or is_admin();
 begin
-  if coalesce(auth.jwt() ->> 'email', '') = '' or is_admin() or is_collector() then
+  -- Season costs (the up-front lease) are an admin call: nobody else can tag, untag, itemise, change, or delete them.
+  if not privileged then
+    if tg_op = 'INSERT' then new.season := false; new.items := null;
+    elsif old.season then raise exception 'Only an admin can change a season cost';
+    elsif tg_op = 'UPDATE' then new.season := false; new.items := old.items;
+    end if;
+  end if;
+  if privileged or is_collector() then
     if tg_op = 'DELETE' then return old; end if; return new;
   end if;
   if tg_op = 'INSERT' then new.from_pot := false; return new; end if;
@@ -208,6 +219,22 @@ end $$;
 drop trigger if exists expenses_guard on expenses;
 create trigger expenses_guard before insert or update or delete on expenses
   for each row execute function expenses_guard();
+
+create or replace function payments_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare privileged boolean := coalesce(auth.jwt() ->> 'email', '') = '' or is_admin();
+begin
+  if not privileged then
+    if tg_op = 'INSERT' then new.season := false;
+    elsif old.season then raise exception 'Only an admin can change a season cost payment';
+    elsif tg_op = 'UPDATE' then new.season := false;
+    end if;
+  end if;
+  if tg_op = 'DELETE' then return old; end if; return new;
+end $$;
+drop trigger if exists payments_guard on payments;
+create trigger payments_guard before insert or update or delete on payments
+  for each row execute function payments_guard();
 
 -- New Supabase projects no longer expose tables to the browser API by
 -- default, so grant signed-in users access explicitly. Row-level security
