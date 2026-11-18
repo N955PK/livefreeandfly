@@ -753,7 +753,7 @@ function seasonRows(){
     rows.push({ k:'refund', t:pt.paidOut ? 'Paid out to you' : 'Your total refund', sub:pt.paidOut ? 'It’s in your balance above.' : '', v:signed(-(depBack + (sees ? share : 0))) });
     if (pt.each) rows.push({ k:'dep', indent:true, t:'Security deposit', pv:cut ? `${money(cut)} of your ${money(pt.each)} was withheld.` : '', v:money(-depBack) });
     rows.push(sees ? { k:'gf', indent:true, t:'Share of guest fees and leases', v:money(-share) } : { k:'gf', indent:true, t:'Share of guest fees and leases', plain:'At payout' });
-    if (myS) rows.push({ k:'cost', rule:true, t:'Season cost', pv:sees ? '' : 'Before your share of guest fees and leases.', v:money(myS.share + costs - depBack - (sees ? share : 0)) });
+    if (myS) rows.push({ k:'cost', rule:true, t:'Your total season cost', pv:sees ? '' : 'Before your share of guest fees and leases.', v:money(myS.share + costs - depBack - (sees ? share : 0)) });
   }
   return rows;
 }
