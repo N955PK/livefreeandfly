@@ -94,11 +94,12 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .ava{display:flex;align-items:center;gap:14px}
 .ava .btns{display:flex;flex-wrap:wrap;gap:8px}
 .ava label{margin:0}
-.emo-row,.sw-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.emo-row button{width:42px;height:42px;font-size:22px;border:1px solid var(--line);border-radius:10px}
+.emo-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:12px}
+.emo-row button{display:flex;align-items:center;justify-content:center;width:100%;height:auto;aspect-ratio:1/1;padding:0;line-height:1;font-size:clamp(18px,6vw,24px);border:1px solid var(--line);border-radius:10px}
 .emo-row:not(.open) .xtra{display:none}
-.emo-row button.more-btn{width:auto;padding:0 10px;font-size:13px;color:var(--dim)}
-.sw-row button{width:38px;height:38px;border-radius:50%;border:2px solid transparent}
+.emo-row button.more-btn{font-size:12px;color:var(--dim)}
+.sw-row{display:grid;grid-template-columns:repeat(5,44px);justify-content:space-between;row-gap:10px;margin-top:14px}
+.sw-row button{width:44px;height:44px;border-radius:50%;border:2px solid transparent}
 .sw-row button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--sheet)}
 input[type="hidden"],input[hidden]{display:none}
 a.btn{text-decoration:none}
@@ -288,9 +289,10 @@ const first = m => m ? m.name.trim().split(/\s+/)[0] : 'Someone';
 const active = () => S.members.filter(m => m.active !== false);
 const isAdmin = () => !!(S.me && S.me.is_admin);
 const initials = m => { const p = m.name.trim().split(/\s+/); return ((p[0]?.[0]||'') + (p[1]?.[0] || p[0]?.[1] || '')).toUpperCase(); };
-// The first 13 show by default (the funniest); the rest sit behind "More".
+// The first 13 show by default (the funniest); the rest sit behind "More". 13 + the More button fill two rows of seven;
+// all 48 + the button fill seven.
 const EMOJI = ['🎿','🏂','🤪','😎','🥶','🤠','🤡','💩','🦆','🐸','🦄','🦖','🍺','☕',
-  '⛷️','🏔️','❄️','☃️','🌲','🔥','🐻','🦌','🐕','🚠','🫠','🤓','🥸','👻','👽','🤖','😈','🙃','🤙','🐙','🦥','🐧','🐿️','🦫','🧀','🌮','🍕','🥃','🍻','🧊'];
+  '⛷️','🏔️','❄️','☃️','🌲','🔥','🐻','🦌','🐕','🚠','🫠','🤓','🥸','👻','👽','🤖','😈','🙃','🤙','🐙','🦥','🐧','🐿️','🦫','🧀','🌮','🍕','🥃','🍻','🧊','🥳','🤯','🦩','🍔'];
 const EMOJI_SHOWN = 13;
 const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/, HEX_RE = /^#[0-9a-f]{6}$/i;
 function chip(m, sm, cls, attrs){
