@@ -308,7 +308,7 @@ function chip(m, sm, cls, attrs){
   const bg = HEX_RE.test(m.color || '') ? m.color : '#8B959E', a = m.avatar || '', c = cls ? ' ' + cls : '', x = attrs ? ' ' + attrs : ' aria-hidden="true"';
   if (sm) return `<span class="chip sm" style="background:${bg}" aria-hidden="true">${esc((m.name || '?').trim()[0].toUpperCase())}</span>`;
   if (IMG_RE.test(a)) return `<span class="chip${c}"${x} style="background:${bg} center/cover url(${a})"></span>`;
-  if (a.startsWith('emoji:')) return `<span class="chip emo${c}"${x} style="background:${bg}">${esc(a.slice(6, 14))}</span>`;
+  if (a.startsWith('emoji:')) return `<span class="chip emo${c}"${x} style="background:${bg}">${esc(a.slice(6, 40))}</span>`;
   return `<span class="chip${c}"${x} style="background:${bg}">${esc(initials(m))}</span>`;
 }
 // A picture you can tap to see large.
@@ -318,6 +318,17 @@ function openPhoto(id, from){
   S.photoFrom = from || null;
   const d = $('#photo'); d.innerHTML = `<div style="display:flex;justify-content:center">${chip(m, false, 'xl')}</div><p class="nm">${esc(m.name)}</p><p class="tip">Tap anywhere to close</p>`;
   if (!d.open) d.showModal(); d.focus();
+}
+// The first emoji in whatever was typed or pasted, or '' if there isn't one. Handles skin tones, flags, families, keycaps.
+const EMOJI_RE = /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3/u;
+function firstEmoji(text){
+  const t = String(text || ''); let parts = null;
+  try { if (typeof Intl !== 'undefined' && Intl.Segmenter) parts = [...new Intl.Segmenter(undefined, { granularity:'grapheme' }).segment(t)].map(x => x.segment); } catch(e){ parts = null; }
+  if (!parts) parts = t.match(/\p{Regional_Indicator}{2}|[#*0-9]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})*(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})*)*/gu) || [];
+  let g = parts.find(x => EMOJI_RE.test(x)) || '';
+  if (!g || g.length > 34) return '';
+  if (/^\p{Extended_Pictographic}$/u.test(g) && !/\p{Emoji_Presentation}/u.test(g)) g += '\uFE0F';      // ask for the color version
+  return g;
 }
 async function fileToAvatar(file){
   const url = URL.createObjectURL(file);
@@ -918,6 +929,7 @@ function sheetMember(m){
           <input type="file" id="avaFile" accept="image/*" data-change="avafile" hidden>
           <button type="button" class="btn small quiet" data-act="ava-clear">Use initials</button></div></div>
       <div class="emo-row">${EMOJI.map((e, i) => `<button type="button"${i >= EMOJI_SHOWN ? ' class="xtra"' : ''} data-act="ava-emoji" data-e="${e}" aria-label="Use ${e} as the picture">${e}</button>`).join('')}<button type="button" class="more-btn" data-act="emoji-more" aria-expanded="false">More</button></div>
+      <label style="margin-top:14px">Or use any emoji from your keyboard<input type="text" name="anyemoji" value="${esc((m.avatar || '').startsWith('emoji:') ? m.avatar.slice(6) : '')}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" maxlength="40" placeholder="Tap here, then the 😀 or 🌐 key"></label>
       <div class="sw-row">${PALETTE.map((c, i) => `<button type="button" data-act="ava-color" data-c="${c}" style="background:${c}" aria-label="Color ${i + 1}" aria-pressed="${(m.color || '').toLowerCase() === c}"></button>`).join('')}</div>
       <input type="hidden" name="avatar" value="${esc(m.avatar || '')}"><input type="hidden" name="color" value="${esc(m.color || '')}"></fieldset>`}
     <label>${self ? 'Name shown to the house' : 'Name'}<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
@@ -1088,6 +1100,7 @@ function setAvatar(v){
   const f = $('#sheet form[data-form="member"]'); if (!f || !f.avatar) return;
   f.avatar.value = v;
   $('#avaPrev').innerHTML = chip({ name: f.name.value || '?', color: f.color.value, avatar: v }, false, 'lg');
+  if (f.anyemoji && document.activeElement !== f.anyemoji) f.anyemoji.value = v.startsWith('emoji:') ? v.slice(6) : '';
 }
 async function toggleNight(night){
   if (!S.me) return;
@@ -1458,6 +1471,17 @@ document.addEventListener('lostpointercapture', finishNightDrag);
 document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
+document.addEventListener('input', e => {
+  if (e.target.name !== 'anyemoji' || e.isComposing) return;
+  const g = firstEmoji(e.target.value), err = $('#err');
+  if (e.target.value && !g){ e.target.value = ''; if (err) err.textContent = 'That isn’t an emoji. Switch to your emoji keyboard with the 😀 or 🌐 key.'; return; }
+  if (err) err.textContent = '';
+  if (g){ e.target.value = g; setAvatar('emoji:' + g); }
+});
+// Tapping the box starts fresh; leaving it shows the emoji that's currently chosen. Return closes the keyboard instead of saving.
+document.addEventListener('focusin', e => { if (e.target.name === 'anyemoji') e.target.value = ''; });
+document.addEventListener('focusout', e => { if (e.target.name !== 'anyemoji') return; const f = e.target.form, v = f && f.avatar ? f.avatar.value : ''; e.target.value = v.startsWith('emoji:') ? v.slice(6) : ''; });
+document.addEventListener('keydown', e => { if (e.target.name === 'anyemoji' && e.key === 'Enter'){ e.preventDefault(); e.target.blur(); } });
 document.addEventListener('change', e => {
   const k = e.target.dataset.change;
   if (k === 'note'){ const s = myStay(e.target.dataset.night); if (s) save('stays', { ...s, note:e.target.value.trim() }); }
