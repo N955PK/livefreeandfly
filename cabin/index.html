@@ -98,7 +98,7 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .emo-row button{display:flex;align-items:center;justify-content:center;width:100%;height:auto;aspect-ratio:1/1;padding:0;line-height:1;font-size:clamp(18px,6vw,24px);border:1px solid var(--line);border-radius:10px}
 .emo-row:not(.open) .xtra{display:none}
 .emo-row button.more-btn{font-size:11.5px;line-height:1.1;padding:0 2px;color:var(--dim)}
-.emoji-catcher{position:absolute;left:0;width:1px;height:1px;min-height:0;margin:0;padding:0;border:0;opacity:0;pointer-events:none;font-size:16px}
+.emoji-catcher{position:absolute;left:0;width:1px;height:1px;margin:0;padding:0;border:0;overflow:hidden;opacity:0;pointer-events:none;font-size:16px;line-height:1;white-space:nowrap;-webkit-user-select:text;user-select:text;caret-color:transparent;outline:none}
 .sw-row{display:grid;grid-template-columns:repeat(5,44px);justify-content:space-between;row-gap:10px;margin-top:14px}
 .sw-row button{width:44px;height:44px;border-radius:50%;border:2px solid transparent}
 .sw-row button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--sheet)}
@@ -330,6 +330,18 @@ function firstEmoji(text){
   if (!g || g.length > 34) return '';
   if (/^\p{Extended_Pictographic}$/u.test(g) && !/\p{Emoji_Presentation}/u.test(g)) g += '\uFE0F';      // ask for the color version
   return g;
+}
+// A picture that arrives from the keyboard (a Genmoji or sticker) becomes a small transparent PNG, shrunk to fit the database's limit.
+async function pictureToAvatar(src){
+  const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('load')); i.src = src; });
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height; if (!w || !h) throw new Error('load');
+  for (const n of [256, 192, 160, 128, 96]){
+    const cv = document.createElement('canvas'); cv.width = cv.height = n;
+    const k = Math.min(n * .84 / w, n * .84 / h);                                    // a little breathing room inside the circle
+    cv.getContext('2d').drawImage(img, (n - w * k) / 2, (n - h * k) / 2, w * k, h * k);
+    const d = cv.toDataURL('image/png'); if (d.length < 45000) return d;               // the database allows 60,000
+  }
+  throw new Error('too big');
 }
 async function fileToAvatar(file){
   const url = URL.createObjectURL(file);
@@ -613,10 +625,9 @@ function viewMoney(){
   const head = mine > 0 ? ['You’re owed', money(mine), 'pos'] : mine < 0 ? ['You owe', money(-mine), 'neg'] : ['You’re', 'settled up', ''];
   const gl = guestLedger().tot, col = collector();
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
-  const guestHtml = `<ul class="list">${guestRow('Owed so far', 'Nights that have happened, not yet received', gl.owed)}${guestRow('Received', 'In advance or after the stay', gl.paid)}${guestRow('Still to come', 'Upcoming guest nights, not yet received', gl.coming)}${guestRow('Expected total', '', gl.owed + gl.paid + gl.coming)}</ul>
+  const guestHtml = `<ul class="list">${guestRow('Received', '', gl.paid)}${guestRow('Owed or expected', '', gl.owed + gl.coming)}</ul>
     <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>
-    <p class="note">${col ? `Guests pay ${esc(col.name)} directly for each night they stay.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}`
-      : `The admin hasn’t set who guests pay yet.`} Guest fees go into the pot, which is paid out at the end of the lease.</p>`;
+    <p class="note">${col ? `Guests pay ${esc(col.name)} directly.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}` : `The admin hasn’t set who guests pay yet.`}</p>`;
   const myLease = S.me && S.me.part_time && leaseOf(S.me) ? `<h2>Your part-time lease</h2>
     <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${leasePaid(S.me) ? 'Paid' : 'Due'}</span>
       <span class="s">${col ? `Pay ${esc(col.name)} directly. It’s separate from your house balance.` : 'The admin hasn’t set who collects it yet.'}</span>
@@ -783,7 +794,7 @@ function sheetGuests(){
     const guests = Object.values(by[id]).sort((a, b) => a.name.localeCompare(b.name));
     return `<div class="grp">${pic(member(id))}<span>${esc(first(member(id)))}’s guests</span></div>
       <ul class="list">${guests.map(g => {
-        const past = g.nights.filter(x => !x.future), future = g.nights.filter(x => x.future), n = g.nights.length;
+        const n = g.nights.length;
         const data = `data-sponsor="${id}" data-name="${esc(g.name)}"`;
         const unpaid = g.nights.filter(x => !x.paid), due = g.owed + g.coming;      // everything not yet paid, upcoming nights included
         const note = `${g.name}, guest of ${first(member(id))}: ${dates(unpaid)}`;
@@ -795,14 +806,12 @@ function sheetGuests(){
         if (can && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark not received</button>`;
         btns += `<button class="btn small quiet" data-act="guest-cancel" ${data}>Cancel a night</button>`;
         return `<li><div class="rowi"><span class="grow"><span class="t">${esc(g.name)}</span>
-          <span class="s">${n} night${n === 1 ? '' : 's'}${past.length ? ': ' + dates(past) : ''}</span>
-          ${future.length ? `<span class="s">Upcoming: ${dates(future)}</span>` : ''}
-          ${g.paid ? `<span class="s pos">Received ${money(g.paid)}${future.some(x => x.paid) ? ', including upcoming nights' : ''}</span>` : ''}</span>
-          <span class="amt${g.owed ? ' neg' : ''}">${g.owed ? money(g.owed) + ' owed' : g.coming ? money(g.coming) + ' to come' : 'Received'}</span></div>
+          <span class="s">${n} night${n === 1 ? '' : 's'}: ${dates(g.nights)}</span>
+          ${g.paid && due ? `<span class="s pos">${money(g.paid)} received</span>` : ''}</span>
+          <span class="amt${g.owed ? ' neg' : ''}">${due ? money(due) : 'Received'}</span></div>
           ${btns ? `<div class="pay-btns">${btns}</div>` : ''}</li>`; }).join('')}</ul>`; }).join('');
   return `<h2>Every guest</h2><p class="sub">${col ? `Guests pay ${esc(col.name)} directly.` : 'The admin hasn’t set who guests pay yet.'}${can ? ' You can mark their fees as received.' : ''}</p>${body}
-    <div class="grp"><span>Expected total</span><span class="amt">${money(tot.owed + tot.paid + tot.coming)}</span></div>
-    <p class="note">${money(tot.owed)} owed so far, ${money(tot.paid)} received, ${money(tot.coming)} still to come.</p>
+    <p class="note">${money(tot.paid)} received, ${money(tot.owed + tot.coming)} owed or expected.</p>
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
 // Admin only.
@@ -930,7 +939,7 @@ function sheetMember(m){
           <input type="file" id="avaFile" accept="image/*" data-change="avafile" hidden>
           <button type="button" class="btn small quiet" data-act="ava-clear">Use initials</button></div></div>
       <div class="emo-row">${EMOJI.map((e, i) => `<button type="button"${i >= EMOJI_SHOWN ? ' class="xtra"' : ''} data-act="ava-emoji" data-e="${e}" aria-label="Use ${e} as the picture">${e}</button>`).join('')}<button type="button" class="more-btn" data-act="emoji-more" aria-expanded="false">More</button></div>
-      <p class="each" id="emoHint" hidden></p><input type="text" name="anyemoji" class="emoji-catcher" tabindex="-1" aria-label="Type any emoji" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" maxlength="40">
+      <p class="each" id="emoHint" hidden></p><div id="emojiCatcher" class="emoji-catcher" contenteditable="true" role="textbox" aria-label="Type any emoji" tabindex="-1" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></div>
       <div class="sw-row">${PALETTE.map((c, i) => `<button type="button" data-act="ava-color" data-c="${c}" style="background:${c}" aria-label="Color ${i + 1}" aria-pressed="${(m.color || '').toLowerCase() === c}"></button>`).join('')}</div>
       <input type="hidden" name="avatar" value="${esc(m.avatar || '')}"><input type="hidden" name="color" value="${esc(m.color || '')}"></fieldset>`}
     <label>${self ? 'Name shown to the house' : 'Name'}<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
@@ -1065,7 +1074,7 @@ function financeTables(){
   for (const st of guestStays().slice().sort((x, y) => x.night.localeCompare(y.night))) for (const g of guestNames(st)){
     const fee = perGuest(st), got = isPaid(st, g), fut = st.night > tIso; if (got) gGot += fee; else if (fut) gCome += fee; else gOwed += fee;
     add(st.night, g, member(st.member_id).name, yes(!st.host_away), num(fee), yes(got), fut ? 'Upcoming' : 'Stayed'); }
-  gap(); add('', 'Received', '', '', num(gGot)); add('', 'Owed so far', '', '', num(gOwed)); add('', 'Still to come', '', '', num(gCome)); add('', 'Expected total', '', '', num(gGot + gOwed + gCome));
+  gap(); add('', 'Received', '', '', num(gGot)); add('', 'Owed or expected', '', '', num(gOwed + gCome));
 
   tab('Part-time leases'); add('Member', 'First night', 'Last night', 'Lease', 'Received');
   for (const m of partTimers()) add(m.name, m.active_from || '', m.active_until || '', num(leaseOf(m)), yes(leasePaid(m)));
@@ -1298,7 +1307,7 @@ const actions = {
       row.classList.add('open'); el.textContent = 'Even more'; el.setAttribute('aria-expanded', 'true'); el.setAttribute('aria-label', 'Even more: pick any emoji from your keyboard');
       return;
     }
-    const box = $('#sheet [name=anyemoji]');                    // after that: open the phone's keyboard for any emoji
+    const box = $('#emojiCatcher');                    // after that: open the phone's keyboard for any emoji
     if (box){ box.focus(); const h = $('#emoHint'); if (h) h.scrollIntoView({ block:'nearest', behavior:'smooth' }); }
   },
   'ava-color'(el){ const f = $('#sheet form[data-form="member"]'); if (!f) return; f.color.value = el.dataset.c;
@@ -1479,18 +1488,47 @@ document.addEventListener('lostpointercapture', finishNightDrag);
 document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
-document.addEventListener('input', e => {
-  if (e.target.name !== 'anyemoji' || e.isComposing) return;
-  const g = firstEmoji(e.target.value), hint = $('#emoHint');
-  if (e.target.value && !g){ e.target.value = ''; if (hint){ hint.textContent = 'That isn’t an emoji. Tap the 😀 or 🌐 key on your keyboard.'; hint.hidden = false; } return; }
-  if (!g) return;
-  e.target.value = ''; setAvatar('emoji:' + g); e.target.blur();               // closes the keyboard
-  const pv = $('#avaPrev'); if (pv) pv.scrollIntoView({ block:'nearest', behavior:'smooth' });
+// Whatever lands in the hidden field is read here: a picture (Genmoji, sticker), an emoji, or something else.
+let catching = false;
+function finishPick(el){ el.blur(); const pv = $('#avaPrev'); if (pv) pv.scrollIntoView({ block:'nearest', behavior:'smooth' }); }
+async function takeFromCatcher(el){
+  if (catching || !el) return; catching = true;
+  const say = t => { const h = $('#emoHint'); if (h){ h.textContent = t; h.hidden = false; } };
+  try {
+    const img = el.querySelector('img');
+    if (img){
+      const src = img.currentSrc || img.getAttribute('src') || ''; el.innerHTML = '';
+      if (!/^(data|blob):/i.test(src)) return say(`Couldn’t read that one (${(src.split(':')[0] || 'no source').slice(0, 24)}). Screenshot it and use Upload a photo instead.`);
+      try { const png = await pictureToAvatar(src); setAvatar(png); finishPick(el); }
+      catch(err){ console.error(err); say(err.message === 'too big' ? 'That picture is too detailed to save. Screenshot it and use Upload a photo instead.' : 'Couldn’t read that one. Screenshot it and use Upload a photo instead.'); }
+      return;
+    }
+    const text = el.textContent || '', g = firstEmoji(text);
+    if (g){ el.textContent = ''; setAvatar('emoji:' + g); finishPick(el); return; }
+    if (/\uFFFC/.test(text)){ el.textContent = ''; return say('Your phone sent that as an attachment this page can’t read. Screenshot it and use Upload a photo instead.'); }
+    if (text.trim()){ el.textContent = ''; say('That isn’t an emoji. Tap the 😀 or 🌐 key on your keyboard.'); }
+  } finally { catching = false; }
+}
+document.addEventListener('input', e => { if (e.target.id === 'emojiCatcher' && !e.isComposing) takeFromCatcher(e.target); });
+document.addEventListener('compositionend', e => { if (e.target.id === 'emojiCatcher') takeFromCatcher(e.target); });
+// Stickers can arrive as a paste. We read the picture or the plain text ourselves and ignore any other pasted markup.
+document.addEventListener('paste', e => {
+  const el = e.target; if (!el || el.id !== 'emojiCatcher') return;
+  e.preventDefault();
+  const cd = e.clipboardData, file = cd && [...(cd.files || [])].find(f => /^image\//.test(f.type));
+  if (file){ const r = new FileReader(); r.onload = () => { const im = document.createElement('img'); im.src = r.result; el.innerHTML = ''; el.appendChild(im); takeFromCatcher(el); }; r.readAsDataURL(file); return; }
+  el.textContent = (cd && cd.getData('text/plain')) || ''; takeFromCatcher(el);
 });
-// The field is invisible, so a hint stands in while the keyboard is open. Return closes the keyboard instead of saving.
-document.addEventListener('focusin', e => { if (e.target.name !== 'anyemoji') return; e.target.value = ''; const h = $('#emoHint'); if (h){ h.textContent = 'Tap the 😀 or 🌐 key on your keyboard, then pick an emoji.'; h.hidden = false; } });
-document.addEventListener('focusout', e => { if (e.target.name !== 'anyemoji') return; e.target.value = ''; const h = $('#emoHint'); if (h) h.hidden = true; });
-document.addEventListener('keydown', e => { if (e.target.name === 'anyemoji' && e.key === 'Enter'){ e.preventDefault(); e.target.blur(); } });
+// The field is invisible, so a hint stands in while the keyboard is open. A watcher catches pictures that don't announce themselves.
+let catcherWatch = null;
+document.addEventListener('focusin', e => {
+  if (e.target.id !== 'emojiCatcher') return;
+  e.target.innerHTML = ''; const h = $('#emoHint'); if (h){ h.textContent = 'Tap the 😀 or 🌐 key on your keyboard, then pick an emoji or Genmoji.'; h.hidden = false; }
+  if (catcherWatch) catcherWatch.disconnect();
+  catcherWatch = new MutationObserver(() => takeFromCatcher(e.target)); catcherWatch.observe(e.target, { childList:true, characterData:true, subtree:true });
+});
+document.addEventListener('focusout', e => { if (e.target.id !== 'emojiCatcher') return; if (catcherWatch){ catcherWatch.disconnect(); catcherWatch = null; } e.target.innerHTML = ''; const h = $('#emoHint'); if (h) h.hidden = true; });
+document.addEventListener('keydown', e => { if (e.target.id === 'emojiCatcher' && e.key === 'Enter'){ e.preventDefault(); e.target.blur(); } });
 document.addEventListener('change', e => {
   const k = e.target.dataset.change;
   if (k === 'note'){ const s = myStay(e.target.dataset.night); if (s) save('stays', { ...s, note:e.target.value.trim() }); }
