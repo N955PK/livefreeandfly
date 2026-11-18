@@ -743,7 +743,7 @@ function seasonRows(){
   const sees = isAdmin() || canMarkGuests() || pt.paidOut;                       // the pot's size stays with admins until it's paid out
   const costs = (me && pt.costs.mine && pt.costs.mine[me.id]) || 0;
   if (sc.total) rows.push({ k:'total', t:'Total paid up front', sub:`${esc(sc.payers.map(first).join(' and '))} paid, ${fmtDay(sc.exps[0].spent_on)}`, v:money(sc.total) });
-  if (myS) rows.push({ k:'share', rule:!!sc.total, t:'Your share', v:money(myS.share) });
+  if (myS) rows.push({ k:'share', rule:!!sc.total, t:'Your share of the lease', v:money(myS.share) });
   if (full){
     // House bills add to what you pay. The refund is the deposit plus your share of guest fees and leases; those two are indented because they make up the refund rather than add to it.
     if (costs || pt.costs.all) rows.push({ k:'bills', t:'Your share of house bills', v:signed(costs) });
