@@ -125,7 +125,6 @@ a.btn{text-decoration:none}
 .mnav{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
 .mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
 .mnav button:disabled{opacity:.25;cursor:default}
-.mnav.low{margin:14px 0 0}
 .mnav h2{margin:0;font-size:var(--t-widget);text-transform:none;letter-spacing:.04em;color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .pager{position:relative;overflow:hidden;margin:-2px -4px;padding:2px 4px;touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
@@ -682,15 +681,15 @@ function monthBounds(){
 
 function viewNights(){
   const m0 = S.month, bounds = monthBounds(), monthName = d => d.toLocaleDateString('en-US', { month:'long' }), prevName = monthName(monthAt(-1)), nextName = monthName(monthAt(1));
-  const arrows = cls => `<div class="mnav${cls}"><button data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹</button>__MID__<button data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>›</button></div>`;
   return `${demoNote()}<h1>The shredule</h1>
 ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
-    ${arrows('').replace('__MID__', `<h2>${monthLabel(m0)}</h2>`)}
+    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹</button>
+      <h2>${monthLabel(m0)}</h2>
+      <button data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>›</button></div>
     ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap or drag across nights'}</span>
         <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
       : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
-    <div class="pager" id="pager"><div class="track"><div class="mpage">${monthPage(m0)}</div></div></div>
-    ${arrows(' low').replace('__MID__', '')}`;
+    <div class="pager" id="pager"><div class="track"><div class="mpage">${monthPage(m0)}</div></div></div>`;
 }
 
 function historyHtml(){
