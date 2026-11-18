@@ -202,6 +202,7 @@ a.btn{text-decoration:none}
 .rowi .t{display:block;overflow-wrap:anywhere}
 .rowi .s{display:block;font-size:var(--t-cap);color:var(--dim);overflow-wrap:anywhere}
 .rowi .s.owes{color:var(--neg)}
+.rowi .tick{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--pos);color:var(--field);font-weight:700;font-size:15px;line-height:1}
 .rowi .amt{font-family:var(--sans);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap}
 .pos{color:var(--pos)} .neg{color:var(--neg)}
 .links{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--t-cap);margin-top:2px}
@@ -721,31 +722,21 @@ function seasonCosts(){
   const people = S.members.filter(m => share[m.id] || paid[m.id]).map(m => ({ m, share:share[m.id] || 0, paid:paid[m.id] || 0, owes:Math.max(0, (share[m.id] || 0) - (paid[m.id] || 0)) }));
   return { exps, pays, total, people, owed:people.reduce((n, x) => n + x.owes, 0), payers:[...fronted].map(member).filter(Boolean) };
 }
-// "Rent: 14,000" lines become itemised breakdown entries; "(refundable)" marks what comes back at season end.
-function parseItems(text){
-  const items = [], bad = [];
-  for (const raw of String(text || '').split('\n')){
-    const line = raw.trim(); if (!line) continue;
-    const m = line.match(/^(.*?)\s*[:\-–—]\s*\$?\s*([\d,]*\.?\d+)\s*$/); if (!m || !m[1].trim()){ bad.push(line); continue; }
-    const refundable = /\(refundable\)/i.test(m[1]), label = m[1].replace(/\(refundable\)/ig, '').trim(), cents = toCents(m[2].replace(/,/g, ''));
-    if (!label || cents <= 0){ bad.push(line); continue; }
-    items.push(refundable ? { label, cents, refundable:true } : { label, cents });
-  }
-  return { items, bad };
-}
-const itemsText = items => (items || []).map(it => `${it.label}${it.refundable ? ' (refundable)' : ''}: ${(it.cents / 100).toFixed(2)}`).join('\n');
 // Season totals: what the lease cost you, what comes back, and what the season finally costs you. One list of rows, used both
 // to draw the card and to fill in the numbers when someone taps to show them.
 const signed = c => (c > 0 ? '+' : '') + money(c);
+// What the up-front payment covers: the labels from a saved breakdown if there is one, otherwise the usual four.
+function seasonIncludes(sc){
+  const labels = []; for (const e of sc.exps) for (const it of (e.items || [])){ const l = String(it.label || '').trim().toLowerCase(); if (l && !labels.includes(l)) labels.push(l); }
+  return `Includes ${esc((labels.length ? labels : ['rent', 'fixed utilities', 'security deposit', 'booking fee']).join(', '))}`;
+}
 function seasonRows(){
   const sc = seasonCosts(), me = S.me, myS = me && sc.people.find(x => x.m.id === me.id), pt = pot(), rows = [];
   const full = !!(me && fullTimers().some(m => m.id === me.id)), n = fullTimers().length || 1;
   const cut = pt.heads ? Math.ceil(pt.withheld / pt.heads) : 0, depBack = Math.max(0, pt.each - cut), share = Math.floor((pt.guests + pt.leases) / n);
   const sees = isAdmin() || canMarkGuests() || pt.paidOut;                       // the pot's size stays with admins until it's paid out
   const costs = (me && pt.costs.mine && pt.costs.mine[me.id]) || 0;
-  // What the up-front payment covers: the labels from an admin's breakdown if there is one, otherwise the usual four.
-  const labels = []; for (const e of sc.exps) for (const it of (e.items || [])){ const l = String(it.label || '').trim().toLowerCase(); if (l && !labels.includes(l)) labels.push(l); }
-  if (sc.total) rows.push({ k:'total', t:'Total paid up front', sub:`Includes ${esc((labels.length ? labels : ['rent', 'fixed utilities', 'security deposit', 'booking fee']).join(', '))}`, v:money(sc.total) });
+  if (sc.total) rows.push({ k:'total', t:'Total paid up front', sub:seasonIncludes(sc), v:money(sc.total) });
   if (myS) rows.push({ k:'share', rule:!!sc.total, t:'Your share of the lease', v:money(myS.share) });
   if (full){
     // House bills add to what you pay. The refund is the deposit plus your share of guest fees and leases; those two are indented because they make up the refund rather than add to it.
@@ -848,8 +839,7 @@ function viewHouse(){
     <ul class="list">${mem}</ul>
     ${isAdmin() ? `<div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>` : ''}
     ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button>${seasonReady() || !(S.expenses.length || S.payments.length) ? '<button class="btn" data-act="season-open">Season costs</button>' : ''}<button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>
-      ${!seasonReady() && (S.expenses.length || S.payments.length) ? `<p class="sub" style="margin:10px 0 0">Season costs need a one-line database update first. It’s in the README.</p>` : ''}`
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
     : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
       <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}${foot}`;
 }
@@ -997,6 +987,18 @@ function sheetDeposit(){
     <div class="actions"><button type="button" class="btn" data-act="pot-open">Cancel</button><button class="btn primary">Save deposits</button></div></form>`;
 }
 // The admin and the member who collects see this. Only the admin can pay the pot out.
+// Admin only, inside The pot and leases: the up-front total, and one line saying whether every full-time member has paid their share.
+function seasonSection(){
+  const sc = seasonCosts(), full = new Set(fullTimers().map(m => m.id)), owing = sc.people.filter(x => full.has(x.m.id) && x.owes > 0);
+  const h = `<h2 style="margin:26px 0 8px">Season costs</h2>`;
+  if (!seasonReady()) return (S.expenses.length || S.payments.length) ? `${h}<p class="sub">Season costs need a one-line database update first. It’s in the README.</p>` : '';
+  if (!sc.total) return `${h}<p class="sub">Not set up. Choose the up-front lease payment and the payments toward it, and they move out of the payment history. No one’s balance changes.</p>
+    <div class="actions"><button class="btn" data-act="season-pick-open">Choose entries</button></div>`;
+  return `${h}<ul class="list soft"><li><div class="rowi"><span class="grow"><span class="t">Total paid up front</span><span class="s">${seasonIncludes(sc)}</span></span><span class="amt">${money(sc.total)}</span></div></li>
+    ${owing.length ? owing.map(x => `<li><div class="rowi">${pic(x.m)}<span class="grow"><span class="t">${esc(x.m.name)}</span><span class="s owes">Hasn’t paid their share yet</span></span><span class="amt">${money(x.owes)}</span></div></li>`).join('')
+      : `<li><div class="rowi"><span class="tick" aria-hidden="true">✓</span><span class="grow"><span class="t">All full-time members paid their share</span></span></div></li>`}</ul>
+    <div class="actions"><button class="btn" data-act="season-pick-open">Choose entries</button></div>`;
+}
 function sheetPot(){
   const pt = pot(), col = collector(), full = fullTimers(), parts = partTimers(), admin = isAdmin();
   const line = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
@@ -1013,6 +1015,7 @@ function sheetPot(){
       ${admin && full.length ? `<div class="l" style="margin-top:4px">About ${money(Math.trunc(pt.net / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}</div>` : ''}</div>
     ${admin ? `<div class="actions"><button class="btn" data-act="deposit-open">Edit security deposits</button></div>` : ''}
     ${leases}
+    ${admin ? seasonSection() : ''}
     <h2 style="margin:26px 0 4px">Payout</h2>
     <p class="sub">${pt.paidOut ? `Paid out. ${col ? esc(first(col)) + ' now owes each full-time member their share, and pays it through Settle up.' : ''} Money received after this is added as it arrives.` : 'Not paid out yet. Nothing here affects anyone’s balance until it is. Pay it out once the deposits have come back.'}</p>
     ${admin ? `<div class="actions"><button class="btn${pt.paidOut ? '' : ' primary'}" data-act="pot-payout" data-v="${pt.paidOut ? 0 : 1}">${pt.paidOut ? 'Undo the payout' : 'Pay out the pot'}</button></div>` : ''}
@@ -1185,31 +1188,6 @@ function syncTheme(){
 }
 window.addEventListener('pagehide', () => { if (pushT) pushTheme(); });
 
-function sheetSeason(){
-  const sc = seasonCosts(), admin = isAdmin() && seasonReady(), me = S.me;
-  const row = (t, sub, v, cls, extra) => `<li><div class="rowi${extra || ''}"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s${cls ? ' ' + cls : ''}">${sub}</span>` : ''}</span><span class="amt">${v}</span></div></li>`;
-  if (!sc.total) return `<h2>Season costs</h2><p class="sub">The up-front lease payment lives here instead of in the payment history, so everyone can see the total and what they paid.</p>
-    ${admin ? `<p class="empty">Nothing here yet. Choose the up-front payment and everyone’s payments toward it, and they move here. No one’s balance changes.</p>
-    <div class="actions"><button class="btn primary" data-act="season-pick-open">Choose entries</button></div>` : `<p class="empty">The admin hasn’t set these up yet.</p>`}
-    <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
-  const group = e => {
-    const by = `${esc(first(member(e.paid_by)))} paid, ${fmtDay(e.spent_on)}`, items = Array.isArray(e.items) ? e.items : [];
-    return row(esc(e.description), by, money(e.amount_cents))
-      + items.map(it => row(esc(it.label), it.refundable ? 'Refundable. Comes back at season end through the pot.' : '', money(it.cents), '', ' item')).join('')
-      + (admin ? `<li><div class="pay-btns"><button class="btn small" data-act="season-items" data-id="${e.id}">${items.length ? 'Edit breakdown' : 'Break it down'}</button><button class="btn small" data-act="season-exp-edit" data-id="${e.id}">Edit payment</button></div></li>` : '');
-  };
-  const refundable = sc.exps.some(e => (e.items || []).some(it => it.refundable));
-  return `<h2>Season costs</h2><p class="sub">Only admins see this. It’s kept out of the payment history and already counted in everyone’s balance. Members see their own private totals on the Money tab.</p>
-    <h2>What was paid</h2>
-    <ul class="list soft">${sc.exps.map(group).join('')}${sc.exps.length > 1 ? row('Total paid up front', '', money(sc.total)) : ''}</ul>
-    ${refundable ? `<p class="note">Refundable items come back to full-time members through the pot at season end.</p>` : ''}
-    <h2>Who has paid</h2>
-    <ul class="list">${sc.people.map(x => `<li><div class="rowi">${pic(x.m)}<span class="grow"><span class="t">${esc(x.m.name)}${me && x.m.id === me.id ? ' (you)' : ''}</span>
-      <span class="s${x.owes ? ' owes' : ''}">${x.owes ? 'Still owes ' + money(x.owes) : 'Paid'}</span></span><span class="amt">${money(x.share)}</span></div></li>`).join('')}</ul>
-    <p class="note">${sc.owed ? `${money(sc.owed)} still to collect.` : 'Everyone has paid their share.'}</p>
-    ${admin ? `<h2>Manage</h2><div class="stack"><button class="btn" data-act="season-pick-open">Choose which entries are season costs</button></div>` : ''}
-    <div class="actions"><button class="btn primary" data-act="sheet-close">Done</button></div>`;
-}
 function sheetSeasonPick(){
   const pick = S.seasonPick, exps = S.expenses.filter(e => member(e.paid_by)).sort(byDate), pays = S.payments.slice().sort(byDate);
   const box = (kind, id, on, main, sub, amt) => `<li><button type="button" class="rowi seasonrow" data-act="season-tick" data-kind="${kind}" data-id="${id}" aria-pressed="${on}"><span class="box" aria-hidden="true"></span><span class="grow"><span class="t">${main}</span><span class="s">${sub}</span></span><span class="amt">${amt}</span></button></li>`;
@@ -1228,19 +1206,6 @@ function updateSeasonSum(){
   const e = S.expenses.filter(x => pick.e.has(x.id)), p = S.payments.filter(x => pick.p.has(x.id));
   el.textContent = e.length + p.length ? `${e.length} expense${e.length === 1 ? '' : 's'} (${money(e.reduce((n, x) => n + x.amount_cents, 0))}) and ${p.length} payment${p.length === 1 ? '' : 's'} (${money(p.reduce((n, x) => n + x.amount_cents, 0))}) ticked.` : 'Nothing ticked yet.';
 }
-function sheetSeasonItems(e, text, msg){
-  return `<form data-form="seasonitems" data-id="${e.id}"><h2>Break down the payment</h2>
-    <p class="sub">${esc(e.description)}: ${money(e.amount_cents)}. One line per item, like “Rent: 14,000”. Add “(refundable)” to anything that comes back, like a security deposit.</p>
-    <label>Items<textarea name="items" rows="7" spellcheck="false" data-total="${e.amount_cents}" placeholder="Rent: 14,000&#10;Cleaning: 600&#10;Security deposit (refundable): 2,225">${esc(text != null ? text : itemsText(e.items))}</textarea></label>
-    <p class="each" id="itemsSum"></p><p class="err" id="err">${msg ? esc(msg) : ''}</p>
-    <div class="actions"><button type="button" class="btn" data-act="season-back">Cancel</button><button class="btn primary">Save breakdown</button></div></form>`;
-}
-function updateItemsSum(){
-  const t = $('#sheet [name=items]'), el = $('#itemsSum'); if (!t || !el) return;
-  const { items } = parseItems(t.value), sum = items.reduce((n, x) => n + x.cents, 0), total = Number(t.dataset.total);
-  el.textContent = !items.length ? '' : sum === total ? `Adds up to ${money(total)}.` : `Adds up to ${money(sum)} of ${money(total)}${sum < total ? `, ${money(total - sum)} left` : `, ${money(sum - total)} over`}.`;
-}
-
 function sheetExpense(e){
   const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:[], description:'', amount_cents:0 };
   const canPot = canMarkGuests();
@@ -1467,7 +1432,7 @@ function financeXlsx(tabs){
   }
   return X.write(wb, { bookType:'xlsx', type:'array' });
 }
-function backToHistory(){ if (S.backToSeason){ S.backToSeason = false; S.backToHistory = false; openSheet(sheetSeason(), { type:'season' }); return; } if (S.backToHistory){ S.backToHistory = false; openSheet(sheetHistory(), { type:'history' }); } }
+function backToHistory(){ if (S.backToHistory){ S.backToHistory = false; openSheet(sheetHistory(), { type:'history' }); } }
 function setAvatar(v){
   const f = $('#sheet form[data-form="member"]'); if (!f || !f.avatar) return;
   f.avatar.value = v;
@@ -1568,8 +1533,7 @@ const actions = {
     box.querySelectorAll('.veil').forEach(b => { const r = map[b.dataset.k]; b.textContent = on && r ? r.v : '••••••'; b.setAttribute('aria-label', on ? 'Hide amounts' : 'Show amounts'); });
     box.querySelectorAll('[data-pv]').forEach(x => { const r = map[x.dataset.pv]; x.textContent = on && r ? r.pv : ''; x.hidden = !(on && r && r.pv); });
   },
-  'season-open'(){ if (isAdmin()) openSheet(sheetSeason(), { type:'season' }); },
-  'season-back'(){ if (isAdmin()) openSheet(sheetSeason(), { type:'season' }); },
+  'season-back'(){ if (isAdmin()) openSheet(sheetPot(), { type:'pot' }); },
   'season-pick-open'(){
     if (!isAdmin() || !seasonReady()) return;
     S.seasonPick = { e:new Set(S.expenses.filter(x => x.season).map(x => x.id)), p:new Set(S.payments.filter(x => x.season).map(x => x.id)) };
@@ -1594,10 +1558,8 @@ const actions = {
     for (const e of S.expenses){ const want = pick.e.has(e.id); if (!!e.season !== want) changes.push(['expenses', { ...e, season:want }]); }
     for (const p of S.payments){ const want = pick.p.has(p.id); if (!!p.season !== want) changes.push(['payments', { ...p, season:want }]); }
     if (changes.length){ el.disabled = true; el.textContent = 'Moving…'; for (const [t, row] of changes) await save(t, row); toast('Season costs updated'); }
-    S.seasonPick = null; openSheet(sheetSeason(), { type:'season' });
+    S.seasonPick = null; openSheet(sheetPot(), { type:'pot' });
   },
-  'season-items'(el){ if (!isAdmin() || !seasonReady()) return; const e = S.expenses.find(x => x.id === el.dataset.id); if (e) { openSheet(sheetSeasonItems(e), { type:'form' }); updateItemsSum(); } },
-  'season-exp-edit'(el){ if (!isAdmin()) return; const e = S.expenses.find(x => x.id === el.dataset.id); if (e){ S.backToSeason = true; S.backToHistory = false; openSheet(sheetExpense(e), { type:'form' }); } },
   'guests-open'(){ openSheet(sheetGuests(), { type:'guests' }); },
   'collector-open'(){ if (isAdmin()) openSheet(sheetCollector()); },
   'deposit-open'(){ if (isAdmin()) openSheet(sheetDeposit()); },
@@ -1769,15 +1731,6 @@ const forms = {
     closeSheet(); save('payments', row); toast('Payment saved');
     if (back && settle(balances()).some(x => x.from === S.me.id || x.to === S.me.id)) openSheet(sheetSettle(), { type:'settle' });
     else backToHistory();
-  },
-  seasonitems(f){
-    if (!isAdmin()) return;
-    const e = S.expenses.find(x => x.id === f.dataset.id); if (!e) return;
-    const { items, bad } = parseItems(f.items.value), sum = items.reduce((n, x) => n + x.cents, 0);
-    const again = msg => openSheet(sheetSeasonItems(e, f.items.value, msg), { type:'form' });
-    if (bad.length) return again(`I couldn’t read this line: “${bad[0]}”. Use a name, a colon, and an amount.`);
-    if (items.length && sum !== e.amount_cents) return again(`These add up to ${money(sum)}, but the payment was ${money(e.amount_cents)}${sum < e.amount_cents ? `, so ${money(e.amount_cents - sum)} is left out` : `, so they’re ${money(sum - e.amount_cents)} over`}.`);
-    S.backToSeason = true; closeSheet(); save('expenses', { ...e, items: items.length ? items : null }); toast('Breakdown saved'); backToHistory();
   },
   member(f){
     const email = f.email.value.trim().toLowerCase(), old = member(f.dataset.id);
@@ -2027,7 +1980,7 @@ document.addEventListener('pointercancel', endSwipe);
 
 document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (Date.now() < swipeClickUntil && e.target.closest('#pager')) return; if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
-document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); if (e.target.name === 'items') updateItemsSum(); });
+document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 // Whatever lands in the hidden field is read here: a picture (Genmoji, sticker), an emoji, or something else.
 let catching = false;
 function finishPick(el){ el.blur(); const pv = $('#avaPrev'); if (pv) pv.scrollIntoView({ block:'nearest', behavior:'smooth' }); }
@@ -2085,7 +2038,7 @@ document.addEventListener('change', e => {
   if (k === 'role'){ const l = document.getElementById('lease-' + e.target.dataset.id); if (l) l.hidden = e.target.value !== 'part'; }
   if (k === 'viewas'){ S.me = member(e.target.value); syncTheme(); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
 });
-$('#sheet').addEventListener('close', () => { S.sheet = null; S.bulk = null; S.partyFor = null; S.backToSeason = false; });
+$('#sheet').addEventListener('close', () => { S.sheet = null; S.bulk = null; S.partyFor = null; });
 $('#sheet').addEventListener('click', e => { if (e.target === e.currentTarget) closeSheet(); });
 
 $('#photo').addEventListener('click', () => $('#photo').close());
