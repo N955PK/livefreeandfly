@@ -125,7 +125,7 @@ drop policy if exists "members read" on members;
 drop policy if exists "members add" on members;
 drop policy if exists "members edit own" on members;
 create policy "members read" on members for select to authenticated using (is_member());
-create policy "members add"  on members for insert to authenticated with check (is_member());
+create policy "members add"  on members for insert to authenticated with check (is_admin());
 create policy "members edit own" on members for update to authenticated
   using (is_admin() or lower(email) = lower(auth.jwt() ->> 'email'))
   with check (is_member());

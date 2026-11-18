@@ -603,7 +603,7 @@ function viewNights(){
   }
   const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
   const atStart = leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart())), atEnd = lastNight() && monthKey(m0) >= monthKey(parse(lastNight()));
-  return `${demoNote()}<h1>Who’s up</h1>
+  return `${demoNote()}<h1>The shredule</h1>
 ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
     <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
       <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
@@ -712,7 +712,7 @@ function viewHouse(){
     <h2>Members</h2>
     <p class="sub" style="margin:-4px 0 10px">Admins manage members, fees, and house settings.</p>
     <ul class="list">${mem}</ul>
-    <div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>
+    ${isAdmin() ? `<div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>` : ''}
     ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
       <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
     : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
@@ -1336,7 +1336,7 @@ const actions = {
       <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
     closeSheet(); del('payments', p.id); toast('Payment deleted'); backToHistory();
   },
-  'member-new'(){ openSheet(sheetMember()); },
+  'member-new'(){ if (isAdmin()) openSheet(sheetMember()); },
   'member-manage'(el){ const m = member(el.dataset.id); if (m && isAdmin()) openSheet(sheetManage(m)); },
   'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
   'ava-emoji'(el){ setAvatar('emoji:' + el.dataset.e); },
@@ -1398,6 +1398,7 @@ const forms = {
   member(f){
     const email = f.email.value.trim().toLowerCase(), old = member(f.dataset.id);
     if (old && !(S.me && old.id === S.me.id)) return;                       // a profile belongs to its owner
+    if (!old && !isAdmin()) return;                                           // only admins add members
     const clash = S.members.find(m => m.email.toLowerCase() === email && (!old || m.id !== old.id));
     if (clash && clash.active !== false) return void ($('#err').textContent = `${clash.name} already uses that email.`);
     if (clash && !isAdmin()) return void ($('#err').textContent = 'That email belongs to someone who was removed. Ask the house admin to add them back.');
@@ -1525,7 +1526,7 @@ document.addEventListener('pointerup', finishNightDrag);
 document.addEventListener('pointercancel', finishNightDrag);
 document.addEventListener('lostpointercapture', finishNightDrag);
 
-document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (e.target.closest('.brand')){ logoTap(); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
+document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 // Whatever lands in the hidden field is read here: a picture (Genmoji, sticker), an emoji, or something else.
@@ -1641,8 +1642,6 @@ function celebrate(night){
   if (S.partyFor === night) return;                           // once per opening, plus again if the last person joins while it's open
   S.partyFor = night; fireworks();
 }
-let logoTaps = [];
-function logoTap(){ const now = Date.now(); logoTaps = logoTaps.filter(t => now - t < 2000); logoTaps.push(now); if (logoTaps.length >= 5){ logoTaps = []; fireworks(); } }   // five quick taps on the logo
 let fxRaf = 0;
 function ensureFx(){
   let el = $('#fx'); if (el) return el;

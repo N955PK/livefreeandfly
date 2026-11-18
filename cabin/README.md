@@ -9,7 +9,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 ## Principles
 
 - **Calendar first.** Open a night to join, or pick several nights by tapping or dragging on the month calendar.
-- **No maintenance.** No admin role, no approvals, no categories to curate. Any member can add or fix anything, the way a shared spreadsheet works.
+- **Light upkeep.** A few admins look after members, fees, and house settings. Everything else, like nights, expenses, and payments, any member can add or fix, the way a shared spreadsheet works.
 - **Fits the repo.** One self-contained `index.html`, no build step, same look as the rest of the site.
 
 ## What it does (v1, built)
@@ -43,7 +43,7 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 
 - Address, door code, Wi-Fi, bed count, and house notes, editable by any member.
 - The member list with call, text, and email links.
-- Any member can add a member with name, email, and phone. After that, a profile (name, picture, phone, Venmo) can only be edited by its owner.
+- Only an admin can add a member, with name, email, and phone. After that, a profile (name, picture, phone, Venmo) can only be edited by its owner.
 - One member is the admin. The admin can correct a sign-in email, remove a member, and set the guest fee. Removing someone keeps their past expenses on the books.
 
 ## Left out on purpose
