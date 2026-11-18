@@ -221,7 +221,8 @@ a.btn{text-decoration:none}
 .rowi.tight{gap:8px}
 .rowi.tight .amt{min-width:72px;text-align:right}
 .rowi .amt.veil{min-height:34px;padding:2px 12px;border:1px dashed var(--line);border-radius:8px;background:none;color:var(--dim);font:inherit;font-weight:600;letter-spacing:2px;cursor:pointer}
-.rowi .amt.veil[data-on]{border-style:solid;color:var(--ink);letter-spacing:0}
+.priv[data-on] .amt.veil{border-style:solid;color:var(--ink);letter-spacing:0}
+.list li.final{border-top:2px solid var(--dim)}
 @media (max-width:340px){.rowi.tight .amt{min-width:0}}
 .list.soft .t,.list.soft .amt:not(.pos):not(.neg){color:var(--ink2)}
 .qrbox{background:#fff;border-radius:16px;padding:6px;width:min(78vw,300px);margin:16px auto 6px}
@@ -732,10 +733,25 @@ function parseItems(text){
   return { items, bad };
 }
 const itemsText = items => (items || []).map(it => `${it.label}${it.refundable ? ' (refundable)' : ''}: ${(it.cents / 100).toFixed(2)}`).join('\n');
-// What comes back to a full-time member at season end so far (the same figure the Money tab shows as their total due back).
-function dueBackSoFar(m){
-  const pt = pot(), n = fullTimers().length || 1, cut = pt.heads ? Math.ceil(pt.withheld / pt.heads) : 0, depBack = Math.max(0, pt.each - cut), share = Math.floor((pt.guests + pt.leases) / n);
-  return depBack + (isAdmin() || canMarkGuests() || pt.paidOut ? share : 0) - ((pt.costs.mine && pt.costs.mine[m.id]) || 0);
+// Season totals: what the lease cost you, what comes back, and what the season finally costs you. One list of rows, used both
+// to draw the card and to fill in the numbers when someone taps to show them.
+const signed = c => (c > 0 ? '+' : '') + money(c);
+function seasonRows(){
+  const sc = seasonCosts(), me = S.me, myS = me && sc.people.find(x => x.m.id === me.id), pt = pot(), rows = [];
+  const full = !!(me && fullTimers().some(m => m.id === me.id)), n = fullTimers().length || 1;
+  const cut = pt.heads ? Math.ceil(pt.withheld / pt.heads) : 0, depBack = Math.max(0, pt.each - cut), share = Math.floor((pt.guests + pt.leases) / n);
+  const sees = isAdmin() || canMarkGuests() || pt.paidOut;                       // the pot's size stays with admins until it's paid out
+  const costs = (me && pt.costs.mine && pt.costs.mine[me.id]) || 0, net = depBack + (sees ? share : 0) - costs;
+  if (sc.total) rows.push({ k:'total', t:'Total paid up front', sub:`${esc(sc.payers.map(first).join(' and '))} paid, ${fmtDay(sc.exps[0].spent_on)}`, v:money(sc.total) });
+  if (myS) rows.push({ k:'share', t:'Your share', v:money(myS.share) });
+  if (full){
+    if (pt.each) rows.push({ k:'dep', t:'Security deposit', pv:cut ? `${money(cut)} of your ${money(pt.each)} was withheld.` : '', v:money(-depBack) });
+    rows.push(sees ? { k:'gf', t:'Share of guest fees and leases', v:money(-share) } : { k:'gf', t:'Share of guest fees and leases', plain:'At payout' });
+    if (costs || pt.costs.all) rows.push({ k:'bills', t:'Your share of house bills', v:signed(costs) });
+    rows.push({ k:'refund', t:pt.paidOut ? 'Paid out to you' : sees ? 'Total refund so far' : 'Deposit less house bills so far', sub:pt.paidOut ? 'It’s in your balance above.' : '', pv:!pt.paidOut && net < 0 ? 'House bills are ahead of what’s due back, so you’d owe this at payout.' : '', v:signed(-net) });
+    if (myS) rows.push({ k:'cost', t:'Season cost', pv:sees ? '' : 'Before your share of guest fees and leases.', v:money(myS.share - net), final:true });
+  }
+  return rows;
 }
 
 function historyHtml(){
@@ -776,27 +792,8 @@ function viewMoney(){
       ${myDates(S.me) ? `<span class="s">Your dates: ${myDates(S.me)}</span>` : ''}</span>
       <span class="amt${leasePaid(S.me) ? ' pos' : ' neg'}">${money(leaseOf(S.me))}</span></div>
       ${!leasePaid(S.me) && col && col.venmo ? `<div class="pay-btns"><a class="btn small primary" href="${esc(venmoUrl(col, 'pay', leaseOf(S.me), 'Part-time lease: ' + S.me.name))}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a></div>` : ''}</li></ul>` : '';
-  const pt0 = pot(), fullMe = !!(S.me && fullTimers().some(m => m.id === S.me.id)), n = fullTimers().length || 1;
-  const cut = pt0.heads ? Math.ceil(pt0.withheld / pt0.heads) : 0, depBack = Math.max(0, pt0.each - cut), share = Math.floor((pt0.guests + pt0.leases) / n);
-  const sees = isAdmin() || canMarkGuests() || pt0.paidOut;     // the pot's size stays with admins until it's paid out
-  const backRow = (t, sub, v) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${v}</span></div></li>`;
-  const myCosts = (S.me && pt0.costs.mine[S.me.id]) || 0, net = depBack + (sees ? share : 0) - myCosts;
-  const dueBack = fullMe ? `<h2>Due back at season end</h2>
-    <ul class="list soft">${pt0.each ? backRow('Security deposit', cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : '', money(depBack)) : ''}
-      ${backRow('Share of guest fees and leases', '', sees ? money(share) : 'At payout')}
-      ${myCosts || pt0.costs.all ? backRow('Your share of house bills', '', money(-myCosts)) : ''}
-      ${backRow(pt0.paidOut ? 'Paid out to you' : sees ? 'Total refund so far' : 'Deposit less house bills so far', pt0.paidOut ? 'It’s in your balance above.' : net < 0 ? 'House bills are ahead of what’s due back, so you’d owe this at payout.' : '', `<span class="${net < 0 ? 'neg' : ''}">${money(net)}</span>`)}</ul>` : '';
-  const sc = seasonCosts(), myS = S.me && sc.people.find(x => x.m.id === S.me.id);
-  const hidden = (k, what) => `<button type="button" class="amt veil" data-act="reveal" data-k="${k}" aria-label="Show ${what}">••••••</button>`;     // shown only when tapped, and hidden again whenever the page redraws
-  const seasonHtml = sc.total ? `<h2>Season costs</h2>
-    <ul class="list soft">${backRow('Total paid up front', `${esc(sc.payers.map(first).join(' and '))} paid, ${fmtDay(sc.exps[0].spent_on)}`, hidden('total', 'the total paid up front'))}
-      ${myS ? backRow('Your share', myS.owes ? `You still owe ${money(myS.owes)}` : 'Paid', hidden('share', 'your share')) : ''}</ul>
-    <div class="actions"><button class="btn" data-act="season-open">See the breakdown</button></div>`
-    : isAdmin() && seasonReady() && (S.expenses.length || S.payments.length) ? `<h2>Season costs</h2>
-    <p class="sub" style="margin-top:0">The up-front lease payment can live here instead of in the payment history.</p>
-    <div class="actions"><button class="btn" data-act="season-open">Set up season costs</button></div>`
-    : isAdmin() && !seasonReady() && (S.expenses.length || S.payments.length) ? `<h2>Season costs</h2>
-    <p class="sub" style="margin-top:0">Season costs need a one-line database update first. It’s in the README.</p>` : '';
+  const trow = r => `<li${r.final ? ' class="final"' : ''}><div class="rowi"><span class="grow"><span class="t">${r.t}</span>${r.sub ? `<span class="s">${r.sub}</span>` : ''}${r.pv ? `<span class="s" data-pv="${r.k}" hidden></span>` : ''}</span>${r.plain ? `<span class="amt">${r.plain}</span>` : `<button type="button" class="amt veil" data-act="reveal" data-k="${r.k}" aria-label="Show amounts">••••••</button>`}</div></li>`;
+  const trows = seasonRows(), totalsHtml = trows.length ? `<h2>Season totals</h2><ul class="list soft priv">${trows.map(trow).join('')}</ul>` : '';     // the numbers stay hidden until one is tapped, and hide again whenever the page redraws
   // The same small button for everyone who has shared a Venmo; on your own row, a prompt to add yours.
   const venmoBtn = m => {
     if (S.me && m.id === S.me.id) return m.venmo ? '' : '<button class="btn small vbtn" data-act="me-edit" aria-label="Add your Venmo username">+ Venmo</button>';
@@ -814,7 +811,7 @@ function viewMoney(){
     ${myLease}
     <div class="sechead"><h2>Balances</h2><span class="key" aria-hidden="true"><span><i class="kp"></i>owed</span><span><i class="kn"></i>owes</span></span></div><ul class="list" data-list="balances">${balHtml}</ul>
     <h2>Guest ledger</h2>${guestHtml}
-    ${seasonHtml}${dueBack}</div>`;
+    ${totalsHtml}</div>`;
 }
 
 function viewHouse(){
@@ -847,7 +844,8 @@ function viewHouse(){
     <ul class="list">${mem}</ul>
     ${isAdmin() ? `<div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>` : ''}
     ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button>${seasonReady() || !(S.expenses.length || S.payments.length) ? '<button class="btn" data-act="season-open">Season costs</button>' : ''}<button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>
+      ${!seasonReady() && (S.expenses.length || S.payments.length) ? `<p class="sub" style="margin:10px 0 0">Season costs need a one-line database update first. It’s in the README.</p>` : ''}`
     : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
       <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}${foot}`;
 }
@@ -1196,9 +1194,8 @@ function sheetSeason(){
       + items.map(it => row(esc(it.label), it.refundable ? 'Refundable. Comes back at season end through the pot.' : '', money(it.cents), '', ' item')).join('')
       + (admin ? `<li><div class="pay-btns"><button class="btn small" data-act="season-items" data-id="${e.id}">${items.length ? 'Edit breakdown' : 'Break it down'}</button><button class="btn small" data-act="season-exp-edit" data-id="${e.id}">Edit payment</button></div></li>` : '');
   };
-  const refundable = sc.exps.some(e => (e.items || []).some(it => it.refundable)), myS = me && sc.people.find(x => x.m.id === me.id), isFull = !!(me && fullTimers().some(m => m.id === me.id));
-  const back = isFull ? dueBackSoFar(me) : 0, paidOut = pot().paidOut;
-  return `<h2>Season costs</h2><p class="sub">Paid up front and kept out of the payment history. It’s all counted in everyone’s balance already.</p>
+  const refundable = sc.exps.some(e => (e.items || []).some(it => it.refundable));
+  return `<h2>Season costs</h2><p class="sub">Only admins see this. It’s kept out of the payment history and already counted in everyone’s balance. Members see their own private totals on the Money tab.</p>
     <h2>What was paid</h2>
     <ul class="list soft">${sc.exps.map(group).join('')}${sc.exps.length > 1 ? row('Total paid up front', '', money(sc.total)) : ''}</ul>
     ${refundable ? `<p class="note">Refundable items come back to full-time members through the pot at season end.</p>` : ''}
@@ -1206,8 +1203,6 @@ function sheetSeason(){
     <ul class="list">${sc.people.map(x => `<li><div class="rowi">${pic(x.m)}<span class="grow"><span class="t">${esc(x.m.name)}${me && x.m.id === me.id ? ' (you)' : ''}</span>
       <span class="s${x.owes ? ' owes' : ''}">${x.owes ? 'Still owes ' + money(x.owes) : 'Paid'}</span></span><span class="amt">${money(x.share)}</span></div></li>`).join('')}</ul>
     <p class="note">${sc.owed ? `${money(sc.owed)} still to collect.` : 'Everyone has paid their share.'}</p>
-    ${myS && isFull && refundable ? `<h2>Your cost so far</h2>
-    <ul class="list soft">${row('Your share', '', money(myS.share))}${row(paidOut ? 'Paid out to you' : 'Due back to you at season end, so far', 'Deposit and your share of guest fees and leases, less house bills', money(back))}${row('What the season costs you, so far', '', money(myS.share - back))}</ul>` : ''}
     ${admin ? `<h2>Manage</h2><div class="stack"><button class="btn" data-act="season-pick-open">Choose which entries are season costs</button></div>` : ''}
     <div class="actions"><button class="btn primary" data-act="sheet-close">Done</button></div>`;
 }
@@ -1563,13 +1558,14 @@ const actions = {
     if (id === 'custom'){ const w = $('.wheelbox'); if (w) w.scrollIntoView({ block:'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' }); }
   },
   reveal(el){
-    const k = el.dataset.k, what = k === 'total' ? 'the total paid up front' : 'your share';
-    if (el.dataset.on){ delete el.dataset.on; el.textContent = '••••••'; el.setAttribute('aria-label', `Show ${what}`); return; }
-    const sc = seasonCosts(), mine = S.me && sc.people.find(x => x.m.id === S.me.id);
-    el.textContent = money(k === 'total' ? sc.total : (mine ? mine.share : 0)); el.dataset.on = '1'; el.setAttribute('aria-label', `Hide ${what}`);
+    const box = el.closest('.priv'); if (!box) return;
+    const on = !box.dataset.on, map = {}; for (const r of seasonRows()) map[r.k] = r;
+    if (on) box.dataset.on = '1'; else delete box.dataset.on;
+    box.querySelectorAll('.veil').forEach(b => { const r = map[b.dataset.k]; b.textContent = on && r ? r.v : '••••••'; b.setAttribute('aria-label', on ? 'Hide amounts' : 'Show amounts'); });
+    box.querySelectorAll('[data-pv]').forEach(x => { const r = map[x.dataset.pv]; x.textContent = on && r ? r.pv : ''; x.hidden = !(on && r && r.pv); });
   },
-  'season-open'(){ openSheet(sheetSeason(), { type:'season' }); },
-  'season-back'(){ openSheet(sheetSeason(), { type:'season' }); },
+  'season-open'(){ if (isAdmin()) openSheet(sheetSeason(), { type:'season' }); },
+  'season-back'(){ if (isAdmin()) openSheet(sheetSeason(), { type:'season' }); },
   'season-pick-open'(){
     if (!isAdmin() || !seasonReady()) return;
     S.seasonPick = { e:new Set(S.expenses.filter(x => x.season).map(x => x.id)), p:new Set(S.payments.filter(x => x.season).map(x => x.id)) };
