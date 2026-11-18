@@ -202,6 +202,7 @@ a.btn{text-decoration:none}
 .rowi .t{display:block;overflow-wrap:anywhere}
 .rowi .s{display:block;font-size:var(--t-cap);color:var(--dim);overflow-wrap:anywhere}
 .rowi .s.owes{color:var(--neg)}
+.rowbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch}
 .rowi .tick{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--pos);color:var(--field);font-weight:700;font-size:15px;line-height:1}
 .rowi .amt{font-family:var(--sans);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap}
 .pos{color:var(--pos)} .neg{color:var(--neg)}
@@ -463,6 +464,7 @@ function seed(){
     exp('Cleaning supplies', 4618, 4, 1)
   ];
   const payments = [{ id:uid(), from_member:M(5), to_member:M(1), amount_cents:7000, paid_on:iso(addDays(t,-4)), note:'Venmo' }];
+  expenses.forEach(e => { e.created_by = e.paid_by; }); payments.forEach(p => { p.created_by = p.from_member; });
   const house = { id:1, name:'Tahoe house', address:'', door_code:'4821', wifi_name:'CabinNet', wifi_password:'powderday', beds:8, guest_fee_cents:6000,
     notes:'Trash goes out Sunday night.\nLeave the heat at 55 when you’re the last one out.' };
   house.guest_collector = members[1].id; members[5].part_time = true; members[5].lease_cents = 90000;
@@ -709,6 +711,10 @@ ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(
 // ---------- season costs: the up-front lease payment, kept out of the payment history ----------
 // These are ordinary expenses and payments that an admin has tagged `season`. Balances count tagged and untagged entries identically,
 // so tagging never changes anyone's balance; it only moves the entry out of History and into this section.
+// Who may change an expense or payment: whoever entered it, or an admin (and the member who collects can also look after pot expenses).
+// Until the database records who entered things, nothing is restricted here, which matches what the database itself allows.
+const entriesGuarded = () => !LIVE || S.expenses.concat(S.payments).some(r => 'created_by' in r);
+const canChangeEntry = r => !entriesGuarded() || isAdmin() || !!(S.me && r.created_by && r.created_by === S.me.id) || !!(r.from_pot && canMarkGuests());
 const seasonReady = () => !LIVE || S.expenses.concat(S.payments).some(r => 'season' in r);     // does the database have the columns yet?
 const byDate = (a, z) => ((a.spent_on || a.paid_on) + (a.created_at || '')).localeCompare((z.spent_on || z.paid_on) + (z.created_at || ''));
 function seasonCosts(){
@@ -752,15 +758,15 @@ function seasonRows(){
 function historyHtml(){
   const col = collector();
   return [
-    ...S.expenses.filter(e => !e.season).map(e => { const locked = e.from_pot && !canMarkGuests(), tag = locked ? 'div' : 'button';
+    ...S.expenses.filter(e => !e.season).map(e => { const locked = (e.from_pot && !canMarkGuests()) || !canChangeEntry(e), tag = locked ? 'div' : 'button';
       return { d:e.spent_on, c:e.created_at||'', html:`<li><${tag} class="rowi"${locked ? '' : ` data-act="exp-edit" data-id="${e.id}"`}>
       <span class="grow"><span class="t">${esc(e.description)}${e.from_pot ? '<span class="tag">From the pot</span>' : ''}</span>
       <span class="s">${esc(first(member(e.paid_by)))} paid, split ${(e.split_among||[]).length} ways, ${fmtDay(e.spent_on)}</span></span>
       <span class="amt">${money(e.amount_cents)}</span></${tag}></li>` }; }),
-    ...S.payments.filter(p => !p.season).map(p => ({ d:p.paid_on, c:p.created_at||'', html:`<li><button class="rowi" data-act="pay-edit" data-id="${p.id}">
+    ...S.payments.filter(p => !p.season).map(p => { const tag = canChangeEntry(p) ? 'button' : 'div'; return ({ d:p.paid_on, c:p.created_at||'', html:`<li><${tag} class="rowi"${tag === 'button' ? ` data-act="pay-edit" data-id="${p.id}"` : ''}>
       <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
       <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
-      <span class="amt">${money(p.amount_cents)}</span></button></li>` })),
+      <span class="amt">${money(p.amount_cents)}</span></${tag}></li>` }); }),
     ...(pot().paidOut && col && pot().total ? [{ d:'9999', c:'', html:`<li><div class="rowi">
       <span class="grow"><span class="t">The pot was paid out</span>
       <span class="s">Guest fees, leases, and returned deposits held by ${esc(first(col))}</span></span>
@@ -817,7 +823,7 @@ function viewHouse(){
       <span class="s">${esc(m.email)}</span>
       <span class="s" style="white-space:nowrap">${esc(fmtPhone(m.phone))}</span>
       <span class="links"><a href="tel:${esc(tel(m.phone))}">Call</a><a href="sms:${esc(tel(m.phone))}">Text</a><a href="mailto:${esc(m.email)}">Email</a>${m.venmo ? `<a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo</a>` : ''}</span></span>
-    ${S.me && m.id === S.me.id ? `<button class="btn small" data-act="me-edit">Edit</button>`
+    ${S.me && m.id === S.me.id ? `<span class="rowbtns"><button class="btn small" data-act="me-edit">Edit</button>${isAdmin() ? `<button class="btn small" data-act="member-manage" data-id="${m.id}">Manage</button>` : ''}</span>`
       : isAdmin() ? `<button class="btn small" data-act="member-manage" data-id="${m.id}">Manage</button>` : ''}</div></li>`).join('');
   const foot = LIVE
     ? `<div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div>`
@@ -839,7 +845,7 @@ function viewHouse(){
     <ul class="list">${mem}</ul>
     ${isAdmin() ? `<div class="actions"><button class="btn" data-act="member-new">Add a member</button></div>` : ''}
     ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
     : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
       <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}${foot}`;
 }
@@ -964,18 +970,6 @@ function sheetGuests(){
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
 // Admin only.
-function sheetRoles(){
-  return `<form data-form="roles"><h2>Full time and part time</h2>
-    <p class="sub">Full-time members split the pot. A part-timer pays the lease you set here into it instead, can only book nights inside their dates, and is left out of new expenses unless picked. Leave the dates blank for no limit.</p>
-    ${active().map(m => `<div class="rowi" style="flex-wrap:wrap;border-bottom:1px solid var(--line)">${pic(m)}<span class="grow"><span class="t">${esc(m.name)}</span></span>
-      <select name="type-${m.id}" data-change="role" data-id="${m.id}" aria-label="${esc(m.name)}" style="width:auto;margin:0;min-height:40px"><option value="full"${m.part_time ? '' : ' selected'}>Full time</option><option value="part"${m.part_time ? ' selected' : ''}>Part time</option></select>
-      <div id="lease-${m.id}" style="flex-basis:100%;margin:0 0 10px"${m.part_time ? '' : ' hidden'}>
-        <label style="margin-top:0">Lease, in dollars<input name="lease-${m.id}" inputmode="decimal" autocomplete="off" value="${leaseOf(m) ? (leaseOf(m)/100).toFixed(2) : ''}" placeholder="0.00"></label>
-        <label>First night they can book<input type="date" name="from-${m.id}" value="${esc(m.active_from || '')}"></label>
-        <label>Last night they can book<input type="date" name="until-${m.id}" value="${esc(m.active_until || '')}"></label></div></div>`).join('')}
-    <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save</button></div></form>`;
-}
 // Admin only.
 function sheetDeposit(){
   return `<form data-form="deposit"><h2>Security deposits</h2>
@@ -1270,13 +1264,21 @@ function sheetMember(m){
 
 // Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
 function sheetManage(m){
-  return `<form data-form="manage" data-id="${m.id}"><h2>Manage ${esc(first(m))}</h2>
-    <p class="sub">Only ${esc(first(m))} can change their name, picture, phone, and Venmo. You can correct the email they sign in with, or remove them.</p>
-    <label>Sign-in email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"></label>
+  const part = !!m.part_time, self = !!(S.me && m.id === S.me.id);
+  return `<form data-form="manage" data-id="${m.id}"><h2>${self ? 'Manage your role' : `Manage ${esc(first(m))}`}</h2>
+    <p class="sub">${self ? 'Set whether you’re full time or part time. Your name, picture, phone, and Venmo are under Edit.' : `Only ${esc(first(m))} can change their name, picture, phone, and Venmo. You can correct the email they sign in with, set whether they’re full time or part time, make them an admin, or remove them.`}</p>
+    <label>Sign-in email<input type="email" name="email" required autocomplete="off" value="${esc(m.email)}"${self && LIVE ? ' readonly' : ''}></label>
+    ${self && LIVE ? `<p class="each">This is the Google account you sign in with, so it can’t be changed here.</p>` : ''}
+    <label>Full time or part time<select name="type" data-change="role" data-id="${m.id}"><option value="full"${part ? '' : ' selected'}>Full time</option><option value="part"${part ? ' selected' : ''}>Part time</option></select></label>
+    <p class="each" style="margin-top:6px">Full-time members split the pot. A part-timer pays the lease you set here into it instead, can only book nights inside their dates, and is left out of new expenses unless picked. Leave the dates blank for no limit.</p>
+    <div id="lease-${m.id}"${part ? '' : ' hidden'}>
+      <label>Lease, in dollars<input name="lease" inputmode="decimal" autocomplete="off" value="${leaseOf(m) ? (leaseOf(m) / 100).toFixed(2) : ''}" placeholder="0.00"></label>
+      <label>First night they can book<input type="date" name="from" value="${esc(m.active_from || '')}"></label>
+      <label>Last night they can book<input type="date" name="until" value="${esc(m.active_until || '')}"></label></div>
     <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save email</button></div>
-    <div class="actions"><button type="button" class="btn" data-act="admin-toggle" data-id="${m.id}">${m.is_admin ? `Remove ${esc(first(m))} as an admin` : `Make ${esc(first(m))} an admin`}</button></div>
-    <div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div></form>`;
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save changes</button></div>
+    ${self ? '' : `<div class="actions"><button type="button" class="btn" data-act="admin-toggle" data-id="${m.id}">${m.is_admin ? `Remove ${esc(first(m))} as an admin` : `Make ${esc(first(m))} an admin`}</button></div>
+    <div class="actions"><button type="button" class="btn danger" data-act="member-remove" data-id="${m.id}">Remove from the house</button></div>`}</form>`;
 }
 
 function sheetHouse(){
@@ -1587,7 +1589,6 @@ const actions = {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     toast(name.endsWith('.xlsx') ? 'Spreadsheet downloaded. It opens in Google Sheets, Excel, or Numbers.' : 'Downloaded as a CSV file, since the spreadsheet format couldn’t load.');
   },
-  'roles-open'(){ if (isAdmin()) openSheet(sheetRoles()); },
   'pot-open'(){ if (canMarkGuests()) openSheet(sheetPot(), { type:'pot' }); },
   'lease-paid'(el){
     if (!canMarkGuests()) return;
@@ -1646,9 +1647,9 @@ const actions = {
   'sheet-close'(){ closeSheet(); },
   'history-open'(){ openSheet(sheetHistory(), { type:'history' }); },
   'exp-new'(){ S.backToHistory = false; openSheet(sheetExpense()); updateEach(); },
-  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e && e.from_pot && !canMarkGuests()) return; if (e && e.season && !isAdmin()) return; if (e){ openSheet(sheetExpense(e)); updateEach(); } },
+  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e && e.from_pot && !canMarkGuests()) return; if (e && e.season && !isAdmin()) return; if (e && !canChangeEntry(e)) return; if (e){ openSheet(sheetExpense(e)); updateEach(); } },
   async 'exp-del'(el){
-    const e = S.expenses.find(x => x.id === el.dataset.id); if (!e || (e.season && !isAdmin())) return;
+    const e = S.expenses.find(x => x.id === el.dataset.id); if (!e || (e.season && !isAdmin()) || !canChangeEntry(e)) return;
     if (!await confirmBox(`<h2>Delete this expense?</h2><p class="sub">${esc(e.description)}, ${money(e.amount_cents)}. Everyone’s balance changes, and it can’t be undone.</p>
       <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
     closeSheet(); del('expenses', e.id); toast('Expense deleted'); backToHistory();
@@ -1660,9 +1661,9 @@ const actions = {
   'pay-new'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
   'pay-venmo'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
   'pay-blank'(){ S.backToSettle = false; S.backToHistory = false; if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
-  'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (p && p.season && !isAdmin()) return; if (p) openSheet(sheetPayment(p, false)); },
+  'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (p && p.season && !isAdmin()) return; if (p && !canChangeEntry(p)) return; if (p) openSheet(sheetPayment(p, false)); },
   async 'pay-del'(el){
-    const p = S.payments.find(x => x.id === el.dataset.id); if (!p || (p.season && !isAdmin())) return;
+    const p = S.payments.find(x => x.id === el.dataset.id); if (!p || (p.season && !isAdmin()) || !canChangeEntry(p)) return;
     if (!await confirmBox(`<h2>Delete this payment?</h2><p class="sub">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))} ${money(p.amount_cents)}. Both balances change, and it can’t be undone.</p>
       <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
     closeSheet(); del('payments', p.id); toast('Payment deleted'); backToHistory();
@@ -1707,12 +1708,13 @@ const forms = {
     if (amount_cents <= 0) return void ($('#err').textContent = 'Enter an amount above zero.');
     if (!split.length) return void ($('#err').textContent = 'Pick at least one person to split it between.');
     const old = S.expenses.find(x => x.id === f.dataset.id);
-    if (old && old.season && !isAdmin()) return;
+    if (old && ((old.season && !isAdmin()) || !canChangeEntry(old))) return;
     const row = { id: old ? old.id : uid(), description:f.description.value.trim(), amount_cents, paid_by:f.paid_by.value,
       split_among:split, spent_on:f.spent_on.value, created_at: old ? old.created_at : new Date().toISOString() };
     const fromPot = f.from_pot ? f.from_pot.checked : !!(old && old.from_pot);
     if (fromPot || (old && 'from_pot' in old)) row.from_pot = fromPot;
     if (old && 'season' in old) row.season = !!old.season;                                       // an entry keeps its tag; only the Season costs picker changes it
+    if (old && 'created_by' in old) row.created_by = old.created_by; else if (!old && entriesGuarded() && S.me) row.created_by = S.me.id;
     if (old && old.items) row.items = old.items;
     if (row.season && fromPot) return void ($('#err').textContent = 'A season cost can’t also come out of the pot.');
     closeSheet(); save('expenses', row); toast('Expense saved'); backToHistory();
@@ -1723,10 +1725,11 @@ const forms = {
     if (!f.to_member.value) return void ($('#err').textContent = 'Choose who got paid.');
     if (f.from_member.value === f.to_member.value) return void ($('#err').textContent = 'Pick two different people.');
     const old = S.payments.find(x => x.id === f.dataset.id);
-    if (old && old.season && !isAdmin()) return;
+    if (old && ((old.season && !isAdmin()) || !canChangeEntry(old))) return;
     const row = { id: old ? old.id : uid(), from_member:f.from_member.value, to_member:f.to_member.value, amount_cents,
       paid_on:f.paid_on.value, note:f.note.value.trim(), created_at: old ? old.created_at : new Date().toISOString() };
     if (old && 'season' in old) row.season = !!old.season;
+    if (old && 'created_by' in old) row.created_by = old.created_by; else if (!old && entriesGuarded() && S.me) row.created_by = S.me.id;
     const back = S.backToSettle; S.backToSettle = false;
     closeSheet(); save('payments', row); toast('Payment saved');
     if (back && settle(balances()).some(x => x.from === S.me.id || x.to === S.me.id)) openSheet(sheetSettle(), { type:'settle' });
@@ -1756,25 +1759,6 @@ const forms = {
     if (B.guests.some(g => g.toLowerCase() === name.toLowerCase())) return void ($('#err').textContent = `${name} is already on the list.`);
     B.guests.push(name); render(); const i = $('#sheet [name=guest]'); if (i) i.focus();
   },
-  roles(f){
-    if (!isAdmin()) return;
-    const changes = [];
-    for (const m of active()){
-      const part = f['type-' + m.id].value === 'part', lease = part ? toCents(f['lease-' + m.id].value) : 0;
-      const from = part ? (f['from-' + m.id].value || null) : null, until = part ? (f['until-' + m.id].value || null) : null;
-      if (from && until && until < from) return void ($('#err').textContent = `${first(m)}’s last night is before their first night.`);
-      if (part !== !!m.part_time || lease !== leaseOf(m) || from !== (m.active_from || null) || until !== (m.active_until || null)){
-        const row = { ...m, part_time:part, lease_cents:lease };
-        if ('active_from' in m || from) row.active_from = from;
-        if ('active_until' in m || until) row.active_until = until;
-        changes.push(row);
-      }
-    }
-    if (active().every(m => f['type-' + m.id].value === 'part')) return void ($('#err').textContent = 'At least one member has to be full time.');
-    closeSheet();
-    for (const row of changes){ if (S.me && row.id === S.me.id) S.me = row; save('members', row); }
-    toast('Saved');
-  },
   deposit(f){
     if (!isAdmin()) return;
     const each = toCents(f.each.value), withheld = toCents(f.withheld.value), most = each * fullTimers().length;
@@ -1790,7 +1774,14 @@ const forms = {
     const m = member(f.dataset.id), email = f.email.value.trim().toLowerCase(); if (!m || !isAdmin()) return;
     const clash = S.members.find(x => x.email.toLowerCase() === email && x.id !== m.id);
     if (clash) return void ($('#err').textContent = `${clash.name} already uses that email.`);
-    closeSheet(); save('members', { ...m, email }); toast('Email saved');
+    const part = f.type.value === 'part', lease = part ? toCents(f.lease.value) : 0, from = part ? (f.from.value || null) : null, until = part ? (f.until.value || null) : null;
+    if (from && until && until < from) return void ($('#err').textContent = `${first(m)}’s last night is before their first night.`);
+    if (part && !active().some(x => x.id !== m.id && !x.part_time)) return void ($('#err').textContent = 'At least one member has to be full time.');
+    const row = { ...m, email, part_time:part, lease_cents:lease };
+    if ('active_from' in m || from) row.active_from = from;
+    if ('active_until' in m || until) row.active_until = until;
+    if (S.me && row.id === S.me.id) S.me = row;
+    closeSheet(); save('members', row); toast('Saved');
   },
   house(f){
     if (!isAdmin()) return;

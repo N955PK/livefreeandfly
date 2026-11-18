@@ -1,4 +1,5 @@
--- Run once in the existing Supabase project's SQL editor.
+-- Run once in the existing Supabase project's SQL editor. Then run 20261118_entry_owners.sql, which replaces the two
+-- guard rules below with versions that also cover who may change an entry. Don't run this file again after that one.
 -- Season costs: lets an admin tag the up-front lease payment (and everyone's payments toward it) so it shows in its own
 -- section on the Money tab instead of in the payment history. Tagging never changes anyone's balance.
 alter table public.expenses add column if not exists season boolean not null default false;
