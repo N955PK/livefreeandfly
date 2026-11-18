@@ -79,11 +79,23 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .chip.emo{font-size:16px}
 .chip.lg{width:68px;height:68px;font-size:23px}
 .chip.lg.emo{font-size:36px}
+.chip.xl{width:min(74vw,300px);height:min(74vw,300px);font-size:min(22vw,92px);letter-spacing:0}
+.chip.xl.emo{font-size:min(38vw,150px)}
+[data-photo]{cursor:pointer}
+#photo{margin:auto;width:auto;max-width:92vw;max-height:none;padding:0;background:transparent;border:0;border-radius:0;overflow:visible;text-align:center;animation:none}
+#photo[open]{animation:fadein .14s ease-out}
+#photo::backdrop{background:rgba(5,8,11,.86)}
+#photo .nm{font-family:var(--mono);font-size:18px;font-weight:600;color:#fff;margin-top:18px}
+#photo .tip{font-size:13px;color:rgba(255,255,255,.6);margin-top:6px}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){#photo[open]{animation:none}}
 .ava{display:flex;align-items:center;gap:14px}
 .ava .btns{display:flex;flex-wrap:wrap;gap:8px}
 .ava label{margin:0}
 .emo-row,.sw-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .emo-row button{width:42px;height:42px;font-size:22px;border:1px solid var(--line);border-radius:10px}
+.emo-row:not(.open) .xtra{display:none}
+.emo-row button.more-btn{width:auto;padding:0 10px;font-size:13px;color:var(--dim)}
 .sw-row button{width:38px;height:38px;border-radius:50%;border:2px solid transparent}
 .sw-row button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--sheet)}
 input[type="hidden"],input[hidden]{display:none}
@@ -230,6 +242,7 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 </div></nav>
 <dialog id="sheet" tabindex="-1"></dialog>
 <dialog id="confirm" tabindex="-1"></dialog>
+<dialog id="photo" tabindex="-1" aria-label="Picture"></dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -273,24 +286,37 @@ const first = m => m ? m.name.trim().split(/\s+/)[0] : 'Someone';
 const active = () => S.members.filter(m => m.active !== false);
 const isAdmin = () => !!(S.me && S.me.is_admin);
 const initials = m => { const p = m.name.trim().split(/\s+/); return ((p[0]?.[0]||'') + (p[1]?.[0] || p[0]?.[1] || '')).toUpperCase(); };
-const EMOJI = ['🎿','🏂','⛷️','🏔️','❄️','☃️','🌲','🔥','🐻','🦌','🐕','☕','🍺','🚠'];
+// The first 13 show by default (the funniest); the rest sit behind "More".
+const EMOJI = ['🎿','🏂','🤪','😎','🥶','🤠','🤡','💩','🦆','🐸','🦄','🦖','🍺','☕',
+  '⛷️','🏔️','❄️','☃️','🌲','🔥','🐻','🦌','🐕','🚠','🫠','🤓','🥸','👻','👽','🤖','😈','🙃','🤙','🐙','🦥','🐧','🐿️','🦫','🧀','🌮','🍕','🥃','🍻','🧊'];
+const EMOJI_SHOWN = 13;
 const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/, HEX_RE = /^#[0-9a-f]{6}$/i;
-function chip(m, sm, cls){
+function chip(m, sm, cls, attrs){
   if (!m) return '';
-  const bg = HEX_RE.test(m.color || '') ? m.color : '#8B959E', a = m.avatar || '', c = cls ? ' ' + cls : '';
+  const bg = HEX_RE.test(m.color || '') ? m.color : '#8B959E', a = m.avatar || '', c = cls ? ' ' + cls : '', x = attrs ? ' ' + attrs : ' aria-hidden="true"';
   if (sm) return `<span class="chip sm" style="background:${bg}" aria-hidden="true">${esc((m.name || '?').trim()[0].toUpperCase())}</span>`;
-  if (IMG_RE.test(a)) return `<span class="chip${c}" style="background:${bg} center/cover url(${a})" aria-hidden="true"></span>`;
-  if (a.startsWith('emoji:')) return `<span class="chip emo${c}" style="background:${bg}" aria-hidden="true">${esc(a.slice(6, 14))}</span>`;
-  return `<span class="chip${c}" style="background:${bg}" aria-hidden="true">${esc(initials(m))}</span>`;
+  if (IMG_RE.test(a)) return `<span class="chip${c}"${x} style="background:${bg} center/cover url(${a})"></span>`;
+  if (a.startsWith('emoji:')) return `<span class="chip emo${c}"${x} style="background:${bg}">${esc(a.slice(6, 14))}</span>`;
+  return `<span class="chip${c}"${x} style="background:${bg}">${esc(initials(m))}</span>`;
+}
+// A picture you can tap to see large.
+const pic = m => m ? chip(m, false, '', `data-photo="${esc(m.id)}" role="button" tabindex="0" aria-label="${esc('View ' + first(m) + '’s picture')}"`) : '';
+function openPhoto(id){
+  const m = member(id); if (!m) return;
+  const d = $('#photo'); d.innerHTML = `<div style="display:flex;justify-content:center">${chip(m, false, 'xl')}</div><p class="nm">${esc(m.name)}</p><p class="tip">Tap anywhere to close</p>`;
+  if (!d.open) d.showModal(); d.focus();
 }
 async function fileToAvatar(file){
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
-    const n = 128, cv = document.createElement('canvas'); cv.width = cv.height = n;
     const side = Math.min(img.naturalWidth, img.naturalHeight);
-    cv.getContext('2d').drawImage(img, (img.naturalWidth - side)/2, (img.naturalHeight - side)/2, side, side, 0, 0, n, n);
-    return cv.toDataURL('image/jpeg', .82);
+    for (const n of [320, 256, 192]){
+      const cv = document.createElement('canvas'); cv.width = cv.height = n;
+      cv.getContext('2d').drawImage(img, (img.naturalWidth - side)/2, (img.naturalHeight - side)/2, side, side, 0, 0, n, n);
+      for (const q of [.85, .75, .65, .55]){ const d = cv.toDataURL('image/jpeg', q); if (d.length < 45000) return d; }   // the database allows 60,000
+    }
+    throw new Error('picture too large');
   } finally { URL.revokeObjectURL(url); }
 }
 const tel = p => String(p||'').replace(/[^0-9+]/g,'');
@@ -583,7 +609,7 @@ function viewMoney(){
       ${myCosts || pt0.costs.all ? backRow('Your share of house bills', 'Comes off what you get back.', money(-myCosts)) : ''}
       ${backRow(pt0.paidOut ? 'Paid out to you' : sees ? 'Total so far' : 'Deposit less house bills so far', pt0.paidOut ? 'It’s in your balance above.' : net < 0 ? 'House bills are ahead of what’s due back, so you’d owe this at payout.' : '', `<span class="${net < 0 ? 'neg' : ''}">${money(net)}</span>`)}</ul>` : '';
   const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
-  const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${chip(m)}
+  const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${pic(m)}
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
         ${m.venmo ? `<span class="links"><a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo @${esc(m.venmo)}</a></span>` : ''}</span>
       <span class="amt ${b[m.id] > 0 ? 'pos' : b[m.id] < 0 ? 'neg' : ''}">${b[m.id] > 0 ? '+' : ''}${money(b[m.id])}</span></div></li>`).join('');
@@ -601,7 +627,7 @@ function viewMoney(){
 function viewHouse(){
   if (isAdmin() && LIVE) setTimeout(() => loadXlsx().catch(() => {}), 0);
   const h = S.house, v = (x, cls='') => x ? `<dd class="${cls}">${esc(x)}</dd>` : `<dd class="unset">Not set</dd>`;
-  const mem = active().map(m => `<li><div class="rowi">${chip(m)}
+  const mem = active().map(m => `<li><div class="rowi">${pic(m)}
     <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}${m.is_admin ? '<span class="tag">Admin</span>' : ''}</span>
       <span class="s">${esc(m.email)}</span>
       <span class="s" style="white-space:nowrap">${esc(fmtPhone(m.phone))}</span>
@@ -682,7 +708,7 @@ function guestEditor(night, names, lead){
 }
 function sheetNight(night){
   const st = staysOn(night), hc = headcount(night), mine = myStay(night), present = !!(mine && !mine.host_away), col = collector();
-  const who = st.length ? `<ul class="list" style="margin-top:14px">${st.map(s => { const m = member(s.member_id), g = guestNames(s).map(esc).join(', '); return `<li><div class="rowi">${chip(m)}
+  const who = st.length ? `<ul class="list" style="margin-top:14px">${st.map(s => { const m = member(s.member_id), g = guestNames(s).map(esc).join(', '); return `<li><div class="rowi">${pic(m)}
       <span class="grow"><span class="t">${s.host_away ? g : esc(m.name) + (s.guests ? ' with ' + g : '')}</span>
       ${s.host_away ? `<span class="s">Guest${s.guests > 1 ? 's' : ''} of ${esc(first(m))}, who isn’t staying</span>` : ''}
       ${s.note ? `<span class="s">${esc(s.note)}</span>` : ''}</span></div></li>`; }).join('')}</ul>`
@@ -730,7 +756,7 @@ function sheetGuests(){
   const dates = a => a.map(x => x.night).sort().map(fmtDay).join(', ');
   const body = sponsors.map(id => {
     const guests = Object.values(by[id]).sort((a, b) => a.name.localeCompare(b.name));
-    return `<div class="grp">${chip(member(id))}<span>${esc(first(member(id)))}’s guests</span></div>
+    return `<div class="grp">${pic(member(id))}<span>${esc(first(member(id)))}’s guests</span></div>
       <ul class="list">${guests.map(g => {
         const past = g.nights.filter(x => !x.future), future = g.nights.filter(x => x.future), n = g.nights.length;
         const data = `data-sponsor="${id}" data-name="${esc(g.name)}"`;
@@ -758,7 +784,7 @@ function sheetGuests(){
 function sheetRoles(){
   return `<form data-form="roles"><h2>Full time and part time</h2>
     <p class="sub">Full-time members split the pot. A part-timer pays the lease you set here into it instead, can only book nights inside their dates, and is left out of new expenses unless picked. Leave the dates blank for no limit.</p>
-    ${active().map(m => `<div class="rowi" style="flex-wrap:wrap;border-bottom:1px solid var(--line)">${chip(m)}<span class="grow"><span class="t">${esc(m.name)}</span></span>
+    ${active().map(m => `<div class="rowi" style="flex-wrap:wrap;border-bottom:1px solid var(--line)">${pic(m)}<span class="grow"><span class="t">${esc(m.name)}</span></span>
       <select name="type-${m.id}" data-change="role" data-id="${m.id}" aria-label="${esc(m.name)}" style="width:auto;margin:0;min-height:40px"><option value="full"${m.part_time ? '' : ' selected'}>Full time</option><option value="part"${m.part_time ? ' selected' : ''}>Part time</option></select>
       <div id="lease-${m.id}" style="flex-basis:100%;margin:0 0 10px"${m.part_time ? '' : ' hidden'}>
         <label style="margin-top:0">Lease, in dollars<input name="lease-${m.id}" inputmode="decimal" autocomplete="off" value="${leaseOf(m) ? (leaseOf(m)/100).toFixed(2) : ''}" placeholder="0.00"></label>
@@ -781,7 +807,7 @@ function sheetDeposit(){
 function sheetPot(){
   const pt = pot(), col = collector(), full = fullTimers(), parts = partTimers(), admin = isAdmin();
   const line = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
-  const leases = parts.length ? `<h2 style="margin:26px 0 8px">Part-time leases</h2><ul class="list">${parts.map(m => `<li><div class="rowi">${chip(m)}
+  const leases = parts.length ? `<h2 style="margin:26px 0 8px">Part-time leases</h2><ul class="list">${parts.map(m => `<li><div class="rowi">${pic(m)}
       <span class="grow"><span class="t">${esc(m.name)}</span><span class="s${leasePaid(m) ? ' pos' : ''}">${leaseOf(m) ? (leasePaid(m) ? 'Received' : 'Not received yet') : 'No lease amount set'}</span></span>
       <span class="amt">${money(leaseOf(m))}</span></div>
       ${leaseOf(m) ? `<div class="pay-btns"><button class="btn small${leasePaid(m) ? ' quiet' : ''}" data-act="lease-paid" data-id="${m.id}" data-v="${leasePaid(m) ? 0 : 1}">${leasePaid(m) ? 'Mark not received' : 'Mark ' + money(leaseOf(m)) + ' received'}</button></div>` : ''}</li>`).join('')}</ul>` : '';
@@ -819,7 +845,7 @@ function sheetSettle(){
     if (mine && o.venmo) btns += `<a class="btn small primary" href="${venmoUrl(o, 'pay', p.amt)}" target="_blank" rel="noopener" data-act="pay-venmo" ${data}>Pay on Venmo</a>`;
     if (!mine && o.venmo) btns += `<a class="btn small" href="${venmoUrl(o, 'charge', p.amt)}" target="_blank" rel="noopener">Request on Venmo</a>`;
     btns += `<button class="btn small" data-act="pay-new" ${data}>${mine ? 'Mark as paid' : 'Mark as received'}</button>`;
-    return `<li><div class="rowi">${chip(o)}<span class="grow"><span class="t">${mine ? 'Pay ' + esc(first(o)) : esc(first(o)) + ' pays you'}</span>
+    return `<li><div class="rowi">${pic(o)}<span class="grow"><span class="t">${mine ? 'Pay ' + esc(first(o)) : esc(first(o)) + ' pays you'}</span>
       ${mine && !o.venmo ? `<span class="s">${esc(first(o))} hasn’t added a Venmo username yet.</span>` : ''}</span><span class="amt">${money(p.amt)}</span></div>
       <div class="pay-btns">${btns}</div></li>`; };
   return `<h2>Settle up</h2>
@@ -878,7 +904,7 @@ function sheetMember(m){
         <div class="btns"><label class="btn small" for="avaFile">Upload a photo</label>
           <input type="file" id="avaFile" accept="image/*" data-change="avafile" hidden>
           <button type="button" class="btn small quiet" data-act="ava-clear">Use initials</button></div></div>
-      <div class="emo-row">${EMOJI.map(e => `<button type="button" data-act="ava-emoji" data-e="${e}" aria-label="Use ${e} as the picture">${e}</button>`).join('')}</div>
+      <div class="emo-row">${EMOJI.map((e, i) => `<button type="button"${i >= EMOJI_SHOWN ? ' class="xtra"' : ''} data-act="ava-emoji" data-e="${e}" aria-label="Use ${e} as the picture">${e}</button>`).join('')}<button type="button" class="more-btn" data-act="emoji-more" aria-expanded="false">More</button></div>
       <div class="sw-row">${PALETTE.map((c, i) => `<button type="button" data-act="ava-color" data-c="${c}" style="background:${c}" aria-label="Color ${i + 1}" aria-pressed="${(m.color || '').toLowerCase() === c}"></button>`).join('')}</div>
       <input type="hidden" name="avatar" value="${esc(m.avatar || '')}"><input type="hidden" name="color" value="${esc(m.color || '')}"></fieldset>`}
     <label>${self ? 'Name shown to the house' : 'Name'}<input name="name" required maxlength="60" autocomplete="off" value="${esc(m.name)}"></label>
@@ -1240,6 +1266,7 @@ const actions = {
   'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
   'ava-emoji'(el){ setAvatar('emoji:' + el.dataset.e); },
   'ava-clear'(){ setAvatar(''); },
+  'emoji-more'(el){ const row = el.closest('.emo-row'); row.classList.toggle('open'); const open = row.classList.contains('open'); el.textContent = open ? 'Fewer' : 'More'; el.setAttribute('aria-expanded', open); },
   'ava-color'(el){ const f = $('#sheet form[data-form="member"]'); if (!f) return; f.color.value = el.dataset.c;
     f.querySelectorAll('.sw-row button').forEach(b => b.setAttribute('aria-pressed', b === el)); setAvatar(f.avatar.value); },
   async 'member-remove'(el){ const m = member(el.dataset.id); if (!m || !isAdmin() || m.id === S.me.id) return;
@@ -1415,7 +1442,7 @@ document.addEventListener('pointerup', finishNightDrag);
 document.addEventListener('pointercancel', finishNightDrag);
 document.addEventListener('lostpointercapture', finishNightDrag);
 
-document.addEventListener('click', e => { if (e.target.closest('#confirm')) return; if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
+document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 document.addEventListener('change', e => {
@@ -1436,6 +1463,9 @@ document.addEventListener('change', e => {
 });
 $('#sheet').addEventListener('close', () => { S.sheet = null; S.bulk = null; });
 $('#sheet').addEventListener('click', e => { if (e.target === e.currentTarget) closeSheet(); });
+
+$('#photo').addEventListener('click', () => $('#photo').close());
+document.addEventListener('keydown', e => { const ph = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-photo]'); if (ph){ e.preventDefault(); openPhoto(ph.dataset.photo); } });
 
 /* ---------- routing and start ---------- */
 function go(v){ S.view = VIEWS.includes(v) ? v : 'nights'; if (location.hash.slice(1) !== S.view) history.replaceState(null, '', '#' + S.view); render(); window.scrollTo(0, 0); }
