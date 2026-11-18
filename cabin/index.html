@@ -127,6 +127,9 @@ a.btn{text-decoration:none}
 .pager{position:relative;overflow:hidden;margin:-2px -4px;padding:2px 4px;touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
 .track{position:relative}
 .mpage.side{position:absolute;top:0;width:100%}
+.pager.swiping .day:active{opacity:1}
+.pager.swiping .day.past:active{opacity:.5}
+.pager.swiping .day.out:active{opacity:.45}
 .mpage.prev{left:calc(-100% - 16px)}
 .mpage.next{left:calc(100% + 16px)}
 .dow span{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;padding-bottom:4px}
@@ -1544,50 +1547,63 @@ document.addEventListener('lostpointercapture', finishNightDrag);
 // Swiping the calendar sideways moves between months. The neighbouring months are built when a drag starts, follow the
 // finger, and the one you land on settles into place. In "pick several nights" mode the grid owns sideways drags, so this stays out of it.
 let swipe = null, monthAnim = false, queuedDelta = 0, swipeClickUntil = 0;
-const GUTTER = 16, reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const GUTTER = 16, SLOP = 10, reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 const monthAt = d => new Date(S.month.getFullYear(), S.month.getMonth() + d, 1);
 const setMonthTitle = d => { const h = $('.mnav h2'); if (h) h.textContent = monthLabel(monthAt(d)); };
+const place = (st, x) => { st.track.style.transform = `translate3d(${x}px,0,0)`; };
 function startSlide(pg, wantPrev, wantNext){
   const track = pg.querySelector('.track'), bounds = monthBounds();
   const make = (cls, d) => { const el = document.createElement('div'); el.className = 'mpage side ' + cls; el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); el.innerHTML = monthPage(monthAt(d)); track.appendChild(el); return el; };
-  const st = { pg, track, w: pg.clientWidth - 8, x: 0, shown: 0, hCur: pg.querySelector('.mpage:not(.side)').offsetHeight };
+  const st = { pg, track, w: pg.clientWidth - 8, x: 0, hCur: pg.querySelector('.mpage:not(.side)').offsetHeight };
   st.prev = wantPrev && bounds.prev ? make('prev', -1) : null; st.next = wantNext && bounds.next ? make('next', 1) : null;
   st.hPrev = st.prev ? st.prev.offsetHeight : st.hCur; st.hNext = st.next ? st.next.offsetHeight : st.hCur;
-  pg.style.height = (st.hCur + 4) + 'px';                      // hold the height steady so nothing below jumps
-  pg.style.transition = track.style.transition = 'none'; track.style.willChange = 'transform';
+  pg.style.height = (st.hCur + 4) + 'px';                      // the height stays put while you drag, so nothing below the calendar moves
+  track.style.willChange = 'transform'; pg.classList.add('swiping');
   return st;
 }
-function moveSlide(st, x){
-  let dx = x; if ((dx > 0 && !st.prev) || (dx < 0 && !st.next)) dx *= .3;     // nothing that way: it resists
-  const span = st.w + GUTTER; dx = Math.max(-span, Math.min(span, dx)); st.x = dx;
-  st.track.style.transform = `translateX(${dx}px)`;
-  const p = Math.abs(dx) / span, hT = dx > 0 ? st.hPrev : st.hNext; st.pg.style.height = (st.hCur + (hT - st.hCur) * p + 4) + 'px';
-  const shown = dx > span / 2 && st.prev ? -1 : dx < -span / 2 && st.next ? 1 : 0;
-  if (shown !== st.shown){ st.shown = shown; setMonthTitle(shown); }          // the title follows once it's past halfway
+function dropSlide(st){                                         // tidy up if the gesture turned out not to be a swipe
+  if (st.prev) st.prev.remove(); if (st.next) st.next.remove();
+  st.track.style.transform = st.track.style.willChange = ''; st.pg.style.height = ''; st.pg.classList.remove('swiping');
 }
-function settleSlide(st, dir, ms){
-  monthAnim = true;
-  const { pg, track } = st, span = st.w + GUTTER, target = dir === 1 ? -span : dir === -1 ? span : 0, hT = dir === 1 ? st.hNext : dir === -1 ? st.hPrev : st.hCur, animate = ms > 0 && !reducedMotion();
-  if (animate){ track.style.transition = `transform ${ms}ms cubic-bezier(.22,.8,.3,1)`; pg.style.transition = `height ${ms}ms ease`; }
-  void track.offsetWidth;                                                      // lock in where it is before animating
-  track.style.transform = `translateX(${target}px)`; pg.style.height = (hT + 4) + 'px'; if (dir) setMonthTitle(dir);
-  let done = false, timer = 0;
+function moveSlide(st, x){
+  let dx = x;
+  if ((dx > 0 && !st.prev) || (dx < 0 && !st.next)){ const d = st.w * .35; dx = Math.sign(dx) * d * (1 - 1 / (Math.abs(dx) * .55 / d + 1)); }   // an elastic stop that gets stiffer
+  const span = st.w + GUTTER; st.x = Math.max(-span, Math.min(span, dx));
+  if (!st.queued){ st.queued = true; requestAnimationFrame(() => { st.queued = false; if (!st.settling) place(st, st.x); }); }    // one update per frame
+}
+// Settles along a smooth curve that starts at the speed your finger was going and eases gently to rest, so letting go never snaps.
+function settleSlide(st, dir, v0){
+  monthAnim = true; st.settling = true;
+  const { pg } = st, span = st.w + GUTTER, target = dir === 1 ? -span : dir === -1 ? span : 0, hT = dir === 1 ? st.hNext : dir === -1 ? st.hPrev : st.hCur;
+  const x0 = st.x, path = target - x0, hFrom = st.hCur, half = span / 2; let titled = false, done = false;
+  const heightAt = x => pg.style.height = (hFrom + (hT - hFrom) * (path ? Math.max(0, Math.min(1, (x - x0) / path)) : 1) + 4) + 'px';
+  const swapTitle = x => { if (dir && !titled && Math.abs(x) >= half && Math.sign(x) === Math.sign(target)){ titled = true; setMonthTitle(dir); } };
   const finish = () => {
-    if (done) return; done = true; clearTimeout(timer); track.removeEventListener('transitionend', onEnd); monthAnim = false;
+    if (done) return; done = true; monthAnim = false;
     if (pg.isConnected){
       if (dir){ S.month = monthAt(dir); render(); }
-      else { if (st.prev) st.prev.remove(); if (st.next) st.next.remove(); track.style.transition = track.style.transform = track.style.willChange = ''; pg.style.transition = pg.style.height = ''; setMonthTitle(0); }
+      else { dropSlide(st); setMonthTitle(0); }
     }
     if (queuedDelta){ const d = Math.sign(queuedDelta); queuedDelta -= d; goMonth(d); }
   };
-  const onEnd = e => { if (e.target === track && e.propertyName === 'transform') finish(); };
-  track.addEventListener('transitionend', onEnd); timer = setTimeout(finish, animate ? ms + 80 : 0);
+  if (reducedMotion() || (Math.abs(path) < .5 && Math.abs(v0) < .02)){ place(st, target); heightAt(target); if (dir) setMonthTitle(dir); finish(); return; }
+  const D = Math.max(260, Math.min(420, 200 + Math.abs(path) * .5));                     // longer for a longer way to go
+  const vmax = 2.5 * Math.abs(path) / D, vs = Math.max(-vmax, Math.min(vmax, v0));       // never start so fast that it would overshoot
+  const t0 = performance.now();
+  const step = now => {
+    const u = Math.min(1, (now - t0) / D), u2 = u * u, u3 = u2 * u;
+    const x = x0 + vs * D * (u - 2 * u2 + u3) + path * (3 * u2 - 2 * u3);               // a cubic that begins at the finger's speed and ends at rest
+    place(st, x); heightAt(x); swapTitle(x);
+    if (u >= 1){ place(st, target); heightAt(target); if (dir) setMonthTitle(dir); finish(); return; }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 function goMonth(delta){
   if (monthAnim){ queuedDelta += delta; return; }
   const bounds = monthBounds(); if ((delta > 0 && !bounds.next) || (delta < 0 && !bounds.prev)){ queuedDelta = 0; return; }
   const pg = $('#pager'); if (!pg){ S.month = monthAt(delta); render(); return; }
-  settleSlide(startSlide(pg, delta < 0, delta > 0), delta, 260);
+  settleSlide(startSlide(pg, delta < 0, delta > 0), delta, 0);
 }
 document.addEventListener('pointerdown', e => {
   if (swipe || monthAnim || S.pick || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
@@ -1598,22 +1614,26 @@ document.addEventListener('pointermove', e => {
   const sw = swipe; if (!sw || e.pointerId !== sw.id) return;
   const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
   if (!sw.mode){
-    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-    if (Math.abs(dx) <= Math.abs(dy) * 1.2){ swipe = null; return; }          // mostly vertical: leave it to the page's own scrolling
-    sw.mode = 'h'; sw.st = startSlide(sw.pg, true, true); try { sw.pg.setPointerCapture(sw.id); } catch(_){}
+    // build the neighbouring months a moment before the drag is recognised, so that work isn't done in the middle of the first frame
+    if (!sw.st && Math.abs(dx) >= 5 && Math.abs(dx) > Math.abs(dy) * 1.5) sw.st = startSlide(sw.pg, true, true);
+    if (Math.abs(dx) < SLOP && Math.abs(dy) < SLOP) return;
+    if (Math.abs(dx) <= Math.abs(dy) * 1.2){ if (sw.st) dropSlide(sw.st); swipe = null; return; }       // mostly vertical: leave it to the page's own scrolling
+    if (!sw.st) sw.st = startSlide(sw.pg, true, true);
+    sw.mode = 'h'; try { sw.pg.setPointerCapture(sw.id); } catch(_){}
   }
   const now = performance.now(), dt = now - sw.lastT; if (dt > 0){ sw.v = .6 * sw.v + .4 * ((e.clientX - sw.lastX) / dt); sw.lastX = e.clientX; sw.lastT = now; }
-  moveSlide(sw.st, dx);
+  moveSlide(sw.st, dx - Math.sign(dx) * SLOP);                                // it starts from zero instead of jumping ahead
 });
 function endSwipe(e){
   const sw = swipe; if (!sw || e.pointerId !== sw.id) return; swipe = null;
-  if (sw.mode !== 'h' || !sw.st) return;
+  if (sw.mode !== 'h' || !sw.st){ if (sw.st) dropSlide(sw.st); return; }
   swipeClickUntil = Date.now() + 400;
   try { sw.pg.releasePointerCapture(sw.id); } catch(_){}
   const st = sw.st, v = performance.now() - sw.lastT > 100 ? 0 : sw.v, flick = Math.abs(v) > .4 && Math.abs(st.x) > 20; let dir = 0;
   if (e.type === 'pointerup'){ if (flick) dir = v < 0 ? 1 : -1; else if (Math.abs(st.x) > st.w * .25) dir = st.x < 0 ? 1 : -1; }
   if ((dir === 1 && !st.next) || (dir === -1 && !st.prev)) dir = 0;
-  settleSlide(st, dir, 300);
+  place(st, st.x);
+  settleSlide(st, dir, v);
 }
 document.addEventListener('pointerup', endSwipe);
 document.addEventListener('pointercancel', endSwipe);
