@@ -745,9 +745,9 @@ function seasonRows(){
   if (sc.total) rows.push({ k:'total', t:'Total paid up front', sub:`${esc(sc.payers.map(first).join(' and '))} paid, ${fmtDay(sc.exps[0].spent_on)}`, v:money(sc.total) });
   if (myS) rows.push({ k:'share', t:'Your share', v:money(myS.share) });
   if (full){
-    if (pt.each) rows.push({ k:'dep', t:'Security deposit', pv:cut ? `${money(cut)} of your ${money(pt.each)} was withheld.` : '', v:money(-depBack) });
-    rows.push(sees ? { k:'gf', t:'Share of guest fees and leases', v:money(-share) } : { k:'gf', t:'Share of guest fees and leases', plain:'At payout' });
-    if (costs || pt.costs.all) rows.push({ k:'bills', t:'Your share of house bills', v:signed(costs) });
+    if (pt.each) rows.push({ k:'dep', indent:true, t:'Security deposit', pv:cut ? `${money(cut)} of your ${money(pt.each)} was withheld.` : '', v:money(-depBack) });
+    rows.push(sees ? { k:'gf', indent:true, t:'Share of guest fees and leases', v:money(-share) } : { k:'gf', indent:true, t:'Share of guest fees and leases', plain:'At payout' });
+    if (costs || pt.costs.all) rows.push({ k:'bills', indent:true, t:'Your share of house bills', v:signed(costs) });
     rows.push({ k:'refund', t:pt.paidOut ? 'Paid out to you' : sees ? 'Total refund so far' : 'Deposit less house bills so far', sub:pt.paidOut ? 'It’s in your balance above.' : '', pv:!pt.paidOut && net < 0 ? 'House bills are ahead of what’s due back, so you’d owe this at payout.' : '', v:signed(-net) });
     if (myS) rows.push({ k:'cost', t:'Season cost', pv:sees ? '' : 'Before your share of guest fees and leases.', v:money(myS.share - net), final:true });
   }
@@ -792,7 +792,7 @@ function viewMoney(){
       ${myDates(S.me) ? `<span class="s">Your dates: ${myDates(S.me)}</span>` : ''}</span>
       <span class="amt${leasePaid(S.me) ? ' pos' : ' neg'}">${money(leaseOf(S.me))}</span></div>
       ${!leasePaid(S.me) && col && col.venmo ? `<div class="pay-btns"><a class="btn small primary" href="${esc(venmoUrl(col, 'pay', leaseOf(S.me), 'Part-time lease: ' + S.me.name))}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a></div>` : ''}</li></ul>` : '';
-  const trow = r => `<li${r.final ? ' class="final"' : ''}><div class="rowi"><span class="grow"><span class="t">${r.t}</span>${r.sub ? `<span class="s">${r.sub}</span>` : ''}${r.pv ? `<span class="s" data-pv="${r.k}" hidden></span>` : ''}</span>${r.plain ? `<span class="amt">${r.plain}</span>` : `<button type="button" class="amt veil" data-act="reveal" data-k="${r.k}" aria-label="Show amounts">••••••</button>`}</div></li>`;
+  const trow = r => `<li${r.final ? ' class="final"' : ''}><div class="rowi${r.indent ? ' item' : ''}"><span class="grow"><span class="t">${r.t}</span>${r.sub ? `<span class="s">${r.sub}</span>` : ''}${r.pv ? `<span class="s" data-pv="${r.k}" hidden></span>` : ''}</span>${r.plain ? `<span class="amt">${r.plain}</span>` : `<button type="button" class="amt veil" data-act="reveal" data-k="${r.k}" aria-label="Show amounts">••••••</button>`}</div></li>`;
   const trows = seasonRows(), totalsHtml = trows.length ? `<h2>Season totals</h2><ul class="list soft priv">${trows.map(trow).join('')}</ul>` : '';     // the numbers stay hidden until one is tapped, and hide again whenever the page redraws
   // The same small button for everyone who has shared a Venmo; on your own row, a prompt to add yours.
   const venmoBtn = m => {
