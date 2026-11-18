@@ -124,6 +124,11 @@ a.btn{text-decoration:none}
 .mnav h2{margin:0;font-size:var(--t-widget);text-transform:none;letter-spacing:.04em;color:var(--ink)}
 .mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.pager{position:relative;overflow:hidden;margin:-2px -4px;padding:2px 4px;touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
+.track{position:relative}
+.mpage.side{position:absolute;top:0;width:100%}
+.mpage.prev{left:calc(-100% - 16px)}
+.mpage.next{left:calc(100% + 16px)}
 .dow span{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;padding-bottom:4px}
 .day{position:relative;aspect-ratio:1/1.12;border:1px solid var(--line);border-radius:10px;background:var(--panel);
   padding:5px 5px 4px;display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left}
@@ -587,9 +592,9 @@ function settle(b){
 /* ---------- views ---------- */
 const demoNote = () => LIVE ? '' : `<p class="demo">Sample data, saved in this browser only. Tap around; nothing is shared yet.</p>`;
 
-function viewNights(){
+function monthPage(m0){
   const t = today(), tIso = iso(t);
-  const m0 = S.month, y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
+  const y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
   let cells = '<span class="blank"></span>'.repeat(m0.getDay());
   for (let d = 1; d <= days; d++){
     const k = `${y}-${pad(mo+1)}-${pad(d)}`;
@@ -601,18 +606,28 @@ function viewNights(){
     cells += `<button class="${cls}" data-act="${S.pick ? 'pick-toggle' : 'night-open'}" data-night="${k}" aria-label="${esc(label)}"${S.pick ? ` aria-pressed="${picked}"` : ''}>
       <span class="num">${d}</span>${hc ? `<span class="cnt">${hc}</span>` : ''}<span class="dots">${dots}</span></button>`;
   }
+  return `<div class="dow" aria-hidden="true">${['S','M','T','W','T','F','S'].map(x => `<span>${x}</span>`).join('')}</div>
+    <div class="grid${S.pick ? ' picking' : ''}">${cells}</div>`;
+}
+const monthLabel = d => d.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+// Whether there's a month to go to on each side (the lease sets the limits).
+function monthBounds(){
+  const m0 = S.month;
+  return { prev: !(leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart()))), next: !(lastNight() && monthKey(m0) >= monthKey(parse(lastNight()))) };
+}
+
+function viewNights(){
+  const m0 = S.month, bounds = monthBounds();
   const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
-  const atStart = leaseStart() && monthKey(m0) <= monthKey(parse(leaseStart())), atEnd = lastNight() && monthKey(m0) >= monthKey(parse(lastNight()));
   return `${demoNote()}<h1>The shredule</h1>
 ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
-    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${atStart ? ' disabled' : ''}>‹</button>
-      <h2>${m0.toLocaleDateString('en-US',{month:'long', year:'numeric'})}</h2>
-      <button data-act="month" data-d="1" aria-label="Next month"${atEnd ? ' disabled' : ''}>›</button></div>
+    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${bounds.prev ? '' : ' disabled'}>‹</button>
+      <h2>${monthLabel(m0)}</h2>
+      <button data-act="month" data-d="1" aria-label="Next month"${bounds.next ? '' : ' disabled'}>›</button></div>
     ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap or drag across nights'}</span>
         <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
       : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
-    <div class="dow" aria-hidden="true">${['S','M','T','W','T','F','S'].map(x => `<span>${x}</span>`).join('')}</div>
-    <div class="grid${S.pick ? ' picking' : ''}">${cells}</div>
+    <div class="pager" id="pager"><div class="track"><div class="mpage">${monthPage(m0)}</div></div></div>
     <div class="legend">${legend}</div>`;
 }
 
@@ -1169,7 +1184,7 @@ async function toggleNight(night){
 }
 const actions = {
   tab(el){ go(el.dataset.view); },
-  month(el){ S.month = new Date(S.month.getFullYear(), S.month.getMonth() + Number(el.dataset.d), 1); render(); },
+  month(el){ goMonth(Number(el.dataset.d)); },
   'night-open'(el){ openSheet(sheetNight(el.dataset.night), { type:'night', night:el.dataset.night }); celebrate(el.dataset.night); },
   'night-toggle'(el){ toggleNight(el.dataset.night); },
   'guest-remove'(el){ const st = myStay(el.dataset.night); if (!st) return; const names = guestNames(st).slice(); names.splice(Number(el.dataset.i), 1); setGuests(st, names); },
@@ -1526,7 +1541,84 @@ document.addEventListener('pointerup', finishNightDrag);
 document.addEventListener('pointercancel', finishNightDrag);
 document.addEventListener('lostpointercapture', finishNightDrag);
 
-document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
+// Swiping the calendar sideways moves between months. The neighbouring months are built when a drag starts, follow the
+// finger, and the one you land on settles into place. In "pick several nights" mode the grid owns sideways drags, so this stays out of it.
+let swipe = null, monthAnim = false, queuedDelta = 0, swipeClickUntil = 0;
+const GUTTER = 16, reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const monthAt = d => new Date(S.month.getFullYear(), S.month.getMonth() + d, 1);
+const setMonthTitle = d => { const h = $('.mnav h2'); if (h) h.textContent = monthLabel(monthAt(d)); };
+function startSlide(pg, wantPrev, wantNext){
+  const track = pg.querySelector('.track'), bounds = monthBounds();
+  const make = (cls, d) => { const el = document.createElement('div'); el.className = 'mpage side ' + cls; el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); el.innerHTML = monthPage(monthAt(d)); track.appendChild(el); return el; };
+  const st = { pg, track, w: pg.clientWidth - 8, x: 0, shown: 0, hCur: pg.querySelector('.mpage:not(.side)').offsetHeight };
+  st.prev = wantPrev && bounds.prev ? make('prev', -1) : null; st.next = wantNext && bounds.next ? make('next', 1) : null;
+  st.hPrev = st.prev ? st.prev.offsetHeight : st.hCur; st.hNext = st.next ? st.next.offsetHeight : st.hCur;
+  pg.style.height = (st.hCur + 4) + 'px';                      // hold the height steady so nothing below jumps
+  pg.style.transition = track.style.transition = 'none'; track.style.willChange = 'transform';
+  return st;
+}
+function moveSlide(st, x){
+  let dx = x; if ((dx > 0 && !st.prev) || (dx < 0 && !st.next)) dx *= .3;     // nothing that way: it resists
+  const span = st.w + GUTTER; dx = Math.max(-span, Math.min(span, dx)); st.x = dx;
+  st.track.style.transform = `translateX(${dx}px)`;
+  const p = Math.abs(dx) / span, hT = dx > 0 ? st.hPrev : st.hNext; st.pg.style.height = (st.hCur + (hT - st.hCur) * p + 4) + 'px';
+  const shown = dx > span / 2 && st.prev ? -1 : dx < -span / 2 && st.next ? 1 : 0;
+  if (shown !== st.shown){ st.shown = shown; setMonthTitle(shown); }          // the title follows once it's past halfway
+}
+function settleSlide(st, dir, ms){
+  monthAnim = true;
+  const { pg, track } = st, span = st.w + GUTTER, target = dir === 1 ? -span : dir === -1 ? span : 0, hT = dir === 1 ? st.hNext : dir === -1 ? st.hPrev : st.hCur, animate = ms > 0 && !reducedMotion();
+  if (animate){ track.style.transition = `transform ${ms}ms cubic-bezier(.22,.8,.3,1)`; pg.style.transition = `height ${ms}ms ease`; }
+  void track.offsetWidth;                                                      // lock in where it is before animating
+  track.style.transform = `translateX(${target}px)`; pg.style.height = (hT + 4) + 'px'; if (dir) setMonthTitle(dir);
+  let done = false, timer = 0;
+  const finish = () => {
+    if (done) return; done = true; clearTimeout(timer); track.removeEventListener('transitionend', onEnd); monthAnim = false;
+    if (pg.isConnected){
+      if (dir){ S.month = monthAt(dir); render(); }
+      else { if (st.prev) st.prev.remove(); if (st.next) st.next.remove(); track.style.transition = track.style.transform = track.style.willChange = ''; pg.style.transition = pg.style.height = ''; setMonthTitle(0); }
+    }
+    if (queuedDelta){ const d = Math.sign(queuedDelta); queuedDelta -= d; goMonth(d); }
+  };
+  const onEnd = e => { if (e.target === track && e.propertyName === 'transform') finish(); };
+  track.addEventListener('transitionend', onEnd); timer = setTimeout(finish, animate ? ms + 80 : 0);
+}
+function goMonth(delta){
+  if (monthAnim){ queuedDelta += delta; return; }
+  const bounds = monthBounds(); if ((delta > 0 && !bounds.next) || (delta < 0 && !bounds.prev)){ queuedDelta = 0; return; }
+  const pg = $('#pager'); if (!pg){ S.month = monthAt(delta); render(); return; }
+  settleSlide(startSlide(pg, delta < 0, delta > 0), delta, 260);
+}
+document.addEventListener('pointerdown', e => {
+  if (swipe || monthAnim || S.pick || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  const pg = e.target.closest && e.target.closest('#pager'); if (!pg) return;
+  swipe = { id:e.pointerId, pg, x0:e.clientX, y0:e.clientY, lastX:e.clientX, lastT:performance.now(), v:0, mode:null, st:null };
+});
+document.addEventListener('pointermove', e => {
+  const sw = swipe; if (!sw || e.pointerId !== sw.id) return;
+  const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+  if (!sw.mode){
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    if (Math.abs(dx) <= Math.abs(dy) * 1.2){ swipe = null; return; }          // mostly vertical: leave it to the page's own scrolling
+    sw.mode = 'h'; sw.st = startSlide(sw.pg, true, true); try { sw.pg.setPointerCapture(sw.id); } catch(_){}
+  }
+  const now = performance.now(), dt = now - sw.lastT; if (dt > 0){ sw.v = .6 * sw.v + .4 * ((e.clientX - sw.lastX) / dt); sw.lastX = e.clientX; sw.lastT = now; }
+  moveSlide(sw.st, dx);
+});
+function endSwipe(e){
+  const sw = swipe; if (!sw || e.pointerId !== sw.id) return; swipe = null;
+  if (sw.mode !== 'h' || !sw.st) return;
+  swipeClickUntil = Date.now() + 400;
+  try { sw.pg.releasePointerCapture(sw.id); } catch(_){}
+  const st = sw.st, v = performance.now() - sw.lastT > 100 ? 0 : sw.v, flick = Math.abs(v) > .4 && Math.abs(st.x) > 20; let dir = 0;
+  if (e.type === 'pointerup'){ if (flick) dir = v < 0 ? 1 : -1; else if (Math.abs(st.x) > st.w * .25) dir = st.x < 0 ? 1 : -1; }
+  if ((dir === 1 && !st.next) || (dir === -1 && !st.prev)) dir = 0;
+  settleSlide(st, dir, 300);
+}
+document.addEventListener('pointerup', endSwipe);
+document.addEventListener('pointercancel', endSwipe);
+
+document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (Date.now() < swipeClickUntil && e.target.closest('#pager')) return; if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 // Whatever lands in the hidden field is read here: a picture (Genmoji, sticker), an emoji, or something else.
