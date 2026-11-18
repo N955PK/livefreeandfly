@@ -117,7 +117,7 @@ One type scale, defined once at the top of the stylesheet in `cabin/index.html` 
 | Page title | mono | 24, semibold |
 | Panel title | mono | 17, semibold |
 | Calendar month title | mono | 15, semibold |
-| Section label (every heading inside a page or panel, and guest group labels) | mono | 12.5, semibold, capitals, grey |
+| Section label (every heading inside a page or panel, and guest group labels) | mono | 14, semibold, capitals, grey |
 | Body (names, values, form text) | sans | 16 |
 | Amounts | sans | 16, semibold (the big balance at the top is 36, bold) |
 | Secondary text | sans | 14, grey |
