@@ -10,10 +10,11 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="ski/lease">
+<script>try{var l=JSON.parse(localStorage.getItem('shredule-look')||'{}');if(l.mode==='light'||l.mode==='dark')document.documentElement.dataset.theme=l.mode;}catch(e){}</script>
 <style>
 :root{
   --bg:#eef1f4; --ink:#0a0e13; --dim:#55616c; --ink2:#34414d; --line:rgba(10,14,19,.16);
-  --accent:#A31F34; --accent-ink:#A31F34; --panel:rgba(255,255,255,.72); --sheet:#f7f9fa;
+  --accent:#A31F34; --on-accent:#fff; --accent-ink:var(--accent-ink-l,#A31F34); --panel:rgba(255,255,255,.72); --sheet:#f7f9fa;
   --pos:#0b7d5e; --neg:#a85a00; --crowded:#8a5700; --very-crowded:#b42318; --field:#ffffff;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -27,14 +28,14 @@
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --ink2:#c3cad1; --line:rgba(233,237,241,.14);
-    --accent-ink:#ef6f81; --panel:rgba(16,22,29,.6); --sheet:#10161d;
+    --accent-ink:var(--accent-ink-d,#ef6f81); --panel:rgba(16,22,29,.6); --sheet:#10161d;
     --pos:#39d0a4; --neg:#ffa32e; --crowded:#ffd166; --very-crowded:#ff6b6b; --field:#0a0e13;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --ink2:#c3cad1; --line:rgba(233,237,241,.14);
-  --accent-ink:#ef6f81; --panel:rgba(16,22,29,.6); --sheet:#10161d;
+  --accent-ink:var(--accent-ink-d,#ef6f81); --panel:rgba(16,22,29,.6); --sheet:#10161d;
   --pos:#39d0a4; --neg:#ffa32e; --crowded:#ffd166; --very-crowded:#ff6b6b; --field:#0a0e13;
   color-scheme:dark;
 }
@@ -57,7 +58,7 @@ a{color:var(--accent-ink)}
   max-width:620px;margin:0 auto;padding:10px 18px 8px}
 .brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink);text-decoration:none;-webkit-user-select:none;user-select:none}
 .brand .slash{color:var(--accent-ink);font-weight:700}
-.brand .mark{display:block;width:42px;height:26px}
+.brand .mark{display:block;width:42px;height:26px;filter:hue-rotate(var(--logo-rot,0deg))}
 .who{display:flex;align-items:center;gap:8px;font-size:var(--t-cap);color:var(--dim);min-height:40px;padding:0 2px 0 8px;border-radius:999px}
 .who[hidden]{display:none}
 main{max-width:620px;margin:0 auto;padding:6px 18px 110px}
@@ -129,8 +130,6 @@ a.btn{text-decoration:none}
 .pager.swiping .day:active{opacity:1}
 .pager.swiping .day.past:active{opacity:.5}
 .pager.swiping .day.out:active{opacity:.45}
-.mpage.prev{left:calc(-100% - 16px)}
-.mpage.next{left:calc(100% + 16px)}
 .dow span{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;padding-bottom:4px}
 .day{position:relative;aspect-ratio:1/1.12;border:1px solid var(--line);border-radius:10px;background:var(--panel);
   padding:5px 5px 4px;display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left}
@@ -149,13 +148,13 @@ a.btn{text-decoration:none}
 .day.off{opacity:.3;border-style:dashed;background:none}
 .day.out{opacity:.45}
 .day.mineg{border-color:var(--accent);border-style:dashed}
-.day.picked{outline:2px solid var(--accent-ink);outline-offset:-2px;background:rgba(163,31,52,.28)}
+.day.picked{outline:2px solid var(--accent-ink);outline-offset:-2px;background:color-mix(in srgb,var(--accent) 28%,transparent)}
 .pickbar{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:var(--t-sub);color:var(--dim)}
 .pickbar span{flex:1}
 .stack{display:flex;flex-direction:column;gap:10px}
 .stack .btn{width:100%}
 .monthnav{display:flex;gap:8px;margin-top:14px}
-.monthnav .btn{flex:1;min-width:0;white-space:nowrap}
+.monthnav .btn{flex:1;min-width:0;font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;padding-bottom:5px}
 .day.blk{background-image:repeating-linear-gradient(135deg,rgba(214,153,46,.28) 0 4px,transparent 4px 9px)}
 .day .hol{position:absolute;left:0;right:0;top:50%;margin-top:-10px;text-align:center;font-size:19px;line-height:1;opacity:.55;pointer-events:none}
 .day.booked .hol{opacity:.28}
@@ -170,6 +169,25 @@ a.btn{text-decoration:none}
 .legend .sw{margin:0}
 .legend .em{flex:0 0 auto;font-size:var(--t-cap);line-height:1}
 .legend .chip.sm{width:16px;height:16px;font-size:9px}
+
+/* ---- looks: each person picks light or dark and an accent color ---- */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:6px}
+.seg button{min-height:44px;font-size:var(--t-btn);font-weight:600;color:var(--dim);background:transparent}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.accents{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-top:6px}
+.accents button{display:flex;align-items:center;gap:6px;min-width:0;padding:10px 6px 10px 8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:var(--t-cap);color:var(--ink);text-align:left}
+.accents button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.accents .dot{flex:0 0 auto;width:16px;height:16px;border-radius:50%}
+.accents .dot.disco{background:conic-gradient(#ff5c39,#ffd23f,#39d0a4,#3aa8ff,#d95ce8,#ff5c39)}
+.accents button[aria-pressed="true"]{border-color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--accent-ink)}
+.accents button[aria-pressed="true"] .dot{animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.55)}100%{transform:scale(1)}}
+/* Disco: the accent drifts through every colour. The lightness is chosen so text stays readable at every hue. */
+@property --disco{syntax:'<number>';inherits:true;initial-value:0}
+@keyframes disco{to{--disco:360}}
+:root[data-accent="disco"]{--accent:hsl(var(--disco) 75% 26%);--on-accent:#fff;--accent-ink-l:hsl(var(--disco) 80% 22%);--accent-ink-d:hsl(var(--disco) 95% 74%);--logo-rot:calc(var(--disco) * 1deg - 350deg);animation:disco 24s steps(240) infinite}
+@media (prefers-reduced-motion:reduce){:root[data-accent="disco"]{animation:none}.accents button[aria-pressed="true"] .dot{animation:none}}
 
 /* ---- lists ---- */
 .list{list-style:none;border-top:1px solid var(--line)}
@@ -191,7 +209,7 @@ a.btn{text-decoration:none}
 /* ---- buttons ---- */
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:12px;
   border:1px solid var(--line);font-size:var(--t-btn);font-weight:600;color:var(--ink);background:var(--panel)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.small{min-height:36px;padding:0 12px;font-size:var(--t-btn-sm);border-radius:10px}
 .btn:disabled{opacity:.4;cursor:default}
 .rowi.tight{gap:8px}
@@ -671,8 +689,8 @@ ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(
         <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
       : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
     <div class="pager" id="pager"><div class="track"><div class="mpage">${monthPage(m0)}</div></div></div>
-    <div class="monthnav"><button class="btn" data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹ ${esc(prevName)}</button>
-      <button class="btn" data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>${esc(nextName)} ›</button></div>
+    <div class="monthnav"><button class="btn" data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹</button>
+      <button class="btn" data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>›</button></div>
     <div class="legend">${legend}</div>
     <div class="legend dates"><span class="wide"><i class="sw"></i><span class="nm">Ikon blackout</span></span><span><span class="em">🍀</span><span class="nm">Holiday</span></span></div>`;
 }
@@ -777,7 +795,7 @@ function viewHouse(){
     ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
       <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
     : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}${foot}`;
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}<h2>Your look</h2><div class="stack"><button class="btn" data-act="theme-open">🎨 Make it yours</button></div>${foot}`;
 }
 
 function viewGate(){
@@ -990,6 +1008,54 @@ function sheetQr(){
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button><a class="btn primary" href="${esc(url)}" target="_blank" rel="noopener">Open in Venmo</a></div>`;
 }
 
+// ---------- looks: light or dark, and an accent color, kept on this device ----------
+const ACCENTS = [
+  { id:'chairlift', name:'Chairlift',  a:'#A31F34', on:'#ffffff', inkL:'#A31F34', inkD:'#ef6f81' },      // the original
+  { id:'powder',    name:'Powder',     a:'#2563c9', on:'#ffffff', inkL:'#1d4fa3', inkD:'#7fb2ff' },
+  { id:'pine',      name:'Pine',       a:'#1f7a4d', on:'#ffffff', inkL:'#176339', inkD:'#5fd49a' },
+  { id:'sunset',    name:'Sunset',     a:'#c4521f', on:'#ffffff', inkL:'#a8430f', inkD:'#ff9a63' },
+  { id:'bubblegum', name:'Bubblegum',  a:'#c93274', on:'#ffffff', inkL:'#a8225e', inkD:'#ff8ab8' },
+  { id:'grape',     name:'Grape',      a:'#7b3fc4', on:'#ffffff', inkL:'#62309f', inkD:'#b98cff' },
+  { id:'aurora',    name:'Aurora',     a:'#0a8272', on:'#ffffff', inkL:'#09695c', inkD:'#4fe0cc' },
+  { id:'lemon',     name:'Lemonade',   a:'#e6b800', on:'#1a1400', inkL:'#7a5c00', inkD:'#ffd84a' },
+  { id:'cocoa',     name:'Hot Cocoa',  a:'#7a4a32', on:'#ffffff', inkL:'#6a3e29', inkD:'#d9a284' },
+  { id:'slate',     name:'Slate',      a:'#4b5d73', on:'#ffffff', inkL:'#3c4b5e', inkD:'#a9bbd0' },
+  { id:'disco',     name:'Disco',      disco:true }
+];
+const LOOK_KEY = 'shredule-look';
+let appLook = (() => { try { return JSON.parse(localStorage.getItem(LOOK_KEY)) || {}; } catch(e){ return {}; } })();
+const saveLook = () => { try { localStorage.setItem(LOOK_KEY, JSON.stringify(appLook)); } catch(e){} };
+function hexHue(h){
+  const r = parseInt(h.slice(1, 3), 16) / 255, g = parseInt(h.slice(3, 5), 16) / 255, b = parseInt(h.slice(5, 7), 16) / 255, mx = Math.max(r, g, b), d = mx - Math.min(r, g, b);
+  if (!d) return 0; const hue = 60 * (mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4); return hue < 0 ? hue + 360 : hue;
+}
+function paintToolbar(){                                                                       // the color the browser paints behind its own toolbars
+  const dark = appLook.mode === 'dark' || (appLook.mode !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0a0e13' : '#eef1f4');
+}
+function applyLook(){
+  const root = document.documentElement, acc = ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0];
+  if (appLook.mode === 'light' || appLook.mode === 'dark') root.dataset.theme = appLook.mode; else delete root.dataset.theme;
+  root.dataset.accent = acc.id;
+  ['--accent', '--on-accent', '--accent-ink-l', '--accent-ink-d', '--logo-rot'].forEach(v => root.style.removeProperty(v));
+  if (!acc.disco && acc.id !== 'chairlift'){                                                    // the original and Disco are defined in the stylesheet
+    root.style.setProperty('--accent', acc.a); root.style.setProperty('--on-accent', acc.on); root.style.setProperty('--accent-ink-l', acc.inkL); root.style.setProperty('--accent-ink-d', acc.inkD);
+    root.style.setProperty('--logo-rot', Math.round(hexHue(acc.a) - 350.5) + 'deg');            // the skier follows the accent
+  }
+  paintToolbar();
+}
+function sheetLook(){
+  const mode = appLook.mode || 'auto', acc = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id;
+  return `<h2>Make it yours</h2>
+    <p class="sub">Pick a look. It’s just for you, on this phone.</p>
+    <h2>Light or dark</h2>
+    <div class="seg" role="group" aria-label="Light or dark">${[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(([v, t]) => `<button type="button" data-act="look-mode" data-v="${v}" aria-pressed="${mode === v}">${t}</button>`).join('')}</div>
+    <h2>Accent color</h2>
+    <div class="accents">${ACCENTS.map(a => `<button type="button" data-act="look-accent" data-v="${a.id}" aria-pressed="${acc === a.id}"><i class="dot${a.disco ? ' disco' : ''}"${a.disco ? '' : ` style="background:${a.a}"`}></i><span>${a.name}</span></button>`).join('')}</div>
+    <div class="actions"><button class="btn" data-act="look-surprise">🎲 Surprise me</button><button class="btn primary" data-act="sheet-close">Done</button></div>`;
+}
+function refreshLook(){ const d = $('#sheet'); if (d.open && S.sheet && S.sheet.type === 'look'){ const y = d.scrollTop; d.innerHTML = sheetLook(); d.scrollTop = y; } }
+let shuffling = false;
 function sheetExpense(e){
   const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:[], description:'', amount_cents:0 };
   const canPot = canMarkGuests();
@@ -1290,6 +1356,16 @@ const actions = {
     const n = B.nights.length; S.pick = null; S.bulk = null; closeSheet(); render(); toast(`Added to ${n} night${n === 1 ? '' : 's'}`);
   },
   'venmo-qr'(){ const c = collector(); if (!c || !c.venmo) return; loadQr().then(() => openSheet(sheetQr(), { type:'qr' })).catch(() => toast('Couldn’t load the QR code. Check your connection.')); },
+  'theme-open'(){ openSheet(sheetLook(), { type:'look' }); },
+  'look-mode'(el){ appLook.mode = el.dataset.v === 'auto' ? undefined : el.dataset.v; saveLook(); applyLook(); refreshLook(); },
+  'look-accent'(el){ appLook.accent = el.dataset.v; saveLook(); applyLook(); refreshLook(); },
+  'look-surprise'(){                                                                           // flick through a few colors and land on a random one
+    if (shuffling) return;
+    const others = ACCENTS.filter(a => a.id !== appLook.accent), final = others[Math.floor(Math.random() * others.length)];
+    const tease = ACCENTS.filter(a => a.id !== final.id).sort(() => Math.random() - .5).slice(0, 4), seq = reducedMotion() ? [final] : [...tease, final];
+    shuffling = true;
+    seq.forEach((a, i) => setTimeout(() => { appLook.accent = a.id; applyLook(); refreshLook(); if (i === seq.length - 1){ saveLook(); shuffling = false; } }, i * 110));
+  },
   'guests-open'(){ openSheet(sheetGuests(), { type:'guests' }); },
   'collector-open'(){ if (isAdmin()) openSheet(sheetCollector()); },
   'deposit-open'(){ if (isAdmin()) openSheet(sheetDeposit()); },
@@ -1587,96 +1663,117 @@ document.addEventListener('pointerup', finishNightDrag);
 document.addEventListener('pointercancel', finishNightDrag);
 document.addEventListener('lostpointercapture', finishNightDrag);
 
-// Swiping the calendar sideways moves between months. The neighbouring months are built when a drag starts, follow the
-// finger, and the one you land on settles into place. In "pick several nights" mode the grid owns sideways drags, so this stays out of it.
-let swipe = null, monthAnim = false, queuedDelta = 0, swipeClickUntil = 0;
+// Swiping the calendar sideways moves between months. Pages for the neighbouring months are built when a drag starts and follow the
+// finger. The gesture can be interrupted at any moment: grab the calendar while it's still sliding, or swipe again right away, and it carries on.
+// In "pick several nights" mode the grid owns sideways drags, so this stays out of it.
+let ctl = null, swipe = null, swipeClickUntil = 0;
 const GUTTER = 16, SLOP = 10, reducedMotion = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 const monthAt = d => new Date(S.month.getFullYear(), S.month.getMonth() + d, 1);
-const setMonthTitle = d => { const h = $('.mnav h2'); if (h) h.textContent = monthLabel(monthAt(d)); };
-const place = (st, x) => { st.track.style.transform = `translate3d(${x}px,0,0)`; };
-function startSlide(pg, wantPrev, wantNext){
-  const track = pg.querySelector('.track'), bounds = monthBounds();
-  const make = (cls, d) => { const el = document.createElement('div'); el.className = 'mpage side ' + cls; el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); el.innerHTML = monthPage(monthAt(d)); track.appendChild(el); return el; };
-  const st = { pg, track, w: pg.clientWidth - 8, x: 0, hCur: pg.querySelector('.mpage:not(.side)').offsetHeight };
-  st.prev = wantPrev && bounds.prev ? make('prev', -1) : null; st.next = wantNext && bounds.next ? make('next', 1) : null;
-  st.hPrev = st.prev ? st.prev.offsetHeight : st.hCur; st.hNext = st.next ? st.next.offsetHeight : st.hCur;
-  pg.style.height = (st.hCur + 4) + 'px';                      // the height stays put while you drag, so nothing below the calendar moves
-  track.style.willChange = 'transform'; pg.classList.add('swiping');
-  return st;
+const setMonthTitle = () => { const h = $('.mnav h2'); if (h) h.textContent = monthLabel(S.month); };
+const mIndex = d => d.getFullYear() * 12 + d.getMonth(), mDate = i => new Date(Math.floor(i / 12), i % 12, 1);
+const canExist = i => !((leaseStart() && i < mIndex(parse(leaseStart()))) || (lastNight() && i > mIndex(parse(lastNight()))));
+const place = (c, x) => { c.x = x; c.track.style.transform = `translate3d(${x}px,0,0)`; };
+// One controller owns the strip of months while anything is moving. Every page sits one month-width (plus a gap) from the one in the flow.
+function getCtl(pg){
+  if (ctl && ctl.pg === pg && pg.isConnected) return ctl;
+  if (ctl) teardown(ctl, false);
+  const track = pg.querySelector('.track'), el = pg.querySelector('.mpage'), cur = mIndex(S.month);
+  const c = ctl = { pg, track, cur, start: cur, pages: new Map([[cur, el]]), w: pg.clientWidth - 8, x: 0, v: 0, hNow: el.offsetHeight + 4, raf: 0, anim: false, queued: false };
+  pg.style.height = c.hNow + 'px'; track.style.willChange = 'transform'; pg.classList.add('swiping');
+  return c;
 }
-function dropSlide(st){                                         // tidy up if the gesture turned out not to be a swipe
-  if (st.prev) st.prev.remove(); if (st.next) st.next.remove();
-  st.track.style.transform = st.track.style.willChange = ''; st.pg.style.height = ''; st.pg.classList.remove('swiping');
+function layout(c){
+  const span = c.w + GUTTER;
+  for (const [idx, el] of c.pages){
+    const r = idx - c.cur;
+    if (r === 0){ el.className = 'mpage'; el.style.left = ''; el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); }
+    else { el.className = 'mpage side'; el.style.left = (r * span) + 'px'; el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); }
+  }
 }
-function moveSlide(st, x){
-  let dx = x;
-  if ((dx > 0 && !st.prev) || (dx < 0 && !st.next)){ const d = st.w * .35; dx = Math.sign(dx) * d * (1 - 1 / (Math.abs(dx) * .55 / d + 1)); }   // an elastic stop that gets stiffer
-  const span = st.w + GUTTER; st.x = Math.max(-span, Math.min(span, dx));
-  if (!st.queued){ st.queued = true; requestAnimationFrame(() => { st.queued = false; if (!st.settling) place(st, st.x); }); }    // one update per frame
+function ensure(c, idx){
+  if (c.pages.has(idx) || !canExist(idx)) return;
+  const el = document.createElement('div'); el.innerHTML = monthPage(mDate(idx)); c.track.appendChild(el); c.pages.set(idx, el);
 }
-// Settles along a smooth curve that starts at the speed your finger was going and eases gently to rest, so letting go never snaps.
-function settleSlide(st, dir, v0){
-  monthAnim = true; st.settling = true;
-  const { pg } = st, span = st.w + GUTTER, target = dir === 1 ? -span : dir === -1 ? span : 0, hT = dir === 1 ? st.hNext : dir === -1 ? st.hPrev : st.hCur;
-  const x0 = st.x, path = target - x0, hFrom = st.hCur, half = span / 2; let titled = false, done = false;
-  const heightAt = x => pg.style.height = (hFrom + (hT - hFrom) * (path ? Math.max(0, Math.min(1, (x - x0) / path)) : 1) + 4) + 'px';
-  const swapTitle = x => { if (dir && !titled && Math.abs(x) >= half && Math.sign(x) === Math.sign(target)){ titled = true; setMonthTitle(dir); } };
-  const finish = () => {
-    if (done) return; done = true; monthAnim = false;
-    if (pg.isConnected){
-      if (dir){ S.month = monthAt(dir); render(); }
-      else { dropSlide(st); setMonthTitle(0); }
-    }
-    if (queuedDelta){ const d = Math.sign(queuedDelta); queuedDelta -= d; goMonth(d); }
-  };
-  if (reducedMotion() || (Math.abs(path) < .5 && Math.abs(v0) < .02)){ place(st, target); heightAt(target); if (dir) setMonthTitle(dir); finish(); return; }
-  const D = Math.max(260, Math.min(420, 200 + Math.abs(path) * .5));                     // longer for a longer way to go
-  const vmax = 2.5 * Math.abs(path) / D, vs = Math.max(-vmax, Math.min(vmax, v0));       // never start so fast that it would overshoot
-  const t0 = performance.now();
+const prime = c => { ensure(c, c.cur - 1); ensure(c, c.cur + 1); layout(c); };               // the months either side of the current one
+// The destination becomes the current month the moment you let go, with nothing moving on screen. Every slide after that just settles to rest.
+function rebase(c, dir){
+  c.cur += dir; S.month = mDate(c.cur); c.x += dir * (c.w + GUTTER);
+  ensure(c, c.cur); prime(c); place(c, c.x); setMonthTitle();
+}
+function teardown(c, redraw){
+  cancelAnimationFrame(c.raf); if (ctl === c) ctl = null;
+  if (!c.pg.isConnected) return;
+  if (redraw && c.cur !== c.start){ render(); return; }                                       // the month changed: redraw the screen for it
+  for (const [idx, el] of c.pages){ if (idx !== c.cur) el.remove(); else { el.className = 'mpage'; el.style.left = ''; el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); } }
+  c.track.style.transform = c.track.style.willChange = ''; c.pg.style.height = ''; c.pg.classList.remove('swiping');
+}
+// Settles along a smooth curve that starts at the speed you were moving and eases to rest. Short, so scrolling through months feels quick.
+function settleSlide(c, v0){
+  cancelAnimationFrame(c.raf);
+  const x0 = c.x, path = -x0, hFrom = c.hNow, hTo = c.pages.get(c.cur).offsetHeight + 4;
+  const finish = () => { c.anim = false; if (!swipe) teardown(c, true); };
+  if (reducedMotion() || (Math.abs(path) < .5 && Math.abs(v0) < .02)){ place(c, 0); c.hNow = hTo; c.pg.style.height = hTo + 'px'; finish(); return; }
+  const D = Math.max(120, Math.min(240, 70 + Math.abs(path) * .2)), vmax = 2.5 * Math.abs(path) / D, vs = Math.max(-vmax, Math.min(vmax, v0));
+  const t0 = performance.now(); let lastX = x0, lastT = t0; c.anim = true;
   const step = now => {
+    if (!c.pg.isConnected){ if (ctl === c) ctl = null; return; }
     const u = Math.min(1, (now - t0) / D), u2 = u * u, u3 = u2 * u;
-    const x = x0 + vs * D * (u - 2 * u2 + u3) + path * (3 * u2 - 2 * u3);               // a cubic that begins at the finger's speed and ends at rest
-    place(st, x); heightAt(x); swapTitle(x);
-    if (u >= 1){ place(st, target); heightAt(target); if (dir) setMonthTitle(dir); finish(); return; }
-    requestAnimationFrame(step);
+    const x = x0 + vs * D * (u - 2 * u2 + u3) + path * (3 * u2 - 2 * u3);                      // a cubic that begins at your speed and ends at rest
+    place(c, x); c.hNow = hFrom + (hTo - hFrom) * Math.max(0, Math.min(1, path ? (x - x0) / path : u)); c.pg.style.height = c.hNow + 'px';
+    if (now > lastT){ c.v = (x - lastX) / (now - lastT); lastX = x; lastT = now; }
+    if (u >= 1){ place(c, 0); c.hNow = hTo; c.pg.style.height = hTo + 'px'; finish(); return; }
+    c.raf = requestAnimationFrame(step);
   };
-  requestAnimationFrame(step);
+  c.raf = requestAnimationFrame(step);
 }
 function goMonth(delta){
-  if (monthAnim){ queuedDelta += delta; return; }
-  const bounds = monthBounds(); if ((delta > 0 && !bounds.next) || (delta < 0 && !bounds.prev)){ queuedDelta = 0; return; }
-  const pg = $('#pager'); if (!pg){ S.month = monthAt(delta); render(); return; }
-  settleSlide(startSlide(pg, delta < 0, delta > 0), delta, 0);
+  const pg = $('#pager'); if (!pg || !pg.isConnected){ S.month = monthAt(delta); render(); return; }
+  const c = getCtl(pg); if (!canExist(c.cur + delta)) return;
+  const v0 = c.anim ? c.v : 0; cancelAnimationFrame(c.raf);                                    // a tap while it's still sliding carries on from where it is
+  prime(c); rebase(c, delta); settleSlide(c, v0);
+}
+function dragTo(c, sw, raw){
+  const span = c.w + GUTTER, hasPrev = c.pages.has(c.cur - 1), hasNext = c.pages.has(c.cur + 1); let x = raw;
+  if ((x > 0 && !hasPrev) || (x < 0 && !hasNext)){ const d = c.w * .35; x = Math.sign(x) * d * (1 - 1 / (Math.abs(x) * .55 / d + 1)); }     // an elastic stop that gets stiffer
+  else x = Math.max(Math.min(-span, sw.xStart), Math.min(Math.max(span, sw.xStart), x));
+  c.x = x;
+  if (!c.queued){ c.queued = true; requestAnimationFrame(() => { c.queued = false; if (ctl === c && !c.anim) place(c, c.x); }); }     // one update per frame
 }
 document.addEventListener('pointerdown', e => {
-  if (swipe || monthAnim || S.pick || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  if (swipe || S.pick || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
   const pg = e.target.closest && e.target.closest('#pager'); if (!pg) return;
-  swipe = { id:e.pointerId, pg, x0:e.clientX, y0:e.clientY, lastX:e.clientX, lastT:performance.now(), v:0, mode:null, st:null };
+  swipe = { id:e.pointerId, pg, x0:e.clientX, y0:e.clientY, lastX:e.clientX, lastT:performance.now(), v:0, mode:null, c:null, xStart:0, grabbed:false };
+  if (ctl && ctl.pg === pg && ctl.anim){                                                       // catch the calendar while it's still moving
+    cancelAnimationFrame(ctl.raf); ctl.anim = false; Object.assign(swipe, { grabbed:true, mode:'h', c:ctl, xStart:ctl.x });
+    try { pg.setPointerCapture(e.pointerId); } catch(_){}
+  }
 });
 document.addEventListener('pointermove', e => {
   const sw = swipe; if (!sw || e.pointerId !== sw.id) return;
   const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
   if (!sw.mode){
     // build the neighbouring months a moment before the drag is recognised, so that work isn't done in the middle of the first frame
-    if (!sw.st && Math.abs(dx) >= 5 && Math.abs(dx) > Math.abs(dy) * 1.5) sw.st = startSlide(sw.pg, true, true);
+    if (!sw.c && Math.abs(dx) >= 5 && Math.abs(dx) > Math.abs(dy) * 1.5){ sw.c = getCtl(sw.pg); prime(sw.c); }
     if (Math.abs(dx) < SLOP && Math.abs(dy) < SLOP) return;
-    if (Math.abs(dx) <= Math.abs(dy) * 1.2){ if (sw.st) dropSlide(sw.st); swipe = null; return; }       // mostly vertical: leave it to the page's own scrolling
-    if (!sw.st) sw.st = startSlide(sw.pg, true, true);
-    sw.mode = 'h'; try { sw.pg.setPointerCapture(sw.id); } catch(_){}
+    if (Math.abs(dx) <= Math.abs(dy) * 1.2){ if (sw.c) teardown(sw.c, false); swipe = null; return; }       // mostly vertical: leave it to the page's own scrolling
+    if (!sw.c){ sw.c = getCtl(sw.pg); prime(sw.c); }
+    sw.mode = 'h'; sw.xStart = sw.c.x; try { sw.pg.setPointerCapture(sw.id); } catch(_){}
   }
   const now = performance.now(), dt = now - sw.lastT; if (dt > 0){ sw.v = .6 * sw.v + .4 * ((e.clientX - sw.lastX) / dt); sw.lastX = e.clientX; sw.lastT = now; }
-  moveSlide(sw.st, dx - Math.sign(dx) * SLOP);                                // it starts from zero instead of jumping ahead
+  dragTo(sw.c, sw, sw.xStart + (sw.grabbed ? dx : dx - Math.sign(dx) * SLOP));                             // it starts from zero instead of jumping ahead
 });
 function endSwipe(e){
   const sw = swipe; if (!sw || e.pointerId !== sw.id) return; swipe = null;
-  if (sw.mode !== 'h' || !sw.st){ if (sw.st) dropSlide(sw.st); return; }
-  swipeClickUntil = Date.now() + 400;
+  const c = sw.c;
+  if (sw.mode !== 'h' || !c){ if (c) teardown(c, false); return; }
+  swipeClickUntil = Date.now() + 160;                                                           // just long enough to swallow the click that ends a drag
   try { sw.pg.releasePointerCapture(sw.id); } catch(_){}
-  const st = sw.st, v = performance.now() - sw.lastT > 100 ? 0 : sw.v, flick = Math.abs(v) > .4 && Math.abs(st.x) > 20; let dir = 0;
-  if (e.type === 'pointerup'){ if (flick) dir = v < 0 ? 1 : -1; else if (Math.abs(st.x) > st.w * .25) dir = st.x < 0 ? 1 : -1; }
-  if ((dir === 1 && !st.next) || (dir === -1 && !st.prev)) dir = 0;
-  place(st, st.x);
-  settleSlide(st, dir, v);
+  place(c, c.x);
+  const v = performance.now() - sw.lastT > 100 ? 0 : sw.v, moved = c.x - sw.xStart; let dir = 0;            // moved = how far this swipe took it
+  if (e.type === 'pointerup'){ if (Math.abs(v) > .4 && Math.abs(moved) > 20) dir = v < 0 ? 1 : -1; else if (Math.abs(moved) > c.w * .25) dir = moved < 0 ? 1 : -1; }
+  if (dir && !c.pages.has(c.cur + dir)) dir = 0;
+  if (dir) rebase(c, dir);
+  settleSlide(c, v);
 }
 document.addEventListener('pointerup', endSwipe);
 document.addEventListener('pointercancel', endSwipe);
@@ -1755,6 +1852,9 @@ $('#photo').addEventListener('close', () => {
   drop(); requestAnimationFrame(drop);
 });
 document.addEventListener('keydown', e => { const ph = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-photo]'); if (ph){ e.preventDefault(); openPhoto(ph.dataset.photo, ph); } });
+
+applyLook();
+if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paintToolbar);
 
 /* ---------- routing and start ---------- */
 function go(v){ S.view = VIEWS.includes(v) ? v : 'nights'; if (location.hash.slice(1) !== S.view) history.replaceState(null, '', '#' + S.view); render(); window.scrollTo(0, 0); }
