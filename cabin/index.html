@@ -630,7 +630,7 @@ function viewMoney(){
   const gl = guestLedger().tot, col = collector();
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
   const guestHtml = `<ul class="list">${guestRow('Received', '', gl.paid)}${guestRow('Owed or expected', '', gl.owed + gl.coming)}</ul>
-    <div class="actions"><button class="btn" data-act="guests-open">See every guest</button></div>
+    <div class="actions"><button class="btn" data-act="guests-open">Open ledger</button></div>
     <p class="note">${col ? `Guests pay ${esc(col.name)} directly.${col.venmo ? ` <a href="https://venmo.com/u/${encodeURIComponent(col.venmo)}" target="_blank" rel="noopener">Venmo @${esc(col.venmo)}</a>` : ''}` : `The admin hasn’t set who guests pay yet.`}</p>`;
   const myLease = S.me && S.me.part_time && leaseOf(S.me) ? `<h2>Your part-time lease</h2>
     <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${leasePaid(S.me) ? 'Paid' : 'Due'}</span>
@@ -664,7 +664,7 @@ function viewMoney(){
     <div class="actions three"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add expense</button><button class="btn" data-act="pay-blank">Add payment</button><button class="btn" data-act="history-open">History</button></div>
     ${myLease}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
-    <h2>Guest fees</h2>${guestHtml}
+    <h2>Guest ledger</h2>${guestHtml}
     ${dueBack}`;
 }
 
@@ -791,11 +791,11 @@ function sheetBulk(){
     ${booked ? `<div class="actions"><button class="btn danger" data-act="bulk-remove"${S.removingNights ? ' disabled' : ''}>Remove my nights (${booked})</button></div>` : ''}`;
 }
 
-// Every guest, grouped by the member who brought them, with what each still owes the collector.
+// The guest ledger: every guest, grouped by the member who brought them, with what each still owes the collector.
 function sheetGuests(){
   const { by, tot } = guestLedger(), col = collector(), can = canMarkGuests();
   const sponsors = Object.keys(by).sort((a, b) => member(a).name.localeCompare(member(b).name));
-  if (!sponsors.length) return `<h2>Every guest</h2><p class="empty">No guests yet. When someone adds a guest to a night, they show up here.</p>
+  if (!sponsors.length) return `<h2>Guest ledger</h2><p class="empty">No guests yet. When someone adds a guest to a night, they show up here.</p>
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
   const dates = a => a.map(x => x.night).sort().map(fmtDay).join(', ');
   const body = sponsors.map(id => {
@@ -818,7 +818,7 @@ function sheetGuests(){
           ${g.paid && due ? `<span class="s pos">${money(g.paid)} received</span>` : ''}</span>
           <span class="amt${g.owed ? ' neg' : ''}">${due ? money(due) : 'Received'}</span></div>
           ${btns ? `<div class="pay-btns">${btns}</div>` : ''}</li>`; }).join('')}</ul>`; }).join('');
-  return `<h2>Every guest</h2><p class="sub">${col ? `Guests pay ${esc(col.name)} directly.` : 'The admin hasn’t set who guests pay yet.'}${can ? ' You can mark their fees as received.' : ''}</p>${body}
+  return `<h2>Guest ledger</h2><p class="sub">${col ? `Guests pay ${esc(col.name)} directly.` : 'The admin hasn’t set who guests pay yet.'}${can ? ' You can mark their fees as received.' : ''}</p>${body}
     <p class="note">${money(tot.paid)} received, ${money(tot.owed + tot.coming)} owed or expected.</p>
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
@@ -1077,7 +1077,7 @@ function financeTables(){
     add(e.spent_on, e.description, member(e.paid_by).name, num(e.amount_cents), ...people.map(m => sh[m.id] ? num(sh[m.id]) : '')); for (const id in sh) bt[id] = (bt[id] || 0) + sh[id]; }
   add('', 'Total', '', num(potExpenses().reduce((x, e) => x + e.amount_cents, 0)), ...people.map(m => bt[m.id] ? num(bt[m.id]) : ''));
 
-  tab('Guest fees'); add('Night', 'Guest', 'Guest of', 'Member staying', 'Fee', 'Received', 'When');
+  tab('Guest ledger'); add('Night', 'Guest', 'Guest of', 'Member staying', 'Fee', 'Received', 'When');
   let gOwed = 0, gGot = 0, gCome = 0;
   for (const st of guestStays().slice().sort((x, y) => x.night.localeCompare(y.night))) for (const g of guestNames(st)){
     const fee = perGuest(st), got = isPaid(st, g), fut = st.night > tIso; if (got) gGot += fee; else if (fut) gCome += fee; else gOwed += fee;
