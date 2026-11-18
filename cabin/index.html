@@ -1250,8 +1250,6 @@ function sheetExpense(e){
     <label>Date<input type="date" name="spent_on" required data-change="expdate" value="${esc(e.spent_on)}"></label>
     ${canPot ? `<label class="check"><input type="checkbox" name="from_pot" data-change="potflag"${e.from_pot ? ' checked' : ''}>Comes out of the pot</label>
     <p class="each" style="margin-top:6px">For house bills like utilities, split between everyone on the lease that month.</p>` : ''}
-    ${isAdmin() && seasonReady() ? `<label class="check"><input type="checkbox" name="season"${e.season ? ' checked' : ''}>Part of the season costs</label>
-    <p class="each" style="margin-top:6px">The up-front lease and similar. Shown in Season costs instead of the payment history.</p>` : ''}
     <fieldset><legend>Split evenly between</legend>
       <div class="pick-all"><button type="button" class="btn small" data-act="split-all">Select all</button><button type="button" class="btn small" data-act="split-none">Deselect all</button></div>
       <div class="pick">${pool.map(m => `<button type="button" data-act="split" data-id="${m.id}" aria-pressed="${e.split_among.includes(m.id)}">${chip(m)}${esc(first(m))}</button>`).join('')}</div></fieldset>
@@ -1274,7 +1272,6 @@ function sheetPayment(p, isNew, viaVenmo){
     <label>Amount<input name="amount" required inputmode="decimal" autocomplete="off" value="${p.amount_cents ? (p.amount_cents/100).toFixed(2) : ''}" placeholder="0.00"></label>
     <label>Date<input type="date" name="paid_on" required value="${esc(p.paid_on)}"></label>
     <label>What it was for, optional<input name="note" maxlength="60" value="${esc(p.note||'')}" placeholder="Venmo, cash for lift tickets…"></label>
-    ${isAdmin() && seasonReady() ? `<label class="check"><input type="checkbox" name="season"${p.season ? ' checked' : ''}>Part of the season costs</label>` : ''}
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save payment</button></div>
     ${isNew ? '' : `<div class="actions"><button type="button" class="btn danger" data-act="pay-del" data-id="${p.id}">Delete payment</button></div>`}</form>`;
@@ -1744,10 +1741,9 @@ const forms = {
       split_among:split, spent_on:f.spent_on.value, created_at: old ? old.created_at : new Date().toISOString() };
     const fromPot = f.from_pot ? f.from_pot.checked : !!(old && old.from_pot);
     if (fromPot || (old && 'from_pot' in old)) row.from_pot = fromPot;
-    const season = f.season ? f.season.checked : !!(old && old.season);
-    if (season && fromPot) return void ($('#err').textContent = 'An expense is either a season cost or comes out of the pot, not both.');
-    if (season || (old && 'season' in old)) row.season = season;
+    if (old && 'season' in old) row.season = !!old.season;                                       // an entry keeps its tag; only the Season costs picker changes it
     if (old && old.items) row.items = old.items;
+    if (row.season && fromPot) return void ($('#err').textContent = 'A season cost can’t also come out of the pot.');
     closeSheet(); save('expenses', row); toast('Expense saved'); backToHistory();
   },
   payment(f){
@@ -1759,8 +1755,7 @@ const forms = {
     if (old && old.season && !isAdmin()) return;
     const row = { id: old ? old.id : uid(), from_member:f.from_member.value, to_member:f.to_member.value, amount_cents,
       paid_on:f.paid_on.value, note:f.note.value.trim(), created_at: old ? old.created_at : new Date().toISOString() };
-    const season = f.season ? f.season.checked : !!(old && old.season);
-    if (season || (old && 'season' in old)) row.season = season;
+    if (old && 'season' in old) row.season = !!old.season;
     const back = S.backToSettle; S.backToSettle = false;
     closeSheet(); save('payments', row); toast('Payment saved');
     if (back && settle(balances()).some(x => x.from === S.me.id || x.to === S.me.id)) openSheet(sheetSettle(), { type:'settle' });
