@@ -756,9 +756,7 @@ function historyHtml(){
 }
 function sheetHistory(){
   const feed = historyHtml();
-  const hasSeason = seasonCosts().total > 0;
   return `<h2>Expenses and payments</h2><p class="sub">Tap one to change or delete it.</p>
-    ${hasSeason ? `<div class="actions"><button class="btn" data-act="season-open">Up-front season costs are in their own section</button></div>` : ''}
     ${feed ? `<ul class="list" style="margin-top:12px">${feed}</ul>` : `<p class="empty">No expenses yet. Add the first bill and it splits itself.</p>`}
     <div class="actions"><button class="btn" data-act="sheet-close">Done</button></div>`;
 }
@@ -1680,9 +1678,9 @@ const actions = {
   'sheet-close'(){ closeSheet(); },
   'history-open'(){ openSheet(sheetHistory(), { type:'history' }); },
   'exp-new'(){ S.backToHistory = false; openSheet(sheetExpense()); updateEach(); },
-  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e && e.from_pot && !canMarkGuests()) return; if (e){ openSheet(sheetExpense(e)); updateEach(); } },
+  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e && e.from_pot && !canMarkGuests()) return; if (e && e.season && !isAdmin()) return; if (e){ openSheet(sheetExpense(e)); updateEach(); } },
   async 'exp-del'(el){
-    const e = S.expenses.find(x => x.id === el.dataset.id); if (!e) return;
+    const e = S.expenses.find(x => x.id === el.dataset.id); if (!e || (e.season && !isAdmin())) return;
     if (!await confirmBox(`<h2>Delete this expense?</h2><p class="sub">${esc(e.description)}, ${money(e.amount_cents)}. Everyone’s balance changes, and it can’t be undone.</p>
       <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
     closeSheet(); del('expenses', e.id); toast('Expense deleted'); backToHistory();
@@ -1694,9 +1692,9 @@ const actions = {
   'pay-new'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
   'pay-venmo'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
   'pay-blank'(){ S.backToSettle = false; S.backToHistory = false; if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
-  'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (p) openSheet(sheetPayment(p, false)); },
+  'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (p && p.season && !isAdmin()) return; if (p) openSheet(sheetPayment(p, false)); },
   async 'pay-del'(el){
-    const p = S.payments.find(x => x.id === el.dataset.id); if (!p) return;
+    const p = S.payments.find(x => x.id === el.dataset.id); if (!p || (p.season && !isAdmin())) return;
     if (!await confirmBox(`<h2>Delete this payment?</h2><p class="sub">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))} ${money(p.amount_cents)}. Both balances change, and it can’t be undone.</p>
       <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
     closeSheet(); del('payments', p.id); toast('Payment deleted'); backToHistory();
@@ -1741,6 +1739,7 @@ const forms = {
     if (amount_cents <= 0) return void ($('#err').textContent = 'Enter an amount above zero.');
     if (!split.length) return void ($('#err').textContent = 'Pick at least one person to split it between.');
     const old = S.expenses.find(x => x.id === f.dataset.id);
+    if (old && old.season && !isAdmin()) return;
     const row = { id: old ? old.id : uid(), description:f.description.value.trim(), amount_cents, paid_by:f.paid_by.value,
       split_among:split, spent_on:f.spent_on.value, created_at: old ? old.created_at : new Date().toISOString() };
     const fromPot = f.from_pot ? f.from_pot.checked : !!(old && old.from_pot);
@@ -1757,6 +1756,7 @@ const forms = {
     if (!f.to_member.value) return void ($('#err').textContent = 'Choose who got paid.');
     if (f.from_member.value === f.to_member.value) return void ($('#err').textContent = 'Pick two different people.');
     const old = S.payments.find(x => x.id === f.dataset.id);
+    if (old && old.season && !isAdmin()) return;
     const row = { id: old ? old.id : uid(), from_member:f.from_member.value, to_member:f.to_member.value, amount_cents,
       paid_on:f.paid_on.value, note:f.note.value.trim(), created_at: old ? old.created_at : new Date().toISOString() };
     const season = f.season ? f.season.checked : !!(old && old.season);
