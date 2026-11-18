@@ -221,6 +221,7 @@ a.btn{text-decoration:none}
 .rowi.tight{gap:8px}
 .rowi.tight .amt{min-width:72px;text-align:right}
 .rowi .amt.veil{min-height:34px;padding:2px 12px;border:1px dashed var(--line);border-radius:8px;background:none;color:var(--dim);font:inherit;font-weight:600;letter-spacing:2px;cursor:pointer}
+.priv .rowi.item .amt,.priv .rowi.item .amt.veil{font-weight:400}     /* the two sources of the refund sit lighter than the totals they make up */
 .priv[data-on] .amt.veil{border-style:solid;color:var(--ink);letter-spacing:0}
 .list li.final{border-top:2px solid var(--dim)}
 @media (max-width:340px){.rowi.tight .amt{min-width:0}}
@@ -742,12 +743,14 @@ function seasonRows(){
   const cut = pt.heads ? Math.ceil(pt.withheld / pt.heads) : 0, depBack = Math.max(0, pt.each - cut), share = Math.floor((pt.guests + pt.leases) / n);
   const sees = isAdmin() || canMarkGuests() || pt.paidOut;                       // the pot's size stays with admins until it's paid out
   const costs = (me && pt.costs.mine && pt.costs.mine[me.id]) || 0;
-  if (sc.total) rows.push({ k:'total', t:'Total paid up front', sub:`${esc(sc.payers.map(first).join(' and '))} paid, ${fmtDay(sc.exps[0].spent_on)}`, v:money(sc.total) });
+  // What the up-front payment covers: the labels from an admin's breakdown if there is one, otherwise the usual four.
+  const labels = []; for (const e of sc.exps) for (const it of (e.items || [])){ const l = String(it.label || '').trim().toLowerCase(); if (l && !labels.includes(l)) labels.push(l); }
+  if (sc.total) rows.push({ k:'total', t:'Total paid up front', sub:`Includes ${esc((labels.length ? labels : ['rent', 'fixed utilities', 'security deposit', 'booking fee']).join(', '))}`, v:money(sc.total) });
   if (myS) rows.push({ k:'share', rule:!!sc.total, t:'Your share of the lease', v:money(myS.share) });
   if (full){
     // House bills add to what you pay. The refund is the deposit plus your share of guest fees and leases; those two are indented because they make up the refund rather than add to it.
     if (costs || pt.costs.all) rows.push({ k:'bills', t:'Your share of house bills', v:signed(costs) });
-    rows.push({ k:'refund', t:pt.paidOut ? 'Paid out to you' : 'Total refund so far', sub:pt.paidOut ? 'It’s in your balance above.' : '', v:signed(-(depBack + (sees ? share : 0))) });
+    rows.push({ k:'refund', t:pt.paidOut ? 'Paid out to you' : 'Your total refund', sub:pt.paidOut ? 'It’s in your balance above.' : '', v:signed(-(depBack + (sees ? share : 0))) });
     if (pt.each) rows.push({ k:'dep', indent:true, t:'Security deposit', pv:cut ? `${money(cut)} of your ${money(pt.each)} was withheld.` : '', v:money(-depBack) });
     rows.push(sees ? { k:'gf', indent:true, t:'Share of guest fees and leases', v:money(-share) } : { k:'gf', indent:true, t:'Share of guest fees and leases', plain:'At payout' });
     if (myS) rows.push({ k:'cost', rule:true, t:'Season cost', pv:sees ? '' : 'Before your share of guest fees and leases.', v:money(myS.share + costs - depBack - (sees ? share : 0)) });
