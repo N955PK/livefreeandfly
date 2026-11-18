@@ -97,7 +97,7 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .emo-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:12px}
 .emo-row button{display:flex;align-items:center;justify-content:center;width:100%;height:auto;aspect-ratio:1/1;padding:0;line-height:1;font-size:clamp(18px,6vw,24px);border:1px solid var(--line);border-radius:10px}
 .emo-row:not(.open) .xtra{display:none}
-.emo-row button.more-btn{font-size:12px;color:var(--dim)}
+.emo-row button.more-btn{font-size:11.5px;line-height:1.1;padding:0 2px;color:var(--dim)}
 .sw-row{display:grid;grid-template-columns:repeat(5,44px);justify-content:space-between;row-gap:10px;margin-top:14px}
 .sw-row button{width:44px;height:44px;border-radius:50%;border:2px solid transparent}
 .sw-row button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--sheet)}
@@ -1292,7 +1292,15 @@ const actions = {
   'me-edit'(){ if (S.me) openSheet(sheetMember(S.me)); },
   'ava-emoji'(el){ setAvatar('emoji:' + el.dataset.e); },
   'ava-clear'(){ setAvatar(''); },
-  'emoji-more'(el){ const row = el.closest('.emo-row'); row.classList.toggle('open'); const open = row.classList.contains('open'); el.textContent = open ? 'Fewer' : 'More'; el.setAttribute('aria-expanded', open); },
+  'emoji-more'(el){
+    const row = el.closest('.emo-row');
+    if (!row.classList.contains('open')){                       // first tap: show the whole grid
+      row.classList.add('open'); el.textContent = 'Even more'; el.setAttribute('aria-expanded', 'true'); el.setAttribute('aria-label', 'Even more: pick any emoji from your keyboard');
+      return;
+    }
+    const box = $('#sheet [name=anyemoji]');                    // after that: open the phone's keyboard for any emoji
+    if (box){ box.focus(); try { box.scrollIntoView({ block:'center', behavior:'smooth' }); } catch(e){} }
+  },
   'ava-color'(el){ const f = $('#sheet form[data-form="member"]'); if (!f) return; f.color.value = el.dataset.c;
     f.querySelectorAll('.sw-row button').forEach(b => b.setAttribute('aria-pressed', b === el)); setAvatar(f.avatar.value); },
   async 'member-remove'(el){ const m = member(el.dataset.id); if (!m || !isAdmin() || m.id === S.me.id) return;
