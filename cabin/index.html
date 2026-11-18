@@ -121,7 +121,9 @@ a.btn{text-decoration:none}
 .grp .amt{margin-left:auto;font-weight:600;font-family:var(--sans);font-size:var(--t-body);text-transform:none;letter-spacing:0;color:var(--ink2)}
 
 /* ---- month ---- */
-.mnav{margin:20px 0 10px;text-align:center}
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+.mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.mnav button:disabled{opacity:.25;cursor:default}
 .mnav h2{margin:0;font-size:var(--t-widget);text-transform:none;letter-spacing:.04em;color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .pager{position:relative;overflow:hidden;margin:-2px -4px;padding:2px 4px;touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
@@ -153,21 +155,15 @@ a.btn{text-decoration:none}
 .pickbar span{flex:1}
 .stack{display:flex;flex-direction:column;gap:10px}
 .stack .btn{width:100%}
-.monthnav{display:flex;gap:8px;margin-top:14px}
-.monthnav .btn{flex:1;min-width:0;font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;padding-bottom:5px}
 .day.blk{background-image:repeating-linear-gradient(135deg,rgba(214,153,46,.28) 0 4px,transparent 4px 9px)}
 .day .hol{position:absolute;left:0;right:0;top:50%;margin-top:-10px;text-align:center;font-size:19px;line-height:1;opacity:.55;pointer-events:none}
 .day.booked .hol{opacity:.28}
 .day .num,.day .dots{position:relative;z-index:1}
 .day .cnt{z-index:1}
 .sw{display:inline-block;flex:0 0 auto;width:16px;height:16px;border-radius:5px;border:1px solid var(--line);vertical-align:-3px;margin-right:6px;background-image:repeating-linear-gradient(135deg,rgba(214,153,46,.6) 0 3px,transparent 3px 6px)}
-.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:18px;font-size:var(--t-cap);color:var(--dim)}
-.legend.dates{margin-top:8px}
-.legend.dates .wide{grid-column:span 2}
-.legend > span{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px 8px;margin-top:16px;font-size:var(--t-cap);color:var(--dim)}
+.legend > span{display:flex;align-items:center;gap:8px;min-width:0;padding:2px 0}
 .legend .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.legend .sw{margin:0}
-.legend .em{flex:0 0 auto;font-size:var(--t-cap);line-height:1}
 .legend .chip.sm{width:16px;height:16px;font-size:9px}
 
 /* ---- looks: each person picks light or dark and an accent color ---- */
@@ -684,15 +680,14 @@ function viewNights(){
   const legend = active().map(m => `<span>${chip(m,true)}<span class="nm">${esc(first(m))}</span></span>`).join('');
   return `${demoNote()}<h1>The shredule</h1>
 ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
-    <div class="mnav"><h2>${monthLabel(m0)}</h2></div>
+    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹</button>
+      <h2>${monthLabel(m0)}</h2>
+      <button data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>›</button></div>
     ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap or drag across nights'}</span>
         <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
       : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
     <div class="pager" id="pager"><div class="track"><div class="mpage">${monthPage(m0)}</div></div></div>
-    <div class="monthnav"><button class="btn" data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹</button>
-      <button class="btn" data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>›</button></div>
-    <div class="legend">${legend}</div>
-    <div class="legend dates"><span class="wide"><i class="sw"></i><span class="nm">Ikon blackout</span></span><span><span class="em">🍀</span><span class="nm">Holiday</span></span></div>`;
+    <div class="legend">${legend}</div>`;
 }
 
 function historyHtml(){
@@ -795,7 +790,7 @@ function viewHouse(){
     ${isAdmin() ? `<h2>Admin</h2><p class="sub" style="margin:-4px 0 10px">Only admins see this.</p>
       <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button><button class="btn" data-act="roles-open">Full time and part time</button><button class="btn" data-act="collector-open">Who guests pay</button><button class="btn" data-act="export-csv">Export finances as a spreadsheet</button></div>`
     : canMarkGuests() ? `<h2>Money you collect</h2><p class="sub" style="margin:-4px 0 10px">Only you and the admins see this.</p>
-      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}<h2>Your look</h2><div class="stack"><button class="btn" data-act="theme-open">🎨 Make it yours</button></div>${foot}`;
+      <div class="stack"><button class="btn" data-act="pot-open">The pot and leases</button></div>` : ''}${foot}`;
 }
 
 function viewGate(){
@@ -1010,7 +1005,7 @@ function sheetQr(){
 
 // ---------- looks: light or dark, and an accent color, kept on this device ----------
 const ACCENTS = [
-  { id:'chairlift', name:'Chairlift',  a:'#A31F34', on:'#ffffff', inkL:'#A31F34', inkD:'#ef6f81' },      // the original
+  { id:'chairlift', name:'Tech',       a:'#A31F34', on:'#ffffff', inkL:'#A31F34', inkD:'#ef6f81' },      // the original
   { id:'powder',    name:'Powder',     a:'#2563c9', on:'#ffffff', inkL:'#1d4fa3', inkD:'#7fb2ff' },
   { id:'pine',      name:'Pine',       a:'#1f7a4d', on:'#ffffff', inkL:'#176339', inkD:'#5fd49a' },
   { id:'sunset',    name:'Sunset',     a:'#c4521f', on:'#ffffff', inkL:'#a8430f', inkD:'#ff9a63' },
@@ -1044,17 +1039,15 @@ function applyLook(){
   }
   paintToolbar();
 }
-function sheetLook(){
+function lookInner(){                                                                          // the look controls, drawn inside the profile modal
   const mode = appLook.mode || 'auto', acc = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id;
-  return `<h2>Make it yours</h2>
-    <p class="sub">Pick a look. It’s just for you, on this phone.</p>
-    <h2>Light or dark</h2>
-    <div class="seg" role="group" aria-label="Light or dark">${[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(([v, t]) => `<button type="button" data-act="look-mode" data-v="${v}" aria-pressed="${mode === v}">${t}</button>`).join('')}</div>
-    <h2>Accent color</h2>
-    <div class="accents">${ACCENTS.map(a => `<button type="button" data-act="look-accent" data-v="${a.id}" aria-pressed="${acc === a.id}"><i class="dot${a.disco ? ' disco' : ''}"${a.disco ? '' : ` style="background:${a.a}"`}></i><span>${a.name}</span></button>`).join('')}</div>
-    <div class="actions"><button class="btn" data-act="look-surprise">🎲 Surprise me</button><button class="btn primary" data-act="sheet-close">Done</button></div>`;
+  return `<fieldset><legend>Light or dark</legend>
+      <div class="seg" role="group" aria-label="Light or dark">${[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(([v, t]) => `<button type="button" data-act="look-mode" data-v="${v}" aria-pressed="${mode === v}">${t}</button>`).join('')}</div></fieldset>
+    <fieldset><legend>Accent color</legend>
+      <div class="accents">${ACCENTS.map(a => `<button type="button" data-act="look-accent" data-v="${a.id}" aria-pressed="${acc === a.id}"><i class="dot${a.disco ? ' disco' : ''}"${a.disco ? '' : ` style="background:${a.a}"`}></i><span>${a.name}</span></button>`).join('')}</div></fieldset>
+    <div class="actions"><button type="button" class="btn" data-act="look-surprise">🎲 Surprise me</button></div>`;
 }
-function refreshLook(){ const d = $('#sheet'); if (d.open && S.sheet && S.sheet.type === 'look'){ const y = d.scrollTop; d.innerHTML = sheetLook(); d.scrollTop = y; } }
+function refreshLook(){ const box = $('#lookBox'); if (box) box.innerHTML = lookInner(); }       // only this box, so anything typed above is left alone
 let shuffling = false;
 function sheetExpense(e){
   const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:[], description:'', amount_cents:0 };
@@ -1114,7 +1107,8 @@ function sheetMember(m){
     <label>Phone<input type="tel" name="phone" required autocomplete="off" data-change="phone" value="${esc(fmtPhone(m.phone))}"></label>
     <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div></form>`;
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
+    ${self ? `<h2>App look</h2><p class="each">These apply right away. Just for you, on this phone.</p><div id="lookBox">${lookInner()}</div>` : ''}</form>`;
 }
 
 // Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
@@ -1356,12 +1350,12 @@ const actions = {
     const n = B.nights.length; S.pick = null; S.bulk = null; closeSheet(); render(); toast(`Added to ${n} night${n === 1 ? '' : 's'}`);
   },
   'venmo-qr'(){ const c = collector(); if (!c || !c.venmo) return; loadQr().then(() => openSheet(sheetQr(), { type:'qr' })).catch(() => toast('Couldn’t load the QR code. Check your connection.')); },
-  'theme-open'(){ openSheet(sheetLook(), { type:'look' }); },
   'look-mode'(el){ appLook.mode = el.dataset.v === 'auto' ? undefined : el.dataset.v; saveLook(); applyLook(); refreshLook(); },
   'look-accent'(el){ appLook.accent = el.dataset.v; saveLook(); applyLook(); refreshLook(); },
   'look-surprise'(){                                                                           // flick through a few colors and land on a random one
     if (shuffling) return;
-    const others = ACCENTS.filter(a => a.id !== appLook.accent), final = others[Math.floor(Math.random() * others.length)];
+    const now = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id;                  // the color in use, even if none was ever chosen
+    const others = ACCENTS.filter(a => a.id !== now), final = others[Math.floor(Math.random() * others.length)];
     const tease = ACCENTS.filter(a => a.id !== final.id).sort(() => Math.random() - .5).slice(0, 4), seq = reducedMotion() ? [final] : [...tease, final];
     shuffling = true;
     seq.forEach((a, i) => setTimeout(() => { appLook.accent = a.id; applyLook(); refreshLook(); if (i === seq.length - 1){ saveLook(); shuffling = false; } }, i * 110));
