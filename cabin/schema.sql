@@ -17,6 +17,7 @@ create table members (
   active_from date,                                  -- a part-timer's first bookable night
   active_until date,                                 -- and last bookable night (both included)
   is_admin   boolean not null default false,        -- can remove members, fix emails, set the guest fee
+  theme      jsonb check (theme is null or length(theme::text) < 400),   -- light/dark and accent color, so it follows the person to every device
   created_at timestamptz not null default now()
 );
 create unique index members_email_key on members (lower(email));

@@ -461,6 +461,7 @@ function persist(){ try { localStorage.setItem(KEY, JSON.stringify({ members:S.m
 const Local = {
   async load(){ let d = null; try { d = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e){} return (d && Array.isArray(d.members)) ? d : seed(); },
   async upsert(){ persist(); },
+  async patch(){ persist(); },
   async remove(){ persist(); }
 };
 
@@ -476,6 +477,7 @@ const Live = {
     return { members:r[0].data, stays:r[1].data, expenses:r[2].data, payments:r[3].data, house:r[4].data[0] || {id:1} };
   },
   async upsert(t, row){ const { error } = await sb.from(t).upsert(row); if (error) throw error; },
+  async patch(t, id, fields){ const { error } = await sb.from(t).update(fields).eq('id', id); if (error) throw error; },
   async remove(t, id){ const { error } = await sb.from(t).delete().eq('id', id); if (error) throw error; }
 };
 const backend = LIVE ? Live : Local;
@@ -487,6 +489,7 @@ async function reload(){
   if (LIVE) S.me = S.members.find(m => m.active !== false && m.email.toLowerCase() === (sessionEmail||'').toLowerCase()) || null;
   else S.me = member(d.meId) || active()[0] || null;
   S.gate = S.me ? null : (LIVE ? 'notmember' : null);
+  syncTheme();
 }
 function fail(e){ console.error(e); toast('Couldn’t save. Check your connection and try again.'); reload().then(render).catch(() => {}); }
 async function save(t, row){
@@ -1082,7 +1085,7 @@ function paintWheel(){                                                          
   const hx = $('#wheelHex'); if (hx && document.activeElement !== hx) hx.value = hex;
   const d = $('.accents button[data-v="custom"] .dot'); if (d){ d.classList.remove('wheeldot'); d.style.background = hex; }
 }
-function setCustom(hex, save){ appLook.accent = 'custom'; appLook.custom = hex; applyLook(); if (save) saveLook(); }
+function setCustom(hex, save){ appLook.accent = 'custom'; appLook.custom = hex; applyLook(); if (save) commitLook(); }
 function pickFromWheel(e){
   const r = wheelDrag.w.getBoundingClientRect(), R = r.width / 2, dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
   wheelHS = [(Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360, Math.min(1, Math.hypot(dx, dy) / R)];
@@ -1090,14 +1093,42 @@ function pickFromWheel(e){
 }
 document.addEventListener('pointerdown', e => { const w = e.target.closest && e.target.closest('#wheelWrap'); if (!w || !e.isPrimary) return; wheelDrag = { id:e.pointerId, w }; try { w.setPointerCapture(e.pointerId); } catch(_){} pickFromWheel(e); });
 document.addEventListener('pointermove', e => { if (wheelDrag && e.pointerId === wheelDrag.id) pickFromWheel(e); });
-const endWheel = e => { if (wheelDrag && e.pointerId === wheelDrag.id){ wheelDrag = null; saveLook(); } };
+const endWheel = e => { if (wheelDrag && e.pointerId === wheelDrag.id){ wheelDrag = null; commitLook(); } };
 document.addEventListener('pointerup', endWheel); document.addEventListener('pointercancel', endWheel);
 document.addEventListener('input', e => { if (e.target.id === 'wheelV'){ setCustom(rgbToHex(hsvToRgb(wheelHS[0], wheelHS[1], Number(e.target.value) / 100)), false); paintWheel(); } });
 document.addEventListener('change', e => {
-  if (e.target.id === 'wheelV') saveLook();
+  if (e.target.id === 'wheelV') commitLook();
   if (e.target.id === 'wheelHex'){ const v = '#' + e.target.value.trim().replace(/^#/, '').toLowerCase(); if (/^#[0-9a-f]{6}$/.test(v)){ const [h, s] = rgbToHsv(hexToRgb(v)); if (s > .005) wheelHS = [h, s]; setCustom(v, true); } paintWheel(); }
 });
 function refreshLook(){ const box = $('#lookBox'); if (box){ box.innerHTML = lookInner(); paintWheel(); } }     // only this box, so anything typed above is left alone
+// ---------- the theme belongs to the account, so it looks the same on every device ----------
+// The account's copy (a `theme` column on the member) wins whenever you sign in. This device keeps a copy only so the page can be themed before sign-in.
+const themeFields = l => { const t = {}; if (l.mode === 'light' || l.mode === 'dark') t.mode = l.mode; if (l.accent) t.accent = l.accent; if (l.custom) t.custom = l.custom; return t; };
+const sameTheme = (a, b) => JSON.stringify(themeFields(a || {})) === JSON.stringify(themeFields(b || {}));
+const themeStored = () => !LIVE || (S.members.length > 0 && 'theme' in S.members[0]);              // does the database have somewhere to keep it yet?
+let themeDirty = false, pushT = 0, pushing = false, themeVer = 0;                           // a change that hasn't reached the account yet
+async function pushTheme(){
+  clearTimeout(pushT); pushT = 0;
+  if (!S.me || !themeStored()){ themeDirty = false; return; }
+  if (pushing){ pushT = setTimeout(pushTheme, 300); return; }                                   // one at a time
+  pushing = true; const v = themeVer, theme = themeFields(appLook); S.me.theme = theme;
+  try { await backend.patch('members', S.me.id, { theme }); if (themeVer === v) themeDirty = false; }
+  catch(e){ console.warn('Couldn’t save the theme to the account yet', e); }                    // quietly; it stays on this device and is retried next time
+  finally { pushing = false; }
+}
+function commitLook(){ if (S.me) appLook.owner = S.me.id; saveLook(); themeVer++; themeDirty = true; clearTimeout(pushT); pushT = setTimeout(pushTheme, 400); }
+function syncTheme(){
+  const me = S.me; if (!me) return;
+  if (LIVE && !themeStored()) return;                                                            // the database can't keep themes yet: this device's copy stands
+  if (themeDirty){ if (!pushing && !pushT) pushTheme(); return; }                                 // a change that hasn't reached the account yet wins
+  const db = me.theme && typeof me.theme === 'object' ? me.theme : null, mine = appLook.owner === me.id;
+  if (db){ if (!mine || !sameTheme(db, appLook)){ appLook = { ...themeFields(db), owner: me.id }; saveLook(); applyLook(); refreshLook(); } }
+  else if ((mine || !appLook.owner) && Object.keys(themeFields(appLook)).length){                  // this device's copy is theirs, or predates themes on accounts: move it onto the account
+    appLook.owner = me.id; saveLook(); themeVer++; themeDirty = true; pushTheme();
+  } else if (appLook.owner){ appLook = { owner: me.id }; saveLook(); applyLook(); refreshLook(); }   // it was someone else's: start this person fresh
+}
+window.addEventListener('pagehide', () => { if (pushT) pushTheme(); });
+
 function sheetExpense(e){
   const isNew = !e; e = e || { paid_by:S.me.id, spent_on:iso(today()), split_among:[], description:'', amount_cents:0 };
   const canPot = canMarkGuests();
@@ -1157,7 +1188,7 @@ function sheetMember(m){
     <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
-    ${self ? `<h2>App look</h2><p class="each">These apply right away. Just for you, on this phone.</p><div id="lookBox">${lookInner()}</div>` : ''}</form>`;
+    ${self ? `<h2>App theme</h2><p class="each">${themeStored() ? 'These apply right away and follow your login, so every device you sign in on looks the same.' : 'These apply right away. For now they stay on this phone.'}</p><div id="lookBox">${lookInner()}</div>` : ''}</form>`;
 }
 
 // Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
@@ -1399,13 +1430,13 @@ const actions = {
     const n = B.nights.length; S.pick = null; S.bulk = null; closeSheet(); render(); toast(`Added to ${n} night${n === 1 ? '' : 's'}`);
   },
   'venmo-qr'(){ const c = collector(); if (!c || !c.venmo) return; loadQr().then(() => openSheet(sheetQr(), { type:'qr' })).catch(() => toast('Couldn’t load the QR code. Check your connection.')); },
-  'look-mode'(el){ appLook.mode = el.dataset.v === 'auto' ? undefined : el.dataset.v; saveLook(); applyLook(); refreshLook(); },
+  'look-mode'(el){ appLook.mode = el.dataset.v === 'auto' ? undefined : el.dataset.v; commitLook(); applyLook(); refreshLook(); },
   'look-accent'(el){
     const id = el.dataset.v;
     if (id === 'custom' && !/^#[0-9a-f]{6}$/i.test(appLook.custom || '')){                       // start from the color in use, so the wheel picks up where you are
       const cur = ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]; appLook.custom = cur.a || DEFAULT_CUSTOM;
     }
-    appLook.accent = id; saveLook(); applyLook(); refreshLook();
+    appLook.accent = id; commitLook(); applyLook(); refreshLook();
     if (id === 'custom'){ const w = $('.wheelbox'); if (w) w.scrollIntoView({ block:'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' }); }
   },
   'guests-open'(){ openSheet(sheetGuests(), { type:'guests' }); },
@@ -1878,7 +1909,7 @@ document.addEventListener('change', e => {
   }
   if (k === 'bulkstay' && S.bulk) S.bulk.staying = e.target.checked;
   if (k === 'role'){ const l = document.getElementById('lease-' + e.target.dataset.id); if (l) l.hidden = e.target.value !== 'part'; }
-  if (k === 'viewas'){ S.me = member(e.target.value); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
+  if (k === 'viewas'){ S.me = member(e.target.value); syncTheme(); persist(); render(); toast(`Now seeing the app as ${first(S.me)}`); }
 });
 $('#sheet').addEventListener('close', () => { S.sheet = null; S.bulk = null; S.partyFor = null; });
 $('#sheet').addEventListener('click', e => { if (e.target === e.currentTarget) closeSheet(); });
