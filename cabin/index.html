@@ -169,6 +169,10 @@ a.btn{text-decoration:none}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.small{min-height:36px;padding:0 12px;font-size:13px;border-radius:10px}
 .btn:disabled{opacity:.4;cursor:default}
+.rowi.tight{gap:8px}
+.rowi.tight .amt{min-width:68px;text-align:right}
+@media (max-width:340px){.rowi.tight .amt{min-width:0}}
+.rowi .vbtn{flex:0 0 auto;min-height:32px;padding:0 10px;font-size:12.5px}
 .btn.wide{width:100%}
 .btn.quiet{border-color:transparent;background:none;color:var(--dim);font-weight:500}
 .btn.danger{border-color:transparent;background:none;color:var(--neg);font-weight:500}
@@ -639,21 +643,25 @@ function viewMoney(){
   const sees = isAdmin() || canMarkGuests() || pt0.paidOut;     // the pot's size stays with admins until it's paid out
   const backRow = (t, sub, v) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${v}</span></div></li>`;
   const myCosts = (S.me && pt0.costs.mine[S.me.id]) || 0, net = depBack + (sees ? share : 0) - myCosts;
-  const dueBack = fullMe ? `<h2>Due back to you at the end of the season</h2>
-    <ul class="list">${pt0.each ? backRow('Security deposit', cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : 'Paid up front. Comes back in full unless some is withheld.', money(depBack)) : ''}
-      ${backRow('Share of guest fees and part-time leases', sees ? (pt0.paidOut ? '' : 'So far. It grows as more comes in.') : 'Worked out when the pot is paid out.', sees ? money(share) : 'At payout')}
-      ${myCosts || pt0.costs.all ? backRow('Your share of house bills', 'Comes off what you get back.', money(-myCosts)) : ''}
+  const dueBack = fullMe ? `<h2>Due back at season end</h2>
+    <ul class="list">${pt0.each ? backRow('Security deposit', cut ? `${money(cut)} of your ${money(pt0.each)} was withheld.` : '', money(depBack)) : ''}
+      ${backRow('Share of guest fees and leases', '', sees ? money(share) : 'At payout')}
+      ${myCosts || pt0.costs.all ? backRow('Your share of house bills', '', money(-myCosts)) : ''}
       ${backRow(pt0.paidOut ? 'Paid out to you' : sees ? 'Total so far' : 'Deposit less house bills so far', pt0.paidOut ? 'It’s in your balance above.' : net < 0 ? 'House bills are ahead of what’s due back, so you’d owe this at payout.' : '', `<span class="${net < 0 ? 'neg' : ''}">${money(net)}</span>`)}</ul>` : '';
-  const venmoNudge = S.me && !S.me.venmo ? `<div class="actions"><button class="btn" data-act="me-edit">Add your Venmo username</button></div>` : '';
-  const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi">${pic(m)}
-      <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span>
-        ${m.venmo ? `<span class="links"><a href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener">Venmo @${esc(m.venmo)}</a></span>` : ''}</span>
+  // The same small button for everyone who has shared a Venmo; on your own row, a prompt to add yours.
+  const venmoBtn = m => {
+    if (S.me && m.id === S.me.id) return m.venmo ? '' : '<button class="btn small vbtn" data-act="me-edit" aria-label="Add your Venmo username">+ Venmo</button>';
+    return m.venmo ? `<a class="btn small vbtn" href="https://venmo.com/u/${encodeURIComponent(m.venmo)}" target="_blank" rel="noopener" aria-label="${esc('Venmo ' + m.name)}">Venmo</a>` : '';
+  };
+  const balHtml = S.members.filter(m => m.active !== false || b[m.id]).map(m => `<li><div class="rowi tight">${pic(m)}
+      <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span></span>
+      ${venmoBtn(m)}
       <span class="amt ${b[m.id] > 0 ? 'pos' : b[m.id] < 0 ? 'neg' : ''}">${b[m.id] > 0 ? '+' : ''}${money(b[m.id])}</span></div></li>`).join('');
   return `${demoNote()}<h1>House money</h1>
     <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div>
       ${mine < 0 ? `<div class="actions"><button class="btn primary wide" data-act="settle-open">Settle up</button></div>`
         : mine > 0 ? `<div class="actions"><button class="btn wide" data-act="settle-open">See who owes you</button></div>` : ''}</div>
-    <div class="actions three"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add expense</button><button class="btn" data-act="pay-blank">Add payment</button><button class="btn" data-act="history-open">History</button></div>${venmoNudge}
+    <div class="actions three"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add expense</button><button class="btn" data-act="pay-blank">Add payment</button><button class="btn" data-act="history-open">History</button></div>
     ${myLease}
     <h2>Balances</h2><ul class="list">${balHtml}</ul>
     <h2>Guest fees</h2>${guestHtml}
