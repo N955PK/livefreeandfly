@@ -81,7 +81,9 @@ h2{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;m
 .chip.lg.emo{font-size:36px}
 .chip.xl{width:min(74vw,300px);height:min(74vw,300px);font-size:min(22vw,92px);letter-spacing:0}
 .chip.xl.emo{font-size:min(38vw,150px)}
-[data-photo]{cursor:pointer}
+[data-photo]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+[data-photo]:focus{outline:none}
+.usingkb [data-photo]:focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:50%}
 #photo{margin:auto;width:auto;max-width:92vw;max-height:none;padding:0;background:transparent;border:0;border-radius:0;overflow:visible;text-align:center;animation:none}
 #photo[open]{animation:fadein .14s ease-out}
 #photo::backdrop{background:rgba(5,8,11,.86)}
@@ -301,8 +303,9 @@ function chip(m, sm, cls, attrs){
 }
 // A picture you can tap to see large.
 const pic = m => m ? chip(m, false, '', `data-photo="${esc(m.id)}" role="button" tabindex="0" aria-label="${esc('View ' + first(m) + '’s picture')}"`) : '';
-function openPhoto(id){
+function openPhoto(id, from){
   const m = member(id); if (!m) return;
+  S.photoFrom = from || null;
   const d = $('#photo'); d.innerHTML = `<div style="display:flex;justify-content:center">${chip(m, false, 'xl')}</div><p class="nm">${esc(m.name)}</p><p class="tip">Tap anywhere to close</p>`;
   if (!d.open) d.showModal(); d.focus();
 }
@@ -1442,7 +1445,7 @@ document.addEventListener('pointerup', finishNightDrag);
 document.addEventListener('pointercancel', finishNightDrag);
 document.addEventListener('lostpointercapture', finishNightDrag);
 
-document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
+document.addEventListener('click', e => { if (e.target.closest('#confirm') || e.target.closest('#photo')) return; const ph = e.target.closest('[data-photo]'); if (ph){ openPhoto(ph.dataset.photo, ph); return; } if (e.detail > 0 && Date.now() < suppressPickClickUntil){ e.preventDefault(); return; } const el = e.target.closest('[data-act]'); if (el && actions[el.dataset.act]) actions[el.dataset.act](el); });
 document.addEventListener('submit', e => { const f = e.target.closest('form[data-form]'); if (!f) return; e.preventDefault(); forms[f.dataset.form](f); });
 document.addEventListener('input', e => { if (e.target.name === 'amount') updateEach(); });
 document.addEventListener('change', e => {
@@ -1465,7 +1468,16 @@ $('#sheet').addEventListener('close', () => { S.sheet = null; S.bulk = null; });
 $('#sheet').addEventListener('click', e => { if (e.target === e.currentTarget) closeSheet(); });
 
 $('#photo').addEventListener('click', () => $('#photo').close());
-document.addEventListener('keydown', e => { const ph = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-photo]'); if (ph){ e.preventDefault(); openPhoto(ph.dataset.photo); } });
+// Taps and clicks shouldn't leave a focus ring behind; keyboard users keep theirs.
+document.addEventListener('keydown', e => { if (e.key === 'Tab') document.documentElement.classList.add('usingkb'); }, true);
+document.addEventListener('pointerdown', () => document.documentElement.classList.remove('usingkb'), true);
+$('#photo').addEventListener('close', () => {
+  const el = S.photoFrom; S.photoFrom = null;
+  if (!el || document.documentElement.classList.contains('usingkb')) return;
+  const drop = () => { if (document.activeElement === el) el.blur(); };
+  drop(); requestAnimationFrame(drop);
+});
+document.addEventListener('keydown', e => { const ph = (e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.closest('[data-photo]'); if (ph){ e.preventDefault(); openPhoto(ph.dataset.photo, ph); } });
 
 /* ---------- routing and start ---------- */
 function go(v){ S.view = VIEWS.includes(v) ? v : 'nights'; if (location.hash.slice(1) !== S.view) history.replaceState(null, '', '#' + S.view); render(); window.scrollTo(0, 0); }
