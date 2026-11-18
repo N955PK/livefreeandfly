@@ -289,10 +289,18 @@ const first = m => m ? m.name.trim().split(/\s+/)[0] : 'Someone';
 const active = () => S.members.filter(m => m.active !== false);
 const isAdmin = () => !!(S.me && S.me.is_admin);
 const initials = m => { const p = m.name.trim().split(/\s+/); return ((p[0]?.[0]||'') + (p[1]?.[0] || p[0]?.[1] || '')).toUpperCase(); };
-// The first 13 show by default (the funniest); the rest sit behind "More". 13 + the More button fill two rows of seven;
-// all 48 + the button fill seven.
-const EMOJI = ['🎿','🏂','🤪','😎','🥶','🤠','🤡','💩','🦆','🐸','🦄','🦖','🍺','☕',
-  '⛷️','🏔️','❄️','☃️','🌲','🔥','🐻','🦌','🐕','🚠','🫠','🤓','🥸','👻','👽','🤖','😈','🙃','🤙','🐙','🦥','🐧','🐿️','🦫','🧀','🌮','🍕','🥃','🍻','🧊','🥳','🤯','🦩','🍔'];
+// Grouped: snow and ski, drinks, animals, food, faces, spooky, the cheeky pair, then odds and ends.
+// The first 13 show by default; the rest sit behind "More". 13 + the More button fill two rows of seven;
+// all 55 + the button fill eight.
+const EMOJI = [
+  '🎿','🏂','⛷️','🏔️','❄️','☃️','🥶','🧊','🚠','🌲','🛷',
+  '🍺','🍻','🥃','🍷','🍸','🥂','🍾',
+  '🐻','🦌','🐕','🦆','🐸','🦄','🦖','🐙','🦥','🐧','🐿️','🦫','🦩',
+  '☕','🧀','🌮','🍕','🍔',
+  '🤪','😎','🤠','🤡','🥸','🤓','🫠','🙃','😈','🥳','🤯',
+  '💩','👻','👽','🤖',
+  '🍑','🍆',
+  '🔥','🤙'];
 const EMOJI_SHOWN = 13;
 const IMG_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/, HEX_RE = /^#[0-9a-f]{6}$/i;
 function chip(m, sm, cls, attrs){
