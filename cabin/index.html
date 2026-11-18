@@ -156,7 +156,7 @@ a.btn{text-decoration:none}
 .rowi .grow{flex:1;min-width:0}
 .rowi .t{display:block;overflow-wrap:anywhere}
 .rowi .s{display:block;font-size:13px;color:var(--dim);overflow-wrap:anywhere}
-.rowi .amt{font-family:var(--mono);font-size:14px;white-space:nowrap}
+.rowi .amt{font-family:var(--sans);font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0;white-space:nowrap}
 .pos{color:var(--pos)} .neg{color:var(--neg)}
 .links{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;margin-top:2px}
 .empty{color:var(--dim);font-size:14px;padding:14px 2px}
@@ -164,7 +164,7 @@ a.btn{text-decoration:none}
 /* ---- money ---- */
 .bal{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px}
 .bal .l{font-size:14px;color:var(--dim)}
-.bal .v{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.bal .v{font-family:var(--sans);font-size:36px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.15}
 
 /* ---- buttons ---- */
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:12px;
@@ -173,12 +173,19 @@ a.btn{text-decoration:none}
 .btn.small{min-height:36px;padding:0 12px;font-size:13px;border-radius:10px}
 .btn:disabled{opacity:.4;cursor:default}
 .rowi.tight{gap:8px}
-.rowi.tight .amt{min-width:68px;text-align:right}
+.rowi.tight .amt{min-width:72px;text-align:right}
 @media (max-width:340px){.rowi.tight .amt{min-width:0}}
 .list.soft .t,.list.soft .amt:not(.pos):not(.neg){color:var(--ink2)}
 .qrbox{background:#fff;border-radius:16px;padding:6px;width:min(78vw,300px);margin:16px auto 6px}
 .qrbox svg{display:block;width:100%;height:auto}
-.rowi .vbtn{flex:0 0 auto;min-height:32px;padding:0 10px;font-size:12.5px}
+.rowi .vbtn{flex:0 0 auto;min-height:32px;padding:0 8px;font-size:12.5px;font-weight:500;color:var(--dim)}
+.money h2{font-family:var(--sans);font-size:12.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:34px 0 10px}
+.money .sechead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 0 10px}
+.money .sechead h2{margin:0}
+.key{display:inline-flex;align-items:center;gap:12px;font-size:12px;color:var(--dim);white-space:nowrap}
+.key i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.key .kp{background:var(--pos)}
+.key .kn{background:var(--neg)}
 .btn.wide{width:100%}
 .btn.quiet{border-color:transparent;background:none;color:var(--dim);font-weight:500}
 .btn.danger{border-color:transparent;background:none;color:var(--neg);font-weight:500}
@@ -662,15 +669,15 @@ function viewMoney(){
       <span class="grow"><span class="t">${esc(m.name)}${S.me && m.id === S.me.id ? ' (you)' : ''}</span></span>
       ${venmoBtn(m)}
       <span class="amt ${b[m.id] > 0 ? 'pos' : b[m.id] < 0 ? 'neg' : ''}">${b[m.id] > 0 ? '+' : ''}${money(b[m.id])}</span></div></li>`).join('');
-  return `${demoNote()}<h1>House money</h1>
+  return `${demoNote()}<div class="money"><h1>House money</h1>
     <div class="bal"><div class="l">${head[0]}</div><div class="v ${head[2]}">${head[1]}</div>
       ${mine < 0 ? `<div class="actions"><button class="btn primary wide" data-act="settle-open">Settle up</button></div>`
         : mine > 0 ? `<div class="actions"><button class="btn wide" data-act="settle-open">See who owes you</button></div>` : ''}</div>
     <div class="actions three"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add expense</button><button class="btn" data-act="pay-blank">Add payment</button><button class="btn" data-act="history-open">History</button></div>
     ${myLease}
-    <h2>Balances</h2><ul class="list">${balHtml}</ul>
+    <div class="sechead"><h2>Balances</h2><span class="key" aria-hidden="true"><span><i class="kp"></i>owed</span><span><i class="kn"></i>owes</span></span></div><ul class="list" data-list="balances">${balHtml}</ul>
     <h2>Guest ledger</h2>${guestHtml}
-    ${dueBack}`;
+    ${dueBack}</div>`;
 }
 
 function viewHouse(){
