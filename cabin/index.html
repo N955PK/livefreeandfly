@@ -336,6 +336,10 @@ const CONFIG = {
   supabaseAnonKey: 'sb_publishable_AfcKk4cO5zTDNSsZThrRHA_kLq8YzYa'
 };
 const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+// The browser refuses the file if its contents ever differ from this hash. Update both together when bumping the version.
+const SUPABASE_SRI = 'sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o';
+const CAL_FN = CONFIG.supabaseUrl ? CONFIG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/calendar' : '';
+const LIVE_CACHE = 'cabin-live-cache-v1';                                  // the last house data this device loaded, for offline use
 const LIVE = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
 const KEY = 'cabin-time-demo-v1';
 const PALETTE = ['#39d0a4','#3aa8ff','#ffa32e','#d95ce8','#e8d34f','#8f9bff','#ff5c39','#5fd0e8','#b5e05a','#ff8fb1'];
@@ -483,13 +487,16 @@ const Local = {
 /* ---------- data: live (Supabase) ---------- */
 let sb = null, sessionEmail = null;
 const Live = {
-  init(){ return new Promise((ok, no) => { const s = document.createElement('script'); s.src = SUPABASE_JS;
+  init(){ return new Promise((ok, no) => { const s = document.createElement('script'); s.src = SUPABASE_JS; s.integrity = SUPABASE_SRI; s.crossOrigin = 'anonymous';
     s.onload = () => { sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey); ok(); };
     s.onerror = () => no(new Error('Could not load Supabase')); document.head.appendChild(s); }); },
   async load(){
     const r = await Promise.all(['members','stays','expenses','payments','house'].map(t => sb.from(t).select('*')));
     for (const x of r) if (x.error) throw x.error;
-    return { members:r[0].data, stays:r[1].data, expenses:r[2].data, payments:r[3].data, house:r[4].data[0] || {id:1} };
+    // Optional: the calendar link exists only once 20261119_calendar_feed.sql has been run.
+    const cal = await sb.from('calendar_tokens').select('token').maybeSingle();
+    return { members:r[0].data, stays:r[1].data, expenses:r[2].data, payments:r[3].data, house:r[4].data[0] || {id:1},
+      calToken: cal.error ? undefined : (cal.data && cal.data.token) || null };
   },
   async upsert(t, row){ const { error } = await sb.from(t).upsert(row); if (error) throw error; },
   async patch(t, id, fields){ const { error } = await sb.from(t).update(fields).eq('id', id); if (error) throw error; },
@@ -499,6 +506,11 @@ const backend = LIVE ? Live : Local;
 
 async function reload(){
   const d = await backend.load();
+  use(d); S.offline = null;
+  if (LIVE && S.me) stash(d); else if (LIVE) unstash();
+}
+function use(d){
+  S.calToken = d.calToken;
   S.members = d.members.sort((a,b) => a.name.localeCompare(b.name));
   S.stays = d.stays; S.expenses = d.expenses; S.payments = d.payments; S.house = d.house || {id:1};
   if (LIVE) S.me = S.members.find(m => m.active !== false && m.email.toLowerCase() === (sessionEmail||'').toLowerCase()) || null;
@@ -506,14 +518,27 @@ async function reload(){
   S.gate = S.me ? null : (LIVE ? 'notmember' : null);
   syncTheme();
 }
+// Offline: the last data this device loaded is kept so the door code, Wi-Fi, and calendar still open with no signal.
+// It's read-only until the connection comes back, and it's wiped on sign-out.
+function stash(d){ try { localStorage.setItem(LIVE_CACHE, JSON.stringify({ at:Date.now(), email:sessionEmail, d })); } catch(e){} }
+function unstash(){ try { localStorage.removeItem(LIVE_CACHE); } catch(e){} }
+function stashed(){ try { return JSON.parse(localStorage.getItem(LIVE_CACHE) || 'null'); } catch(e){ return null; } }
+function useStash(){
+  const c = LIVE && stashed(); if (!c || !c.d || (sessionEmail && c.email !== sessionEmail)) return false;
+  sessionEmail = c.email; use(c.d); S.offline = c.at; return true;
+}
+const offlineNote = () => S.offline ? `<p class="demo" role="status">Offline. Showing the house as of ${esc(new Date(S.offline).toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }))}. Changes can’t be saved until you’re back online.</p>` : '';
+function blockedOffline(){ if (!S.offline) return false; toast('You’re offline. Try again when you have signal.'); return true; }
 function fail(e){ console.error(e); toast('Couldn’t save. Check your connection and try again.'); reload().then(render).catch(() => {}); }
 async function save(t, row){
+  if (blockedOffline()) return false;
   if (t === 'house') S.house = row;
   else { const i = S[t].findIndex(r => r.id === row.id); if (i >= 0) S[t][i] = row; else S[t].push(row); }
   render();
   try { await backend.upsert(t, row); return true; } catch(e){ fail(e); return false; }
 }
 async function del(t, id){
+  if (blockedOffline()) return false;
   S[t] = S[t].filter(r => r.id !== id); render();
   try { await backend.remove(t, id); return true; } catch(e){ fail(e); return false; }
 }
@@ -872,7 +897,7 @@ function render(){
   $('#tabs').hidden = gated;
   $('#who').hidden = gated || !S.me;
   $('#who').innerHTML = (!gated && S.me) ? `<span>${esc(first(S.me))}</span>${chip(S.me)}` : '';
-  $('#main').innerHTML = gated ? viewGate() : S.view === 'money' ? viewMoney() : S.view === 'house' ? viewHouse() : viewNights();
+  $('#main').innerHTML = gated ? viewGate() : offlineNote() + (S.view === 'money' ? viewMoney() : S.view === 'house' ? viewHouse() : viewNights());
   document.querySelectorAll('#tabs button').forEach(b => { if (b.dataset.view === S.view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.sheet && S.sheet.type === 'night' && $('#sheet').open){ $('#sheet').innerHTML = sheetNight(S.sheet.night); celebrate(S.sheet.night); }
   if (S.sheet && S.sheet.type === 'settle' && $('#sheet').open) $('#sheet').innerHTML = sheetSettle();
@@ -1261,8 +1286,18 @@ function sheetMember(m){
     <label>Venmo username, optional<input name="venmo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" value="${m.venmo ? '@' + esc(m.venmo) : ''}" placeholder="@your-venmo"></label>
     <p class="err" id="err"></p>
     <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">${self ? 'Save my details' : 'Save member'}</button></div>
-    ${self ? `<h2>App theme</h2><p class="each">${themeStored() ? 'These apply right away and follow your login, so every device you sign in on looks the same.' : 'These apply right away. For now they stay on this phone.'}</p><div id="lookBox">${lookInner()}</div>` : ''}</form>`;
+    ${self ? `<h2>App theme</h2><p class="each">${themeStored() ? 'These apply right away and follow your login, so every device you sign in on looks the same.' : 'These apply right away. For now they stay on this phone.'}</p><div id="lookBox">${lookInner()}</div>` : ''}
+    ${self && LIVE && S.calToken !== undefined ? `<h2>Calendar</h2><p class="each">Put your nights at the house in your phone’s calendar, with who else is there. It updates on its own every few hours. Anyone with your link can see that, so keep it to yourself.</p><div id="calBox">${calInner()}</div>` : ''}</form>`;
 }
+const calUrl = () => CAL_FN + '?token=' + encodeURIComponent(S.calToken || '');
+function calInner(){
+  if (!S.calToken) return `<div class="actions"><button type="button" class="btn small primary" data-act="cal-make">Make my calendar link</button></div>`;
+  return `<div class="actions"><a class="btn small primary" href="${esc(calUrl().replace(/^https:/, 'webcal:'))}">Add to my calendar</a>
+    <button type="button" class="btn small" data-act="cal-copy">Copy link</button>
+    <button type="button" class="btn small quiet" data-act="cal-reset">New link</button></div>
+    <p class="each">For Google Calendar, copy the link, then on a computer choose Other calendars, then From URL. A new link stops the old one working.</p>`;
+}
+const refreshCal = () => { const b = $('#calBox'); if (b) b.innerHTML = calInner(); };
 
 // Admin only: fix a mistyped sign-in email or remove someone. Their profile stays theirs to edit.
 function sheetManage(m){
@@ -1460,6 +1495,25 @@ async function toggleNight(night){
   else if (pick === 'all') del('stays', mine.id);
 }
 const actions = {
+  async 'cal-make'(){
+    if (blockedOffline()) return;
+    const { data, error } = await sb.from('calendar_tokens').upsert({ member_id:S.me.id }, { onConflict:'member_id' }).select('token').single();
+    if (error){ console.error(error); return toast('Couldn’t make the link. Try again.'); }
+    S.calToken = data.token; refreshCal();
+  },
+  async 'cal-copy'(){
+    try { await navigator.clipboard.writeText(calUrl()); toast('Calendar link copied'); }
+    catch(e){ prompt('Copy your calendar link:', calUrl()); }
+  },
+  async 'cal-reset'(){
+    if (blockedOffline()) return;
+    if (!await confirmBox(`<h2>Get a new link?</h2><p class="sub">Calendars using the old link stop updating. You’ll need to add the new one again.</p>
+      <div class="actions"><button class="btn" data-confirm="no">Keep this link</button><button class="btn primary" data-confirm="yes">New link</button></div>`)) return;
+    const token = crypto.randomUUID();
+    const { error } = await sb.from('calendar_tokens').update({ token }).eq('member_id', S.me.id);
+    if (error){ console.error(error); return toast('Couldn’t change the link. Try again.'); }
+    S.calToken = token; refreshCal(); toast('New calendar link ready');
+  },
   tab(el){ go(el.dataset.view); },
   month(el){ goMonth(Number(el.dataset.d)); },
   'night-open'(el){ openSheet(sheetNight(el.dataset.night), { type:'night', night:el.dataset.night }); celebrate(el.dataset.night); },
@@ -1695,7 +1749,7 @@ const actions = {
   async signout(){
     if (S.me && !await confirmBox(`<h2>Sign out?</h2><p class="sub">You’ll need to sign in with Google again to get back in.</p>
       <div class="actions"><button class="btn" data-confirm="no">Stay signed in</button><button class="btn primary" data-confirm="yes">Sign out</button></div>`)) return;
-    if (sb) await sb.auth.signOut(); sessionEmail = null; S.gate = 'signin'; render();
+    unlisten(); unstash(); if (sb) await sb.auth.signOut(); sessionEmail = null; S.offline = null; S.gate = 'signin'; render();
   },
   async google(){
     const { error } = await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
@@ -2069,12 +2123,38 @@ async function start(){
       }
       const { data } = await sb.auth.getSession();
       sessionEmail = data.session && data.session.user.email || null;
-      if (!sessionEmail){ S.gate = 'signin'; return render(); }
+      // With no signal an expired session can't refresh, so fall back to this device's copy rather than the sign-in page.
+      if (!sessionEmail && !navigator.onLine && stashed()) throw new Error('Offline');
+      if (!sessionEmail){ unstash(); S.gate = 'signin'; return render(); }
     }
     await reload(); if (!LIVE) persist();
-    if (firstLoad){ S.month = defaultMonth(); S.loaded = true; S.dayStamp = iso(today()); }
-  } catch(e){ console.error(e); S.gate = 'error'; S.errText = [e && e.code, e && e.message].filter(Boolean).join(': '); }
+    listen();
+  } catch(e){
+    console.error(e);
+    if (!useStash()){ S.gate = 'error'; S.errText = [e && e.code, e && e.message].filter(Boolean).join(': '); }
+  }
+  if (firstLoad && !S.gate){ S.month = defaultMonth(); S.loaded = true; S.dayStamp = iso(today()); }
   render();
+}
+window.addEventListener('online', () => { if (S.offline || S.gate === 'error') start(); });
+
+// Live updates: Supabase tells the page when anyone changes something, and it reloads.
+// It waits while a panel is open or a finger is on the calendar, so nothing moves under someone mid-task.
+let channel = null, liveT = 0;
+function listen(){
+  if (!LIVE || !sb || !S.me || channel) return;
+  channel = sb.channel('house');
+  for (const table of ['members','stays','expenses','payments','house']) channel.on('postgres_changes', { event:'*', schema:'public', table }, changed);
+  channel.subscribe();
+}
+function unlisten(){ if (channel && sb) sb.removeChannel(channel); channel = null; }
+function changed(){
+  clearTimeout(liveT);
+  liveT = setTimeout(() => {
+    if (document.hidden) return;                                   // coming back to the tab reloads anyway
+    if ($('#sheet').open || $('#confirm').open || nightDrag || swipe) return changed();
+    reload().then(render).catch(() => {});
+  }, 700);
 }
 // Other people's changes show up when you come back to the tab.
 document.addEventListener('visibilitychange', () => { if (LIVE && !document.hidden && S.me && !$('#sheet').open) reload().then(render).catch(() => {}); });
@@ -2149,6 +2229,8 @@ function checkNewDay(){
 document.addEventListener('visibilitychange', checkNewDay);
 window.addEventListener('pageshow', checkNewDay);
 setInterval(checkNewDay, 60000);
+// Keeps the page on the phone so it opens with no signal (see sw.js).
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
 start();
 })();
 </script>

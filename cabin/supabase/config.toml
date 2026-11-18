@@ -1,0 +1,4 @@
+# Only what the Supabase CLI needs to deploy the calendar function from this folder.
+# Calendar apps can't sign in, so the function checks its own token instead of a JWT.
+[functions.calendar]
+verify_jwt = false

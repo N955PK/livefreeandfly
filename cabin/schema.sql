@@ -126,6 +126,14 @@ language sql stable security definer set search_path = public as $$
   );
 $$;
 
+-- The signed-in person's member id, or null.
+create or replace function my_member_id() returns uuid
+language sql stable security definer set search_path = public as $$
+  select id from members where lower(email) = lower(auth.jwt() ->> 'email') and active limit 1;
+$$;
+grant execute on function my_member_id() to authenticated;
+
+
 drop policy if exists "members only" on members;
 drop policy if exists "members read" on members;
 drop policy if exists "members add" on members;
@@ -157,6 +165,17 @@ drop trigger if exists members_guard on members;
 create trigger members_guard before insert or update on members
   for each row execute function members_guard();
 
+-- Any member can read the house; only admins can add or remove the row.
+drop policy if exists "members only" on public.house;
+drop policy if exists "house read" on public.house;
+drop policy if exists "house edit" on public.house;
+drop policy if exists "house add" on public.house;
+drop policy if exists "house remove" on public.house;
+create policy "house read"   on public.house for select to authenticated using (is_member());
+create policy "house edit"   on public.house for update to authenticated using (is_member()) with check (is_member());
+create policy "house add"    on public.house for insert to authenticated with check (is_admin());
+create policy "house remove" on public.house for delete to authenticated using (is_admin());
+
 -- Only admins can change house info and settings.
 -- The collecting member can also mark a part-timer's lease as paid.
 create or replace function house_guard() returns trigger
@@ -173,15 +192,37 @@ drop trigger if exists house_guard on house;
 create trigger house_guard before update on house
   for each row execute function house_guard();
 
--- Part-timers can only book inside their dates.
--- Only the admin or the member guests pay can mark a guest as paid.
+-- You can add, change, or remove only your own nights (admins can change anyone's). The collecting member can mark
+-- someone else's guests as paid, and nothing else. The guest fee is taken from House Info, not from the browser.
 create or replace function stays_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
-declare m members%rowtype;
+declare
+  signed_in boolean := coalesce(auth.jwt() ->> 'email', '') <> '';
+  admin     boolean := signed_in and is_admin();
+  me        uuid;
+  m         members%rowtype;
+  rate      int;
+  paid      text[];
 begin
+  if not signed_in or admin then
+    if tg_op = 'DELETE' then return old; end if; return new;
+  end if;
+  me := my_member_id();
+
+  -- Someone else's night: only the collecting member may touch it, and only to mark guests paid.
+  if tg_op = 'DELETE' then
+    if old.member_id is distinct from me then raise exception 'You can only remove your own nights'; end if;
+    return old;
+  end if;
+  if tg_op = 'UPDATE' and old.member_id is distinct from me then
+    if not is_collector() then raise exception 'You can only change your own nights'; end if;
+    paid := new.guest_paid; new := old; new.guest_paid := paid;
+    return new;
+  end if;
+  if new.member_id is distinct from me then raise exception 'You can only book nights for yourself'; end if;
+
   -- A part-timer can only book nights inside their dates.
-  if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin()
-     and (tg_op = 'INSERT' or new.night is distinct from old.night) then
+  if tg_op = 'INSERT' or new.night is distinct from old.night then
     select * into m from members where id = new.member_id;
     if m.part_time and ((m.active_from is not null and new.night < m.active_from)
                      or (m.active_until is not null and new.night > m.active_until))
@@ -189,13 +230,27 @@ begin
       raise exception 'That night is outside this member''s part-time dates';
     end if;
   end if;
-  if coalesce(auth.jwt() ->> 'email', '') <> '' and not is_admin() and not is_collector() then
+
+  -- The guest fee comes from House Info; a night that already had guests keeps its rate.
+  select guest_fee_cents into rate from house where id = 1;
+  if tg_op = 'UPDATE' and coalesce(old.guests, 0) > 0 and old.guest_fee_cents is not null then
+    new.guest_fee_cents := old.guest_fee_cents;
+  elsif coalesce(new.guests, 0) > 0 then
+    new.guest_fee_cents := rate;
+  elsif tg_op = 'UPDATE' then
+    new.guest_fee_cents := old.guest_fee_cents;
+  else
+    new.guest_fee_cents := null;
+  end if;
+
+  -- Only the admin or the collecting member can mark a guest as paid.
+  if not is_collector() then
     if tg_op = 'INSERT' then new.guest_paid := '{}'; else new.guest_paid := old.guest_paid; end if;
   end if;
   return new;
 end $$;
-drop trigger if exists stays_guard on stays;
-create trigger stays_guard before insert or update on stays
+drop trigger if exists stays_guard on public.stays;
+create trigger stays_guard before insert or update or delete on public.stays
   for each row execute function stays_guard();
 
 -- Only an admin or the collecting member can log, change, or delete a pot expense.
@@ -274,6 +329,33 @@ grant select, insert, update, delete on members, stays, expenses, payments, hous
 grant execute on function is_member() to authenticated;
 grant execute on function is_admin() to authenticated;
 grant execute on function is_collector() to authenticated;
+
+-- Calendar feed: one private token per member, read by the calendar edge function.
+create table if not exists public.calendar_tokens (
+  member_id  uuid primary key references public.members(id) on delete cascade,
+  token      uuid not null unique default gen_random_uuid(),
+  created_at timestamptz not null default now()
+);
+alter table public.calendar_tokens enable row level security;
+drop policy if exists "own token" on public.calendar_tokens;
+create policy "own token" on public.calendar_tokens for all to authenticated
+  using (member_id = my_member_id()) with check (member_id = my_member_id());
+grant select, insert, update, delete on public.calendar_tokens to authenticated;
+
+-- Live updates: open pages hear about changes. Row-level security still applies.
+do $$
+declare t text;
+begin
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    create publication supabase_realtime;
+  end if;
+  foreach t in array array['members','stays','expenses','payments','house'] loop
+    if not exists (select 1 from pg_publication_tables
+                   where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;
 
 -- Seed yourself, then add everyone else from the House tab.
 insert into members (name, email, phone, color, is_admin)
