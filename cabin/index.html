@@ -1591,12 +1591,23 @@ async function start(){
       if (!sessionEmail){ S.gate = 'signin'; return render(); }
     }
     await reload(); if (!LIVE) persist();
-    if (firstLoad){ S.month = defaultMonth(); S.loaded = true; }
+    if (firstLoad){ S.month = defaultMonth(); S.loaded = true; S.dayStamp = iso(today()); }
   } catch(e){ console.error(e); S.gate = 'error'; S.errText = [e && e.code, e && e.message].filter(Boolean).join(': '); }
   render();
 }
 // Other people's changes show up when you come back to the tab.
 document.addEventListener('visibilitychange', () => { if (LIVE && !document.hidden && S.me && !$('#sheet').open) reload().then(render).catch(() => {}); });
+// If the date changes while the app sits open (midnight passes, or a phone resumes days later), move to today's month.
+// It waits if a panel is open, so it never pulls the screen out from under someone mid-task.
+function checkNewDay(){
+  if (!S.loaded || document.hidden) return;
+  const k = iso(today()); if (k === S.dayStamp) return;
+  if ($('#sheet').open || $('#confirm').open || $('#photo').open) return;
+  S.dayStamp = k; S.month = defaultMonth(); render();
+}
+document.addEventListener('visibilitychange', checkNewDay);
+window.addEventListener('pageshow', checkNewDay);
+setInterval(checkNewDay, 60000);
 start();
 })();
 </script>
