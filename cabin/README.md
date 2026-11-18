@@ -107,3 +107,22 @@ For the occupancy indicators and removal of the guest cap, run `cabin/migrations
 - Do rent and the deposit go through this, or only running costs?
 - Should removing a member require their balance to be zero?
 - Is `/cabin/` linked from the home page, or reachable only by people who have the link? The data is private either way.
+
+## Type
+
+One type scale, defined once at the top of the stylesheet in `cabin/index.html` (the `--t-…` variables). The rule is simple: mono is for titles, labels, tabs, and codes; sans is for everything you read. Every screen and panel uses these jobs and nothing else, and the privacy page matches.
+
+| Job | Font | Size and weight |
+|---|---|---|
+| Page title | mono | 24, semibold |
+| Panel title | mono | 17, semibold |
+| Calendar month title | mono | 15, semibold |
+| Section label (every heading inside a page or panel, and guest group labels) | mono | 12.5, semibold, capitals, grey |
+| Body (names, values, form text) | sans | 16 |
+| Amounts | sans | 16, semibold (the big balance at the top is 36, bold) |
+| Secondary text | sans | 14, grey |
+| Captions and field labels | sans | 13, grey |
+| Buttons | sans | 15 semibold (quiet buttons 500); small buttons 13 semibold (quiet 500) |
+| Codes (door code, Wi-Fi password) | mono | 16, spaced |
+
+When adding something new, pick the job it does and use that style rather than choosing a size.
