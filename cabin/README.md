@@ -19,6 +19,9 @@ The lease members, roughly six to twelve people, on their phones, about once a w
 - A month calendar. Each night shows a dot per member and a headcount. Your nights are marked in red.
 - Tap any night to see who is in, set how many guests you are bringing, and leave a short note (“arriving late”).
 - Headcount includes guests. Occupancy text is normal for 0–7 people, amber for 8–11, and red for 12 or more. Night details say “Getting crowded” or “Very crowded.” These are informational: there is no occupancy or per-member guest cap.
+- Ikon blackout nights are striped. They're the dates the Ikon Base and Ikon Session passes are blacked out at Palisades Tahoe (the full Ikon Pass has none), from ikonpass.com. The list is `IKON_BLACKOUTS` near the top of the calendar code in `index.html`; update it each season. Opening a striped night says so.
+- Holidays (MLK Day, Valentine's, Presidents' Day, Mardi Gras, St. Patrick's Day, Easter, and a few more) show a soft emoji on the night and are named when you open it. They're worked out for any year, so there's nothing to update.
+- The month buttons sit under the calendar, where a thumb reaches them. The month title leaves out the year when it's the lease's own year.
 - Swipe the calendar sideways to change month. The next month follows your finger and settles into place; the arrows do the same. In "pick several nights" mode, dragging selects nights instead, and the arrows change the month.
 - The house has lease dates. Nights outside the lease are greyed out and can’t be booked, and the calendar opens on the lease’s first month until it starts.
 - A date always means the night you sleep there, so “Saturday” is Saturday night into Sunday.

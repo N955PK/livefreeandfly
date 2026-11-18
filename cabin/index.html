@@ -120,9 +120,8 @@ a.btn{text-decoration:none}
 .grp .amt{margin-left:auto;font-weight:600;font-family:var(--sans);font-size:var(--t-body);text-transform:none;letter-spacing:0;color:var(--ink2)}
 
 /* ---- month ---- */
-.mnav{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+.mnav{margin:20px 0 10px;text-align:center}
 .mnav h2{margin:0;font-size:var(--t-widget);text-transform:none;letter-spacing:.04em;color:var(--ink)}
-.mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .pager{position:relative;overflow:hidden;margin:-2px -4px;padding:2px 4px;touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
 .track{position:relative}
@@ -155,9 +154,21 @@ a.btn{text-decoration:none}
 .pickbar span{flex:1}
 .stack{display:flex;flex-direction:column;gap:10px}
 .stack .btn{width:100%}
-.mnav button:disabled{opacity:.25;cursor:default}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:var(--t-cap);color:var(--dim)}
-.legend span{display:inline-flex;align-items:center;gap:6px}
+.monthnav{display:flex;gap:8px;margin-top:14px}
+.monthnav .btn{flex:1;min-width:0;white-space:nowrap}
+.day.blk{background-image:repeating-linear-gradient(135deg,rgba(214,153,46,.28) 0 4px,transparent 4px 9px)}
+.day .hol{position:absolute;left:0;right:0;top:50%;margin-top:-10px;text-align:center;font-size:19px;line-height:1;opacity:.55;pointer-events:none}
+.day.booked .hol{opacity:.28}
+.day .num,.day .dots{position:relative;z-index:1}
+.day .cnt{z-index:1}
+.sw{display:inline-block;flex:0 0 auto;width:16px;height:16px;border-radius:5px;border:1px solid var(--line);vertical-align:-3px;margin-right:6px;background-image:repeating-linear-gradient(135deg,rgba(214,153,46,.6) 0 3px,transparent 3px 6px)}
+.legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:18px;font-size:var(--t-cap);color:var(--dim)}
+.legend.dates{margin-top:8px}
+.legend.dates .wide{grid-column:span 2}
+.legend > span{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.legend .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend .sw{margin:0}
+.legend .em{flex:0 0 auto;font-size:var(--t-cap);line-height:1}
 .legend .chip.sm{width:16px;height:16px;font-size:9px}
 
 /* ---- lists ---- */
@@ -595,6 +606,35 @@ function settle(b){
 /* ---------- views ---------- */
 const demoNote = () => LIVE ? '' : `<p class="demo">Sample data, saved in this browser only. Tap around; nothing is shared yet.</p>`;
 
+// Dates worth knowing about. Holidays are worked out for any year.
+// Ikon Base and Ikon Session passes are blacked out at Palisades Tahoe on these dates for 2026-27 (the full Ikon Pass has no blackouts).
+// Source: ikonpass.com, Ikon Base Pass page. Update the list each season.
+const IKON_BLACKOUTS = [['2026-12-26', '2026-12-30'], ['2027-01-16', '2027-01-17'], ['2027-02-13', '2027-02-14']];
+const nthWeekday = (y, m, wd, n) => new Date(y, m, 1 + ((7 + wd - new Date(y, m, 1).getDay()) % 7) + 7 * (n - 1));
+const lastWeekday = (y, m, wd) => { const last = new Date(y, m + 1, 0); return new Date(y, m, last.getDate() - ((7 + last.getDay() - wd) % 7)); };
+function easter(y){
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+    h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+    mo = Math.floor((h + l - 7 * m + 114) / 31), da = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, mo - 1, da);
+}
+const holidayCache = {};
+function holidaysOf(y){
+  if (holidayCache[y]) return holidayCache[y];
+  const out = {}, add = (d, name, emoji) => { out[iso(d)] = { name, emoji }; }, E = easter(y);
+  add(new Date(y, 0, 1), 'New Year’s Day', '🎆'); add(nthWeekday(y, 0, 1, 3), 'Martin Luther King Jr. Day', '🕊️'); add(new Date(y, 1, 14), 'Valentine’s Day', '❤️');
+  add(nthWeekday(y, 1, 1, 3), 'Presidents’ Day', '🇺🇸'); add(addDays(E, -47), 'Mardi Gras', '🎭'); add(new Date(y, 2, 17), 'St. Patrick’s Day', '🍀');
+  add(E, 'Easter', '🐣'); add(new Date(y, 4, 5), 'Cinco de Mayo', '🌮'); add(lastWeekday(y, 4, 1), 'Memorial Day', '🇺🇸');
+  add(nthWeekday(y, 10, 4, 4), 'Thanksgiving', '🦃'); add(new Date(y, 11, 24), 'Christmas Eve', '🎄'); add(new Date(y, 11, 25), 'Christmas Day', '🎄'); add(new Date(y, 11, 31), 'New Year’s Eve', '🥂');
+  return holidayCache[y] = out;
+}
+const holidayOn = k => holidaysOf(+k.slice(0, 4))[k] || null;
+const blackoutOn = k => IKON_BLACKOUTS.some(([a, z]) => k >= a && k <= z);
+function dayNotes(k){                                          // what the night panel says about a date
+  const h = holidayOn(k), b = blackoutOn(k); if (!h && !b) return '';
+  return `${h ? `<p class="sub">${h.emoji} ${esc(h.name)}</p>` : ''}${b ? `<p class="sub"><span class="sw"></span>Ikon Base and Session passes are blacked out at Palisades Tahoe. The full Ikon Pass has no blackouts.</p>` : ''}`;
+}
+
 function monthPage(m0){
   const t = today(), tIso = iso(t);
   const y = m0.getFullYear(), mo = m0.getMonth(), days = new Date(y, mo+1, 0).getDate();
@@ -602,17 +642,19 @@ function monthPage(m0){
   for (let d = 1; d <= days; d++){
     const k = `${y}-${pad(mo+1)}-${pad(d)}`;
     if (!inLease(k)){ cells += `<span class="day off" aria-label="${esc(fmtLong(k))}. Outside the lease."><span class="num">${d}</span></span>`; continue; }
-    const st = staysOn(k), hc = headcount(k), st0 = myStay(k), mine = !!(st0 && !st0.host_away), away = !!(st0 && st0.host_away), picked = !!(S.pick && S.pick.has(k));
-    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', away ? 'mineg' : '', picked ? 'picked' : '', crowdClass(hc), !st0 && !canBook(S.me, k) ? 'out' : ''].filter(Boolean).join(' ');
+    const st = staysOn(k), hc = headcount(k), st0 = myStay(k), mine = !!(st0 && !st0.host_away), away = !!(st0 && st0.host_away), picked = !!(S.pick && S.pick.has(k)), hol = holidayOn(k), blk = blackoutOn(k);
+    const notes = (hol ? ` ${hol.name}.` : '') + (blk ? ' Ikon Base and Session passes are blacked out.' : '');
+    const cls = ['day', k < tIso ? 'past' : '', k === tIso ? 'today' : '', mine ? 'mine' : '', away ? 'mineg' : '', picked ? 'picked' : '', crowdClass(hc), blk ? 'blk' : '', st.length ? 'booked' : '', !st0 && !canBook(S.me, k) ? 'out' : ''].filter(Boolean).join(' ');
     const dots = st.length > 6 ? st.slice(0,5).map(s => chip(member(s.member_id), true)).join('') + `<span class="more">+${st.length - 5}</span>` : st.map(s => chip(member(s.member_id), true)).join('');
     const label = `${fmtLong(k)}. ${hc ? hc + ' sleeping: ' + st.map(x => first(member(x.member_id))).join(', ') : 'Nobody yet'}.${mine ? ' You’re in.' : away ? ' Your guests are in.' : ''}${picked ? ' Picked.' : ''}${crowdLabel(hc) ? ' ' + crowdLabel(hc) + '.' : ''}`;
-    cells += `<button class="${cls}" data-act="${S.pick ? 'pick-toggle' : 'night-open'}" data-night="${k}" aria-label="${esc(label)}"${S.pick ? ` aria-pressed="${picked}"` : ''}>
-      <span class="num">${d}</span>${hc ? `<span class="cnt">${hc}</span>` : ''}<span class="dots">${dots}</span></button>`;
+    cells += `<button class="${cls}" data-act="${S.pick ? 'pick-toggle' : 'night-open'}" data-night="${k}" aria-label="${esc(label + notes)}"${S.pick ? ` aria-pressed="${picked}"` : ''}>
+      <span class="num">${d}</span>${hol ? `<span class="hol" aria-hidden="true">${hol.emoji}</span>` : ''}${hc ? `<span class="cnt">${hc}</span>` : ''}<span class="dots">${dots}</span></button>`;
   }
   return `<div class="dow" aria-hidden="true">${['S','M','T','W','T','F','S'].map(x => `<span>${x}</span>`).join('')}</div>
     <div class="grid${S.pick ? ' picking' : ''}">${cells}</div>`;
 }
-const monthLabel = d => d.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+const refYear = () => leaseStart() ? parse(leaseStart()).getFullYear() : today().getFullYear();      // the year everyone already knows
+const monthLabel = d => d.toLocaleDateString('en-US', d.getFullYear() === refYear() ? { month:'long' } : { month:'long', year:'numeric' });
 // Whether there's a month to go to on each side (the lease sets the limits).
 function monthBounds(){
   const m0 = S.month;
@@ -620,18 +662,19 @@ function monthBounds(){
 }
 
 function viewNights(){
-  const m0 = S.month, bounds = monthBounds();
-  const legend = active().map(m => `<span>${chip(m,true)}${esc(first(m))}</span>`).join('');
+  const m0 = S.month, bounds = monthBounds(), monthName = d => d.toLocaleDateString('en-US', { month:'long' }), prevName = monthName(monthAt(-1)), nextName = monthName(monthAt(1));
+  const legend = active().map(m => `<span>${chip(m,true)}<span class="nm">${esc(first(m))}</span></span>`).join('');
   return `${demoNote()}<h1>The shredule</h1>
 ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(S.me)}.</p>` : ''}
-    <div class="mnav"><button data-act="month" data-d="-1" aria-label="Previous month"${bounds.prev ? '' : ' disabled'}>‹</button>
-      <h2>${monthLabel(m0)}</h2>
-      <button data-act="month" data-d="1" aria-label="Next month"${bounds.next ? '' : ' disabled'}>›</button></div>
+    <div class="mnav"><h2>${monthLabel(m0)}</h2></div>
     ${S.pick ? `<div class="pickbar"><span>${S.pick.size ? `${S.pick.size} night${S.pick.size === 1 ? '' : 's'} picked` : 'Tap or drag across nights'}</span>
         <button class="btn small" data-act="pick-cancel">Cancel</button><button class="btn small primary" data-act="pick-next"${S.pick.size ? '' : ' disabled'}>Continue</button></div>`
       : `<div class="pickbar"><span>Tap a night to open it</span><button class="btn small" data-act="pick-start">Pick several nights</button></div>`}
     <div class="pager" id="pager"><div class="track"><div class="mpage">${monthPage(m0)}</div></div></div>
-    <div class="legend">${legend}</div>`;
+    <div class="monthnav"><button class="btn" data-act="month" data-d="-1" aria-label="Previous month, ${esc(prevName)}"${bounds.prev ? '' : ' disabled'}>‹ ${esc(prevName)}</button>
+      <button class="btn" data-act="month" data-d="1" aria-label="Next month, ${esc(nextName)}"${bounds.next ? '' : ' disabled'}>${esc(nextName)} ›</button></div>
+    <div class="legend">${legend}</div>
+    <div class="legend dates"><span class="wide"><i class="sw"></i><span class="nm">Ikon blackout</span></span><span><span class="em">🍀</span><span class="nm">Holiday</span></span></div>`;
 }
 
 function historyHtml(){
@@ -807,7 +850,7 @@ function sheetNight(night){
     : `<p class="each">This night is outside your part-time dates${myDates(S.me) ? `, ${myDates(S.me)}` : ''}. Ask the admin if that needs changing.</p>
       <div class="actions"><button class="btn" data-act="sheet-close">Close</button></div>`;
   return `<h2>${fmtLong(night)}</h2>
-    <p class="sub ${crowdClass(hc)}">${hc ? `${hc} staying${crowdLabel(hc) ? ' · ' + crowdLabel(hc) : ''}` : 'Nobody staying yet'}</p>${who}${mineHtml}`;
+    <p class="sub ${crowdClass(hc)}">${hc ? `${hc} staying${crowdLabel(hc) ? ' · ' + crowdLabel(hc) : ''}` : 'Nobody staying yet'}</p>${dayNotes(night)}${who}${mineHtml}`;
 }
 // Several nights at once: yourself, guests, or both.
 function sheetBulk(){
