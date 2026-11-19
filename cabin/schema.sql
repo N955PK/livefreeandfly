@@ -341,6 +341,8 @@ drop policy if exists "own token" on public.calendar_tokens;
 create policy "own token" on public.calendar_tokens for all to authenticated
   using (member_id = my_member_id()) with check (member_id = my_member_id());
 grant select, insert, update, delete on public.calendar_tokens to authenticated;
+-- The calendar edge function reads with the secret key (the service_role role), which new projects don't grant by default.
+grant select on public.calendar_tokens, public.members, public.stays, public.house to service_role;
 
 -- Live updates: open pages hear about changes. Row-level security still applies.
 do $$
