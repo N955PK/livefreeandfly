@@ -1292,10 +1292,13 @@ function sheetMember(m){
 const calUrl = () => CAL_FN + '?token=' + encodeURIComponent(S.calToken || '');
 function calInner(){
   if (!S.calToken) return `<div class="actions"><button type="button" class="btn small primary" data-act="cal-make">Make my calendar link</button></div>`;
-  return `<div class="actions"><a class="btn small primary" href="${esc(calUrl().replace(/^https:/, 'webcal:'))}">Add to my calendar</a>
-    <button type="button" class="btn small" data-act="cal-copy">Copy link</button>
-    <button type="button" class="btn small quiet" data-act="cal-reset">New link</button></div>
-    <p class="each">For Google Calendar, copy the link, then on a computer choose Other calendars, then From URL. A new link stops the old one working.</p>`;
+  const webcal = calUrl().replace(/^https:/, 'webcal:');
+  return `<div class="actions"><a class="btn small primary" href="${esc(webcal)}">Add to Apple Calendar</a>
+    <a class="btn small" href="${esc('https://calendar.google.com/calendar/r?cid=' + encodeURIComponent(webcal))}" target="_blank" rel="noopener">Add to Google Calendar</a>
+    <button type="button" class="btn small" data-act="cal-copy">Copy link</button></div>
+    <p class="each"><b>Apple Calendar</b> is the iPhone and Mac calendar. <b>Google Calendar</b> opens Google’s add-calendar page; it works best on a computer, and the calendar then shows up in the Google Calendar app on your phone too. For anything else, like Outlook, copy the link and add it as a calendar from a URL.</p>
+    <div class="actions"><button type="button" class="btn small quiet" data-act="cal-reset">New link</button></div>
+    <p class="each">A new link stops the old one working, so use it if your link ever gets shared by mistake.</p>`;
 }
 const refreshCal = () => { const b = $('#calBox'); if (b) b.innerHTML = calInner(); };
 

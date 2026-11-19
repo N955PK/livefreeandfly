@@ -49,7 +49,7 @@ When anyone books a night, adds an expense, or changes the house, everyone else'
 
 ### Calendar feed
 
-In your profile, **Calendar** makes a private link that your phone's calendar subscribes to. Your nights show up as events (one per run of nights in a row), with who else is there each night, your guests, and your note, and the calendar checks for changes every few hours. The link holds a random token only you can see; **New link** replaces it and stops the old one working. The feed comes from a small Supabase edge function, `supabase/functions/calendar/index.ts`; the section appears once `migrations/20261119_calendar_feed.sql` has been run.
+In your profile, **Calendar** makes a private link that your phone's calendar subscribes to. **Add to Apple Calendar** (iPhone and Mac) and **Add to Google Calendar** each add it in one tap; **Copy link** is for anything else, like Outlook. Your nights show up as events (one per run of nights in a row), with who else is there each night, your guests, and your note, and the calendar checks for changes every few hours. The link holds a random token only you can see; **New link** replaces it and stops the old one working. The feed comes from a small Supabase edge function, `supabase/functions/calendar/index.ts`; the section appears once `migrations/20261119_calendar_feed.sql` has been run.
 
 ### Money
 
