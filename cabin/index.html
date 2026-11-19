@@ -240,6 +240,7 @@ a.btn{text-decoration:none}
 .btn.wide{width:100%}
 .btn.quiet{border-color:transparent;background:none;color:var(--dim);font-weight:500}
 .btn.danger{border-color:transparent;background:none;color:var(--neg);font-weight:500}
+.btn.danger.outlined{border-color:var(--neg)}
 .actions{display:flex;gap:10px;margin-top:16px}
 .actions .btn{flex:1}
 .actions.three{gap:8px}
@@ -1293,11 +1294,11 @@ const calUrl = () => CAL_FN + '?token=' + encodeURIComponent(S.calToken || '');
 function calInner(){
   if (!S.calToken) return `<div class="actions"><button type="button" class="btn small primary" data-act="cal-make">Make my calendar link</button></div>`;
   const webcal = calUrl().replace(/^https:/, 'webcal:');
-  return `<div class="actions"><a class="btn small primary" href="${esc(webcal)}">Add to Apple Calendar</a>
+  return `<div class="actions"><a class="btn small" href="${esc(webcal)}">Add to Apple Calendar</a>
     <a class="btn small" href="${esc('https://calendar.google.com/calendar/r?cid=' + encodeURIComponent(webcal))}" target="_blank" rel="noopener">Add to Google Calendar</a>
     <button type="button" class="btn small" data-act="cal-copy">Copy link</button></div>
     <p class="each"><b>Apple Calendar</b> is the iPhone and Mac calendar. <b>Google Calendar</b> opens Google’s add-calendar page; it works best on a computer, and the calendar then shows up in the Google Calendar app on your phone too. For anything else, like Outlook, copy the link and add it as a calendar from a URL.</p>
-    <div class="actions"><button type="button" class="btn small quiet" data-act="cal-reset">New link</button></div>
+    <div class="actions"><button type="button" class="btn small danger outlined" data-act="cal-reset">Get a new link</button></div>
     <p class="each">A new link stops the old one working, so use it if your link ever gets shared by mistake.</p>`;
 }
 const refreshCal = () => { const b = $('#calBox'); if (b) b.innerHTML = calInner(); };
