@@ -533,10 +533,13 @@ function blockedOffline(){ if (!S.offline) return false; toast('You’re offline
 function fail(e){ console.error(e); toast('Couldn’t save. Check your connection and try again.'); reload().then(render).catch(() => {}); }
 async function save(t, row){
   if (blockedOffline()) return false;
+  // A row that already exists is sent as a plain update. An upsert would also run the database's insert rules,
+  // which refuse things like the collector touching someone else's night or a member saving their own profile.
+  let exists = t === 'house';
   if (t === 'house') S.house = row;
-  else { const i = S[t].findIndex(r => r.id === row.id); if (i >= 0) S[t][i] = row; else S[t].push(row); }
+  else { const i = S[t].findIndex(r => r.id === row.id); exists = i >= 0; if (exists) S[t][i] = row; else S[t].push(row); }
   render();
-  try { await backend.upsert(t, row); return true; } catch(e){ fail(e); return false; }
+  try { await (exists ? backend.patch(t, row.id, row) : backend.upsert(t, row)); return true; } catch(e){ fail(e); return false; }
 }
 async function del(t, id){
   if (blockedOffline()) return false;
@@ -743,6 +746,11 @@ ${myDates(S.me) ? `<p class="sub">You’re part time, so you can book ${myDates(
 // Until the database records who entered things, nothing is restricted here, which matches what the database itself allows.
 const entriesGuarded = () => !LIVE || S.expenses.concat(S.payments).some(r => 'created_by' in r);
 const canChangeEntry = r => !entriesGuarded() || isAdmin() || !!(S.me && r.created_by && r.created_by === S.me.id) || !!(r.from_pot && canMarkGuests());
+// Is the signed-in member part of this expense (payer or in the split) or payment (paying or paid)?
+const inEntry = r => !!S.me && ('split_among' in r ? (r.paid_by === S.me.id || (r.split_among || []).includes(S.me.id)) : (r.from_member === S.me.id || r.to_member === S.me.id));
+const mayEdit = r => !(r.season && !isAdmin()) && !(r.from_pot && !canMarkGuests()) && canChangeEntry(r);
+// Anyone named in an ordinary entry can delete it, so a wrong charge on you never waits for an admin.
+const mayDelete = r => mayEdit(r) || (!r.season && !r.from_pot && inEntry(r));
 const seasonReady = () => !LIVE || S.expenses.concat(S.payments).some(r => 'season' in r);     // does the database have the columns yet?
 const byDate = (a, z) => ((a.spent_on || a.paid_on) + (a.created_at || '')).localeCompare((z.spent_on || z.paid_on) + (z.created_at || ''));
 function seasonCosts(){
@@ -786,12 +794,12 @@ function seasonRows(){
 function historyHtml(){
   const col = collector();
   return [
-    ...S.expenses.filter(e => !e.season).map(e => { const locked = (e.from_pot && !canMarkGuests()) || !canChangeEntry(e), tag = locked ? 'div' : 'button';
+    ...S.expenses.filter(e => !e.season).map(e => { const locked = !mayDelete(e), tag = locked ? 'div' : 'button';
       return { d:e.spent_on, c:e.created_at||'', html:`<li><${tag} class="rowi"${locked ? '' : ` data-act="exp-edit" data-id="${e.id}"`}>
       <span class="grow"><span class="t">${esc(e.description)}${e.from_pot ? '<span class="tag">From the pot</span>' : ''}</span>
       <span class="s">${esc(first(member(e.paid_by)))} paid, split ${(e.split_among||[]).length} ways, ${fmtDay(e.spent_on)}</span></span>
       <span class="amt">${money(e.amount_cents)}</span></${tag}></li>` }; }),
-    ...S.payments.filter(p => !p.season).map(p => { const tag = canChangeEntry(p) ? 'button' : 'div'; return ({ d:p.paid_on, c:p.created_at||'', html:`<li><${tag} class="rowi"${tag === 'button' ? ` data-act="pay-edit" data-id="${p.id}"` : ''}>
+    ...S.payments.filter(p => !p.season).map(p => { const tag = mayDelete(p) ? 'button' : 'div'; return ({ d:p.paid_on, c:p.created_at||'', html:`<li><${tag} class="rowi"${tag === 'button' ? ` data-act="pay-edit" data-id="${p.id}"` : ''}>
       <span class="grow"><span class="t">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))}</span>
       <span class="s">Payment${p.note ? ', ' + esc(p.note) : ''}, ${fmtDay(p.paid_on)}</span></span>
       <span class="amt">${money(p.amount_cents)}</span></${tag}></li>` }); }),
@@ -1252,6 +1260,15 @@ function updateEach(){
   $('#each').textContent = n && c ? `${money(Math.round(c/n))} each, ${n} ${n === 1 ? 'person' : 'people'}` : '';
 }
 
+// An entry you're part of but didn't enter: you can see it and delete it, but not edit it.
+function sheetEntryView(r){
+  const exp = 'split_among' in r, by = member(r.created_by), names = ids => ids.map(id => esc(first(member(id)))).join(', ');
+  const what = exp ? `${esc(r.description)}, ${money(r.amount_cents)}, ${fmtDay(r.spent_on)}. ${esc(first(member(r.paid_by)))} paid, split between ${names(r.split_among || [])}.`
+    : `${esc(first(member(r.from_member)))} paid ${esc(first(member(r.to_member)))} ${money(r.amount_cents)}, ${fmtDay(r.paid_on)}${r.note ? `, ${esc(r.note)}` : ''}.`;
+  return `<div><h2>${exp ? 'Expense' : 'Payment'}</h2><p class="sub">${what}</p>
+    <p class="each">${by ? `${esc(first(by))} entered this, so only they or an admin can edit it.` : 'Only an admin can edit this.'} It involves you, so you can delete it if it’s wrong.</p>
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Close</button><button type="button" class="btn danger" data-act="${exp ? 'exp-del' : 'pay-del'}" data-id="${r.id}">Delete ${exp ? 'expense' : 'payment'}</button></div></div>`;
+}
 function sheetPayment(p, isNew, viaVenmo){
   const opts = sel => (sel ? '' : `<option value="" selected disabled>Choose a person</option>`) + S.members.filter(m => m.active !== false || m.id === sel).map(m => `<option value="${m.id}"${m.id === sel ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
   return `<form data-form="payment" data-id="${isNew ? '' : p.id}"><h2>${viaVenmo ? 'Did the Venmo payment go through?' : isNew ? 'Record a payment' : 'Edit payment'}</h2>
@@ -1459,9 +1476,10 @@ function financeCsv(tabs){
   return tabs.map((t, i) => [`${i + 1}. ${t.name.toUpperCase()}`, ...t.rows.map(r => r.map(cell).join(','))].join('\r\n')).join('\r\n\r\n');
 }
 const XLSX_JS = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mini.min.js';
+const XLSX_SRI = 'sha384-6fBkVFQw1YKyYpZpKf7bguegzeJqso45fTePEWGNuVaGy70fxEhICA/yswrPjW4+';          // update with XLSX_JS
 let xlsxLoading = null;
 const loadXlsx = () => xlsxLoading || (xlsxLoading = new Promise((ok, no) => { if (window.XLSX) return ok();
-  const el = document.createElement('script'); el.src = XLSX_JS; el.onload = () => ok(); el.onerror = () => { xlsxLoading = null; no(new Error('library')); }; document.head.appendChild(el); }));
+  const el = document.createElement('script'); el.src = XLSX_JS; el.integrity = XLSX_SRI; el.crossOrigin = 'anonymous'; el.onload = () => ok(); el.onerror = () => { xlsxLoading = null; no(new Error('library')); }; document.head.appendChild(el); }));
 // A real spreadsheet file (.xlsx) with a tab per table. Google Sheets, Excel, and Numbers all open it.
 function financeXlsx(tabs){
   const X = window.XLSX, wb = X.utils.book_new();
@@ -1707,9 +1725,9 @@ const actions = {
   'sheet-close'(){ closeSheet(); },
   'history-open'(){ openSheet(sheetHistory(), { type:'history' }); },
   'exp-new'(){ S.backToHistory = false; openSheet(sheetExpense()); updateEach(); },
-  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (e && e.from_pot && !canMarkGuests()) return; if (e && e.season && !isAdmin()) return; if (e && !canChangeEntry(e)) return; if (e){ openSheet(sheetExpense(e)); updateEach(); } },
+  'exp-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const e = S.expenses.find(x => x.id === el.dataset.id); if (!e) return; if (mayEdit(e)){ openSheet(sheetExpense(e)); updateEach(); } else if (mayDelete(e)) openSheet(sheetEntryView(e)); },
   async 'exp-del'(el){
-    const e = S.expenses.find(x => x.id === el.dataset.id); if (!e || (e.season && !isAdmin()) || !canChangeEntry(e)) return;
+    const e = S.expenses.find(x => x.id === el.dataset.id); if (!e || !mayDelete(e)) return;
     if (!await confirmBox(`<h2>Delete this expense?</h2><p class="sub">${esc(e.description)}, ${money(e.amount_cents)}. Everyone’s balance changes, and it can’t be undone.</p>
       <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
     closeSheet(); del('expenses', e.id); toast('Expense deleted'); backToHistory();
@@ -1721,9 +1739,9 @@ const actions = {
   'pay-new'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'' }, true)); },
   'pay-venmo'(el){ S.backToSettle = !!el.closest('#sheet'); openSheet(sheetPayment({ from_member:el.dataset.from, to_member:el.dataset.to, amount_cents:Number(el.dataset.amt), paid_on:iso(today()), note:'Venmo' }, true, true)); },
   'pay-blank'(){ S.backToSettle = false; S.backToHistory = false; if (S.me) openSheet(sheetPayment({ from_member:S.me.id, to_member:'', amount_cents:0, paid_on:iso(today()), note:'' }, true)); },
-  'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (p && p.season && !isAdmin()) return; if (p && !canChangeEntry(p)) return; if (p) openSheet(sheetPayment(p, false)); },
+  'pay-edit'(el){ S.backToHistory = !!el.closest('#sheet'); const p = S.payments.find(x => x.id === el.dataset.id); if (!p) return; if (mayEdit(p)) openSheet(sheetPayment(p, false)); else if (mayDelete(p)) openSheet(sheetEntryView(p)); },
   async 'pay-del'(el){
-    const p = S.payments.find(x => x.id === el.dataset.id); if (!p || (p.season && !isAdmin()) || !canChangeEntry(p)) return;
+    const p = S.payments.find(x => x.id === el.dataset.id); if (!p || !mayDelete(p)) return;
     if (!await confirmBox(`<h2>Delete this payment?</h2><p class="sub">${esc(first(member(p.from_member)))} paid ${esc(first(member(p.to_member)))} ${money(p.amount_cents)}. Both balances change, and it can’t be undone.</p>
       <div class="actions"><button class="btn" data-confirm="no">Keep it</button><button class="btn primary" data-confirm="yes">Delete</button></div>`)) return;
     closeSheet(); del('payments', p.id); toast('Payment deleted'); backToHistory();
@@ -1768,7 +1786,10 @@ const forms = {
     if (amount_cents <= 0) return void ($('#err').textContent = 'Enter an amount above zero.');
     if (!split.length) return void ($('#err').textContent = 'Pick at least one person to split it between.');
     const old = S.expenses.find(x => x.id === f.dataset.id);
-    if (old && ((old.season && !isAdmin()) || !canChangeEntry(old))) return;
+    if (old && !mayEdit(old)) return;
+    const potBill = f.from_pot ? f.from_pot.checked : !!(old && old.from_pot);
+    if (entriesGuarded() && !isAdmin() && !(potBill && canMarkGuests()) && S.me && f.paid_by.value !== S.me.id && !split.includes(S.me.id))
+      return void ($('#err').textContent = 'You need to be the payer or one of the people it’s split between.');
     const row = { id: old ? old.id : uid(), description:f.description.value.trim(), amount_cents, paid_by:f.paid_by.value,
       split_among:split, spent_on:f.spent_on.value, created_at: old ? old.created_at : new Date().toISOString() };
     const fromPot = f.from_pot ? f.from_pot.checked : !!(old && old.from_pot);
@@ -1785,7 +1806,9 @@ const forms = {
     if (!f.to_member.value) return void ($('#err').textContent = 'Choose who got paid.');
     if (f.from_member.value === f.to_member.value) return void ($('#err').textContent = 'Pick two different people.');
     const old = S.payments.find(x => x.id === f.dataset.id);
-    if (old && ((old.season && !isAdmin()) || !canChangeEntry(old))) return;
+    if (old && !mayEdit(old)) return;
+    if (entriesGuarded() && !isAdmin() && S.me && f.from_member.value !== S.me.id && f.to_member.value !== S.me.id)
+      return void ($('#err').textContent = 'You need to be the person paying or the person being paid.');
     const row = { id: old ? old.id : uid(), from_member:f.from_member.value, to_member:f.to_member.value, amount_cents,
       paid_on:f.paid_on.value, note:f.note.value.trim(), created_at: old ? old.created_at : new Date().toISOString() };
     if (old && 'season' in old) row.season = !!old.season;
