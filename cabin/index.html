@@ -751,6 +751,8 @@ const inEntry = r => !!S.me && ('split_among' in r ? (r.paid_by === S.me.id || (
 const mayEdit = r => !(r.season && !isAdmin()) && !(r.from_pot && !canMarkGuests()) && canChangeEntry(r);
 // Anyone named in an ordinary entry can delete it, so a wrong charge on you never waits for an admin.
 const mayDelete = r => mayEdit(r) || (!r.season && !r.from_pot && inEntry(r));
+// A guest's nights belong to whoever brought them; only they or an admin can cancel one.
+const canCancelGuest = sponsorId => isAdmin() || !!(S.me && S.me.id === sponsorId);
 const seasonReady = () => !LIVE || S.expenses.concat(S.payments).some(r => 'season' in r);     // does the database have the columns yet?
 const byDate = (a, z) => ((a.spent_on || a.paid_on) + (a.created_at || '')).localeCompare((z.spent_on || z.paid_on) + (z.created_at || ''));
 function seasonCosts(){
@@ -995,7 +997,7 @@ function sheetGuests(){
           <button class="btn small" data-act="guest-share" data-url="${esc(url)}" data-text="${esc(`${g.name}: ${money(due)} to ${col.name} for nights at the house (${dates(unpaid)}).`)}">Send pay link</button>`;
         if (can && due) btns += `<button class="btn small" data-act="guest-paid" data-v="1" ${data}>Mark ${money(due)} received</button>`;
         if (can && g.paid) btns += `<button class="btn small quiet" data-act="guest-paid" data-v="0" ${data}>Mark not received</button>`;
-        btns += `<button class="btn small quiet" data-act="guest-cancel" ${data}>Cancel a night</button>`;
+        if (canCancelGuest(id)) btns += `<button class="btn small quiet" data-act="guest-cancel" ${data}>Cancel a night</button>`;
         return `<li><div class="rowi"><span class="grow"><span class="t">${esc(g.name)}</span>
           <span class="s">${n} night${n === 1 ? '' : 's'}: ${dates(g.nights)}</span>
           ${g.paid && due ? `<span class="s pos">${money(g.paid)} received</span>` : ''}</span>
@@ -1699,6 +1701,7 @@ const actions = {
     toast(on ? `${name}’s fee marked as received` : `${name}’s fee marked as not received`);
   },
   async 'guest-cancel'(el){
+    if (!canCancelGuest(el.dataset.sponsor)) return;
     const name = el.dataset.name, sponsor = member(el.dataset.sponsor), same = n => n.toLowerCase() === name.toLowerCase(), col = collector();
     const nights = guestStays().filter(st => st.member_id === el.dataset.sponsor && guestNames(st).some(same)).sort((a, b) => a.night < b.night ? -1 : 1);
     if (!nights.length || !sponsor) return;
