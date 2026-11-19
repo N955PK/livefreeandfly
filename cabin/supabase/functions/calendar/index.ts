@@ -4,9 +4,12 @@
 // Deploy with JWT verification off (calendar apps can't sign in); the token is the only key.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 
-const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-  auth: { persistSession: false },
-});
+// Projects on the new API keys get them as a JSON object in SUPABASE_SECRET_KEYS; older ones as SUPABASE_SERVICE_ROLE_KEY.
+function secretKey(): string {
+  try { const k = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}').default; if (k) return k; } catch { /* fall through */ }
+  return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+}
+const db = createClient(Deno.env.get('SUPABASE_URL')!, secretKey(), { auth: { persistSession: false } });
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 const TOKEN_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -40,13 +43,16 @@ Deno.serve(async (req) => {
   const token = new URL(req.url).searchParams.get('token') || '';
   if (!TOKEN_RE.test(token)) return reply('Missing or malformed token', 400);
 
-  const { data: tok } = await db.from('calendar_tokens').select('member_id').eq('token', token).maybeSingle();
+  const { data: tok, error } = await db.from('calendar_tokens').select('member_id').eq('token', token).maybeSingle();
+  if (error) { console.error(error); return reply(`Calendar lookup failed: ${error.message}`, 500); }
   if (!tok) return reply('Unknown calendar link', 404);
-  const [{ data: members }, { data: stays }, { data: house }] = await Promise.all([
+  const [{ data: members, error: e1 }, { data: stays, error: e2 }, { data: house, error: e3 }] = await Promise.all([
     db.from('members').select('id,name,active'),
     db.from('stays').select('member_id,night,guests,host_away,guest_names,note'),
     db.from('house').select('name,address').eq('id', 1).maybeSingle(),
   ]);
+  const failed = e1 || e2 || e3;
+  if (failed) { console.error(failed); return reply(`Calendar lookup failed: ${failed.message}`, 500); }
   const byId = new Map((members as Member[] || []).map((m) => [m.id, m]));
   const me = byId.get(tok.member_id);
   if (!me || !me.active) return reply('Unknown calendar link', 404);
