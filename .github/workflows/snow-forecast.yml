@@ -66,28 +66,6 @@ jobs:
           git commit -q -m "Lift holds $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-holds
 
-      # The Epic mountains' sites will not answer a browser's cross-site request, so their lift and trail status is
-      # read here with the holds and published to its own branch for the page to pick up. The page stops showing it
-      # once it is 150 minutes old, so a few dropped firings in a row do not blank it.
-      - name: Read the Epic status pages
-        working-directory: snow
-        run: |
-          pip install curl_cffi==0.15.0
-          python3 -m tahoe_snow.sources.epic "$RUNNER_TEMP/epic.json" || echo "::warning::The Epic status pages could not be read"
-
-      - name: Publish to the epic branch
-        run: |
-          [ -s "$RUNNER_TEMP/epic.json" ] || exit 0
-          out="$(mktemp -d)"
-          cp "$RUNNER_TEMP/epic.json" "$out/"
-          cd "$out"
-          git init -q -b snow-epic
-          git config user.name "snow-epic"
-          git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git commit -q -m "Epic status $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-epic
-
   forecast:
     needs: due
     if: needs.due.outputs.run == 'true'

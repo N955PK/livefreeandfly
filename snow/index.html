@@ -962,9 +962,9 @@ async function sugarBowlFeed() {
 }
 // The Epic mountains' sites turn away a browser's cross-site request, so a scheduled job reads them and publishes the
 // result; anything older than EPIC_FRESH_MIN is treated as missing rather than shown out of date.
-const EPIC_FRESH_MIN = 150;
+const EPIC_FRESH_MIN = 30;
 const epicFeed = (key) => async () => {
-  const url = location.hostname === "localhost" ? "data/epic.json" : `https://raw.githubusercontent.com/${REPO}/snow-epic/epic.json`;
+  const url = location.hostname === "localhost" ? "data/epic.json" : `https://raw.githubusercontent.com/${REPO}/snow-lifts/epic.json`;
   const status = await getJsonLive(url);
   if (!status.resorts[key] || Date.now() - new Date(status.updated) > EPIC_FRESH_MIN * 6e4) throw new Error("No recent Epic status");
   return status.resorts[key];

@@ -1,0 +1,51 @@
+name: Snow lifts
+
+# Lift and trail status the page cannot read from the browser, because the resort's site will not answer a cross-site
+# request. Each source below writes one JSON file; the files are published together to the snow-lifts branch for the
+# page to pick up. A source that fails keeps its last file, and the page stops showing a file once it is old.
+# To add a source: a step that writes "$RUNNER_TEMP/lifts/<name>.json", and a reader for it on the page.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snow-lifts
+  cancel-in-progress: true
+
+jobs:
+  lifts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: snow/tahoe_snow
+
+      - name: Install the readers
+        run: pip install curl_cffi==0.15.0
+
+      # Start from what is published, so a source that fails keeps its last file.
+      - name: Restore the published files
+        run: |
+          mkdir -p "$RUNNER_TEMP/lifts"
+          if git fetch --depth=1 origin snow-lifts 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$RUNNER_TEMP/lifts"; fi
+
+      - name: Epic (Heavenly, Northstar, Kirkwood)
+        working-directory: snow
+        run: python3 -m tahoe_snow.sources.epic "$RUNNER_TEMP/lifts/epic.json" || echo "::warning::The Epic status pages could not be read"
+
+      # The branch holds one commit: the latest files.
+      - name: Publish to the lifts branch
+        run: |
+          cd "$RUNNER_TEMP/lifts"
+          git init -q -b snow-lifts
+          git config user.name "snow-lifts"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Lift status $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-lifts
