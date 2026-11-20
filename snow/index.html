@@ -24,7 +24,7 @@
   --t0:var(--muted); --t1:#0f1720; --t2:#0f1720; --t3:#0f1720; --t4:#ffffff; --t5:#ffffff; --t6:#ffffff;
   --snow:#2a78d6; --level:#0e9f86; --mountain:rgba(15,23,32,.07); --select:#0f1720;
   --q0:#6a3fc0; --q1:#2a78d6; --q2:#93c8f7;
-  --w0:#c5cad0; --w1:#eda100; --w2:#c8161d; --night:rgba(15,23,32,.055);
+  --w0:#c5cad0; --w1:#eda100; --w2:#c8161d; --night:rgba(15,23,32,.055); --hatch:rgba(15,23,32,.13);
 }
 @media (prefers-color-scheme:dark){:root{
   color-scheme:dark;
@@ -34,7 +34,7 @@
   --t1:#f0f2f4; --t2:#f0f2f4; --t3:#ffffff; --t4:#ffffff; --t5:#0f1720; --t6:#0f1720;
   --snow:#3987e5; --level:#2fd0b0; --mountain:rgba(255,255,255,.08); --select:#f0f2f4;
   --q0:#8f6fe6; --q1:#3987e5; --q2:#b7dcfb;
-  --w0:#4a525b; --w1:#c98500; --w2:#e5222b; --night:rgba(0,0,0,.28);
+  --w0:#4a525b; --w1:#c98500; --w2:#e5222b; --night:rgba(0,0,0,.28); --hatch:rgba(255,255,255,.13);
 }}
 /* Controls and highlights take the accent; snow amounts keep their own blue. A host page can set its own accent. */
 :root{--accent:var(--snow)}
@@ -494,7 +494,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "108";
+const BUILD = "109";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -717,11 +717,21 @@ function timeline(resort, el) {
   const x = (i) => i * pph, y1 = (v) => T + H1 * (1 - v / top), ya = (v) => TA + HA * (1 - v / sumTop), y2 = (v) => T2 + H2 * (1 - (v - lo) / (hi - lo));
   const when = (i) => new Date(hours[i]);
   const hourOf = (i) => +when(i).toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24;
-  let body = "", strips = "", night = null;
+  // Night (4 pm to 8 am, the overnight half of a ski day) is hatched from the snow bars down through every row,
+  // with a moon where it begins and a sun where the lifts start turning.
+  let body = `<defs><pattern id="nighthatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="var(--hatch)" stroke-width="1.6"/></pattern></defs>`, strips = "", night = null;
+  const clear = (i) => Math.abs(i - nowIndex) > 5 && x(i) < W - 14;
   for (let i = 0; i <= n; i++) {
     const dark = i < n && (hourOf(i) >= 16 || hourOf(i) < 8);
-    if (dark && night == null) night = i;
-    if (!dark && night != null) { body += `<rect x="${x(night)}" y="${T}" width="${x(i) - x(night)}" height="${H1}" fill="var(--night)"/>`; night = null; }
+    if (dark && night == null) {
+      night = i;
+      if (i && clear(i)) body += `<path d="M${x(i) + 8.2} 4.6a4.3 4.3 0 1 0 3.9 6.1a3.5 3.5 0 0 1 -3.9 -6.1z" fill="var(--muted)"/>`;
+    }
+    if (!dark && night != null) {
+      body += `<rect x="${x(night)}" y="${T}" width="${x(i) - x(night)}" height="${T2 + H2 - T}" fill="url(#nighthatch)"/>`;
+      if (i < n && clear(i)) body += `<g stroke="var(--w1)" stroke-width="1.2" stroke-linecap="round"><circle cx="${x(i) + 9}" cy="9" r="2.4" fill="var(--w1)" stroke="none"/>${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<path d="M${x(i) + 9} 4.3v1" transform="rotate(${a} ${x(i) + 9} 9)"/>`).join("")}</g>`;
+      night = null;
+    }
   }
   for (const v of [top / 2, top]) body += `<line x1="0" x2="${W}" y1="${y1(v)}" y2="${y1(v)}" stroke="var(--grid)"/>`;
   body += `<rect x="0" width="${W}" y="${y2(summit)}" height="${y2(base) - y2(summit)}" fill="var(--mountain)"/>`;
@@ -894,7 +904,7 @@ function renderDetail() {
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>50+</b></span>mph</span></div>
     <div class="key">
-      <span class="sw"><i style="background:var(--night);border:1px solid var(--grid)"></i>night</span>
+      <span class="sw"><i style="background:repeating-linear-gradient(45deg,var(--hatch) 0 1.6px,transparent 1.6px 4px);border:1px solid var(--grid)"></i>night</span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span>
       <span class="sw"><i style="background:repeating-linear-gradient(90deg,var(--ink2) 0 3px,transparent 3px 6px);height:2px"></i>sensor depth gain</span></div>
     ${measured(resort)}${webcams(resort)}`;
