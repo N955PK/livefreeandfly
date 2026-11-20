@@ -133,3 +133,33 @@ def fit_and_save(table: pd.DataFrame) -> biascorrect.Correction:
     correction = biascorrect.fit(table)
     (MODELS / "bias.json").write_text(json.dumps(biascorrect.to_json(correction)))
     return correction
+
+
+def storm_test(table: pd.DataFrame, seasons: tuple = (2025, 2026)) -> pd.DataFrame:
+    """Raw four-model average against the corrected one on held-out seasons: daily, 3-day, and big-storm error."""
+    models = sorted(table["model"].unique())
+    wide = table.pivot_table(index=["station", "date", "season"], columns="model", values="forecast_mm").join(
+        table.groupby(["station", "date", "season"])["observed_mm"].first()).dropna().reset_index()
+    wide["raw"] = wide[models].mean(axis=1)
+    rows = []
+    for season in seasons:
+        correction = biascorrect.fit(table[table["season"] != season])
+        test = wide[wide["season"] == season].copy()
+        test["corrected"] = np.mean([[correction.apply(m, station, 0, np.array([value]))[0]
+                                      for station, value in zip(test["station"], test[m])] for m in models], axis=0)
+        for column in ("raw", "corrected"):
+            wet = test[np.maximum(test["raw"], test["observed_mm"]) >= 1]
+            error = wet[column] - wet["observed_mm"]
+            ordered = test.sort_values(["station", "date"])
+            columns = list(dict.fromkeys([column, "observed_mm", "raw"]))
+            three = ordered.groupby("station")[columns].rolling(3).sum().dropna()
+            three = three[np.maximum(three["raw"], three["observed_mm"]) >= 5]
+            miss = (three[column] - three["observed_mm"]).abs()
+            rows.append({"season": season, "method": column, "daily err in": error.abs().mean() / 25.4,
+                         "total f/o": wet[column].sum() / wet["observed_mm"].sum(),
+                         "1in+ day err": error[wet["observed_mm"] >= 25.4].abs().mean() / 25.4,
+                         "3-day err in": miss.mean() / 25.4,
+                         "3-day 2in+ err": miss[three["observed_mm"] >= 50.8].mean() / 25.4})
+    out = pd.DataFrame(rows)
+    out.to_csv(TABLES / "bias_methods.csv", index=False)
+    return out

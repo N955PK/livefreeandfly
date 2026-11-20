@@ -140,8 +140,10 @@ def test_snotel_parse_converts_units_and_drops_suspect():
     assert abs(frame.loc["2019-02-13", "swe_mm"] - 254.0) < 1e-9
     assert frame.loc["2019-02-13", "tavg_c"] == 0.0
     assert "2019-02-15" not in frame.index.astype(str)
+    # The value dated the 14th is the reading at the end of the 14th, so that day's gain is 14th minus 13th.
     gains = snotel.daily_gains(frame)
-    assert abs(gains.loc["2019-02-13", "swe_gain_mm"] - 25.4) < 1e-9
+    assert abs(gains.loc["2019-02-14", "swe_gain_mm"] - 25.4) < 1e-9
+    assert "2019-02-13" not in gains.index.astype(str)
 
 
 def test_phase_fraction_limits_and_monotonic():

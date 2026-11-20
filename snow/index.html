@@ -148,16 +148,20 @@ details.pastdays summary::after{font-size:16px}
 .key .sw i.kband{width:18px;height:8px;border-radius:4px;background:var(--snow);opacity:.35}
 .key .sw i.ktick{width:1.5px;height:12px;border-radius:0;background:var(--ink2);opacity:.6}
 .key .sw i{width:14px;height:10px;border-radius:3px;display:inline-block}
-.roadnote{display:block}
+#roadNote{display:block}
 .roadnote .src{color:var(--muted);font-size:12px;display:block;margin-top:6px}
 .roads{margin:0;padding:0}
 .roads ul{list-style:none;margin:4px 0 8px 23px;padding:0}
 .roads li{font-size:13px;line-height:1.45;margin-bottom:3px;color:var(--ink2)}
 details.roads{margin-top:0;padding:0}
-details.roads summary{font-size:13px;font-weight:400;padding:2px 0;color:var(--ink2);gap:6px}
-details.roads summary::after{font-size:16px}
-details.roads.older{margin:2px 0 6px 23px}
+details.roads summary{font-size:13px;line-height:1.4;font-weight:400;padding:3px 0;color:var(--ink2);gap:8px;align-items:center}
+details.roads summary .sw{flex:none;display:inline-flex;align-items:center;gap:5px;line-height:1.4}
+details.roads summary .sw b{font-size:13px;line-height:1.4}
+details.roads summary .sum{flex:1;min-width:0;line-height:1.4}
+details.roads summary::after{font-size:16px;line-height:1;flex:none}
+details.roads.older{margin:0 0 6px 23px}
 details.roads.older ul{margin-left:0}
+details.roads.older summary{color:var(--muted)}
 .roads .sw span{margin-left:6px;color:var(--muted);font-size:13px}
 details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .drow{display:grid;grid-template-columns:64px minmax(120px,1fr) 108px 160px 124px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--grid);font-size:13px}
@@ -185,7 +189,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 details{margin-top:14px;padding:0 18px}
 details summary{cursor:pointer;font-size:16px;font-weight:650;padding:16px 0;list-style:none;display:flex;align-items:center}
 details summary::after{content:"+";margin-left:auto;color:var(--muted);font-weight:400;font-size:20px}
-details[open] summary::after{content:"–"}
+details[open] > summary::after{content:"–"}
 details p,details li{font-size:14.5px;color:var(--ink2);margin-bottom:10px;max-width:72ch}
 details b{color:var(--ink);font-weight:650}
 details ul{padding-left:20px;margin-bottom:10px}
@@ -297,7 +301,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "26";
+const BUILD = "28";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -542,7 +546,7 @@ function pastDays(resort, el) {
     return `<div class="srow">${date}<div class="snowbar">${dayBar(p, false)}
       <div class="split"><em>${now == null ? "No sensor reading" : `Sensor: ${now} in on the ground${change == null ? "" : `, ${change > 0 ? "+" : ""}${change} in`}`}</em></div></div>
       <div class="amt">${inches(total)} in</div></div>`;
-  }).reverse().join("");
+  }).join("");
   return rows ? `<details class="pastdays"><summary>Last 7 days</summary><div class="sub">Estimated new snow by 4 pm each day, next to the snow sensor's settled depth.</div><div class="days">${rows}</div></details>` : "";
 }
 
@@ -620,9 +624,8 @@ let map = null, playing = false, playFrame = 0;
 function showTime(value) {
   const t = map.timeAt(value), rate = map.rateAt(value), level = Math.round(map.snowLevelFtAt(value) / 100) * 100;
   $("mapWhen").textContent = Math.abs(value - map.nowStep) < 0.3 ? "Right now" : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
-  const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}, ${rate.toFixed(1)} in/hr up high`;
-  $("mapWhat").textContent = `${falling} · snow level ${level > 12000 ? "above the peaks" : level.toLocaleString() + " ft"} · ` +
-    (map.stormActive ? "stakes: this storm so far, pale part still to come" : "stakes: the next two days");
+  const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}${rate >= 0.05 ? `, ${rate.toFixed(1)} in/hr up high` : ""}`;
+  $("mapWhat").textContent = `${falling} · snow level ${level > 12000 ? "above the peaks" : level.toLocaleString() + " ft"}`;
 }
 function setTime(value) { $("scrub").value = value; map.setTime(value); showTime(value); }
 function togglePlay(on) {
@@ -706,12 +709,14 @@ async function loadRoads() {
     const when = new Date().toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
     const fresh = closures.filter((c) => c.recent), older = closures.filter((c) => !c.recent);
     const dot = (color) => `<i style="background:${color}"></i>`;
+    // Closed and Chains share one layout: a summary line with a + on the right that opens the detail.
+    const section = (color, label, summary, body, open) => `<details class="roads"${open ? " open" : ""}><summary><span class="sw">${dot(color)}<b>${label}</b></span><span class="sum">${summary}</span></summary>${body}</details>`;
+    const olderList = older.length ? `<details class="roads older"><summary><span class="sum">${older.length} older: ${[...new Set(older.map((c) => c.route))].join(", ")}</span></summary><ul>${older.map((c) => c.html).join("")}</ul></details>` : "";
     $("roadNote").innerHTML =
-      `<div class="roads"><span class="sw">${dot("#d03b3b")}<b>Closed</b>${fresh.length ? "" : `<span>${closures.length ? "nothing new in 2 days" : "none"}</span>`}</span>` +
-        (fresh.length ? `<ul>${fresh.map((c) => c.html).join("")}</ul>` : "") +
-        (older.length ? `<details class="roads older"><summary>${older.length} older: ${[...new Set(older.map((c) => c.route))].join(", ")}</summary><ul>${older.map((c) => c.html).join("")}</ul></details>` : "") + `</div>` +
-      `<details class="roads"><summary><span class="sw">${dot("#f0a80d")}<b>Chains</b></span> ${chains.length ? byRoute("chains").map(([route]) => number(route)).join(", ") : "none"}</summary>` +
-      `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p></details>` +
+      section("#d03b3b", "Closed", fresh.length ? [...new Set(fresh.map((c) => c.route))].join(", ") : closures.length ? "nothing new in 2 days" : "none",
+        (fresh.length ? `<ul>${fresh.map((c) => c.html).join("")}</ul>` : "") + olderList, fresh.length > 0) +
+      section("#f0a80d", "Chains", chains.length ? byRoute("chains").map(([route]) => number(route)).join(", ") : "none",
+        `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
       `<span class="src">Caltrans, ${when} · California roads only</span>`;
   } catch (error) { $("roadNote").textContent = "Road status is unavailable right now."; }
 }

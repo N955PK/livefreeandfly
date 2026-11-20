@@ -1,8 +1,8 @@
 {
   "kind": "wet-bulb logistic",
   "params": {
-    "center_c": 2.25,
-    "width_c": 0.4
+    "center_c": 1.25,
+    "width_c": 0.2
   },
-  "held_out_error_mm": 3.951475235031508
+  "held_out_error_mm": 2.4323183843007743
 }

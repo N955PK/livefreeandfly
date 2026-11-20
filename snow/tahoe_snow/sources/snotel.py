@@ -1,8 +1,9 @@
 """SNOTEL observations from the NRCS AWDB REST API (no key).
 
 Daily values are midnight readings in Pacific Standard Time (UTC-8, no daylight
-saving): the value on date D is the reading at the start of D, so the gain
-during D is value(D+1) - value(D).
+saving): the value dated D is the reading at the end of D (midnight starting D+1),
+so the gain during D is value(D) - value(D-1). Hourly readings carry their own
+timestamps and confirm this.
 """
 import pandas as pd
 
@@ -53,13 +54,13 @@ def hourly(triplet: str, start: str, end: str, max_age_h: float | None = None) -
 
 
 def daily_gains(frame: pd.DataFrame) -> pd.DataFrame:
-    """Per-day gains: row D holds the change from midnight starting D to the next midnight."""
+    """Per-day gains: row D holds the change over day D, from the reading dated D-1 to the one dated D."""
     out = pd.DataFrame(index=frame.index)
     for column in ("swe_mm", "depth_cm", "prec_mm"):
         if column in frame:
-            out[column.replace("_", "_gain_")] = frame[column].shift(-1) - frame[column]
+            out[column.replace("_", "_gain_")] = frame[column] - frame[column].shift(1)
     for column in ("tavg_c", "tmax_c", "tmin_c"):
         if column in frame:
             out[column] = frame[column]
-    consecutive = (frame.index.to_series().shift(-1) - frame.index.to_series()) == pd.Timedelta(days=1)
+    consecutive = (frame.index.to_series() - frame.index.to_series().shift(1)) == pd.Timedelta(days=1)
     return out[consecutive.to_numpy()]

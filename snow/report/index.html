@@ -29,15 +29,16 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p><b>What did not work:</b> training on the full 45-year record. Its upper-air data is coarse and does not line up with the forecast models, so it made the forecasts slightly worse, and it is not used.</p>
 
 <h2>2. Rain or snow</h2>
-<p>At 3,594 wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
-<figure><img src="rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. The curve sits about 2.2 °C warmer than textbook values, because air against a mountainside runs colder than the free air the weather model reports.</figcaption></figure>
-<p>Three methods were tried and came out nearly tied; all are about 20% better than calling everything snow. One winter, 2021–22, scores about twice as badly as the others for every method, and we do not yet know why.</p>
+<p>At 5,405 wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
+<figure><img src="rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about 1.25 °C.</figcaption></figure>
+<p>Three methods were tried and came out tied: about 2.4 mm of water miscalled per wet day, half the 4.9 mm you get by calling everything snow.</p>
+<p><b>A mistake we caught:</b> an earlier version of this test read the sensors' daily records one day off, which made every method look much worse and one winter look broken. Lining the dates up fixed both.</p>
 
 <h2>3. How much water</h2>
-<p>Weather models are consistently too dry or too wet at particular spots in the mountains. Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,140 model-days).</p>
+<p>Weather models are consistently too dry or too wet at particular spots in the mountains. Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,206 model-days).</p>
 <figure><img src="water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
-<p>Correcting each model to its nearest sensor fixes the totals and big storms. It makes ordinary single days slightly worse, because scaling a forecast up also scales up its misses.</p>
-<div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr><tr><td>Raw average of four models</td><td>89%</td><td>0.58</td><td>0.73</td><td>1.44</td></tr><tr><td>Corrected to the sensors (in use)</td><td>104%</td><td>0.61</td><td>0.72</td><td>1.24</td></tr></table></div>
+<p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
+<div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr><tr><td>Raw average of four models</td><td>88%</td><td>0.23</td><td>0.43</td><td>0.90</td></tr><tr><td>Corrected to the sensors (in use)</td><td>102%</td><td>0.21</td><td>0.35</td><td>0.59</td></tr></table></div>
 
 <h2>What is not tested yet</h2>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>

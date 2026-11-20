@@ -99,7 +99,7 @@ def manual_events(daily: pd.DataFrame, station: pd.Series, windows: pd.DataFrame
 def snotel_events(gains: pd.DataFrame, triplet: str, windows: pd.DataFrame) -> pd.DataFrame:
     """Events at one SNOTEL station; liquid is the SWE gain, snow is the depth gain."""
     gains = gains[gains.index >= PROFILE_START]
-    end_utc = gains.index + pd.Timedelta(days=1, hours=PST_OFFSET_H)
+    end_utc = gains.index + pd.Timedelta(days=1, hours=PST_OFFSET_H)   # day D runs midnight to midnight PST
     rows = windows.reindex(end_utc)
     rows.index = gains.index
     out = features.add_static(rows, gains["swe_gain_mm"], STATIONS[triplet].elev_m, gains.index.day_of_year)
