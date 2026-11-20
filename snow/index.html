@@ -204,7 +204,7 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .split svg{width:13px;height:13px;color:var(--muted)}
 .split span{display:inline-flex;align-items:center;gap:3px;margin-right:8px;font-variant-numeric:tabular-nums}
 .split em{font-style:normal;color:var(--muted)}
-.cond{display:grid;grid-template-columns:86px 64px 50px auto;justify-content:start;column-gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.cond{display:grid;grid-template-columns:86px 50px 64px auto;justify-content:start;column-gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
 .cond .temp{white-space:nowrap}
 .cond .temp small{color:var(--muted);font-size:11.5px}
 .cond .sky{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
@@ -533,7 +533,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "123";
+const BUILD = "124";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -877,8 +877,8 @@ function skiDay(d) {
   return `<div class="srow${far ? " far" : ""}">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
     <div class="cond"><span class="sky">${icon ? `${icon}${word}` : ""}</span>
-      <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${wind} mph${p.wind_from_deg == null ? "" : ` from the ${compass(p.wind_from_deg)}`}${gust > wind + 3 ? `, gusts to ${gust}` : ""}`}">${wind == null ? "" : `${p.wind_from_deg == null ? `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>` : barb(wind, p.wind_from_deg, wb > 1 ? windColor(Math.max(wind, gust || 0)) : "var(--muted)")}${wind}${gust > wind + 3 ? `G${gust}` : ""}`}</span>
       <span class="temp" title="${p.temp_f == null ? "" : `${Math.round(p.temp_f)}°F through the lift hours, feels like ${Math.round(windChill(p.temp_f, wind))}°F in the wind`}">${p.temp_f == null ? "" : `${Math.round(p.temp_f)}°<small>/${Math.round(windChill(p.temp_f, wind))}°</small>`}</span>
+      <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${wind} mph${p.wind_from_deg == null ? "" : ` from the ${compass(p.wind_from_deg)}`}${gust > wind + 3 ? `, gusts to ${gust}` : ""}`}">${wind == null ? "" : `${p.wind_from_deg == null ? `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>` : barb(wind, p.wind_from_deg, wb > 1 ? windColor(Math.max(wind, gust || 0)) : "var(--muted)")}${wind}${gust > wind + 3 ? `G${gust}` : ""}`}</span>
       <span class="pscore">${p.score ? `PS <b>${p.score.toFixed(1)}</b>` : ""}</span></div></div>`;
 }
 
@@ -1084,7 +1084,7 @@ function renderDetail() {
     <div class="key" style="margin:4px 0 0;column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>each model</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span class="sw glyph">${barb(23, 270, "var(--ink2)")}W at 20 kt</span><span>G = gust, mph</span><span>18°/4° = temperature / feels like, °F</span><span>PS = powder score</span></div></details>
-    <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span>°F / feels</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
+    <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>°F / feels</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <div class="hhead"><h3>Hourly</h3><button id="tlNow" hidden>Back to now</button><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
