@@ -1,10 +1,9 @@
-"""Homewood's lifts, trails, and weather readings from its snow report page (skihomewood.com/snowreport).
+"""Homewood's lifts and trails from its snow report page (skihomewood.com/snowreport).
 
 The page is built on the server, so the browser cannot read it from another site; a scheduled job reads it and
 writes one small file the page reads, in the shape of the Ikon feed the rest of the page uses. The page lists each
-lift with its trails beneath it and a table of readings at the summit and the base (the base reading is NOAA's).
-Its counts of lifts and runs are checked against what is parsed, so a redesign fails instead of showing wrong
-numbers. Standard library only. python -m tahoe_snow.sources.homewood out.json
+lift with its trails beneath it. Its counts of lifts and runs are checked against what is parsed, so a redesign
+fails instead of showing wrong numbers. Standard library only. python -m tahoe_snow.sources.homewood out.json
 """
 import html
 import json
@@ -16,7 +15,6 @@ from datetime import datetime, timezone
 URL = "https://skihomewood.com/snowreport/"
 # The page's own words for trail levels, in the words the page's difficulty symbols are keyed on.
 LEVELS = {"beginner": "Green", "intermediate": "Blue", "advanced": "Black", "expert": "Double black"}
-ZONES = {"summit": "Summit", "base": "Base"}
 # A trail's row: name, level, grooming, status.
 TRAIL_ROW = re.compile(r"<tr>\s*<td class=\"zone\" data-label=\"Trail Name\">(.*?)</td>\s*<td[^>]*>(.*?)</td>"
                        r"\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>", re.S)
@@ -29,22 +27,6 @@ def text_of(fragment: str) -> str:
 def words_of(fragment: str) -> str:
     """The words in a cell, without the symbols the page puts in front of them."""
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", "", text_of(fragment))).strip()
-
-
-def readings(page: str) -> dict:
-    """Temperature, wind, and wind direction by zone from the Current Conditions table."""
-    start = page.index("Current Conditions")
-    table = page[start:page.index("</table>", start)]
-    out = {}
-    for row in re.findall(r"<tr>\s*<td class=\"zone\"[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>\s*<td[^>]*>(.*?)</td>"
-                          r"\s*<td[^>]*>(.*?)</td>", table, re.S):
-        zone = ZONES.get(text_of(row[0]).split(" (")[0].lower())
-        temp, wind = re.search(r"-?\d+(\.\d+)?", text_of(row[1])), re.search(r"\d+(\.\d+)?", text_of(row[2]))
-        if zone and temp and wind:
-            direction = text_of(row[3])
-            out[zone] = {"TemperatureF": float(temp.group()), "WindStrengthMph": float(wind.group()),
-                         "WindDirection": direction if re.fullmatch(r"[NESW]+", direction) else ""}
-    return out
 
 
 def status_row(name: str, status: str, difficulty: str | None) -> dict:
@@ -92,8 +74,7 @@ def parse(page: str, now: datetime) -> dict:
     found = (sum(len(area["Lifts"]) for area in areas), sum(len(area["Trails"]) for area in areas))
     if found != (n_lifts, n_runs):
         raise ValueError(f"the page lists {n_lifts} lifts and {n_runs} runs but {found[0]} and {found[1]} were read")
-    return {"Name": "Homewood", "LastUpdate": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "MountainAreas": areas,
-            "CurrentConditions": readings(page)}
+    return {"Name": "Homewood", "LastUpdate": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "MountainAreas": areas}
 
 
 def main(out_path: str) -> int:
@@ -105,8 +86,7 @@ def main(out_path: str) -> int:
         json.dump({"updated": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "resorts": {"homewood": feed}}, handle,
                   separators=(",", ":"))
     print(f"Homewood: {sum(len(a['Lifts']) for a in feed['MountainAreas'])} lifts, "
-          f"{sum(len(a['Trails']) for a in feed['MountainAreas'])} runs, "
-          f"readings at {', '.join(feed['CurrentConditions']) or 'no zone'}")
+          f"{sum(len(a['Trails']) for a in feed['MountainAreas'])} runs")
     return 0
 
 
