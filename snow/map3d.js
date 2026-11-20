@@ -94,7 +94,8 @@ export function stormWindow(rate, nowIndex) {
 }
 
 // ``region`` says where the map is: {terrain, roads} data files, the disc's center [lat, lon], waterM (the level
-// heights are drawn from), lake: {name, lat, lon}, and optionally land (its own colors by elevation).
+// heights are drawn from), lake: {name, lat, lon}, and optionally land (its own colors by elevation) and zoom
+// (how close the view opens; 1 when absent).
 // ``data.resorts`` holds only that region's locations.
 export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false}) {
   const RADIUS = globe ? GLOBE_KM : DISC_KM, TARGET_Z = globe ? 7 : 1;
@@ -131,7 +132,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     const f = Math.min(1, Math.max(0, inside / DISC_FADE_KM));
     return f * f * (3 - 2 * f);
   };
-  if (globe) camera.position.set(lakeX - 8, lakeY - 150, 104); else camera.position.set(lakeX - 6, lakeY - 104, 78);
+  // A region whose mountains sit close together opens closer in (zoom under 1).
+  const zoom = region.zoom || 1;
+  if (globe) camera.position.set(lakeX - 8, lakeY - 150, 104); else camera.position.set(lakeX - 6 * zoom, lakeY - 4 - 100 * zoom, 1 + 77 * zoom);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(lakeX, lakeY - (globe ? 0 : 4), TARGET_Z);
   controls.enableDamping = true;
