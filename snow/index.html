@@ -38,7 +38,7 @@
 }}
 *{box-sizing:border-box;margin:0;padding:0}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
-#splash{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+#splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .5s ease,visibility .5s}
 #splash img{width:min(38vw,170px);height:auto;animation:spinup 1.4s cubic-bezier(.55,0,.9,.5) both,spin .55s linear 1.4s infinite}
 #splash b{font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:650;opacity:0;animation:rise .6s ease .25s forwards}
@@ -218,7 +218,7 @@ table.plain th,table.plain td{padding:6px 10px;border-bottom:1px solid var(--gri
 table.plain th{color:var(--muted);font-weight:550;font-size:12px}
 table.plain td:first-child,table.plain th:first-child{text-align:left}
 #mapPanel{margin-top:22px;overflow:hidden;display:none}
-#map3d{position:relative;height:min(68vh,620px);min-height:400px;background:radial-gradient(ellipse at 50% 38%,#eef4f9 0,#cfdfec 55%,#b3c8da 100%);touch-action:pan-y;cursor:grab}
+#map3d{position:relative;isolation:isolate;height:min(68vh,620px);min-height:400px;background:radial-gradient(ellipse at 50% 38%,#eef4f9 0,#cfdfec 55%,#b3c8da 100%);touch-action:pan-y;cursor:grab}
 #map3d:active{cursor:grabbing}
 #map3d canvas{display:block;width:100%;height:100%}
 .map-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -330,7 +330,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "32";
+const BUILD = "33";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
