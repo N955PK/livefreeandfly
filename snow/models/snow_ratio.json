@@ -21,8 +21,8 @@
     "doy_sin",
     "doy_cos"
   ],
-  "events": 707,
-  "stations": 37,
+  "events": 1197,
+  "stations": 44,
   "seasons": [
     2022,
     2023,
@@ -30,6 +30,6 @@
     2025,
     2026
   ],
-  "first_date": "2021-10-26",
+  "first_date": "2021-10-12",
   "last_date": "2026-05-29"
 }

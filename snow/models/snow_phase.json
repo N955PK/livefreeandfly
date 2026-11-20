@@ -1,8 +1,8 @@
 {
-  "kind": "wet-bulb snow level ramp",
+  "kind": "wet-bulb logistic",
   "params": {
-    "depth_m": 500.0,
-    "offset_m": 0.0
+    "center_c": 2.25,
+    "width_c": 0.4
   },
-  "held_out_error_mm": 3.1086055659217204
+  "held_out_error_mm": 3.951475235031508
 }
