@@ -533,7 +533,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "124";
+const BUILD = "125";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -912,6 +912,7 @@ const STATUS_PAGES = {
   sugarbowl: "https://www.sugarbowl.com/conditions", boreal: "https://www.rideboreal.com/explore/status-conditions/lift-trail-status/",
   homewood: "https://skihomewood.com/snowreport/", mtrose: "https://skirose.com/snow-report/", sierra: "https://sierraattahoe.com/weather-snow-report/",
 };
+const EPIC = ["kirkwood", "heavenly", "northstar"];
 const ALPINE_AREAS = ["Summit Peak", "Scott/Lakeview Peak", "Sherwood Bowl"];
 const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alpine: [61, (area) => ALPINE_AREAS.includes(area)], mammoth: [60, () => true], june: [59, () => true]};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
@@ -997,7 +998,8 @@ function statusSource(resort) {
 }
 function liftsHtml(resort) {
   const blank = (note) => `<div class="orow"><span class="k">Lifts</span><span>${note}</span><span></span></div>`;
-  if (!LIFT_FEEDS[resort.key]) return blank("Not published live");
+  // Epic's sites turn automated readers away, so the page says so and points at the resort's own page.
+  if (!LIFT_FEEDS[resort.key]) return blank(EPIC.includes(resort.key) ? `Automatic check denied. <a href="${STATUS_PAGES[resort.key]}" target="_blank" rel="noopener">See the resort's page ↗</a>` : "Not published live");
   if (!navigator.onLine) return blank("Needs a signal");
   const [id, mine] = LIFT_FEEDS[resort.key], feed = liftFeeds[id];
   if (!feed || feed.failed) return blank(feed ? "Could not be loaded right now" : "Loading…");
