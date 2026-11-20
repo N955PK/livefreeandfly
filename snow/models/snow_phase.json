@@ -1,0 +1,8 @@
+{
+  "kind": "wet-bulb snow level ramp",
+  "params": {
+    "depth_m": 500.0,
+    "offset_m": 0.0
+  },
+  "held_out_error_mm": 3.1086055659217204
+}

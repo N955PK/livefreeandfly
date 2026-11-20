@@ -33,7 +33,9 @@ def load_snow_model() -> tuple:
         kind, params = DEFAULT_PHASE
     try:
         sidecar = json.loads((MODELS / "snow_ratio.json").read_text())
-        return SnowModel(ratio.load(), kind, params), sidecar["model"]
+        described = (f"trained on {sidecar['events']} hand-measured Sierra snow days at {sidecar['stations']} stations, "
+                     f"{sidecar['first_date'][:4]} to {sidecar['last_date'][:4]}")
+        return SnowModel(ratio.load(), kind, params), described
     except FileNotFoundError:
         return SnowModel(ratio.Kuchera(), kind, params), "Kuchera (trained model not yet fitted)"
 
