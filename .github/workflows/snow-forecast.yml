@@ -1,0 +1,56 @@
+name: Snow forecast
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snow-forecast
+  cancel-in-progress: false
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: snow/requirements.txt
+
+      - name: Install
+        run: pip install -r snow/requirements.txt
+
+      - name: Restore the forecast archive from the data branch
+        run: |
+          mkdir -p snow/data/archive
+          if git fetch --depth=1 origin snow-data; then
+            git archive FETCH_HEAD archive 2>/dev/null | tar -x -C snow/data || true
+          fi
+
+      - name: Run the forecast
+        working-directory: snow
+        run: |
+          python -m tahoe_snow run
+          python -m tahoe_snow prune
+
+      # The data branch holds one commit: the latest forecast and the last three weeks of archive.
+      - name: Publish to the data branch
+        run: |
+          out="$(mktemp -d)"
+          cp snow/data/forecast.json snow/data/scorecard.json "$out/"
+          cp -r snow/data/archive "$out/archive"
+          cd "$out"
+          git init -q -b snow-data
+          git config user.name "snow-forecast"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Forecast data $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-data
