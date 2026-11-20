@@ -112,8 +112,11 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .srow .amt small{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
 .srow.far{grid-template-columns:56px 1fr;color:var(--ink2)}
 .srow.far .amt{font-size:14px;font-weight:600;display:flex;gap:6px;align-items:baseline}
-.track{display:flex;gap:2px;height:12px;background:var(--wash);border-radius:4px;overflow:hidden}
-.track i{display:block;height:100%}
+.track{position:relative;height:12px;background:var(--wash);border-radius:4px}
+.track i{display:block;height:100%;border-radius:4px}
+.track .err{position:absolute;top:5px;height:2px;background:var(--ink);opacity:.75}
+.track .err::before,.track .err::after{content:"";position:absolute;top:-4px;width:2px;height:10px;background:var(--ink)}
+.track .err::before{left:0}.track .err::after{right:0}
 .track i.q0{background-color:var(--q0)}.track i.q1{background-color:var(--q1)}.track i.q2{background-color:var(--q2)}.track i.q3{background-color:var(--q3)}.track i.q4{background-color:var(--q4)}
 .track i.dayseg{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.42) 0 2px,transparent 2px 5px)}
 .split{display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;font-size:12px;color:var(--ink2);margin-top:4px}
@@ -139,7 +142,15 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .key .ramp i{width:64px;height:8px;border-radius:4px;display:inline-block}
 .key .sw{display:inline-flex;align-items:center;gap:4px}
 .key .sw i{width:14px;height:10px;border-radius:3px;display:inline-block}
-.roadnote .src{color:var(--muted);font-size:12px}
+.roadnote{display:block}
+.roadnote .src{color:var(--muted);font-size:12px;display:block;margin-top:6px}
+.roads{margin:0;padding:0}
+.roads ul{list-style:none;margin:4px 0 8px 23px;padding:0}
+.roads li{font-size:13px;line-height:1.45;margin-bottom:3px;color:var(--ink2)}
+details.roads{margin-top:0;padding:0}
+details.roads summary{font-size:13px;font-weight:400;padding:2px 0;color:var(--ink2);gap:6px}
+details.roads summary::after{font-size:16px}
+details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .drow{display:grid;grid-template-columns:64px minmax(120px,1fr) 108px 160px 124px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--grid);font-size:13px}
 .drow.head{border-top:0;color:var(--muted);font-size:11.5px;padding:4px 0}
 .drow .d b{display:block;font-size:14px}
@@ -193,7 +204,7 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .roadnote .sw{display:inline-flex;align-items:center;gap:5px}
 .roadnote .sw i{width:18px;height:5px;border-radius:3px;display:inline-block}
 .roadnote b{color:var(--ink);font-weight:650}
-.mapbar .ticks{position:relative;flex:1;min-width:140px;display:flex;flex-direction:column}
+.mapbar .ticks{position:relative;grid-column:1 / -1;display:flex;flex-direction:column;margin-top:8px}
 .mapbar .ticks span{position:absolute;top:-13px;font-size:10.5px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
 .map-label.on{background:#0f1720;color:#fff}.map-label.on span{color:#9ec5f4}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
@@ -202,11 +213,12 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .map-hint{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:3px 10px;pointer-events:none}
 @media (hover:none){.map-hint .mouse{display:none}}
 @media (hover:hover){.map-hint .touch{display:none}}
-.mapbar{display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap}
+.mapbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px 12px;padding:12px 16px}
 .mapbar button{width:38px;height:38px;border-radius:50%;border:0;background:var(--ink);color:var(--surface);font-size:14px;cursor:pointer;flex:none}
-.mapbar input{flex:1;min-width:140px;accent-color:var(--snow)}
+.mapbar input{width:100%;accent-color:var(--snow)}
+.mapbar #toNow{width:auto;border-radius:19px;padding:0 16px;font-size:13px;font-weight:600}
 .mapbar .when{font-size:14px;font-weight:650;min-width:92px}
-.mapbar .what{font-size:12.5px;color:var(--muted);flex-basis:100%}
+.mapbar .what{font-size:12.5px;color:var(--muted);grid-column:1 / -1}
 @media (prefers-color-scheme:dark){#map3d{background:radial-gradient(ellipse at 50% 38%,#33424f 0,#1f2a34 55%,#141a20 100%)}}
 footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
 @media(max-width:720px){
@@ -236,8 +248,8 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
     <div class="mapbar">
       <button id="play" aria-label="Play the storm">▶</button>
       <span class="when" id="mapWhen"></span>
+      <button id="toNow">Now</button>
       <div class="ticks"><span id="nowTick">now</span><input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Storm time"></div>
-      <button id="toNow" style="width:auto;border-radius:19px;padding:0 14px;font-size:13px;font-weight:600">Now</button>
       <span class="what" id="mapWhat"></span>
     </div>
     <div class="roadnote" id="roadNote"></div>
@@ -266,14 +278,13 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, Caltrans, OpenStreetMap, and OpenSkiMap. Not for avalanche or travel decisions.</p>
   </div></details>
-  <footer><a href="/">livefreeandfly.org</a></footer>
 </main>
 <script>
 const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "21";
+const BUILD = "23";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -386,7 +397,7 @@ function timeline(resort, el) {
   const n = Math.min(hours.length - first, 24 * 6);
   const avail = Math.max(280, $("detail").clientWidth - 36 - 44);
   const pph = avail >= 860 ? avail / n : 10, W = Math.round(n * pph);
-  const T = 20, H1 = 132, WIND_Y = T + H1 + 8, CLOUD_Y = WIND_Y + 15, T2 = CLOUD_Y + 30, H2 = 92, H = T2 + H2 + 6;
+  const T = 20, H1 = 132, TA = T + H1 + 16, HA = 72, WIND_Y = TA + HA + 10, CLOUD_Y = WIND_Y + 15, T2 = CLOUD_Y + 30, H2 = 92, H = T2 + H2 + 6;
   const at = (key, i) => h[key][first + i];
   const snow = Array.from({length: n}, (_, i) => at("snow_in", i) || 0);
   const top = [0.2, 0.5, 1, 1.5, 2, 3, 4].find((v) => v >= Math.max(...snow)) || 5;
@@ -394,6 +405,8 @@ function timeline(resort, el) {
   const base = resort.elevations.base.elevation_ft, summit = resort.elevations.summit.elevation_ft;
   const known = levels.filter((v) => v != null);
   const lo = Math.floor((Math.min(base, ...known) - 400) / 1000) * 1000, hi = Math.ceil((Math.max(summit, ...known) + 400) / 1000) * 1000;
+  const running = snow.reduce((sums, v) => { sums.push((sums.length ? sums[sums.length - 1] : 0) + v); return sums; }, []);
+  const sumTop = Math.max(1, running[n - 1]), ya = (v) => TA + HA * (1 - v / sumTop);
   const x = (i) => i * pph, y1 = (v) => T + H1 * (1 - v / top), y2 = (v) => T2 + H2 * (1 - (v - lo) / (hi - lo));
   const local = (i) => new Date(hours[first + i]);
   const hourOf = (i) => +local(i).toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24;
@@ -420,12 +433,23 @@ function timeline(resort, el) {
     if (cloud != null) strips += `<rect x="${x(i)}" y="${CLOUD_Y}" width="${pph + 0.3}" height="10" fill="var(--ink)" fill-opacity="${(cloud / 100 * 0.5).toFixed(2)}"/>`;
   }
   body += `<text class="lab" x="5" y="13">${x(1) && "Now"}</text><line x1="0" x2="${W}" y1="${T + H1}" y2="${T + H1}" stroke="var(--axis)"/>`;
+  // Running total since now, on its own scale under the hourly bars.
+  const sumLine = running.map((v, i) => `${i ? "L" : "M"}${x(i + 1).toFixed(1)} ${ya(v).toFixed(1)}`).join("");
+  body += `<path d="M0 ${ya(0)}${sumLine.replace(/^M/, "L")}V${ya(0)}z" fill="var(--snow)" fill-opacity=".1"/><path d="M0 ${ya(0)}${sumLine.replace(/^M/, "L")}" fill="none" stroke="var(--snow)" stroke-width="2" stroke-linejoin="round"/>`;
+  body += `<line x1="0" x2="${W}" y1="${ya(0)}" y2="${ya(0)}" stroke="var(--axis)"/>`;
+  // The running total is written at each midnight and at the end, so it reads at any scroll position.
+  for (let i = 1; i <= n; i++) {
+    if (i < n && hourOf(i) !== 0) continue;
+    const value = running[i - 1], end = i === n;
+    if (value >= 0.05) body += `<circle cx="${x(i)}" cy="${ya(value)}" r="3" fill="var(--snow)" stroke="var(--surface)" stroke-width="1.5"/><text class="lab" x="${x(i) - 6}" y="${Math.max(TA + 10, ya(value) - 7)}" text-anchor="end">${inches(value)} in</text>`;
+  }
   body += `<rect x="0" y="${WIND_Y}" width="${W}" height="10" rx="3" fill="var(--wash)"/><rect x="0" y="${CLOUD_Y}" width="${W}" height="10" rx="3" fill="var(--wash)"/>${strips}`;
   let d = "", pen = false;
   levels.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i + 0.5).toFixed(1)} ${y2(v).toFixed(1)}`; pen = true; });
   body += `<path d="${d}" fill="none" stroke="var(--level)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
   body += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${T2 + H2}" stroke="var(--ink2)" style="display:none"/>`;
   const axis = `<svg width="44" height="${H}" aria-hidden="true"><text x="38" y="${y1(top) + 4}" text-anchor="end">${top} in</text><text x="38" y="${y1(top / 2) + 4}" text-anchor="end">${top / 2}</text>
+    <text x="38" y="${TA + 10}" text-anchor="end">Total</text><text x="38" y="${ya(0) + 3}" text-anchor="end">0</text>
     <text x="38" y="${WIND_Y + 9}" text-anchor="end">Wind</text><text x="38" y="${CLOUD_Y + 9}" text-anchor="end">Cloud</text>
     <text x="40" y="${y2(summit) + 4}" text-anchor="end">Summit</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text></svg>`;
   return {html: `<div class="tl"><div class="tl-axis">${axis}</div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, wind, cloud, and snow level for six days">${body}</svg></div><div id="tip"></div></div>`,
@@ -443,7 +467,8 @@ function wireTimeline(resort, el, g) {
     const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
     const snowing = h.snow_in[k] > 0.004, wind = h.wind_mph[k], gust = h.gust_mph[k];
     const row = (a, b) => `<div><span>${a}</span><span>${b}</span></div>`;
-    tip.innerHTML = `<b>${when}</b>` + row("Snow", `${(h.snow_in[k] || 0).toFixed(2)} in`) + (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : "") +
+    const soFar = h.snow_in.slice(g.first, k + 1).reduce((sum, v) => sum + (v || 0), 0);
+    tip.innerHTML = `<b>${when}</b>` + row("Snow this hour", `${(h.snow_in[k] || 0).toFixed(2)} in`) + row("Total from now", `${inches(soFar)} in`) + (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : "") +
       row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${wind} mph${gust > wind + 5 ? `, gusts ${gust}` : ""}`) +
       row("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) +
       row("Snow level", h.snow_level_ft[k] == null ? "–" : `${(Math.round(h.snow_level_ft[k] / 100) * 100).toLocaleString()} ft`) +
@@ -464,9 +489,10 @@ function skiDay(d, max) {
   const far = d.lead_day > data.deterministic_days, p = d.powder || {};
   const date = `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
   if (far) return `<div class="srow far">${date}<div class="amt">${pct(d.prob_6in)}<small>chance of 6 in+</small></div></div>`;
-  const total = p.snow_in || 0, color = snowColor(p.slr), width = (v) => (100 * Math.min(v || 0, max) / max).toFixed(1);
+  const total = p.snow_in || 0, color = snowColor(p.slr), width = (v) => (100 * Math.min(Math.max(v || 0, 0), max) / max).toFixed(1);
+  const spread = p.pm_in != null && total >= 0.5 ? `<b class="err" style="left:${width(total - p.pm_in)}%;width:${(width(total + p.pm_in) - width(total - p.pm_in)).toFixed(1)}%"></b>` : "";
   const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
-  const bars = total >= 0.05 ? `<div class="track"><i style="width:${width(p.night_in)}%;background-color:${color}"></i><i class="dayseg" style="width:${width(p.day_in)}%;background-color:${color}"></i></div>
+  const bars = total >= 0.05 ? `<div class="track"><i style="width:${width(total)}%;background-color:${color}"></i>${spread}</div>
       <div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)} in</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)} in</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
     : `<div class="track"></div><div class="split">No new snow</div>`;
   return `<div class="srow">${date}<div class="snowbar">${bars}</div>
@@ -494,14 +520,14 @@ function renderDetail() {
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small>${pm(x)}</div></div>`;
   const g = timeline(resort, el);
-  const max = Math.max(6, ...days.map((d) => (d.powder && d.powder.snow_in) || 0));
+  const max = Math.max(6, ...days.map((d) => ((d.powder && d.powder.snow_in) || 0) + ((d.powder && d.powder.pm_in) || 0)));
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dhead"><h2>${esc(resort.name)}</h2><span>${el.elevation_ft.toLocaleString()} ft</span>
       ${resort.weak_station_match ? '<span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}<div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
     <h3>Ski days</h3>
-    <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>darker is heavier snow</em></div>
+    <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>bar: the day's total, with ± one standard deviation</em></div>
     <div class="days"><div class="srow head"><div></div><div>New snow by 4 pm</div><div></div><div>Lift hours</div><div class="pw">Powder</div></div>${days.map((d) => skiDay(d, max)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
@@ -541,29 +567,70 @@ function togglePlay(on) {
 const CHAIN_FEEDS = ["https://cwwp2.dot.ca.gov/data/d3/cc/ccStatusD03.json", "https://cwwp2.dot.ca.gov/data/d10/cc/ccStatusD10.json"];
 const CHAIN_LEVELS = {"R-1": "chains", "R-2": "chains", "R-3": "chains", "RC": "closed", "ROAD CLOSED": "closed"};
 const LAKE = [39.05, -120.04], ROADS_WITHIN_KM = 62;
+const CHAIN_MEANING = {"R-1": "chains or snow tires", "R-2": "chains unless 4WD with snow tires", "R-3": "chains on all vehicles"};
+const tidy = (name) => name.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").replace(/[\s\-]+$/, "").trim().toLowerCase().replace(/(^|[\s\-\/])[a-z]/g, (c) => c.toUpperCase())
+  .replace(/\bJct\b/g, "junction").replace(/\bHwy\b/g, "Hwy").replace(/\bSr\b/g, "SR").replace(/\bDli\b/g, "Donner Lake");
+const BOUND = {North: "northbound", South: "southbound", East: "eastbound", West: "westbound"};
 async function loadRoads() {
   try {
     const feeds = await Promise.all(CHAIN_FEEDS.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json())));
     const points = [];
     for (const feed of feeds) for (const {cc} of feed.data) {
-      const status = CHAIN_LEVELS[(cc.statusData.status || "").trim().toUpperCase()];
+      const level = (cc.statusData.status || "").trim().toUpperCase(), status = CHAIN_LEVELS[level];
       if (!status || cc.inService !== "true") continue;
-      points.push({route: cc.location.route, lat: +cc.location.latitude, lon: +cc.location.longitude, status, name: cc.location.locationName});
+      const t = cc.statusData.statusTimestamp || {};
+      points.push({route: cc.location.route, lat: +cc.location.latitude, lon: +cc.location.longitude, status, level, name: cc.location.locationName,
+        direction: cc.location.direction, mile: +cc.location.milepost || +cc.location.postmile || 0, since: t.statusDate ? new Date(`${t.statusDate}T${t.statusTime || "00:00:00"}-08:00`) : null});
     }
     map.setRoadStatus(points);
     const km = (p) => Math.hypot((p.lat - LAKE[0]) * 111, (p.lon - LAKE[1]) * 86.4);
     const near = points.filter((p) => km(p) <= ROADS_WITHIN_KM), number = (route) => route.replace(/^[A-Z]+-/, "");
-    const order = (a, b) => number(a) - number(b);
-    const chains = [...new Set(near.filter((p) => p.status === "chains").map((p) => p.route))].sort(order).map(number);
-    // One entry per closure: the place name after any "from - to" prefix, in ordinary capitals.
-    const place = (name) => name.split(" - ").pop().replace(/\(.*?\)/g, "").trim().toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
-    const closed = [];
-    for (const p of near.filter((q) => q.status === "closed")) {
-      if (!closed.some((c) => c.route === p.route && Math.hypot((c.lat - p.lat) * 111, (c.lon - p.lon) * 86.4) < 14)) closed.push(p);
+    const since = (list) => {
+      const first = list.map((p) => p.since).filter(Boolean).sort((a, b) => a - b)[0];
+      if (!first) return "";
+      const recent = Date.now() - first < 6 * 864e5;
+      return ` since ${first.toLocaleString("en-US", recent ? {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"} : {timeZone: TZ, month: "short", day: "numeric"})}`;
+    };
+    const byRoute = (status, list = near) => {
+      const out = {};
+      for (const p of list.filter((q) => q.status === status)) (out[p.route] ||= []).push(p);
+      return Object.entries(out).sort((a, b) => number(a[0]) - number(b[0]));
+    };
+    // A closure is described by the control points at its ends; several closures on one road are split by distance.
+    const closures = [];
+    for (const [route, list] of byRoute("closed", points)) {
+      // The two ends of one closure share a pass name after the dash, or sit within 15 km of each other.
+      const groups = [];
+      for (const p of list.sort((a, b) => a.mile - b.mile)) {
+        const pass = p.name.split(" - ")[1];
+        const g = groups.find((x) => x.some((q) => (pass && q.name.split(" - ")[1] === pass) || Math.hypot((q.lat - p.lat) * 111, (q.lon - p.lon) * 86.4) < 15));
+        if (g) g.push(p); else groups.push([p]);
+      }
+      for (const g of groups.filter((x) => x.some((q) => km(q) <= ROADS_WITHIN_KM + 15))) {
+        const names = [...new Set(g.map((p) => tidy(p.name.split(" - ")[0])))], pass = g.map((p) => p.name.split(" - ")[1]).find(Boolean);
+        const where = names.length > 1 ? `between ${names[0]} and ${names[names.length - 1]}` : `at ${names[0]}${g.length === 1 && BOUND[g[0].direction] ? ` (${BOUND[g[0].direction]})` : ""}`;
+        closures.push(`<li><b>${esc(number(route))}</b> closed ${esc(where)}${pass ? ` (${esc(tidy(pass))})` : ""}${since(g)}</li>`);
+      }
     }
+    // Chain controls: for each road and direction, the first and last control point in the direction of travel.
+    const chains = [];
+    for (const [route, list] of byRoute("chains")) {
+      const parts = [];
+      for (const direction of ["East", "West", "North", "South"]) {
+        const same = list.filter((p) => p.direction === direction).sort((a, b) => a.mile - b.mile);
+        if (!same.length) continue;
+        if (direction === "West" || direction === "South") same.reverse();
+        const from = tidy(same[0].name), to = tidy(same[same.length - 1].name), worst = same.map((p) => p.level).sort().pop();
+        parts.push(`${BOUND[direction]} ${from === to ? `at ${esc(from)}` : `${esc(from)} to ${esc(to)}`} (${worst})`);
+      }
+      chains.push(`<li><b>${esc(number(route))}</b> ${parts.join("; ")}</li>`);
+    }
+    const levels = [...new Set(near.filter((p) => p.status === "chains").map((p) => p.level))].sort();
     const when = new Date().toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
-    $("roadNote").innerHTML = `<span class="sw"><i style="background:#f0a80d"></i><b>Chains:</b> ${chains.length ? chains.join(" · ") : "none"}</span>` +
-      `<span class="sw"><i style="background:#d03b3b"></i><b>Closed:</b> ${closed.length ? closed.map((c) => esc(`${number(c.route)} at ${place(c.name)}`)).join(" · ") : "none"}</span>` +
+    $("roadNote").innerHTML =
+      `<div class="roads"><span class="sw"><i style="background:#d03b3b"></i><b>Closed</b></span>${closures.length ? `<ul>${closures.join("")}</ul>` : "<ul><li>No closures</li></ul>"}</div>` +
+      `<details class="roads"><summary><span class="sw"><i style="background:#f0a80d"></i><b>Chain controls</b></span> on ${chains.length ? byRoute("chains").map(([route]) => number(route)).join(", ") : "no roads"}</summary>` +
+      `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p></details>` +
       `<span class="src">Caltrans, ${when} · California roads only</span>`;
   } catch (error) { $("roadNote").textContent = "Road status is unavailable right now."; }
 }
