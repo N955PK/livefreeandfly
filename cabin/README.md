@@ -66,6 +66,12 @@ In your profile, **Calendar** makes a private link that your phone's calendar su
 - Only an admin can add a member, with name, email, and phone. After that, a profile (name, picture, phone, Venmo) can only be edited by its owner.
 - Admins can correct a sign-in email, remove a member, and set the guest fee. Removing someone keeps their past expenses on the books.
 
+### Snow
+
+- A fourth tab shows the Sierra Snow forecast (`livefreeandfly.org/snow/`) in a frame between the header and the tabs. It is the public page itself, opened as `../snow/?embed`, which drops that page's own title and loading screen.
+- The frame sits outside `main`, so the app's redraws never reload it, and it loads the first time the tab is opened.
+- It needs a signal. Offline, the tab says so and loads when the connection returns; the rest of the app keeps working from its saved copy.
+
 ## Left out on purpose
 
 Uneven or percentage splits, receipt photos, expense categories, approvals, per-member permissions, and in-app payments. Each adds upkeep. They can come later if the house asks for them.

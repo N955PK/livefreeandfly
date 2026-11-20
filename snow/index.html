@@ -39,6 +39,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none !important}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
+/* Inside another page (?embed) the host supplies the name and the loading screen. */
+.embed #splash,.embed .brand img,.embed .appname{display:none}
+.embed main{padding-top:10px}
+.embed .regions{font-size:.8em;margin-left:0}
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .5s ease,visibility .5s}
 #splash img{width:min(38vw,170px);height:auto;animation:spinup 1.4s cubic-bezier(.55,0,.9,.5) both,spin .55s linear 1.4s infinite}
@@ -366,6 +370,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 </style>
 </head>
 <body>
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");</script>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Sierra Snow</b></div>
 <script>
 // A few flakes on the opening screen, placed before anything else loads.
@@ -376,7 +381,7 @@ for (let n = 0; n < 26; n++) {
 }
 </script>
 <main>
-  <div class="brand"><img src="icons/mark.png" alt="" width="34" height="34"><h1>Sierra Snow <span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span></h1></div>
+  <div class="brand"><img src="icons/mark.png" alt="" width="34" height="34"><h1><span class="appname">Sierra Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span></h1></div>
   <p class="lede" id="headline">Loading the forecast…</p>
   <p class="meta" id="meta"></p>
   <div class="panel" id="mapPanel">
@@ -426,7 +431,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "78";
+const BUILD = "79";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
