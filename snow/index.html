@@ -338,9 +338,10 @@ for (let n = 0; n < 26; n++) {
 <script>
 const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
+const GRID_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "44";
+const BUILD = "45";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -425,9 +426,9 @@ function renderHeat() {
       <td class="total">${inches(total)} in</td>`;
     for (const d of near) {
       const x = byDate[d.date] || {};
-      // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 36 inches, in the
+      // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
       // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
-      const p = x.powder || {}, total = p.snow_in || 0, fill = Math.round(100 * Math.min(total, BAR_FULL_IN) / BAR_FULL_IN);
+      const p = x.powder || {}, total = p.snow_in || 0, fill = Math.round(100 * Math.min(total, GRID_FULL_IN) / GRID_FULL_IN);
       html += `<td><div class="cell${total < 0.5 ? " none" : ""}" style="--fill:${total < 0.5 ? 0 : Math.max(fill, 6)}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} in${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}">${whole(total)}</div></td>`;
     }
     if (far.length) html += '<td class="sep"></td>';
@@ -439,7 +440,7 @@ function renderHeat() {
   }
   $("heat").innerHTML = html;
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
-    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${BAR_FULL_IN}</span><span>Tap a resort for details</span>`;
+    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${GRID_FULL_IN}</span><span>Tap a resort for details</span>`;
 }
 
 const ICONS = {
