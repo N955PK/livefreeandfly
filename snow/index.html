@@ -962,7 +962,7 @@ async function sugarBowlFeed() {
 }
 // The Epic mountains' sites turn away a browser's cross-site request, so a scheduled job reads them and publishes the
 // result; anything older than EPIC_FRESH_MIN is treated as missing rather than shown out of date.
-const EPIC_FRESH_MIN = 45;
+const EPIC_FRESH_MIN = 150;
 const epicFeed = (key) => async () => {
   const url = location.hostname === "localhost" ? "data/epic.json" : `https://raw.githubusercontent.com/${REPO}/snow-epic/epic.json`;
   const status = await getJsonLive(url);
