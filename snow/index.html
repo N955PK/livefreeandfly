@@ -81,7 +81,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .legend .sw{display:inline-flex;align-items:center;gap:3px}
 .legend .sw i{width:16px;height:12px;border-radius:3px;display:inline-block}
 #detail{margin-top:14px;padding:18px 18px 8px}
-.dhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.dhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .dhead h2{font-size:22px}
 .dhead span{color:var(--muted);font-size:13px}
 .tag{font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
@@ -273,7 +273,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "20";
+const BUILD = "21";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -443,7 +443,7 @@ function wireTimeline(resort, el, g) {
     const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
     const snowing = h.snow_in[k] > 0.004, wind = h.wind_mph[k], gust = h.gust_mph[k];
     const row = (a, b) => `<div><span>${a}</span><span>${b}</span></div>`;
-    tip.innerHTML = `<b>${when}</b>` + row("Snow", `${(h.snow_in[k] || 0).toFixed(2)} in`) + (snowing ? row("Quality", quality(h.slr[k]).join(" ")) : "") +
+    tip.innerHTML = `<b>${when}</b>` + row("Snow", `${(h.snow_in[k] || 0).toFixed(2)} in`) + (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : "") +
       row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${wind} mph${gust > wind + 5 ? `, gusts ${gust}` : ""}`) +
       row("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) +
       row("Snow level", h.snow_level_ft[k] == null ? "–" : `${(Math.round(h.snow_level_ft[k] / 100) * 100).toLocaleString()} ft`) +
@@ -467,11 +467,11 @@ function skiDay(d, max) {
   const total = p.snow_in || 0, color = snowColor(p.slr), width = (v) => (100 * Math.min(v || 0, max) / max).toFixed(1);
   const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
   const bars = total >= 0.05 ? `<div class="track"><i style="width:${width(p.night_in)}%;background-color:${color}"></i><i class="dayseg" style="width:${width(p.day_in)}%;background-color:${color}"></i></div>
-      <div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)}</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)}</span>${p.slr ? `<em>${quality(p.slr)[0]}</em>` : ""}</div>`
+      <div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)} in</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)} in</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
     : `<div class="track"></div><div class="split">No new snow</div>`;
   return `<div class="srow">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(Math.max(p.pm_in, 0.1))}</span>`}</div>
-    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph</span>`}</div>
+    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph${gust > wind + 5 ? `, gusts ${gust}` : ""}</span>`}</div>
     <div class="pw">${p.score ? `<b>${p.score.toFixed(1)}</b>` : '<span>–</span>'}</div></div>`;
 }
 
@@ -495,8 +495,9 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small>${pm(x)}</div></div>`;
   const g = timeline(resort, el);
   const max = Math.max(6, ...days.map((d) => (d.powder && d.powder.snow_in) || 0));
-  $("detail").innerHTML = `<div class="dhead"><h2>${esc(resort.name)}</h2><span>${elevation === "mid" ? "mid-mountain" : elevation}, ${el.elevation_ft.toLocaleString()} ft</span>
-      ${resort.weak_station_match ? '<span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</div>
+  const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
+  $("detail").innerHTML = `<div class="dhead"><h2>${esc(resort.name)}</h2><span>${el.elevation_ft.toLocaleString()} ft</span>
+      ${resort.weak_station_match ? '<span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}<div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
     <h3>Ski days</h3>
@@ -595,10 +596,11 @@ function renderScore(card) {
     ${s.rows.map((row) => `<tr>${row.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div>`).join("");
 }
 
-$("seg").addEventListener("click", (e) => {
-  const b = e.target.closest("button"); if (!b) return;
+// Every elevation toggle on the page (above the grid and in the resort header) stays in step.
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".seg button[data-el]"); if (!b) return;
   elevation = b.dataset.el;
-  for (const x of $("seg").children) x.setAttribute("aria-pressed", x === b);
+  for (const x of document.querySelectorAll(".seg button[data-el]")) x.setAttribute("aria-pressed", x.dataset.el === elevation);
   renderAll();
 });
 $("heat").addEventListener("click", (e) => {
