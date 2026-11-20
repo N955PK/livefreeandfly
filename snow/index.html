@@ -375,6 +375,19 @@ function whisker(d, max, far) {
   return s + "</div>";
 }
 
+function measured(resort) {
+  const o = resort.observed;
+  if (!o || o.depth_in == null) return "";
+  const signed = (v) => v == null ? "–" : (v > 0 ? "+" : "") + v;
+  const when = new Date(withSeconds(o.as_of_utc)).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+  const cell = (k, v, r) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="r">${r}</div></div>`;
+  return `<h3>Measured on the mountain</h3><div class="sub">${esc(o.station)} SNOTEL sensor at ${o.elevation_ft.toLocaleString()} ft, as of ${when}. Depth is settled snow on the ground, so its gain runs lower than a storm total measured on a cleared board.</div>
+    <div class="tiles">${cell("Snow on the ground", `${o.depth_in} <small>in</small>`, `${signed(o.depth_gain_24h_in)} in over 24 h`)}
+    ${cell("Depth gain, 3 days", `${signed(o.depth_gain_72h_in)} <small>in</small>`, "settled")}
+    ${cell("Water, 3 days", `${o.water_gain_72h_in == null ? "–" : o.water_gain_72h_in} <small>in</small>`, `${o.water_gain_24h_in == null ? "–" : o.water_gain_24h_in} in over 24 h`)}
+    ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "at the sensor")}</div>`;
+}
+
 function renderDetail() {
   const resort = data.resorts.find((r) => r.key === selected) || sorted()[0];
   selected = resort.key;
@@ -396,6 +409,7 @@ function renderDetail() {
       ${resort.weak_station_match ? '<span class="tag">weak station match</span>' : ""}</div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in or more</div></div></div>
+    ${measured(resort)}
     <h3>Hour by hour</h3><div class="sub">Top: snowfall in inches per hour. Bottom: the snow level in feet against the mountain (shaded band, base to summit). When the orange line rises into the band, the lower mountain gets rain.</div>
     <div class="chart">${g.svg}</div>
     <h3>Day by day</h3>

@@ -9,7 +9,7 @@ from tahoe_snow import biascorrect, blend, powder
 from tahoe_snow.config import DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, RESORTS, STATIONS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
-from tahoe_snow.sources import openmeteo
+from tahoe_snow.sources import openmeteo, snotel
 
 TZ = "America/Los_Angeles"
 DAYS = 10
@@ -200,6 +200,43 @@ def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
             "prob_12in": round(float((values >= 12 * CM_PER_IN).mean()), 2), "members": int(len(values))}
 
 
+def observed(resort, now: pd.Timestamp) -> dict | None:
+    """What the resort's SNOTEL station has measured over the last three days (settled depth, not board totals)."""
+    station = STATIONS[resort.station]
+    start = (now - pd.Timedelta(hours=96 + snotel_offset_h())).strftime("%Y-%m-%d")
+    try:
+        frame = snotel.hourly(station.triplet, start, (now + pd.Timedelta(days=1)).strftime("%Y-%m-%d"), max_age_h=1.0)
+    except RuntimeError:
+        return None
+    frame = frame.dropna(subset=["depth_cm"])
+    if frame.empty:
+        return None
+    frame.index = frame.index + pd.Timedelta(hours=snotel_offset_h())   # station clock (PST) to UTC
+    frame = frame[frame.index <= now]
+    last = frame.index[-1]
+
+    def gain(column: str, hours: int) -> float | None:
+        window = frame.loc[frame.index >= last - pd.Timedelta(hours=hours), column].dropna()
+        return None if len(window) < 2 else float(window.iloc[-1] - window.iloc[0])
+
+    def inches(value, per_inch: float, digits: int = 0):
+        return None if value is None or not np.isfinite(value) else round(value / per_inch, digits)
+
+    temp = frame["tobs_c"].dropna()
+    return {"station": station.name, "elevation_ft": int(round(station.elev_m / M_PER_FT, -1)),
+            "as_of_utc": last.strftime("%Y-%m-%dT%H:00:00Z"),
+            "depth_in": inches(float(frame["depth_cm"].iloc[-1]), 2.54),
+            "depth_gain_24h_in": inches(gain("depth_cm", 24), 2.54),
+            "depth_gain_72h_in": inches(gain("depth_cm", 72), 2.54),
+            "water_gain_24h_in": inches(gain("swe_mm", 24), MM_PER_IN, 1),
+            "water_gain_72h_in": inches(gain("swe_mm", 72), MM_PER_IN, 1),
+            "temp_f": None if temp.empty else round(float(temp.iloc[-1]) * 1.8 + 32)}
+
+
+def snotel_offset_h() -> int:
+    return 8
+
+
 def _round(values, digits=1) -> list:
     return [None if not np.isfinite(v) else round(float(v), digits) for v in np.asarray(values, dtype=float)]
 
@@ -233,7 +270,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                           freq="h")
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
                "station": STATIONS[resort.station].name,
-               "weak_station_match": resort.weak_match, "elevations": {}, "models": list(models)}
+               "weak_station_match": resort.weak_match, "observed": observed(resort, now), "elevations": {},
+               "models": list(models)}
     archive = []
     summit_blend = None
     for label, elev_m in resort.elevations().items():
