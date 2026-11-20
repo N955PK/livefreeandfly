@@ -377,6 +377,7 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .dchip{display:inline-block;border-radius:8px;padding:4px 10px;font-size:13px;font-weight:700;white-space:nowrap;text-align:center;border:1px solid rgba(15,23,32,.18)}
 .dchip.big{font-size:16px;padding:7px 14px;flex:none}
 button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;cursor:pointer}
+.avyicon{height:18px;width:auto;vertical-align:-4px}
 .avydot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px;border:1px solid rgba(15,23,32,.3)}
 .awarn{margin-top:12px;border-radius:10px;padding:9px 12px;background:#ed1c24;color:#fff;font-size:14px;font-weight:650}
 .anotice{margin-top:12px;border-radius:10px;padding:9px 12px;background:var(--wash);font-size:13.5px;color:var(--ink2)}
@@ -1134,7 +1135,7 @@ function renderDetail() {
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}</h2>
-      <span>${el.elevation_ft.toLocaleString()} ft${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}${resort.kind === "backcountry" ? `<span data-avy="${resort.key}"></span>` : ""}</span></div>
+      <span>${el.elevation_ft.toLocaleString()} ft${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
     ${outlook(resort)}
@@ -1441,6 +1442,7 @@ function badges() {
     if (!zone) { slot.innerHTML = ""; continue; }
     const [name, color, ink] = danger(zone.level);
     if (slot.dataset.form === "plain") { slot.innerHTML = `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${dangerText(zone.level)}</button>`; continue; }
+    if (slot.dataset.form === "icon") { slot.innerHTML = ` · <img class="avyicon" src="${dangerIcon(zone.level)}" alt="Avalanche danger: ${name}" title="Avalanche danger: ${name}" onerror="this.remove()">`; continue; }
     slot.innerHTML = slot.dataset.form === "dot" ? `<i class="avydot" style="background:${color}" title="Avalanche danger: ${name}"></i>`
       : ` · <button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}" title="Avalanche danger, ${esc(zone.center.name)}">${dangerText(zone.level)}</button>`;
   }
