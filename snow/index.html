@@ -329,7 +329,8 @@ for (let n = 0; n < 26; n++) {
     <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
     <p><b>Wind</b> is the free-air wind at that elevation, close to what an exposed ridge sees. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
-    <p><b>Powder score</b> (0–10) rates each ski day, 4 pm to 4 pm: depth × ratio × wind × layering × rain × timing.</p>
+    <p><b>A ski day</b> runs from 4 pm the day before to 4 pm that day, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
+    <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, Caltrans, OpenStreetMap, and OpenSkiMap. Not for avalanche or travel decisions.</p>
   </div></details>
@@ -339,7 +340,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "43";
+const BUILD = "44";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -413,7 +414,7 @@ function renderHeadline() {
 function renderHeat() {
   const resorts = sorted(), days = futureDays(resorts[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
-  let html = `<tr><th></th><th></th><th class="grp" colspan="${near.length}">Snow, inches in the 24 hours to 4 pm</th>` +
+  let html = `<tr><th></th><th></th><th class="grp" colspan="${near.length}">Snow in inches, 4 pm the day before to 4 pm</th>` +
     (far.length ? `<th class="sep"></th><th class="grp" colspan="${far.length}">Outlook: chance of 6 in or more</th>` : "") + `</tr>`;
   const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
   html += `<tr><th></th><th>${weekday(near[0].date)}–${weekday(near[near.length - 1].date)}</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
@@ -632,11 +633,11 @@ function renderDetail() {
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
-    <h3>Ski days <small>each is the 24 hours ending 4 pm</small></h3>
+    <h3>Ski days <small>4 pm the day before to 4 pm</small></h3>
     <div class="key" style="margin:4px 0 0"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>models</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span>G = gust, mph</span><span>PS = powder score</span></div>
-    <div class="days"><div class="srow head"><div></div><div>All snow in the 24 hours to 4 pm</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
+    <div class="days"><div class="srow head"><div></div><div>Snow, 4 pm the day before to 4 pm</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
     <div class="key"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
