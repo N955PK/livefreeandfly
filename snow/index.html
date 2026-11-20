@@ -85,6 +85,9 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;cursor:pointer;
   color:var(--ink);background:linear-gradient(to top,color-mix(in oklab,var(--c) 62%,var(--surface)) var(--fill),var(--wash) var(--fill))}
 .cell.none{color:var(--muted);font-weight:400}
+.cell.far{opacity:.6}
+.heat tr.pass td{padding:9px 6px 1px;font-size:11px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);cursor:default}
+.heat tr.pass:hover td.name{text-decoration:none}
 .legend .blocks{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .legend .blocks > span{display:inline-flex;border-radius:5px;overflow:hidden}
 .legend .blocks b{font-weight:600;font-size:11px;padding:2px 6px;color:#fff}
@@ -131,8 +134,7 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .srow .d span{color:var(--muted);font-size:12px}
 .srow .amt{font-size:17px;font-weight:700;white-space:nowrap}
 .srow .amt small{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
-.srow.far{grid-template-columns:56px 1fr;color:var(--ink2)}
-.srow.far .amt{font-size:14px;font-weight:600;display:flex;gap:6px;align-items:baseline}
+.srow.far{opacity:.62}
 .track{position:relative;height:14px;margin:0 7px}
 .track::before{content:"";position:absolute;left:-7px;right:-7px;top:6px;height:2px;border-radius:2px;background:var(--grid)}
 .track .band{position:absolute;top:3px;height:8px;border-radius:4px;opacity:.35;min-width:6px}
@@ -336,7 +338,7 @@ for (let n = 0; n < 26; n++) {
   <details class="panel" id="how"><summary>How the forecast is made</summary><div class="inner">
     <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
     <p><b>Snow.</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
-    <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Past day 5 a single number isn't worth much, so you get the chance of 6 inches or more.</p>
+    <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days 6–10 are shown faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much.</p>
     <p><b>One water amount per resort.</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
     <p><b>Wind</b> is the free-air wind at that elevation, close to what an exposed ridge sees. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
@@ -353,7 +355,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "47";
+const BUILD = "48";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -408,7 +410,17 @@ function lastThreeDays(resort, el) {
   return total;
 }
 
-// The home resort leads; the rest follow by what fell in the last three days.
+// Resorts sit under the pass that covers them. The home resort's pass leads and the home resort leads it; the rest
+// follow by what fell in the last three days.
+const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
+  ["Mountain Collective", ["sugarbowl"]], ["Independent", ["homewood", "boreal", "mtrose"]]];
+function byPass() {
+  const rows = sorted(), listed = new Set(PASSES.flatMap(([, keys]) => keys));
+  const groups = PASSES.map(([name, keys]) => [name, rows.filter((r) => keys.includes(r.key))]);
+  const rest = rows.filter((r) => !listed.has(r.key));
+  if (rest.length) groups[groups.length - 1][1].push(...rest);
+  return groups.filter(([, list]) => list.length).sort((a, b) => b[1].some((r) => r.key === HOME) - a[1].some((r) => r.key === HOME));
+}
 function sorted() { return [...data.resorts].sort((a, b) => (b.key === HOME) - (a.key === HOME) || lastThreeDays(b, b.elevations[elevation]) - lastThreeDays(a, a.elevations[elevation])); }
 
 function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(x.pm_in)}</span>`; }
@@ -430,30 +442,32 @@ function renderHeadline() {
 }
 
 function renderHeat() {
-  const resorts = sorted(), days = futureDays(resorts[0].elevations[elevation]);
+  const days = futureDays(data.resorts[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = `<tr><th></th><th></th><th class="grp" colspan="${near.length}">Snow in inches, 4 pm the day before to 4 pm</th>` +
-    (far.length ? `<th class="sep"></th><th class="grp" colspan="${far.length}">Outlook: chance of 6 in or more</th>` : "") + `</tr>`;
+    (far.length ? `<th class="sep"></th><th class="grp" colspan="${far.length}">Days 6–10, a rough guide</th>` : "") + `</tr>`;
   const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
   html += `<tr><th></th><th>Last 3 days</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
-  for (const r of resorts) {
+  const columns = 2 + near.length + (far.length ? 1 + far.length : 0);
+  for (const [pass, list] of byPass()) {
+   html += `<tr class="pass"><td class="name">${pass}</td><td colspan="${columns - 1}"></td></tr>`;
+   for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
     html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name"><b>${esc(r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft</span></td>
       <td class="total">${inches(total)} in</td>`;
-    for (const d of near) {
+    // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
+    // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
+    const cell = (d, dim) => {
       const x = byDate[d.date] || {};
-      // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
-      // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
       const p = x.powder || {}, total = p.snow_in || 0, fill = Math.round(100 * Math.min(total, BAR_FULL_IN) / BAR_FULL_IN);
-      html += `<td><div class="cell${total < 0.5 ? " none" : ""}" style="--fill:${total < 0.5 ? 0 : Math.max(fill, 6)}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} in${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}">${whole(total)}</div></td>`;
-    }
+      return `<td><div class="cell${dim}${total < 0.5 ? " none" : ""}" style="--fill:${total < 0.5 ? 0 : Math.max(fill, 6)}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} in${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}${dim ? `, ${pct(x.prob_6in)} chance of 6 in or more` : ""}">${whole(total)}</div></td>`;
+    };
+    html += near.map((d) => cell(d, "")).join("");
     if (far.length) html += '<td class="sep"></td>';
-    for (const d of far) {
-      const x = byDate[d.date] || {}, p = x.prob_6in;
-      html += `<td><div class="chance ${p >= 0.05 ? "" : "none"}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${pct(p)} chance of 6 in or more, ${pct(x.prob_12in)} of 12 in or more">${p == null ? "–" : p < 0.05 ? "·" : pct(p)}<i style="width:${Math.round((p || 0) * 100)}%"></i></div></td>`;
-    }
+    html += far.map((d) => cell(d, " far")).join("");
     html += "</tr>";
+   }
   }
   $("heat").innerHTML = html;
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
@@ -612,13 +626,12 @@ function dayBar(p, withRange) {
 function skiDay(d) {
   const far = d.lead_day > data.deterministic_days, p = d.powder || {};
   const date = `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
-  if (far) return `<div class="srow far">${date}<div class="amt">${pct(d.prob_6in)}<small>chance of 6 in+</small></div></div>`;
   const total = p.snow_in || 0;
   const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
   const bars = `${dayBar(p, true)}` + (total >= 0.05
     ? `<div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)} in</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)} in</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
     : `<div class="split">No new snow</div>`);
-  return `<div class="srow">${date}<div class="snowbar">${bars}</div>
+  return `<div class="srow${far ? " far" : ""}">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
     <div class="cond"><span class="sky">${icon ? `${icon}${word}` : ""}</span>
       <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${wind} mph${gust > wind + 3 ? `, gusts to ${gust}` : ""}`}">${wind == null ? "" : `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${wind}${gust > wind + 3 ? `G${gust}` : ""}`}</span>
@@ -649,8 +662,7 @@ function renderDetail() {
   $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}</h2>
       <span>${el.elevation_ft.toLocaleString()} ft · ${resort.key === HOME ? '<span class="mine">★ my mountain</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on">☆ set as mine</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
-    <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
-      <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">of 6 in+</div></div></div>
+    <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
     <h3>Ski days <small>4 pm the day before to 4 pm</small></h3>
     <div class="key" style="margin:4px 0 0"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>models</span></div>
