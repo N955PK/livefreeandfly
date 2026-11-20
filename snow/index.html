@@ -339,7 +339,8 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
 @media (prefers-color-scheme:dark){.dicon,.dscale img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
 .map-toggle img{height:15px;margin:-2px 0 -2px -2px;filter:drop-shadow(0 0 .6px rgba(255,255,255,.95))}
 .map-toggle.sign::before{display:none}
-.map-toggle[aria-pressed=false] img{filter:grayscale(1);opacity:.6}
+.map-toggle.sign[aria-pressed=false]{background:rgba(236,239,242,.72);color:#6a7480;box-shadow:0 1px 3px rgba(15,23,32,.12)}
+.map-toggle[aria-pressed=false] img{filter:grayscale(.75);opacity:.7}
 .probs{list-style:none;padding:0}
 .probs li{display:flex;gap:12px;align-items:center;padding:8px 0;font-size:13.5px;color:var(--ink2)}
 .probs li div{flex:1 1 auto;min-width:0}
@@ -473,7 +474,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "92";
+const BUILD = "93";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1068,7 +1069,7 @@ function mapAvalanche() {
   $("avyToggle").hidden = !map || !zones.length;
   $("avyToggle").setAttribute("aria-pressed", avyOn);
   // One rating across the map goes in the button itself; several get a small key under it, worst first.
-  const levels = [...new Set(zones.map((zone) => zone.level))].sort((a, b) => b - a), one = avyOn && levels.length === 1;
+  const levels = [...new Set(zones.map((zone) => zone.level))].sort((a, b) => b - a), one = levels.length === 1;
   $("avyToggle").innerHTML = `${levels.length ? `<img src="${dangerIcon(levels[0])}" alt="" onerror="this.parentNode.classList.remove('sign'); this.remove()">` : ""}${one ? `Avalanche: ${danger(levels[0])[0]}` : "Avalanche danger"}`;
   $("avyToggle").classList.toggle("sign", levels.length > 0);
   $("avyToggle").style.setProperty("--light", danger(levels[0])[1]);
