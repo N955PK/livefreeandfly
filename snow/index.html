@@ -43,8 +43,10 @@
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
 /* Inside another page (?embed) the host supplies the name. */
 .embed .brand img,.embed .appname{display:none}
-.embed main{padding-top:10px}
-.embed .regions{font-size:.8em;margin-left:0}
+.embed main{padding:16px 18px calc(48px + env(safe-area-inset-bottom))}
+.embed h1{font-family:var(--host-font,inherit);font-size:var(--host-title,26px);font-weight:600;letter-spacing:.01em;line-height:1.2}
+.embed .regions{font-size:1em;font-weight:inherit;letter-spacing:inherit;margin-left:0}
+.embed .regions i{margin:0 .35em}
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .5s ease,visibility .5s}
 #splash img{width:min(38vw,170px);height:auto;animation:spinup 1.4s cubic-bezier(.55,0,.9,.5) both,spin .55s linear 1.4s infinite}
@@ -384,6 +386,11 @@ if (new URLSearchParams(location.search).has("embed")) {
       const accent = host.getPropertyValue("--accent-ink").trim(), fill = host.getPropertyValue("--accent").trim();
       if (accent) document.documentElement.style.setProperty("--accent", accent);
       if (fill) document.documentElement.style.setProperty("--host-fill", fill);
+      // The region title is set like the host's own page titles.
+      for (const [from, to] of [["--mono", "--host-font"], ["--t-title", "--host-title"]]) {
+        const value = host.getPropertyValue(from).trim();
+        if (value) document.documentElement.style.setProperty(to, value);
+      }
     } catch (error) { /* a host on another site keeps the page's own blue */ }
   };
   if (parent !== window) { follow(); setInterval(follow, 1500); }
@@ -449,7 +456,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "83";
+const BUILD = "85";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -551,8 +558,8 @@ function renderHeadline() {
   $("headline").title = `At the ${where}, ${el.elevation_ft.toLocaleString()} ft`;
   const made = new Date(data.generated_utc), age = (Date.now() - made) / 36e5;
   const when = made.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"});
-  $("meta").innerHTML = `Updated ${when}` +
-    (age > 9 ? ` · <span class="warn">${Math.round(age)} hours old</span>` : "");
+  $("meta").innerHTML = offlineCopy ? `<span class="warn">Offline.</span> Showing the forecast from ${when}${age > 9 ? `, ${Math.round(age)} hours old` : ""}`
+    : `Updated ${when}` + (age > 9 ? ` · <span class="warn">${Math.round(age)} hours old</span>` : "");
 }
 
 function renderHeat() {
@@ -810,7 +817,7 @@ let map = null, playing = false, playFrame = 0;
 function showTime(value) {
   const t = map.timeAt(value), rate = map.rateAt(value), level = Math.round(map.snowLevelFtAt(value) / 100) * 100;
   const atNow = Math.abs(value - map.nowStep) < 0.3;
-  $("mapWhen").textContent = atNow ? "Live" : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+  $("mapWhen").textContent = atNow ? (offlineCopy ? "Saved" : "Live") : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
   $("toNow").classList.toggle("away", !atNow);
   const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}${rate >= 0.05 ? `, ${rate.toFixed(1)} in/hr` : ""}`;
   $("mapWhat").textContent = `${falling} · snow level ${level > 12000 ? "above the peaks" : level.toLocaleString() + " ft"}`;
@@ -913,7 +920,7 @@ async function loadRoads() {
       section("#f0a80d", "Chains", chains.length ? byRoute("chains").map(([route]) => number(route)).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
       `<span class="src">Caltrans, ${when} · California roads only</span>`;
-  } catch (error) { if (asked === region) $("roadNote").textContent = "Road status is unavailable right now."; }
+  } catch (error) { if (asked === region) $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; }
 }
 // One map at a time: switching regions throws the old one away and builds the new one.
 let mapBuild = 0, mapWired = false;
@@ -1068,7 +1075,7 @@ function renderAvalanche() {
   const foot = (link) => `${scale}<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
     <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p>`;
   if (!state || !state.loaded) { $("avalanche").innerHTML = `${head}<p class="anotice">Loading the avalanche forecast…</p>`; return; }
-  if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">The avalanche forecast could not be loaded right now.</p>${foot(center.url)}`; return; }
+  if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. It is not saved on your phone, so it is never shown out of date."}</p>${foot(center.url)}`; return; }
   let body = zone.warning ? `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>` : "";
   let expired = false;
   if (zone.offSeason) body += `<p class="anotice">Off season: the center is not issuing daily forecasts.</p>`;
@@ -1144,7 +1151,7 @@ $("heat").addEventListener("click", (e) => {
 // and loading the file by that commit avoids GitHub's file cache, which can lag by many minutes.
 const REPO = "N955PK/livefreeandfly", DATA_BRANCH = "snow-data";
 const loadForecast = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-async function liveForecast() {
+async function publishedForecast() {
   if (location.hostname === "localhost") return loadForecast("data/forecast.json");
   try {
     const branch = await fetch(`https://api.github.com/repos/${REPO}/branches/${DATA_BRANCH}`, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -1153,6 +1160,23 @@ async function liveForecast() {
     return loadForecast(`https://raw.githubusercontent.com/${REPO}/${DATA_BRANCH}/forecast.json`);
   }
 }
+// The last forecast this device loaded is kept on it, so the page still has something to show with no signal.
+const SAVED_FORECAST = "sierra-snow-data", SAVED_AS = "forecast";
+let offlineCopy = false;
+async function liveForecast() {
+  try {
+    const fresh = await publishedForecast();
+    if (window.caches) caches.open(SAVED_FORECAST).then((c) => c.put(SAVED_AS, new Response(JSON.stringify(fresh), {headers: {"Content-Type": "application/json"}}))).catch(() => {});
+    return fresh;
+  } catch (error) {
+    const saved = window.caches && await (await caches.open(SAVED_FORECAST)).match(SAVED_AS);
+    if (!saved) throw error;
+    offlineCopy = true;
+    return saved.json();
+  }
+}
+window.addEventListener("online", () => { if (offlineCopy) location.reload(); });
+if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
 // The opening screen stays up until the page and the map are ready (or 8 seconds pass), and at least long
 // enough for the logo to spin up.
 const opened = performance.now();
