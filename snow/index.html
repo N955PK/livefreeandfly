@@ -144,6 +144,8 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .cond .wind{display:flex;align-items:center;gap:6px}
 .cond .wind i{width:9px;height:9px;border-radius:50%;background:var(--grid);flex:none}
 .srow .pw{text-align:right}
+.cond .pscore{display:none}
+.cond .pscore b{color:var(--ink);font-weight:700}
 .srow .pw b{font-size:15px}
 .srow .pw span{color:var(--muted)}
 details.pastdays{margin:4px 0 6px;padding:0;border:0}
@@ -261,6 +263,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   .srow .amt{text-align:right;font-size:16px}
   .srow .cond{grid-column:2 / span 2;flex-direction:row;flex-wrap:wrap;gap:4px 14px}
   .srow .pw,.srow.head{display:none}
+  .cond .pscore{display:inline}
   .drow{grid-template-columns:52px minmax(90px,1fr) 84px;row-gap:4px}
   .drow .q,.drow .pw{grid-column:2 / span 2;display:flex;gap:10px;align-items:baseline}
   .drow.head .q,.drow.head .pw{display:none}
@@ -332,7 +335,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "37";
+const BUILD = "38";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -610,7 +613,7 @@ function skiDay(d) {
     : `<div class="split">No new snow</div>`);
   return `<div class="srow">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
-    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph${gust > wind + 3 ? `, gusts ${gust}` : ""}</span>`}</div>
+    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph${gust > wind + 3 ? `, gusts ${gust}` : ""}</span>`}${p.score ? `<span class="pscore">Powder score <b>${p.score.toFixed(1)}</b></span>` : ""}</div>
     <div class="pw">${p.score ? `<b>${p.score.toFixed(1)}</b>` : '<span>–</span>'}</div></div>`;
 }
 
