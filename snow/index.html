@@ -150,9 +150,6 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .cond .pscore b{color:var(--ink);font-weight:700}
 .srow .pw b{font-size:15px}
 .srow .pw span{color:var(--muted)}
-details.pastdays{margin:4px 0 6px;padding:0;border:0}
-details.pastdays summary{font-size:13px;font-weight:600;padding:6px 0;color:var(--ink2)}
-details.pastdays summary::after{font-size:16px}
 .tl{position:relative;margin-top:6px}
 .tl-axis{position:absolute;left:0;top:0;width:44px}
 .tl-axis text,.tl-scroll text{font-size:11px;fill:var(--muted);font-family:inherit}
@@ -338,7 +335,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "41";
+const BUILD = "42";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -575,25 +572,6 @@ function wireTimeline(resort, el, g) {
   scroll.addEventListener("scroll", hide, {passive: true});
 }
 
-// The past week, one row per ski day: the estimate beside what the sensor's depth did.
-function pastDays(resort, el) {
-  const depth = (resort.observed && resort.observed.depth_in_hourly) || [], hours = resort.hours_utc;
-  const at4pm = (date) => {
-    const i = hours.findIndex((t) => { const d = new Date(t); return d.toLocaleDateString("en-CA", {timeZone: TZ}) === date && +d.toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24 === 16; });
-    return i < 0 ? null : depth[i] ?? null;
-  };
-  const days = el.days.filter((d) => d.past).slice(-7);
-  const rows = days.map((d, n) => {
-    const p = d.powder || {}, total = p.snow_in || 0, now = at4pm(d.date), before = n ? at4pm(days[n - 1].date) : null;
-    const change = now != null && before != null ? now - before : null;
-    const date = `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
-    return `<div class="srow">${date}<div class="snowbar">${dayBar(p, false)}
-      <div class="split"><em>${now == null ? "No sensor reading" : `Sensor: ${now} in on the ground${change == null ? "" : `, ${change > 0 ? "+" : ""}${change} in`}`}</em></div></div>
-      <div class="amt">${inches(total)} in</div></div>`;
-  }).join("");
-  return rows ? `<details class="pastdays"><summary>Last 7 days</summary><div class="sub">Estimated new snow by 4 pm each day, next to the snow sensor's settled depth.</div><div class="days">${rows}</div></details>` : "";
-}
-
 // A day's snow on a fixed 0 to 36 inch scale: a dot for the forecast, a shaded band for one standard deviation
 // either side, and a tick for each weather model. Anything past 36 inches sits at the end.
 const BAR_FULL_IN = 36;
@@ -651,7 +629,6 @@ function renderDetail() {
     <div class="key" style="margin:4px 0 0"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>models</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span>G = gust, mph</span><span>PS = powder score</span></div>
-    ${pastDays(resort, el)}
     <div class="days"><div class="srow head"><div></div><div>All snow in the 24 hours to 4 pm</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
