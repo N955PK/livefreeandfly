@@ -622,7 +622,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "139";
+const BUILD = "140";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -985,7 +985,7 @@ function measured(resort) {
   return `<h3>Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${o.elevation_ft.toLocaleString()} ft, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
     <div class="tiles">${depth}
     ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>in</small>`, `${inches(o.water_gain_24h_in)} in in 24 h`)}
-    ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
+    ${cell("Temp at sensor", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
 }
 // The winter at the mountain's sensor, three ways: snow on the ground, snow fallen so far, and the water the
 // snowpack holds. Each is this winter's line over the usual year and the ten winters before it, October to July.
