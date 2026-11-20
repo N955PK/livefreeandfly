@@ -3,7 +3,8 @@ import json
 import numpy as np
 import pandas as pd
 
-from tahoe_snow import biascorrect, blend, powder
+from tahoe_snow import biascorrect, blend, pipeline, powder
+from tahoe_snow.config import RESORTS, STATIONS
 
 
 def _pairs(bias=1.0, n=400, station="a", seed=0, model="gfs", lead=1):
@@ -107,3 +108,26 @@ def test_robust_mean_ignores_one_runaway_model():
     assert abs(blend.weighted_mean(frame).sum() - 24 * 3.0) < 1e-6
     calm = pd.DataFrame({"a": 1.0, "b": 1.0}, index=index)
     assert np.allclose(blend.robust_mean(calm), 1.0)
+
+
+def test_resort_without_a_station_gets_the_pooled_correction_and_no_observation():
+    pairs = pd.concat([_pairs(bias=1.0, n=2000, station="big"), _pairs(bias=0.5, n=400, station="dry", seed=1)])
+    correction = biascorrect.fit(pairs)
+    values = np.array([10.0, 30.0])
+    assert np.allclose(correction.apply("gfs", None, 1, values), correction.apply("gfs", "never_seen", 1, values))
+    assert correction.fitted("dry") and not correction.fitted(None)
+    mammoth = RESORTS["mammoth"]
+    assert mammoth.station is None
+    assert pipeline.water_correction(mammoth, correction) == "pooled"
+    assert pipeline.water_correction(mammoth, None) is None
+    hours = pd.date_range("2026-11-12", periods=48, freq="h")
+    assert pipeline.observed(mammoth, hours[-1], hours) is None
+
+
+def test_every_location_is_well_formed():
+    assert {r.region for r in RESORTS.values()} == {"tahoe", "mammoth"}
+    for resort in RESORTS.values():
+        assert resort.kind in ("resort", "backcountry")
+        assert (resort.pass_group == "Backcountry") == (resort.kind == "backcountry")
+        assert resort.station is None or resort.station in STATIONS
+        assert 1500 < resort.base_m < resort.summit_m < 3500

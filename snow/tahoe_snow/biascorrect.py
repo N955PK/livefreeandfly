@@ -27,7 +27,11 @@ class Correction:
         lead = min(leads, key=lambda fitted: (abs(fitted - lead_day), fitted))
         return self.maps[(model, lead)], station
 
-    def apply(self, model: str, station: str, lead_day: int, values) -> np.ndarray:
+    def fitted(self, station: str | None) -> bool:
+        """Whether any mapping holds this station's own curve (otherwise it gets the pooled one)."""
+        return any(station in by_station for by_station in self.maps.values())
+
+    def apply(self, model: str, station: str | None, lead_day: int, values) -> np.ndarray:
         """Corrected daily liquid (mm). Unfitted models pass through unchanged; NaN stays NaN."""
         values = np.asarray(values, dtype=float)
         found = self.mapping(model, station, lead_day)

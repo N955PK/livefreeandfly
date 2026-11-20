@@ -33,7 +33,10 @@ class Resort:
     lon: float
     base_m: float
     summit_m: float
-    station: str
+    station: str | None
+    pass_group: str
+    region: str = "tahoe"
+    kind: str = "resort"
     weak_match: bool = False
 
     @property
@@ -77,20 +80,38 @@ STATIONS = {
     ]
 }
 
-# Elevations from OpenSkiMap statistics (ODbL); coordinates are mid-mountain.
+# Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
+# resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
+# winter trailhead, both read from the Terrain Tiles elevation model (2026-11-19). No SNOTEL station sits near
+# Mammoth, so those four have no paired station.
 RESORTS = {
     r.key: r
     for r in [
-        Resort("palisades", "Palisades Tahoe", 39.197, -120.245, 1890, 2665, "784:CA:SNTL"),
-        Resort("alpine", "Alpine Meadows", 39.165, -120.238, 2085, 2588, "848:CA:SNTL", weak_match=True),
-        Resort("homewood", "Homewood", 39.080, -120.172, 1903, 2402, "848:CA:SNTL"),
-        Resort("sugarbowl", "Sugar Bowl", 39.300, -120.335, 2108, 2550, "428:CA:SNTL"),
-        Resort("boreal", "Boreal", 39.333, -120.348, 2186, 2347, "428:CA:SNTL"),
-        Resort("northstar", "Northstar", 39.265, -120.133, 1921, 2625, "834:CA:SNTL", weak_match=True),
-        Resort("mtrose", "Mt. Rose", 39.320, -119.885, 2310, 2916, "652:NV:SNTL"),
-        Resort("heavenly", "Heavenly", 38.930, -119.920, 2025, 3037, "518:CA:SNTL"),
-        Resort("sierra", "Sierra-at-Tahoe", 38.795, -120.085, 2030, 2693, "463:CA:SNTL"),
-        Resort("kirkwood", "Kirkwood", 38.680, -120.070, 2382, 2884, "1067:CA:SNTL"),
+        Resort("palisades", "Palisades Tahoe", 39.197, -120.245, 1890, 2665, "784:CA:SNTL", "Ikon"),
+        Resort("alpine", "Alpine Meadows", 39.165, -120.238, 2085, 2588, "848:CA:SNTL", "Ikon", weak_match=True),
+        Resort("homewood", "Homewood", 39.080, -120.172, 1903, 2402, "848:CA:SNTL", "Independent"),
+        Resort("sugarbowl", "Sugar Bowl", 39.300, -120.335, 2108, 2550, "428:CA:SNTL", "Mountain Collective"),
+        Resort("boreal", "Boreal", 39.333, -120.348, 2186, 2347, "428:CA:SNTL", "Independent"),
+        Resort("northstar", "Northstar", 39.265, -120.133, 1921, 2625, "834:CA:SNTL", "Epic", weak_match=True),
+        Resort("mtrose", "Mt. Rose", 39.320, -119.885, 2310, 2916, "652:NV:SNTL", "Independent"),
+        Resort("heavenly", "Heavenly", 38.930, -119.920, 2025, 3037, "518:CA:SNTL", "Epic"),
+        Resort("sierra", "Sierra-at-Tahoe", 38.795, -120.085, 2030, 2693, "463:CA:SNTL", "Ikon"),
+        Resort("kirkwood", "Kirkwood", 38.680, -120.070, 2382, 2884, "1067:CA:SNTL", "Epic"),
+        Resort("castle", "Castle Peak", 39.3654, -120.3494, 2200, 2774, "428:CA:SNTL", "Backcountry",
+               kind="backcountry"),
+        Resort("jakes", "Jakes Peak", 38.9753, -120.1243, 2067, 2800, "724:CA:SNTL", "Backcountry",
+               kind="backcountry"),
+        Resort("tallac", "Mt. Tallac", 38.9059, -120.0988, 1920, 2967, "463:CA:SNTL", "Backcountry",
+               kind="backcountry"),
+        Resort("roundtop", "Round Top", 38.6636, -120.0015, 2613, 3164, "1067:CA:SNTL", "Backcountry",
+               kind="backcountry"),
+        Resort("mammoth", "Mammoth Mountain", 37.635, -119.030, _ft(7953), _ft(11053), None, "Ikon",
+               region="mammoth"),
+        Resort("june", "June Mountain", 37.755, -119.080, _ft(7545), _ft(10090), None, "Ikon", region="mammoth"),
+        Resort("sherwins", "Sherwin Ridge", 37.6043, -118.9794, 2399, 3130, None, "Backcountry",
+               region="mammoth", kind="backcountry"),
+        Resort("carsonpeak", "Carson Peak", 37.7476, -119.1242, 2204, 3324, None, "Backcountry",
+               region="mammoth", kind="backcountry"),
     ]
 }
 

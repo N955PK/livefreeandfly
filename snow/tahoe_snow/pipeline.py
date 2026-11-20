@@ -72,7 +72,7 @@ def local_days(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
     return index.tz_localize("UTC").tz_convert(TZ).tz_localize(None).normalize()
 
 
-def corrected_liquid(precip: pd.Series, model: str, station: str, today: pd.Timestamp,
+def corrected_liquid(precip: pd.Series, model: str, station: str | None, today: pd.Timestamp,
                      correction: biascorrect.Correction | None) -> pd.Series:
     """Hourly liquid scaled so each local day's total equals the bias-corrected total."""
     if correction is None:
@@ -240,7 +240,9 @@ def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
 
 def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
     """What the resort's SNOTEL station has measured: the latest readings, three-day gains, and the hourly
-    depth over the page's history window (settled depth, not board totals)."""
+    depth over the page's history window (settled depth, not board totals). None without a paired station."""
+    if resort.station is None:
+        return None
     station = STATIONS[resort.station]
     start = (hours[0] - pd.Timedelta(hours=24 + snotel_offset_h())).strftime("%Y-%m-%d")
     try:
@@ -271,6 +273,13 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
             "water_gain_72h_in": inches(gain("swe_mm", 72), MM_PER_IN, 1),
             "temp_f": None if temp.empty else round(float(temp.iloc[-1]) * 1.8 + 32),
             "depth_in_hourly": _round(frame["depth_cm"][~frame.index.duplicated()].reindex(hours) / 2.54, 0)}
+
+
+def water_correction(resort, correction) -> str | None:
+    """Which liquid correction the resort gets: its station's own curve, or the one pooled over all stations."""
+    if correction is None:
+        return None
+    return "station" if correction.fitted(resort.station) else "pooled"
 
 
 def snotel_offset_h() -> int:
@@ -310,8 +319,10 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     hours = pd.date_range(midnight - pd.Timedelta(hours=HISTORY_DAYS * 24), now + pd.Timedelta(hours=DAYS * 24 - 1),
                           freq="h")
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
-               "station": STATIONS[resort.station].name,
-               "weak_station_match": resort.weak_match, "observed": observed(resort, now, hours), "elevations": {},
+               "region": resort.region, "kind": resort.kind, "pass": resort.pass_group,
+               "station": STATIONS[resort.station].name if resort.station else None,
+               "weak_station_match": resort.weak_match, "water_correction": water_correction(resort, correction),
+               "observed": observed(resort, now, hours), "elevations": {},
                "models": list(models)}
     archive = []
     summit_blend = None
