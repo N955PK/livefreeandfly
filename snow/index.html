@@ -290,10 +290,10 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .mapbar .cap{grid-column:1 / -1;font-size:12.5px;line-height:1.45;color:var(--muted);margin:0}
 .mapbar .cap b{color:var(--ink);font-weight:650;margin-right:8px}
 @media (prefers-color-scheme:dark){#map3d{background:radial-gradient(ellipse at 50% 38%,#33424f 0,#1f2a34 55%,#141a20 100%)}}
-.regionbar{margin:16px 0 -6px}
-.regionbar .seg{display:flex;margin-left:0;padding:4px;border-radius:12px}
-.regionbar .seg button{flex:1 1 0;padding:9px 18px;font-size:15px;font-weight:600;border-radius:9px}
-.regionbar .seg button[aria-pressed=true]{background:var(--ink);color:var(--surface);box-shadow:none}
+.regions{white-space:nowrap;font-size:.62em;font-weight:600;letter-spacing:-.01em;margin-left:4px}
+.regions button{border:0;background:none;padding:6px 2px;margin:-6px 0;font:inherit;color:var(--muted);cursor:pointer}
+.regions button[aria-pressed=true]{color:var(--snow)}
+.regions i{font-style:normal;color:var(--axis);margin:0 5px;font-weight:400}
 .map-toggle{position:absolute;z-index:400000;right:12px;top:10px;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:12px;font-weight:600;
   cursor:pointer;background:rgba(255,255,255,.85);color:#0f1720;box-shadow:0 1px 4px rgba(15,23,32,.2);display:inline-flex;align-items:center;gap:6px}
 .map-toggle::before{content:"";width:9px;height:9px;border-radius:50%;border:1.5px solid #4b5560}
@@ -376,10 +376,9 @@ for (let n = 0; n < 26; n++) {
 }
 </script>
 <main>
-  <div class="brand"><img src="icons/mark.png" alt="" width="34" height="34"><h1>Sierra Snow</h1></div>
+  <div class="brand"><img src="icons/mark.png" alt="" width="34" height="34"><h1>Sierra Snow <span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span></h1></div>
   <p class="lede" id="headline">Loading the forecast…</p>
   <p class="meta" id="meta"></p>
-  <div class="regionbar" id="regionBar" hidden><div class="seg" id="regionSeg" role="group" aria-label="Region"></div></div>
   <div class="panel" id="mapPanel">
     <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button></div>
     <div class="mapbar">
@@ -427,12 +426,14 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "77";
+const BUILD = "78";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
 const remembered = (key = HOME_KEY) => { try { return localStorage.getItem(key); } catch (error) { return null; } };
-let HOME = remembered() || "palisades";
+let HOME = "palisades";
+// Each region keeps its own favorite; the first one saved (before regions existed) is Tahoe's.
+const homeOf = (key) => remembered(`${HOME_KEY}.${key}`) || (key === "tahoe" ? remembered() : null) || REGIONS[key].pick;
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME, region = "tahoe";
 // What differs between regions: the map's data files and framing (see createMap), the Caltrans districts whose
 // chain-control feeds cover it, and its avalanche centers (the first is the one the pane at the bottom reports).
@@ -519,7 +520,7 @@ function sorted() { return here().sort((a, b) => (b.key === HOME) - (a.key === H
 function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(x.pm_in)}</span>`; }
 
 function renderHeadline() {
-  const home = data.resorts.find((r) => r.key === HOME) || data.resorts[0];
+  const home = opener();
   const el = home.elevations[elevation], w = el.windows, where = elevation === "mid" ? "mid-mountain" : elevation;
   const name = `<b>${esc(home.name)}</b>`;
   $("headline").innerHTML = (w.next72.snow_in || 0) < 0.5 ? `${name}: no snow of note in the next three days`
@@ -922,23 +923,25 @@ async function startMap() {
 // ---------- regions ----------
 function pickRegion() {
   const has = (key) => data.resorts.some((r) => regionOf(r) === key);
-  const linked = data.resorts.find((r) => r.key === location.hash.slice(1)), home = data.resorts.find((r) => r.key === HOME);
+  const linked = data.resorts.find((r) => r.key === location.hash.slice(1));
   const saved = remembered(REGION_KEY);
-  region = linked ? regionOf(linked) : saved && has(saved) ? saved : home ? regionOf(home) : regionOf(data.resorts[0]);
+  region = linked ? regionOf(linked) : saved && has(saved) ? saved : regionOf(data.resorts[0]);
+  HOME = homeOf(region);
+  if (!linked) selected = HOME;
 }
 function renderRegion() {
   const keys = Object.keys(REGIONS).filter((key) => data.resorts.some((r) => regionOf(r) === key));
   $("regionBar").hidden = keys.length < 2;
-  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].name}</button>`).join("");
+  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].name}</button>`).join("<i>/</i>");
 }
 function setRegion(key) {
   if (key === region || !REGIONS[key]) return;
   region = key;
   try { localStorage.setItem(REGION_KEY, key); } catch (error) { /* private browsing: the choice lasts for this visit */ }
-  // A region opens on the home mountain when it is there, else on the region's namesake resort.
+  HOME = homeOf(key);
   selected = opener().key;
   history.replaceState(null, "", "#" + selected);
-  for (const step of [renderRegion, renderHeat, renderDetail, renderAvalanche]) {
+  for (const step of [renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
   }
   loadAvalanche();
@@ -1092,7 +1095,7 @@ function renderScore(card) {
 document.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-home]"); if (!b) return;
   HOME = b.dataset.home;
-  try { localStorage.setItem(HOME_KEY, HOME); } catch (error) { /* private browsing: the choice lasts for this visit */ }
+  try { localStorage.setItem(`${HOME_KEY}.${region}`, HOME); } catch (error) { /* private browsing: the choice lasts for this visit */ }
   renderAll();
 });
 // Every elevation toggle on the page (above the grid and in the resort header) stays in step.
