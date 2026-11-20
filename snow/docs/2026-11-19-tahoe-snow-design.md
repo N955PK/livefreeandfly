@@ -221,3 +221,21 @@ station scorecard.
 - Transition-zone depth and blend-weight window.
 - Storage layout for archived runs and how much history the repo carries.
 - Page styling.
+
+## Added later: regions, backcountry, and avalanche danger
+
+Sean asked for these on 2026-11-19, after the design above; they replace the
+"outside Tahoe" and "avalanche forecasts" non-goals.
+
+- Every location has a region (Tahoe or Mammoth), a kind (resort or
+  backcountry), and a pass group. For a backcountry peak the summit is the
+  peak and the base is the usual winter trailhead; both were read from the
+  Terrain Tiles elevation model.
+- The Mammoth region has no SNOTEL station nearby. Its four locations have no
+  measured depth, and their water is corrected with the map pooled over the
+  Tahoe stations, which has not been tested there. The page says so.
+- The snow-ratio model was trained on stations up to 2,685 m; Mammoth's summit
+  (3,369 m) is further above that than any Tahoe summit.
+- The page reads each avalanche center's rating and forecast from avalanche.org
+  in the browser. It is a pointer to the center's forecast, never a substitute.
+- Eighteen locations use roughly 6,800 of Open-Meteo's 10,000 daily calls.
