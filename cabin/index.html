@@ -314,23 +314,23 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 #splash.done{opacity:0;visibility:hidden}
 #splash .hill{position:relative;flex:none;width:400px;height:200px}
 #splash svg{position:absolute;inset:0;width:400px;height:200px;overflow:visible}
-#splash .ground{position:absolute;inset:0;translate:-434px 0;transform:translateY(700px);animation:pastx 1.6s linear,pasty 1.6s linear}
+#splash .ground{position:absolute;inset:0;translate:-544px 0;transform:translateY(700px);animation:pastx 2.8s linear,pasty 2.8s linear}
 #splash .snowpack{fill:var(--ink);opacity:.045}
 #splash .line{fill:none;stroke:var(--dim);stroke-width:2;opacity:.5}
 #splash .rider{position:absolute;left:128px;top:48.5px;width:120px;height:75px;transform-origin:72px 63.5px;
-  animation:tip 1.6s linear,float 2.4s ease-in-out 1.6s infinite}
+  animation:tip 2.8s linear,float 2.4s ease-in-out 2.8s infinite}
 #splash .skier{display:block;width:100%;height:100%;background:url(skier-mark.png) center/contain no-repeat}
 :root[data-accent]:not([data-accent="chairlift"]) #splash .skier{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
 #splash u{position:absolute;border-radius:50%;background:var(--dim);opacity:0;animation:kick var(--t) cubic-bezier(.12,.6,.3,1) var(--d) both}
-#splash .wind{opacity:0;animation:windup .5s ease .8s forwards}
-#splash .wind path{fill:none;stroke:var(--dim);stroke-width:2;stroke-linecap:round;stroke-dasharray:var(--len) 100;stroke-dashoffset:var(--len);opacity:.55;
+#splash .wind{opacity:0;animation:windup .6s ease 1.5s forwards}
+#splash .wind path{fill:none;stroke:var(--dim);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:var(--len) 100;stroke-dashoffset:var(--len);opacity:.28;
   animation:gust var(--t) linear var(--d) infinite}
 #splash b{position:relative;font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em;opacity:0;animation:wordup .6s ease .35s forwards}
 #splash b span{color:var(--accent-ink);font-weight:700}
-#splash i{position:absolute;left:100%;height:2px;border-radius:2px;background:var(--ink);opacity:.16;animation:streak linear infinite}
-@keyframes pastx{from{translate:480px 0}to{translate:-434px 0}}
-@keyframes pasty{0%{transform:translateY(68.5px)}44%{transform:translateY(-3px);animation-timing-function:cubic-bezier(.3,.5,.5,1)}100%{transform:translateY(700px)}}
-@keyframes tip{0%,44%{rotate:23deg;animation-timing-function:cubic-bezier(.2,.7,.4,1)}72%,100%{rotate:0deg}}
+#splash i{position:absolute;left:100%;height:2px;border-radius:2px;background:var(--ink);opacity:.11;animation:streak linear infinite}
+@keyframes pastx{from{translate:800px 0}to{translate:-544px 0}}
+@keyframes pasty{0%{transform:translateY(125.8px)}47.62%{transform:translateY(11.3px)}49.33%{transform:translateY(7.9px)}50.89%{transform:translateY(6.4px)}52.31%{transform:translateY(6.8px)}53.57%{transform:translateY(9px);animation-timing-function:cubic-bezier(.4,.05,.55,1)}100%{transform:translateY(700px)}}
+@keyframes tip{0%,47.62%{rotate:23.2deg}49.33%{rotate:19.3deg}50.89%{rotate:14.6deg}52.31%{rotate:8.9deg}53.57%{rotate:1.9deg}58%,100%{rotate:0deg}}
 @keyframes float{0%,100%{transform:none}50%{transform:translateY(-4px) rotate(-1.5deg)}}
 @keyframes kick{0%{opacity:0;transform:scale(.5)}10%{opacity:.6}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.7)}}
 @keyframes windup{to{opacity:1}}
@@ -342,13 +342,13 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><div class="hill"><div class="ground"><svg viewBox="0 0 400 200"><path class="snowpack" d="M-2000 -264L90 109.3Q150 120 210 140.4L3000 1089V4000H-2000Z"/><path class="line" d="M-2000 -264L90 109.3Q150 120 210 140.4L3000 1089"/></svg></div>
+<div id="splash" aria-hidden="true"><div class="hill"><div class="ground"><svg viewBox="0 0 400 200"><path class="snowpack" d="M-2000 -264L40 100.7Q88 109.3 120 103C128 103 136 122.8 160 131L3000 1096.6V4000H-2000Z"/><path class="line" d="M-2000 -264L40 100.7Q88 109.3 120 103C128 103 136 122.8 160 131L3000 1096.6"/></svg></div>
 <svg class="wind" viewBox="0 0 400 200">
-<path pathLength="100" style="--len:13;--t:.62s;--d:0s" d="M520 6C340 6 270 0 200 -8S20 -6 -120 -2"/>
-<path pathLength="100" style="--len:17;--t:.5s;--d:.21s" d="M520 60C360 60 300 62 268 50S200 20 150 30S20 44 -120 40"/>
-<path pathLength="100" style="--len:11;--t:.7s;--d:.4s" d="M520 86C400 86 330 86 286 82"/>
-<path pathLength="100" style="--len:17;--t:.54s;--d:.1s" d="M520 126C360 126 300 128 262 138S170 156 110 146S0 134 -120 138"/>
-<path pathLength="100" style="--len:13;--t:.66s;--d:.33s" d="M520 176C320 176 250 186 180 184S20 174 -120 176"/>
+<path pathLength="100" style="--len:9;--t:.62s;--d:0s" d="M520 6C340 6 270 0 200 -8S20 -6 -120 -2"/>
+<path pathLength="100" style="--len:11;--t:.5s;--d:.21s" d="M520 60C360 60 300 62 268 50S200 20 150 30S20 44 -120 40"/>
+<path pathLength="100" style="--len:8;--t:.7s;--d:.4s" d="M520 86C400 86 330 86 286 82"/>
+<path pathLength="100" style="--len:11;--t:.54s;--d:.1s" d="M520 126C360 126 300 128 262 138S170 156 110 146S0 134 -120 138"/>
+<path pathLength="100" style="--len:9;--t:.66s;--d:.33s" d="M520 176C320 176 250 186 180 184S20 174 -120 176"/>
 </svg><span class="rider"><span class="skier"></span></span></div><b>ski<span>/</span>lease</b></div>
 <script>
 {
@@ -362,9 +362,10 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
       ground.appendChild(speck);
     }
   };
-  kickUp(-80, 79, 5, .35, 140, 180, 34);
-  kickUp(20, 97, 5, .52, 140, 180, 34);
-  kickUp(120, 115, 16, .7, 95, 178, 66);
+  kickUp(-340, 33, 5, .54, 140, 180, 34);
+  kickUp(-200, 58, 5, .83, 140, 180, 34);
+  kickUp(-60, 83, 5, 1.12, 140, 180, 34);
+  kickUp(120, 103, 16, 1.5, 95, 178, 66);
   for (let n = 0; n < 16; n++) {
     const streak = document.createElement('i');
     streak.style.cssText = `top:${Math.random() * 100}%;width:${n % 3 ? 14 + Math.random() * 40 : 3}px;${n % 3 ? '' : 'height:3px;'}animation-duration:${.45 + Math.random() * .9}s;animation-delay:${-Math.random() * 2}s`;
@@ -994,7 +995,7 @@ let revealed = false;
 function reveal(){
   if (revealed) return;
   revealed = true;
-  setTimeout(() => $('#splash').classList.add('done'), Math.max(0, 2400 - (performance.now() - opened)));
+  setTimeout(() => $('#splash').classList.add('done'), Math.max(0, 3200 - (performance.now() - opened)));
 }
 setTimeout(reveal, 8000);
 
