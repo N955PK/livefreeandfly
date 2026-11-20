@@ -474,7 +474,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "93";
+const BUILD = "94";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -867,10 +867,20 @@ const CHAIN_MEANING = {"R-1": "chains or snow tires", "R-2": "chains unless 4WD 
 const tidy = (name) => name.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").replace(/[\s\-]+$/, "").trim().toLowerCase().replace(/(^|[\s\-\/])[a-z]/g, (c) => c.toUpperCase())
   .replace(/\bJct\b/g, "junction").replace(/\bHwy\b/g, "Hwy").replace(/\bSr\b/g, "SR").replace(/\bDli\b/g, "Donner Lake");
 const BOUND = {North: "northbound", South: "southbound", East: "eastbound", West: "westbound"};
+// Nevada's feed needs a key, so a scheduled job reads it and publishes the result; anything older than
+// NEVADA_FRESH_MIN is treated as missing rather than shown out of date.
+const NEVADA_FRESH_MIN = 45;
+async function nevadaRoads() {
+  const url = location.hostname === "localhost" ? "data/nevada.json" : `https://raw.githubusercontent.com/${REPO}/snow-roads/nevada.json`;
+  try {
+    const status = await fetch(url, {cache: "no-store"}).then((r) => (r.ok ? r.json() : null));
+    return status && Date.now() - new Date(status.updated) < NEVADA_FRESH_MIN * 6e4 ? status : null;
+  } catch (error) { return null; }
+}
 async function loadRoads() {
   const asked = region, {chainFeeds, center} = REGIONS[region], kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180);
   try {
-    const feeds = await Promise.all(chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json())));
+    const [nevada, ...feeds] = await Promise.all([nevadaRoads(), ...chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()))]);
     if (asked !== region || !map) return;
     const points = [];
     for (const feed of feeds) for (const {cc} of feed.data) {
@@ -880,7 +890,7 @@ async function loadRoads() {
       points.push({route: cc.location.route, lat: +cc.location.latitude, lon: +cc.location.longitude, status, level, name: cc.location.locationName,
         direction: cc.location.direction, mile: +cc.location.milepost || +cc.location.postmile || 0, since: t.statusDate ? new Date(`${t.statusDate}T${t.statusTime || "00:00:00"}-08:00`) : null});
     }
-    map.setRoadStatus(points);
+    map.setRoadStatus(nevada ? points.concat(nevada.points) : points);
     const km = (p) => Math.hypot((p.lat - center[0]) * 111, (p.lon - center[1]) * kmPerLon);
     const near = points.filter((p) => km(p) <= ROADS_WITHIN_KM), number = (route) => route.replace(/^[A-Z]+-/, "");
     const since = (list) => {
@@ -925,6 +935,14 @@ async function loadRoads() {
       }
       chains.push(`<li><b>${esc(number(route))}</b> ${parts.join("; ")}</li>`);
     }
+    const chainRoutes = byRoute("chains").map(([route]) => number(route));
+    // Nevada reports whole stretches in its own words, so its rows are written out as given.
+    for (const row of (nevada ? nevada.rows : []).filter((r) => km(r) <= ROADS_WITHIN_KM)) {
+      const words = row.text === "Closed" ? row.where.slice(0, 140) : `${row.text.toLowerCase()} ${row.where}`;
+      const html = `<li><b>${esc(number(row.route))}</b> ${esc(words.trim())} (Nevada)</li>`;
+      if (row.status === "closed") closures.push({recent: row.since && Date.now() - row.since * 1000 < 2 * 864e5, route: number(row.route), html});
+      else { chains.push(html); chainRoutes.push(number(row.route)); }
+    }
     const levels = [...new Set(near.filter((p) => p.status === "chains").map((p) => p.level))].sort();
     const when = new Date().toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
     const fresh = closures.filter((c) => c.recent), older = closures.filter((c) => !c.recent);
@@ -935,9 +953,9 @@ async function loadRoads() {
     $("roadNote").innerHTML =
       section("#d03b3b", "Closed", fresh.length ? [...new Set(fresh.map((c) => c.route))].join(", ") : closures.length ? "nothing new in 2 days" : "none",
         (fresh.length ? `<ul>${fresh.map((c) => c.html).join("")}</ul>` : "") + olderList, fresh.length > 0) +
-      section("#f0a80d", "Chains", chains.length ? byRoute("chains").map(([route]) => number(route)).join(", ") : "none",
+      section("#f0a80d", "Chains", chains.length ? [...new Set(chainRoutes)].sort((a, b) => a - b).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
-      `<span class="src">Caltrans, ${when} · California roads only</span>`;
+      `<span class="src">Caltrans, ${when} · ${nevada ? `Nevada 511, ${new Date(nevada.updated).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}` : "California roads only"}</span>`;
   } catch (error) { if (asked === region) $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; }
 }
 // One map at a time: switching regions throws the old one away and builds the new one.

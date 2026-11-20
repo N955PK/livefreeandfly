@@ -6,7 +6,7 @@ import pandas as pd
 
 from tahoe_snow import biascorrect, blend, calibrate, pipeline, powder, usage
 from tahoe_snow.config import ALL_STATIONS, RESORTS
-from tahoe_snow.sources import cdec, openmeteo, snotel
+from tahoe_snow.sources import cdec, nv511, openmeteo, snotel
 
 
 def _pairs(bias=1.0, n=400, station="a", seed=0, model="gfs", lead=1):
@@ -210,3 +210,22 @@ def test_usage_ledger_totals_the_last_day_and_month(tmp_path):
     assert len(ledger) == 3
     use = usage.summary(ledger, now)
     assert (use["calls_24h"], use["runs_24h"], use["calls_30d"], use["rate_limited_24h"]) == (4, 2, 6, 2)
+
+
+def test_nevada_road_status_keeps_restricted_stretches_inside_the_maps():
+    line = ["_y|mFbe{yUg~Ag~A"]
+    rows = [
+        {"RoadwayName": "SR-431", "Overall Status": "Chains or Snow Tires Required", "EncodedPolyline": line,
+         "LocationDescription": "from NV-28 to I-580", "LastUpdated": 1},
+        {"RoadwayName": "US-50", "Overall Status": "No Restrictions", "EncodedPolyline": line},
+    ]
+    events = [
+        {"RoadwayName": "NV-207", "IsFullClosure": True, "Latitude": 38.98, "Longitude": -119.89},
+        {"RoadwayName": "NV-28", "IsFullClosure": False, "Latitude": 39.2, "Longitude": -119.93},
+        {"RoadwayName": "US-95", "IsFullClosure": True, "Latitude": 36.2, "Longitude": -115.1},
+    ]
+    status = nv511.build(rows, events, pd.Timestamp("2026-11-20T16:00Z").to_pydatetime())
+    assert nv511.decode("_p~iF~ps|U_ulLnnqC_mqNvxq`@") == [(38.5, -120.2), (40.7, -120.95), (43.252, -126.453)]
+    assert [(row["route"], row["status"]) for row in status["rows"]] == [("NV-431", "chains"), ("NV-207", "closed")]
+    assert {point["route"] for point in status["points"]} == {"NV-431", "NV-207"}
+    assert status["updated"] == "2026-11-20T16:00:00Z"

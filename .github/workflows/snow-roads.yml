@@ -1,6 +1,10 @@
 name: Snow roads
 
+# Nevada road status for the snow page. Nevada's feed needs a key (the NV511_KEY secret), so it is read here and
+# published to its own branch for the page to pick up; California's feed is open and the page reads it directly.
 on:
+  schedule:
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -15,31 +19,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Look at what Nevada 511 returns
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: snow/tahoe_snow
+
+      # A failed read leaves the last file in place; the page stops showing it once it is 45 minutes old.
+      - name: Read Nevada 511
+        working-directory: snow
         env:
           NV511_KEY: ${{ secrets.NV511_KEY }}
+        run: python3 -m tahoe_snow.sources.nv511 "$RUNNER_TEMP/nevada.json" || echo "::warning::Nevada 511 could not be read"
+
+      # The branch holds one commit: the latest status.
+      - name: Publish to the roads branch
         run: |
-          python3 - <<'PY'
-          import json, os, urllib.request
-          key = os.environ.get("NV511_KEY", "")
-          print("key set:", bool(key))
-          for name in ("roadconditions", "winterroads", "event", "alerts"):
-              url = f"https://www.nvroads.com/api/v2/get/{name}?key={key}&format=json"
-              try:
-                  body = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "sierra-snow"}), timeout=30).read()
-              except Exception as error:
-                  print(name, "failed:", type(error).__name__, getattr(error, "code", ""))
-                  continue
-              try:
-                  rows = json.loads(body)
-              except ValueError:
-                  print(name, "not json:", body[:200])
-                  continue
-              print(name, type(rows).__name__, len(rows) if hasattr(rows, "__len__") else "")
-              if isinstance(rows, list) and rows:
-                  print(" keys:", sorted(rows[0]))
-                  near = [r for r in rows if any(w in json.dumps(r) for w in ("Tahoe", "Spooner", "Mt Rose", "Mount Rose", "Kingsbury", "SR-431", "SR-207", "SR-28", "I-580", "US-50", "431", "207"))]
-                  print(" near Tahoe:", len(near))
-                  for r in (near or rows)[:6]:
-                      print(" ", json.dumps(r)[:1200])
-          PY
+          [ -s "$RUNNER_TEMP/nevada.json" ] || exit 0
+          out="$(mktemp -d)"
+          cp "$RUNNER_TEMP/nevada.json" "$out/"
+          cd "$out"
+          git init -q -b snow-roads
+          git config user.name "snow-roads"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Nevada road status $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-roads
