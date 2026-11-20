@@ -150,7 +150,7 @@ def page(ratio_out: dict, phase_out: dict, water_out: dict) -> str:
                          for label, m in water_out["methods"].items())
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How we tested it · Tahoe Snow</title>
+<title>How we tested it · Sierra Snow</title>
 <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
 <style>
 body{{margin:0;background:#f4f6f8;color:#0f1720;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}}
@@ -163,7 +163,7 @@ table{{border-collapse:collapse;font-size:14px;margin:8px 0 14px;font-variant-nu
 th,td{{padding:6px 12px;border-bottom:1px solid #e6e9ec;text-align:right}} th{{color:#6b7480;font-weight:550;font-size:12.5px}}
 td:first-child,th:first-child{{text-align:left}} .scroll{{overflow-x:auto}}
 </style></head><body><main>
-<a href="../">← Tahoe Snow</a>
+<a href="../">← Sierra Snow</a>
 <h1>How we tested it</h1>
 <p class="lede">Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
 
