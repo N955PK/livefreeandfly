@@ -643,7 +643,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "149";
+const BUILD = "150";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -966,11 +966,13 @@ function wireTimeline(resort, el, g) {
     tip.style.top = above ? `${10 - tip.offsetHeight}px` : "22px";
   };
   const hide = () => { tip.style.display = "none"; cross.style.display = "none"; };
-  scroll.addEventListener("mousemove", (e) => showAt(e.clientX));
+  let fingered = false, touchedAt = 0;
+  // Moving a mouse switches back to the readout that follows the pointer, on a machine that has both. A tap
+  // also sends a mouse move just after the touch, which is not a mouse.
+  scroll.addEventListener("mousemove", (e) => { if (Date.now() - touchedAt < 1000) return; fingered = false; showAt(e.clientX); });
   scroll.addEventListener("mouseleave", hide);
   // Swiping the chart with a finger reads the hour passing under its middle, so the chart scrolls and reads at once.
-  let fingered = false;
-  scroll.addEventListener("touchstart", () => { fingered = true; }, {passive: true});
+  scroll.addEventListener("touchstart", () => { fingered = true; touchedAt = Date.now(); }, {passive: true});
   scroll.addEventListener("click", (e) => showAt(e.clientX, fingered));
   scroll.addEventListener("scroll", () => { if (fingered) showAt(scroll.getBoundingClientRect().left + scroll.clientWidth / 2, true); else hide(); }, {passive: true});
 }
