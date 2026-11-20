@@ -435,7 +435,9 @@ def run(now: datetime | None = None) -> dict:
     if not resorts:
         raise SystemExit("no resort forecast could be produced")
     stamp = now.to_pydatetime()
-    forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"), "snow_ratio_model": ratio_name,
+    forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
+                "published_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "snow_ratio_model": ratio_name,
                 "rain_snow_split": {"kind": snow_model.phase_kind, "params": snow_model.phase_params},
                 "bias_corrected": "tahoe" in corrections, "deterministic_days": DETERMINISTIC_DAYS,
                 "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts,

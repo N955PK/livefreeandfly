@@ -494,7 +494,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "107";
+const BUILD = "108";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -616,10 +616,11 @@ function renderHeadline() {
   $("headline").innerHTML = (w.next72.snow_in || 0) < 0.5 ? `${name}: no snow of note in the next three days`
     : `${name}: <b>${inches(w.next72.snow_in)} in</b>${pm(w.next72)} in the next three days`;
   $("headline").title = `At the ${where}, ${el.elevation_ft.toLocaleString()} ft`;
-  const made = new Date(data.generated_utc), age = (Date.now() - made) / 36e5;
+  // generated_utc is the hour the forecast is worked out for; published_utc is when the run actually finished.
+  const made = new Date(data.published_utc || data.generated_utc), age = (Date.now() - made) / 36e5;
   const when = made.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"});
   // The time is grey while the forecast is on schedule, yellow once an update has been missed, and red after two.
-  // The stamp is the hour the run began, so each step allows an hour on top of the update interval.
+  // Each step allows an hour on top of the update interval, for a late start and the run itself.
   const missed = age <= UPDATE_EVERY_H + 1 ? 0 : age <= 2 * UPDATE_EVERY_H + 1 ? 1 : 2;
   const stamp = `<span class="${["", "late", "stale"][missed]}" title="${missed ? `${Math.round(age)} hours old; a new forecast is due every ${UPDATE_EVERY_H} hours` : `A new forecast is due every ${UPDATE_EVERY_H} hours`}">${when}</span>`;
   $("meta").innerHTML = offlineCopy ? `<span class="warn">Offline.</span> Showing the forecast from ${stamp}` : `Updated ${stamp}`;
