@@ -474,14 +474,48 @@ export async function createMap(container, data, {region, onSelect, elevation = 
 
   // ---------- falling snow (fills the whole view, from well above the peaks) ----------
   const flakePositions = new Float32Array(FLAKES * 3), flakeSpeed = new Float32Array(FLAKES);
+  const flakeSize = new Float32Array(FLAKES), flakeSeed = new Float32Array(FLAKES);
   for (let i = 0; i < FLAKES; i++) {
     const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * (globe ? GLOBE_KM - 1.5 : RADIUS * 1.15), x = lakeX + Math.cos(a) * d, y = lakeY + Math.sin(a) * d;
     flakePositions.set([x, y, floorZ + Math.random() * (domeTop(x, y) - floorZ)], 3 * i);
-    flakeSpeed[i] = 2.5 + Math.random() * 3.5;
+    // Mostly fine flakes, with the odd fat one drifting down slowly close to the eye.
+    const fat = Math.random() < 0.05, r = Math.random();
+    flakeSize[i] = fat ? 0.9 + r * 0.7 : 0.28 + r * r * 0.5;
+    flakeSpeed[i] = fat ? 1.6 + r : 2.5 + Math.random() * 3.5;
+    flakeSeed[i] = Math.random();
   }
   const flakeGeometry = new THREE.BufferGeometry();
   flakeGeometry.setAttribute("position", new THREE.BufferAttribute(flakePositions, 3));
-  const flakeMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.5, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true});
+  flakeGeometry.setAttribute("size", new THREE.BufferAttribute(flakeSize, 1));
+  flakeGeometry.setAttribute("seed", new THREE.BufferAttribute(flakeSeed, 1));
+  // Soft round flakes: each drifts sideways on its own rhythm, the fat ones are blurred like something out of focus,
+  // and one too small to draw as a disc fades instead of flickering.
+  const flakeLook = {opacity: {value: 0}, clock: {value: 0}, tall: {value: 1}};
+  const flakeMaterial = new THREE.ShaderMaterial({
+    uniforms: flakeLook, transparent: true, depthWrite: false,
+    vertexShader: `
+      attribute float size; attribute float seed;
+      uniform float clock; uniform float tall;
+      varying float vAlpha; varying float vBlur;
+      void main() {
+        float turn = seed * 6.2832;
+        vec3 p = position + vec3(sin(clock * (0.5 + seed) + turn), cos(clock * (0.4 + seed * 0.7) + turn * 1.7), 0.0) * (0.25 + size * 0.5);
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        float px = size * projectionMatrix[1][1] * tall * 0.5 / -mv.z;
+        gl_PointSize = max(px, 2.0);
+        vBlur = smoothstep(0.7, 1.4, size);
+        vAlpha = (0.55 + 0.45 * fract(seed * 7.31)) * min(1.0, px / 2.0) * mix(1.0, 0.55, vBlur);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform float opacity;
+      varying float vAlpha; varying float vBlur;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        float disc = smoothstep(1.0, mix(0.45, 0.0, vBlur), d);
+        gl_FragColor = vec4(1.0, 1.0, 1.0, disc * vAlpha * opacity);
+      }`,
+  });
   const snowfall = new THREE.Points(flakeGeometry, flakeMaterial);
   snowfall.renderOrder = 3;
   snowfall.frustumCulled = false;
@@ -524,7 +558,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       item.width = 16 + Math.max(item.name.length * 6.6, more >= 0.5 ? 78 : 44);
       item.tall = more >= 0.5 ? 54 : 40;
     }
-    flakeMaterial.opacity = Math.min(0.95, interp(rate, time, storm.start) * 3.2);
+    flakeLook.opacity.value = Math.min(0.95, interp(rate, time, storm.start) * 3.2);
     paintedAt = time;
   }
 
@@ -594,7 +628,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     const dt = Math.min(0.05, (t - last) / 1000); last = t;
     if (!visible) return;
     if (paintedAt !== time) paint();
-    if (flakeMaterial.opacity > 0.01 && !calm) {
+    if (flakeLook.opacity.value > 0.01 && !calm) {
+      flakeLook.clock.value = t / 1000;
       for (let i = 0; i < FLAKES; i++) {
         let z = flakePositions[3 * i + 2] - flakeSpeed[i] * dt;
         if (z < 0) z = domeTop(flakePositions[3 * i], flakePositions[3 * i + 1]) - 0.5;
@@ -602,6 +637,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       }
       flakeGeometry.attributes.position.needsUpdate = true;
     }
+    flakeLook.tall.value = renderer.domElement.height;
     sway(t, dt);
     controls.update();
     renderer.render(scene, camera);
