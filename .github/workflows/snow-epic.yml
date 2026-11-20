@@ -1,0 +1,46 @@
+name: Snow Epic
+
+# Lift and trail status for Heavenly, Northstar, and Kirkwood. Their sites will not answer a browser's cross-site
+# request, so it is read here and published to its own branch for the page to pick up.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snow-epic
+  cancel-in-progress: true
+
+jobs:
+  epic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: snow/tahoe_snow
+
+      - name: Install the reader
+        run: pip install curl_cffi==0.15.0
+
+      # A failed read leaves the last file in place; the page stops showing it once it is 45 minutes old.
+      - name: Read the Epic status pages
+        working-directory: snow
+        run: python3 -m tahoe_snow.sources.epic "$RUNNER_TEMP/epic.json" || echo "::warning::The Epic status pages could not be read"
+
+      # The branch holds one commit: the latest status.
+      - name: Publish to the epic branch
+        run: |
+          [ -s "$RUNNER_TEMP/epic.json" ] || exit 0
+          out="$(mktemp -d)"
+          cp "$RUNNER_TEMP/epic.json" "$out/"
+          cd "$out"
+          git init -q -b snow-epic
+          git config user.name "snow-epic"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Epic status $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-epic

@@ -914,7 +914,8 @@ const STATUS_PAGES = {
 };
 const ALPINE_AREAS = ["Summit Peak", "Scott/Lakeview Peak", "Sherwood Bowl"];
 const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alpine: [61, (area) => ALPINE_AREAS.includes(area)], mammoth: [60, () => true], june: [59, () => true],
-  sierra: ["sierra", () => true], mtrose: ["mtrose", () => true], sugarbowl: ["sugarbowl", () => true]};
+  sierra: ["sierra", () => true], mtrose: ["mtrose", () => true], sugarbowl: ["sugarbowl", () => true],
+  heavenly: ["heavenly", () => true], northstar: ["northstar", () => true], kirkwood: ["kirkwood", () => true]};
 // Sierra-at-Tahoe publishes its own feed; it is recast here into the shape of the Ikon feed the rest of the page reads.
 // Its one weather reading is taken near mid-mountain.
 const getJsonLive = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -959,7 +960,16 @@ async function sugarBowlFeed() {
   return {Name: "Sugar Bowl", LastUpdate: new Date().toISOString(),
     MountainAreas: [...Object.entries(areas).map(([name, list]) => ({Name: name, Lifts: list, Trails: []})), {Name: "All trails", Lifts: [], Trails: trails}]};
 }
-const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed};
+// The Epic mountains' sites turn away a browser's cross-site request, so a scheduled job reads them and publishes the
+// result; anything older than EPIC_FRESH_MIN is treated as missing rather than shown out of date.
+const EPIC_FRESH_MIN = 45;
+const epicFeed = (key) => async () => {
+  const url = location.hostname === "localhost" ? "data/epic.json" : `https://raw.githubusercontent.com/${REPO}/snow-epic/epic.json`;
+  const status = await getJsonLive(url);
+  if (!status.resorts[key] || Date.now() - new Date(status.updated) > EPIC_FRESH_MIN * 6e4) throw new Error("No recent Epic status");
+  return status.resorts[key];
+};
+const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed, heavenly: epicFeed("heavenly"), northstar: epicFeed("northstar"), kirkwood: epicFeed("kirkwood")};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
 // avalanche control before upper terrain opens. The tiers are a judgment call until the record of real holds
@@ -1056,7 +1066,7 @@ function liftsHtml(resort) {
     if (group === "hold") held[lift.Status] = (held[lift.Status] || 0) + 1;
   }
   const meter = (parts, total) => `<div class="meter">${parts.map(([kind, count]) => `<span class="s-${kind}" style="width:${total ? 100 * count / total : 0}%"></span>`).join("")}</div>`;
-  const season = lifts.length && lifts.every((l) => /season/.test(l.StatusEnglish || ""));
+  const season = !lifts.length || lifts.every((l) => /season/.test(l.StatusEnglish || ""));
   const holds = Object.entries(held).map(([word, count]) => `<span class="held">${count} ${esc(word.toLowerCase())}</span>`).join(" · ");
   const openTrails = trails.filter((t) => /^open/.test(t.StatusEnglish || "")).length;
   const list = areas.filter((a) => (a.Lifts || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Lifts.map((l) => `<div class="lift"><span>${esc(l.Name)}</span><span><i class="s-${liftGroup(l.StatusEnglish || "")}"></i>${esc(l.Status || "")}</span></div>`).join("")}`).join("");
