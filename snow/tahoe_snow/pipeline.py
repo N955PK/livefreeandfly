@@ -219,7 +219,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     midnight = today.tz_localize(TZ).tz_convert("UTC").tz_localize(None)
     # Start at 4 pm yesterday so today's ski-day window is complete.
     hours = pd.date_range(midnight - pd.Timedelta(hours=8), now + pd.Timedelta(hours=DAYS * 24 - 1), freq="h")
-    payload = {"key": resort.key, "name": resort.name, "station": STATIONS[resort.station].name,
+    payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
+               "station": STATIONS[resort.station].name,
                "weak_station_match": resort.weak_match, "elevations": {}, "models": list(models)}
     archive = []
     summit_blend = None

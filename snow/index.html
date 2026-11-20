@@ -7,6 +7,7 @@
 <meta property="og:title" content="Tahoe Snow">
 <meta property="og:description" content="A free, verified snow forecast for Tahoe resorts.">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.v4.png">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
 :root{
   color-scheme:light;
@@ -122,6 +123,26 @@ table.plain{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular
 table.plain th,table.plain td{padding:6px 10px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap}
 table.plain th{color:var(--muted);font-weight:550;font-size:12px}
 table.plain td:first-child,table.plain th:first-child{text-align:left}
+#mapPanel{margin-top:22px;overflow:hidden;display:none}
+#map3d{position:relative;height:min(62vh,560px);min-height:380px;background:linear-gradient(#b9d3ea,#e9f1f7 55%,#f6f8fa);touch-action:none;cursor:grab}
+#map3d:active{cursor:grabbing}
+#map3d canvas{display:block;width:100%;height:100%}
+.map-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.map-label{position:absolute;left:0;top:0;pointer-events:auto;border:0;cursor:pointer;font:inherit;white-space:nowrap;text-align:center;
+  background:rgba(255,255,255,.92);color:#0f1720;border-radius:8px;padding:3px 8px 4px;box-shadow:0 2px 8px rgba(15,23,32,.22);line-height:1.15}
+.map-label b{display:block;font-size:11.5px;font-weight:650}
+.map-label span{font-size:13px;font-weight:700;color:#1c5cab;font-variant-numeric:tabular-nums}
+.map-label.mini b{display:none}
+.map-label.on{background:#0f1720;color:#fff}.map-label.on span{color:#9ec5f4}
+.map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
+.map-label.on::after{border-top-color:#0f1720}
+.map-lake{position:absolute;left:0;top:0;font-size:12px;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
+.mapbar{display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap}
+.mapbar button{width:38px;height:38px;border-radius:50%;border:0;background:var(--ink);color:var(--surface);font-size:14px;cursor:pointer;flex:none}
+.mapbar input{flex:1;min-width:140px;accent-color:var(--snow)}
+.mapbar .when{font-size:14px;font-weight:650;min-width:92px}
+.mapbar .what{font-size:12.5px;color:var(--muted);flex-basis:100%}
+@media (prefers-color-scheme:dark){#map3d{background:linear-gradient(#1b2937,#27323d 55%,#1a1f25)}}
 footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
 @media(max-width:720px){
   .tiles{grid-template-columns:repeat(2,1fr)}
@@ -141,6 +162,16 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   <h1 id="headline">Loading the forecast…</h1>
   <p class="lede" id="lede"></p>
   <p class="meta" id="meta"></p>
+
+  <div class="panel" id="mapPanel">
+    <div id="map3d"></div>
+    <div class="mapbar">
+      <button id="play" aria-label="Play the storm">▶</button>
+      <span class="when" id="mapWhen"></span>
+      <input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Forecast time">
+      <span class="what" id="mapWhat"></span>
+    </div>
+  </div>
 
   <div class="bar">
     <h2>Where and when</h2>
@@ -350,7 +381,41 @@ function renderDetail() {
   wireChart(resort, el, g);
 }
 
-function renderAll() { renderHeadline(); renderHeat(); renderDetail(); }
+function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) { map.setElevation(elevation); map.select(selected); } }
+
+let map = null, playing = false, playFrame = 0;
+function showTime(value) {
+  const t = map.timeAt(value), rate = map.rateAt(value), level = map.snowLevelFtAt(value);
+  $("mapWhen").textContent = value < 0.5 ? "Now" : value >= map.steps - 1.01 ? "By " + t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"}) : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+  const falling = rate < 0.02 ? "Not snowing" : rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping";
+  $("mapWhat").textContent = `${falling}${rate >= 0.02 ? `, about ${rate.toFixed(1)} in an hour up high` : ""} · snow level ${Math.round(level / 100) * 100 > 12000 ? "above the peaks" : (Math.round(level / 100) * 100).toLocaleString() + " ft"} · stakes show new snow since now · drag to look around`;
+}
+function setTime(value) { $("scrub").value = value; map.setTime(value); showTime(value); }
+function togglePlay(on) {
+  playing = on; $("play").textContent = on ? "❚❚" : "▶";
+  cancelAnimationFrame(playFrame);
+  if (!on) return;
+  let last = performance.now();
+  if (+$("scrub").value >= map.steps - 1.01) setTime(0);
+  const tick = (now) => {
+    const value = +$("scrub").value + (now - last) / 1000 * 7; last = now;
+    if (value >= map.steps - 1) { setTime(map.steps - 1); togglePlay(false); return; }
+    setTime(value); playFrame = requestAnimationFrame(tick);
+  };
+  playFrame = requestAnimationFrame(tick);
+}
+async function startMap() {
+  if (!data.resorts[0].lat) return;
+  try {
+    const {createMap} = await import("./map3d.js");
+    $("mapPanel").style.display = "block";
+    map = await createMap($("map3d"), data, {elevation, selected, onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
+    $("scrub").max = map.steps - 1;
+    $("scrub").addEventListener("input", (e) => { togglePlay(false); setTime(+e.target.value); });
+    $("play").addEventListener("click", () => togglePlay(!playing));
+    setTime(map.steps - 1);
+  } catch (error) { $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
+}
 
 function renderNotes() {
   $("biasNote").textContent = data.bias_corrected ? "Each model's daily water is corrected against years of readings from the nearest SNOTEL station." : "Correction of each model's water against the nearest SNOTEL station is being fitted and is not applied yet.";
@@ -378,7 +443,7 @@ $("heat").addEventListener("click", (e) => {
   renderHeat(); renderDetail();
   if (e.target.closest("td.name")) $("detail").scrollIntoView({behavior: "smooth", block: "start"});
 });
-fetch("data/forecast.json", {cache: "no-store"}).then((r) => r.json()).then((d) => { data = d; renderNotes(); renderAll(); })
+fetch("data/forecast.json", {cache: "no-store"}).then((r) => r.json()).then((d) => { data = d; renderNotes(); renderAll(); startMap(); })
   .catch(() => { $("headline").textContent = "The forecast could not be loaded"; });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
