@@ -306,7 +306,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "29";
+const BUILD = "30";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -333,11 +333,12 @@ function fixTimes(d) {
 }
 
 // Snow quality by snow-to-liquid ratio, and wind strength by speed: one scale each, used everywhere.
-const QUALITY = [[10, "Heavy"], [14, "Medium"], [Infinity, "Light"]];
+// Thirds of 20,767 hand-measured Sierra snow days fall at 7.7:1 and 11.9:1, so the lines sit at 8 and 12.
+const QUALITY = [[8, "Wet"], [12, "Medium"], [Infinity, "Dry"]];
 const WIND = [[15, "Calm"], [25, "Breezy"], [40, "Windy"], [Infinity, "Strong"]];
 const qualityBin = (ratio) => QUALITY.findIndex(([top]) => ratio < top);
 const windBin = (mph) => WIND.findIndex(([top]) => (mph || 0) < top);
-// Snow gets three distinct colors (heavy, medium, light). Wind is a smooth ramp from calm (10 mph) through
+// Snow gets three distinct colors (wet, medium, dry). Wind is a smooth ramp from calm (10 mph) through
 // amber (30) to red (50).
 const snowColor = (ratio) => `var(--q${qualityBin(ratio ?? 12)})`;
 const mix = (to, from, share) => `color-mix(in oklab, var(${to}) ${Math.round(100 * Math.min(1, Math.max(0, share)))}%, var(${from}))`;
@@ -615,7 +616,7 @@ function renderDetail() {
     <div class="days"><div class="srow head"><div></div><div>All snow in the 24 hours to 4 pm</div><div></div><div>Lift hours</div><div class="pw">Powder</div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
-    <div class="key"><span class="blocks">Snow<span><b style="background:var(--q0)">heavy</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">light</b></span></span>
+    <div class="key"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">calm</b><b>strong</b></span></span></div>
     <div class="key">
       <span class="sw"><i style="background:var(--night);border:1px solid var(--grid)"></i>night</span>
