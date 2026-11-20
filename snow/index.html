@@ -174,8 +174,11 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .key .blocks > span{display:inline-flex;border-radius:5px;overflow:hidden}
 .key .blocks b{font-weight:600;font-size:11px;padding:2px 6px;color:#fff}
 .key .blocks b.dark{color:#0f1720}
-.key .blocks .ramp{justify-content:space-between;min-width:86px}
+.key .blocks > span{box-sizing:border-box;width:118px}
+.key .blocks > span:not(.ramp) b{flex:1 1 auto;text-align:center}
+.key .blocks .ramp{justify-content:space-between}
 .key .blocks .ramp b{background:none}
+.key .blocks .ramp b.dark{color:var(--ink)}
 .key:has(.blocks){flex-wrap:nowrap;gap:12px}
 .key .sw{display:inline-flex;align-items:center;gap:4px}
 .hhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 6px}
@@ -371,7 +374,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "56";
+const BUILD = "57";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
