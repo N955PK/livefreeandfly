@@ -44,7 +44,6 @@
 #splash b{font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:650;opacity:0;animation:rise .6s ease .25s forwards}
 #splash i{position:absolute;top:-12px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:drift linear infinite}
 #splash.done{opacity:0;visibility:hidden}
-#splash.done img{transform:scale(1.25);transition:transform .5s ease}
 @keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.92;transform:none}}
@@ -330,7 +329,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "33";
+const BUILD = "34";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -812,8 +811,21 @@ async function liveForecast() {
 // The opening screen stays up until the page and the map are ready (or 8 seconds pass), and at least long
 // enough for the logo to spin up.
 const opened = performance.now();
+let revealed = false;
 function reveal() {
-  setTimeout(() => $("splash").classList.add("done"), Math.max(0, 1500 - (performance.now() - opened)));
+  if (revealed) return;
+  revealed = true;
+  setTimeout(() => {
+    const splash = $("splash"), logo = splash.querySelector("img");
+    const finish = () => splash.classList.add("done");
+    if (!logo.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
+    // The prop winds down: from wherever it is now, a little over one more turn, easing to a stop upright.
+    const m = new DOMMatrixReadOnly(getComputedStyle(logo).transform);
+    const angle = (Math.atan2(m.b, m.a) * 180 / Math.PI + 360) % 360, target = angle + (360 - angle) + 360;
+    for (const running of logo.getAnimations()) running.cancel();
+    logo.animate([{transform: `rotate(${angle}deg)`}, {transform: `rotate(${target}deg)`}],
+      {duration: 1300, easing: "cubic-bezier(.12,.55,.25,1)", fill: "forwards"}).finished.then(() => setTimeout(finish, 250), finish);
+  }, Math.max(0, 1500 - (performance.now() - opened)));
 }
 setTimeout(reveal, 8000);
 liveForecast().then(async (d) => {
