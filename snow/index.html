@@ -229,6 +229,8 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .srow .pw b{font-size:15px}
 .srow .pw span{color:var(--muted)}
 .tl{position:relative;margin-top:6px}
+.tl-fixed{position:absolute;z-index:3;left:calc(44px + (100% - 44px) / 2);width:1px;background:var(--ink2);pointer-events:none}
+.tl-fixed[hidden]{display:none}
 .tl-axis{position:absolute;left:0;top:0;width:44px}
 .tl-axis text,.tl-scroll text{font-size:11px;fill:var(--muted);font-family:inherit}
 .tl-scroll text.lab{fill:var(--ink2);font-weight:550}
@@ -644,7 +646,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "151";
+const BUILD = "152";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -926,7 +928,7 @@ function timeline(resort, el) {
     <text x="38" y="${TA + 10}" text-anchor="end">Storm</text><text x="38" y="${TA + 22}" text-anchor="end">total</text>
     <text x="38" y="${WIND_Y + STRIP / 2 + 4}" text-anchor="end">Wind</text><text x="38" y="${GUST_Y + STRIP / 2 + 4}" text-anchor="end">Gust</text><text x="38" y="${CLOUD_Y + STRIP / 2 + 4}" text-anchor="end">Cloud</text><text x="38" y="${TEMP_Y + STRIP / 2 + 4}" text-anchor="end">Temp</text>
     <text x="40" y="${y2(summit) + 4}" text-anchor="end">Summit</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text></svg>`;
-  return {html: `<div class="tl"><div class="tl-axis">${axis}</div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, storm totals, wind, cloud, temperature, and snow level: the past week and the next six days">${body}</svg></div><div id="tip"></div></div>`,
+  return {html: `<div class="tl"><div class="tl-axis">${axis}</div><div class="tl-fixed" id="crossFixed" hidden></div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, storm totals, wind, cloud, temperature, and snow level: the past week and the next six days">${body}</svg></div><div id="tip"></div></div>`,
     n, pph, nowIndex, running, depth};
 }
 
@@ -935,9 +937,10 @@ document.addEventListener("pointerdown", (event) => {
   if (event.target.closest("#tlScroll") || !$("tip")) return;
   $("tip").style.display = "none";
   if ($("cross")) $("cross").style.display = "none";
+  if ($("crossFixed")) $("crossFixed").hidden = true;
 });
 function wireTimeline(resort, el, g) {
-  const scroll = $("tlScroll"), tip = $("tip"), cross = $("cross");
+  const scroll = $("tlScroll"), tip = $("tip"), cross = $("cross"), fixed = $("crossFixed");
   if (!scroll) return;
   const h = el.hourly;
   // Open with now about a quarter of the way in, so a little of the past shows and the rest is a swipe away.
@@ -949,7 +952,9 @@ function wireTimeline(resort, el, g) {
   const showAt = (clientX, above) => {
     const rect = scroll.getBoundingClientRect(), px = clientX - rect.left + scroll.scrollLeft;
     const k = Math.max(0, Math.min(g.n - 1, Math.floor(px / g.pph))), cx = (k + 0.5) * g.pph;
-    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.style.display = "";
+    // A mouse gets a line on the hour it points at. A finger gets one that stays put at the chart's middle while the hours slide under it.
+    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.style.display = above ? "none" : "";
+    fixed.hidden = !above;
     const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
     const snowing = h.snow_in[k] > 0.004, wind = h.wind_mph[k], gust = h.gust_mph[k], past = k < g.nowIndex;
     const row = (a, b) => `<div><span>${a}</span><span>${b}</span></div>`;
@@ -967,20 +972,23 @@ function wireTimeline(resort, el, g) {
     // A mouse gets the readout beside the pointer. A finger gets it in one fixed spot above the chart, clear of the hand.
     tip.classList.toggle("steady", !!above);
     tip.style.left = (above ? (wide - tip.offsetWidth) / 2 : Math.max(4, Math.min(wide - tip.offsetWidth - 4, left + 12 + tip.offsetWidth > wide ? left - 12 - tip.offsetWidth : left + 12))) + "px";
-    tip.style.top = above ? `${10 - tip.offsetHeight}px` : "22px";
+    tip.style.top = above ? `${-8 - tip.offsetHeight}px` : "22px";
   };
-  const hide = () => { tip.style.display = "none"; cross.style.display = "none"; };
+  const hide = () => { tip.style.display = "none"; cross.style.display = "none"; fixed.hidden = true; };
+  const middle = () => scroll.getBoundingClientRect().left + scroll.clientWidth / 2;
+  fixed.style.top = `${scroll.offsetTop + +cross.getAttribute("y1")}px`;
+  fixed.style.height = `${cross.getAttribute("y2") - cross.getAttribute("y1")}px`;
   let fingered = false, touchedAt = 0;
   // Moving a mouse switches back to the readout that follows the pointer, on a machine that has both. A tap
   // also sends a mouse move just after the touch, which is not a mouse.
   scroll.addEventListener("mousemove", (e) => { if (Date.now() - touchedAt < 1000) return; fingered = false; showAt(e.clientX); });
   scroll.addEventListener("mouseleave", hide);
-  // With a finger, a tap opens the readout on that hour and another tap closes it; swiping alone never opens it.
-  // While it is open, swiping reads the hour passing under the chart's middle.
+  // With a finger, a tap opens the readout and another tap closes it; swiping alone never opens it. While it is
+  // open it reads the hour under the chart's middle.
   const open = () => tip.style.display === "block";
   scroll.addEventListener("touchstart", () => { fingered = true; touchedAt = Date.now(); }, {passive: true});
-  scroll.addEventListener("click", (e) => { if (!fingered) showAt(e.clientX); else if (open()) hide(); else showAt(e.clientX, true); });
-  scroll.addEventListener("scroll", () => { if (!fingered) hide(); else if (open()) showAt(scroll.getBoundingClientRect().left + scroll.clientWidth / 2, true); }, {passive: true});
+  scroll.addEventListener("click", (e) => { if (!fingered) showAt(e.clientX); else if (open()) hide(); else showAt(middle(), true); });
+  scroll.addEventListener("scroll", () => { if (!fingered) hide(); else if (open()) showAt(middle(), true); }, {passive: true});
 }
 
 // A day's snow on a fixed 0 to 24 inch scale: a dot for the forecast, a shaded band for one standard deviation
