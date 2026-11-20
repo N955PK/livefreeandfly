@@ -307,10 +307,43 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 #toast.on{opacity:1}
 
 .gate{max-width:420px;margin:12vh auto 0;padding:0 22px}
+/* The opening screen: the skier drops in, rides the slope while the house loads, then skis off. */
+#splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+  background:var(--bg);color:var(--ink);overflow:hidden;transition:opacity .45s ease,visibility .45s}
+#splash.done{opacity:0;visibility:hidden}
+#splash .run{position:relative;width:150px;height:112px;rotate:9deg}
+#splash .slope{position:absolute;left:-150vw;width:300vw;bottom:8px;height:2px;border-radius:2px;
+  background:repeating-linear-gradient(90deg,var(--dim) 0 54px,transparent 54px 76px);opacity:.5;animation:slope .42s linear infinite}
+#splash .rider{position:absolute;left:0;bottom:8px;width:150px;height:94px;transform-origin:50% 100%;
+  animation:dropin .95s cubic-bezier(.16,.8,.3,1) backwards,ride 1.15s ease-in-out .95s infinite;transition:translate .6s cubic-bezier(.6,0,.9,.35)}
+#splash.go .rider{translate:120vw 0}
+#splash .skier{display:block;width:100%;height:100%;background:url(skier-mark.png) center/contain no-repeat}
+:root[data-accent]:not([data-accent="chairlift"]) #splash .skier{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
+#splash u{position:absolute;left:20px;bottom:3px;width:8px;height:8px;border-radius:50%;background:var(--ink);opacity:0;animation:spray .66s ease-out infinite}
+#splash u:nth-of-type(2){animation-delay:.22s;bottom:10px}
+#splash u:nth-of-type(3){animation-delay:.44s;left:24px}
+#splash b{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em;opacity:0;animation:wordup .6s ease .35s forwards}
+#splash b span{color:var(--accent-ink);font-weight:700}
+#splash i{position:absolute;top:-12px;border-radius:50%;background:var(--ink);opacity:.26;animation:blow linear infinite}
+@keyframes slope{to{background-position-x:-76px}}
+@keyframes dropin{from{translate:-70vw 0}to{translate:0 0}}
+@keyframes ride{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-7px) rotate(-3deg)}62%{transform:translateY(0) rotate(1.5deg)}}
+@keyframes spray{from{opacity:.38;transform:none}to{opacity:0;transform:translate(-58px,-26px) scale(2.4)}}
+@keyframes wordup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes blow{to{transform:translate(-55vw,108vh)}}
+@media (prefers-reduced-motion:reduce){#splash .rider,#splash .slope,#splash b{animation:none}#splash b{opacity:1}#splash i,#splash u{display:none}}
 @media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:18px;height:18px;font-size:10px} .day .dots{gap:2px;max-height:38px} .day .more{width:18px;height:18px;font-size:10px} }
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div class="run"><span class="slope"></span><span class="rider"><span class="skier"></span><u></u><u></u><u></u></span></div><b>ski<span>/</span>lease</b></div>
+<script>
+for (let n = 0; n < 30; n++) {
+  const flake = document.createElement('i'), size = 3 + Math.random() * 4;
+  flake.style.cssText = `left:${Math.random() * 150}%;width:${size}px;height:${size}px;animation-duration:${2.6 + Math.random() * 3.4}s;animation-delay:${-Math.random() * 6}s`;
+  document.getElementById('splash').appendChild(flake);
+}
+</script>
 <header class="top">
   <span class="brand"><span class="mark" aria-hidden="true"></span><span>ski<span class="slash">/</span>lease</span></span>
   <button class="who" id="who" data-act="me-edit" aria-label="Change your name and details" hidden></button>
@@ -928,7 +961,22 @@ function showSnow(on){
   if (!frame.getAttribute('src')) frame.src = SNOW_URL;
 }
 
+const opened = performance.now();
+let revealed = false;
+function reveal(){
+  if (revealed) return;
+  revealed = true;
+  setTimeout(() => {
+    const splash = $('#splash');
+    if (reducedMotion()) return splash.classList.add('done');
+    splash.classList.add('go');
+    setTimeout(() => splash.classList.add('done'), 430);
+  }, Math.max(0, 1600 - (performance.now() - opened)));
+}
+setTimeout(reveal, 8000);
+
 function render(){
+  if (S.gate !== 'loading') reveal();
   const gated = !!S.gate;
   $('#tabs').hidden = gated;
   $('#who').hidden = gated || !S.me;
