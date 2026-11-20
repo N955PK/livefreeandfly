@@ -272,7 +272,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "18";
+const BUILD = "19";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -289,7 +289,11 @@ const range = (lo, hi) => lo == null ? "" : `${inches(lo)}–${inches(hi)} in`;
 const withSeconds = (t) => /T\d\d:\d\dZ$/.test(t) ? t.replace("Z", ":00Z") : t;
 function fixTimes(d) {
   d.generated_utc = withSeconds(d.generated_utc);
-  for (const r of d.resorts) r.hours_utc = r.hours_utc.map(withSeconds);
+  for (const r of d.resorts) {
+    r.hours_utc = r.hours_utc.map(withSeconds);
+    // An older data file may lack newer fields; fill them so the page still renders.
+    for (const el of Object.values(r.elevations)) for (const key of ["gust_mph", "cloud_pct"]) el.hourly[key] ||= el.hourly.snow_in.map(() => null);
+  }
   return d;
 }
 
@@ -603,12 +607,26 @@ $("heat").addEventListener("click", (e) => {
   renderHeat(); renderDetail();
   if (e.target.closest("td.name")) $("detail").scrollIntoView({behavior: "smooth", block: "start"});
 });
-// The forecast is republished every few hours to its own branch; a local copy is the fallback.
-const LIVE_DATA = "https://raw.githubusercontent.com/N955PK/livefreeandfly/snow-data/forecast.json";
+// The forecast is republished every few hours to its own branch. Asking for the branch's current commit first
+// and loading the file by that commit avoids GitHub's file cache, which can lag by many minutes.
+const REPO = "N955PK/livefreeandfly", DATA_BRANCH = "snow-data";
 const loadForecast = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-(location.hostname === "localhost" ? loadForecast("data/forecast.json") : loadForecast(LIVE_DATA).catch(() => loadForecast("data/forecast.json")))
-  .then((d) => { data = fixTimes(d); renderNotes(); renderAll(); startMap(); })
-  .catch(() => { $("headline").textContent = "The forecast could not be loaded"; });
+async function liveForecast() {
+  if (location.hostname === "localhost") return loadForecast("data/forecast.json");
+  try {
+    const branch = await fetch(`https://api.github.com/repos/${REPO}/branches/${DATA_BRANCH}`, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    return await loadForecast(`https://raw.githubusercontent.com/${REPO}/${branch.commit.sha}/forecast.json`);
+  } catch (error) {
+    return loadForecast(`https://raw.githubusercontent.com/${REPO}/${DATA_BRANCH}/forecast.json`);
+  }
+}
+liveForecast().then((d) => {
+  data = fixTimes(d);
+  // Each part renders on its own, so a problem in one never blanks the rest.
+  for (const step of [renderNotes, renderHeadline, renderHeat, renderDetail, startMap]) {
+    try { step(); } catch (error) { console.error(error); }
+  }
+}).catch(() => { $("headline").textContent = "The forecast could not be loaded"; });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
 </body>
