@@ -99,7 +99,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .heat{--pick:color-mix(in oklab,var(--ink) 11%,var(--surface))}
 .heat tr.on td.name{background:var(--pick);border-radius:10px 0 0 10px;box-shadow:3px 0 0 var(--pick)}
 .heat tr.on td.total{background:var(--pick);border-radius:0 10px 10px 0}
-.heat tr:hover td.name b{text-decoration:underline}
+@media(hover:hover){.heat tr:not(.on):hover td.name b{text-decoration:underline}}
 .heat td.total{text-align:right;padding:0 8px;white-space:nowrap;font-size:15px;font-weight:700}
 .heat td.total span{display:block;font-size:11px;font-weight:400;color:var(--muted)}
 .cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;cursor:pointer;
@@ -491,7 +491,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "105";
+const BUILD = "106";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
