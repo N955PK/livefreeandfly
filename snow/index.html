@@ -43,8 +43,10 @@
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
 /* Inside another page (?embed) the host supplies the name. */
 .embed .brand img,.embed .appname{display:none}
-.embed main{padding-top:10px}
-.embed .regions{font-size:.8em;margin-left:0}
+.embed main{padding:16px 18px calc(48px + env(safe-area-inset-bottom))}
+.embed h1{font-family:var(--host-font,inherit);font-size:var(--host-title,26px);font-weight:600;letter-spacing:.01em;line-height:1.2}
+.embed .regions{font-size:1em;font-weight:inherit;letter-spacing:inherit;margin-left:0}
+.embed .regions i{margin:0 .35em}
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .5s ease,visibility .5s}
 #splash img{width:min(38vw,170px);height:auto;animation:spinup 1.4s cubic-bezier(.55,0,.9,.5) both,spin .55s linear 1.4s infinite}
@@ -384,6 +386,11 @@ if (new URLSearchParams(location.search).has("embed")) {
       const accent = host.getPropertyValue("--accent-ink").trim(), fill = host.getPropertyValue("--accent").trim();
       if (accent) document.documentElement.style.setProperty("--accent", accent);
       if (fill) document.documentElement.style.setProperty("--host-fill", fill);
+      // The region title is set like the host's own page titles.
+      for (const [from, to] of [["--mono", "--host-font"], ["--t-title", "--host-title"]]) {
+        const value = host.getPropertyValue(from).trim();
+        if (value) document.documentElement.style.setProperty(to, value);
+      }
     } catch (error) { /* a host on another site keeps the page's own blue */ }
   };
   if (parent !== window) { follow(); setInterval(follow, 1500); }
@@ -449,7 +456,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "83";
+const BUILD = "84";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
