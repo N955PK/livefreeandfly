@@ -1024,7 +1024,9 @@ function weatherRows(resort) {
   const impacts = outlookImpacts(resort, day.date, crest && {wind: +crest.WindStrengthMph, gust: +crest.WindGustsMph || 0});
   const worst = impacts.some((x) => x.tone === "bad") ? "bad" : impacts.length ? "warn" : "";
   const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
-  const weather = `<div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>`;
+  // A backcountry peak has no lifts to hold, so its first row is the avalanche rating, not the weather's impacts.
+  const weather = resort.kind === "backcountry" ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>`
+    : `<div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>`;
   const p = ((resort.elevations[elevation].days.find((d) => d.date === day.date) || {}).powder) || {};
   const tag = `<small class="${live ? "live" : ""}">${live ? "live" : "forecast"}</small>`;
   const temp = live ? +live.TemperatureF : p.temp_f, wind = live ? +live.WindStrengthMph : p.wind_mph, gust = live ? +live.WindGustsMph : p.gust_mph;
@@ -1043,7 +1045,7 @@ function outlook(resort) {
   return `<div class="outlook"><div class="hhead"><h3>Status <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
     <span class="src" id="statusSrc">${statusSource(resort)}</span>
     <div id="wx">${weatherRows(resort)}</div>
-    ${wild ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>` : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
+    ${wild ? "" : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
 }
 // ---------- live lifts and trails, where the resort publishes them ----------
 const liftFeeds = {};
