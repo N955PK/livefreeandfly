@@ -308,7 +308,7 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 
 .gate{max-width:420px;margin:12vh auto 0;padding:0 22px}
 /* The opening screen: the skier holds the middle of the screen and only tips; the hill rushes past underneath, drops away off a knoll,
-   and he is left flying into the wind in the logo's own pose until the house has loaded. */
+   and he is left flying in the logo's own pose until the house has loaded. */
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;
   background:var(--bg);color:var(--ink);overflow:hidden;transition:opacity .45s ease,visibility .45s}
 #splash.done{opacity:0;visibility:hidden}
@@ -322,9 +322,6 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 #splash .skier{display:block;width:100%;height:100%;background:url(skier-mark.png) center/contain no-repeat}
 :root[data-accent]:not([data-accent="chairlift"]) #splash .skier{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
 #splash u{position:absolute;border-radius:50%;background:var(--dim);opacity:0;animation:kick var(--t) cubic-bezier(.12,.6,.3,1) var(--d) both}
-#splash .wind{opacity:0;animation:windup .6s ease 1.5s forwards}
-#splash .wind path{fill:none;stroke:var(--dim);stroke-width:1.5;stroke-linecap:round;stroke-dasharray:var(--len) 100;stroke-dashoffset:var(--len);opacity:.28;
-  animation:gust var(--t) linear var(--d) infinite}
 #splash b{position:relative;font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em;opacity:0;animation:wordup .6s ease .35s forwards}
 #splash b span{color:var(--accent-ink);font-weight:700}
 #splash i{position:absolute;left:100%;height:2px;border-radius:2px;background:var(--ink);opacity:.11;animation:streak linear infinite}
@@ -333,23 +330,15 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 @keyframes tip{0%,47.62%{rotate:23.2deg}49.33%{rotate:19.3deg}50.89%{rotate:14.6deg}52.31%{rotate:8.9deg}53.57%{rotate:1.9deg}58%,100%{rotate:0deg}}
 @keyframes float{0%,100%{transform:none}50%{transform:translateY(-4px) rotate(-1.5deg)}}
 @keyframes kick{0%{opacity:0;transform:scale(.5)}10%{opacity:.6}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.7)}}
-@keyframes windup{to{opacity:1}}
-@keyframes gust{to{stroke-dashoffset:-100}}
 @keyframes wordup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes streak{to{transform:translateX(calc(-100vw - 80px))}}
-@media (prefers-reduced-motion:reduce){#splash .rider,#splash b{animation:none}#splash b{opacity:1}#splash .ground,#splash .wind,#splash i{display:none}}
+@media (prefers-reduced-motion:reduce){#splash .rider,#splash b{animation:none}#splash b{opacity:1}#splash .ground,#splash i{display:none}}
 @media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:18px;height:18px;font-size:10px} .day .dots{gap:2px;max-height:38px} .day .more{width:18px;height:18px;font-size:10px} }
 </style>
 </head>
 <body>
 <div id="splash" aria-hidden="true"><div class="hill"><div class="ground"><svg viewBox="0 0 400 200"><path class="snowpack" d="M-2000 -264L40 100.7Q88 109.3 120 103C128 103 136 122.8 160 131L3000 1096.6V4000H-2000Z"/><path class="line" d="M-2000 -264L40 100.7Q88 109.3 120 103C128 103 136 122.8 160 131L3000 1096.6"/></svg></div>
-<svg class="wind" viewBox="0 0 400 200">
-<path pathLength="100" style="--len:9;--t:.62s;--d:0s" d="M520 6C340 6 270 0 200 -8S20 -6 -120 -2"/>
-<path pathLength="100" style="--len:11;--t:.5s;--d:.21s" d="M520 60C360 60 300 62 268 50S200 20 150 30S20 44 -120 40"/>
-<path pathLength="100" style="--len:8;--t:.7s;--d:.4s" d="M520 86C400 86 330 86 286 82"/>
-<path pathLength="100" style="--len:11;--t:.54s;--d:.1s" d="M520 126C360 126 300 128 262 138S170 156 110 146S0 134 -120 138"/>
-<path pathLength="100" style="--len:9;--t:.66s;--d:.33s" d="M520 176C320 176 250 186 180 184S20 174 -120 176"/>
-</svg><span class="rider"><span class="skier"></span></span></div><b>ski<span>/</span>lease</b></div>
+<span class="rider"><span class="skier"></span></span></div><b>ski<span>/</span>lease</b></div>
 <script>
 {
   const splash = document.getElementById('splash'), ground = splash.querySelector('.ground');
