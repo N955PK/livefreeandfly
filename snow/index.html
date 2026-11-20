@@ -338,10 +338,10 @@ for (let n = 0; n < 26; n++) {
 <script>
 const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
-const GRID_FULL_IN = 24;
+const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "45";
+const BUILD = "46";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -386,13 +386,18 @@ function quality(ratio) { return ratio == null ? ["", ""] : [QUALITY[qualityBin(
 
 function futureDays(el) { return el.days.filter((d) => !d.past).slice(0, 10); }
 
-function fiveDay(el) {
-  const days = futureDays(el).filter((d) => d.lead_day <= data.deterministic_days);
-  return days.reduce((sum, d) => sum + ((d.powder && d.powder.snow_in) || 0), 0);
+// Snow over the last three days: the hourly estimate summed over the 72 hours up to now.
+const RECENT_HOURS = 72;
+function lastThreeDays(resort, el) {
+  const now = new Date(data.generated_utc).getTime(), hours = resort.hours_utc;
+  const end = Math.max(0, hours.findIndex((t) => new Date(t).getTime() >= now));
+  let total = 0;
+  for (let i = Math.max(0, end - RECENT_HOURS); i < end; i++) total += el.hourly.snow_in[i] || 0;
+  return total;
 }
 
-// The home resort leads; the rest follow by total.
-function sorted() { return [...data.resorts].sort((a, b) => (b.key === HOME) - (a.key === HOME) || fiveDay(b.elevations[elevation]) - fiveDay(a.elevations[elevation])); }
+// The home resort leads; the rest follow by what fell in the last three days.
+function sorted() { return [...data.resorts].sort((a, b) => (b.key === HOME) - (a.key === HOME) || lastThreeDays(b, b.elevations[elevation]) - lastThreeDays(a, a.elevations[elevation])); }
 
 function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(x.pm_in)}</span>`; }
 
@@ -418,17 +423,17 @@ function renderHeat() {
   let html = `<tr><th></th><th></th><th class="grp" colspan="${near.length}">Snow in inches, 4 pm the day before to 4 pm</th>` +
     (far.length ? `<th class="sep"></th><th class="grp" colspan="${far.length}">Outlook: chance of 6 in or more</th>` : "") + `</tr>`;
   const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
-  html += `<tr><th></th><th>${weekday(near[0].date)}–${weekday(near[near.length - 1].date)}</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
+  html += `<tr><th></th><th>Last 3 days</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
   for (const r of resorts) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
-    const total = fiveDay(el);
+    const total = lastThreeDays(r, el);
     html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name"><b>${esc(r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft</span></td>
       <td class="total">${inches(total)} in</td>`;
     for (const d of near) {
       const x = byDate[d.date] || {};
       // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
       // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
-      const p = x.powder || {}, total = p.snow_in || 0, fill = Math.round(100 * Math.min(total, GRID_FULL_IN) / GRID_FULL_IN);
+      const p = x.powder || {}, total = p.snow_in || 0, fill = Math.round(100 * Math.min(total, BAR_FULL_IN) / BAR_FULL_IN);
       html += `<td><div class="cell${total < 0.5 ? " none" : ""}" style="--fill:${total < 0.5 ? 0 : Math.max(fill, 6)}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} in${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}">${whole(total)}</div></td>`;
     }
     if (far.length) html += '<td class="sep"></td>';
@@ -440,7 +445,7 @@ function renderHeat() {
   }
   $("heat").innerHTML = html;
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
-    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${GRID_FULL_IN}</span><span>Tap a resort for details</span>`;
+    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${BAR_FULL_IN}</span><span>Tap a resort for details</span>`;
 }
 
 const ICONS = {
@@ -581,9 +586,8 @@ function wireTimeline(resort, el, g) {
   scroll.addEventListener("scroll", hide, {passive: true});
 }
 
-// A day's snow on a fixed 0 to 36 inch scale: a dot for the forecast, a shaded band for one standard deviation
-// either side, and a tick for each weather model. Anything past 36 inches sits at the end.
-const BAR_FULL_IN = 36;
+// A day's snow on a fixed 0 to 24 inch scale: a dot for the forecast, a shaded band for one standard deviation
+// either side, and a tick for each weather model. Anything past 24 inches sits at the end.
 function dayBar(p, withRange) {
   const total = p.snow_in || 0, at = (v) => (100 * Math.min(Math.max(v || 0, 0), BAR_FULL_IN) / BAR_FULL_IN).toFixed(1);
   let marks = "";
