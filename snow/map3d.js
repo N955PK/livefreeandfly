@@ -26,22 +26,41 @@ const MAJOR = new Set(["I-80", "US-50", "US-395", "I-580"]);
 const DANGER_TINT = 0.55;
 const SHIELD_EVERY_KM = 26;
 
-// Interstate, U.S. route, California state route (the green spade), and Nevada state route markers.
+// Interstate, U.S. route, California state route (the green spade), and Nevada state route (the state outline) markers.
+const SHIELD_FONT = "system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif";
+const INTERSTATE = "M80.8 0C115.4 10.6 152.2 16.3 190.4 16.3S265.3 10.6 300 0C334.7 10.6 371.5 16.3 409.6 16.3S484.6 10.6 519.2 0"
+  + "C569.8 63.9 600 144.7 600 232.5C600 413.9 471.2 565.3 300 600C128.8 565.3 0 413.9 0 232.5C0 144.7 30.2 63.9 80.8 0z";
+const INTERSTATE_TOP = "M80.8 0C115.4 10.6 152.2 16.3 190.4 16.3S265.3 10.6 300 0C334.7 10.6 371.5 16.3 409.6 16.3S484.6 10.6 519.2 0"
+  + "C546.8 34.8 568.3 74.6 582.2 118H17.8C31.7 74.6 53.2 34.8 80.8 0z";
+const US_ROUTE = "M300 10c23.6 20.1 54.1 32.2 87.5 32.2S451.4 30.1 475 10l115 115c-21.2 30.1-33.6 66.8-33.6 106.3"
+  + "c0 28.5 6.4 55.4 17.9 79.5C584.2 331.7 590 355.4 590 380c0 88.4-71.6 160-160 160h-25.1c-42.3 0-80.1 19.5-104.9 50"
+  + "c-24.8-30.5-62.5-50-104.9-50H170C81.6 540 10 468.4 10 380c0-24.6 5.8-48.3 15.7-69.2C37.2 286.7 43.6 259.8 43.6 231.3"
+  + "C43.6 191.8 31.2 155.1 10 125L125 10c23.6 20.1 54.1 32.2 87.5 32.2S276.4 30.1 300 10z";
+const CA_SPADE = "M0.5 262C0.5 139.3 81.2 35.4 192.5 0.5C303.8 35.4 384.5 139.3 384.5 262v63.6c0 30-21.3 55-49.6 60.8"
+  + "C288.4 395.7 241 400.5 192.5 400.5S96.6 395.7 50.1 386.4C21.8 380.7 0.5 355.7 0.5 325.7z";
+const NEVADA = "M100 50H500V478L470 499L481 543L498 569L100 318z";
+
 function shieldSVG(route) {
-  const [kind, number] = route.split("-"), size = number.length > 2 ? 7.2 : 9;
-  const text = (fill, y) => `<text x="12" y="${y}" text-anchor="middle" font-size="${size}" font-weight="700" font-family="system-ui,-apple-system,sans-serif" fill="${fill}">${number}</text>`;
-  const wrap = (inner) => `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">${inner}</svg>`;
+  const [kind, number] = route.split("-"), long = number.length > 2;
+  const text = (fill, x, y, size) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" font-weight="700" font-family="${SHIELD_FONT}" fill="${fill}">${number}</text>`;
+  const wrap = (box, inner) => `<svg viewBox="${box}" width="26" height="26" aria-hidden="true">${inner}</svg>`;
   if (kind === "I") {
-    return wrap(`<path d="M12 1.2c2.9 1.5 5.9 1.9 9.2 1.3 1 6.9-.9 14.6-9.2 20.1C3.7 17.1 1.8 9.4 2.8 2.5 6.1 3.1 9.1 2.7 12 1.2z" fill="#003f87" stroke="#fff" stroke-width="1"/>
-      <path d="M3.3 3.6C6.3 4 9.2 3.6 12 2.3c2.8 1.3 5.7 1.7 8.7 1.3-.1 1-.1 2-.1 2.9H3.4c0-.9 0-1.9-.1-2.9z" fill="#af1e2d"/>${text("#fff", 17.2)}`);
+    return wrap("-10 -10 620 620", `<path d="${INTERSTATE}" fill="#fff"/>
+      <g transform="translate(300 290) scale(.93) translate(-300 -290)"><path d="${INTERSTATE}" fill="#003f87"/>
+      <rect y="118" width="600" height="32" fill="#fff"/><path d="${INTERSTATE_TOP}" fill="#af1e2d"/></g>
+      ${text("#fff", 300, long ? 425 : 440, long ? 230 : 290)}`);
   }
   if (kind === "US") {
-    return wrap(`<path d="M4.2 2h15.6c.3 1.3.9 2.4 1.8 3.3-.9 2.3-.9 4.6 0 7-.6 5-3.9 8.3-9.6 10.3C6.3 20.6 3 17.3 2.4 12.3c.9-2.4.9-4.7 0-7C3.3 4.4 3.9 3.3 4.2 2z" fill="#fff" stroke="#111" stroke-width="1.3"/>${text("#111", 15.8)}`);
+    return wrap("-12 -12 624 624", `<path d="${US_ROUTE}" fill="#fff" stroke="#111" stroke-width="30" stroke-linejoin="round"/>
+      ${text("#111", 300, long ? 380 : 405, long ? 222 : 300)}`);
   }
   if (kind === "SR") {
-    return wrap(`<path d="M12 1.4c4.4 0 8.2 1 9.6 2.3.5 6.6-1.4 13.6-9.6 19C3.8 17.3 1.9 10.3 2.4 3.7 3.8 2.4 7.6 1.4 12 1.4z" fill="#00713f" stroke="#fff" stroke-width="1"/>${text("#fff", 15.6)}`);
+    return wrap("-12 -4 409 409", `<path d="${CA_SPADE}" fill="#fff"/>
+      <path d="${CA_SPADE}" fill="#006b54" transform="translate(192.5 215) scale(.92) translate(-192.5 -215)"/>
+      ${text("#fff", 192.5, long ? 330 : 340, long ? 155 : 200)}`);
   }
-  return wrap(`<rect x="1.8" y="3.6" width="20.4" height="16.8" rx="5.5" fill="#fff" stroke="#111" stroke-width="1.3"/>${text("#111", 15.9)}`);
+  return wrap("0 0 600 600", `<rect width="600" height="600" rx="70" fill="#111"/><path d="${NEVADA}" fill="#fff"/>
+    ${text("#111", 300, long ? 250 : 270, long ? 172 : 230)}`);
 }
 
 const LAND = [
