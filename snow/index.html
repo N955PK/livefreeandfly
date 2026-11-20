@@ -168,6 +168,8 @@ details.pastdays summary::after{font-size:16px}
 .key .blocks .ramp b{background:none}
 .key:has(.blocks){flex-wrap:nowrap;gap:12px}
 .key .sw{display:inline-flex;align-items:center;gap:4px}
+h3 small{font-size:12px;font-weight:400;color:var(--muted);margin-left:6px}
+.key .glyph svg{width:13px;height:13px;color:var(--muted)}
 .key .sw i.kdot{width:10px;height:10px;border-radius:50%;background:var(--snow)}
 .key .sw i.kband{width:18px;height:8px;border-radius:4px;background:var(--snow);opacity:.35}
 .key .sw i.ktick{width:1.5px;height:12px;border-radius:0;background:var(--ink2);opacity:.6}
@@ -336,7 +338,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "40";
+const BUILD = "41";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -645,10 +647,11 @@ function renderDetail() {
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
-    <h3>Ski days</h3>
-    <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>each line covers the full 24 hours ending 4 pm</em></div>
+    <h3>Ski days <small>each is the 24 hours ending 4 pm</small></h3>
+    <div class="key" style="margin:4px 0 0"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
+      <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>models</span></div>
+    <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span>G = gust, mph</span><span>PS = powder score</span></div>
     ${pastDays(resort, el)}
-    <div class="key" style="margin:2px 0 4px"><span class="sw"><i class="kdot"></i>forecast</span><span class="sw"><i class="kband"></i>± one standard deviation</span><span class="sw"><i class="ktick"></i>each weather model</span><span>scale: 0 to ${BAR_FULL_IN} in</span><span>wind in mph, G = gusts</span><span>PS = powder score, 0 to 10</span></div>
     <div class="days"><div class="srow head"><div></div><div>All snow in the 24 hours to 4 pm</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
