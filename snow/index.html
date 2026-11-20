@@ -499,7 +499,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Outlook</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb (possible from gusts of 35 mph, expected from 50), late openings after 6 in of overnight snow up high, rain down low, low visibility, and wind chill. Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
+    <p><b>Outlook</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and wind chill. Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
@@ -511,7 +511,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "112";
+const BUILD = "113";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -884,9 +884,18 @@ const STATUS_PAGES = {
 };
 const ALPINE_AREAS = ["Summit Peak", "Scott/Lakeview Peak", "Sherwood Bowl"];
 const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alpine: [61, (area) => ALPINE_AREAS.includes(area)], mammoth: [60, () => true], june: [59, () => true]};
-// Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which exposed lifts tend to go on
-// hold, and overnight snow (inches) after which patrol needs time for avalanche control before upper terrain opens.
-const HOLD = {possible: [35, 25], likely: [50, 35], shut: [70, 45]}, CONTROL_IN = {some: 6, lots: 12};
+// Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
+// by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
+// avalanche control before upper terrain opens. The tiers are a judgment call until the record of real holds
+// (tahoe_snow/holds.py) has enough storms in it to set them from.
+const HOLD_TIERS = {
+  exposed: {possible: [30, 20], likely: [45, 30], shut: [60, 40]},
+  average: {possible: [35, 25], likely: [50, 35], shut: [70, 45]},
+  sheltered: {possible: [45, 30], likely: [60, 40], shut: [80, 50]},
+};
+const WIND_TIER = {kirkwood: "exposed", mtrose: "exposed", palisades: "exposed", alpine: "exposed", sugarbowl: "exposed", mammoth: "exposed",
+  northstar: "sheltered", homewood: "sheltered"};
+const CONTROL_IN = {some: 6, lots: 12};
 let outlookShift = null;
 const localHour = () => +new Date().toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24;
 const windChill = (f, mph) => (f == null || mph == null || mph < 3 || f > 50 ? f : 35.74 + 0.6215 * f - 35.75 * mph ** 0.16 + 0.4275 * f * mph ** 0.16);
@@ -895,6 +904,7 @@ function outlookImpacts(resort, date) {
   const dayAt = (level) => resort.elevations[level].days.find((d) => d.date === date) || {powder: {}};
   const top = dayAt("summit"), low = dayAt("base"), s = top.powder, b = low.powder, wild = resort.kind === "backcountry";
   const found = [], add = (tone, name, detail) => found.push({tone, name, detail});
+  const HOLD = HOLD_TIERS[WIND_TIER[resort.key] || "average"];
   const wind = s.wind_mph || 0, gust = Math.max(wind, s.gust_mph || 0), over = (level) => gust >= HOLD[level][0] || wind >= HOLD[level][1];
   const blowing = `${wind} mph, gusts to ${gust}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit`;
   if (over("likely")) add("bad", wild ? "strong wind" : over("shut") ? "wind closures" : "wind holds", blowing);
