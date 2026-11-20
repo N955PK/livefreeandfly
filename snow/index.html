@@ -70,9 +70,13 @@ h2{font-size:18px;font-weight:650;letter-spacing:-.01em}
 .seg button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px}
 .gridwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-numeric:tabular-nums;padding:10px 10px 8px}
+table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-numeric:tabular-nums;padding:4px 10px 8px}
 .heat th{font-size:11px;font-weight:600;color:var(--muted);text-align:center;padding:2px 0 4px;white-space:nowrap}
-.heat th.grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:4px 4px 0;color:var(--ink2)}
+.gridcap{font-size:11.5px;color:var(--ink2);padding:12px 16px 0}
+.gridcap span{color:var(--muted)}
+.heat th.corner{position:sticky;left:0;background:var(--surface);z-index:2}
+.gridwrap.scrolled .heat td.name,.gridwrap.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
+.gridwrap.scrolled .heat tr.on td.name{box-shadow:inset 3px 0 0 var(--select),6px 0 6px -6px rgba(0,0,0,.35)}
 .heat th.day b{display:block;color:var(--ink);font-size:13px;font-weight:650}
 .heat th.sep,.heat td.sep{width:10px;min-width:10px;padding:0}
 .heat td.name{position:sticky;left:0;background:var(--surface);text-align:left;padding:4px 10px 4px 6px;white-space:nowrap;cursor:pointer;border-radius:8px;z-index:1}
@@ -87,7 +91,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .cell.none{color:var(--muted);font-weight:400}
 .cell.far{opacity:.6}
 .heat tr.pass td{padding:9px 6px 1px;font-size:11px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);cursor:default}
-.heat tr.pass:hover td.name{text-decoration:none}
+.heat tr.pass span{display:inline-block;position:sticky;left:16px}
 .legend .blocks{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .legend .blocks > span{display:inline-flex;border-radius:5px;overflow:hidden}
 .legend .blocks b{font-weight:600;font-size:11px;padding:2px 6px;color:#fff}
@@ -272,12 +276,6 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   .tiles.four .v{font-size:21px;white-space:nowrap}
   .tiles.four .v small{font-size:11.5px}
   .tiles.four .r{font-size:11px;white-space:nowrap}
-}
-@media(max-width:385px){
-  .tiles.four{gap:5px}
-  .tiles.four .tile{padding:8px 6px}
-  .tiles.four .k{font-size:9.5px}
-  .tiles.four .v{font-size:19px}
   .srow{grid-template-columns:44px minmax(0,1fr) 84px;row-gap:6px;gap:10px}
   .srow .amt{text-align:right;font-size:16px}
   .srow .cond{grid-column:2 / span 2}
@@ -290,6 +288,14 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   .dhead h2{font-size:20px}
   .dhead .seg button{padding:6px 10px}
   .heat td.name b{font-size:13.5px}
+  .heat td.name{padding-right:6px}
+  .heat td.total{padding:0 6px 0 2px}
+}
+@media(max-width:385px){
+  .tiles.four{gap:5px}
+  .tiles.four .tile{padding:8px 6px}
+  .tiles.four .k{font-size:9.5px}
+  .tiles.four .v{font-size:19px}
 }
 </style>
 </head>
@@ -328,6 +334,7 @@ for (let n = 0; n < 26; n++) {
     </div>
   </div>
   <div class="panel">
+    <div class="gridcap">Snow in inches, 4 pm the day before to 4 pm<span id="gridcapFar"></span></div>
     <div class="gridwrap"><table class="heat" id="heat"></table></div>
     <div class="legend" id="legend"></div>
   </div>
@@ -355,7 +362,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "49";
+const BUILD = "50";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -414,6 +421,7 @@ function lastThreeDays(resort, el) {
 // follow by what fell in the last three days.
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
   ["Mountain Collective", ["sugarbowl"]], ["Independent", ["homewood", "boreal", "mtrose"]]];
+const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra"};
 function byPass() {
   const rows = sorted(), listed = new Set(PASSES.flatMap(([, keys]) => keys));
   const groups = PASSES.map(([name, keys]) => [name, rows.filter((r) => keys.includes(r.key))]);
@@ -444,17 +452,17 @@ function renderHeadline() {
 function renderHeat() {
   const days = futureDays(data.resorts[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
-  let html = `<tr><th></th><th></th><th class="grp" colspan="${near.length}">Snow in inches, 4 pm the day before to 4 pm</th>` +
-    (far.length ? `<th class="sep"></th><th class="grp" colspan="${far.length}">Days 6–10, a rough guide</th>` : "") + `</tr>`;
+  $("gridcapFar").textContent = far.length ? " · faded days are a rough guide" : "";
+  let html = "";
   const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
-  html += `<tr><th></th><th>Last 3 days</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
+  html += `<tr><th class="corner"></th><th>Last 3 days</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
   const columns = 2 + near.length + (far.length ? 1 + far.length : 0);
   for (const [pass, list] of byPass()) {
-   html += `<tr class="pass"><td class="name">${pass}</td><td colspan="${columns - 1}"></td></tr>`;
+   html += `<tr class="pass"><td colspan="${columns}"><span>${pass}</span></td></tr>`;
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
-    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name"><b>${esc(r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft</span></td>
+    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft</span></td>
       <td class="total">${inches(total)} in</td>`;
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
@@ -824,6 +832,7 @@ document.addEventListener("click", (e) => {
   for (const x of document.querySelectorAll(".seg button[data-el]")) x.setAttribute("aria-pressed", x.dataset.el === elevation);
   renderAll();
 });
+$("heat").parentElement.addEventListener("scroll", (e) => e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2), {passive: true});
 $("heat").addEventListener("click", (e) => {
   const row = e.target.closest("tr[data-key]"); if (!row) return;
   selected = row.dataset.key;
