@@ -295,6 +295,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
     <p><b>Snow.</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
     <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Past day 5 a single number isn't worth much, so you get the chance of 6 inches or more.</p>
     <p><b>One water amount per resort.</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
+    <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p><b>Powder score</b> (0–10) rates each ski day, 4 pm to 4 pm: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
@@ -306,7 +307,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "30";
+const BUILD = "31";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -333,8 +334,9 @@ function fixTimes(d) {
 }
 
 // Snow quality by snow-to-liquid ratio, and wind strength by speed: one scale each, used everywhere.
-// Thirds of 20,767 hand-measured Sierra snow days fall at 7.7:1 and 11.9:1, so the lines sit at 8 and 12.
-const QUALITY = [[8, "Wet"], [12, "Medium"], [Infinity, "Dry"]];
+// The standard three classes from the forecasting literature (Roebber and others, 2003): under 9 inches of snow
+// per inch of water is heavy, 9 to 15 is average, over 15 is light. They are not tuned to Tahoe.
+const QUALITY = [[9, "Wet"], [15.0001, "Medium"], [Infinity, "Dry"]];
 const WIND = [[15, "Calm"], [25, "Breezy"], [40, "Windy"], [Infinity, "Strong"]];
 const qualityBin = (ratio) => QUALITY.findIndex(([top]) => ratio < top);
 const windBin = (mph) => WIND.findIndex(([top]) => (mph || 0) < top);
