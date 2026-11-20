@@ -509,7 +509,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and wind chill. Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
+    <p><b>Status</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
@@ -521,7 +521,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "115";
+const BUILD = "116";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -905,7 +905,7 @@ const HOLD_TIERS = {
 };
 const WIND_TIER = {kirkwood: "exposed", mtrose: "exposed", palisades: "exposed", alpine: "exposed", sugarbowl: "exposed", mammoth: "exposed",
   northstar: "sheltered", homewood: "sheltered"};
-const CONTROL_IN = {some: 6, lots: 12};
+const CONTROL_IN = {some: 6, lots: 12}, EXTREME_CHILL_F = -20;
 let outlookShift = null;
 const localHour = () => +new Date().toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24;
 const windChill = (f, mph) => (f == null || mph == null || mph < 3 || f > 50 ? f : 35.74 + 0.6215 * f - 35.75 * mph ** 0.16 + 0.4275 * f * mph ** 0.16);
@@ -925,7 +925,8 @@ function outlookImpacts(resort, date) {
   if ((b.rain_share || 0) >= 0.5 && (low.liquid_in || 0) >= 0.1) add("bad", "rain", `about ${Math.round(b.rain_share * 100)}% of what falls down low is rain`);
   if (s.sky_pct >= 85 && s.snowing_hours >= 3) add("warn", "low visibility", `snowing ${s.snowing_hours} of 8 lift hours`);
   const chill = windChill(s.temp_f, wind);
-  if (chill != null && chill <= 10) add(chill <= -5 ? "bad" : "warn", "cold", `${Math.round(s.temp_f)}°F at the summit, feels like ${Math.round(chill)}°F`);
+  // Ordinary winter cold is not an impact; only the kind that brings frostbite warnings is flagged.
+  if (chill != null && chill <= EXTREME_CHILL_F) add("warn", "extreme cold", `${Math.round(s.temp_f)}°F at the summit, feels like ${Math.round(chill)}°F`);
   return found;
 }
 function outlook(resort) {
