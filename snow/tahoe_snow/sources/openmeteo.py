@@ -18,6 +18,7 @@ PREVIOUS_RUNS_URL = "https://previous-runs-api.open-meteo.com/v1/forecast"
 
 LEVEL_VARS = {"temperature": "t_c", "relative_humidity": "rh_pct", "wind_speed": "wind_kmh",
               "geopotential_height": "height_m"}
+PROFILE_SURFACE_VARS = ["precipitation", "temperature_2m"]
 SURFACE_VARS = ["precipitation", "temperature_2m", "relative_humidity_2m", "wind_speed_10m", "wind_gusts_10m",
                 "surface_pressure"]
 
@@ -51,8 +52,8 @@ def historical_profile(lat: float, lon: float, start: str, end: str, model: str 
                        pause_s: float = 0.0) -> pd.DataFrame:
     """Archived hourly analysis/short-lead profile plus surface fields at a point (2021-03-25 on)."""
     params = {"latitude": lat, "longitude": lon, "start_date": start, "end_date": end, "models": model,
-              "hourly": ",".join(SURFACE_VARS + level_variables()), "wind_speed_unit": "kmh"}
-    payload = get_json("om_profile", HISTORICAL_URL, params)
+              "hourly": ",".join(PROFILE_SURFACE_VARS + level_variables()), "wind_speed_unit": "kmh"}
+    payload = get_json("om_profile", HISTORICAL_URL, params, timeout=400, retries=3)
     if pause_s:
         time.sleep(pause_s)
     return hourly_frame(payload)

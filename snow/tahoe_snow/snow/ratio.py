@@ -179,7 +179,8 @@ def fit_final(events: pd.DataFrame, name: str, model) -> ColumnModel:
     MODELS.mkdir(parents=True, exist_ok=True)
     joblib.dump(fitted, MODELS / MODEL_FILE)
     sidecar = {"model": name, "features": list(getattr(fitted, "columns", None) or []), "events": int(len(events)),
-               "stations": int(events["station"].nunique()), "seasons": sorted(int(s) for s in events["season"].unique()),
+               "stations": int(events["station"].nunique()),
+               "seasons": sorted(int(s) for s in events["season"].unique()),
                "first_date": str(events["date"].min().date()), "last_date": str(events["date"].max().date())}
     (MODELS / "snow_ratio.json").write_text(json.dumps(sidecar, indent=2))
     return fitted

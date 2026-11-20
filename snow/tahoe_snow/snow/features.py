@@ -16,9 +16,18 @@ REDUCED_FEATURES = ["t0", "t1000", "t2000", "wind0", "wind1000", "wind2000"]
 MIN_MODEL_PRECIP_MM = 0.5
 
 
-def hourly_features(profile: pd.DataFrame, elev_m: float) -> pd.DataFrame:
-    """Per-hour predictors at ``elev_m`` from a frame of pressure-level columns."""
-    arrays = profile_arrays(profile)
+def levels_in(profile: pd.DataFrame) -> list:
+    """Pressure levels present in a profile frame, highest pressure first."""
+    return sorted({int(c.split("_")[-1][:-3]) for c in profile.columns if c.startswith("temperature_")
+                   and c.endswith("hPa")}, reverse=True)
+
+
+def hourly_features(profile: pd.DataFrame, elev_m: float, levels: list | None = None) -> pd.DataFrame:
+    """Per-hour predictors at ``elev_m`` from a frame of pressure-level columns.
+
+    ``levels`` restricts the calculation to a subset of the pressure levels in the frame.
+    """
+    arrays = profile_arrays(profile, levels or levels_in(profile))
     heights = arrays["height_m"]
     out = pd.DataFrame(index=profile.index)
     for agl in HEIGHTS_AGL:

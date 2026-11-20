@@ -132,7 +132,8 @@ def test_ghcn_parse_units_flags_and_obs_hour():
 def test_snotel_parse_converts_units_and_drops_suspect():
     payload = [{"stationTriplet": "784:CA:SNTL", "data": [
         {"stationElement": {"elementCode": "WTEQ"},
-         "values": [{"date": "2019-02-13", "value": 10.0, "qcFlag": "V"}, {"date": "2019-02-14", "value": 11.0, "qcFlag": "V"},
+         "values": [{"date": "2019-02-13", "value": 10.0, "qcFlag": "V"},
+                    {"date": "2019-02-14", "value": 11.0, "qcFlag": "V"},
                     {"date": "2019-02-15", "value": 99.0, "qcFlag": "S"}]},
         {"stationElement": {"elementCode": "TAVG"}, "values": [{"date": "2019-02-13", "value": 32.0, "qcFlag": "V"}]}]}]
     frame = snotel.parse(payload)
@@ -141,3 +142,37 @@ def test_snotel_parse_converts_units_and_drops_suspect():
     assert "2019-02-15" not in frame.index.astype(str)
     gains = snotel.daily_gains(frame)
     assert abs(gains.loc["2019-02-13", "swe_gain_mm"] - 25.4) < 1e-9
+
+
+def test_phase_fraction_limits_and_monotonic():
+    from tahoe_snow.snow import phase
+    hourly = pd.DataFrame({"tw0": [-6.0, 0.0, 0.5, 1.0, 5.0], "t0": [-5.0, 0.5, 1.0, 1.5, 6.0],
+                           "snow_level_m": [1000.0, 2300.0, 2500.0, 2700.0, 3500.0]})
+    for kind in phase.GRIDS:
+        fraction = phase.hourly_fraction(hourly, 2400.0, kind, phase.grid(kind)[len(phase.grid(kind)) // 2])
+        assert fraction[0] > 0.99 and fraction[-1] < 0.01
+        assert (np.diff(fraction) <= 1e-12).all()
+
+
+def test_phase_observed_uses_larger_of_gauge_and_pillow():
+    from tahoe_snow.snow import phase
+    gains = pd.DataFrame({"prec_gain_mm": [20.0, 10.0, 2.0], "swe_gain_mm": [5.0, 15.0, 2.0]})
+    out = phase.observed(gains)
+    assert list(out["fraction"]) == [0.25, 1.0] and list(out["liquid_mm"]) == [20.0, 15.0]
+
+
+def test_snow_model_zero_liquid_nan_profile_and_rain():
+    from tahoe_snow.snow.model import SnowModel
+    events = _events(200)
+    fitted = ratio.candidates()["ridge (all)"].fit(events, events["slr"].to_numpy())
+    model = SnowModel(fitted, "wet-bulb logistic", {"center_c": 0.5, "width_c": 0.4})
+    cold = features.hourly_features(make_profile(hours=30, t700=-10.0), 2450.0)
+    liquid = pd.Series(1.0, index=cold.index)
+    liquid.iloc[5] = 0.0
+    cold.iloc[7, cold.columns.get_loc("t1000")] = np.nan
+    out = model.snowfall(cold, liquid, 2450.0)
+    assert out["snow_cm"].iloc[5] == 0.0
+    assert np.isnan(out["snow_cm"].iloc[7])
+    assert out["snow_cm"].iloc[10] > 0.3
+    warm = features.hourly_features(make_profile(hours=30, t700=6.0), 2450.0)
+    assert model.snowfall(warm, pd.Series(1.0, index=warm.index), 2450.0)["snow_cm"].max() < 0.01
