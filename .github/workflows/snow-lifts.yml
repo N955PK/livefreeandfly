@@ -42,6 +42,10 @@ jobs:
         working-directory: snow
         run: python3 -m tahoe_snow.sources.homewood "$RUNNER_TEMP/lifts/homewood.json" || echo "::warning::Homewood's snow report could not be read"
 
+      - name: Boreal
+        working-directory: snow
+        run: python3 -m tahoe_snow.sources.boreal "$RUNNER_TEMP/lifts/boreal.json" || echo "::warning::Boreal's lift and trail report could not be read"
+
       # The branch holds one commit: the latest files.
       - name: Publish to the lifts branch
         run: |

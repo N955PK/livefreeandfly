@@ -915,7 +915,7 @@ const STATUS_PAGES = {
 const ALPINE_AREAS = ["Summit Peak", "Scott/Lakeview Peak", "Sherwood Bowl"];
 const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alpine: [61, (area) => ALPINE_AREAS.includes(area)], mammoth: [60, () => true], june: [59, () => true],
   sierra: ["sierra", () => true], mtrose: ["mtrose", () => true], sugarbowl: ["sugarbowl", () => true],
-  heavenly: ["heavenly", () => true], northstar: ["northstar", () => true], kirkwood: ["kirkwood", () => true], homewood: ["homewood", () => true]};
+  heavenly: ["heavenly", () => true], northstar: ["northstar", () => true], kirkwood: ["kirkwood", () => true], homewood: ["homewood", () => true], boreal: ["boreal", () => true]};
 // Sierra-at-Tahoe publishes its own feed; it is recast here into the shape of the Ikon feed the rest of the page reads.
 // Its one weather reading is taken near mid-mountain.
 const getJsonLive = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -970,7 +970,8 @@ const publishedFeed = (file, key) => async () => {
   return status.resorts[key];
 };
 const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed, heavenly: publishedFeed("resort_status.json", "heavenly"), northstar: publishedFeed("resort_status.json", "northstar"),
-  kirkwood: publishedFeed("resort_status.json", "kirkwood"), homewood: publishedFeed("homewood.json", "homewood")};
+  kirkwood: publishedFeed("resort_status.json", "kirkwood"), homewood: publishedFeed("homewood.json", "homewood"),
+  boreal: publishedFeed("boreal.json", "boreal")};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
 // avalanche control before upper terrain opens. The tiers are a judgment call until the record of real holds
