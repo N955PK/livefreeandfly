@@ -353,6 +353,10 @@ def run(now: datetime | None = None) -> dict:
     (DATA / "forecast.json").write_text(json.dumps(forecast, separators=(",", ":")))
     folder = DATA / "archive" / now.strftime("%Y/%m")
     folder.mkdir(parents=True, exist_ok=True)
+    # Compact archive for grading: forecasts for today onward, as columns and rows.
+    upcoming = [row for row in archive if row["lead_day"] >= 0]
+    columns = list(dict.fromkeys(key for row in upcoming for key in row))
     (folder / f"{now.strftime('%d_%H')}z.json").write_text(json.dumps(
-        {"generated_utc": forecast["generated_utc"], "rows": archive}, separators=(",", ":")))
+        {"generated_utc": forecast["generated_utc"], "columns": columns,
+         "rows": [[row.get(column) for column in columns] for row in upcoming]}, separators=(",", ":")))
     return forecast

@@ -510,7 +510,11 @@ $("heat").addEventListener("click", (e) => {
   renderHeat(); renderDetail();
   if (e.target.closest("td.name")) $("detail").scrollIntoView({behavior: "smooth", block: "start"});
 });
-fetch("data/forecast.json", {cache: "no-store"}).then((r) => r.json()).then((d) => { data = fixTimes(d); renderNotes(); renderAll(); startMap(); })
+// The forecast is republished every few hours to its own branch; a local copy is the fallback.
+const LIVE_DATA = "https://raw.githubusercontent.com/N955PK/livefreeandfly/snow-data/forecast.json";
+const loadForecast = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+(location.hostname === "localhost" ? loadForecast("data/forecast.json") : loadForecast(LIVE_DATA).catch(() => loadForecast("data/forecast.json")))
+  .then((d) => { data = fixTimes(d); renderNotes(); renderAll(); startMap(); })
   .catch(() => { $("headline").textContent = "The forecast could not be loaded"; });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
