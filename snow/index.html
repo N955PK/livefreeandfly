@@ -369,17 +369,6 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
 .map-label.on::after{border-top-color:#0f1720}
 .map-lake{position:absolute;left:0;top:0;font-size:12px;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
-.map-clock{position:absolute;z-index:400000;left:12px;top:10px;display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none}
-.map-clock svg{width:46px;height:46px;filter:drop-shadow(0 1px 3px rgba(15,23,32,.25))}
-.map-clock .face{fill:rgba(255,255,255,.9);stroke:rgba(15,23,32,.25);stroke-width:1;transition:fill .3s}
-.map-clock .mark{stroke:#0f1720;stroke-width:1.2;stroke-linecap:round;opacity:.55}
-.map-clock .hand{stroke:#0f1720;stroke-width:2.6;stroke-linecap:round}
-.map-clock .hand.long{stroke-width:1.6}
-.map-clock .hub{fill:#0f1720}
-.map-clock.night .face{fill:rgba(24,32,44,.88);stroke:rgba(255,255,255,.3)}
-.map-clock.night .mark,.map-clock.night .hand{stroke:#f0f2f4}
-.map-clock.night .hub{fill:#f0f2f4}
-.map-clock span{font-size:10.5px;font-weight:650;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:1px 7px;white-space:nowrap}
 .map-hint{position:absolute;z-index:400000;left:12px;bottom:10px;font-size:11.5px;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:3px 10px;pointer-events:none}
 .map-compass{position:absolute;z-index:400000;right:12px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.82);box-shadow:0 1px 4px rgba(15,23,32,.2);display:grid;place-items:center;pointer-events:none}
 .map-compass svg{width:26px;height:26px;will-change:transform}
@@ -583,7 +572,7 @@ for (let n = 0; n < 26; n++) {
   <p class="lede" id="headline">Loading the forecast…</p>
   <p class="meta" id="meta"></p>
   <div class="panel" id="mapPanel">
-    <div id="map3d"><div class="map-clock" id="mapClock" aria-hidden="true"><svg viewBox="0 0 44 44"><circle class="face" cx="22" cy="22" r="20.5"/><line class="mark" x1="22" y1="3.5" x2="22" y2="7.5" transform="rotate(0 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(30 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(60 22 22)"/><line class="mark" x1="22" y1="3.5" x2="22" y2="7.5" transform="rotate(90 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(120 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(150 22 22)"/><line class="mark" x1="22" y1="3.5" x2="22" y2="7.5" transform="rotate(180 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(210 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(240 22 22)"/><line class="mark" x1="22" y1="3.5" x2="22" y2="7.5" transform="rotate(270 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(300 22 22)"/><line class="mark" x1="22" y1="4.5" x2="22" y2="6.5" transform="rotate(330 22 22)"/><line class="hand long" id="clockMinute" x1="22" y1="25" x2="22" y2="6.5"/><line class="hand" id="clockHand" x1="22" y1="24" x2="22" y2="11.5"/><circle class="hub" cx="22" cy="22" r="2"/></svg><span id="clockDay"></span></div><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button><div class="map-key" id="avyKey" hidden></div></div>
+    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button><div class="map-key" id="avyKey" hidden></div></div>
     <div class="mapbar">
       <button id="play" aria-label="Play the storm"></button>
       <div class="ticks"><input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Storm time"><button id="toNow" aria-label="Back to now">now</button></div>
@@ -633,7 +622,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "144";
+const BUILD = "145";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1408,13 +1397,6 @@ function showTime(value) {
   const atNow = Math.abs(value - map.nowStep) < 0.3;
   $("mapWhen").textContent = atNow ? (offlineCopy ? "Saved" : "Live") : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
   $("toNow").classList.toggle("away", !atNow);
-  // The clock's hands sweep smoothly between the map's hourly steps, and its face darkens at night.
-  const whole = Math.floor(value), exact = new Date(map.timeAt(whole).getTime() + (value - whole) * 36e5);
-  const [hour, minute] = exact.toLocaleTimeString("en-GB", {timeZone: TZ, hour: "2-digit", minute: "2-digit"}).split(":").map(Number);
-  $("clockHand").setAttribute("transform", `rotate(${((hour % 12) + minute / 60) * 30} 22 22)`);
-  $("clockMinute").setAttribute("transform", `rotate(${minute * 6} 22 22)`);
-  $("mapClock").classList.toggle("night", hour < 6 || hour >= 18);
-  $("clockDay").textContent = `${exact.toLocaleDateString("en-US", {timeZone: TZ, weekday: "short"})} ${hour < 12 ? "AM" : "PM"}`;
   const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}${rate >= 0.05 ? `, ${rate.toFixed(1)} in/hr` : ""}`;
   $("mapWhat").textContent = `${falling} · snow level ${level > 12000 ? "above the peaks" : level.toLocaleString() + " ft"}`;
 }
