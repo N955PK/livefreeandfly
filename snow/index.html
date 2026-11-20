@@ -336,10 +336,10 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
 .dscale div:last-child span{border-radius:0 8px 8px 0}
 .dscale b{display:block;font-size:13px;font-weight:700}
 .dicon{flex:none;width:84px;margin:-4px -4px 0 0}
-.ahead .dchip{margin-top:8px}
 @media (prefers-color-scheme:dark){.dicon,.dscale img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
 .map-toggle img{height:15px;margin:-2px 0 -2px -2px;filter:drop-shadow(0 0 .6px rgba(255,255,255,.95))}
 .map-toggle.sign::before{display:none}
+.map-toggle[aria-pressed=false] img{filter:grayscale(1);opacity:.6}
 .probs{list-style:none;padding:0}
 .probs li{display:flex;gap:12px;align-items:center;padding:8px 0;font-size:13.5px;color:var(--ink2)}
 .probs li div{flex:1 1 auto;min-width:0}
@@ -473,7 +473,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "91";
+const BUILD = "92";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1069,8 +1069,8 @@ function mapAvalanche() {
   $("avyToggle").setAttribute("aria-pressed", avyOn);
   // One rating across the map goes in the button itself; several get a small key under it, worst first.
   const levels = [...new Set(zones.map((zone) => zone.level))].sort((a, b) => b - a), one = avyOn && levels.length === 1;
-  $("avyToggle").innerHTML = `${avyOn ? `<img src="${dangerIcon(levels[0])}" alt="" onerror="this.parentNode.classList.remove('sign'); this.remove()">` : ""}${one ? `Avalanche: ${danger(levels[0])[0]}` : "Avalanche danger"}`;
-  $("avyToggle").classList.toggle("sign", avyOn);
+  $("avyToggle").innerHTML = `${levels.length ? `<img src="${dangerIcon(levels[0])}" alt="" onerror="this.parentNode.classList.remove('sign'); this.remove()">` : ""}${one ? `Avalanche: ${danger(levels[0])[0]}` : "Avalanche danger"}`;
+  $("avyToggle").classList.toggle("sign", levels.length > 0);
   $("avyToggle").style.setProperty("--light", danger(levels[0])[1]);
   $("avyKey").hidden = !map || !avyOn || levels.length < 2;
   $("avyKey").innerHTML = levels.map((level) => `<span><i style="--light:${danger(level)[1]}"></i>${dangerText(level)}</span>`).join("");
@@ -1105,7 +1105,7 @@ function renderAvalanche() {
   const state = avy[region], center = REGIONS[region].avalanche[0];
   const zone = state && state.zones.find((z) => z.center === center), product = state && state.product;
   const clock = (iso) => new Date(iso).toLocaleString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
-  const head = `<div class="ahead"><div><h2>Avalanche danger</h2><span class="by">${esc(center.name)}${zone ? ` · ${esc(zone.name)}` : ""}</span>${zone ? chip(zone.level, " big") : ""}</div>${zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="" onerror="this.remove()">` : ""}</div>`;
+  const head = `<div class="ahead"><div><h2>Avalanche danger</h2><span class="by">${esc(center.name)}${zone ? ` · ${esc(zone.name)}` : ""}</span></div>${zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
   const foot = (link) => `${scale}<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
     <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p>`;
