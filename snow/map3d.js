@@ -441,33 +441,20 @@ export async function createMap(container, data, {region, onSelect, elevation = 
 
   // ---------- avalanche danger: each zone's rating tints the terrain inside its outline ----------
   // zoneOf holds, per terrain vertex, the zone it falls in (1-based; 0 for none), worked out once per set of zones.
-  const zoneOf = new Uint8Array(count), dangerTags = [];
+  const zoneOf = new Uint8Array(count);
   let dangerColors = [], dangerOn = false;
   function setAvalanche(zones) {
     zoneOf.fill(0);
-    for (const tag of dangerTags) tag.tag.remove();
-    dangerTags.length = 0;
     dangerColors = zones.map((zone) => rgbOf(zone.color));
     zones.forEach((zone, n) => {
       const rings = zone.rings.map((ring) => ring.map(([lon, lat]) => [xOf(lon), yOf(lat)]));
       const xs = rings.flat().map((p) => p[0]), ys = rings.flat().map((p) => p[1]);
       const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-      let sumX = 0, sumY = 0, seen = 0;
       for (let v = 0; v < count; v++) {
         const x = positions[3 * v], y = positions[3 * v + 1];
         if (x < x0 || x > x1 || y < y0 || y > y1 || !inRings(rings, x, y)) continue;
         zoneOf[v] = n + 1;
-        if (cover(x, y) > 0.9) { sumX += x; sumY += y; seen++; }
       }
-      if (!seen) return;
-      // The label sits at the middle of the part of the zone that is on the map.
-      const x = sumX / seen, y = sumY / seen;
-      const lon = meta.lon_w + (x / W + 0.5) * (meta.lon_e - meta.lon_w), lat = meta.lat_s + (y / H + 0.5) * (meta.lat_n - meta.lat_s);
-      const tag = document.createElement("div");
-      tag.className = "map-danger"; tag.textContent = zone.label; tag.title = zone.title || zone.label;
-      tag.style.background = zone.color; tag.style.color = zone.ink || "#fff";
-      overlay.appendChild(tag);
-      dangerTags.push({tag, point: new THREE.Vector3(x, y, zOf(heightAt(lat, lon)) + 1.2)});
     });
     paintedAt = -1;
   }
@@ -605,7 +592,6 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       put(shield.tag, shield.point, shield.inside && !hits(box) && !behindStake);
     }
     for (const closure of closures) put(closure.tag, closure.point);
-    for (const danger of dangerTags) put(danger.tag, danger.point, dangerOn);
   }
 
   function resize() {
