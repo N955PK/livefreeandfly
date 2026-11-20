@@ -112,6 +112,55 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   controls.maxDistance = globe ? 260 : 190;
   controls.zoomSpeed = 0.6;
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- gestures: one finger and a plain scroll wheel belong to the page; two fingers move the map ----------
+  const canvas = renderer.domElement;
+  controls.touches = {ONE: -1, TWO: -1};
+  canvas.style.touchAction = "pan-y";
+  canvas.addEventListener("wheel", (e) => { if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation(); }, {capture: true});
+  let lastTouch = 0, gesture = null;
+  const UP = new THREE.Vector3(0, 0, 1);
+  const twoFingers = (e) => {
+    const [a, b] = e.touches;
+    return {x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2,
+      span: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY), angle: Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX)};
+  };
+  canvas.addEventListener("touchstart", (e) => { gesture = e.touches.length === 2 ? twoFingers(e) : null; lastTouch = performance.now(); }, {passive: true});
+  canvas.addEventListener("touchend", (e) => { gesture = e.touches.length === 2 ? twoFingers(e) : null; lastTouch = performance.now(); }, {passive: true});
+  canvas.addEventListener("touchmove", (e) => {
+    if (e.touches.length !== 2 || !gesture) return;
+    e.preventDefault();
+    const now = twoFingers(e), offset = camera.position.clone().sub(controls.target);
+    // Twist turns the map with the fingers; pinch zooms; dragging slides the ground under them.
+    let twist = now.angle - gesture.angle;
+    if (twist > Math.PI) twist -= 2 * Math.PI; else if (twist < -Math.PI) twist += 2 * Math.PI;
+    offset.applyAxisAngle(UP, twist);
+    const distance = Math.min(controls.maxDistance, Math.max(controls.minDistance, offset.length() * gesture.span / Math.max(now.span, 1)));
+    offset.setLength(distance);
+    const perPixel = 2 * distance * Math.tan(camera.fov * Math.PI / 360) / canvas.clientHeight;
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0).setZ(0).normalize();
+    const ahead = new THREE.Vector3().crossVectors(UP, right);
+    const slide = right.multiplyScalar(-(now.x - gesture.x) * perPixel).add(ahead.multiplyScalar((now.y - gesture.y) * perPixel));
+    controls.target.add(slide);
+    camera.position.copy(controls.target).add(offset);
+    gesture = now; lastTouch = performance.now();
+    controls.dispatchEvent({type: "change"});
+  }, {passive: false});
+
+  // ---------- idle sway: a slow swing of 20 degrees each way once nobody has touched the map for a few seconds ----------
+  const SWAY_DEG = 20, SWAY_PERIOD_S = 48, IDLE_S = 5;
+  let dragging = false, lastInput = -Infinity, swayClock = 0, swayEase = 0;
+  controls.addEventListener("start", () => { dragging = true; });
+  controls.addEventListener("end", () => { dragging = false; lastInput = performance.now(); });
+  const sway = (t, dt) => {
+    const idle = !calm && !dragging && !gesture && t - Math.max(lastInput, lastTouch) > IDLE_S * 1000;
+    if (!idle) { swayEase = 0; swayClock = 0; return; }
+    swayEase = Math.min(1, swayEase + dt / 3);
+    const before = Math.sin(2 * Math.PI * swayClock / SWAY_PERIOD_S);
+    swayClock += dt;
+    const step = (Math.sin(2 * Math.PI * swayClock / SWAY_PERIOD_S) - before) * SWAY_DEG * Math.PI / 180 * swayEase;
+    camera.position.sub(controls.target).applyAxisAngle(UP, step).add(controls.target);
+  };
   scene.add(new THREE.HemisphereLight(0xe8f1fa, 0x6b6253, 1.15));
   const sun = new THREE.DirectionalLight(0xfff4e2, 2.1);
   sun.position.set(-70, 60, 55);
@@ -419,6 +468,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       }
       flakeGeometry.attributes.position.needsUpdate = true;
     }
+    sway(t, dt);
     controls.update();
     renderer.render(scene, camera);
     placeLabels();

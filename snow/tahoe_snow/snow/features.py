@@ -16,10 +16,18 @@ REDUCED_FEATURES = ["t0", "t1000", "t2000", "wind0", "wind1000", "wind2000"]
 MIN_MODEL_PRECIP_MM = 0.5
 
 
+LEVEL_FIELDS = ("temperature", "relative_humidity", "wind_speed", "geopotential_height")
+
+
 def levels_in(profile: pd.DataFrame) -> list:
-    """Pressure levels present in a profile frame, highest pressure first."""
-    return sorted({int(c.split("_")[-1][:-3]) for c in profile.columns if c.startswith("temperature_")
-                   and c.endswith("hPa")}, reverse=True)
+    """Pressure levels the profile actually has data for, highest pressure first.
+
+    Models publish different sets of levels; a level whose columns are missing or entirely empty is left out.
+    """
+    named = {int(c.split("_")[-1][:-3]) for c in profile.columns if c.startswith("temperature_") and c.endswith("hPa")}
+    return sorted((level for level in named
+                   if all(f"{field}_{level}hPa" in profile and profile[f"{field}_{level}hPa"].notna().any()
+                          for field in LEVEL_FIELDS)), reverse=True)
 
 
 def hourly_features(profile: pd.DataFrame, elev_m: float, levels: list | None = None) -> pd.DataFrame:

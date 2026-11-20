@@ -176,3 +176,16 @@ def test_snow_model_zero_liquid_nan_profile_and_rain():
     assert out["snow_cm"].iloc[10] > 0.3
     warm = features.hourly_features(make_profile(hours=30, t700=6.0), 2450.0)
     assert model.snowfall(warm, pd.Series(1.0, index=warm.index), 2450.0)["snow_cm"].max() < 0.01
+
+
+def test_levels_a_model_does_not_publish_are_ignored():
+    full = make_profile(hours=30, t700=-8.0)
+    sparse = full.copy()
+    for level in (750, 650, 550):
+        for field in features.LEVEL_FIELDS:
+            sparse[f"{field}_{level}hPa"] = np.nan
+    assert features.levels_in(sparse) == [850, 800, 700, 600, 500]
+    a = features.hourly_features(full, 2450.0)
+    b = features.hourly_features(sparse, 2450.0)
+    assert not b[["t0", "t1000", "t2000", "tw0", "wind0", "rh0", "snow_level_m"]].isna().any().any()
+    assert np.allclose(a["t0"], b["t0"], atol=0.05) and np.allclose(a["snow_level_m"], b["snow_level_m"], atol=30)
