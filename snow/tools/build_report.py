@@ -191,7 +191,7 @@ Given the measured water, it misses the snowfall by <b>{s['This site']['snow_mae
 
 <h2>What is not tested yet</h2>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
-<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, and model archives from Open-Meteo. Code: <a href="https://github.com/N955PK/livefreeandfly/tree/main/snow">github.com/N955PK/livefreeandfly</a>.</p>
+<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, and model archives from Open-Meteo.</p>
 </main></body></html>
 """
 
