@@ -3,11 +3,11 @@
 // few seconds on a weak one). The forecast itself isn't cached here: the page keeps its own copy of the last one
 // it loaded. Road status and avalanche danger are never saved, so they are never shown stale.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v2';
+const VERSION = 'sierra-snow-v3';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icons/mark-white.png?v=2', 'icons/icon-192.png',
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
-  'data/terrain-mammoth.json?v=2', 'data/terrain-mammoth.bin?v=2', 'data/roads-mammoth.json?v=2'];
+  'data/terrain-mammoth.json?v=3', 'data/terrain-mammoth.bin?v=3', 'data/roads-mammoth.json?v=3'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 

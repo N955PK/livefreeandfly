@@ -23,6 +23,19 @@ ROUTES = {
                 "CA 167": "SR-167", "CA 168": "SR-168", "CA 182": "SR-182", "CA 270": "SR-270", "US 6": "US-6"},
 }
 TOLERANCE_DEG = 0.0004
+# The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the
+# roads east of it: the page reads road status for the east side alone, and the west-side roads dead-end.
+CREST = {"mammoth": [(38.46, -119.74), (38.33, -119.66), (37.91, -119.28), (37.65, -119.08), (37.21, -118.63),
+                     (36.58, -118.31), (36.22, -118.12)]}
+
+
+def east_of(geometry: list, crest: list) -> list:
+    """The runs of a way's (lon, lat) points that lie east of the crest."""
+    lats, lons = np.array(crest)[::-1].T
+    points = np.array(geometry)
+    keep = points[:, 0] >= np.interp(points[:, 1], lats, lons)
+    runs = np.split(np.arange(len(points)), np.flatnonzero(np.diff(keep)) + 1)
+    return [[geometry[i] for i in run] for run in runs if keep[run[0]] and len(run) >= 2]
 
 
 def simplify(points: np.ndarray, tolerance: float) -> np.ndarray:
@@ -92,9 +105,10 @@ out geom;"""
     for way in response.json()["elements"]:
         refs = [ref.strip() for ref in way["tags"]["ref"].split(";")]
         geometry = [(round(p["lon"], 5), round(p["lat"], 5)) for p in way["geometry"]]
+        pieces = east_of(geometry, CREST[region]) if region in CREST else [geometry]
         for ref in refs:
             if ref in routes:
-                by_route.setdefault(routes[ref], []).append(geometry)
+                by_route.setdefault(routes[ref], []).extend(pieces)
     out = []
     for route, ways in sorted(by_route.items()):
         lines = [simplify(np.array(line), TOLERANCE_DEG).round(5).tolist() for line in chain(ways)]
