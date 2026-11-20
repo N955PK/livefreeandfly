@@ -911,8 +911,13 @@ function viewGate(){
 
 // The forecast is a public page of its own; it needs a signal, unlike the rest of the app.
 const SNOW_URL = '../snow/?embed';
+let snowSaved = false;
+const snowReady = () => navigator.onLine || snowSaved;
+// The snow page saves itself and its last forecast on the device; once both are there the tab opens with no signal.
+const checkSnowSaved = () => window.caches ? caches.keys().then(keys => { snowSaved = keys.includes('sierra-snow-data') && keys.some(k => k.startsWith('sierra-snow-v')); }).catch(() => {}) : Promise.resolve();
+checkSnowSaved().then(() => { if (snowSaved && S.view === 'snow') render(); });
 function viewSnow(){
-  return navigator.onLine ? '' : `<h1>Snow</h1><p class="sub">The snow forecast needs a signal. It will load when you're back online.</p>`;
+  return snowReady() ? '' : `<h1>Snow</h1><p class="sub">The snow forecast needs a signal the first time. After that it opens offline with the last forecast it loaded.</p>`;
 }
 function showSnow(on){
   const box = $('#snowframe'), frame = box.firstElementChild;
@@ -929,7 +934,7 @@ function render(){
   $('#who').hidden = gated || !S.me;
   $('#who').innerHTML = (!gated && S.me) ? `<span>${esc(first(S.me))}</span>${chip(S.me)}` : '';
   $('#main').innerHTML = gated ? viewGate() : offlineNote() + (S.view === 'money' ? viewMoney() : S.view === 'house' ? viewHouse() : S.view === 'snow' ? viewSnow() : viewNights());
-  showSnow(!gated && S.view === 'snow' && navigator.onLine);
+  showSnow(!gated && S.view === 'snow' && snowReady());
   document.querySelectorAll('#tabs button').forEach(b => { if (b.dataset.view === S.view) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.sheet && S.sheet.type === 'night' && $('#sheet').open){ $('#sheet').innerHTML = sheetNight(S.sheet.night); celebrate(S.sheet.night); }
   if (S.sheet && S.sheet.type === 'settle' && $('#sheet').open) $('#sheet').innerHTML = sheetSettle();
@@ -2188,7 +2193,7 @@ async function start(){
   render();
 }
 window.addEventListener('online', () => { if (S.offline || S.gate === 'error') start(); else if (S.view === 'snow') render(); });
-window.addEventListener('offline', () => { if (S.view === 'snow') render(); });
+window.addEventListener('offline', () => { checkSnowSaved().then(() => { if (S.view === 'snow') render(); }); });
 window.addEventListener('resize', () => { if (S.view === 'snow' && !$('#snowframe').hidden) showSnow(true); });
 
 // Live updates: Supabase tells the page when anyone changes something, and it reloads.
