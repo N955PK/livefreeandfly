@@ -37,6 +37,7 @@
   --w0:#4a525b; --w1:#c98500; --w2:#e5222b; --night:rgba(0,0,0,.28);
 }}
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .5s ease,visibility .5s}
@@ -247,7 +248,7 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 #map3d:active{cursor:grabbing}
 #map3d canvas{display:block;width:100%;height:100%}
 .map-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.map-label,.map-shield,.map-closed,.map-lake{will-change:transform;backface-visibility:hidden}
+.map-label,.map-shield,.map-closed,.map-lake,.map-danger{will-change:transform;backface-visibility:hidden}
 .map-label{position:absolute;left:0;top:0;pointer-events:auto;border:0;cursor:pointer;font:inherit;white-space:nowrap;text-align:center;
   background:rgba(255,255,255,.92);color:#0f1720;border-radius:8px;padding:3px 8px 4px;box-shadow:0 2px 8px rgba(15,23,32,.22);line-height:1.15}
 .map-label b{display:block;font-size:11.5px;font-weight:650}
@@ -277,6 +278,40 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .mapbar .when{font-size:14px;font-weight:650;min-width:92px}
 .mapbar .what{font-size:12.5px;color:var(--muted);grid-column:1 / -1}
 @media (prefers-color-scheme:dark){#map3d{background:radial-gradient(ellipse at 50% 38%,#33424f 0,#1f2a34 55%,#141a20 100%)}}
+.regionbar{display:flex;margin:18px 0 -8px}
+.regionbar .seg{margin-left:0}
+.regionbar .seg button{padding:7px 18px;font-size:14px}
+.map-toggle{position:absolute;z-index:400000;right:12px;top:10px;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:12px;font-weight:600;
+  cursor:pointer;background:rgba(255,255,255,.85);color:#0f1720;box-shadow:0 1px 4px rgba(15,23,32,.2);display:inline-flex;align-items:center;gap:6px}
+.map-toggle::before{content:"";width:9px;height:9px;border-radius:50%;border:1.5px solid #4b5560}
+.map-toggle[aria-pressed=true]{background:#0f1720;color:#fff}
+.map-toggle[aria-pressed=true]::before{background:#f7941e;border-color:#f7941e}
+.map-danger{position:absolute;left:0;top:0;font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;white-space:nowrap;
+  border:1.5px solid rgba(255,255,255,.85);box-shadow:0 1px 5px rgba(0,0,0,.35)}
+#avalanche{margin-top:14px;padding:18px 18px 16px}
+.ahead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ahead h2{font-size:22px;line-height:1.15}
+.ahead .by{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.dchip{display:inline-block;border-radius:8px;padding:4px 10px;font-size:13px;font-weight:700;white-space:nowrap;text-align:center;border:1px solid rgba(15,23,32,.18)}
+.dchip.big{font-size:16px;padding:7px 14px;flex:none}
+button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;cursor:pointer}
+.avydot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px;border:1px solid rgba(15,23,32,.3)}
+.awarn{margin-top:12px;border-radius:10px;padding:9px 12px;background:#ed1c24;color:#fff;font-size:14px;font-weight:650}
+.anotice{margin-top:12px;border-radius:10px;padding:9px 12px;background:var(--wash);font-size:13.5px;color:var(--ink2)}
+.aadvice{margin-top:10px;font-size:14.5px;color:var(--ink2);max-width:72ch}
+.dtable{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:5px 8px;align-items:center;margin-top:14px;max-width:460px;font-size:13px;color:var(--ink2)}
+.dtable b{font-size:11.5px;font-weight:600;color:var(--muted);text-align:center}
+.dtable .dchip{display:block}
+.probs{list-style:none;padding:0}
+.probs li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--grid);font-size:13.5px;color:var(--ink2)}
+.probs li:first-child{border-top:0}
+.probs li i{font-style:normal;font-weight:700;color:var(--muted);flex:none}
+.probs li b{display:block;color:var(--ink);font-weight:650}
+.abottom p{font-size:14.5px;color:var(--ink2);margin:4px 0 8px;max-width:72ch}
+.aby{font-size:12.5px;color:var(--muted);margin-top:10px}
+.abtn{display:block;text-align:center;margin-top:14px;background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 16px;font-size:15px;font-weight:650;text-decoration:none}
+.anote{font-size:12px;color:var(--muted);margin-top:10px}
+.expired .dtable,.expired .probs,.expired .abottom,.expired .aadvice{opacity:.5}
 footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
 @media(max-width:720px){
   .tiles{grid-template-columns:repeat(2,1fr)}
@@ -296,6 +331,8 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   .drow.head .q,.drow.head .pw{display:none}
   .meter{margin-top:0}
   #detail{padding:16px 14px 6px}
+  #avalanche{padding:16px 14px 14px}
+  .ahead h2{font-size:20px}
   .dhead h2,.panel.summary h2{font-size:20px}
   .panel.summary .bar{padding:16px 14px 0}
   .panel.summary .seg button{padding:6px 10px}
@@ -327,9 +364,10 @@ for (let n = 0; n < 26; n++) {
   <h1 id="headline">Loading the forecast…</h1>
   <p class="lede" id="lede"></p>
   <p class="meta" id="meta"></p>
+  <div class="regionbar" id="regionBar" hidden><div class="seg" id="regionSeg" role="group" aria-label="Region"></div></div>
 
   <div class="panel" id="mapPanel">
-    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div></div>
+    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button></div>
     <div class="mapbar">
       <button id="play" aria-label="Play the storm">▶</button>
       <span class="when" id="mapWhen"></span>
@@ -342,7 +380,7 @@ for (let n = 0; n < 26; n++) {
 
   <div class="panel summary">
     <div class="bar">
-      <h2>Tahoe summary</h2>
+      <h2 id="summaryTitle">Tahoe summary</h2>
       <div class="seg" id="seg" role="group" aria-label="Elevation">
         <button data-el="summit" aria-pressed="true">Summit</button><button data-el="mid" aria-pressed="false">Mid</button><button data-el="base" aria-pressed="false">Base</button>
       </div>
@@ -353,6 +391,8 @@ for (let n = 0; n < 26; n++) {
   </div>
 
   <div class="panel" id="detail"></div>
+
+  <div class="panel" id="avalanche"></div>
 
   <details class="panel" id="score"><summary>How accurate is this?</summary><div class="inner"><div id="scoreBody"></div><p><a href="report/">How we tested it, with the plots</a></p></div></details>
   <details class="panel" id="how"><summary>How the forecast is made</summary><div class="inner">
@@ -366,7 +406,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
-    <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, Caltrans, OpenStreetMap, and OpenSkiMap. Not for avalanche or travel decisions.</p>
+    <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
   </div></details>
 </main>
 <script>
@@ -375,12 +415,31 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "59";
+const BUILD = "60";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
-const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
+const REGION_KEY = "tahoe-snow.region";
+const remembered = (key = HOME_KEY) => { try { return localStorage.getItem(key); } catch (error) { return null; } };
 let HOME = remembered() || "palisades";
-let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
+let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME, region = "tahoe";
+// What differs between regions: the map's data files and framing (see createMap), the Caltrans districts whose
+// chain-control feeds cover it, and its avalanche centers (the first is the one the pane at the bottom reports).
+const CALTRANS = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/cc/ccStatusD${String(district).padStart(2, "0")}.json`;
+const REGIONS = {
+  tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897,
+    lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
+    avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/"}]},
+  mammoth: {name: "Mammoth", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.72, -119.02], waterM: 1945,
+    lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)],
+    // East of the crest the low ground is sagebrush, not forest.
+    land: [[1300, [0.72, 0.66, 0.48]], [2000, [0.62, 0.60, 0.42]], [2350, [0.36, 0.44, 0.30]], [2800, [0.27, 0.40, 0.30]],
+      [3200, [0.55, 0.53, 0.48]], [3800, [0.72, 0.70, 0.67]]],
+    avalanche: [{id: "ESAC", name: "Eastern Sierra Avalanche Center", url: "https://www.esavalanche.org/"},
+      {id: "BAC", name: "Bridgeport Avalanche Center", url: "https://bridgeportavalanchecenter.org/"}]},
+};
+// Data published before regions existed has no region field; all of it is Tahoe.
+const regionOf = (r) => r.region || "tahoe";
+const here = () => data.resorts.filter((r) => regionOf(r) === region);
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const inches = (v) => v == null ? "–" : v < 0.05 ? "0" : v < 0.5 ? "<1" : String(Math.round(v));
@@ -430,19 +489,20 @@ function lastThreeDays(resort, el) {
   return total;
 }
 
-// Resorts sit under the pass that covers them. The home resort's pass leads and the home resort leads it; the rest
-// follow by what fell in the last three days.
+// Resorts sit under the pass that covers them, and backcountry peaks in a group of their own. The home mountain's
+// group leads and the home mountain leads it; the rest follow by what fell in the last three days.
+// The pass comes with the data; PASSES covers data published before it did.
+const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Independent", "Backcountry"];
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
   ["Mountain Collective", ["sugarbowl"]], ["Independent", ["homewood", "boreal", "mtrose"]]];
-const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra"};
+const passOf = (r) => r.pass || (PASSES.find(([, keys]) => keys.includes(r.key)) || ["Independent"])[0];
+const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June"};
 function byPass() {
-  const rows = sorted(), listed = new Set(PASSES.flatMap(([, keys]) => keys));
-  const groups = PASSES.map(([name, keys]) => [name, rows.filter((r) => keys.includes(r.key))]);
-  const rest = rows.filter((r) => !listed.has(r.key));
-  if (rest.length) groups[groups.length - 1][1].push(...rest);
-  return groups.filter(([, list]) => list.length).sort((a, b) => b[1].some((r) => r.key === HOME) - a[1].some((r) => r.key === HOME));
+  const rows = sorted(), names = [...new Set([...PASS_ORDER, ...rows.map(passOf)])];
+  return names.map((name) => [name, rows.filter((r) => passOf(r) === name)]).filter(([, list]) => list.length)
+    .sort((a, b) => b[1].some((r) => r.key === HOME) - a[1].some((r) => r.key === HOME));
 }
-function sorted() { return [...data.resorts].sort((a, b) => (b.key === HOME) - (a.key === HOME) || lastThreeDays(b, b.elevations[elevation]) - lastThreeDays(a, a.elevations[elevation])); }
+function sorted() { return here().sort((a, b) => (b.key === HOME) - (a.key === HOME) || lastThreeDays(b, b.elevations[elevation]) - lastThreeDays(a, a.elevations[elevation])); }
 
 function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(x.pm_in)}</span>`; }
 
@@ -463,7 +523,7 @@ function renderHeadline() {
 }
 
 function renderHeat() {
-  const days = futureDays(data.resorts[0].elevations[elevation]);
+  const days = futureDays(here()[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = "";
   const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
@@ -474,7 +534,7 @@ function renderHeat() {
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
-    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft</span></td>
+    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="dot"></span>` : ""}</span></td>
       <td class="total">${inches(total)} in</td>`;
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
@@ -490,8 +550,9 @@ function renderHeat() {
    }
   }
   $("heat").innerHTML = html;
+  badges();
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
-    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${BAR_FULL_IN}</span><span>Tap a resort for details</span>`;
+    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${BAR_FULL_IN}</span><span>Tap a name for details</span>`;
 }
 
 const ICONS = {
@@ -673,7 +734,7 @@ function measured(resort) {
 }
 
 function renderDetail() {
-  const resort = data.resorts.find((r) => r.key === selected) || sorted()[0];
+  const resort = here().find((r) => r.key === selected) || sorted()[0];
   selected = resort.key;
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   // The forecast summary: four across, even on a phone. The ± sits under the number so each stays narrow.
@@ -681,7 +742,7 @@ function renderDetail() {
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}</h2>
-      <span>${el.elevation_ft.toLocaleString()} ft · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
+      <span>${el.elevation_ft.toLocaleString()} ft${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No snow sensor is near this mountain, so there is no measured depth, and the water correction is the average over the Tahoe sensors, untested here">no sensor</span>' : ""}${resort.kind === "backcountry" ? `<span data-avy="${resort.key}"></span>` : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
     <h3>Ski days <small>from 4 pm previous day</small></h3>
@@ -699,6 +760,7 @@ function renderDetail() {
       <span class="sw"><i style="background:repeating-linear-gradient(90deg,var(--ink2) 0 3px,transparent 3px 6px);height:2px"></i>sensor depth gain</span></div>
     ${measured(resort)}`;
   wireTimeline(resort, el, g);
+  badges();
 }
 
 function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) { map.setElevation(elevation); map.select(selected); } }
@@ -725,16 +787,17 @@ function togglePlay(on) {
   playFrame = requestAnimationFrame(tick);
 }
 
-const CHAIN_FEEDS = ["https://cwwp2.dot.ca.gov/data/d3/cc/ccStatusD03.json", "https://cwwp2.dot.ca.gov/data/d10/cc/ccStatusD10.json"];
 const CHAIN_LEVELS = {"R-1": "chains", "R-2": "chains", "R-3": "chains", "RC": "closed", "ROAD CLOSED": "closed"};
-const LAKE = [39.05, -120.04], ROADS_WITHIN_KM = 62;
+const ROADS_WITHIN_KM = 62;
 const CHAIN_MEANING = {"R-1": "chains or snow tires", "R-2": "chains unless 4WD with snow tires", "R-3": "chains on all vehicles"};
 const tidy = (name) => name.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").replace(/[\s\-]+$/, "").trim().toLowerCase().replace(/(^|[\s\-\/])[a-z]/g, (c) => c.toUpperCase())
   .replace(/\bJct\b/g, "junction").replace(/\bHwy\b/g, "Hwy").replace(/\bSr\b/g, "SR").replace(/\bDli\b/g, "Donner Lake");
 const BOUND = {North: "northbound", South: "southbound", East: "eastbound", West: "westbound"};
 async function loadRoads() {
+  const asked = region, {chainFeeds, center} = REGIONS[region], kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180);
   try {
-    const feeds = await Promise.all(CHAIN_FEEDS.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json())));
+    const feeds = await Promise.all(chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json())));
+    if (asked !== region || !map) return;
     const points = [];
     for (const feed of feeds) for (const {cc} of feed.data) {
       const level = (cc.statusData.status || "").trim().toUpperCase(), status = CHAIN_LEVELS[level];
@@ -744,7 +807,7 @@ async function loadRoads() {
         direction: cc.location.direction, mile: +cc.location.milepost || +cc.location.postmile || 0, since: t.statusDate ? new Date(`${t.statusDate}T${t.statusTime || "00:00:00"}-08:00`) : null});
     }
     map.setRoadStatus(points);
-    const km = (p) => Math.hypot((p.lat - LAKE[0]) * 111, (p.lon - LAKE[1]) * 86.4);
+    const km = (p) => Math.hypot((p.lat - center[0]) * 111, (p.lon - center[1]) * kmPerLon);
     const near = points.filter((p) => km(p) <= ROADS_WITHIN_KM), number = (route) => route.replace(/^[A-Z]+-/, "");
     const since = (list) => {
       const first = list.map((p) => p.since).filter(Boolean).sort((a, b) => a - b)[0];
@@ -764,7 +827,7 @@ async function loadRoads() {
       const groups = [];
       for (const p of list.sort((a, b) => a.mile - b.mile)) {
         const pass = p.name.split(" - ")[1];
-        const g = groups.find((x) => x.some((q) => (pass && q.name.split(" - ")[1] === pass) || Math.hypot((q.lat - p.lat) * 111, (q.lon - p.lon) * 86.4) < 15));
+        const g = groups.find((x) => x.some((q) => (pass && q.name.split(" - ")[1] === pass) || Math.hypot((q.lat - p.lat) * 111, (q.lon - p.lon) * kmPerLon) < 15));
         if (g) g.push(p); else groups.push([p]);
       }
       for (const g of groups.filter((x) => x.some((q) => km(q) <= ROADS_WITHIN_KM + 15))) {
@@ -801,26 +864,197 @@ async function loadRoads() {
       section("#f0a80d", "Chains", chains.length ? byRoute("chains").map(([route]) => number(route)).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
       `<span class="src">Caltrans, ${when} · California roads only</span>`;
-  } catch (error) { $("roadNote").textContent = "Road status is unavailable right now."; }
+  } catch (error) { if (asked === region) $("roadNote").textContent = "Road status is unavailable right now."; }
 }
+// One map at a time: switching regions throws the old one away and builds the new one.
+let mapBuild = 0, mapWired = false;
 async function startMap() {
-  if (!data.resorts[0].lat) return;
+  const list = here(), build = ++mapBuild;
+  if (!list.length || !list[0].lat) return;
   try {
     const {createMap} = await import(`./map3d.js?v=${BUILD}`);
+    togglePlay(false);
+    if (map) { map.dispose(); map = null; }
+    $("roadNote").textContent = "";
     $("mapPanel").style.display = "block";
-    map = await createMap($("map3d"), data, {elevation, selected, globe: new URLSearchParams(location.search).has("globe"), onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
+    const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[region], elevation, selected, globe: new URLSearchParams(location.search).has("globe"),
+      onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
+    if (build !== mapBuild) { made.dispose(); return; }
+    map = made;
     $("scrub").max = map.steps - 1;
     $("nowTick").style.left = `calc(${(100 * map.nowStep / (map.steps - 1)).toFixed(1)}% + ${(8 - 16 * map.nowStep / (map.steps - 1)).toFixed(1)}px)`;
-    $("scrub").addEventListener("input", (e) => { togglePlay(false); setTime(+e.target.value); });
-    $("play").addEventListener("click", () => togglePlay(!playing));
-    $("toNow").addEventListener("click", () => { togglePlay(false); setTime(map.nowStep); });
+    if (!mapWired) {
+      mapWired = true;
+      $("scrub").addEventListener("input", (e) => { togglePlay(false); setTime(+e.target.value); });
+      $("play").addEventListener("click", () => togglePlay(!playing));
+      $("toNow").addEventListener("click", () => { togglePlay(false); setTime(map.nowStep); });
+      $("avyToggle").addEventListener("click", () => { avyOn = !avyOn; mapAvalanche(); });
+      setInterval(loadRoads, 5 * 60 * 1000);
+    }
     setTime(map.nowStep);
-    loadRoads(); setInterval(loadRoads, 5 * 60 * 1000);
+    mapAvalanche();
+    loadRoads();
   } catch (error) { $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
 }
 
+// ---------- regions ----------
+function pickRegion() {
+  const has = (key) => data.resorts.some((r) => regionOf(r) === key);
+  const linked = data.resorts.find((r) => r.key === location.hash.slice(1)), home = data.resorts.find((r) => r.key === HOME);
+  const saved = remembered(REGION_KEY);
+  region = linked ? regionOf(linked) : saved && has(saved) ? saved : home ? regionOf(home) : regionOf(data.resorts[0]);
+}
+function renderRegion() {
+  const keys = Object.keys(REGIONS).filter((key) => data.resorts.some((r) => regionOf(r) === key));
+  $("regionBar").hidden = keys.length < 2;
+  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].name}</button>`).join("");
+  $("summaryTitle").textContent = `${REGIONS[region].name} summary`;
+}
+function setRegion(key) {
+  if (key === region || !REGIONS[key]) return;
+  region = key;
+  try { localStorage.setItem(REGION_KEY, key); } catch (error) { /* private browsing: the choice lasts for this visit */ }
+  selected = here().some((r) => r.key === HOME) ? HOME : sorted()[0].key;
+  history.replaceState(null, "", "#" + selected);
+  for (const step of [renderRegion, renderHeat, renderDetail, renderAvalanche]) {
+    try { step(); } catch (error) { console.error(error); }
+  }
+  loadAvalanche();
+  startMap();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-region]");
+  if (b) setRegion(b.dataset.region);
+});
+
+// ---------- avalanche danger ----------
+// The centers' own ratings, read from avalanche.org in the reader's browser, so they are as fresh as the page load.
+// The North American danger scale and its standard colors.
+const AVY_API = "https://api.avalanche.org/v2/public";
+const DANGER = [null, ["Low", "#50b848", "#0f1720"], ["Moderate", "#fff200", "#0f1720"], ["Considerable", "#f7941e", "#0f1720"],
+  ["High", "#ed1c24", "#fff"], ["Extreme", "#231f20", "#fff"]];
+const NO_RATING = ["No rating", "#888888", "#fff"];
+const danger = (level) => DANGER[level] || NO_RATING;
+const dangerText = (level) => `${DANGER[level] ? level + " " : ""}${danger(level)[0]}`;
+const chip = (level, extra = "") => `<span class="dchip${extra}" style="background:${danger(level)[1]};color:${danger(level)[2]}">${dangerText(level)}</span>`;
+const BANDS = [["upper", "Above treeline"], ["middle", "Near treeline"], ["lower", "Below treeline"]];
+const ASPECTS = [["north", "N"], ["northeast", "NE"], ["east", "E"], ["southeast", "SE"], ["south", "S"], ["southwest", "SW"], ["west", "W"], ["northwest", "NW"]];
+const avy = {};
+let avyOn = false;
+const getJson = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+async function loadAvalanche() {
+  const asked = region, centers = REGIONS[asked].avalanche, state = avy[asked] ||= {zones: [], product: null, loaded: false};
+  const layers = await Promise.all(centers.map((center) => getJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
+  const zones = [];
+  layers.forEach((layer, n) => {
+    for (const feature of (layer && layer.features) || []) {
+      const p = feature.properties, g = feature.geometry;
+      zones.push({id: feature.id, center: centers[n], name: p.name, level: p.danger_level, link: p.link, advice: p.travel_advice,
+        offSeason: p.off_season, warning: p.warning && p.warning.product,
+        rings: (g.type === "MultiPolygon" ? g.coordinates : [g.coordinates]).flat()});
+    }
+  });
+  const main = zones.find((zone) => zone.center === centers[0]);
+  const product = main ? await getJson(`${AVY_API}/product?type=forecast&center_id=${main.center.id}&zone_id=${main.id}`).catch(() => null) : null;
+  Object.assign(state, {zones, product, loaded: true});
+  if (asked !== region) return;
+  renderAvalanche(); badges(); mapAvalanche();
+}
+// Even-odd test against every ring of a zone at once.
+function inRings(rings, x, y) {
+  let inside = false;
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+    }
+  }
+  return inside;
+}
+const zonesHere = () => (avy[region] || {}).zones || [];
+// Backcountry peaks carry their zone's rating: a dot in the grid, a chip in the header that jumps to the pane.
+function badges() {
+  for (const slot of document.querySelectorAll("[data-avy]")) {
+    const spot = data.resorts.find((r) => r.key === slot.dataset.avy), zone = spot && zonesHere().find((z) => inRings(z.rings, spot.lon, spot.lat));
+    if (!zone) { slot.innerHTML = ""; continue; }
+    const [name, color, ink] = danger(zone.level);
+    slot.innerHTML = slot.dataset.form === "dot" ? `<i class="avydot" style="background:${color}" title="Avalanche danger: ${name}"></i>`
+      : ` · <button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}" title="Avalanche danger, ${esc(zone.center.name)}">${dangerText(zone.level)}</button>`;
+  }
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-goto]");
+  if (b) $(b.dataset.goto).scrollIntoView({behavior: "smooth", block: "start"});
+});
+function mapAvalanche() {
+  const zones = zonesHere();
+  $("avyToggle").hidden = !map || !zones.length;
+  $("avyToggle").setAttribute("aria-pressed", avyOn);
+  if (!map) return;
+  map.setAvalanche(zones.map((zone) => ({rings: zone.rings, color: danger(zone.level)[1], ink: danger(zone.level)[2], label: dangerText(zone.level),
+    title: `${zone.center.name}: ${danger(zone.level)[0]}`})));
+  map.showAvalanche(avyOn);
+}
+function problemWhere(location) {
+  const aspects = new Set(), bands = new Set();
+  for (const item of location || []) { const [aspect, band] = item.split(" "); aspects.add(aspect); bands.add(band); }
+  const facing = aspects.size >= ASPECTS.length ? "all aspects" : ASPECTS.filter(([key]) => aspects.has(key)).map(([, short]) => short).join(", ");
+  const high = bands.size >= BANDS.length ? "all elevations" : BANDS.filter(([key]) => bands.has(key)).map(([, label]) => label.toLowerCase()).join(" and ");
+  return [facing, high].filter(Boolean).join(", ");
+}
+// The centers write in HTML; only the words are kept.
+function paragraphs(html) {
+  const body = new DOMParser().parseFromString(html || "", "text/html").body;
+  const parts = [...body.querySelectorAll("p, li")].map((node) => node.textContent.replace(/\s+/g, " ").trim()).filter(Boolean);
+  return parts.length ? parts : [body.textContent.replace(/\s+/g, " ").trim()].filter(Boolean);
+}
+function renderAvalanche() {
+  const state = avy[region], center = REGIONS[region].avalanche[0];
+  const zone = state && state.zones.find((z) => z.center === center), product = state && state.product;
+  const clock = (iso) => new Date(iso).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"});
+  const head = `<div class="ahead"><div><h2>Avalanche danger</h2><span class="by">${esc(center.name)}${zone ? ` · ${esc(zone.name)}` : ""}</span></div>${zone ? chip(zone.level, " big") : ""}</div>`;
+  const foot = (link) => `<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
+    <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p>`;
+  if (!state || !state.loaded) { $("avalanche").innerHTML = `${head}<p class="anotice">Loading the avalanche forecast…</p>`; return; }
+  if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">The avalanche forecast could not be loaded right now.</p>${foot(center.url)}`; return; }
+  let body = zone.warning ? `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>` : "";
+  let expired = false;
+  if (zone.offSeason) body += `<p class="anotice">Off season: the center is not issuing daily forecasts.</p>`;
+  if (!product) body += `<p class="anotice">The forecast details could not be loaded right now.</p>`;
+  else {
+    expired = product.expires_time && new Date(product.expires_time) < Date.now();
+    if (expired) body += `<p class="anotice"><b>Expired ${clock(product.expires_time)}.</b> The center may have posted a newer forecast.</p>`;
+    const rated = product.product_type === "forecast" && (product.danger || []).some((d) => BANDS.some(([band]) => d[band] > 0));
+    if (!rated) body += `<p class="anotice">No danger rating: the center has posted ${product.product_type === "summary" ? "a general summary" : "an update"}, not a daily forecast.</p>`;
+  }
+  if (zone.advice) body += `<p class="aadvice">${esc(zone.advice)}</p>`;
+  if (product) {
+    const days = ["current", "tomorrow"].map((key) => (product.danger || []).find((d) => d.valid_day === key)).filter(Boolean);
+    if (days.length && product.product_type === "forecast") {
+      // The first column is the day the forecast was issued for, the second the day after.
+      const issued = new Date(product.published_time).getTime();
+      const dayName = (n) => new Date(issued + n * 864e5).toLocaleDateString("en-US", {timeZone: TZ, weekday: "long"});
+      body += `<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
+        ${BANDS.map(([band, label]) => `<span>${label}</span>${days.map((d) => chip(d[band])).join("")}${days.length < 2 ? "<span></span>" : ""}`).join("")}</div>`;
+    }
+    const problems = [...(product.forecast_avalanche_problems || [])].sort((a, b) => a.rank - b.rank);
+    if (problems.length) {
+      body += `<h3>Avalanche problems</h3><ol class="probs">${problems.map((x, n) => {
+        const size = (x.size || []).filter(Boolean), facts = [x.likelihood, size.length ? `size D${size[0]}${size[1] && size[1] !== size[0] ? ` to D${size[1]}` : ""}` : "", problemWhere(x.location)];
+        return `<li><i>${n + 1}</i><div><b>${esc(x.name || "")}</b>${esc(facts.filter(Boolean).join(" · "))}</div></li>`;
+      }).join("")}</ol>`;
+    }
+    const words = paragraphs(product.bottom_line);
+    if (words.length) body += `<h3>Bottom line</h3><div class="abottom">${words.map((text) => `<p>${esc(text)}</p>`).join("")}</div>`;
+    body += `<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)} · issued ${clock(product.published_time)}${product.expires_time ? ` · expires ${clock(product.expires_time)}` : ""}</p>`;
+  }
+  const link = (product && product.forecast_zone && product.forecast_zone[0] && product.forecast_zone[0].url) || zone.link || center.url;
+  $("avalanche").innerHTML = `<div class="${expired ? "expired" : ""}">${head}${body}</div>${foot(link)}`;
+}
+
 function renderNotes() {
-  $("biasNote").textContent = data.bias_corrected ? "Each is corrected against years of readings from the nearest snow sensor, then they are averaged." : "They are averaged; correction against the nearest snow sensor is not applied yet.";
+  $("biasNote").textContent = (data.bias_corrected ? "Each is corrected against years of readings from the nearest snow sensor, then they are averaged." : "They are averaged; correction against the nearest snow sensor is not applied yet.") +
+    (data.bias_corrected && data.resorts.some((r) => r.station === null) ? " The Mammoth area has no such sensor, so it gets the average correction from the Tahoe sensors, which has not been tested there." : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
   $("formula").innerHTML = (data.powder_formula || []).map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join("");
 }
@@ -888,10 +1122,12 @@ function reveal() {
 setTimeout(reveal, 8000);
 liveForecast().then(async (d) => {
   data = fixTimes(d);
+  pickRegion();
   // Each part renders on its own, so a problem in one never blanks the rest.
-  for (const step of [renderNotes, renderHeadline, renderHeat, renderDetail]) {
+  for (const step of [renderNotes, renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
   }
+  loadAvalanche(); setInterval(loadAvalanche, 30 * 60 * 1000);
   try { await startMap(); } catch (error) { console.error(error); }
   reveal();
 }).catch(() => { $("headline").textContent = "The forecast could not be loaded"; reveal(); });

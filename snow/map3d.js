@@ -1,4 +1,5 @@
-// 3D map of the Tahoe basin: real terrain, resorts as snow stakes for the current storm, and live road status.
+// 3D map of one region: real terrain, resorts and peaks as snow stakes for the current storm, live road status,
+// and the avalanche danger rating as an optional tint.
 // Scene units are kilometers; x is east, y is north, z is up.
 import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
@@ -22,6 +23,7 @@ const MAX_AHEAD_H = 96;
 const ROAD_LIFT = 0.16;
 const ROAD_COLORS = {open: [0.20, 0.23, 0.27], chains: [0.96, 0.66, 0.05], closed: [0.84, 0.18, 0.18]};
 const MAJOR = new Set(["I-80", "US-50", "US-395", "I-580"]);
+const DANGER_TINT = 0.55;
 const SHIELD_EVERY_KM = 26;
 
 // Interstate, U.S. route, California state route (the green spade), and Nevada state route markers.
@@ -49,16 +51,29 @@ const LAND = [
 const WATER = [0.16, 0.42, 0.66];
 const SNOW = [0.96, 0.975, 1.0];
 
-function landColor(m) {
-  if (m <= LAND[0][0]) return LAND[0][1];
-  for (let i = 1; i < LAND.length; i++) {
-    if (m <= LAND[i][0]) {
-      const f = (m - LAND[i - 1][0]) / (LAND[i][0] - LAND[i - 1][0]);
-      return LAND[i - 1][1].map((c, k) => c + f * (LAND[i][1][k] - c));
+function landColor(m, ramp) {
+  if (m <= ramp[0][0]) return ramp[0][1];
+  for (let i = 1; i < ramp.length; i++) {
+    if (m <= ramp[i][0]) {
+      const f = (m - ramp[i - 1][0]) / (ramp[i][0] - ramp[i - 1][0]);
+      return ramp[i - 1][1].map((c, k) => c + f * (ramp[i][1][k] - c));
     }
   }
-  return LAND[LAND.length - 1][1];
+  return ramp[ramp.length - 1][1];
 }
+
+// Even-odd test against every ring at once, so holes and multi-part zones need no special handling.
+function inRings(rings, x, y) {
+  let inside = false;
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+    }
+  }
+  return inside;
+}
+const rgbOf = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
 
 // The storm window around "now": back to the last full day without snow, forward to the next one.
 export function stormWindow(rate, nowIndex) {
@@ -78,16 +93,19 @@ export function stormWindow(rate, nowIndex) {
   return {start, end: Math.max(end, nowIndex + 1), active};
 }
 
-export async function createMap(container, data, {onSelect, elevation = "summit", selected = null, globe = false} = {}) {
+// ``region`` says where the map is: {terrain, roads} data files, the disc's center [lat, lon], waterM (the level
+// heights are drawn from), lake: {name, lat, lon}, and optionally land (its own colors by elevation).
+// ``data.resorts`` holds only that region's locations.
+export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false}) {
   const RADIUS = globe ? GLOBE_KM : DISC_KM, TARGET_Z = globe ? 7 : 1;
   const [meta, buffer, roads] = await Promise.all([
-    fetch("data/terrain.json").then((r) => r.json()),
-    fetch("data/terrain.bin").then((r) => r.arrayBuffer()),
-    fetch("data/roads.json").then((r) => r.ok ? r.json() : []).catch(() => []),
+    fetch(`${region.terrain}.json`).then((r) => r.json()),
+    fetch(`${region.terrain}.bin`).then((r) => r.arrayBuffer()),
+    fetch(region.roads).then((r) => r.ok ? r.json() : []).catch(() => []),
   ]);
   const heights = new Uint16Array(buffer);
   const {rows, columns, width_km: W, height_km: H} = meta;
-  const zOf = (m) => (Math.max(m, FLOOR_M) - 1897) / 1000 * EXAGGERATION;
+  const zOf = (m) => (Math.max(m, FLOOR_M) - region.waterM) / 1000 * EXAGGERATION;
   const xOf = (lon) => ((lon - meta.lon_w) / (meta.lon_e - meta.lon_w) - 0.5) * W;
   const yOf = (lat) => ((lat - meta.lat_s) / (meta.lat_n - meta.lat_s) - 0.5) * H;
   const heightAt = (lat, lon) => {
@@ -104,7 +122,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 1, 1000);
   camera.up.set(0, 0, 1);
-  const lakeX = xOf(-120.04), lakeY = yOf(39.05);
+  const lakeX = xOf(region.center[1]), lakeY = yOf(region.center[0]);
   const inGlobe = (x, y, margin = 0) => Math.hypot(x - lakeX, y - lakeY) < RADIUS - margin;
   // 1 well inside the disc, falling to 0 at its edge: a hard cut for the globe, a soft fade otherwise.
   const cover = (x, y) => {
@@ -121,7 +139,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   controls.screenSpacePanning = false;
   controls.minPolarAngle = Math.PI * 0.12;
   controls.maxPolarAngle = Math.PI * 0.40;
-  // Panning stays over the terrain and at lake level.
+  // Panning stays over the terrain and at water level.
   controls.addEventListener("change", () => {
     const t = controls.target, d = Math.hypot(t.x - lakeX, t.y - lakeY), reach = RADIUS * 0.75;
     const x = d > reach ? lakeX + (t.x - lakeX) * reach / d : t.x, y = d > reach ? lakeY + (t.y - lakeY) * reach / d : t.y;
@@ -202,7 +220,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   const shore = water.slice();
   for (let i = columns; i < count - columns; i++) if (!water[i] && (water[i - 1] || water[i + 1] || water[i - columns] || water[i + columns]) && Math.abs(heights[i] - heights[i - 1]) < 2) shore[i] = 1;
   for (let i = 0; i < count; i++) {
-    base.set(shore[i] ? WATER : landColor(heights[i]), 3 * i);
+    base.set(shore[i] ? WATER : landColor(heights[i], region.land || LAND), 3 * i);
     colors.set(base.subarray(3 * i, 3 * i + 3), 4 * i);
   }
   const index = new Uint32Array((rows - 1) * (columns - 1) * 6);
@@ -273,7 +291,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   });
   let cumulative = series();
   // Fresh snow by elevation band: each hour's snowfall lands on everything above that hour's snow level.
-  const bins = Math.ceil(3400 / BIN_M);
+  const bins = Math.ceil(meta.max_m / BIN_M) + 1;
   const fresh = Array.from({length: steps}, () => new Float32Array(bins));
   for (let i = 1; i < steps; i++) {
     const h = storm.start + i - 1;
@@ -320,7 +338,8 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
 
   // Route shields in their real shapes, spaced along each road and kept clear of the resorts and each other.
   // Short routes go first so they keep a spot.
-  const SHIELD_ORDER = ["SR-267", "NV-207", "NV-431", "SR-28", "NV-28", "I-80", "US-50", "SR-89", "SR-88", "US-395", "I-580", "SR-49", "SR-20", "SR-4"];
+  const SHIELD_ORDER = ["SR-203", "SR-158", "SR-267", "NV-207", "NV-431", "SR-28", "NV-28", "SR-167", "SR-270", "SR-182", "I-80", "US-50", "SR-89", "SR-88",
+    "US-395", "I-580", "SR-49", "SR-20", "SR-4", "SR-120", "SR-108", "SR-168", "US-6"];
   const placedShields = [];
   for (const route of SHIELD_ORDER) {
     for (const pts of roadLines.filter((line) => line.route === route).map((line) => line.pts).sort((a, b) => b.length - a.length)) {
@@ -385,9 +404,42 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
     return {key: r.key, name: r.name, x, y, z, ghost, fill, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
   });
   const lake = document.createElement("div");
-  lake.className = "map-lake"; lake.textContent = "Lake Tahoe";
+  lake.className = "map-lake"; lake.textContent = region.lake.name;
   overlay.appendChild(lake);
-  const lakeAt = new THREE.Vector3(lakeX, yOf(39.09), zOf(1897) + 0.1);
+  const lakeAt = new THREE.Vector3(xOf(region.lake.lon), yOf(region.lake.lat), zOf(heightAt(region.lake.lat, region.lake.lon)) + 0.1);
+
+  // ---------- avalanche danger: each zone's rating tints the terrain inside its outline ----------
+  // zoneOf holds, per terrain vertex, the zone it falls in (1-based; 0 for none), worked out once per set of zones.
+  const zoneOf = new Uint8Array(count), dangerTags = [];
+  let dangerColors = [], dangerOn = false;
+  function setAvalanche(zones) {
+    zoneOf.fill(0);
+    for (const tag of dangerTags) tag.tag.remove();
+    dangerTags.length = 0;
+    dangerColors = zones.map((zone) => rgbOf(zone.color));
+    zones.forEach((zone, n) => {
+      const rings = zone.rings.map((ring) => ring.map(([lon, lat]) => [xOf(lon), yOf(lat)]));
+      const xs = rings.flat().map((p) => p[0]), ys = rings.flat().map((p) => p[1]);
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      let sumX = 0, sumY = 0, seen = 0;
+      for (let v = 0; v < count; v++) {
+        const x = positions[3 * v], y = positions[3 * v + 1];
+        if (x < x0 || x > x1 || y < y0 || y > y1 || !inRings(rings, x, y)) continue;
+        zoneOf[v] = n + 1;
+        if (cover(x, y) > 0.9) { sumX += x; sumY += y; seen++; }
+      }
+      if (!seen) return;
+      // The label sits at the middle of the part of the zone that is on the map.
+      const x = sumX / seen, y = sumY / seen;
+      const lon = meta.lon_w + (x / W + 0.5) * (meta.lon_e - meta.lon_w), lat = meta.lat_s + (y / H + 0.5) * (meta.lat_n - meta.lat_s);
+      const tag = document.createElement("div");
+      tag.className = "map-danger"; tag.textContent = zone.label; tag.title = zone.title || zone.label;
+      tag.style.background = zone.color; tag.style.color = zone.ink || "#fff";
+      overlay.appendChild(tag);
+      dangerTags.push({tag, point: new THREE.Vector3(x, y, zOf(heightAt(lat, lon)) + 1.2)});
+    });
+    paintedAt = -1;
+  }
 
   // ---------- falling snow (fills the whole view, from well above the peaks) ----------
   const flakePositions = new Float32Array(FLAKES * 3), flakeSpeed = new Float32Array(FLAKES);
@@ -419,9 +471,11 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       const b = Math.min(bins - 1, Math.floor(heights[v] / BIN_M));
       const amount = fresh[i][b] + f * (fresh[j][b] - fresh[i][b]);
       const w = Math.min(1, amount / WHITEN_AT_IN), s = w * w * (3 - 2 * w);
-      colors[4 * v] = base[3 * v] + s * (SNOW[0] - base[3 * v]);
-      colors[4 * v + 1] = base[3 * v + 1] + s * (SNOW[1] - base[3 * v + 1]);
-      colors[4 * v + 2] = base[3 * v + 2] + s * (SNOW[2] - base[3 * v + 2]);
+      const tint = dangerOn && zoneOf[v] ? dangerColors[zoneOf[v] - 1] : null;
+      for (let k = 0; k < 3; k++) {
+        const land = base[3 * v + k] + s * (SNOW[k] - base[3 * v + k]);
+        colors[4 * v + k] = tint ? land + DANGER_TINT * (tint[k] - land) : land;
+      }
     }
     terrain.attributes.color.needsUpdate = true;
     for (const item of items) {
@@ -483,6 +537,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       put(shield.tag, shield.point, shield.inside && !hits(box) && !behindStake);
     }
     for (const closure of closures) put(closure.tag, closure.point);
+    for (const danger of dangerTags) put(danger.tag, danger.point, dangerOn);
   }
 
   function resize() {
@@ -494,8 +549,8 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
     camera.fov = w < 520 ? 50 : 30;
     camera.updateProjectionMatrix();
   }
-  new ResizeObserver(resize).observe(container);
-  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }).observe(container);
+  const watchers = [new ResizeObserver(resize), new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; })];
+  for (const watcher of watchers) watcher.observe(container);
   resize();
 
   let last = performance.now();
@@ -558,6 +613,14 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
         closures.push({tag, route: point.route, x, y, point: new THREE.Vector3(x, y, zOf(heightAt(point.lat, point.lon)) + 0.9)});
       }
     },
-    dispose() { running = false; renderer.dispose(); },
+    // zones: [{rings: [[[lon, lat], ...], ...], color: "#rrggbb", ink, label, title}], one per avalanche forecast zone.
+    setAvalanche,
+    showAvalanche(on) { dangerOn = on; paintedAt = -1; },
+    dispose() {
+      running = false;
+      for (const watcher of watchers) watcher.disconnect();
+      controls.dispose(); renderer.dispose();
+      canvas.remove(); overlay.remove();
+    },
   };
 }
