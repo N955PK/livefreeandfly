@@ -259,7 +259,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   <details class="panel" id="how"><summary>How the forecast is made</summary><div class="inner">
     <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
     <p><b>Snow.</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
-    <p><b>The ±</b> comes from about 140 alternate forecasts (ensemble members) run through the same steps; about 2 in 3 land inside it. Past day 5 a single number isn't worth much, so you get the chance of 6 inches or more.</p>
+    <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Past day 5 a single number isn't worth much, so you get the chance of 6 inches or more.</p>
     <p><b>One water amount per resort.</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Powder score</b> (0–10) rates each ski day, 4 pm to 4 pm: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
@@ -332,7 +332,7 @@ function renderHeadline() {
     (best ? `Best day to ski it: <b>${weekday(best.date, "long")}</b>, powder score ${best.powder.score.toFixed(1)} out of 10.` : "");
   const made = new Date(data.generated_utc), age = (Date.now() - made) / 36e5;
   const when = made.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"});
-  $("meta").innerHTML = `Updated ${when} · ± covers about 2 in 3 outcomes` +
+  $("meta").innerHTML = `Updated ${when} · ± is one standard deviation across about 140 ensemble forecasts` +
     (age > 9 ? ` · <span class="warn">${Math.round(age)} hours old</span>` : "");
 }
 
