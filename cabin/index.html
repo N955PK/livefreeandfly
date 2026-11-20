@@ -312,23 +312,24 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
   background:var(--bg);color:var(--ink);overflow:hidden;transition:opacity .45s ease,visibility .45s}
 #splash.done{opacity:0;visibility:hidden}
 #splash .run{position:relative;width:150px;height:112px;rotate:9deg}
-#splash .slope{position:absolute;left:-150vw;width:300vw;bottom:8px;height:2px;border-radius:2px;
-  background:repeating-linear-gradient(90deg,var(--dim) 0 54px,transparent 54px 76px);opacity:.5;animation:slope .42s linear infinite}
-#splash .rider{position:absolute;left:0;bottom:8px;width:150px;height:94px;transform-origin:50% 100%;
+#splash .slope{position:absolute;left:calc(75px - 150vw);width:300vw;bottom:8px;height:2px;
+  background:repeating-linear-gradient(90deg,var(--dim) 0 96px,transparent 96px 110px);opacity:.38;animation:slope .5s linear infinite;
+  -webkit-mask:linear-gradient(90deg,transparent 35%,#000 44%,#000 56%,transparent 65%);mask:linear-gradient(90deg,transparent 35%,#000 44%,#000 56%,transparent 65%)}
+#splash .rider{position:absolute;left:0;bottom:2px;width:150px;height:94px;transform-origin:60% 84%;
   animation:dropin .95s cubic-bezier(.16,.8,.3,1) backwards,ride 1.15s ease-in-out .95s infinite;transition:translate .6s cubic-bezier(.6,0,.9,.35)}
 #splash.go .rider{translate:120vw 0}
-#splash .skier{display:block;width:100%;height:100%;background:url(skier-mark.png) center/contain no-repeat}
+#splash .skier{display:block;width:100%;height:100%;rotate:13deg;transform-origin:60% 84%;background:url(skier-mark.png) center/contain no-repeat}
 :root[data-accent]:not([data-accent="chairlift"]) #splash .skier{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
-#splash u{position:absolute;left:20px;bottom:3px;width:8px;height:8px;border-radius:50%;background:var(--ink);opacity:0;animation:spray .66s ease-out infinite}
-#splash u:nth-of-type(2){animation-delay:.22s;bottom:10px}
-#splash u:nth-of-type(3){animation-delay:.44s;left:24px}
+#splash u{position:absolute;left:30px;bottom:14px;width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:0;animation:spray .66s ease-out infinite}
+#splash u:nth-of-type(2){animation-delay:.22s}
+#splash u:nth-of-type(3){animation-delay:.44s}
 #splash b{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em;opacity:0;animation:wordup .6s ease .35s forwards}
 #splash b span{color:var(--accent-ink);font-weight:700}
-#splash i{position:absolute;top:-12px;border-radius:50%;background:var(--ink);opacity:.26;animation:blow linear infinite}
-@keyframes slope{to{background-position-x:-76px}}
+#splash i{position:absolute;top:-12px;border-radius:50%;background:var(--ink);opacity:.2;animation:blow linear infinite}
+@keyframes slope{to{background-position-x:-110px}}
 @keyframes dropin{from{translate:-70vw 0}to{translate:0 0}}
-@keyframes ride{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-7px) rotate(-3deg)}62%{transform:translateY(0) rotate(1.5deg)}}
-@keyframes spray{from{opacity:.38;transform:none}to{opacity:0;transform:translate(-58px,-26px) scale(2.4)}}
+@keyframes ride{0%,100%{transform:rotate(0)}35%{transform:rotate(-1.6deg)}70%{transform:rotate(1deg)}}
+@keyframes spray{from{opacity:.32;transform:none}to{opacity:0;transform:translate(-46px,-16px) scale(2.2)}}
 @keyframes wordup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes blow{to{transform:translate(-55vw,108vh)}}
 @media (prefers-reduced-motion:reduce){#splash .rider,#splash .slope,#splash b{animation:none}#splash b{opacity:1}#splash i,#splash u{display:none}}
@@ -338,8 +339,8 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 <body>
 <div id="splash" aria-hidden="true"><div class="run"><span class="slope"></span><span class="rider"><span class="skier"></span><u></u><u></u><u></u></span></div><b>ski<span>/</span>lease</b></div>
 <script>
-for (let n = 0; n < 30; n++) {
-  const flake = document.createElement('i'), size = 3 + Math.random() * 4;
+for (let n = 0; n < 14; n++) {
+  const flake = document.createElement('i'), size = 2 + Math.random() * 2.5;
   flake.style.cssText = `left:${Math.random() * 150}%;width:${size}px;height:${size}px;animation-duration:${2.6 + Math.random() * 3.4}s;animation-delay:${-Math.random() * 6}s`;
   document.getElementById('splash').appendChild(flake);
 }
