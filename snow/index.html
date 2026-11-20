@@ -646,7 +646,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "152";
+const BUILD = "153";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -962,7 +962,7 @@ function wireTimeline(resort, el, g) {
     tip.innerHTML = `<b>${when}${past ? " (past, estimated)" : ""}</b>` + row("Snow this hour", `${(h.snow_in[k] || 0).toFixed(2)} in`) +
       (g.running[k] != null ? row("Storm total", `${tenths(g.running[k])} in`) : above ? row("Storm total", "–") : "") +
       (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : above ? row("Quality", "–") : "") +
-      (!above && past && g.depth[k] != null ? row("Sensor depth", `${g.depth[k]} in`) : "") +
+      (past && g.depth[k] != null ? row("Sensor depth", `${g.depth[k]} in`) : above ? row("Sensor depth", "–") : "") +
       row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${wind} mph${h.wind_from_deg && h.wind_from_deg[k] != null ? ` ${compass(h.wind_from_deg[k])}` : ""}${gust > wind + 5 ? `, gusts ${gust}` : ""}`) +
       row("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) +
       row("Snow level", h.snow_level_ft[k] == null ? "–" : `${(Math.round(h.snow_level_ft[k] / 100) * 100).toLocaleString()} ft`) +
