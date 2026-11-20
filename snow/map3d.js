@@ -11,6 +11,7 @@ const FLAKES = 9000;
 const WHITEN_AT_IN = 5;
 const BIN_M = 50;
 const FLOOR_M = 1150;
+const LOWLAND_M = 400;
 const EDGE_FADE_KM = 16;
 const GLOBE_KM = 50;
 const DISC_KM = 72;
@@ -113,15 +114,18 @@ export function stormWindow(rate, nowIndex) {
 }
 
 // ``region`` says where the map is: {terrain, roads} data files, the disc's center [lat, lon], waterM (the level
-// heights are drawn from), lake: {name, lat, lon}, and optionally land (its own colors by elevation) and zoom
-// (how close the view opens; 1 when absent).
+// heights are drawn from), lake: {name, lat, lon}, and optionally land (its own colors by elevation), zoom
+// (how close the view opens; 1 when absent), discKm (the disc's radius), and look ([lat, lon] the view opens on
+// when that is not the disc's center).
 // ``data.resorts`` holds only that region's locations.
 export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false}) {
-  const RADIUS = globe ? GLOBE_KM : DISC_KM, TARGET_Z = globe ? 7 : 1;
+  const RADIUS = globe ? GLOBE_KM : region.discKm || DISC_KM, TARGET_Z = globe ? 7 : 1;
+  // A region whose files were rebuilt carries a rev, so a phone never pairs the new page with its saved old files.
+  const rev = region.rev || "";
   const [meta, buffer, roads] = await Promise.all([
-    fetch(`${region.terrain}.json`).then((r) => r.json()),
-    fetch(`${region.terrain}.bin`).then((r) => r.arrayBuffer()),
-    fetch(region.roads).then((r) => r.ok ? r.json() : []).catch(() => []),
+    fetch(`${region.terrain}.json${rev}`).then((r) => r.json()),
+    fetch(`${region.terrain}.bin${rev}`).then((r) => r.arrayBuffer()),
+    fetch(region.roads + rev).then((r) => r.ok ? r.json() : []).catch(() => []),
   ]);
   const heights = new Uint16Array(buffer);
   const {rows, columns, width_km: W, height_km: H} = meta;
@@ -142,7 +146,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 1, 1000);
   camera.up.set(0, 0, 1);
-  const lakeX = xOf(region.center[1]), lakeY = yOf(region.center[0]);
+  const look = region.look || region.center, [centerLat, centerLon] = globe ? look : region.center;
+  const lakeX = xOf(centerLon), lakeY = yOf(centerLat), lookX = xOf(look[1]), lookY = yOf(look[0]);
   const inGlobe = (x, y, margin = 0) => Math.hypot(x - lakeX, y - lakeY) < RADIUS - margin;
   // 1 well inside the disc, falling to 0 at its edge: a hard cut for the globe, a soft fade otherwise.
   const cover = (x, y) => {
@@ -156,10 +161,10 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   if (globe) camera.position.set(lakeX - 8, lakeY - 150, 104); else {
     // The camera starts south of the target; a region can swing it around (45 looks from the southeast).
     const turn = (region.turnDeg || 0) * Math.PI / 180, dx = -6 * zoom, dy = -100 * zoom;
-    camera.position.set(lakeX + dx * Math.cos(turn) - dy * Math.sin(turn), lakeY - 4 + dx * Math.sin(turn) + dy * Math.cos(turn), 1 + 77 * zoom);
+    camera.position.set(lookX + dx * Math.cos(turn) - dy * Math.sin(turn), lookY - 4 + dx * Math.sin(turn) + dy * Math.cos(turn), 1 + 77 * zoom);
   }
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(lakeX, lakeY - (globe ? 0 : 4), TARGET_Z);
+  controls.target.set(lookX, lookY - (globe ? 0 : 4), TARGET_Z);
   controls.enableDamping = true;
   controls.enablePan = true;
   controls.screenSpacePanning = false;
@@ -172,7 +177,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     if (x !== t.x || y !== t.y || t.z !== TARGET_Z) { camera.position.x += x - t.x; camera.position.y += y - t.y; t.set(x, y, TARGET_Z); }
   });
   controls.minDistance = 40;
-  controls.maxDistance = globe ? 260 : 190;
+  controls.maxDistance = globe ? 260 : 190 * RADIUS / DISC_KM;
   controls.zoomSpeed = 0.6;
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -240,7 +245,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       positions.set([x, y, zOf(m)], 3 * i);
       colors[4 * i + 3] = cover(x, y);
       const flat = (j) => Math.abs(heights[j] - m) < 0.6;
-      water[i] = r > 0 && r < rows - 1 && c > 0 && c < columns - 1 && flat(i - 1) && flat(i + 1) && flat(i - columns) && flat(i + columns) ? 1 : 0;
+      // Level ground is a lake in the mountains, but in the Central Valley it is only farmland.
+      water[i] = m >= LOWLAND_M && r > 0 && r < rows - 1 && c > 0 && c < columns - 1 && flat(i - 1) && flat(i + 1) && flat(i - columns) && flat(i + columns) ? 1 : 0;
     }
   }
   const shore = water.slice();

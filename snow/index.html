@@ -490,7 +490,7 @@ const REGIONS = {
   tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897, pick: "palisades",
     lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
     avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/"}]},
-  mammoth: {name: "Mammoth", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 72, pick: "mammoth",
+  mammoth: {name: "Mammoth", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.34, -118.84], rev: "?v=2", discKm: 115, look: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 72, pick: "mammoth",
     lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)],
     // East of the crest the low ground is sagebrush, not forest.
     land: [[1300, [0.72, 0.66, 0.48]], [2000, [0.62, 0.60, 0.42]], [2350, [0.36, 0.44, 0.30]], [2800, [0.27, 0.40, 0.30]],
@@ -881,7 +881,7 @@ async function nevadaRoads() {
   } catch (error) { return null; }
 }
 async function loadRoads() {
-  const asked = region, {chainFeeds, center} = REGIONS[region], kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180);
+  const asked = region, {chainFeeds} = REGIONS[region], center = REGIONS[region].look || REGIONS[region].center, kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180);
   try {
     const [nevada, ...feeds] = await Promise.all([nevadaRoads(), ...chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()))]);
     if (asked !== region || !map) return;

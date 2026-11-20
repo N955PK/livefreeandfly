@@ -183,7 +183,7 @@ def test_every_location_is_well_formed():
         assert resort.kind in ("resort", "backcountry")
         assert (resort.pass_group == "Backcountry") == (resort.kind == "backcountry")
         assert resort.station is None or resort.station in ALL_STATIONS
-        assert 1500 < resort.base_m < resort.summit_m < 4000
+        assert 1500 < resort.base_m < resort.summit_m < 4500
 
 
 def test_call_weight_follows_the_published_examples():

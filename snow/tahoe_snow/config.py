@@ -114,6 +114,8 @@ ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS}
 # (Gem Pass and Agnew Pass went quiet), so June Mountain and Carson Peak have no station and no correction.
 # Matterhorn Peak (base at Twin Lakes) pairs with Slide Canyon, 4 km west across the crest, and Dana Plateau
 # (the rim above the chutes; base at Ellery Lake on the Tioga Road) with Dana Meadows, 5 km southwest.
+# Mt. Whitney (base at Whitney Portal; published elevations) is far south of every sensor the Mammoth correction
+# was fitted to, so it has no station either.
 RESORTS = {
     r.key: r
     for r in [
@@ -145,6 +147,8 @@ RESORTS = {
         Resort("matterhorn", "Matterhorn Peak", 38.0932, -119.3817, 2165, 3734, "SLI:CDEC", "Backcountry",
                region="mammoth", kind="backcountry", weak_match=True),
         Resort("danaplateau", "Dana Plateau", 37.9200, -119.2150, 2907, 3494, "DAN:CDEC", "Backcountry",
+               region="mammoth", kind="backcountry"),
+        Resort("whitney", "Mt. Whitney", 36.5786, -118.2922, 2548, 4421, None, "Backcountry",
                region="mammoth", kind="backcountry"),
     ]
 }

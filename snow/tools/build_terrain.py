@@ -18,10 +18,10 @@ from scipy.ndimage import median_filter
 ROOT = Path(__file__).resolve().parent.parent
 TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
 ZOOM = 10
-COLUMNS = 420
-# Box (south, north, west, east) and a ceiling just above the highest real peak inside it.
-REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400},
-           "mammoth": {"box": (37.00, 38.44, -119.94, -118.10), "max_m": 4400}}
+# Box (south, north, west, east), a ceiling just above the highest real peak inside it, and the grid's width
+# (about 0.39 km a cell in both). Mammoth's box runs from Matterhorn Peak to Mt. Whitney.
+REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "columns": 420},
+           "mammoth": {"box": (36.22, 38.46, -120.24, -117.44), "max_m": 4450, "columns": 640}}
 
 
 def stem(region: str) -> str:
@@ -37,7 +37,7 @@ def tile_xy(lat: float, lon: float, zoom: int) -> tuple:
 
 def main(region: str = "tahoe") -> None:
     LAT_S, LAT_N, LON_W, LON_E = REGIONS[region]["box"]
-    MAX_REAL_M = REGIONS[region]["max_m"]
+    MAX_REAL_M, COLUMNS = REGIONS[region]["max_m"], REGIONS[region]["columns"]
     x0, y0 = tile_xy(LAT_N, LON_W, ZOOM)
     x1, y1 = tile_xy(LAT_S, LON_E, ZOOM)
     tx0, ty0, tx1, ty1 = int(x0), int(y0), int(x1), int(y1)
