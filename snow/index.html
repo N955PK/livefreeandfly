@@ -560,7 +560,9 @@ const passOf = (r) => r.pass || (PASSES.find(([, keys]) => keys.includes(r.key))
 const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June"};
 function byPass() {
   const rows = sorted(), names = [...new Set([...PASS_ORDER, ...rows.map(passOf)])];
-  return names.map((name) => [name, rows.filter((r) => passOf(r) === name)]).filter(([, list]) => list.length)
+  // Resorts are ordered by recent snow; backcountry peaks run north to south, as on the map.
+  const inOrder = (name, list) => (name === "Backcountry" ? list.sort((a, b) => b.lat - a.lat) : list);
+  return names.map((name) => [name, inOrder(name, rows.filter((r) => passOf(r) === name))]).filter(([, list]) => list.length)
     .sort((a, b) => b[1].some((r) => r.key === HOME) - a[1].some((r) => r.key === HOME));
 }
 function sorted() { return here().sort((a, b) => (b.key === HOME) - (a.key === HOME) || lastThreeDays(b, b.elevations[elevation]) - lastThreeDays(a, a.elevations[elevation])); }
