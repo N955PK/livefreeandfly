@@ -13,7 +13,7 @@ from tahoe_snow.sources import openmeteo, snotel
 
 TZ = "America/Los_Angeles"
 DAYS = 10
-HISTORY_DAYS = 3
+HISTORY_DAYS = 7
 DETERMINISTIC_DAYS = 5
 MAX_GAP_H = 6
 DELTAS_C = np.arange(-4.0, 4.01, 1.0)
@@ -230,10 +230,11 @@ def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
             "prob_12in": round(float((values >= 12 * CM_PER_IN).mean()), 2), "members": int(len(values))}
 
 
-def observed(resort, now: pd.Timestamp) -> dict | None:
-    """What the resort's SNOTEL station has measured over the last three days (settled depth, not board totals)."""
+def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
+    """What the resort's SNOTEL station has measured: the latest readings, three-day gains, and the hourly
+    depth over the page's history window (settled depth, not board totals)."""
     station = STATIONS[resort.station]
-    start = (now - pd.Timedelta(hours=96 + snotel_offset_h())).strftime("%Y-%m-%d")
+    start = (hours[0] - pd.Timedelta(hours=24 + snotel_offset_h())).strftime("%Y-%m-%d")
     try:
         frame = snotel.hourly(station.triplet, start, (now + pd.Timedelta(days=1)).strftime("%Y-%m-%d"), max_age_h=1.0)
     except RuntimeError:
@@ -260,7 +261,8 @@ def observed(resort, now: pd.Timestamp) -> dict | None:
             "depth_gain_72h_in": inches(gain("depth_cm", 72), 2.54),
             "water_gain_24h_in": inches(gain("swe_mm", 24), MM_PER_IN, 1),
             "water_gain_72h_in": inches(gain("swe_mm", 72), MM_PER_IN, 1),
-            "temp_f": None if temp.empty else round(float(temp.iloc[-1]) * 1.8 + 32)}
+            "temp_f": None if temp.empty else round(float(temp.iloc[-1]) * 1.8 + 32),
+            "depth_in_hourly": _round(frame["depth_cm"][~frame.index.duplicated()].reindex(hours) / 2.54, 0)}
 
 
 def snotel_offset_h() -> int:
@@ -275,7 +277,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     """Site payload and archive rows for one resort."""
     today = now.tz_localize("UTC").tz_convert(TZ).tz_localize(None).normalize()
     variables = openmeteo.FORECAST_SURFACE_VARS + openmeteo.level_variables()
-    frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS, variables, days=DAYS)
+    frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS, variables, days=DAYS,
+                                past_days=HISTORY_DAYS + 1)
     models = {}
     for model, frame in frames.items():
         if frame["precipitation"].notna().sum() == 0:
@@ -295,12 +298,12 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
         except RuntimeError:
             continue
     midnight = today.tz_localize(TZ).tz_convert("UTC").tz_localize(None)
-    # Three days back, so the page can total the storm in progress.
+    # A week back, so the page can show recent history and total the storm in progress.
     hours = pd.date_range(midnight - pd.Timedelta(hours=HISTORY_DAYS * 24), now + pd.Timedelta(hours=DAYS * 24 - 1),
                           freq="h")
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
                "station": STATIONS[resort.station].name,
-               "weak_station_match": resort.weak_match, "observed": observed(resort, now), "elevations": {},
+               "weak_station_match": resort.weak_match, "observed": observed(resort, now, hours), "elevations": {},
                "models": list(models)}
     archive = []
     summit_blend = None

@@ -16,7 +16,7 @@ const DISC_KM = 72;
 const DISC_FADE_KM = 10;
 const SKY_KM = 110;
 const DOME_SQUASH = 0.62;
-const DRY_GAP_H = 12;
+const DRY_GAP_H = 24;
 const DRY_RATE = 0.01;
 const MAX_AHEAD_H = 96;
 const ROAD_LIFT = 0.16;
@@ -60,7 +60,7 @@ function landColor(m) {
   return LAND[LAND.length - 1][1];
 }
 
-// The storm window around "now": back to the last 12-hour dry gap, forward to the next one.
+// The storm window around "now": back to the last full day without snow, forward to the next one.
 export function stormWindow(rate, nowIndex) {
   const snowing = (i) => rate[i] >= DRY_RATE;
   const dryRun = (from, to) => { for (let i = from; i < to; i++) if (i >= 0 && i < rate.length && snowing(i)) return false; return true; };
@@ -410,7 +410,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
     const i = Math.min(array.length - 1, Math.floor(t) + offset), j = Math.min(array.length - 1, i + 1), f = t - Math.floor(t);
     return array[i] + f * (array[j] - array[i]);
   };
-  const show = (v) => v < 0.05 ? "0" : v < 10 ? v.toFixed(1) : String(Math.round(v));
+  const show = (v) => v < 0.05 ? "0" : v < 0.5 ? "<1" : String(Math.round(v));
 
   function paint() {
     const i = Math.min(steps - 1, Math.floor(time)), j = Math.min(steps - 1, i + 1), f = time - i;
