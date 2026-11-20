@@ -419,7 +419,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "66";
+const BUILD = "67";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1017,7 +1017,7 @@ function paragraphs(html) {
 function renderAvalanche() {
   const state = avy[region], center = REGIONS[region].avalanche[0];
   const zone = state && state.zones.find((z) => z.center === center), product = state && state.product;
-  const clock = (iso) => new Date(iso).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"});
+  const clock = (iso) => new Date(iso).toLocaleString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
   const head = `<div class="ahead"><div><h2>Avalanche danger</h2><span class="by">${esc(center.name)}${zone ? ` · ${esc(zone.name)}` : ""}</span></div>${zone ? chip(zone.level, " big") : ""}</div>`;
   const foot = (link) => `<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
     <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p>`;
@@ -1039,7 +1039,7 @@ function renderAvalanche() {
     if (days.length && product.product_type === "forecast") {
       // The first column is the day the forecast was issued for, the second the day after.
       const issued = new Date(product.published_time).getTime();
-      const dayName = (n) => new Date(issued + n * 864e5).toLocaleDateString("en-US", {timeZone: TZ, weekday: "long"});
+      const dayName = (n) => new Date(issued + n * 864e5).toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric"});
       body += `<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
         ${BANDS.map(([band, label]) => `<span>${label}</span>${days.map((d) => chip(d[band])).join("")}${days.length < 2 ? "<span></span>" : ""}`).join("")}</div>`;
     }
