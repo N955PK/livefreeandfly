@@ -33,8 +33,8 @@ def load_snow_model() -> tuple:
         kind, params = DEFAULT_PHASE
     try:
         sidecar = json.loads((MODELS / "snow_ratio.json").read_text())
-        described = (f"trained on {sidecar['events']} hand-measured Sierra snow days at {sidecar['stations']} stations, "
-                     f"{sidecar['first_date'][:4]} to {sidecar['last_date'][:4]}")
+        described = (f"trained on {sidecar['events']} hand-measured Sierra snow days at "
+                     f"{sidecar['stations']} stations, {sidecar['first_date'][:4]} to {sidecar['last_date'][:4]}")
         return SnowModel(ratio.load(), kind, params), described
     except FileNotFoundError:
         return SnowModel(ratio.Kuchera(), kind, params), "Kuchera (trained model not yet fitted)"
@@ -43,6 +43,12 @@ def load_snow_model() -> tuple:
 def load_correction() -> biascorrect.Correction | None:
     path = MODELS / "bias.json"
     return biascorrect.from_json(json.loads(path.read_text())) if path.exists() else None
+
+
+def load_weights() -> dict:
+    """Blend weights per model from held-out water error; equal weights when the file is absent."""
+    path = MODELS / "weights.json"
+    return json.loads(path.read_text()) if path.exists() else {}
 
 
 def fill_profile(frame: pd.DataFrame) -> pd.DataFrame:
@@ -288,10 +294,11 @@ def run(now: datetime | None = None) -> dict:
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
     snow_model, ratio_name = load_snow_model()
     correction = load_correction()
+    weights = load_weights()
     resorts, archive, failed = [], [], []
     for resort in RESORTS.values():
         try:
-            payload, rows = resort_forecast(resort, snow_model, correction, now, weights={})
+            payload, rows = resort_forecast(resort, snow_model, correction, now, weights=weights)
             resorts.append(payload)
             archive.extend(rows)
             print(f"{resort.name}: {payload['elevations']['summit']['windows']['next72']}", flush=True)
