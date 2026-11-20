@@ -134,7 +134,11 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   };
   // A region whose mountains sit close together opens closer in (zoom under 1).
   const zoom = region.zoom || 1;
-  if (globe) camera.position.set(lakeX - 8, lakeY - 150, 104); else camera.position.set(lakeX - 6 * zoom, lakeY - 4 - 100 * zoom, 1 + 77 * zoom);
+  if (globe) camera.position.set(lakeX - 8, lakeY - 150, 104); else {
+    // The camera starts south of the target; a region can swing it around (45 looks from the southeast).
+    const turn = (region.turnDeg || 0) * Math.PI / 180, dx = -6 * zoom, dy = -100 * zoom;
+    camera.position.set(lakeX + dx * Math.cos(turn) - dy * Math.sin(turn), lakeY - 4 + dx * Math.sin(turn) + dy * Math.cos(turn), 1 + 77 * zoom);
+  }
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(lakeX, lakeY - (globe ? 0 : 4), TARGET_Z);
   controls.enableDamping = true;
@@ -404,7 +408,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     label.className = "map-label";
     label.addEventListener("click", () => onSelect && onSelect(r.key));
     overlay.appendChild(label);
-    return {key: r.key, name: r.name, x, y, z, ghost, fill, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
+    return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", x, y, z, ghost, fill, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
   });
   const lake = document.createElement("div");
   lake.className = "map-lake"; lake.textContent = region.lake.name;
@@ -509,7 +513,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     const order = items.map((item) => {
       item.top.set(item.x, item.y, item.z + Math.max(item.fill.scale.z, 0.02) + 0.7);
       return {item, p: project(item.top)};
-    }).sort((a, b) => (b.item.key === picked) - (a.item.key === picked) || a.p.depth - b.p.depth);
+    }).sort((a, b) => (b.item.key === picked) - (a.item.key === picked) || a.item.backcountry - b.item.backcountry || a.p.depth - b.p.depth);
     for (const {item, p} of order) {
       const label = item.label;
       label.style.display = p.shown ? "" : "none";
