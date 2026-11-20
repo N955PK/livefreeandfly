@@ -6,11 +6,13 @@ import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 const EXAGGERATION = 2.7;
 const STAKE_KM_PER_IN = 0.16;
 const STAKE_RADIUS = 0.7;
-const FLAKES = 9000;
+const FLAKES = 5000;
 const WHITEN_AT_IN = 5;
 const BIN_M = 50;
-const FLOOR_M = 900;
+const FLOOR_M = 1150;
 const EDGE_FADE_KM = 16;
+const GLOBE_KM = 50;
+const DOME_SQUASH = 0.62;
 const DRY_GAP_H = 12;
 const DRY_RATE = 0.01;
 const MAX_AHEAD_H = 96;
@@ -80,22 +82,23 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   const camera = new THREE.PerspectiveCamera(30, 1, 1, 1000);
   camera.up.set(0, 0, 1);
   const lakeX = xOf(-120.04), lakeY = yOf(39.05);
-  camera.position.set(lakeX - 6, lakeY - 112, 84);
+  const inGlobe = (x, y, margin = 0) => Math.hypot(x - lakeX, y - lakeY) < GLOBE_KM - margin;
+  camera.position.set(lakeX - 8, lakeY - 150, 104);
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(lakeX - 3, lakeY - 4, 1);
+  controls.target.set(lakeX, lakeY, 7);
   controls.enableDamping = true;
   controls.enablePan = true;
   controls.screenSpacePanning = false;
   controls.minPolarAngle = Math.PI * 0.12;
   controls.maxPolarAngle = Math.PI * 0.40;
   // Panning stays over the terrain and at lake level.
-  const panX = W / 2 - EDGE_FADE_KM, panY = H / 2 - EDGE_FADE_KM;
   controls.addEventListener("change", () => {
-    const t = controls.target, x = Math.max(-panX, Math.min(panX, t.x)), y = Math.max(-panY, Math.min(panY, t.y));
-    if (x !== t.x || y !== t.y || t.z !== 1) { camera.position.x += x - t.x; camera.position.y += y - t.y; t.set(x, y, 1); }
+    const t = controls.target, d = Math.hypot(t.x - lakeX, t.y - lakeY), reach = GLOBE_KM * 0.8;
+    const x = d > reach ? lakeX + (t.x - lakeX) * reach / d : t.x, y = d > reach ? lakeY + (t.y - lakeY) * reach / d : t.y;
+    if (x !== t.x || y !== t.y || t.z !== 7) { camera.position.x += x - t.x; camera.position.y += y - t.y; t.set(x, y, 7); }
   });
-  controls.minDistance = 45;
-  controls.maxDistance = 190;
+  controls.minDistance = 40;
+  controls.maxDistance = 260;
   controls.zoomSpeed = 0.6;
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   scene.add(new THREE.HemisphereLight(0xe8f1fa, 0x6b6253, 1.15));
@@ -112,9 +115,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       const i = r * columns + c, m = heights[i];
       const x = (c / (columns - 1) - 0.5) * W, y = (0.5 - r / (rows - 1)) * H;
       positions.set([x, y, zOf(m)], 3 * i);
-      const edge = Math.min(W / 2 - Math.abs(x), H / 2 - Math.abs(y)) / EDGE_FADE_KM;
-      const fade = Math.min(1, Math.max(0, edge));
-      colors[4 * i + 3] = fade * fade * (3 - 2 * fade);
+      colors[4 * i + 3] = inGlobe(x, y) ? 1 : 0;
       const flat = (j) => Math.abs(heights[j] - m) < 0.6;
       water[i] = r > 0 && r < rows - 1 && c > 0 && c < columns - 1 && flat(i - 1) && flat(i + 1) && flat(i - columns) && flat(i + columns) ? 1 : 0;
     }
@@ -136,9 +137,35 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   terrain.setAttribute("color", new THREE.BufferAttribute(colors, 4));
   terrain.setIndex(new THREE.BufferAttribute(index, 1));
   terrain.computeVertexNormals();
-  const ground = new THREE.Mesh(terrain, new THREE.MeshStandardMaterial({vertexColors: true, transparent: true, roughness: 0.92, metalness: 0}));
+  const ground = new THREE.Mesh(terrain, new THREE.MeshStandardMaterial({vertexColors: true, alphaTest: 0.5, roughness: 0.92, metalness: 0}));
   ground.renderOrder = 1;
   scene.add(ground);
+
+  // ---------- the globe: a rim wall where the terrain is cut, a base, and a glass dome ----------
+  const floorZ = zOf(FLOOR_M) - 0.8, SEGMENTS = 360;
+  const rim = new Float32Array((SEGMENTS + 1) * 6), rimIndex = [];
+  for (let n = 0; n <= SEGMENTS; n++) {
+    const a = n / SEGMENTS * Math.PI * 2, x = lakeX + Math.cos(a) * (GLOBE_KM - 0.15), y = lakeY + Math.sin(a) * (GLOBE_KM - 0.15);
+    const lon = meta.lon_w + (x / W + 0.5) * (meta.lon_e - meta.lon_w), lat = meta.lat_s + (y / H + 0.5) * (meta.lat_n - meta.lat_s);
+    rim.set([x, y, zOf(heightAt(lat, lon)) + 0.05, x, y, floorZ], n * 6);
+    if (n) rimIndex.push(2 * n - 2, 2 * n - 1, 2 * n, 2 * n, 2 * n - 1, 2 * n + 1);
+  }
+  const rimGeometry = new THREE.BufferGeometry();
+  rimGeometry.setAttribute("position", new THREE.BufferAttribute(rim, 3));
+  rimGeometry.setIndex(rimIndex); rimGeometry.computeVertexNormals();
+  scene.add(new THREE.Mesh(rimGeometry, new THREE.MeshStandardMaterial({color: 0x59534a, roughness: 1, side: THREE.DoubleSide})));
+  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(GLOBE_KM * 1.04, GLOBE_KM * 1.09, 3, 96).rotateX(Math.PI / 2),
+    new THREE.MeshStandardMaterial({color: 0x2b333c, roughness: 0.45, metalness: 0.35}));
+  pedestal.position.set(lakeX, lakeY, floorZ - 1.5);
+  scene.add(pedestal);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(GLOBE_KM * 1.02, 96, 48, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2),
+    new THREE.MeshPhysicalMaterial({color: 0xffffff, transparent: true, opacity: 0.13, roughness: 0.02, metalness: 0, clearcoat: 1,
+      clearcoatRoughness: 0.03, side: THREE.DoubleSide, depthWrite: false}));
+  dome.scale.z = DOME_SQUASH;
+  dome.position.set(lakeX, lakeY, floorZ);
+  dome.renderOrder = 4;
+  scene.add(dome);
+  const domeTop = (x, y) => floorZ + DOME_SQUASH * Math.sqrt(Math.max(0, GLOBE_KM * GLOBE_KM - (x - lakeX) ** 2 - (y - lakeY) ** 2));
 
   // ---------- forecast series and the storm window ----------
   const hoursUtc = data.resorts[0].hours_utc, total = hoursUtc.length;
@@ -213,7 +240,9 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       const tag = document.createElement("div");
       tag.className = "map-shield"; tag.textContent = road.route.replace(/^[A-Z]+-/, "");
       overlay.appendChild(tag);
-      shields.push({tag, point: new THREE.Vector3(xOf(lon), yOf(lat), zOf(heightAt(lat, lon)) + 0.5), inside: Math.abs(xOf(lon)) < W / 2 - EDGE_FADE_KM && Math.abs(yOf(lat)) < H / 2 - EDGE_FADE_KM});
+      // Label each road at its point nearest the lake, so the shield sits inside the globe.
+      const near = longest.reduce((a, q) => (Math.hypot(xOf(q[0]) - lakeX, yOf(q[1]) - lakeY) < Math.hypot(xOf(a[0]) - lakeX, yOf(a[1]) - lakeY) ? q : a));
+      shields.push({tag, point: new THREE.Vector3(xOf(near[0]), yOf(near[1]), zOf(heightAt(near[1], near[0])) + 0.5), inside: inGlobe(xOf(near[0]), yOf(near[1]), 3)});
     }
   }
   const roadColors = new Float32Array(roadPoints.length * 2 * 4);
@@ -225,14 +254,14 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
     roadPoints.forEach((p, i) => {
       const rgb = ROAD_COLORS[statusOf(p)] || ROAD_COLORS.open;
       const x = xOf(p.lon), y = yOf(p.lat);
-      const fade = Math.min(1, Math.max(0, Math.min(W / 2 - Math.abs(x), H / 2 - Math.abs(y)) / EDGE_FADE_KM));
+      const fade = inGlobe(x, y, 0.4) ? 1 : 0;
       roadColors.set([...rgb, fade, ...rgb, fade], 8 * i);
     });
     roadGeometry.attributes.color.needsUpdate = true;
   };
   paintRoads(() => "open");
   // Drawn after the terrain from every angle, so the ribbons never vanish behind it.
-  const ribbons = new THREE.Mesh(roadGeometry, new THREE.MeshBasicMaterial({vertexColors: true, transparent: true, side: THREE.DoubleSide, depthWrite: false}));
+  const ribbons = new THREE.Mesh(roadGeometry, new THREE.MeshBasicMaterial({vertexColors: true, alphaTest: 0.5, side: THREE.DoubleSide, depthWrite: false}));
   ribbons.renderOrder = 2;
   scene.add(ribbons);
   const closures = [];
@@ -262,10 +291,10 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
 
   // ---------- falling snow (fills the whole view, from well above the peaks) ----------
   const flakePositions = new Float32Array(FLAKES * 3), flakeSpeed = new Float32Array(FLAKES);
-  const ceiling = 110, spreadX = W * 1.1, spreadY = H * 1.1;
   for (let i = 0; i < FLAKES; i++) {
-    flakePositions.set([lakeX + (Math.random() - 0.5) * spreadX, lakeY + (Math.random() - 0.5) * spreadY, Math.random() * ceiling], 3 * i);
-    flakeSpeed[i] = 4 + Math.random() * 5;
+    const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * (GLOBE_KM - 1.5), x = lakeX + Math.cos(a) * d, y = lakeY + Math.sin(a) * d;
+    flakePositions.set([x, y, floorZ + Math.random() * (domeTop(x, y) - floorZ)], 3 * i);
+    flakeSpeed[i] = 2.5 + Math.random() * 3.5;
   }
   const flakeGeometry = new THREE.BufferGeometry();
   flakeGeometry.setAttribute("position", new THREE.BufferAttribute(flakePositions, 3));
@@ -354,7 +383,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     // Widen the lens on narrow screens so the whole lake stays in view.
-    camera.fov = w < 520 ? 48 : 30;
+    camera.fov = w < 520 ? 50 : 30;
     camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(container);
@@ -371,9 +400,8 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
     if (flakeMaterial.opacity > 0.01 && !calm) {
       for (let i = 0; i < FLAKES; i++) {
         let z = flakePositions[3 * i + 2] - flakeSpeed[i] * dt;
-        if (z < 0) z = ceiling;
+        if (z < 0) z = domeTop(flakePositions[3 * i], flakePositions[3 * i + 1]) - 0.5;
         flakePositions[3 * i + 2] = z;
-        flakePositions[3 * i] += Math.sin(t / 900 + i) * dt * 0.6;
       }
       flakeGeometry.attributes.position.needsUpdate = true;
     }
@@ -413,7 +441,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       closures.length = 0;
       for (const point of controlPoints.filter((p) => p.status === "closed")) {
         const x = xOf(point.lon), y = yOf(point.lat);
-        if (Math.abs(x) > W / 2 - EDGE_FADE_KM / 2 || Math.abs(y) > H / 2 - EDGE_FADE_KM / 2) continue;
+        if (!inGlobe(x, y, 1)) continue;
         if (closures.some((c) => c.route === point.route && Math.hypot(c.x - x, c.y - y) < 6)) continue;
         const tag = document.createElement("div");
         tag.className = "map-closed"; tag.textContent = "Closed"; tag.title = `${point.route} ${point.name}`;
