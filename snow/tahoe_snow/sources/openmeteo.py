@@ -26,6 +26,9 @@ LEVEL_VARS = {"temperature": "t_c", "relative_humidity": "rh_pct", "wind_speed":
               "geopotential_height": "height_m"}
 PROFILE_SURFACE_VARS = ["precipitation", "temperature_2m"]
 FORECAST_SURFACE_VARS = PROFILE_SURFACE_VARS + ["cloud_cover", "wind_gusts_10m"]
+# Where the wind comes from, degrees clockwise from north. One level near crest height serves every elevation:
+# direction in the free air changes little over the height of a ski mountain.
+WIND_DIRECTION = "wind_direction_700hPa"
 SURFACE_VARS = ["precipitation", "temperature_2m", "relative_humidity_2m", "wind_speed_10m", "wind_gusts_10m",
                 "surface_pressure"]
 

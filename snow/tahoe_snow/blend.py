@@ -31,6 +31,13 @@ def robust_mean(by_model: pd.DataFrame, weights: dict | None = None, tz: str = "
     return mean * scale.reindex(days).to_numpy()
 
 
+def mean_direction(degrees) -> np.ndarray:
+    """Mean of compass directions along the last axis, 0 to 360; NaN where there are none."""
+    radians = np.radians(np.asarray(degrees, dtype=float))
+    east, north = np.nansum(np.sin(radians), axis=-1), np.nansum(np.cos(radians), axis=-1)
+    return np.where(np.isfinite(radians).any(axis=-1), np.degrees(np.arctan2(east, north)).round(6) % 360, np.nan)
+
+
 def inverse_error_weights(errors: dict, floor: float = 0.1) -> dict:
     """Weights proportional to 1 / mean absolute error; equal weights when no error history exists."""
     if not errors:

@@ -58,9 +58,11 @@ def load_weights() -> dict:
 
 def fill_profile(frame: pd.DataFrame) -> pd.DataFrame:
     """Fill short gaps in time (models that report upper-air fields every 3 or 6 hours)."""
-    level_columns = [c for c in frame.columns if c.endswith("hPa")]
+    level_columns = [c for c in frame.columns if c.endswith("hPa") and c != openmeteo.WIND_DIRECTION]
     frame = frame.copy()
     frame[level_columns] = frame[level_columns].interpolate(limit=MAX_GAP_H, limit_area="inside")
+    if openmeteo.WIND_DIRECTION in frame:
+        frame[openmeteo.WIND_DIRECTION] = frame[openmeteo.WIND_DIRECTION].ffill(limit=MAX_GAP_H)
     return frame
 
 
@@ -108,6 +110,7 @@ def model_snow(frame: pd.DataFrame, model: str, resort, snow_model: SnowModel, t
         hourly = features.hourly_features(profile, elev_m)
         result = snow_model.snowfall(hourly, liquid, elev_m)
         result["wind_ms"] = hourly["wind0"]
+        result["wind_from_deg"] = profile[openmeteo.WIND_DIRECTION] if openmeteo.WIND_DIRECTION in profile else np.nan
         result["temp_c"] = hourly["t0"]
         result["cloud_pct"] = profile["cloud_cover"] if "cloud_cover" in profile else np.nan
         # Gusts: at the base, the model's own surface gust. Higher up that field runs low, so the estimate is
@@ -182,6 +185,7 @@ def day_part(hourly: pd.DataFrame, summit: pd.DataFrame, day: pd.Timestamp, memb
 
         gust = lifts["gust_ms"].max()
         out.update({"wind_mph": mean("wind_ms", MPH_PER_MS), "sky_pct": mean("cloud_pct"),
+                    "wind_from_deg": _round(blend.mean_direction(lifts["wind_from_deg"]).reshape(1), -1)[0],
                     "gust_mph": None if not np.isfinite(gust) else round(float(gust) * MPH_PER_MS),
                     "temp_f": mean("temp_c", 1.8, 32.0),
                     "snowing_hours": int((lifts["snow_cm"].fillna(0.0) > 0.1).sum())})
@@ -319,7 +323,7 @@ def _round(values, digits=1) -> list:
 def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp, weights: dict) -> tuple:
     """Site payload and archive rows for one resort."""
     today = now.tz_localize("UTC").tz_convert(TZ).tz_localize(None).normalize()
-    variables = openmeteo.FORECAST_SURFACE_VARS + openmeteo.level_variables()
+    variables = openmeteo.FORECAST_SURFACE_VARS + openmeteo.level_variables() + [openmeteo.WIND_DIRECTION]
     frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS, variables, days=DAYS,
                                 past_days=HISTORY_DAYS + 1)
     models = {}
@@ -359,6 +363,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
             for name in ("snow_cm", "liquid_mm", "slr", "snow_fraction", "snow_level_m", "wind_ms", "temp_c",
                          "cloud_pct", "gust_ms")}
         blended = pd.DataFrame(fields)
+        blended["wind_from_deg"] = blend.mean_direction(
+            pd.DataFrame({m: r[label]["hourly"]["wind_from_deg"] for m, r in models.items()}).reindex(hours))
         if label == "summit":
             summit_blend = blended
         members = pd.concat([member_snow(frame, models[parent], label).add_prefix(f"{system}:")
@@ -403,6 +409,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
             "hourly": {"snow_in": _round(blended["snow_cm"] / CM_PER_IN, 2), "slr": _round(blended["slr"]),
                        "snow_level_ft": _round(blended["snow_level_m"] / M_PER_FT, -1),
                        "wind_mph": _round(blended["wind_ms"] * MPH_PER_MS, 0),
+                       "wind_from_deg": _round(blended["wind_from_deg"], -1),
                        "gust_mph": _round(blended["gust_ms"] * MPH_PER_MS, 0),
                        "cloud_pct": _round(blended["cloud_pct"], 0),
                        "temp_f": _round(blended["temp_c"] * 1.8 + 32, 0)}}

@@ -175,6 +175,8 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .cond .sky svg{width:17px;height:14px;color:var(--muted)}
 .cond .wind{display:flex;align-items:center;gap:6px}
 .cond .wind i{width:9px;height:9px;border-radius:50%;background:var(--grid);flex:none}
+.barb{width:19px;height:19px;flex:none;margin:-3px -2px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.barb .flag{fill:currentColor}
 .srow .pw{text-align:right}
 .cond .pscore{white-space:nowrap}
 .cond .wind{white-space:nowrap}
@@ -468,7 +470,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days 6–10 are shown faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much.</p>
     <p><b>One water amount per resort.</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
-    <p><b>Wind</b> is the free-air wind at that elevation, close to what an exposed ridge sees. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
+    <p><b>Wind</b> is the free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken near crest height (about 10,000 ft) for every elevation; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
@@ -483,7 +485,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "102";
+const BUILD = "103";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -541,6 +543,23 @@ function fixTimes(d) {
 const QUALITY = [[9, "Wet"], [15.0001, "Medium"], [Infinity, "Dry"]];
 const WIND = [[15, "Calm"], [25, "Breezy"], [40, "Windy"], [Infinity, "Strong"]];
 const qualityBin = (ratio) => QUALITY.findIndex(([top]) => ratio < top);
+const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const compass = (deg) => (deg == null ? "" : COMPASS[Math.round(deg / 45) % 8]);
+// A wind barb, as on a weather chart: the staff points to where the wind comes from, and the feathers at that end
+// add up to the speed in knots (long 10, short 5, flag 50). Under 5 knots is a calm circle.
+function barb(mph, fromDeg, color) {
+  const knots = Math.round((mph || 0) / 1.151 / 5) * 5;
+  let marks = '<circle cx="10" cy="10" r="3.2"/>';
+  if (knots >= 5) {
+    let y = 3, left = knots;
+    marks = '<path d="M10 17V3"/>';
+    for (; left >= 50; left -= 50, y += 3.6) marks += `<path class="flag" d="M10 ${y}l5 1.5l-5 1.5z"/>`;
+    for (; left >= 10; left -= 10, y += 2.5) marks += `<path d="M10 ${y}l5.2 -2.4"/>`;
+    // A lone short feather sits in from the end, so it is not mistaken for a long one.
+    if (left >= 5) marks += `<path d="M10 ${knots === 5 ? y + 2.5 : y}l2.8 -1.3"/>`;
+  }
+  return `<svg class="barb" viewBox="0 0 20 20" style="color:${color}" aria-hidden="true"><g transform="rotate(${fromDeg} 10 10)">${marks}</g></svg>`;
+}
 const windBin = (mph) => WIND.findIndex(([top]) => (mph || 0) < top);
 // Snow gets three distinct colors (wet, medium, dry). Wind is a smooth ramp from calm (10 mph) through
 // amber (30) to red (50).
@@ -749,7 +768,7 @@ function wireTimeline(resort, el, g) {
     tip.innerHTML = `<b>${when}${past ? " (past, estimated)" : ""}</b>` + row("Snow this hour", `${(h.snow_in[k] || 0).toFixed(2)} in`) +
       (g.running[k] != null ? row("Storm total", `${tenths(g.running[k])} in`) : "") + (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : "") +
       (past && g.depth[k] != null ? row("Sensor depth", `${g.depth[k]} in`) : "") +
-      row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${wind} mph${gust > wind + 5 ? `, gusts ${gust}` : ""}`) +
+      row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${wind} mph${h.wind_from_deg && h.wind_from_deg[k] != null ? ` ${compass(h.wind_from_deg[k])}` : ""}${gust > wind + 5 ? `, gusts ${gust}` : ""}`) +
       row("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) +
       row("Snow level", h.snow_level_ft[k] == null ? "–" : `${(Math.round(h.snow_level_ft[k] / 100) * 100).toLocaleString()} ft`) +
       row("Temperature", h.temp_f[k] == null ? "–" : `${h.temp_f[k]}°F`);
@@ -788,7 +807,7 @@ function skiDay(d) {
   return `<div class="srow${far ? " far" : ""}">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
     <div class="cond"><span class="sky">${icon ? `${icon}${word}` : ""}</span>
-      <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${wind} mph${gust > wind + 3 ? `, gusts to ${gust}` : ""}`}">${wind == null ? "" : `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${wind}${gust > wind + 3 ? `G${gust}` : ""}`}</span>
+      <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${wind} mph${p.wind_from_deg == null ? "" : ` from the ${compass(p.wind_from_deg)}`}${gust > wind + 3 ? `, gusts to ${gust}` : ""}`}">${wind == null ? "" : `${p.wind_from_deg == null ? `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>` : barb(wind, p.wind_from_deg, wb > 1 ? windColor(Math.max(wind, gust || 0)) : "var(--muted)")}${wind}${gust > wind + 3 ? `G${gust}` : ""}`}</span>
       <span class="pscore">${p.score ? `PS <b>${p.score.toFixed(1)}</b>` : ""}</span></div></div>`;
 }
 
@@ -854,7 +873,7 @@ function renderDetail() {
     <details class="lgd"${legendOpen ? " open" : ""}><summary><span>From 4 pm previous day</span><em>Legend</em></summary>
     <div class="key" style="margin:4px 0 0;column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>each model</span></div>
-    <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span>G = gust, mph</span><span>PS = powder score</span></div></details>
+    <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span class="sw glyph">${barb(23, 270, "var(--ink2)")}W at 20 kt</span><span>G = gust, mph</span><span>PS = powder score</span></div></details>
     <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <div class="hhead"><h3>Hourly</h3><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
