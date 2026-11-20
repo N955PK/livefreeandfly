@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="preload" as="image" href="icons/mark-white.png">
+<link rel="preload" as="image" href="icons/mark-white.png?v=2">
 <meta name="apple-mobile-web-app-title" content="Tahoe Snow">
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
@@ -99,6 +99,8 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .dhead h2{font-size:22px;line-height:1.15}
 .dhead .who > span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .dhead .seg{margin-left:0;flex:none}
+.dhead .mine{color:var(--ink2)}
+.dhead .setmine{border:0;background:none;padding:0;font:inherit;color:var(--snow);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .tag{font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
 .tile{background:var(--wash);border-radius:12px;padding:12px 14px}
@@ -241,7 +243,7 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
 .map-label.on::after{border-top-color:#0f1720}
 .map-lake{position:absolute;left:0;top:0;font-size:12px;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
-.map-hint{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:3px 10px;pointer-events:none}
+.map-hint{position:absolute;z-index:400000;left:12px;bottom:10px;font-size:11.5px;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:3px 10px;pointer-events:none}
 @media (hover:none){.map-hint .mouse{display:none}}
 @media (hover:hover){.map-hint .touch{display:none}}
 .mapbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px 12px;padding:12px 16px}
@@ -271,7 +273,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><img src="icons/mark-white.png" alt="" width="170" height="170"><b>Tahoe Snow</b></div>
+<div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Tahoe Snow</b></div>
 <script>
 // A few flakes on the opening screen, placed before anything else loads.
 for (let n = 0; n < 26; n++) {
@@ -318,6 +320,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Past day 5 a single number isn't worth much, so you get the chance of 6 inches or more.</p>
     <p><b>One water amount per resort.</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
+    <p><b>Wind</b> is the free-air wind at that elevation, close to what an exposed ridge sees. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p><b>Powder score</b> (0–10) rates each ski day, 4 pm to 4 pm: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
@@ -329,8 +332,11 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "34";
-const HOME = "palisades";
+const BUILD = "37";
+// Each visitor can pick their own mountain; the choice is kept in their browser on that device.
+const HOME_KEY = "tahoe-snow.home";
+const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
+let HOME = remembered() || "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
@@ -604,7 +610,7 @@ function skiDay(d) {
     : `<div class="split">No new snow</div>`);
   return `<div class="srow">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
-    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph${gust > wind + 5 ? `, gusts ${gust}` : ""}</span>`}</div>
+    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph${gust > wind + 3 ? `, gusts ${gust}` : ""}</span>`}</div>
     <div class="pw">${p.score ? `<b>${p.score.toFixed(1)}</b>` : '<span>–</span>'}</div></div>`;
 }
 
@@ -629,7 +635,7 @@ function renderDetail() {
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}</h2>
-      <span>${el.elevation_ft.toLocaleString()} ft${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
+      <span>${el.elevation_ft.toLocaleString()} ft · ${resort.key === HOME ? '<span class="mine">★ my mountain</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on">☆ set as mine</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
@@ -781,6 +787,12 @@ function renderScore(card) {
     ${s.rows.map((row) => `<tr>${row.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div>`).join("");
 }
 
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-home]"); if (!b) return;
+  HOME = b.dataset.home;
+  try { localStorage.setItem(HOME_KEY, HOME); } catch (error) { /* private browsing: the choice lasts for this visit */ }
+  renderAll();
+});
 // Every elevation toggle on the page (above the grid and in the resort header) stays in step.
 document.addEventListener("click", (e) => {
   const b = e.target.closest(".seg button[data-el]"); if (!b) return;

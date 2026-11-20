@@ -40,6 +40,11 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
 <div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr><tr><td>Raw average of four models</td><td>88%</td><td>0.23</td><td>0.43</td><td>0.90</td></tr><tr><td>Corrected to the sensors (in use)</td><td>102%</td><td>0.21</td><td>0.35</td><td>0.59</td></tr></table></div>
 
+<h2>4. Wind gusts</h2>
+<p>The weather models' own gust field runs low in the mountains, so above the base this site estimates gusts from the faster air 500 m higher up, which is where gusts come from.
+Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, five winters), the wind 500 m up tracks the measured gusts better than the wind at the sensor's own height: correlation 0.79 against 0.73, and an average miss of 5.7 mph against 6.7.</p>
+<p><b>The limit:</b> that sensor sits in a sheltered spot and averages only 7 mph, and the one other free sensor is more sheltered still. So the method's shape is tested, but how strong gusts get on an exposed ridge is not. Treat ridge gusts as estimates.</p>
+
 <h2>What is not tested yet</h2>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
 <p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, and model archives from Open-Meteo.</p>

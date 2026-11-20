@@ -101,7 +101,11 @@ def model_snow(frame: pd.DataFrame, model: str, resort, snow_model: SnowModel, t
         result["wind_ms"] = hourly["wind0"]
         result["temp_c"] = hourly["t0"]
         result["cloud_pct"] = profile["cloud_cover"] if "cloud_cover" in profile else np.nan
-        result["gust_ms"] = profile["wind_gusts_10m"] / 3.6 if "wind_gusts_10m" in profile else np.nan
+        # Gusts: at the base, the model's own surface gust. Higher up that field runs low, so the estimate is
+        # the faster of the wind at this height and the wind 500 m above it, which gusts mix down from.
+        # (Tested against five winters of measured gusts at the Palisades sensor; see the testing page.)
+        surface_gust = profile["wind_gusts_10m"] / 3.6 if "wind_gusts_10m" in profile else np.nan
+        result["gust_ms"] = surface_gust if label == "base" else np.maximum(hourly["wind0"], hourly["wind500"])
         # Snow per mm of liquid at each temperature offset, for converting ensemble members.
         per_mm = np.column_stack([
             (lambda r: (r["snow_fraction"] * r["slr"] / 10.0).to_numpy())(
