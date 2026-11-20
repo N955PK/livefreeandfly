@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How we tested it · Tahoe Snow</title>
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<style>
+body{margin:0;background:#f4f6f8;color:#0f1720;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+main{max-width:780px;margin:0 auto;padding:28px 16px 56px}
+a{color:#1c5cab} h1{font-size:30px;letter-spacing:-.02em;margin:8px 0 6px} h2{font-size:20px;margin:34px 0 6px}
+p{margin:0 0 12px;color:#333c46} .lede{font-size:17px}
+figure{margin:14px 0 18px;background:#fff;border:1px solid rgba(15,23,32,.1);border-radius:14px;padding:12px}
+figure img{width:100%;height:auto;display:block} figcaption{font-size:13px;color:#6b7480;margin-top:8px}
+table{border-collapse:collapse;font-size:14px;margin:8px 0 14px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 12px;border-bottom:1px solid #e6e9ec;text-align:right} th{color:#6b7480;font-weight:550;font-size:12.5px}
+td:first-child,th:first-child{text-align:left} .scroll{overflow-x:auto}
+</style></head><body><main>
+<a href="../">← Tahoe Snow</a>
+<h1>How we tested it</h1>
+<p class="lede">Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
+
+<h2>1. How fluffy the snow is</h2>
+<p>The snow ratio is inches of snow per inch of water. It is the hardest part to predict and the part most forecasts guess at.
+The raw material is 13,124 days of snowfall measured by hand at Sierra stations since 1979. Colder storms make lighter snow, but with a lot of scatter.</p>
+<figure><img src="ratio_vs_temperature.png" alt="Median snow ratio falls from about 14 to 7 as temperature rises from −12 to +3 °C"><figcaption>The line is the middle day at each temperature; the band holds the middle half of days.</figcaption></figure>
+<p>The model in use is fitted on 1,197 hand-measured snow days at 44 stations from the five winters that have detailed upper-air data, using temperature, wind, and humidity aloft plus the amount of water.
+Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, against 2.02 in for Kuchera (the common free method) and 2.07 in for a flat 10:1.</p>
+<figure><img src="ratio_predicted_vs_measured.png" alt="Predicted against measured snow ratio for Kuchera and for this site's model"><figcaption>Each dot is one station-day, predicted by a model fitted without that winter. A perfect forecast would sit on the line. Neither does: the ratio is noisy, and the model explains only about 15% of its day-to-day variation.</figcaption></figure>
+<figure><img src="ratio_error_by_temperature.png" alt="Average snowfall error by temperature band for three methods"><figcaption>Kuchera does worst in cold storms, where it calls for very light snow that the Sierra rarely delivers.</figcaption></figure>
+<div class="scroll"><table><tr><th>Winter held out</th><th>Snow days</th><th>Kuchera error (in)</th><th>This site (in)</th></tr><tr><td>2021–22</td><td>231</td><td>2.40</td><td>2.06</td></tr><tr><td>2022–23</td><td>487</td><td>1.93</td><td>1.46</td></tr><tr><td>2023–24</td><td>207</td><td>1.92</td><td>1.61</td></tr><tr><td>2024–25</td><td>131</td><td>1.36</td><td>1.42</td></tr><tr><td>2025–26</td><td>141</td><td>2.47</td><td>1.97</td></tr></table></div>
+<p><b>What did not work:</b> training on the full 45-year record. Its upper-air data is coarse and does not line up with the forecast models, so it made the forecasts slightly worse, and it is not used.</p>
+
+<h2>2. Rain or snow</h2>
+<p>At 3,594 wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
+<figure><img src="rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. The curve sits about 2.2 °C warmer than textbook values, because air against a mountainside runs colder than the free air the weather model reports.</figcaption></figure>
+<p>Three methods were tried and came out nearly tied; all are about 20% better than calling everything snow. One winter, 2021–22, scores about twice as badly as the others for every method, and we do not yet know why.</p>
+
+<h2>3. How much water</h2>
+<p>Weather models are consistently too dry or too wet at particular spots in the mountains. Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,140 model-days).</p>
+<figure><img src="water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
+<p>Correcting each model to its nearest sensor fixes the totals and big storms. It makes ordinary single days slightly worse, because scaling a forecast up also scales up its misses.</p>
+<div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr><tr><td>Raw average of four models</td><td>89%</td><td>0.58</td><td>0.73</td><td>1.44</td></tr><tr><td>Corrected to the sensors (in use)</td><td>104%</td><td>0.61</td><td>0.72</td><td>1.24</td></tr></table></div>
+
+<h2>What is not tested yet</h2>
+<p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
+<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, and model archives from Open-Meteo. Code: <a href="https://github.com/N955PK/livefreeandfly/tree/main/snow">github.com/N955PK/livefreeandfly</a>.</p>
+</main></body></html>

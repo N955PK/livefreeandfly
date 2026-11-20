@@ -112,13 +112,11 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .srow .amt small{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
 .srow.far{grid-template-columns:56px 1fr;color:var(--ink2)}
 .srow.far .amt{font-size:14px;font-weight:600;display:flex;gap:6px;align-items:baseline}
-.track{position:relative;height:12px;background:var(--wash);border-radius:4px}
-.track i{display:block;height:100%;border-radius:4px}
-.track .err{position:absolute;top:5px;height:2px;background:var(--ink);opacity:.75}
-.track .err::before,.track .err::after{content:"";position:absolute;top:-4px;width:2px;height:10px;background:var(--ink)}
-.track .err::before{left:0}.track .err::after{right:0}
-.track i.q0{background-color:var(--q0)}.track i.q1{background-color:var(--q1)}.track i.q2{background-color:var(--q2)}.track i.q3{background-color:var(--q3)}.track i.q4{background-color:var(--q4)}
-.track i.dayseg{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.42) 0 2px,transparent 2px 5px)}
+.track{position:relative;height:14px;margin:0 7px}
+.track::before{content:"";position:absolute;left:-7px;right:-7px;top:6px;height:2px;border-radius:2px;background:var(--grid)}
+.track .band{position:absolute;top:3px;height:8px;border-radius:4px;opacity:.35;min-width:6px}
+.track .tick{position:absolute;top:1px;height:12px;width:1.5px;margin-left:-.75px;background:var(--ink2);opacity:.6}
+.track .dot{position:absolute;top:0;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--surface)}
 .split{display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;font-size:12px;color:var(--ink2);margin-top:4px}
 .split svg{width:13px;height:13px;color:var(--muted)}
 .split span{display:inline-flex;align-items:center;gap:3px;margin-right:8px;font-variant-numeric:tabular-nums}
@@ -135,7 +133,6 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 details.pastdays{margin:4px 0 6px;padding:0;border:0}
 details.pastdays summary{font-size:13px;font-weight:600;padding:6px 0;color:var(--ink2)}
 details.pastdays summary::after{font-size:16px}
-details.pastdays .srow{grid-template-columns:56px minmax(0,1fr) 84px}
 .tl{position:relative;margin-top:6px}
 .tl-axis{position:absolute;left:0;top:0;width:44px}
 .tl-axis text,.tl-scroll text{font-size:11px;fill:var(--muted);font-family:inherit}
@@ -145,6 +142,9 @@ details.pastdays .srow{grid-template-columns:56px minmax(0,1fr) 84px}
 .key .ramp{display:inline-flex;align-items:center;gap:6px}
 .key .ramp i{width:64px;height:8px;border-radius:4px;display:inline-block}
 .key .sw{display:inline-flex;align-items:center;gap:4px}
+.key .sw i.kdot{width:10px;height:10px;border-radius:50%;background:var(--snow)}
+.key .sw i.kband{width:18px;height:8px;border-radius:4px;background:var(--snow);opacity:.35}
+.key .sw i.ktick{width:1.5px;height:12px;border-radius:0;background:var(--ink2);opacity:.6}
 .key .sw i{width:14px;height:10px;border-radius:3px;display:inline-block}
 .roadnote{display:block}
 .roadnote .src{color:var(--muted);font-size:12px;display:block;margin-top:6px}
@@ -276,7 +276,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 
   <div class="panel" id="detail"></div>
 
-  <details class="panel" id="score"><summary>How accurate is this?</summary><div class="inner" id="scoreBody"></div></details>
+  <details class="panel" id="score"><summary>How accurate is this?</summary><div class="inner"><div id="scoreBody"></div><p><a href="report/">How we tested it, with the plots</a></p></div></details>
   <details class="panel" id="how"><summary>How the forecast is made</summary><div class="inner">
     <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
     <p><b>Snow.</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
@@ -293,7 +293,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "24";
+const BUILD = "25";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -524,7 +524,7 @@ function wireTimeline(resort, el, g) {
 }
 
 // The past week, one row per ski day: the estimate beside what the sensor's depth did.
-function pastDays(resort, el, max) {
+function pastDays(resort, el) {
   const depth = (resort.observed && resort.observed.depth_in_hourly) || [], hours = resort.hours_utc;
   const at4pm = (date) => {
     const i = hours.findIndex((t) => { const d = new Date(t); return d.toLocaleDateString("en-CA", {timeZone: TZ}) === date && +d.toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24 === 16; });
@@ -535,23 +535,34 @@ function pastDays(resort, el, max) {
     const p = d.powder || {}, total = p.snow_in || 0, now = at4pm(d.date), before = n ? at4pm(days[n - 1].date) : null;
     const change = now != null && before != null ? now - before : null;
     const date = `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
-    return `<div class="srow">${date}<div class="snowbar"><div class="track"><i style="width:${(100 * Math.min(total, max) / max).toFixed(1)}%;background-color:${snowColor(p.slr)}"></i></div>
+    return `<div class="srow">${date}<div class="snowbar">${dayBar(p, false)}
       <div class="split"><em>${now == null ? "No sensor reading" : `Sensor: ${now} in on the ground${change == null ? "" : `, ${change > 0 ? "+" : ""}${change} in`}`}</em></div></div>
       <div class="amt">${inches(total)} in</div></div>`;
   }).reverse().join("");
   return rows ? `<details class="pastdays"><summary>Last 7 days</summary><div class="sub">Estimated new snow by 4 pm each day, next to the snow sensor's settled depth.</div><div class="days">${rows}</div></details>` : "";
 }
 
-function skiDay(d, max) {
+// A day's snow on a fixed 0 to 36 inch scale: a dot for the forecast, a shaded band for one standard deviation
+// either side, and a tick for each weather model. Anything past 36 inches sits at the end.
+const BAR_FULL_IN = 36;
+function dayBar(p, withRange) {
+  const total = p.snow_in || 0, at = (v) => (100 * Math.min(Math.max(v || 0, 0), BAR_FULL_IN) / BAR_FULL_IN).toFixed(1);
+  let marks = "";
+  if (withRange && p.pm_in != null && total >= 0.5) marks += `<i class="band" style="left:${at(total - p.pm_in)}%;width:${(at(total + p.pm_in) - at(total - p.pm_in)).toFixed(1)}%;background:${snowColor(p.slr)}"></i>`;
+  for (const v of Object.values(p.models || {})) if (v != null) marks += `<i class="tick" style="left:${at(v)}%"></i>`;
+  if (total >= 0.05) marks += `<i class="dot" style="left:${at(total)}%;background:${snowColor(p.slr)}"></i>`;
+  return `<div class="track">${marks}</div>`;
+}
+
+function skiDay(d) {
   const far = d.lead_day > data.deterministic_days, p = d.powder || {};
   const date = `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
   if (far) return `<div class="srow far">${date}<div class="amt">${pct(d.prob_6in)}<small>chance of 6 in+</small></div></div>`;
-  const total = p.snow_in || 0, color = snowColor(p.slr), width = (v) => (100 * Math.min(Math.max(v || 0, 0), max) / max).toFixed(1);
-  const spread = p.pm_in != null && total >= 0.5 ? `<b class="err" style="left:${width(total - p.pm_in)}%;width:${(width(total + p.pm_in) - width(total - p.pm_in)).toFixed(1)}%"></b>` : "";
+  const total = p.snow_in || 0;
   const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
-  const bars = total >= 0.05 ? `<div class="track"><i style="width:${width(total)}%;background-color:${color}"></i>${spread}</div>
-      <div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)} in</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)} in</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
-    : `<div class="track"></div><div class="split">No new snow</div>`;
+  const bars = `${dayBar(p, true)}` + (total >= 0.05
+    ? `<div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)} in</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)} in</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
+    : `<div class="split">No new snow</div>`);
   return `<div class="srow">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
     <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph${gust > wind + 5 ? `, gusts ${gust}` : ""}</span>`}</div>
@@ -577,16 +588,16 @@ function renderDetail() {
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small>${pm(x)}</div></div>`;
   const g = timeline(resort, el);
-  const max = Math.max(6, ...days.map((d) => ((d.powder && d.powder.snow_in) || 0) + ((d.powder && d.powder.pm_in) || 0)));
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dhead"><h2>${esc(resort.name)}</h2><span>${el.elevation_ft.toLocaleString()} ft</span>
       ${resort.weak_station_match ? '<span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}<div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
     <h3>Ski days</h3>
-    <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>bar: the day's total, with ± one standard deviation</em></div>
-    ${pastDays(resort, el, max)}
-    <div class="days"><div class="srow head"><div></div><div>New snow by 4 pm</div><div></div><div>Lift hours</div><div class="pw">Powder</div></div>${days.map((d) => skiDay(d, max)).join("")}</div>
+    <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>each line covers the full 24 hours ending 4 pm</em></div>
+    ${pastDays(resort, el)}
+    <div class="key" style="margin:2px 0 4px"><span class="sw"><i class="kdot"></i>forecast</span><span class="sw"><i class="kband"></i>± one standard deviation</span><span class="sw"><i class="ktick"></i>each weather model</span><span>scale: 0 to ${BAR_FULL_IN} in</span></div>
+    <div class="days"><div class="srow head"><div></div><div>All snow in the 24 hours to 4 pm</div><div></div><div>Lift hours</div><div class="pw">Powder</div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
     <div class="key"><span class="ramp">heavy<i style="background:linear-gradient(90deg,var(--q0),var(--q4))"></i>light snow</span>

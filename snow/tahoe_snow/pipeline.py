@@ -151,7 +151,7 @@ SKI_DAY_START_H, SKI_DAY_END_H = 8, 16
 
 
 def day_part(hourly: pd.DataFrame, summit: pd.DataFrame, day: pd.Timestamp, members: pd.DataFrame | None = None,
-             recenter: bool = True) -> dict:
+             recenter: bool = True, by_model: pd.DataFrame | None = None) -> dict:
     """The ski day ``day``: snow from 4 pm the day before to 4 pm that day, split into overnight and daytime,
     with the powder score and the conditions during lift hours (8 am to 4 pm)."""
     def utc(hour: int, back_days: int = 0) -> pd.Timestamp:
@@ -177,6 +177,10 @@ def day_part(hourly: pd.DataFrame, summit: pd.DataFrame, day: pd.Timestamp, memb
         return out
     night = float(snow[piece.index <= opening].sum())
     out.update({"night_in": round(night / CM_PER_IN, 1), "day_in": round((float(snow.sum()) - night) / CM_PER_IN, 1)})
+    if by_model is not None:
+        each = by_model.loc[(by_model.index > start) & (by_model.index <= end)]
+        sums = each.sum().where(each.notna().sum() >= 20)
+        out["models"] = {model: _round([value / CM_PER_IN])[0] for model, value in sums.items()}
     if members is not None and len(members.columns):
         window = members.loc[(members.index > start) & (members.index <= end)]
         totals = window.sum().where(window.notna().sum() >= 20)
@@ -343,7 +347,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                      "by_model": {m: _round([by_model.loc[day, m] / CM_PER_IN])[0] for m in by_model.columns},
                      "past": bool(day < today),
                      "powder": day_part(blended, summit_blend if summit_blend is not None else blended, day,
-                                        members, recenter=lead <= DETERMINISTIC_DAYS)}
+                                        members, recenter=lead <= DETERMINISTIC_DAYS, by_model=snow)}
             days.append(entry)
             for model in by_model.columns:
                 archive.append({"resort": resort.key, "elevation": label, "date": entry["date"], "lead_day": lead,
