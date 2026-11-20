@@ -428,7 +428,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "72";
+const BUILD = "73";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -439,10 +439,10 @@ let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME
 // chain-control feeds cover it, and its avalanche centers (the first is the one the pane at the bottom reports).
 const CALTRANS = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/cc/ccStatusD${String(district).padStart(2, "0")}.json`;
 const REGIONS = {
-  tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897,
+  tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897, pick: "palisades",
     lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
     avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/"}]},
-  mammoth: {name: "Mammoth", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 45,
+  mammoth: {name: "Mammoth", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 45, pick: "mammoth",
     lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)],
     // East of the crest the low ground is sagebrush, not forest.
     land: [[1300, [0.72, 0.66, 0.48]], [2000, [0.62, 0.60, 0.42]], [2350, [0.36, 0.44, 0.30]], [2800, [0.27, 0.40, 0.30]],
@@ -747,8 +747,10 @@ function measured(resort) {
     ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div>`;
 }
 
+const opener = () => here().find((r) => r.key === HOME) || here().find((r) => r.key === REGIONS[region].pick) || sorted()[0];
+
 function renderDetail() {
-  const resort = here().find((r) => r.key === selected) || sorted()[0];
+  const resort = here().find((r) => r.key === selected) || opener();
   selected = resort.key;
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   // The forecast summary: four across, even on a phone. The ± sits under the number so each stays narrow.
@@ -937,7 +939,8 @@ function setRegion(key) {
   if (key === region || !REGIONS[key]) return;
   region = key;
   try { localStorage.setItem(REGION_KEY, key); } catch (error) { /* private browsing: the choice lasts for this visit */ }
-  selected = here().some((r) => r.key === HOME) ? HOME : sorted()[0].key;
+  // A region opens on the home mountain when it is there, else on the region's namesake resort.
+  selected = opener().key;
   history.replaceState(null, "", "#" + selected);
   for (const step of [renderRegion, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
