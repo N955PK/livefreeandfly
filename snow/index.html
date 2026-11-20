@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" as="image" href="icons/mark-white.png">
 <meta name="apple-mobile-web-app-title" content="Tahoe Snow">
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
@@ -36,6 +37,19 @@
   --w0:#4a525b; --w1:#c98500; --w2:#e66767; --night:rgba(0,0,0,.28);
 }}
 *{box-sizing:border-box;margin:0;padding:0}
+/* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
+#splash{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .5s ease,visibility .5s}
+#splash img{width:min(38vw,170px);height:auto;animation:spinup 1.4s cubic-bezier(.55,0,.9,.5) both,spin .55s linear 1.4s infinite}
+#splash b{font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:650;opacity:0;animation:rise .6s ease .25s forwards}
+#splash i{position:absolute;top:-12px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:drift linear infinite}
+#splash.done{opacity:0;visibility:hidden}
+#splash.done img{transform:scale(1.25);transition:transform .5s ease}
+@keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.92;transform:none}}
+@keyframes drift{to{transform:translateY(105vh)}}
+@media (prefers-reduced-motion:reduce){#splash img{animation:none}#splash i{display:none}}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
 main{max-width:1040px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom))}
@@ -258,6 +272,15 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><img src="icons/mark-white.png" alt="" width="170" height="170"><b>Tahoe Snow</b></div>
+<script>
+// A few flakes on the opening screen, placed before anything else loads.
+for (let n = 0; n < 26; n++) {
+  const flake = document.createElement("i"), size = 3 + Math.random() * 4;
+  flake.style.cssText = `left:${Math.random() * 100}%;width:${size}px;height:${size}px;animation-duration:${4 + Math.random() * 5}s;animation-delay:${-Math.random() * 8}s`;
+  document.getElementById("splash").appendChild(flake);
+}
+</script>
 <main>
   <div class="brand"><img src="icons/mark.png" alt="" width="30" height="30"><div class="eyebrow" id="eyebrow">Tahoe snow</div></div>
   <h1 id="headline">Loading the forecast…</h1>
@@ -307,7 +330,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "31";
+const BUILD = "32";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -786,13 +809,22 @@ async function liveForecast() {
     return loadForecast(`https://raw.githubusercontent.com/${REPO}/${DATA_BRANCH}/forecast.json`);
   }
 }
-liveForecast().then((d) => {
+// The opening screen stays up until the page and the map are ready (or 8 seconds pass), and at least long
+// enough for the logo to spin up.
+const opened = performance.now();
+function reveal() {
+  setTimeout(() => $("splash").classList.add("done"), Math.max(0, 1500 - (performance.now() - opened)));
+}
+setTimeout(reveal, 8000);
+liveForecast().then(async (d) => {
   data = fixTimes(d);
   // Each part renders on its own, so a problem in one never blanks the rest.
-  for (const step of [renderNotes, renderHeadline, renderHeat, renderDetail, startMap]) {
+  for (const step of [renderNotes, renderHeadline, renderHeat, renderDetail]) {
     try { step(); } catch (error) { console.error(error); }
   }
-}).catch(() => { $("headline").textContent = "The forecast could not be loaded"; });
+  try { await startMap(); } catch (error) { console.error(error); }
+  reveal();
+}).catch(() => { $("headline").textContent = "The forecast could not be loaded"; reveal(); });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
 </body>
