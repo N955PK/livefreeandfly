@@ -427,7 +427,8 @@ def add_season(resorts: list, now: pd.Timestamp) -> dict:
         normals = {}
     for payload in resorts:
         payload["season"] = season.summary(payload["observed"], normals.get(RESORTS[payload["key"]].station))
-    return {ALL_STATIONS[triplet].name: normal["curve"] for triplet, normal in normals.items() if normal}
+    return {ALL_STATIONS[triplet].name: {measure: usual["curve"] for measure, usual in normal.items()}
+            for triplet, normal in normals.items() if normal}
 
 
 def run(now: datetime | None = None) -> dict:

@@ -1,9 +1,11 @@
 """How this season's snowpack compares with a usual one, at each mountain's snow sensor.
 
-The usual year is the median over the sensor's own daily record: the snow depth on each date, and the season's
-peak. A sensor with no usable depth gauge is compared by the water it weighs. Each sensor also gives the curves
-the page draws: the usual year, this year so far, and the ten winters before it, by day of the water year.
+Three measures of a winter, each against the median over the sensor's own daily record: the snow depth on the
+ground, the snow that has fallen so far, and the water the snowpack holds. The sensors weigh water and gauge
+depth; snowfall is an estimate from the water gained on days cold enough to snow. Each measure also gives the
+curves the page draws: the usual year, this year so far, and the ten winters before it, by day of the water year.
 """
+import numpy as np
 import pandas as pd
 
 from tahoe_snow.config import ALL_STATIONS, MM_PER_IN, RESORTS
@@ -13,7 +15,12 @@ HISTORY_START = "1990-10-01"
 MIN_YEARS = 10
 FULL_YEAR_DAYS = 300
 # Below this much in a usual year, a percent of normal is a ratio of two small numbers and means little.
-MIN_NORMAL_IN = {"depth": 4.0, "water": 1.0}
+MIN_NORMAL_IN = {"depth": 4.0, "snowfall": 10.0, "water": 1.0}
+# Water that arrives on a day warmer than this is counted as rain, not snow.
+SNOW_BELOW_C = 1.0
+# Inches of snow per inch of water, by the day's mean temperature: Sierra cement near freezing, lighter when cold.
+RATIO_BY_TEMP_C = ([-9.0, -1.0], [14.0, 8.0])
+RATIO_UNKNOWN_TEMP = 10.0
 CM_PER_IN = 2.54
 PST_OFFSET_H = 8
 STEP_DAYS = 3
@@ -43,7 +50,9 @@ def describe(daily_in: pd.Series, normal_by_day: pd.Series, day: pd.Timestamp, p
     this_year = water_year(pd.DatetimeIndex([day]))[0]
     by_day = pd.Series(daily_in.values, index=into_year)
     today = day_of_water_year(pd.DatetimeIndex([day]))[0]
+    latest = by_day[year == this_year]
     return {"normal_in": float(normal_by_day.get(today, float("nan"))), "peak_in": peak_in, "peak_date": peak_date,
+            "latest_in": None if latest.empty else round(float(latest.iloc[-1]), 1),
             "curve": {"step_days": STEP_DAYS, "normal": sampled(normal_by_day),
                       "years": {str(winter): sampled(by_day[year == winter])
                                 for winter in range(this_year - PAST_YEARS, this_year + 1) if (year == winter).any()}}}
@@ -73,15 +82,23 @@ def history(station, day: pd.Timestamp) -> pd.DataFrame:
     return snotel.daily(station.triplet, HISTORY_START, end, max_age_h=24.0)
 
 
-def station_normal(station, day: pd.Timestamp) -> dict | None:
-    """A sensor's usual year in snow depth, or in the water it weighs where it has no usable depth gauge."""
+def snowfall_in(frame: pd.DataFrame) -> pd.Series:
+    """Snow fallen so far each winter, in inches: each day's water gain on a day cold enough to snow, times a
+    snow ratio for that day's temperature, added up from October 1."""
+    gain = cdec.pillow_gains(frame["swe_mm"]) / MM_PER_IN
+    temp = frame["tavg_c"].reindex(gain.index) if "tavg_c" in frame else pd.Series(np.nan, index=gain.index)
+    ratio = np.where(temp.isna(), RATIO_UNKNOWN_TEMP, np.interp(temp.fillna(0.0), *RATIO_BY_TEMP_C))
+    new = gain * ratio * (temp.isna() | (temp <= SNOW_BELOW_C))
+    return new.groupby(water_year(new.index)).cumsum()
+
+
+def station_normal(station, day: pd.Timestamp) -> dict:
+    """A sensor's usual year by each measure it can give. A sensor with no usable depth gauge has no depth."""
     frame = history(station, day)
-    for measure, column, per_inch in (("depth", "depth_cm", CM_PER_IN), ("water", "swe_mm", MM_PER_IN)):
-        if column in frame and (measure == "water" or station.depth):
-            normal = from_history(frame[column] / per_inch, day)
-            if normal:
-                return {**normal, "measure": measure}
-    return None
+    series = {"depth": frame["depth_cm"] / CM_PER_IN if station.depth and "depth_cm" in frame else None,
+              "snowfall": snowfall_in(frame), "water": frame["swe_mm"] / MM_PER_IN}
+    found = {measure: from_history(daily, day) for measure, daily in series.items() if daily is not None}
+    return {measure: normal for measure, normal in found.items() if normal}
 
 
 def normals(now: pd.Timestamp) -> dict:
@@ -92,12 +109,15 @@ def normals(now: pd.Timestamp) -> dict:
 
 
 def summary(observed: dict | None, normal: dict | None) -> dict | None:
-    """Where the sensor's latest reading stands against its usual year."""
-    now_in = (observed or {}).get(f"{(normal or {}).get('measure')}_in")
-    if now_in is None or not normal["peak_in"] or pd.isna(normal["normal_in"]):
-        return None
-    usual = normal["normal_in"]
-    return {"measure": normal["measure"], "now_in": now_in, "normal_in": round(usual, 1),
-            "pct_normal": round(100 * now_in / usual) if usual >= MIN_NORMAL_IN[normal["measure"]] else None,
-            "peak_in": round(normal["peak_in"], 1), "pct_peak": round(100 * now_in / normal["peak_in"]),
-            "peak_date": normal["peak_date"]}
+    """Where the sensor stands against its usual year, by measure. Depth and water are its latest readings."""
+    out = {}
+    for measure, usual in (normal or {}).items():
+        now_in = usual["latest_in"] if measure == "snowfall" else (observed or {}).get(f"{measure}_in")
+        if now_in is None or not usual["peak_in"] or pd.isna(usual["normal_in"]):
+            continue
+        out[measure] = {"now_in": now_in, "normal_in": round(usual["normal_in"], 1),
+                        "pct_normal": (round(100 * now_in / usual["normal_in"])
+                                       if usual["normal_in"] >= MIN_NORMAL_IN[measure] else None),
+                        "peak_in": round(usual["peak_in"], 1), "pct_peak": round(100 * now_in / usual["peak_in"]),
+                        "peak_date": usual["peak_date"]}
+    return out or None
