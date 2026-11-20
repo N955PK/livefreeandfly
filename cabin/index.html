@@ -649,14 +649,17 @@ const leaseOf = m => Math.max(0, Number(m.lease_cents) || 0);
 const depositEach = () => (S.house.deposit_cents === null || S.house.deposit_cents === undefined) ? 44500 : Math.max(0, Number(S.house.deposit_cents) || 0);
 const depositWithheld = () => Math.max(0, Number(S.house.deposit_withheld_cents) || 0);
 // How one expense divides, to the cent, between the people it's split among.
+// Pot expenses are only ever split between full-time members, whatever an older entry says: part-timers don't pay house bills.
 function sharesOf(e){
-  const ids = (e.split_among || []).filter(id => member(id)).sort(), out = {}; if (!ids.length) return out;
+  let ids = (e.split_among || []).filter(id => member(id)); const out = {};
+  if (e.from_pot){ const full = ids.filter(id => !isPart(id)); ids = full.length ? full : fullTimers().map(m => m.id); }
+  ids.sort(); if (!ids.length) return out;
   const base = Math.floor(e.amount_cents / ids.length); let rem = e.amount_cents - base * ids.length;
   ids.forEach(id => { out[id] = base + (rem > 0 ? 1 : 0); if (rem > 0) rem--; });
   return out;
 }
-// Pot expenses (utilities and the like): a part-timer's share is charged to them right away;
-// a full-timer's share waits and comes off what they get back when the pot is paid out.
+// Pot expenses (utilities and the like) are split between full-time members only. Their share waits
+// and comes off what they get back when the pot is paid out. Part-timers are never charged.
 const potExpenses = () => S.expenses.filter(e => e.from_pot && member(e.paid_by));
 const isPart = id => { const m = member(id); return !!(m && m.part_time); };
 function potCosts(){
@@ -664,11 +667,6 @@ function potCosts(){
   for (const e of potExpenses()){ const sh = sharesOf(e);
     for (const id in sh){ all += sh[id]; if (isPart(id)) part += sh[id]; else { held += sh[id]; mine[id] = (mine[id] || 0) + sh[id]; } } }
   return { all, part, held, mine };
-}
-// Everyone on the lease in the month a bill covers: full-timers, plus part-timers whose dates touch that month.
-function onLeaseInMonth(dateIso){
-  const d = parse(dateIso || iso(today())), a = iso(new Date(d.getFullYear(), d.getMonth(), 1)), z = iso(new Date(d.getFullYear(), d.getMonth() + 1, 0));
-  return active().filter(m => !m.part_time || ((!m.active_from || m.active_from <= z) && (!m.active_until || m.active_until >= a)));
 }
 function pot(){
   const guests = guestPaidNights().reduce((n, x) => n + x.names.length * perGuest(x.st), 0);
@@ -1130,7 +1128,7 @@ function sheetPot(){
     <p class="sub">${col ? `Guest fees and part-time leases that ${esc(first(col))} has received, plus the security deposits due back.` : 'Nobody is set to collect guest and lease money yet.'} It’s held until it’s paid out, then split equally between full-time members.</p>
     <h2 style="margin:22px 0 8px">What’s gone in</h2><ul class="list">${line('Guest fees received', '', pt.guests)}${line('Leases received', pt.leasesDue ? money(pt.leasesDue) + ' still to collect' : '', pt.leases)}${line('Security deposits', pt.each ? `${pt.heads} × ${money(pt.each)}${pt.withheld ? ', less ' + money(pt.withheld) + ' withheld' : ', nothing withheld'}` : 'None set', pt.deposits)}</ul>
     <h2 style="margin:22px 0 8px">What’s come out</h2>
-    <ul class="list">${line('House bills', pt.costs.all ? `${money(pt.costs.all)} in bills${pt.costs.part ? ', ' + money(pt.costs.part) + ' of it charged to part-timers' : ''}` : 'Nothing logged yet. Add an expense and tick “Comes out of the pot”.', -pt.costs.held)}</ul>
+    <ul class="list">${line('House bills', pt.costs.all ? `${money(pt.costs.all)} in bills` : 'Nothing logged yet. Add an expense and tick “Comes out of the pot”.', -pt.costs.held)}</ul>
     <div class="bal" style="margin-top:16px"><div class="l">In the pot</div><div class="v${pt.net < 0 ? ' neg' : ''}">${money(pt.net)}</div>
       ${admin && full.length ? `<div class="l" style="margin-top:4px">About ${money(Math.trunc(pt.net / full.length))} each for ${full.length} full-time member${full.length === 1 ? '' : 's'}</div>` : ''}</div>
     ${admin ? `<div class="actions"><button class="btn" data-act="deposit-open">Edit security deposits</button></div>` : ''}
@@ -1527,10 +1525,10 @@ function financeTables(){
   tab('The pot'); add('Item', 'Detail', 'Amount');
   add('Guest fees received', '', num(pt.guests)); add('Leases received', pt.leasesDue ? txt(pt.leasesDue) + ' still to collect' : '', num(pt.leases));
   add('Security deposits', `${pt.heads} x ${txt(pt.each)}, less ${txt(pt.withheld)} withheld`, num(pt.deposits));
-  add('House bills', `${txt(pt.costs.all)} in bills, ${txt(pt.costs.part)} charged to part-timers`, num(-pt.costs.held)); add('In the pot', `${full.length} full-time members`, num(pt.net));
+  add('House bills', `${txt(pt.costs.all)} in bills, split between full-time members`, num(-pt.costs.held)); add('In the pot', `${full.length} full-time members`, num(pt.net));
 
   tab('House bills');
-  add('Each person\'s share. A part-timer\'s share is in the balance ledger; a full-timer\'s comes off the pot.'); gap();
+  add('Each person\'s share. A full-timer\'s share of house bills comes off the pot; part-timers pay none.'); gap();
   add('Date', 'Description', 'Paid by', 'Amount', ...people.map(m => m.name));
   const bt = {}; for (const e of potExpenses().slice().sort((x, y) => x.spent_on.localeCompare(y.spent_on))){ const sh = sharesOf(e);
     add(e.spent_on, e.description, member(e.paid_by).name, num(e.amount_cents), ...people.map(m => sh[m.id] ? num(sh[m.id]) : '')); for (const id in sh) bt[id] = (bt[id] || 0) + sh[id]; }
@@ -2196,7 +2194,7 @@ document.addEventListener('change', e => {
   }
   if (k === 'phone') e.target.value = fmtPhone(e.target.value);
   if (k === 'potflag' || (k === 'expdate' && e.target.form.from_pot && e.target.form.from_pot.checked)){
-    const f = e.target.form, ids = new Set((f.from_pot.checked ? onLeaseInMonth(f.spent_on.value) : fullTimers()).map(m => m.id));
+    const f = e.target.form, ids = new Set(fullTimers().map(m => m.id));
     f.querySelectorAll('.pick button').forEach(b => b.setAttribute('aria-pressed', ids.has(b.dataset.id))); updateEach();
   }
   if (k === 'bulkstay' && S.bulk) S.bulk.staying = e.target.checked;
