@@ -128,21 +128,23 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .outlook .ohead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
 .outlook h3{margin:0;font-size:17px}
 .outlook h3 span{font-weight:500;color:var(--muted);font-size:13px}
-.orow{display:grid;grid-template-columns:62px minmax(0,1fr);gap:2px 10px;align-items:baseline;padding:7px 0;font-size:13.5px;color:var(--ink2)}
-.orow + .orow{border-top:1px solid var(--grid)}
+/* Every row shares one grid: label, content, and a slot on the right that holds the lift list's plus, so the
+   lift and trail bars come out the same width. */
+.orow{display:grid;grid-template-columns:58px minmax(0,1fr) 18px;column-gap:10px;align-items:center;padding:7px 0;font-size:13.5px;color:var(--ink2)}
 .orow .k{color:var(--muted);font-size:12.5px}
 .orow b{color:var(--ink);font-weight:650}
 .orow .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#3fa34d}
 .orow .dot.warn{background:var(--w1)}.orow .dot.bad{background:var(--w2)}
-.orow .meter{grid-column:2;display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--wash);margin-top:3px}
+.orow .meter{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--wash);margin-top:5px}
 .orow .meter span{display:block}
 .s-open{background:#3fa34d}.s-hold{background:var(--w1)}.s-soon{background:#6aa9e9}.s-closed{background:var(--axis)}
 .orow .held{color:var(--ink);font-weight:650}
-.outlook details.all{border-top:1px solid var(--grid)}
-.outlook details.all summary{font-size:13.5px;font-weight:600;color:var(--accent);padding:7px 0}
-.outlook details.all summary::after{font-size:16px;line-height:1}
+.outlook details.all{padding:0;margin:0;border:0;background:none}
+.outlook details.all > summary{font-size:13.5px;font-weight:400;line-height:inherit}
+.outlook details.all > summary::after{margin:0;justify-self:end;font-size:18px;line-height:1}
+.all .list{padding:0 28px 6px 68px}
 .all .area{margin:6px 0 2px;font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.all .lift{display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-size:13.5px;color:var(--ink2)}
+.all .lift{display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-size:13px;color:var(--ink2)}
 .all .lift span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .all .lift span:last-child{flex:none;display:flex;align-items:center;gap:6px;color:var(--muted)}
 .all .lift i{width:8px;height:8px;border-radius:50%}
@@ -507,7 +509,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Outlook</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and wind chill. Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
+    <p><b>Status</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and wind chill. Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
@@ -519,7 +521,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "114";
+const BUILD = "115";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -934,16 +936,16 @@ function outlook(resort) {
   const label = new Date(`${day.date}T12:00:00`).toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"});
   const pick = ["Today", "Tomorrow"].slice(0, days.length).map((name, n) => `<button data-outlook="${n}" aria-pressed="${n === shift}">${name}</button>`).join("");
   const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
-  return `<div class="outlook"><div class="ohead"><h3>Outlook <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
-    <div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span></div>
-    ${wild ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span></div>` : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
+  return `<div class="outlook"><div class="ohead"><h3>Status <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
+    <div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>
+    ${wild ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>` : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
 }
 // ---------- live lifts and trails, where the resort publishes them ----------
 const liftFeeds = {};
 const liftGroup = (status) => (/^open/.test(status) ? "open" : /hold|delay/.test(status) ? "hold" : /expect|sched/.test(status) ? "soon" : "closed");
 function liftsHtml(resort) {
   const page = STATUS_PAGES[resort.key], link = page ? `<a href="${page}" target="_blank" rel="noopener">${LIFT_FEEDS[resort.key] ? "Resort report" : "Lift and trail status"} ↗</a>` : "";
-  const blank = (note) => `<div class="orow"><span class="k">Lifts</span><span>${note}</span></div><div class="orow"><span class="k">Trails</span><span>${LIFT_FEEDS[resort.key] ? "" : link}</span></div>`;
+  const blank = (note) => `<div class="orow"><span class="k">Lifts</span><span>${note}</span><span></span></div><div class="orow"><span class="k">Trails</span><span>${LIFT_FEEDS[resort.key] ? "" : link}</span><span></span></div>`;
   if (!LIFT_FEEDS[resort.key]) return blank("Not published live");
   if (!navigator.onLine) return blank("Needs a signal");
   const [id, mine] = LIFT_FEEDS[resort.key], feed = liftFeeds[id];
@@ -962,9 +964,9 @@ function liftsHtml(resort) {
   const openTrails = trails.filter((t) => /^open/.test(t.StatusEnglish || "")).length;
   const at = new Date(feed.data.LastUpdate).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
   const list = areas.filter((a) => (a.Lifts || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Lifts.map((l) => `<div class="lift"><span>${esc(l.Name)}</span><span><i class="s-${liftGroup(l.StatusEnglish || "")}"></i>${esc(l.Status || "")}</span></div>`).join("")}`).join("");
-  return `<div class="orow"><span class="k">Lifts</span><span>${season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> open${holds ? ` · ${holds}` : ""}${tally.soon ? ` · ${tally.soon} expected` : ""} · ${tally.closed} closed`}</span>${meter(Object.entries(tally), lifts.length)}</div>
-    <div class="orow"><span class="k">Trails</span><span><b>${openTrails}</b> open · ${trails.length - openTrails} closed</span>${meter([["open", openTrails]], trails.length)}</div>
-    <details class="all"${liftsOpen ? " open" : ""}><summary>All ${lifts.length} lifts</summary>${list}</details>
+  const liftLine = season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> open${holds ? ` · ${holds}` : ""}${tally.soon ? ` · ${tally.soon} expected` : ""} · ${tally.closed} closed`;
+  return `<details class="all"${liftsOpen ? " open" : ""}><summary class="orow"><span class="k">Lifts</span><div><span>${liftLine}</span>${meter(Object.entries(tally), lifts.length)}</div></summary><div class="list">${list}</div></details>
+    <div class="orow"><span class="k">Trails</span><div><span><b>${openTrails}</b> open · ${trails.length - openTrails} closed</span>${meter([["open", openTrails]], trails.length)}</div><span></span></div>
     <span class="src">Live from ${esc(feed.data.Name)}, ${at} · ${link}</span>`;
 }
 let liftsOpen = false;
