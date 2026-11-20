@@ -149,7 +149,8 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .all .lift i{width:8px;height:8px;border-radius:50%}
 .all .lift em{display:inline-block;width:20px;font-style:normal;font-size:10px;color:var(--ink)}
 .all .lift em.ci{color:#3fa34d}.all .lift em.sq{color:#2a78d6}
-.outlook .src{display:block;font-size:11.5px;color:var(--muted);margin:-2px 0 4px}
+.outlook .hhead{margin-bottom:0}
+.outlook .src{display:block;font-size:12.5px;line-height:1.4;color:var(--muted);margin:1px 0 6px}
 .outlook a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
 .cams{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--grid);font-size:13px;color:var(--ink2)}
 .cams .shot{flex:none;border:0;padding:0;background:none;cursor:zoom-in;line-height:0}
@@ -238,9 +239,12 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .key .blocks .ramp b.dark{color:var(--ink)}
 .key:has(.blocks){flex-wrap:nowrap;gap:12px}
 .key .sw{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-/* Every line of the daily legend is the same height, whatever it holds, so wrapped lines space evenly. */
-.lgd .key{row-gap:6px;margin:6px 0 0 !important}
-.lgd .key > *{height:20px;display:inline-flex;align-items:center}
+/* Legends everywhere: every line is the same height whatever it holds, lines sit the same distance apart, and
+   each line's items spread from the left edge to the right. */
+.key,.legend{justify-content:space-between;row-gap:6px !important}
+.key{margin:6px 0 0 !important}
+.key > *,.legend > *{height:20px;display:inline-flex;align-items:center}
+.key:has(.blocks){gap:8px}
 .hhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 6px}
 .hhead h3{margin:0}
 #tlNow{margin-right:auto;border:0;background:none;padding:4px 6px;font:inherit;font-size:12.5px;font-weight:650;color:var(--accent);cursor:pointer}
@@ -529,7 +533,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "120";
+const BUILD = "121";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1086,9 +1090,9 @@ function renderDetail() {
     ${g.html}
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>50+</b></span>mph</span></div>
-    <div class="key" style="column-gap:8px"><span class="blocks">Temp<span class="ramp" style="background:linear-gradient(90deg,var(--snow),var(--grid) 64%,var(--w1))"><b>0°</b><b class="dark">50°F</b></span>grey at freezing</span></div>
+    <div class="key" style="column-gap:8px"><span class="blocks">Temp<span class="ramp" style="background:linear-gradient(90deg,var(--snow),var(--grid) 64%,var(--w1))"><b>0°</b><b class="dark">50°F</b></span></span>
+      <span class="sw"><i style="background:repeating-linear-gradient(135deg,var(--hatch) 0 1.6px,transparent 1.6px 4px);border:1px solid var(--grid)"></i>night</span></div>
     <div class="key">
-      <span class="sw"><i style="background:repeating-linear-gradient(135deg,var(--hatch) 0 1.6px,transparent 1.6px 4px);border:1px solid var(--grid)"></i>night</span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span>
       <span class="sw"><i style="background:repeating-linear-gradient(90deg,var(--ink2) 0 3px,transparent 3px 6px);height:2px"></i>sensor depth gain</span></div>
     ${measured(resort)}${webcams(resort)}`;
