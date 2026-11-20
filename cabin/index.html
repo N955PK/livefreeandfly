@@ -307,42 +307,59 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 #toast.on{opacity:1}
 
 .gate{max-width:420px;margin:12vh auto 0;padding:0 22px}
-/* The opening screen: the skier drops in, rides the slope while the house loads, then skis off. */
-#splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+/* The opening screen: the skier comes down the hill, pops off a roller, and hangs in the air while the house loads, then lands and skis away. */
+#splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;
   background:var(--bg);color:var(--ink);overflow:hidden;transition:opacity .45s ease,visibility .45s}
 #splash.done{opacity:0;visibility:hidden}
-#splash .run{position:relative;width:150px;height:112px;rotate:9deg}
-#splash .slope{position:absolute;left:calc(75px - 150vw);width:300vw;bottom:8px;height:2px;
-  background:repeating-linear-gradient(90deg,var(--dim) 0 96px,transparent 96px 110px);opacity:.38;animation:slope .5s linear infinite;
-  -webkit-mask:linear-gradient(90deg,transparent 35%,#000 44%,#000 56%,transparent 65%);mask:linear-gradient(90deg,transparent 35%,#000 44%,#000 56%,transparent 65%)}
-#splash .rider{position:absolute;left:0;bottom:2px;width:150px;height:94px;transform-origin:60% 84%;
-  animation:dropin .95s cubic-bezier(.16,.8,.3,1) backwards,ride 1.15s ease-in-out .95s infinite;transition:translate .6s cubic-bezier(.6,0,.9,.35)}
-#splash.go .rider{translate:120vw 0}
-#splash .skier{display:block;width:100%;height:100%;rotate:13deg;transform-origin:60% 84%;background:url(skier-mark.png) center/contain no-repeat}
+#splash .hill{position:relative;flex:none;width:400px;height:200px}
+#splash svg{position:absolute;inset:0;width:400px;height:200px;overflow:visible}
+#splash .snowpack{fill:var(--ink);opacity:.045}
+#splash .ground{fill:none;stroke:var(--dim);stroke-width:2;stroke-linecap:round;opacity:.5}
+#splash .rider{position:absolute;left:-72px;top:-63.5px;width:120px;height:75px;transform-origin:72px 63.5px;translate:240px 112px;rotate:10deg;
+  animation:approach 1s linear,hang 2.6s ease-in-out 1s infinite}
+#splash.go .rider{animation:land .75s linear forwards}
+#splash .skier{display:block;width:100%;height:100%;background:url(skier-mark.png) center/contain no-repeat}
 :root[data-accent]:not([data-accent="chairlift"]) #splash .skier{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
-#splash u{position:absolute;left:30px;bottom:14px;width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:0;animation:spray .66s ease-out infinite}
-#splash u:nth-of-type(2){animation-delay:.22s}
-#splash u:nth-of-type(3){animation-delay:.44s}
-#splash b{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em;opacity:0;animation:wordup .6s ease .35s forwards}
+#splash u{position:absolute;border-radius:50%;background:var(--dim);opacity:0;animation:kick var(--t) cubic-bezier(.12,.6,.3,1) var(--d) both}
+#splash u.touchdown{animation:none}
+#splash.go u.touchdown{animation:kick var(--t) cubic-bezier(.12,.6,.3,1) var(--d) both}
+#splash b{position:relative;font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em;opacity:0;animation:wordup .6s ease .35s forwards}
 #splash b span{color:var(--accent-ink);font-weight:700}
 #splash i{position:absolute;top:-12px;border-radius:50%;background:var(--ink);opacity:.2;animation:blow linear infinite}
-@keyframes slope{to{background-position-x:-110px}}
-@keyframes dropin{from{translate:-70vw 0}to{translate:0 0}}
-@keyframes ride{0%,100%{transform:rotate(0)}35%{transform:rotate(-1.6deg)}70%{transform:rotate(1deg)}}
-@keyframes spray{from{opacity:.32;transform:none}to{opacity:0;transform:translate(-46px,-16px) scale(2.2)}}
+@keyframes approach{0%{translate:-90px 77px;rotate:23deg}52%{translate:120px 115px;rotate:23deg;animation-timing-function:cubic-bezier(.2,.7,.35,1)}100%{translate:240px 112px;rotate:10deg}}
+@keyframes hang{0%,100%{transform:none}50%{transform:translateY(-5px) rotate(-1.5deg)}}
+@keyframes land{0%{translate:240px 112px;rotate:10deg;animation-timing-function:cubic-bezier(.5,0,.9,.6)}40%{translate:310px 174px;rotate:32deg}100%{translate:650px 290px;rotate:32deg}}
+@keyframes kick{0%{opacity:0;transform:scale(.5)}10%{opacity:.6}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.7)}}
 @keyframes wordup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes blow{to{transform:translate(-55vw,108vh)}}
-@media (prefers-reduced-motion:reduce){#splash .rider,#splash .slope,#splash b{animation:none}#splash b{opacity:1}#splash i,#splash u{display:none}}
+@media (prefers-reduced-motion:reduce){#splash .rider,#splash.go .rider,#splash b{animation:none}#splash b{opacity:1}#splash i,#splash u{display:none}}
 @media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:18px;height:18px;font-size:10px} .day .dots{gap:2px;max-height:38px} .day .more{width:18px;height:18px;font-size:10px} }
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><div class="run"><span class="slope"></span><span class="rider"><span class="skier"></span><u></u><u></u><u></u></span></div><b>ski<span>/</span>lease</b></div>
+<div id="splash" aria-hidden="true"><div class="hill"><svg viewBox="0 0 400 200"><path class="snowpack" d="M-600 -14L90 109.3Q150 120 210 140.4L1200 477V3000H-600Z"/><path class="ground" d="M-600 -14L90 109.3Q150 120 210 140.4L1200 477"/></svg><span class="rider"><span class="skier"></span></span></div><b>ski<span>/</span>lease</b></div>
 <script>
-for (let n = 0; n < 14; n++) {
-  const flake = document.createElement('i'), size = 2 + Math.random() * 2.5;
-  flake.style.cssText = `left:${Math.random() * 150}%;width:${size}px;height:${size}px;animation-duration:${2.6 + Math.random() * 3.4}s;animation-delay:${-Math.random() * 6}s`;
-  document.getElementById('splash').appendChild(flake);
+{
+  const splash = document.getElementById('splash'), hill = splash.firstChild;
+  // Snow thrown from one spot on the hill: a fan of specks, each flung along its own heading (degrees above level, back up the hill being 180).
+  const kickUp = (x, y, count, delay, from, to, reach, touchdown) => {
+    for (let n = 0; n < count; n++) {
+      const speck = document.createElement('u'), size = 3 + Math.random() * 5, far = reach * (.45 + Math.random() * .55);
+      const heading = (from + (to - from) * Math.random()) * Math.PI / 180;
+      speck.className = touchdown ? 'touchdown' : '';
+      speck.style.cssText = `left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px;--x:${Math.cos(heading) * far}px;--y:${-Math.sin(heading) * far}px;--t:${.45 + Math.random() * .35}s;--d:${delay + Math.random() * .06}s`;
+      hill.appendChild(speck);
+    }
+  };
+  kickUp(10, 95, 5, .25, 140, 180, 34);
+  kickUp(70, 106, 5, .4, 140, 180, 34);
+  kickUp(120, 115, 16, .52, 95, 178, 66);
+  kickUp(310, 174, 18, .3, 15, 168, 70, true);
+  for (let n = 0; n < 14; n++) {
+    const flake = document.createElement('i'), size = 2 + Math.random() * 2.5;
+    flake.style.cssText = `left:${Math.random() * 150}%;width:${size}px;height:${size}px;animation-duration:${2.6 + Math.random() * 3.4}s;animation-delay:${-Math.random() * 6}s`;
+    splash.appendChild(flake);
+  }
 }
 </script>
 <header class="top">
@@ -971,7 +988,7 @@ function reveal(){
     const splash = $('#splash');
     if (reducedMotion()) return splash.classList.add('done');
     splash.classList.add('go');
-    setTimeout(() => splash.classList.add('done'), 430);
+    setTimeout(() => splash.classList.add('done'), 560);
   }, Math.max(0, 1600 - (performance.now() - opened)));
 }
 setTimeout(reveal, 8000);
