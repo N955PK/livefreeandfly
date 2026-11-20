@@ -533,7 +533,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "121";
+const BUILD = "122";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -992,9 +992,8 @@ const liftGroup = (status) => (/^open/.test(status) ? "open" : /hold|delay/.test
 // Under the heading: when the resort's figures were read, and its own page.
 function statusSource(resort) {
   const page = STATUS_PAGES[resort.key], spec = LIFT_FEEDS[resort.key], feed = spec && liftFeeds[spec[0]];
-  const link = page ? `<a href="${page}" target="_blank" rel="noopener">${spec ? "Resort report" : "Lift and trail status"} ↗</a>` : "";
-  const at = feed && !feed.failed ? `Live at ${new Date(feed.data.LastUpdate).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}` : "";
-  return [at, link].filter(Boolean).join(" · ");
+  const words = feed && !feed.failed ? `Live at ${new Date(feed.data.LastUpdate).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}` : spec ? "Resort report" : "Lift and trail status";
+  return page ? `<a href="${page}" target="_blank" rel="noopener" title="Open the resort's own report">${words} ↗</a>` : "";
 }
 function liftsHtml(resort) {
   const blank = (note) => `<div class="orow"><span class="k">Lifts</span><span>${note}</span><span></span></div>`;
