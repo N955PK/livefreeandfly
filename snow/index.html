@@ -50,6 +50,7 @@
 #splash img{width:min(38vw,170px);height:auto;animation:spinup 1.4s cubic-bezier(.55,0,.9,.5) both,spin .55s linear 1.4s infinite}
 #splash b{font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:650;opacity:0;animation:rise .6s ease .25s forwards}
 #splash i{position:absolute;top:-12px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:drift linear infinite}
+.embed #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
 @keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
@@ -379,8 +380,10 @@ if (new URLSearchParams(location.search).has("embed")) {
   document.documentElement.classList.add("embed");
   const follow = () => {
     try {
-      const accent = getComputedStyle(parent.document.documentElement).getPropertyValue("--accent-ink").trim();
+      const host = getComputedStyle(parent.document.documentElement);
+      const accent = host.getPropertyValue("--accent-ink").trim(), fill = host.getPropertyValue("--accent").trim();
       if (accent) document.documentElement.style.setProperty("--accent", accent);
+      if (fill) document.documentElement.style.setProperty("--host-fill", fill);
     } catch (error) { /* a host on another site keeps the page's own blue */ }
   };
   if (parent !== window) { follow(); setInterval(follow, 1500); }
@@ -446,7 +449,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "82";
+const BUILD = "83";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
