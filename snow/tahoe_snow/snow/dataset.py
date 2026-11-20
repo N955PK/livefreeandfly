@@ -154,8 +154,12 @@ class Profiles:
         return pd.concat([early[early.index < recent.index[0]], recent]).reindex(columns=recent.columns)
 
 
-def build(end: str, early_cells: list | None = None, profiles: Profiles | None = None) -> pd.DataFrame:
-    """Assemble the event table for every station from the cached observation tables."""
+def build(end: str, early_cells: list | None = None, profiles: Profiles | None = None, levels: list | None = None,
+          name: str = "events") -> pd.DataFrame:
+    """Assemble the event table for every station from the cached observation tables.
+
+    ``levels`` limits the predictors to a subset of pressure levels (to match the long-record reanalysis).
+    """
     stations = pd.read_parquet(TABLES / "manual_stations.parquet")
     manual = pd.read_parquet(TABLES / "manual_daily.parquet").set_index("date")
     snotel = pd.read_parquet(TABLES / "snotel_daily.parquet").set_index("date")
@@ -163,16 +167,17 @@ def build(end: str, early_cells: list | None = None, profiles: Profiles | None =
     profiles = profiles or Profiles(end, early_cells)
     frames = []
     for _, row in stations.iterrows():
-        windows = features.window_features(features.hourly_features(profiles.at(row["lat"], row["lon"]), row["elev_m"]))
+        windows = features.window_features(
+            features.hourly_features(profiles.at(row["lat"], row["lon"]), row["elev_m"], levels))
         events = manual_events(manual[manual["station"] == row["station"]], row, windows)
         if not events.empty:
             frames.append(events)
     for station in STATIONS.values():
         windows = features.window_features(
-            features.hourly_features(profiles.at(station.lat, station.lon), station.elev_m))
+            features.hourly_features(profiles.at(station.lat, station.lon), station.elev_m, levels))
         frames.append(snotel_events(snotel[snotel["station"] == station.triplet], station.triplet, windows))
     table = pd.concat(frames, ignore_index=True)
-    table.to_parquet(TABLES / "events.parquet")
+    table.to_parquet(TABLES / f"{name}.parquet")
     return table
 
 

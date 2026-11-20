@@ -228,6 +228,14 @@ const weekday = (iso, style = "short") => new Date(iso + "T12:00:00Z").toLocaleD
 const dayOfMonth = (iso) => +iso.slice(8);
 const range = (lo, hi) => lo == null ? "" : `${inches(lo)}–${inches(hi)} in`;
 
+// Safari only parses timestamps that include seconds.
+const withSeconds = (t) => /T\d\d:\d\dZ$/.test(t) ? t.replace("Z", ":00Z") : t;
+function fixTimes(d) {
+  d.generated_utc = withSeconds(d.generated_utc);
+  for (const r of d.resorts) r.hours_utc = r.hours_utc.map(withSeconds);
+  return d;
+}
+
 function quality(ratio) {
   if (ratio == null) return ["", ""];
   const name = ratio < 7 ? "Wet and heavy" : ratio < 10 ? "Dense" : ratio < 13 ? "Medium" : ratio < 17 ? "Light" : "Very light";
@@ -488,7 +496,7 @@ $("heat").addEventListener("click", (e) => {
   renderHeat(); renderDetail();
   if (e.target.closest("td.name")) $("detail").scrollIntoView({behavior: "smooth", block: "start"});
 });
-fetch("data/forecast.json", {cache: "no-store"}).then((r) => r.json()).then((d) => { data = d; renderNotes(); renderAll(); startMap(); })
+fetch("data/forecast.json", {cache: "no-store"}).then((r) => r.json()).then((d) => { data = fixTimes(d); renderNotes(); renderAll(); startMap(); })
   .catch(() => { $("headline").textContent = "The forecast could not be loaded"; });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>

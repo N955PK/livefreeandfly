@@ -278,7 +278,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                        "snow_level_ft": _round(blended["snow_level_m"] / M_PER_FT, -1),
                        "wind_mph": _round(blended["wind_ms"] * MPH_PER_MS, 0),
                        "temp_f": _round(blended["temp_c"] * 1.8 + 32, 0)}}
-    payload["hours_utc"] = [h.strftime("%Y-%m-%dT%H:00Z") for h in hours]
+    payload["hours_utc"] = [h.strftime("%Y-%m-%dT%H:00:00Z") for h in hours]
     return payload, archive
 
 
@@ -298,7 +298,7 @@ def run(now: datetime | None = None) -> dict:
             print(f"{resort.name}: FAILED {error}", flush=True)
     if not resorts:
         raise SystemExit("no resort forecast could be produced")
-    forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00Z"), "snow_ratio_model": ratio_name,
+    forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"), "snow_ratio_model": ratio_name,
                 "rain_snow_split": {"kind": snow_model.phase_kind, "params": snow_model.phase_params},
                 "bias_corrected": correction is not None, "deterministic_days": DETERMINISTIC_DAYS,
                 "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts}
