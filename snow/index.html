@@ -622,7 +622,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "141";
+const BUILD = "142";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1389,6 +1389,8 @@ function renderDetail() {
 
 function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) { map.setElevation(elevation); map.select(selected); } }
 
+// Playback runs the whole window, the past week and the forecast, in about a quarter of a minute.
+const PLAY_HOURS_PER_S = 30;
 let map = null, playing = false, playFrame = 0;
 function showTime(value) {
   const t = map.timeAt(value), rate = map.rateAt(value), level = Math.round(map.snowLevelFtAt(value) / 100) * 100;
@@ -1412,7 +1414,7 @@ function togglePlay(on) {
   let last = performance.now();
   setTime(0);
   const tick = (now) => {
-    const value = +$("scrub").value + (now - last) / 1000 * 7; last = now;
+    const value = +$("scrub").value + (now - last) / 1000 * PLAY_HOURS_PER_S; last = now;
     if (value >= map.steps - 1) { setTime(map.steps - 1); togglePlay(false); return; }
     setTime(value); playFrame = requestAnimationFrame(tick);
   };
