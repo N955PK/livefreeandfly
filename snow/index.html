@@ -191,6 +191,7 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 #tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;
   box-shadow:0 6px 20px rgba(0,0,0,.14);padding:8px 10px;font-size:12px;min-width:150px;display:none;z-index:5;font-variant-numeric:tabular-nums}
 #tip b{display:block;font-size:12.5px;margin-bottom:4px}
+#tip.steady{width:min(250px,calc(100% - 8px))}
 #tip div{display:flex;justify-content:space-between;gap:14px;color:var(--ink2)}
 #tip div span:last-child{color:var(--ink);font-weight:600}
 .days{margin-top:4px}
@@ -310,7 +311,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .season .seg button{font-size:12.5px;padding:5px 11px}
 .season .swhat{font-size:12px;color:var(--muted);margin-top:4px}
 .schart{position:relative;margin:8px 0 6px;touch-action:pan-y}
-.stip{position:absolute;z-index:2;bottom:calc(100% - 10px);transform:translateX(-50%);display:flex;flex-direction:column;gap:1px;white-space:nowrap;pointer-events:none;
+.stip{position:absolute;z-index:2;bottom:calc(100% - 10px);transform:translateX(-50%);display:flex;flex-direction:column;gap:1px;white-space:nowrap;pointer-events:none;box-sizing:border-box;width:176px;font-variant-numeric:tabular-nums;
   background:var(--ink);color:var(--surface);border-radius:9px;padding:6px 10px;font-size:12px;line-height:1.35;box-shadow:0 3px 10px rgba(15,23,32,.25)}
 .stip[hidden]{display:none}
 .stip > b{font-size:12.5px}
@@ -643,7 +644,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "150";
+const BUILD = "151";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -952,17 +953,20 @@ function wireTimeline(resort, el, g) {
     const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
     const snowing = h.snow_in[k] > 0.004, wind = h.wind_mph[k], gust = h.gust_mph[k], past = k < g.nowIndex;
     const row = (a, b) => `<div><span>${a}</span><span>${b}</span></div>`;
+    // Under a finger the readout keeps the same rows for every hour, so it holds one size and one place as hours pass.
     tip.innerHTML = `<b>${when}${past ? " (past, estimated)" : ""}</b>` + row("Snow this hour", `${(h.snow_in[k] || 0).toFixed(2)} in`) +
-      (g.running[k] != null ? row("Storm total", `${tenths(g.running[k])} in`) : "") + (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : "") +
-      (past && g.depth[k] != null ? row("Sensor depth", `${g.depth[k]} in`) : "") +
+      (g.running[k] != null ? row("Storm total", `${tenths(g.running[k])} in`) : above ? row("Storm total", "–") : "") +
+      (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : above ? row("Quality", "–") : "") +
+      (!above && past && g.depth[k] != null ? row("Sensor depth", `${g.depth[k]} in`) : "") +
       row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${wind} mph${h.wind_from_deg && h.wind_from_deg[k] != null ? ` ${compass(h.wind_from_deg[k])}` : ""}${gust > wind + 5 ? `, gusts ${gust}` : ""}`) +
       row("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) +
       row("Snow level", h.snow_level_ft[k] == null ? "–" : `${(Math.round(h.snow_level_ft[k] / 100) * 100).toLocaleString()} ft`) +
       row("Temperature", h.temp_f[k] == null ? "–" : `${Math.round(h.temp_f[k])}°F, feels like ${Math.round(windChill(h.temp_f[k], wind))}°F`);
     tip.style.display = "block";
     const left = 44 + cx - scroll.scrollLeft, wide = scroll.parentElement.clientWidth;
-    // A mouse gets the readout beside the pointer. A finger gets it above the chart, over the hour, clear of the hand.
-    tip.style.left = Math.max(4, Math.min(wide - tip.offsetWidth - 4, above ? left - tip.offsetWidth / 2 : left + 12 + tip.offsetWidth > wide ? left - 12 - tip.offsetWidth : left + 12)) + "px";
+    // A mouse gets the readout beside the pointer. A finger gets it in one fixed spot above the chart, clear of the hand.
+    tip.classList.toggle("steady", !!above);
+    tip.style.left = (above ? (wide - tip.offsetWidth) / 2 : Math.max(4, Math.min(wide - tip.offsetWidth - 4, left + 12 + tip.offsetWidth > wide ? left - 12 - tip.offsetWidth : left + 12))) + "px";
     tip.style.top = above ? `${10 - tip.offsetHeight}px` : "22px";
   };
   const hide = () => { tip.style.display = "none"; cross.style.display = "none"; };
@@ -971,10 +975,12 @@ function wireTimeline(resort, el, g) {
   // also sends a mouse move just after the touch, which is not a mouse.
   scroll.addEventListener("mousemove", (e) => { if (Date.now() - touchedAt < 1000) return; fingered = false; showAt(e.clientX); });
   scroll.addEventListener("mouseleave", hide);
-  // Swiping the chart with a finger reads the hour passing under its middle, so the chart scrolls and reads at once.
+  // With a finger, a tap opens the readout on that hour and another tap closes it; swiping alone never opens it.
+  // While it is open, swiping reads the hour passing under the chart's middle.
+  const open = () => tip.style.display === "block";
   scroll.addEventListener("touchstart", () => { fingered = true; touchedAt = Date.now(); }, {passive: true});
-  scroll.addEventListener("click", (e) => showAt(e.clientX, fingered));
-  scroll.addEventListener("scroll", () => { if (fingered) showAt(scroll.getBoundingClientRect().left + scroll.clientWidth / 2, true); else hide(); }, {passive: true});
+  scroll.addEventListener("click", (e) => { if (!fingered) showAt(e.clientX); else if (open()) hide(); else showAt(e.clientX, true); });
+  scroll.addEventListener("scroll", () => { if (!fingered) hide(); else if (open()) showAt(scroll.getBoundingClientRect().left + scroll.clientWidth / 2, true); }, {passive: true});
 }
 
 // A day's snow on a fixed 0 to 24 inch scale: a dot for the forecast, a shaded band for one standard deviation
@@ -1030,7 +1036,7 @@ const SEASON_VIEWS = {
 let seasonMeasure = "depth";
 const SEASON_DAYS = 304, MONTHS = [["Oct", 0], ["Nov", 31], ["Dec", 61], ["Jan", 92], ["Feb", 123], ["Mar", 151], ["Apr", 182], ["May", 212], ["Jun", 243], ["Jul", 273]];
 const winterName = (endYear) => `${String(endYear - 1).slice(2)}–${String(endYear).slice(2)}`;
-let seasonView = null;
+let seasonView = null, seasonTouch = null;
 function seasonSoFar(resort) {
   const all = resort.season || {}, has = Object.keys(SEASON_VIEWS).filter((key) => all[key] && all[key].now_in != null);
   if (!has.length) return "";
@@ -1103,7 +1109,13 @@ function seasonSoFar(resort) {
 function seasonRead(event) {
   const chart = event.target.closest && event.target.closest("#seasonChart"), v = seasonView, tip = $("seasonTip");
   if (!v || !tip) return;
-  if (!chart) { tip.hidden = true; for (const id of ["seasonCur", "seasonTypDot", "seasonNowDot"]) $(id).setAttribute("visibility", "hidden"); return; }
+  if (!chart || event.type === "pointercancel") { seasonTouch = null; tip.hidden = true; for (const id of ["seasonCur", "seasonTypDot", "seasonNowDot"]) $(id).setAttribute("visibility", "hidden"); return; }
+  // A finger has to slide sideways on the plot before the readout opens, so scrolling the page past it opens nothing.
+  if (event.pointerType === "touch") {
+    if (event.type === "pointerdown") { seasonTouch = {x: event.clientX, sliding: false}; return; }
+    if (!seasonTouch || (!seasonTouch.sliding && Math.abs(event.clientX - seasonTouch.x) < 10)) return;
+    seasonTouch.sliding = true;
+  }
   const box = chart.querySelector("svg").getBoundingClientRect(), k = Math.max(0, Math.min(v.count - 1, Math.round((event.clientX - box.left - v.left) / v.span * (v.count - 1))));
   const date = new Date(Date.UTC(2001, 9, 1 + k * v.curve.step_days)).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
   const then = v.past.map((w) => [v.lines[w][k], w]).filter(([value]) => value != null).sort((a, b) => a[0] - b[0]);
@@ -1124,6 +1136,7 @@ document.addEventListener("click", (event) => {
   $("seasonBox").innerHTML = seasonSoFar(resort);
 });
 document.addEventListener("pointermove", seasonRead);
+document.addEventListener("pointercancel", seasonRead);
 document.addEventListener("pointerdown", seasonRead);
 
 const opener = () => here().find((r) => r.key === HOME) || here().find((r) => r.key === REGIONS[region].pick) || sorted()[0];
