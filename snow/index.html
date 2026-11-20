@@ -494,7 +494,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "109";
+const BUILD = "110";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -904,7 +904,7 @@ function renderDetail() {
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>50+</b></span>mph</span></div>
     <div class="key">
-      <span class="sw"><i style="background:repeating-linear-gradient(45deg,var(--hatch) 0 1.6px,transparent 1.6px 4px);border:1px solid var(--grid)"></i>night</span>
+      <span class="sw"><i style="background:repeating-linear-gradient(135deg,var(--hatch) 0 1.6px,transparent 1.6px 4px);border:1px solid var(--grid)"></i>night</span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span>
       <span class="sw"><i style="background:repeating-linear-gradient(90deg,var(--ink2) 0 3px,transparent 3px 6px);height:2px"></i>sensor depth gain</span></div>
     ${measured(resort)}${webcams(resort)}`;
