@@ -238,6 +238,9 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .key .blocks .ramp b.dark{color:var(--ink)}
 .key:has(.blocks){flex-wrap:nowrap;gap:12px}
 .key .sw{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+/* Every line of the daily legend is the same height, whatever it holds, so wrapped lines space evenly. */
+.lgd .key{row-gap:6px;margin:6px 0 0 !important}
+.lgd .key > *{height:20px;display:inline-flex;align-items:center}
 .hhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 6px}
 .hhead h3{margin:0}
 #tlNow{margin-right:auto;border:0;background:none;padding:4px 6px;font:inherit;font-size:12.5px;font-weight:650;color:var(--accent);cursor:pointer}
@@ -526,7 +529,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "119";
+const BUILD = "120";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
