@@ -334,7 +334,7 @@ for (let n = 0; n < 26; n++) {
     </div>
   </div>
   <div class="panel">
-    <div class="gridcap">Snow in inches, 4 pm the day before to 4 pm<span id="gridcapFar"></span></div>
+    <div class="gridcap">Snow in inches, from 4 pm previous day</div>
     <div class="gridwrap"><table class="heat" id="heat"></table></div>
     <div class="legend" id="legend"></div>
   </div>
@@ -362,7 +362,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "50";
+const BUILD = "51";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -452,7 +452,6 @@ function renderHeadline() {
 function renderHeat() {
   const days = futureDays(data.resorts[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
-  $("gridcapFar").textContent = far.length ? " · faded days are a rough guide" : "";
   let html = "";
   const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
   html += `<tr><th class="corner"></th><th>Last 3 days</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
@@ -671,11 +670,11 @@ function renderDetail() {
       <span>${el.elevation_ft.toLocaleString()} ft · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
-    <h3>Ski days <small>4 pm the day before to 4 pm</small></h3>
+    <h3>Ski days <small>from 4 pm previous day</small></h3>
     <div class="key" style="margin:4px 0 0"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>models</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span>G = gust, mph</span><span>PS = powder score</span></div>
-    <div class="days"><div class="srow head"><div></div><div>Snow, 4 pm the day before to 4 pm</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
+    <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
     <div class="key"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
