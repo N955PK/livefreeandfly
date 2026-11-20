@@ -423,6 +423,28 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
 .abtn{display:block;text-align:center;margin-top:14px;background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 16px;font-size:15px;font-weight:650;text-decoration:none}
 .anote{font-size:12px;color:var(--muted);margin-top:10px}
 .expired .dtable,.expired .probs,.expired .abottom,.expired .aadvice{opacity:.5}
+/* A wide screen: legends gather at the left instead of stretching across, and the avalanche pane sets its problems beside the rating. */
+@media(min-width:900px){
+  .key,.legend{justify-content:flex-start;column-gap:28px !important}
+  .key:has(.blocks){column-gap:28px !important}
+  #avalanche{padding:22px 24px 20px}
+  .acols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"rating problems" "words problems";column-gap:40px;align-items:start}
+  .arating{grid-area:rating}.aproblems{grid-area:problems}.awords{grid-area:words}
+  .aproblems h3{margin-top:10px}
+  .aadvice{font-size:15.5px}
+  .dtable{max-width:none;font-size:14px;gap:7px 10px}
+  .dtable b{font-size:12.5px}
+  .dtable .dchip{padding:7px 10px;font-size:14px}
+  .probs li{gap:16px;padding:12px 0;font-size:14.5px}
+  .probs .ptype{width:64px;height:64px}
+  .probs .rose{width:84px;height:84px}
+  .abottom p{font-size:15px}
+  .dscale{font-size:12px;margin-top:22px}
+  .dscale img{height:40px}
+  .dscale b{font-size:15px}
+  .abtn{display:table;margin:16px auto 0;padding:12px 44px}
+  .anote{text-align:center}
+}
 footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
 @media(max-width:720px){
   .tiles{grid-template-columns:repeat(2,1fr)}
@@ -547,7 +569,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "128";
+const BUILD = "129";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -751,8 +773,9 @@ function timeline(resort, el) {
   const nowIndex = Math.max(0, hours.findIndex((t) => new Date(t).getTime() >= nowMs));
   const n = Math.min(hours.length, nowIndex + 24 * 6);
   const avail = Math.max(280, $("detail").clientWidth - 36 - 44);
-  const pph = avail >= 860 ? avail / (24 * 8) : 10, W = Math.round(n * pph);
-  const T = 20, H1 = 132, TA = T + H1 + 16, HA = 78, WIND_Y = TA + HA + 10, GUST_Y = WIND_Y + 15, CLOUD_Y = GUST_Y + 15, TEMP_Y = CLOUD_Y + 15, T2 = TEMP_Y + 30, H2 = 92, H = T2 + H2 + 6;
+  // A wide screen shows four days at a time, at about the phone's width per hour, and gets taller plots.
+  const wide = avail >= 860, pph = wide ? Math.max(10, avail / (24 * 4)) : 10, W = Math.round(n * pph);
+  const T = 20, H1 = wide ? 190 : 132, TA = T + H1 + 16, HA = wide ? 104 : 78, WIND_Y = TA + HA + 10, GUST_Y = WIND_Y + 15, CLOUD_Y = GUST_Y + 15, TEMP_Y = CLOUD_Y + 15, T2 = TEMP_Y + 30, H2 = wide ? 124 : 92, H = T2 + H2 + 6;
   const snow = Array.from({length: n}, (_, i) => h.snow_in[i] || 0);
   const top = [0.2, 0.5, 1, 1.5, 2, 3, 4].find((v) => v >= Math.max(...snow)) || 5;
   const {running, storms} = stormTotals(snow);
@@ -1537,28 +1560,29 @@ function renderAvalanche() {
     const rated = product.product_type === "forecast" && (product.danger || []).some((d) => BANDS.some(([band]) => d[band] > 0));
     if (!rated) body += `<p class="anotice">No danger rating: the center has posted ${product.product_type === "summary" ? "a general summary" : "an update"}, not a daily forecast.</p>`;
   }
-  if (zone.advice) body += `<p class="aadvice">${esc(zone.advice)}</p>`;
+  // Three blocks, so a wide screen can set the problems beside the rating and the bottom line.
+  let rating = zone.advice ? `<p class="aadvice">${esc(zone.advice)}</p>` : "", trouble = "", words = "";
   if (product) {
     const days = ["current", "tomorrow"].map((key) => (product.danger || []).find((d) => d.valid_day === key)).filter(Boolean);
     if (days.length && product.product_type === "forecast") {
       // The first column is the day the forecast was issued for, the second the day after.
       const issued = new Date(product.published_time).getTime();
       const dayName = (n) => new Date(issued + n * 864e5).toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric"});
-      body += `<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
+      rating += `<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
         ${BANDS.map(([band, label]) => `<span>${label}</span>${days.map((d) => chip(d[band])).join("")}${days.length < 2 ? "<span></span>" : ""}`).join("")}</div>`;
     }
     const problems = [...(product.forecast_avalanche_problems || [])].sort((a, b) => a.rank - b.rank);
     if (problems.length) {
-      body += `<h3>Avalanche problems</h3><ol class="probs">${problems.map((x) => {
+      trouble = `<div class="aproblems"><h3>Avalanche problems</h3><ol class="probs">${problems.map((x) => {
         const size = (x.size || []).filter(Boolean), facts = [x.likelihood, size.length ? `size D${size[0]}${size[1] && size[1] !== size[0] ? ` to D${size[1]}` : ""}` : "", problemWhere(x.location)];
         const drawing = /^https?:\/\/api\.avalanche\.org\//.test(x.icon || "") ? `<img class="ptype" src="${esc(x.icon.replace(/^http:/, "https:"))}" alt="" onerror="this.remove()">` : "";
         return `<li>${drawing}<div><b>${esc(x.name || "")}</b>${esc(facts.filter(Boolean).join(" · "))}</div>${rose(x.location)}</li>`;
-      }).join("")}</ol>`;
+      }).join("")}</ol></div>`;
     }
-    const words = paragraphs(product.bottom_line);
-    if (words.length) body += `<h3>Bottom line</h3><div class="abottom">${words.map((text) => `<p>${esc(text)}</p>`).join("")}</div>`;
-    body += `<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)} · issued ${clock(product.published_time)}${product.expires_time ? ` · expires ${clock(product.expires_time)}` : ""}</p>`;
+    const lines = paragraphs(product.bottom_line);
+    words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)} · issued ${clock(product.published_time)}${product.expires_time ? ` · expires ${clock(product.expires_time)}` : ""}</p></div>`;
   }
+  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}</div>`;
   const link = (product && product.forecast_zone && product.forecast_zone[0] && product.forecast_zone[0].url) || zone.link || center.url;
   $("avalanche").innerHTML = `<div class="${expired ? "expired" : ""}">${head}${body}</div>${foot(link)}`;
 }
