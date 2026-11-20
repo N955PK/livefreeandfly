@@ -285,6 +285,10 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .regionbar{display:flex;margin:18px 0 -8px}
 .regionbar .seg{margin-left:0}
 .regionbar .seg button{padding:7px 18px;font-size:14px}
+#map3d .regionbar{position:absolute;z-index:400000;left:12px;top:10px;margin:0}
+#map3d .regionbar .seg{background:rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(15,23,32,.2);border-radius:999px;padding:2px}
+#map3d .regionbar .seg button{padding:4px 11px;font-size:12px;font-weight:600;border-radius:999px;color:#4b5560}
+#map3d .regionbar .seg button[aria-pressed=true]{background:#0f1720;color:#fff;box-shadow:none}
 .map-toggle{position:absolute;z-index:400000;right:12px;top:10px;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:12px;font-weight:600;
   cursor:pointer;background:rgba(255,255,255,.85);color:#0f1720;box-shadow:0 1px 4px rgba(15,23,32,.2);display:inline-flex;align-items:center;gap:6px}
 .map-toggle::before{content:"";width:9px;height:9px;border-radius:50%;border:1.5px solid #4b5560}
@@ -371,10 +375,8 @@ for (let n = 0; n < 26; n++) {
   <h1 id="headline">Loading the forecast…</h1>
   <p class="lede" id="lede"></p>
   <p class="meta" id="meta"></p>
-  <div class="regionbar" id="regionBar" hidden><div class="seg" id="regionSeg" role="group" aria-label="Region"></div></div>
-
   <div class="panel" id="mapPanel">
-    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button></div>
+    <div id="map3d"><div class="regionbar" id="regionBar" hidden><div class="seg" id="regionSeg" role="group" aria-label="Region"></div></div><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button></div>
     <div class="mapbar">
       <button id="play" aria-label="Play the storm">▶</button>
       <span class="when" id="mapWhen"></span>
@@ -422,7 +424,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "69";
+const BUILD = "70";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -904,7 +906,7 @@ async function startMap() {
     setTime(map.nowStep);
     mapAvalanche();
     loadRoads();
-  } catch (error) { $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
+  } catch (error) { $("mapPanel").before($("regionBar")); $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
 }
 
 // ---------- regions ----------
