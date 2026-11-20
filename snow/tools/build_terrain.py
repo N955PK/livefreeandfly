@@ -11,12 +11,14 @@ from pathlib import Path
 import numpy as np
 import requests
 from PIL import Image
+from scipy.ndimage import median_filter
 
 ROOT = Path(__file__).resolve().parent.parent
 TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
 ZOOM = 10
-LAT_S, LAT_N, LON_W, LON_E = 38.52, 39.47, -120.56, -119.72
-COLUMNS = 300
+LAT_S, LAT_N, LON_W, LON_E = 38.35, 39.65, -120.85, -119.55
+COLUMNS = 360
+MAX_REAL_M = 3400
 
 
 def tile_xy(lat: float, lon: float, zoom: int) -> tuple:
@@ -50,7 +52,11 @@ def main() -> None:
     py = np.array([(tile_xy(lat, LON_W, ZOOM)[1] - ty0) * 256 for lat in lats])
     ix = np.clip(np.round(px).astype(int), 0, mosaic.shape[1] - 1)
     iy = np.clip(np.round(py).astype(int), 0, mosaic.shape[0] - 1)
-    grid = np.clip(mosaic[np.ix_(iy, ix)], 0, 65535).astype("<u2")
+    sampled = mosaic[np.ix_(iy, ix)]
+    # Replace the few bad pixels in the source (spikes above the highest peak here) with their neighborhood median.
+    spikes = sampled > MAX_REAL_M
+    sampled[spikes] = median_filter(sampled, size=5)[spikes]
+    grid = np.clip(sampled, 0, MAX_REAL_M).astype("<u2")
     (ROOT / "data").mkdir(exist_ok=True)
     (ROOT / "data" / "terrain.bin").write_bytes(grid.tobytes())
     meta = {"rows": rows, "columns": COLUMNS, "lat_s": LAT_S, "lat_n": LAT_N, "lon_w": LON_W, "lon_e": LON_E,

@@ -34,6 +34,8 @@ a{color:inherit}
 h1{font-size:clamp(28px,5vw,40px);line-height:1.1;font-weight:700;letter-spacing:-.02em;margin:6px 0 10px}
 .lede{font-size:clamp(16px,2.2vw,19px);color:var(--ink2);max-width:60ch}
 .lede b{color:var(--ink);font-weight:650}
+.pm{font-size:.62em;font-weight:500;color:var(--ink2);letter-spacing:0;white-space:nowrap}
+.lede .pm,.amt .pm{font-size:.85em}
 .meta{font-size:13px;color:var(--muted);margin-top:10px}
 .meta .warn{color:#b3541e}
 .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:26px 0 12px}
@@ -132,7 +134,17 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
   background:rgba(255,255,255,.92);color:#0f1720;border-radius:8px;padding:3px 8px 4px;box-shadow:0 2px 8px rgba(15,23,32,.22);line-height:1.15}
 .map-label b{display:block;font-size:11.5px;font-weight:650}
 .map-label span{font-size:13px;font-weight:700;color:#1c5cab;font-variant-numeric:tabular-nums}
-.map-label.mini b{display:none}
+.map-label em{display:block;font-style:normal;font-size:10.5px;color:#4b5560}
+.map-label.on em{color:#c0c6cc}
+.map-label.mini b,.map-label.mini em{display:none}
+.map-shield{position:absolute;left:0;top:0;font-size:10px;font-weight:700;background:#fff;color:#0f1720;border:1.5px solid #0f1720;border-radius:5px;padding:0 4px;line-height:15px}
+.map-closed{position:absolute;left:0;top:0;font-size:10.5px;font-weight:700;background:#d03b3b;color:#fff;border-radius:5px;padding:1px 6px;box-shadow:0 1px 4px rgba(0,0,0,.3);pointer-events:auto}
+.roadnote{padding:0 16px 12px;font-size:13px;color:var(--ink2);display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center}
+.roadnote .sw{display:inline-flex;align-items:center;gap:5px}
+.roadnote .sw i{width:18px;height:5px;border-radius:3px;display:inline-block}
+.roadnote b{color:var(--ink);font-weight:650}
+.mapbar .ticks{position:relative;flex:1;min-width:140px;display:flex;flex-direction:column}
+.mapbar .ticks span{position:absolute;top:-13px;font-size:10.5px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
 .map-label.on{background:#0f1720;color:#fff}.map-label.on span{color:#9ec5f4}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
 .map-label.on::after{border-top-color:#0f1720}
@@ -158,7 +170,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 </head>
 <body>
 <main>
-  <div class="eyebrow">Tahoe snow</div>
+  <div class="eyebrow" id="eyebrow">Tahoe snow</div>
   <h1 id="headline">Loading the forecast…</h1>
   <p class="lede" id="lede"></p>
   <p class="meta" id="meta"></p>
@@ -168,9 +180,11 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
     <div class="mapbar">
       <button id="play" aria-label="Play the storm">▶</button>
       <span class="when" id="mapWhen"></span>
-      <input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Forecast time">
+      <div class="ticks"><span id="nowTick">now</span><input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Storm time"></div>
+      <button id="toNow" style="width:auto;border-radius:19px;padding:0 14px;font-size:13px;font-weight:600">Now</button>
       <span class="what" id="mapWhat"></span>
     </div>
+    <div class="roadnote" id="roadNote"></div>
   </div>
 
   <div class="bar">
@@ -202,7 +216,8 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
-let data = null, elevation = "summit", selected = location.hash.slice(1);
+const HOME = "palisades";
+let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const inches = (v) => v == null ? "–" : v < 0.05 ? "0" : v < 10 ? (Math.round(v * 10) / 10).toString() : Math.round(v).toString();
@@ -226,23 +241,25 @@ function fiveDay(el) {
   return days.reduce((sum, d) => sum + (d.snow_in || 0), 0);
 }
 
-function sorted() { return [...data.resorts].sort((a, b) => fiveDay(b.elevations[elevation]) - fiveDay(a.elevations[elevation])); }
+// The home resort leads; the rest follow by total.
+function sorted() { return [...data.resorts].sort((a, b) => (b.key === HOME) - (a.key === HOME) || fiveDay(b.elevations[elevation]) - fiveDay(a.elevations[elevation])); }
+
+function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(Math.max(x.pm_in, 0.1))}</span>`; }
 
 function renderHeadline() {
-  const top = sorted()[0], el = top.elevations[elevation], w = el.windows.next72;
-  const big = data.resorts.map((r) => r.elevations[elevation].windows.next72.snow_in || 0);
-  const lo = Math.min(...big), hi = Math.max(...big);
-  $("headline").textContent = hi < 1 ? "No snow of note in the next three days" : `${inches(lo)} to ${inches(hi)} inches in the next three days`;
-  let best = null;
-  for (const r of data.resorts) for (const d of futureDays(r.elevations.summit)) {
-    if (d.lead_day <= data.deterministic_days && d.powder && d.powder.score && (!best || d.powder.score > best.score)) best = {score: d.powder.score, day: d.date, name: r.name};
-  }
-  const most = hi < 1 ? "" : `Most at <b>${esc(top.name)}</b>: ${inches(w.snow_in)} in at the ${elevation === "mid" ? "mid-mountain" : elevation}${w.low_in == null ? "" : `, likely between ${inches(w.low_in)} and ${inches(w.high_in)}`}. `;
-  const powder = best && best.score >= 3 ? `Best powder day: <b>${weekday(best.day, "long")}</b> at ${esc(best.name)}, scoring ${best.score.toFixed(1)} out of 10.` : "";
-  $("lede").innerHTML = most + powder;
+  const home = data.resorts.find((r) => r.key === HOME) || data.resorts[0];
+  const el = home.elevations[elevation], w = el.windows, where = elevation === "mid" ? "mid-mountain" : elevation;
+  $("eyebrow").textContent = `${home.name} · ${where}, ${el.elevation_ft.toLocaleString()} ft`;
+  $("headline").innerHTML = (w.next72.snow_in || 0) < 0.5 ? "No snow of note in the next three days"
+    : `${inches(w.next72.snow_in)} in${pm(w.next72)} in the next three days`;
+  const best = futureDays(home.elevations.summit).filter((d) => d.lead_day <= data.deterministic_days && d.powder && d.powder.score >= 3)
+    .reduce((a, d) => (!a || d.powder.score > a.powder.score ? d : a), null);
+  $("lede").innerHTML = `Next 24 hours: <b>${inches(w.next24.snow_in)} in</b>${pm(w.next24)}. Days 4–5: <b>${inches(w.days4to5.snow_in)} in</b>${pm(w.days4to5)}. ` +
+    (best ? `Best day to ski it: <b>${weekday(best.date, "long")}</b>, powder score ${best.powder.score.toFixed(1)} out of 10.` : "");
   const made = new Date(data.generated_utc), age = (Date.now() - made) / 36e5;
   const when = made.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"});
-  $("meta").innerHTML = `Updated ${when} Pacific` + (age > 9 ? ` · <span class="warn">${Math.round(age)} hours old; the update job may be down</span>` : "");
+  $("meta").innerHTML = `Updated ${when} Pacific · ± is one standard deviation across about 140 ensemble forecasts, so roughly two in three land inside it` +
+    (age > 9 ? ` · <span class="warn">${Math.round(age)} hours old; the update job may be down</span>` : "");
 }
 
 function renderHeat() {
@@ -354,14 +371,14 @@ function renderDetail() {
   const resort = data.resorts.find((r) => r.key === selected) || sorted()[0];
   selected = resort.key;
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
-  const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small></div><div class="r">${x.low_in == null ? "&nbsp;" : "likely " + range(x.low_in, x.high_in)}</div></div>`;
+  const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small>${pm(x)}</div><div class="r">${x.low_in == null ? "&nbsp;" : "8 in 10 chance of " + range(x.low_in, x.high_in)}</div></div>`;
   const g = chart(resort, el);
   const max = Math.max(6, ...days.map((d) => Math.max(d.high_in || 0, d.snow_in || 0, ...Object.values(d.by_model || {}).map((v) => v || 0))));
   const rows = days.map((d) => {
     const far = d.lead_day > data.deterministic_days, p = d.powder || {};
     const [name, ratio] = quality(p.slr);
     const filled = Math.round(p.score || 0);
-    const amount = far ? `${pct(d.prob_6in)} chance<small>of 6 in or more</small>` : `${inches(d.snow_in)} in<small>${d.low_in == null ? "" : range(d.low_in, d.high_in)}</small>`;
+    const amount = far ? `${pct(d.prob_6in)} chance<small>of 6 in or more</small>` : `${inches(d.snow_in)} in${pm(d)}`;
     return `<div class="drow ${far ? "far" : ""}"><div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>
       <div>${whisker(d, max, far)}</div><div class="amt">${amount}</div>
       <div class="q">${far ? '<span>Too far out to say</span>' : name ? `<b>${name}</b><span>${ratio}${p.ridge_wind_mph != null ? ` · ${p.ridge_wind_mph} mph ridge wind` : ""}</span>` : '<span>No new snow</span>'}</div>
@@ -386,9 +403,12 @@ function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) 
 let map = null, playing = false, playFrame = 0;
 function showTime(value) {
   const t = map.timeAt(value), rate = map.rateAt(value), level = map.snowLevelFtAt(value);
-  $("mapWhen").textContent = value < 0.5 ? "Now" : value >= map.steps - 1.01 ? "By " + t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"}) : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+  const atNow = Math.abs(value - map.nowStep) < 0.3;
+  $("mapWhen").textContent = atNow ? "Right now" : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
   const falling = rate < 0.02 ? "Not snowing" : rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping";
-  $("mapWhat").textContent = `${falling}${rate >= 0.02 ? `, about ${rate.toFixed(1)} in an hour up high` : ""} · snow level ${Math.round(level / 100) * 100 > 12000 ? "above the peaks" : (Math.round(level / 100) * 100).toLocaleString() + " ft"} · stakes show new snow since now · drag to look around`;
+  const rounded = Math.round(level / 100) * 100;
+  $("mapWhat").textContent = `${falling}${rate >= 0.02 ? `, about ${rate.toFixed(1)} in an hour up high` : ""} · snow level ${rounded > 12000 ? "above the peaks" : rounded.toLocaleString() + " ft"} · ` +
+    (map.stormActive ? "stakes show this storm's snow so far; the pale part is still to come" : "no storm right now; stakes show what the next two days bring");
 }
 function setTime(value) { $("scrub").value = value; map.setTime(value); showTime(value); }
 function togglePlay(on) {
@@ -396,13 +416,35 @@ function togglePlay(on) {
   cancelAnimationFrame(playFrame);
   if (!on) return;
   let last = performance.now();
-  if (+$("scrub").value >= map.steps - 1.01) setTime(0);
+  setTime(0);
   const tick = (now) => {
     const value = +$("scrub").value + (now - last) / 1000 * 7; last = now;
     if (value >= map.steps - 1) { setTime(map.steps - 1); togglePlay(false); return; }
     setTime(value); playFrame = requestAnimationFrame(tick);
   };
   playFrame = requestAnimationFrame(tick);
+}
+
+const CHAIN_FEEDS = ["https://cwwp2.dot.ca.gov/data/d3/cc/ccStatusD03.json", "https://cwwp2.dot.ca.gov/data/d10/cc/ccStatusD10.json"];
+const CHAIN_LEVELS = {"R-1": "chains", "R-2": "chains", "R-3": "chains", "RC": "closed", "ROAD CLOSED": "closed"};
+async function loadRoads() {
+  try {
+    const feeds = await Promise.all(CHAIN_FEEDS.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json())));
+    const points = [];
+    for (const feed of feeds) for (const {cc} of feed.data) {
+      const status = CHAIN_LEVELS[(cc.statusData.status || "").trim().toUpperCase()];
+      if (!status || cc.inService !== "true") continue;
+      points.push({route: cc.location.route, lat: +cc.location.latitude, lon: +cc.location.longitude, status, level: cc.statusData.status, name: cc.location.locationName});
+    }
+    map.setRoadStatus(points);
+    const inView = points.filter((p) => p.lat > 38.45 && p.lat < 39.55 && p.lon > -120.75 && p.lon < -119.65);
+    const chains = [...new Set(inView.filter((p) => p.status === "chains").map((p) => p.route))].sort();
+    const closed = [...new Set(inView.filter((p) => p.status === "closed").map((p) => `${p.route} at ${p.name.replace(/\b([A-Z])([A-Z']+)/g, (m, a, b) => a + b.toLowerCase())}`))];
+    const when = new Date().toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
+    $("roadNote").innerHTML = `<span class="sw"><i style="background:#f0a80d"></i><b>Chain controls:</b> ${chains.length ? chains.join(", ") : "none"}</span>` +
+      `<span class="sw"><i style="background:#d03b3b"></i><b>Closed:</b> ${closed.length ? closed.map(esc).join("; ") : "none"}</span>` +
+      `<span style="color:var(--muted)">Caltrans, checked ${when}. California highways only; road coloring between control points is approximate.</span>`;
+  } catch (error) { $("roadNote").textContent = "Caltrans road status could not be loaded."; }
 }
 async function startMap() {
   if (!data.resorts[0].lat) return;
@@ -411,9 +453,12 @@ async function startMap() {
     $("mapPanel").style.display = "block";
     map = await createMap($("map3d"), data, {elevation, selected, onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
     $("scrub").max = map.steps - 1;
+    $("nowTick").style.left = `calc(${(100 * map.nowStep / (map.steps - 1)).toFixed(1)}% + ${(8 - 16 * map.nowStep / (map.steps - 1)).toFixed(1)}px)`;
     $("scrub").addEventListener("input", (e) => { togglePlay(false); setTime(+e.target.value); });
     $("play").addEventListener("click", () => togglePlay(!playing));
-    setTime(map.steps - 1);
+    $("toNow").addEventListener("click", () => { togglePlay(false); setTime(map.nowStep); });
+    setTime(map.nowStep);
+    loadRoads(); setInterval(loadRoads, 5 * 60 * 1000);
   } catch (error) { $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
 }
 

@@ -80,9 +80,9 @@ def previous_runs(lat: float, lon: float, elevation_m: float, start: str, end: s
 
 
 def forecast(lat: float, lon: float, elevation_m: float, models: list, variables: list, days: int = 10,
-             max_age_h: float = 3.0) -> dict:
+             max_age_h: float = 3.0, past_days: int = 4) -> dict:
     params = {"latitude": lat, "longitude": lon, "elevation": elevation_m, "forecast_days": days,
-              "past_days": 1, "models": ",".join(models), "hourly": ",".join(variables)}
+              "past_days": past_days, "models": ",".join(models), "hourly": ",".join(variables)}
     return _split_models(get_json("om_fcst", FORECAST_URL, params, max_age_h), models)
 
 

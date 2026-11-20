@@ -13,6 +13,7 @@ from tahoe_snow.sources import openmeteo
 
 TZ = "America/Los_Angeles"
 DAYS = 10
+HISTORY_DAYS = 3
 DETERMINISTIC_DAYS = 5
 MAX_GAP_H = 6
 DELTAS_C = np.arange(-4.0, 4.01, 1.0)
@@ -176,7 +177,8 @@ def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
     global ensembles run drier than the blend); the scale is capped at 0.5 to 2.
     """
     values = members.dropna().to_numpy(dtype=float)
-    empty = {"low_in": None, "high_in": None, "prob_6in": None, "prob_12in": None, "members": int(len(values))}
+    empty = {"low_in": None, "high_in": None, "pm_in": None, "prob_6in": None, "prob_12in": None,
+             "members": int(len(values))}
     if len(values) < blend.MIN_MEMBERS:
         return empty
     if recenter and np.isfinite(total_cm) and values.mean() > 0.25:
@@ -185,6 +187,7 @@ def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
     if np.isfinite(total_cm):
         low, high = min(low, total_cm), max(high, total_cm)
     return {"low_in": round(float(low) / CM_PER_IN, 1), "high_in": round(float(high) / CM_PER_IN, 1),
+            "pm_in": round(float(values.std()) / CM_PER_IN, 1),
             "prob_6in": round(float((values >= 6 * CM_PER_IN).mean()), 2),
             "prob_12in": round(float((values >= 12 * CM_PER_IN).mean()), 2), "members": int(len(values))}
 
@@ -217,8 +220,9 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
         except RuntimeError:
             continue
     midnight = today.tz_localize(TZ).tz_convert("UTC").tz_localize(None)
-    # Start at 4 pm yesterday so today's ski-day window is complete.
-    hours = pd.date_range(midnight - pd.Timedelta(hours=8), now + pd.Timedelta(hours=DAYS * 24 - 1), freq="h")
+    # Three days back, so the page can total the storm in progress.
+    hours = pd.date_range(midnight - pd.Timedelta(hours=HISTORY_DAYS * 24), now + pd.Timedelta(hours=DAYS * 24 - 1),
+                          freq="h")
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
                "station": STATIONS[resort.station].name,
                "weak_station_match": resort.weak_match, "elevations": {}, "models": list(models)}
@@ -254,7 +258,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
             entry = {"date": day.strftime("%Y-%m-%d"), "lead_day": lead,
                      "snow_in": _round([daily.loc[day, "snow_cm"] / CM_PER_IN])[0],
                      "liquid_in": _round([daily.loc[day, "liquid_mm"] / MM_PER_IN], 2)[0],
-                     "low_in": stats["low_in"], "high_in": stats["high_in"],
+                     "low_in": stats["low_in"], "high_in": stats["high_in"], "pm_in": stats["pm_in"],
                      "prob_6in": stats["prob_6in"], "prob_12in": stats["prob_12in"],
                      "by_model": {m: _round([by_model.loc[day, m] / CM_PER_IN])[0] for m in by_model.columns},
                      "past": bool(day < today),
