@@ -1,0 +1,45 @@
+name: Snow roads
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snow-roads
+  cancel-in-progress: true
+
+jobs:
+  roads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Look at what Nevada 511 returns
+        env:
+          NV511_KEY: ${{ secrets.NV511_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          key = os.environ.get("NV511_KEY", "")
+          print("key set:", bool(key))
+          for name in ("roadconditions", "winterroads", "event", "alerts"):
+              url = f"https://www.nvroads.com/api/v2/get/{name}?key={key}&format=json"
+              try:
+                  body = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "sierra-snow"}), timeout=30).read()
+              except Exception as error:
+                  print(name, "failed:", type(error).__name__, getattr(error, "code", ""))
+                  continue
+              try:
+                  rows = json.loads(body)
+              except ValueError:
+                  print(name, "not json:", body[:200])
+                  continue
+              print(name, type(rows).__name__, len(rows) if hasattr(rows, "__len__") else "")
+              if isinstance(rows, list) and rows:
+                  print(" keys:", sorted(rows[0]))
+                  near = [r for r in rows if any(w in json.dumps(r) for w in ("Tahoe", "Spooner", "Mt Rose", "Mount Rose", "Kingsbury", "SR-431", "SR-207", "SR-28", "I-580", "US-50", "431", "207"))]
+                  print(" near Tahoe:", len(near))
+                  for r in (near or rows)[:6]:
+                      print(" ", json.dumps(r)[:1200])
+          PY
