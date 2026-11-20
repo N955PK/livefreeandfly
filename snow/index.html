@@ -124,10 +124,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .legend .sw{display:inline-flex;align-items:center;gap:3px}
 .legend .sw i{width:16px;height:12px;border-radius:3px;display:inline-block}
 #detail{margin-top:14px;padding:18px 18px 8px}
-.outlook{margin-top:16px;border:1px solid var(--grid);border-radius:14px;padding:12px 14px}
-.outlook .ohead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
-.outlook h3{margin:0;font-size:17px}
-.outlook h3 span{font-weight:500;color:var(--muted);font-size:13px}
+.outlook .hhead h3 span{font-weight:500;color:var(--muted);font-size:13px;margin-left:4px}
 /* Every row shares one grid: label, content, and a slot on the right that holds the lift list's plus, so the
    lift and trail bars come out the same width. */
 .orow{display:grid;grid-template-columns:58px minmax(0,1fr) 18px;column-gap:10px;align-items:center;padding:7px 0;font-size:13.5px;color:var(--ink2)}
@@ -527,7 +524,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "117";
+const BUILD = "118";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -952,7 +949,7 @@ function outlook(resort) {
   const pick = ["Today", "Tomorrow"].slice(0, days.length).map((name, n) => `<button data-outlook="${n}" aria-pressed="${n === shift}">${name}</button>`).join("");
   const here = ((resort.elevations[elevation].days.find((d) => d.date === day.date) || {}).powder) || {}, feel = windChill(here.temp_f, here.wind_mph);
   const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
-  return `<div class="outlook"><div class="ohead"><h3>Status <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
+  return `<div class="outlook"><div class="hhead"><h3>Status <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
     <div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>
     ${feel == null ? "" : `<div class="orow"><span class="k">Temp</span><span><b>${Math.round(here.temp_f)}°F</b>, feels like ${Math.round(feel)}°F · ${elevation}</span><span></span></div>`}
     ${wild ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>` : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
