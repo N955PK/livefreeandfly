@@ -270,7 +270,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "16";
+const BUILD = "17";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -416,7 +416,7 @@ function timeline(resort, el) {
   body += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${T2 + H2}" stroke="var(--ink2)" style="display:none"/>`;
   const axis = `<svg width="44" height="${H}" aria-hidden="true"><text x="38" y="${y1(top) + 4}" text-anchor="end">${top} in</text><text x="38" y="${y1(top / 2) + 4}" text-anchor="end">${top / 2}</text>
     <text x="38" y="${WIND_Y + 9}" text-anchor="end">Wind</text><text x="38" y="${CLOUD_Y + 9}" text-anchor="end">Cloud</text>
-    <text x="38" y="${y2(summit) + 4}" text-anchor="end">Top</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text></svg>`;
+    <text x="40" y="${y2(summit) + 4}" text-anchor="end">Summit</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text></svg>`;
   return {html: `<div class="tl"><div class="tl-axis">${axis}</div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, wind, cloud, and snow level for six days">${body}</svg></div><div id="tip"></div></div>`,
     n, first, pph};
 }

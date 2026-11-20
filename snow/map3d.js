@@ -26,7 +26,7 @@ const SHIELD_EVERY_KM = 26;
 
 // Interstate, U.S. route, California state route (the green spade), and Nevada state route markers.
 function shieldSVG(route) {
-  const [kind, number] = route.split("-"), size = number.length > 2 ? 8.5 : 10.5;
+  const [kind, number] = route.split("-"), size = number.length > 2 ? 7.2 : 9;
   const text = (fill, y) => `<text x="12" y="${y}" text-anchor="middle" font-size="${size}" font-weight="700" font-family="system-ui,-apple-system,sans-serif" fill="${fill}">${number}</text>`;
   const wrap = (inner) => `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">${inner}</svg>`;
   if (kind === "I") {
@@ -473,7 +473,13 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       element.style.transform = `translate(-50%, -50%) translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
     };
     put(lake, lakeAt);
-    for (const shield of shields) put(shield.tag, shield.point, shield.inside);
+    // A shield gives way to anything more important: a resort label, or a stake standing in front of it.
+    const stakeLines = items.map((item) => [project(new THREE.Vector3(item.x, item.y, item.z)), project(item.top)]);
+    for (const shield of shields) {
+      const q = project(shield.point), box = {x0: q.x - 15, x1: q.x + 15, y0: q.y - 15, y1: q.y + 15};
+      const behindStake = stakeLines.some(([a, b]) => Math.abs(q.x - (a.x + b.x) / 2) < 16 && q.y > Math.min(a.y, b.y) - 14 && q.y < Math.max(a.y, b.y) + 14);
+      put(shield.tag, shield.point, shield.inside && !hits(box) && !behindStake);
+    }
     for (const closure of closures) put(closure.tag, closure.point);
   }
 
