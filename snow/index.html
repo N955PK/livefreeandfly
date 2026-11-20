@@ -22,7 +22,7 @@
   --grid:#e6e9ec; --axis:#c5cad0; --border:rgba(15,23,32,.10); --wash:rgba(15,23,32,.04);
   --s0:transparent; --s1:#cde2fb; --s2:#9ec5f4; --s3:#6da7ec; --s4:#2a78d6; --s5:#1c5cab; --s6:#0d366b;
   --t0:var(--muted); --t1:#0f1720; --t2:#0f1720; --t3:#0f1720; --t4:#ffffff; --t5:#ffffff; --t6:#ffffff;
-  --snow:#2a78d6; --level:#eb6834; --mountain:rgba(15,23,32,.07); --select:#0f1720;
+  --snow:#2a78d6; --level:#0e9f86; --mountain:rgba(15,23,32,.07); --select:#0f1720;
   --q0:#6a3fc0; --q1:#2a78d6; --q2:#93c8f7;
   --w0:#c5cad0; --w1:#eda100; --w2:#c8161d; --night:rgba(15,23,32,.055);
 }
@@ -32,7 +32,7 @@
   --grid:#262b31; --axis:#3a4047; --border:rgba(255,255,255,.10); --wash:rgba(255,255,255,.05);
   --s1:#0d366b; --s2:#184f95; --s3:#256abf; --s4:#3987e5; --s5:#86b6ef; --s6:#cde2fb;
   --t1:#f0f2f4; --t2:#f0f2f4; --t3:#ffffff; --t4:#ffffff; --t5:#0f1720; --t6:#0f1720;
-  --snow:#3987e5; --level:#d95926; --mountain:rgba(255,255,255,.08); --select:#f0f2f4;
+  --snow:#3987e5; --level:#2fd0b0; --mountain:rgba(255,255,255,.08); --select:#f0f2f4;
   --q0:#8f6fe6; --q1:#3987e5; --q2:#b7dcfb;
   --w0:#4a525b; --w1:#c98500; --w2:#e5222b; --night:rgba(0,0,0,.28);
 }}
@@ -375,7 +375,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "58";
+const BUILD = "59";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
