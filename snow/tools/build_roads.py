@@ -1,10 +1,12 @@
 """Build the 3D map's highway lines from OpenStreetMap via Overpass (ODbL; no key).
 
-Writes data/roads.json: [{"route": "I-80", "lines": [[[lon, lat], ...], ...]}, ...].
+Writes data/roads.json for Tahoe and data/roads-<region>.json for the others, over the box of that region's
+terrain file: [{"route": "I-80", "lines": [[[lon, lat], ...], ...]}, ...]. python tools/build_roads.py [region].
 Route names match the Caltrans chain-control feed (I-80, US-50, SR-89, ...).
-Run once; the output is committed.
+Run once per region, after build_terrain.py; the output is committed.
 """
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -13,10 +15,13 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 SERVERS = ["https://overpass.kumi.systems/api/interpreter", "https://overpass-api.de/api/interpreter",
            "https://overpass.private.coffee/api/interpreter"]
-BBOX = (38.33, -120.96, 39.77, -119.12)
-ROUTES = {"I 80": "I-80", "US 50": "US-50", "CA 89": "SR-89", "CA 28": "SR-28", "CA 267": "SR-267", "CA 88": "SR-88",
-          "CA 4": "SR-4", "CA 20": "SR-20", "CA 49": "SR-49", "NV 431": "NV-431", "NV 207": "NV-207", "NV 28": "NV-28",
-          "US 395": "US-395", "I 580": "I-580"}
+ROUTES = {
+    "tahoe": {"I 80": "I-80", "US 50": "US-50", "CA 89": "SR-89", "CA 28": "SR-28", "CA 267": "SR-267",
+              "CA 88": "SR-88", "CA 4": "SR-4", "CA 20": "SR-20", "CA 49": "SR-49", "NV 431": "NV-431",
+              "NV 207": "NV-207", "NV 28": "NV-28", "US 395": "US-395", "I 580": "I-580"},
+    "mammoth": {"US 395": "US-395", "CA 203": "SR-203", "CA 158": "SR-158", "CA 120": "SR-120", "CA 108": "SR-108",
+                "CA 167": "SR-167", "CA 168": "SR-168", "CA 182": "SR-182", "CA 270": "SR-270", "US 6": "US-6"},
+}
 TOLERANCE_DEG = 0.0004
 
 
@@ -63,8 +68,12 @@ def chain(ways: list) -> list:
     return lines
 
 
-def main() -> None:
-    pattern = "|".join(ROUTES)
+def main(region: str = "tahoe") -> None:
+    suffix = "" if region == "tahoe" else f"-{region}"
+    box = json.loads((ROOT / "data" / f"terrain{suffix}.json").read_text())
+    BBOX = (box["lat_s"], box["lon_w"], box["lat_n"], box["lon_e"])
+    routes = ROUTES[region]
+    pattern = "|".join(routes)
     query = f"""[out:json][timeout:120];
 way["highway"~"^(motorway|trunk|primary|secondary)$"]["ref"~"(^|;) ?({pattern})( ?;|$)"]({BBOX[0]},{BBOX[1]},{BBOX[2]},{BBOX[3]});
 out geom;"""
@@ -84,16 +93,16 @@ out geom;"""
         refs = [ref.strip() for ref in way["tags"]["ref"].split(";")]
         geometry = [(round(p["lon"], 5), round(p["lat"], 5)) for p in way["geometry"]]
         for ref in refs:
-            if ref in ROUTES:
-                by_route.setdefault(ROUTES[ref], []).append(geometry)
+            if ref in routes:
+                by_route.setdefault(routes[ref], []).append(geometry)
     out = []
     for route, ways in sorted(by_route.items()):
         lines = [simplify(np.array(line), TOLERANCE_DEG).round(5).tolist() for line in chain(ways)]
         lines = [line for line in lines if len(line) >= 2]
         out.append({"route": route, "lines": lines})
         print(route, len(ways), "ways ->", len(lines), "lines,", sum(len(line) for line in lines), "points")
-    (ROOT / "data" / "roads.json").write_text(json.dumps(out, separators=(",", ":")))
+    (ROOT / "data" / f"roads{suffix}.json").write_text(json.dumps(out, separators=(",", ":")))
 
 
 if __name__ == "__main__":
-    main()
+    main(*sys.argv[1:2])

@@ -1,11 +1,13 @@
 """Build the 3D map's heightmap from the public Terrain Tiles on AWS (Mapzen terrarium, no key).
 
-Writes data/terrain.bin (uint16 meters, row-major, north to south) and data/terrain.json.
-Run once; the output is committed.
+Writes data/terrain.bin (uint16 meters, row-major, north to south) and data/terrain.json for Tahoe, and the
+same pair with a region suffix (terrain-mammoth) for the others: python tools/build_terrain.py [region].
+Run once per region; the output is committed.
 """
 import io
 import json
 import math
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -16,9 +18,14 @@ from scipy.ndimage import median_filter
 ROOT = Path(__file__).resolve().parent.parent
 TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
 ZOOM = 10
-LAT_S, LAT_N, LON_W, LON_E = 38.33, 39.77, -120.96, -119.12
 COLUMNS = 420
-MAX_REAL_M = 3400
+# Box (south, north, west, east) and a ceiling just above the highest real peak inside it.
+REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400},
+           "mammoth": {"box": (37.00, 38.44, -119.94, -118.10), "max_m": 4400}}
+
+
+def stem(region: str) -> str:
+    return "terrain" if region == "tahoe" else f"terrain-{region}"
 
 
 def tile_xy(lat: float, lon: float, zoom: int) -> tuple:
@@ -28,7 +35,9 @@ def tile_xy(lat: float, lon: float, zoom: int) -> tuple:
     return x, y
 
 
-def main() -> None:
+def main(region: str = "tahoe") -> None:
+    LAT_S, LAT_N, LON_W, LON_E = REGIONS[region]["box"]
+    MAX_REAL_M = REGIONS[region]["max_m"]
     x0, y0 = tile_xy(LAT_N, LON_W, ZOOM)
     x1, y1 = tile_xy(LAT_S, LON_E, ZOOM)
     tx0, ty0, tx1, ty1 = int(x0), int(y0), int(x1), int(y1)
@@ -58,13 +67,13 @@ def main() -> None:
     sampled[spikes] = median_filter(sampled, size=5)[spikes]
     grid = np.clip(sampled, 0, MAX_REAL_M).astype("<u2")
     (ROOT / "data").mkdir(exist_ok=True)
-    (ROOT / "data" / "terrain.bin").write_bytes(grid.tobytes())
+    (ROOT / "data" / f"{stem(region)}.bin").write_bytes(grid.tobytes())
     meta = {"rows": rows, "columns": COLUMNS, "lat_s": LAT_S, "lat_n": LAT_N, "lon_w": LON_W, "lon_e": LON_E,
             "width_km": round(width_km, 2), "height_km": round(height_km, 2), "min_m": int(grid.min()),
             "max_m": int(grid.max()), "source": "Terrain Tiles on AWS (Mapzen terrarium); see tilezen/joerd attribution"}
-    (ROOT / "data" / "terrain.json").write_text(json.dumps(meta))
+    (ROOT / "data" / f"{stem(region)}.json").write_text(json.dumps(meta))
     print(meta)
 
 
 if __name__ == "__main__":
-    main()
+    main(*sys.argv[1:2])
