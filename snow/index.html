@@ -24,7 +24,7 @@
   --t0:var(--muted); --t1:#0f1720; --t2:#0f1720; --t3:#0f1720; --t4:#ffffff; --t5:#ffffff; --t6:#ffffff;
   --snow:#2a78d6; --level:#eb6834; --mountain:rgba(15,23,32,.07); --select:#0f1720;
   --q0:#6a3fc0; --q1:#2a78d6; --q2:#93c8f7;
-  --w0:#c5cad0; --w1:#eda100; --w2:#d03b3b; --night:rgba(15,23,32,.055);
+  --w0:#c5cad0; --w1:#eda100; --w2:#c8161d; --night:rgba(15,23,32,.055);
 }
 @media (prefers-color-scheme:dark){:root{
   color-scheme:dark;
@@ -34,7 +34,7 @@
   --t1:#f0f2f4; --t2:#f0f2f4; --t3:#ffffff; --t4:#ffffff; --t5:#0f1720; --t6:#0f1720;
   --snow:#3987e5; --level:#d95926; --mountain:rgba(255,255,255,.08); --select:#f0f2f4;
   --q0:#8f6fe6; --q1:#3987e5; --q2:#b7dcfb;
-  --w0:#4a525b; --w1:#c98500; --w2:#e66767; --night:rgba(0,0,0,.28);
+  --w0:#4a525b; --w1:#c98500; --w2:#e5222b; --night:rgba(0,0,0,.28);
 }}
 *{box-sizing:border-box;margin:0;padding:0}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
@@ -371,7 +371,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "54";
+const BUILD = "55";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
