@@ -312,6 +312,11 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const overlay = document.createElement("div");
   overlay.className = "map-labels";
   container.appendChild(overlay);
+  const compass = document.createElement("div");
+  compass.className = "map-compass"; compass.title = "The red end points north";
+  compass.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 15.2 12H8.8z" fill="#d6322f"/><path d="M12 21.5 8.8 12h6.4z" fill="#8a929b"/><circle cx="12" cy="12" r="1.3" fill="#fff"/></svg>';
+  container.appendChild(compass);
+  const needle = compass.firstChild;
   const roadPoints = [];
   const roadPositions = [], roadIndex = [];
   const shields = [], roadLines = [];
@@ -579,6 +584,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     controls.update();
     renderer.render(scene, camera);
     placeLabels();
+    // The needle's red end points north whichever way the map is turned.
+    const ahead = controls.target.clone().sub(camera.position);
+    needle.style.transform = `rotate(${(Math.atan2(-ahead.x, ahead.y) * 180 / Math.PI).toFixed(1)}deg)`;
   }
   requestAnimationFrame(frame);
 
@@ -627,7 +635,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       running = false;
       for (const watcher of watchers) watcher.disconnect();
       controls.dispose(); renderer.dispose();
-      canvas.remove(); overlay.remove();
+      canvas.remove(); overlay.remove(); compass.remove();
     },
   };
 }
