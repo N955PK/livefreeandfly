@@ -622,7 +622,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "140";
+const BUILD = "141";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1008,7 +1008,7 @@ function seasonSoFar(resort) {
   const normal = s.pct_normal == null ? `A typical ${today} has under 1 in` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} in)`;
   const note = `${normal} · <b>${s.pct_peak}%</b> of a typical ${view.total} (${inches(s.peak_in)} in${measure === "snowfall" ? "" : `, ${around}`})`;
   const tabs = has.length < 2 ? "" : `<div class="seg" role="group" aria-label="Measure">${has.map((key) => `<button data-season="${key}" aria-pressed="${key === measure}">${SEASON_VIEWS[key].tab}</button>`).join("")}</div>`;
-  const head = `<div class="shead"><div><b>Season so far</b><span>${view.now(inches(s.now_in))}</span></div>${tabs}</div><div class="swhat">${view.what}</div>`;
+  const head = `<div class="shead"><div><b>Season totals</b><span>${view.now(inches(s.now_in))}</span></div>${tabs}</div><div class="swhat">${view.what}</div>`;
   if (!curve || !curve.years) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
   const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 250 : 180, L = 8, R = 44, T = 14, B = 20;
   const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
