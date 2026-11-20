@@ -483,7 +483,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "100";
+const BUILD = "101";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1030,7 +1030,7 @@ async function loadRoads() {
     const section = (color, label, summary, body, open) => `<details class="roads"${open ? " open" : ""}><summary><span class="sw">${dot(color)}<b>${label}</b></span><span class="sum">${summary}</span></summary>${body}</details>`;
     const olderList = older.length ? `<details class="roads older"><summary><span class="sum">${older.length} older: ${[...new Set(older.map((c) => c.route))].join(", ")}</span></summary><ul>${older.map((c) => c.html).join("")}</ul></details>` : "";
     $("roadNote").innerHTML =
-      section("#d03b3b", "Closed", fresh.length ? [...new Set(fresh.map((c) => c.route))].join(", ") : closures.length ? "nothing new in 2 days" : "none",
+      section("#d03b3b", "Closed", closures.length ? [...new Set(closures.map((c) => c.route))].sort((a, b) => a - b).join(", ") : "none",
         (fresh.length ? `<ul>${fresh.map((c) => c.html).join("")}</ul>` : "") + olderList, fresh.length > 0) +
       section("#f0a80d", "Chains", chains.length ? [...new Set(chainRoutes)].sort((a, b) => a - b).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
