@@ -245,9 +245,10 @@ def test_season_normal_is_the_median_of_past_years_on_this_date():
     # The five-day smoothing flattens the top, and the first day of the plateau counts as the peak.
     assert normal["peak_date"] in {"03-28", "03-29", "03-30"}
     assert abs(normal["normal_in"] - 30.0 * 50 / 180) < 0.5
-    told = season.summary(4.2, normal)
+    told = season.summary({"depth_in": 4.2}, {**normal, "measure": "depth"})
     assert told["pct_peak"] == 14 and told["pct_normal"] == round(100 * 4.2 / normal["normal_in"])
-    assert season.summary(4.2, {**normal, "normal_in": 0.4})["pct_normal"] is None
+    assert season.summary({"water_in": 4.2}, {**normal, "measure": "water", "normal_in": 0.4})["pct_normal"] is None
+    assert season.summary({"depth_in": None, "water_in": 4.2}, {**normal, "measure": "depth"}) is None
     curve = normal["curve"]
     assert sorted(curve["years"]) == [str(year) for year in range(2017, 2028)]
     assert len(curve["normal"]) == len(curve["years"]["2026"]) == 122 and abs(curve["normal"][60] - 30.0) < 0.5

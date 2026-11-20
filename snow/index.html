@@ -618,7 +618,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "136";
+const BUILD = "137";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -983,8 +983,8 @@ function measured(resort) {
     ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>in</small>`, `${inches(o.water_gain_24h_in)} in in 24 h`)}
     ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div>${seasonSoFar(resort)}`;
 }
-// The snowpack's water through the winter at the mountain's sensor: this winter's line over the usual year and
-// the ten winters before it, from October to July.
+// Snow depth through the winter at the mountain's sensor: this winter's line over the usual year and the ten
+// winters before it, from October to July. A sensor with no depth gauge is drawn in the water it weighs.
 const SEASON_DAYS = 304, MONTHS = [["Oct", 0], ["Nov", 31], ["Dec", 61], ["Jan", 92], ["Feb", 123], ["Mar", 151], ["Apr", 182], ["May", 212], ["Jun", 243], ["Jul", 273]];
 const winterName = (endYear) => `${String(endYear - 1).slice(2)}–${String(endYear).slice(2)}`;
 let seasonView = null;
@@ -995,7 +995,8 @@ function seasonSoFar(resort) {
   const around = `${day <= 10 ? "early" : day <= 20 ? "mid" : "late"} ${new Date(2001, month - 1, 1).toLocaleDateString("en-US", {month: "long"})}`;
   const normal = s.pct_normal == null ? `A usual ${today} has under 1 in` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} in)`;
   const note = `${normal} · <b>${s.pct_peak}%</b> of a usual peak (${inches(s.peak_in)} in, ${around})`;
-  const head = `<div class="shead"><b>Season so far</b><span>${inches(s.water_in)} in of water in the snowpack</span></div>`;
+  const depth = s.measure === "depth";
+  const head = `<div class="shead"><b>Season so far</b><span>${inches(s.now_in)} in ${depth ? "of snow on the ground" : "of water in the snow (this sensor has no depth gauge)"}</span></div>`;
   if (!curve) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
   const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 250 : 180, L = 8, R = 44, T = 14, B = 20;
   const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
@@ -1011,11 +1012,15 @@ function seasonSoFar(resort) {
   // The biggest of the ten winters is named where it peaked.
   const peakOf = (w) => Math.max(...lines[w].filter((v) => v != null)), biggest = past.length ? past.reduce((a, b) => peakOf(b) > peakOf(a) ? b : a) : null;
   if (biggest) { const at = lines[biggest].indexOf(peakOf(biggest)); body += `<text class="yr" text-anchor="middle" x="${Math.min(x(at), W - R - 14)}" y="${Math.max(10, y(peakOf(biggest)) - 5)}">${winterName(+biggest)}</text>`; }
-  const mine = lines[winters[winters.length - 1]], last = mine.reduce((found, v, k) => v == null ? found : k, 0);
+  // The line ends at the sensor's latest reading, which the every-few-days history can trail during a storm.
+  const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = new Date().toLocaleDateString("en-CA", {timeZone: TZ}).split("-").map(Number);
+  const sinceOct = Math.round((Date.UTC(yearNow, monthNow - 1, dayNow) - Date.UTC(monthNow >= 10 ? yearNow : yearNow - 1, 9, 1)) / 864e5);
+  if (sinceOct < SEASON_DAYS) mine[Math.min(count - 1, Math.round(sinceOct / curve.step_days))] = s.now_in;
+  const last = mine.reduce((found, v, k) => v == null ? found : k, 0);
   body += `<path class="usual" d="${path(usual)}"/><path class="now" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="-9" x2="-9"/>
     <circle class="nowdot" cx="${x(last)}" cy="${y(mine[last] || 0)}" r="4"/><text class="nowlab" x="${x(last) + 7}" y="${y(mine[last] || 0) - 6}">${inches(mine[last])} in</text>`;
   seasonView = {curve, count, lines, usual, past, mine, note, left: L, span: W - L - R};
-  return `<div class="season">${head}<div class="schart" id="seasonChart"><svg width="${W}" height="${H}" role="img" aria-label="Water in the snowpack through the winter: this winter, a usual year, and the last ten winters">${body}</svg></div>
+  return `<div class="season">${head}<div class="schart" id="seasonChart"><svg width="${W}" height="${H}" role="img" aria-label="${depth ? "Snow depth" : "Water in the snow"} through the winter: this winter, a usual year, and the last ten winters">${body}</svg></div>
     <div class="snote" id="seasonNote">${note}</div>
     <div class="key"><span><svg viewBox="0 0 34 12"><path d="M1 6H33" stroke="var(--snow)" stroke-width="2.5" fill="none"/></svg>this winter</span><span><svg viewBox="0 0 34 12"><path d="M1 6H33" stroke="var(--ink2)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/></svg>usual year</span><span><svg viewBox="0 0 34 12"><path d="M1 6H33" stroke="var(--muted)" stroke-width="1" opacity=".55" fill="none"/></svg>last ten winters</span></div></div>`;
 }

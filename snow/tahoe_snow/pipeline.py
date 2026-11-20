@@ -426,8 +426,7 @@ def add_season(resorts: list, now: pd.Timestamp) -> dict:
         print(f"season: FAILED {error}", flush=True)
         normals = {}
     for payload in resorts:
-        water = (payload["observed"] or {}).get("water_in")
-        payload["season"] = season.summary(water, normals.get(RESORTS[payload["key"]].station))
+        payload["season"] = season.summary(payload["observed"], normals.get(RESORTS[payload["key"]].station))
     return {ALL_STATIONS[triplet].name: normal["curve"] for triplet, normal in normals.items() if normal}
 
 
