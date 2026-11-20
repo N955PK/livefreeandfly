@@ -73,6 +73,9 @@ h1{font-size:clamp(26px,4vw,34px);line-height:1.1;font-weight:700;letter-spacing
 .lede .pm,.amt .pm{font-size:.85em}
 .meta{font-size:13px;color:var(--muted);margin-top:4px}
 .meta .warn{color:#b3541e}
+.meta .late{color:#9a6b00;font-weight:600}
+.meta .stale{color:#c8161d;font-weight:600}
+@media (prefers-color-scheme:dark){.meta .late{color:#e3b341}.meta .stale{color:#ff6b6b}}
 .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:26px 0 12px}
 h2{font-size:18px;font-weight:650;letter-spacing:-.01em}
 .seg{margin-left:auto;display:inline-flex;background:var(--wash);border-radius:10px;padding:3px}
@@ -491,7 +494,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "106";
+const BUILD = "107";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -605,6 +608,7 @@ function sorted() { return here().sort((a, b) => (b.key === HOME) - (a.key === H
 
 function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(x.pm_in)}</span>`; }
 
+const UPDATE_EVERY_H = 3;
 function renderHeadline() {
   const home = opener();
   const el = home.elevations[elevation], w = el.windows, where = elevation === "mid" ? "mid-mountain" : elevation;
@@ -614,8 +618,11 @@ function renderHeadline() {
   $("headline").title = `At the ${where}, ${el.elevation_ft.toLocaleString()} ft`;
   const made = new Date(data.generated_utc), age = (Date.now() - made) / 36e5;
   const when = made.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"});
-  $("meta").innerHTML = offlineCopy ? `<span class="warn">Offline.</span> Showing the forecast from ${when}${age > 9 ? `, ${Math.round(age)} hours old` : ""}`
-    : `Updated ${when}` + (age > 9 ? ` · <span class="warn">${Math.round(age)} hours old</span>` : "");
+  // The time is grey while the forecast is on schedule, yellow once an update has been missed, and red after two.
+  // The stamp is the hour the run began, so each step allows an hour on top of the update interval.
+  const missed = age <= UPDATE_EVERY_H + 1 ? 0 : age <= 2 * UPDATE_EVERY_H + 1 ? 1 : 2;
+  const stamp = `<span class="${["", "late", "stale"][missed]}" title="${missed ? `${Math.round(age)} hours old; a new forecast is due every ${UPDATE_EVERY_H} hours` : `A new forecast is due every ${UPDATE_EVERY_H} hours`}">${when}</span>`;
+  $("meta").innerHTML = offlineCopy ? `<span class="warn">Offline.</span> Showing the forecast from ${stamp}` : `Updated ${stamp}`;
 }
 
 function renderHeat() {
@@ -1365,6 +1372,7 @@ liveForecast().then(async (d) => {
     try { step(); } catch (error) { console.error(error); }
   }
   loadAvalanche(); setInterval(loadAvalanche, 30 * 60 * 1000);
+  setInterval(renderHeadline, 5 * 60 * 1000);
   try { await startMap(); } catch (error) { console.error(error); }
   reveal();
 }).catch(() => { $("headline").textContent = "The forecast could not be loaded"; reveal(); });
