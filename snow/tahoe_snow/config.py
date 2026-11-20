@@ -112,6 +112,8 @@ ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS}
 # winter trailhead, both read from the Terrain Tiles elevation model (2026-11-19). Mammoth Mountain and Sherwin
 # Ridge pair with the Mammoth Pass pillow, 2 km south of the summit. Nothing that still reports sits near June
 # (Gem Pass and Agnew Pass went quiet), so June Mountain and Carson Peak have no station and no correction.
+# Matterhorn Peak (base at Twin Lakes) pairs with Slide Canyon, 4 km west across the crest, and Dana Plateau
+# (the rim above the chutes; base at Ellery Lake on the Tioga Road) with Dana Meadows, 5 km southwest.
 RESORTS = {
     r.key: r
     for r in [
@@ -139,6 +141,10 @@ RESORTS = {
         Resort("sherwins", "Sherwin Ridge", 37.6043, -118.9794, 2399, 3130, "MHP:CDEC", "Backcountry",
                region="mammoth", kind="backcountry"),
         Resort("carsonpeak", "Carson Peak", 37.7476, -119.1242, 2204, 3324, None, "Backcountry",
+               region="mammoth", kind="backcountry"),
+        Resort("matterhorn", "Matterhorn Peak", 38.0932, -119.3817, 2165, 3734, "SLI:CDEC", "Backcountry",
+               region="mammoth", kind="backcountry", weak_match=True),
+        Resort("danaplateau", "Dana Plateau", 37.9200, -119.2150, 2907, 3494, "DAN:CDEC", "Backcountry",
                region="mammoth", kind="backcountry"),
     ]
 }

@@ -161,6 +161,7 @@ def mammoth_block(names: dict) -> str:
 <p>Mammoth gets its own correction, fitted to {pairs['station'].nunique()} snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
 <div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr>{rows}</table></div>
 <p><b>Mammoth Mountain and Sherwin Ridge</b> use the Mammoth Pass sensor, 2 km south of the summit. The models' shares of its measured water: {shares}. Those misses offset, so at this one sensor the corrected blend only ties the raw one; the correction is kept because it makes each model right on its own.</p>
+<p><b>Matterhorn Peak and Dana Plateau</b> use the sensors nearest them: Slide Canyon, 4 km west across the crest, and Dana Meadows, 5 km southwest.</p>
 <p><b>June Mountain and Carson Peak</b> have no working sensor nearby and are left uncorrected. The record of a sensor that has since gone quiet (Gem Pass) says a correction borrowed from Mammoth Pass would make them worse.</p>
 <p><b>The sensors:</b> most are state snow pillows that are not quality-controlled the way SNOTEL is. Adding up their daily rises counts sensor jitter as snow (about 20% too much over a week), so readings are smoothed and small dips ignored before any of this is fitted or scored.</p>
 """

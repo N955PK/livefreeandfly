@@ -46,8 +46,9 @@ def scorecard() -> dict:
         sections.append(
             {"title": "Water, Mammoth area.",
              "note": "The same test against 10 snow sensors along the crest around Mammoth, on the 2024, 2025, and "
-                     "2026 winters held out in turn. Mammoth Mountain and Sherwin Ridge use the Mammoth Pass sensor; "
-                     "June Mountain and Carson Peak have no working sensor nearby and are left uncorrected.",
+                     "2026 winters held out in turn. Mammoth Mountain and Sherwin Ridge use the Mammoth Pass sensor, "
+                     "Matterhorn Peak the Slide Canyon one, and Dana Plateau the Dana Meadows one; June Mountain "
+                     "and Carson Peak have no working sensor nearby and are left uncorrected.",
              "columns": ["Method", "Total vs measured", "Daily error (in)", "3-day error (in)",
                          "3-day error, 2 in+ storms (in)"],
              "rows": [[label.replace(" (in use)", " (in use where a sensor is near)"),
