@@ -1,9 +1,9 @@
-"""Command line: python -m tahoe_snow run | prune."""
+"""Command line: python -m tahoe_snow run | prune | usage."""
 import argparse
 import sys
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow import pipeline
+from tahoe_snow import pipeline, usage
 from tahoe_snow.config import DATA
 
 ARCHIVE_DAYS = 21
@@ -28,9 +28,13 @@ def main() -> int:
     sub.add_parser("run", help="fetch, forecast, and write the site's data files")
     sub.add_parser("prune", help="delete archived forecasts that are no longer needed").add_argument(
         "--days", type=int, default=ARCHIVE_DAYS)
+    sub.add_parser("usage", help="report the Open-Meteo allowance used; exit 1 near the limit").add_argument(
+        "--fail-over", type=float, default=0.9)
     args = parser.parse_args()
     if args.command == "run":
         pipeline.run()
+    elif args.command == "usage":
+        return usage.check(args.fail_over)
     else:
         print(f"removed {prune(args.days)} archived forecasts")
     return 0

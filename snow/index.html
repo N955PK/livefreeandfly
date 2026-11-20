@@ -444,6 +444,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
     <p><b>Wind</b> is the free-air wind at that elevation, close to what an exposed ridge sees. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
+    <p id="usageNote"></p>
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
@@ -456,7 +457,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "85";
+const BUILD = "86";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1116,6 +1117,8 @@ function renderNotes() {
   $("biasNote").textContent = (data.bias_corrected ? "Each is corrected against years of readings from the nearest snow sensor, then they are averaged." : "They are averaged; correction against the nearest snow sensor is not applied yet.") +
     (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor nearby and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
+  const use = data.usage;
+  $("usageNote").textContent = use ? `Data budget: about ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (our own count, rounded up).` : "";
   $("formula").innerHTML = (data.powder_formula || []).map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join("");
 }
 

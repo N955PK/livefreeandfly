@@ -16,12 +16,35 @@ ENSEMBLE_URL = "https://ensemble-api.open-meteo.com/v1/ensemble"
 HISTORICAL_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast"
 PREVIOUS_RUNS_URL = "https://previous-runs-api.open-meteo.com/v1/forecast"
 
+# Free, non-commercial limits (open-meteo.com/en/terms and /pricing, read 2026-11-19).
+DAILY_CALLS = 10_000
+MONTHLY_CALLS = 300_000
+# Members per ensemble system, control included.
+ENSEMBLE_MEMBERS = {"gfs025": 31, "ecmwf_ifs025": 51, "icon_seamless": 40, "gem_global": 21}
+
 LEVEL_VARS = {"temperature": "t_c", "relative_humidity": "rh_pct", "wind_speed": "wind_kmh",
               "geopotential_height": "height_m"}
 PROFILE_SURFACE_VARS = ["precipitation", "temperature_2m"]
 FORECAST_SURFACE_VARS = PROFILE_SURFACE_VARS + ["cloud_cover", "wind_gusts_10m"]
 SURFACE_VARS = ["precipitation", "temperature_2m", "relative_humidity_2m", "wind_speed_10m", "wind_gusts_10m",
                 "surface_pressure"]
+
+
+def call_weight(url: str, params: dict) -> float:
+    """How many API calls one request counts as.
+
+    The service counts fractions: variables / 10 times days / 14, each at least 1 (its examples: 15 variables over
+    two weeks is 1.5 calls, over four weeks 3.0). It does not say how models or ensemble members count, so each
+    model and each member is counted here as its own set of variables, which can only overstate the total.
+    """
+    variables = len(str(params.get("hourly", "")).split(","))
+    models = str(params.get("models", "")).split(",")
+    copies = sum(ENSEMBLE_MEMBERS.get(model, 1) for model in models) if url == ENSEMBLE_URL else len(models)
+    if "start_date" in params:
+        days = (pd.Timestamp(params["end_date"]) - pd.Timestamp(params["start_date"])).days + 1
+    else:
+        days = int(params.get("forecast_days", 7)) + int(params.get("past_days", 0))
+    return max(1.0, variables * copies / 10) * max(1.0, days / 14)
 
 
 def level_variables(levels=PRESSURE_LEVELS) -> list:

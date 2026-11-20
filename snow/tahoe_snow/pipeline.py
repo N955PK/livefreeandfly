@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 
-from tahoe_snow import biascorrect, blend, powder
+from tahoe_snow import biascorrect, blend, cache, powder, usage
 from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, RESORTS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
@@ -427,10 +427,12 @@ def run(now: datetime | None = None) -> dict:
             print(f"{resort.name}: FAILED {error}", flush=True)
     if not resorts:
         raise SystemExit("no resort forecast could be produced")
+    stamp = now.to_pydatetime()
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"), "snow_ratio_model": ratio_name,
                 "rain_snow_split": {"kind": snow_model.phase_kind, "params": snow_model.phase_params},
                 "bias_corrected": "tahoe" in corrections, "deterministic_days": DETERMINISTIC_DAYS,
-                "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts}
+                "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts,
+                "usage": usage.summary(usage.record(usage.of_run(cache.REQUESTS), stamp), stamp)}
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "forecast.json").write_text(json.dumps(forecast, separators=(",", ":")))
     folder = DATA / "archive" / now.strftime("%Y/%m")

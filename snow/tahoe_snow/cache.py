@@ -10,6 +10,8 @@ from tahoe_snow.config import RAW, USER_AGENT
 
 _SESSION = requests.Session()
 _SESSION.headers["User-Agent"] = USER_AGENT
+# Every request that went over the network in this process: (url, params, "ok" or "limited").
+REQUESTS: list = []
 
 
 def _path(kind: str, url: str, params: dict | None, suffix: str) -> Path:
@@ -33,9 +35,12 @@ def get_text(kind: str, url: str, params: dict | None = None, max_age_h: float |
     for attempt in range(retries):
         try:
             resp = _SESSION.get(url, params=params, timeout=timeout)
+            if resp.status_code == 429:
+                REQUESTS.append((url, params, "limited"))
             if resp.status_code == 429 or resp.status_code >= 500:
                 raise requests.HTTPError(f"{resp.status_code} from {url}")
             resp.raise_for_status()
+            REQUESTS.append((url, params, "ok"))
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(resp.text)
             return resp.text

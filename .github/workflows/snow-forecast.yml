@@ -54,3 +54,8 @@ jobs:
           git add -A
           git commit -q -m "Forecast data $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-data
+
+      # Last, so the forecast is published either way; a failure here sends the repository owner an email.
+      - name: Check the data budget
+        working-directory: snow
+        run: python -m tahoe_snow usage --fail-over 0.9

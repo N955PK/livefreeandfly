@@ -1,11 +1,12 @@
 import json
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
 
-from tahoe_snow import biascorrect, blend, calibrate, pipeline, powder
+from tahoe_snow import biascorrect, blend, calibrate, pipeline, powder, usage
 from tahoe_snow.config import ALL_STATIONS, RESORTS
-from tahoe_snow.sources import cdec, snotel
+from tahoe_snow.sources import cdec, openmeteo, snotel
 
 
 def _pairs(bias=1.0, n=400, station="a", seed=0, model="gfs", lead=1):
@@ -183,3 +184,29 @@ def test_every_location_is_well_formed():
         assert (resort.pass_group == "Backcountry") == (resort.kind == "backcountry")
         assert resort.station is None or resort.station in ALL_STATIONS
         assert 1500 < resort.base_m < resort.summit_m < 3500
+
+
+def test_call_weight_follows_the_published_examples():
+    variables = ",".join(f"v{n}" for n in range(15))
+    two_weeks = {"hourly": variables, "models": "gfs_seamless", "forecast_days": 14}
+    assert openmeteo.call_weight(openmeteo.FORECAST_URL, two_weeks) == 1.5
+    assert openmeteo.call_weight(openmeteo.FORECAST_URL, {**two_weeks, "forecast_days": 28}) == 3.0
+    assert openmeteo.call_weight(openmeteo.FORECAST_URL, {"hourly": "precipitation", "forecast_days": 3}) == 1.0
+    members = {"hourly": "precipitation,temperature_2m", "models": "ecmwf_ifs025", "forecast_days": 10}
+    assert openmeteo.call_weight(openmeteo.ENSEMBLE_URL, members) == 10.2
+
+
+def test_usage_ledger_totals_the_last_day_and_month(tmp_path):
+    now = datetime(2026, 11, 20, 12)
+    path = tmp_path / "usage.json"
+    requests = [(openmeteo.FORECAST_URL, {"hourly": "precipitation", "forecast_days": 28}, "ok"),
+                (openmeteo.FORECAST_URL, {"hourly": "precipitation"}, "limited"),
+                ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data", {}, "ok")]
+    run = usage.of_run(requests)
+    assert run == {"requests": 1, "calls": 2.0, "rate_limited": 1}
+    for hours_ago in (40 * 24, 36, 3):
+        ledger = usage.record(run, now - timedelta(hours=hours_ago), path)
+    ledger = usage.record(run, now, path)
+    assert len(ledger) == 3
+    use = usage.summary(ledger, now)
+    assert (use["calls_24h"], use["runs_24h"], use["calls_30d"], use["rate_limited_24h"]) == (4, 2, 6, 2)
