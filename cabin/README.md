@@ -69,6 +69,7 @@ In your profile, **Calendar** makes a private link that your phone's calendar su
 ### Snow
 
 - A fourth tab shows the Sierra Snow forecast (`livefreeandfly.org/snow/`) in a frame between the header and the tabs. It is the public page itself, opened as `../snow/?embed`, which drops that page's own title; its loading animation still plays while the forecast and map load.
+- The forecast's controls and highlights (the chosen region, the storm slider, the favorite star) take this app's accent color and follow it when it changes. Snow amounts keep the forecast's own colors, since those carry meaning.
 - The frame sits outside `main`, so the app's redraws never reload it, and it loads the first time the tab is opened.
 - It needs a signal. Offline, the tab says so and loads when the connection returns; the rest of the app keeps working from its saved copy.
 
