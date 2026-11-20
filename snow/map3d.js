@@ -6,7 +6,7 @@ import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 const EXAGGERATION = 2.7;
 const STAKE_KM_PER_IN = 0.16;
 const STAKE_RADIUS = 0.7;
-const FLAKES = 3200;
+const FLAKES = 9000;
 const WHITEN_AT_IN = 5;
 const BIN_M = 50;
 const FLOOR_M = 900;
@@ -84,11 +84,16 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(lakeX - 3, lakeY - 4, 1);
   controls.enableDamping = true;
-  controls.enablePan = false;
+  controls.enablePan = true;
+  controls.screenSpacePanning = false;
   controls.minPolarAngle = Math.PI * 0.12;
   controls.maxPolarAngle = Math.PI * 0.40;
-  controls.minAzimuthAngle = -Math.PI * 0.3;
-  controls.maxAzimuthAngle = Math.PI * 0.3;
+  // Panning stays over the terrain and at lake level.
+  const panX = W / 2 - EDGE_FADE_KM, panY = H / 2 - EDGE_FADE_KM;
+  controls.addEventListener("change", () => {
+    const t = controls.target, x = Math.max(-panX, Math.min(panX, t.x)), y = Math.max(-panY, Math.min(panY, t.y));
+    if (x !== t.x || y !== t.y || t.z !== 1) { camera.position.x += x - t.x; camera.position.y += y - t.y; t.set(x, y, 1); }
+  });
   controls.minDistance = 45;
   controls.maxDistance = 190;
   controls.zoomSpeed = 0.6;
@@ -131,7 +136,9 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   terrain.setAttribute("color", new THREE.BufferAttribute(colors, 4));
   terrain.setIndex(new THREE.BufferAttribute(index, 1));
   terrain.computeVertexNormals();
-  scene.add(new THREE.Mesh(terrain, new THREE.MeshStandardMaterial({vertexColors: true, transparent: true, roughness: 0.92, metalness: 0})));
+  const ground = new THREE.Mesh(terrain, new THREE.MeshStandardMaterial({vertexColors: true, transparent: true, roughness: 0.92, metalness: 0}));
+  ground.renderOrder = 1;
+  scene.add(ground);
 
   // ---------- forecast series and the storm window ----------
   const hoursUtc = data.resorts[0].hours_utc, total = hoursUtc.length;
@@ -224,7 +231,10 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
     roadGeometry.attributes.color.needsUpdate = true;
   };
   paintRoads(() => "open");
-  scene.add(new THREE.Mesh(roadGeometry, new THREE.MeshBasicMaterial({vertexColors: true, transparent: true, side: THREE.DoubleSide, depthWrite: false})));
+  // Drawn after the terrain from every angle, so the ribbons never vanish behind it.
+  const ribbons = new THREE.Mesh(roadGeometry, new THREE.MeshBasicMaterial({vertexColors: true, transparent: true, side: THREE.DoubleSide, depthWrite: false}));
+  ribbons.renderOrder = 2;
+  scene.add(ribbons);
   const closures = [];
 
   // ---------- resorts ----------
@@ -252,15 +262,18 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
 
   // ---------- falling snow (fills the whole view, from well above the peaks) ----------
   const flakePositions = new Float32Array(FLAKES * 3), flakeSpeed = new Float32Array(FLAKES);
-  const ceiling = 38, spreadX = W * 0.75, spreadY = H * 0.75;
+  const ceiling = 110, spreadX = W * 1.1, spreadY = H * 1.1;
   for (let i = 0; i < FLAKES; i++) {
     flakePositions.set([lakeX + (Math.random() - 0.5) * spreadX, lakeY + (Math.random() - 0.5) * spreadY, Math.random() * ceiling], 3 * i);
-    flakeSpeed[i] = 3 + Math.random() * 4;
+    flakeSpeed[i] = 4 + Math.random() * 5;
   }
   const flakeGeometry = new THREE.BufferGeometry();
   flakeGeometry.setAttribute("position", new THREE.BufferAttribute(flakePositions, 3));
   const flakeMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.5, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true});
-  scene.add(new THREE.Points(flakeGeometry, flakeMaterial));
+  const snowfall = new THREE.Points(flakeGeometry, flakeMaterial);
+  snowfall.renderOrder = 3;
+  snowfall.frustumCulled = false;
+  scene.add(snowfall);
 
   // ---------- state ----------
   let time = nowStep, paintedAt = -1, picked = selected, visible = true, running = true;
@@ -316,12 +329,13 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       label.style.display = p.shown ? "" : "none";
       if (!p.shown) continue;
       const box = (width, height, lift) => ({x0: p.x - width / 2 - 2, x1: p.x + width / 2 + 2, y0: p.y - height - 6 - lift, y1: p.y - lift});
-      let mini = false, lift = 0, rect = box(item.width, item.tall, 0);
+      let mini = false, rect = box(item.width, item.tall, 0);
       if (hits(rect)) { mini = true; rect = box(46, 24, 0); }
-      while (hits(rect) && lift < 78) { lift += 26; rect = box(46, 24, lift); }
+      // A label that still collides is hidden rather than floated away from its stake.
+      if (hits(rect)) { label.style.display = "none"; continue; }
       placed.push(rect);
       label.classList.toggle("mini", mini);
-      label.style.transform = `translate(-50%, -100%) translate(${p.x.toFixed(1)}px, ${(p.y - 6 - lift).toFixed(1)}px)`;
+      label.style.transform = `translate(-50%, -100%) translate(${p.x.toFixed(1)}px, ${(p.y - 6).toFixed(1)}px)`;
       label.style.zIndex = String(100000 + Math.round((1 - p.depth) * 100000));
     }
     const put = (element, point, allowed = true) => {
