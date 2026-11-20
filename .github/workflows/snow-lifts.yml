@@ -38,6 +38,10 @@ jobs:
         working-directory: snow
         run: python3 -m tahoe_snow.sources.resort_status "$RUNNER_TEMP/lifts/resort_status.json" || echo "::warning::The resort status pages could not be read"
 
+      - name: Homewood
+        working-directory: snow
+        run: python3 -m tahoe_snow.sources.homewood "$RUNNER_TEMP/lifts/homewood.json" || echo "::warning::Homewood's snow report could not be read"
+
       # The branch holds one commit: the latest files.
       - name: Publish to the lifts branch
         run: |
