@@ -175,6 +175,10 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .key .blocks .ramp b{background:none}
 .key:has(.blocks){flex-wrap:nowrap;gap:12px}
 .key .sw{display:inline-flex;align-items:center;gap:4px}
+.hhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 6px}
+.hhead h3{margin:0}
+.hhead .seg{margin-left:0}
+.hhead .seg button{padding:5px 10px}
 h3 small{font-size:12px;font-weight:400;color:var(--muted);margin-left:6px}
 .key .glyph svg{width:13px;height:13px;color:var(--muted)}
 .key .sw i.kdot{width:10px;height:10px;border-radius:50%;background:var(--snow)}
@@ -362,7 +366,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "51";
+const BUILD = "52";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -675,7 +679,7 @@ function renderDetail() {
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>individual models</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span>G = gust, mph</span><span>PS = powder score</span></div>
     <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
-    <h3>Hour by hour</h3>
+    <div class="hhead"><h3>Hour by hour</h3><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
     <div class="key"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">calm</b><b>strong</b></span></span></div>
