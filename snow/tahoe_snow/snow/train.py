@@ -49,15 +49,12 @@ def band_table(events: pd.DataFrame, predictions: dict, names: list) -> pd.DataF
     return pd.DataFrame(rows).set_index("temperature at site (C)")
 
 
-def station_hourly(end: str, cells: list | None = None) -> dict:
-    """Hourly features and observed snow fraction for each SNOTEL station with a cached profile."""
+def station_hourly(profiles: dataset.Profiles) -> dict:
+    """Hourly features and observed snow fraction for each SNOTEL station."""
     snotel = pd.read_parquet(TABLES / "snotel_daily.parquet").set_index("date")
     out = {}
     for station in STATIONS.values():
-        cell = dataset.cell_of(station.lat, station.lon)
-        if cells is not None and cell not in cells:
-            continue
-        hourly = features.hourly_features(dataset.cell_profile(cell, end), station.elev_m).asfreq("h")
+        hourly = features.hourly_features(profiles.at(station.lat, station.lon), station.elev_m).asfreq("h")
         gains = snotel[snotel["station"] == station.triplet]
         gains = gains[gains.index >= dataset.PROFILE_START]
         observed = phase.observed(gains)

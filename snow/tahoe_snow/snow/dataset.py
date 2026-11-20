@@ -7,9 +7,12 @@ import pandas as pd
 
 from tahoe_snow.config import SIERRA_BBOX, STATIONS, TABLES
 from tahoe_snow.snow import features
-from tahoe_snow.sources import ghcn, openmeteo, reanalysis
+from tahoe_snow.sources import ghcn, omfiles_s3, openmeteo, reanalysis
 
 PROFILE_START = "2021-03-25"
+# The raw-file archive starts here; earlier winters come from the slower API.
+RAW_ARCHIVE_START = "2023-11-20"
+EARLY_END = "2023-11-30"
 CELL_DEG = 0.5
 LOCAL_TZ = "America/Los_Angeles"
 PST_OFFSET_H = 8
@@ -130,30 +133,44 @@ def ratio_filter(events: pd.DataFrame, min_liquid_mm: float = MIN_LIQUID_MM) -> 
     return events[keep].reset_index(drop=True)
 
 
-def build(end: str, cells: list | None = None) -> pd.DataFrame:
-    """Assemble the event table from the cached observation tables, for all cells or only ``cells``."""
+class Profiles:
+    """Hourly profiles for any station: raw-file archive on the 0.25-degree grid, with the two
+    earlier winters prepended from the API where that 0.5-degree cell has been downloaded."""
+
+    def __init__(self, end: str, early_cells: list | None = None):
+        self.recent = omfiles_s3.sierra_profiles(RAW_ARCHIVE_START, end)
+        self.early_cells = set(early_cells or [])
+        self._early = {}
+
+    def at(self, lat: float, lon: float) -> pd.DataFrame:
+        node = (round(round(lat / 0.25) * 0.25, 3), round(round(lon / 0.25) * 0.25, 3))
+        recent = self.recent[node]
+        cell = cell_of(lat, lon)
+        if cell not in self.early_cells:
+            return recent
+        if cell not in self._early:
+            self._early[cell] = cell_profile(cell, EARLY_END)
+        early = self._early[cell]
+        return pd.concat([early[early.index < recent.index[0]], recent]).reindex(columns=recent.columns)
+
+
+def build(end: str, early_cells: list | None = None, profiles: Profiles | None = None) -> pd.DataFrame:
+    """Assemble the event table for every station from the cached observation tables."""
     stations = pd.read_parquet(TABLES / "manual_stations.parquet")
     manual = pd.read_parquet(TABLES / "manual_daily.parquet").set_index("date")
     snotel = pd.read_parquet(TABLES / "snotel_daily.parquet").set_index("date")
     stations = stations[stations["last_year"] >= int(PROFILE_START[:4])]
-    jobs = [(row["station"], "manual", row["lat"], row["lon"], row["elev_m"], row) for _, row in stations.iterrows()]
-    jobs += [(s.triplet, "snotel", s.lat, s.lon, s.elev_m, None) for s in STATIONS.values()]
-    profiles, frames = {}, []
-    for name, source, lat, lon, elev_m, row in jobs:
-        cell = cell_of(lat, lon)
-        if cells is not None and cell not in cells:
-            continue
-        if cell not in profiles:
-            profiles[cell] = cell_profile(cell, end)
-            print(f"profile {cell}: {len(profiles[cell])} hours", flush=True)
-        windows = features.window_features(features.hourly_features(profiles[cell], elev_m))
-        if source == "manual":
-            events = manual_events(manual[manual["station"] == name], row, windows)
-        else:
-            events = snotel_events(snotel[snotel["station"] == name], name, windows)
+    profiles = profiles or Profiles(end, early_cells)
+    frames = []
+    for _, row in stations.iterrows():
+        windows = features.window_features(features.hourly_features(profiles.at(row["lat"], row["lon"]), row["elev_m"]))
+        events = manual_events(manual[manual["station"] == row["station"]], row, windows)
         if not events.empty:
-            events["cell_lat"], events["cell_lon"] = cell
             frames.append(events)
+    for station in STATIONS.values():
+        windows = features.window_features(
+            features.hourly_features(profiles.at(station.lat, station.lon), station.elev_m))
+        frames.append(snotel_events(snotel[snotel["station"] == station.triplet], station.triplet, windows))
     table = pd.concat(frames, ignore_index=True)
     table.to_parquet(TABLES / "events.parquet")
     return table
