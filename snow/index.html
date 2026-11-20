@@ -122,7 +122,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .tile .v{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-top:2px}
 .tile .v small{font-size:14px;font-weight:500;color:var(--ink2);letter-spacing:0}
 .tile .r{font-size:12.5px;color:var(--muted)}
-h3{font-size:14px;font-weight:650;margin:22px 0 2px}
+h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .sub{font-size:12.5px;color:var(--muted);margin-bottom:6px}
 .chart{position:relative}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
@@ -375,7 +375,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "62";
+const BUILD = "63";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
