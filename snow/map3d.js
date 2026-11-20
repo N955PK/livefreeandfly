@@ -22,6 +22,25 @@ const MAX_AHEAD_H = 96;
 const ROAD_LIFT = 0.16;
 const ROAD_COLORS = {open: [0.20, 0.23, 0.27], chains: [0.96, 0.66, 0.05], closed: [0.84, 0.18, 0.18]};
 const MAJOR = new Set(["I-80", "US-50", "US-395", "I-580"]);
+const SHIELD_EVERY_KM = 26;
+
+// Interstate, U.S. route, California state route (the green spade), and Nevada state route markers.
+function shieldSVG(route) {
+  const [kind, number] = route.split("-"), size = number.length > 2 ? 8.5 : 10.5;
+  const text = (fill, y) => `<text x="12" y="${y}" text-anchor="middle" font-size="${size}" font-weight="700" font-family="system-ui,-apple-system,sans-serif" fill="${fill}">${number}</text>`;
+  const wrap = (inner) => `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">${inner}</svg>`;
+  if (kind === "I") {
+    return wrap(`<path d="M12 1.2c2.9 1.5 5.9 1.9 9.2 1.3 1 6.9-.9 14.6-9.2 20.1C3.7 17.1 1.8 9.4 2.8 2.5 6.1 3.1 9.1 2.7 12 1.2z" fill="#003f87" stroke="#fff" stroke-width="1"/>
+      <path d="M3.3 3.6C6.3 4 9.2 3.6 12 2.3c2.8 1.3 5.7 1.7 8.7 1.3-.1 1-.1 2-.1 2.9H3.4c0-.9 0-1.9-.1-2.9z" fill="#af1e2d"/>${text("#fff", 17.2)}`);
+  }
+  if (kind === "US") {
+    return wrap(`<path d="M4.2 2h15.6c.3 1.3.9 2.4 1.8 3.3-.9 2.3-.9 4.6 0 7-.6 5-3.9 8.3-9.6 10.3C6.3 20.6 3 17.3 2.4 12.3c.9-2.4.9-4.7 0-7C3.3 4.4 3.9 3.3 4.2 2z" fill="#fff" stroke="#111" stroke-width="1.3"/>${text("#111", 15.8)}`);
+  }
+  if (kind === "SR") {
+    return wrap(`<path d="M12 1.4c4.4 0 8.2 1 9.6 2.3.5 6.6-1.4 13.6-9.6 19C3.8 17.3 1.9 10.3 2.4 3.7 3.8 2.4 7.6 1.4 12 1.4z" fill="#00713f" stroke="#fff" stroke-width="1"/>${text("#fff", 15.6)}`);
+  }
+  return wrap(`<rect x="1.8" y="3.6" width="20.4" height="16.8" rx="5.5" fill="#fff" stroke="#111" stroke-width="1.3"/>${text("#111", 15.9)}`);
+}
 
 const LAND = [
   [900, [0.68, 0.62, 0.42]], [1500, [0.52, 0.53, 0.34]], [1900, [0.21, 0.37, 0.26]], [2300, [0.27, 0.40, 0.30]],
@@ -270,10 +289,9 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
   container.appendChild(overlay);
   const roadPoints = [];
   const roadPositions = [], roadIndex = [];
-  const shields = [];
+  const shields = [], roadLines = [];
   for (const road of roads) {
     const half = (MAJOR.has(road.route) ? 0.42 : 0.3);
-    let longest = null;
     for (const line of road.lines) {
       // Resample so the ribbon follows the terrain.
       const pts = [];
@@ -286,7 +304,7 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
         }
         pts.push([lon, lat]);
       }
-      if (!longest || pts.length > longest.length) longest = pts;
+      roadLines.push({route: road.route, pts});
       const startVertex = roadPositions.length / 3;
       pts.forEach(([lon, lat], i) => {
         const x = xOf(lon), y = yOf(lat), z = zOf(heightAt(lat, lon)) + ROAD_LIFT;
@@ -298,14 +316,33 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
         if (i) { const a = startVertex + 2 * (i - 1); roadIndex.push(a, a + 1, a + 2, a + 2, a + 1, a + 3); }
       });
     }
-    if (longest && longest.length > 8) {
-      const [lon, lat] = longest[Math.floor(longest.length * 0.5)];
-      const tag = document.createElement("div");
-      tag.className = "map-shield"; tag.textContent = road.route.replace(/^[A-Z]+-/, "");
-      overlay.appendChild(tag);
-      // Label each road at its point nearest the lake, so the shield sits inside the globe.
-      const near = longest.reduce((a, q) => (Math.hypot(xOf(q[0]) - lakeX, yOf(q[1]) - lakeY) < Math.hypot(xOf(a[0]) - lakeX, yOf(a[1]) - lakeY) ? q : a));
-      shields.push({tag, point: new THREE.Vector3(xOf(near[0]), yOf(near[1]), zOf(heightAt(near[1], near[0])) + 0.5), inside: inGlobe(xOf(near[0]), yOf(near[1]), globe ? 3 : DISC_FADE_KM)});
+  }
+
+  // Route shields in their real shapes, spaced along each road and kept clear of the resorts and each other.
+  // Short routes go first so they keep a spot.
+  const SHIELD_ORDER = ["SR-267", "NV-207", "NV-431", "SR-28", "NV-28", "I-80", "US-50", "SR-89", "SR-88", "US-395", "I-580", "SR-49", "SR-20", "SR-4"];
+  const placedShields = [];
+  for (const route of SHIELD_ORDER) {
+    for (const pts of roadLines.filter((line) => line.route === route).map((line) => line.pts).sort((a, b) => b.length - a.length)) {
+      const step = Math.round(SHIELD_EVERY_KM / 0.6);
+      // A short road gets one shield, at the first spot that is free.
+      const short = pts.length < step;
+      const picks = short ? (pts.length > 8 ? [0.5, 0.35, 0.65, 0.2, 0.8].map((f) => Math.floor(pts.length * f)) : [])
+        : Array.from({length: Math.floor(pts.length / step)}, (_, n) => Math.floor(step / 2) + n * step);
+      let placedHere = 0;
+      for (const index of picks) {
+        if (short && placedHere) break;
+        const [lon, lat] = pts[index], x = xOf(lon), y = yOf(lat);
+        if (cover(x, y) < 0.95) continue;
+        if (placedShields.some((q) => Math.hypot(q.x - x, q.y - y) < (q.route === route ? 18 : short ? 3.5 : 5))) continue;
+        if (data.resorts.some((r) => Math.hypot(xOf(r.lon) - x, yOf(r.lat) - y) < 2.2)) continue;
+        const tag = document.createElement("div");
+        tag.className = "map-shield"; tag.innerHTML = shieldSVG(route); tag.title = route;
+        overlay.appendChild(tag);
+        placedShields.push({route, x, y});
+        placedHere++;
+        shields.push({tag, point: new THREE.Vector3(x, y, zOf(heightAt(lat, lon)) + 0.5), inside: true});
+      }
     }
   }
   const roadColors = new Float32Array(roadPoints.length * 2 * 4);

@@ -16,7 +16,7 @@ FORMULA = [
                         "0.93 when it gets heavier by 2 or more, else 1.0."),
     ("Rain factor", "1 - 0.6 x the share of the storm's water that fell as rain here, "
                     "then x 0.6 if 2 mm or more of rain fell in the last 6 h."),
-    ("Timing factor", "0.95 + 0.10 x the share of the snow that fell between 4 pm and 9 am."),
+    ("Timing factor", "0.95 + 0.10 x the share of the snow that fell overnight, between 4 pm and 8 am."),
 ]
 
 

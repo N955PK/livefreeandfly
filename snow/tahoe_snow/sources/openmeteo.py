@@ -19,6 +19,7 @@ PREVIOUS_RUNS_URL = "https://previous-runs-api.open-meteo.com/v1/forecast"
 LEVEL_VARS = {"temperature": "t_c", "relative_humidity": "rh_pct", "wind_speed": "wind_kmh",
               "geopotential_height": "height_m"}
 PROFILE_SURFACE_VARS = ["precipitation", "temperature_2m"]
+FORECAST_SURFACE_VARS = PROFILE_SURFACE_VARS + ["cloud_cover", "wind_gusts_10m"]
 SURFACE_VARS = ["precipitation", "temperature_2m", "relative_humidity_2m", "wind_speed_10m", "wind_gusts_10m",
                 "surface_pressure"]
 

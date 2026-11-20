@@ -100,6 +100,8 @@ def model_snow(frame: pd.DataFrame, model: str, resort, snow_model: SnowModel, t
         result = snow_model.snowfall(hourly, liquid, elev_m)
         result["wind_ms"] = hourly["wind0"]
         result["temp_c"] = hourly["t0"]
+        result["cloud_pct"] = profile["cloud_cover"] if "cloud_cover" in profile else np.nan
+        result["gust_ms"] = profile["wind_gusts_10m"] / 3.6 if "wind_gusts_10m" in profile else np.nan
         # Snow per mm of liquid at each temperature offset, for converting ensemble members.
         per_mm = np.column_stack([
             (lambda r: (r["snow_fraction"] * r["slr"] / 10.0).to_numpy())(
@@ -145,14 +147,42 @@ def window_sum(frame: pd.DataFrame, start: pd.Timestamp, hours: tuple) -> pd.Ser
     return piece.sum().where(piece.notna().sum() >= 0.9 * expected)
 
 
-def day_part(hourly: pd.DataFrame, summit: pd.DataFrame, day: pd.Timestamp) -> dict:
-    """Powder-score inputs for the ski day ``day``: snow from 4 pm the day before to 4 pm that day."""
-    end = (day + pd.Timedelta(hours=16)).tz_localize(TZ).tz_convert("UTC").tz_localize(None)
-    start = end - pd.Timedelta(hours=24)
+SKI_DAY_START_H, SKI_DAY_END_H = 8, 16
+
+
+def day_part(hourly: pd.DataFrame, summit: pd.DataFrame, day: pd.Timestamp, members: pd.DataFrame | None = None,
+             recenter: bool = True) -> dict:
+    """The ski day ``day``: snow from 4 pm the day before to 4 pm that day, split into overnight and daytime,
+    with the powder score and the conditions during lift hours (8 am to 4 pm)."""
+    def utc(hour: int, back_days: int = 0) -> pd.Timestamp:
+        local = day - pd.Timedelta(days=back_days) + pd.Timedelta(hours=hour)
+        return local.tz_localize(TZ).tz_convert("UTC").tz_localize(None)
+
+    start, opening, end = utc(SKI_DAY_END_H, back_days=1), utc(SKI_DAY_START_H), utc(SKI_DAY_END_H)
     piece = hourly.loc[(hourly.index > start) & (hourly.index <= end)]
+    lifts = hourly.loc[(hourly.index > opening) & (hourly.index <= end)]
+    out = {"snow_in": 0.0, "score": 0.0}
+    if len(lifts) >= 6:
+        def mean(column, scale=1.0, shift=0.0):
+            value = lifts[column].mean()
+            return None if not np.isfinite(value) else round(float(value) * scale + shift)
+
+        gust = lifts["gust_ms"].max()
+        out.update({"wind_mph": mean("wind_ms", MPH_PER_MS), "sky_pct": mean("cloud_pct"),
+                    "gust_mph": None if not np.isfinite(gust) else round(float(gust) * MPH_PER_MS),
+                    "temp_f": mean("temp_c", 1.8, 32.0),
+                    "snowing_hours": int((lifts["snow_cm"].fillna(0.0) > 0.1).sum())})
     snow = piece["snow_cm"].fillna(0.0)
-    if len(piece) < 20 or snow.sum() < 0.25:
-        return {"snow_in": 0.0, "score": 0.0}
+    if len(piece) < 20:
+        return out
+    night = float(snow[piece.index <= opening].sum())
+    out.update({"night_in": round(night / CM_PER_IN, 1), "day_in": round((float(snow.sum()) - night) / CM_PER_IN, 1)})
+    if members is not None and len(members.columns):
+        window = members.loc[(members.index > start) & (members.index <= end)]
+        totals = window.sum().where(window.notna().sum() >= 20)
+        out["pm_in"] = spread(float(snow.sum()), totals, recenter)["pm_in"]
+    if snow.sum() < 0.25:
+        return out
     slr = float((piece["slr"] * snow).sum() / snow.sum())
     half = len(piece) // 2
     first, second = piece.iloc[:half], piece.iloc[half:]
@@ -166,16 +196,16 @@ def day_part(hourly: pd.DataFrame, summit: pd.DataFrame, day: pd.Timestamp) -> d
     windy = summit.loc[(summit.index > start) & (summit.index <= last_snow + pd.Timedelta(hours=12)), "wind_ms"]
     liquid = piece["liquid_mm"].fillna(0.0)
     rain = liquid * (1 - piece["snow_fraction"].fillna(1.0))
-    local_hour = piece.index.tz_localize("UTC").tz_convert(TZ).hour
-    overnight = snow[(local_hour >= 16) | (local_hour < 9)].sum() / snow.sum()
     part = powder.DayPart(snow_in=float(snow.sum() / CM_PER_IN), slr=slr,
                           slr_change=0.0 if np.isnan(change) else change,
                           ridge_wind_mph=float(windy.mean() * MPH_PER_MS) if len(windy) else 0.0,
                           rain_share=float(rain.sum() / liquid.sum()) if liquid.sum() > 0 else 0.0,
-                          late_rain_mm=float(rain.iloc[-6:].sum()), overnight_share=float(overnight))
-    return {"snow_in": round(part.snow_in, 1), "slr": round(slr, 1), "slr_change": round(part.slr_change, 1),
-            "ridge_wind_mph": round(part.ridge_wind_mph), "rain_share": round(part.rain_share, 2),
-            "overnight_share": round(part.overnight_share, 2), "score": round(powder.score(part), 1)}
+                          late_rain_mm=float(rain.iloc[-6:].sum()),
+                          overnight_share=float(night / snow.sum()))
+    out.update({"snow_in": round(part.snow_in, 1), "slr": round(slr, 1), "slr_change": round(part.slr_change, 1),
+                "ridge_wind_mph": round(part.ridge_wind_mph), "rain_share": round(part.rain_share, 2),
+                "overnight_share": round(part.overnight_share, 2), "score": round(powder.score(part), 1)})
+    return out
 
 
 def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
@@ -244,7 +274,7 @@ def _round(values, digits=1) -> list:
 def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp, weights: dict) -> tuple:
     """Site payload and archive rows for one resort."""
     today = now.tz_localize("UTC").tz_convert(TZ).tz_localize(None).normalize()
-    variables = openmeteo.PROFILE_SURFACE_VARS + openmeteo.level_variables()
+    variables = openmeteo.FORECAST_SURFACE_VARS + openmeteo.level_variables()
     frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS, variables, days=DAYS)
     models = {}
     for model, frame in frames.items():
@@ -278,7 +308,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
         snow = pd.DataFrame({m: r[label]["hourly"]["snow_cm"] for m, r in models.items()}).reindex(hours)
         fields = {name: blend.weighted_mean(
             pd.DataFrame({m: r[label]["hourly"][name] for m, r in models.items()}).reindex(hours), weights)
-            for name in ("snow_cm", "liquid_mm", "slr", "snow_fraction", "snow_level_m", "wind_ms", "temp_c")}
+            for name in ("snow_cm", "liquid_mm", "slr", "snow_fraction", "snow_level_m", "wind_ms", "temp_c",
+                         "cloud_pct", "gust_ms")}
         blended = pd.DataFrame(fields)
         if label == "summit":
             summit_blend = blended
@@ -308,7 +339,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                      "prob_6in": stats["prob_6in"], "prob_12in": stats["prob_12in"],
                      "by_model": {m: _round([by_model.loc[day, m] / CM_PER_IN])[0] for m in by_model.columns},
                      "past": bool(day < today),
-                     "powder": day_part(blended, summit_blend if summit_blend is not None else blended, day)}
+                     "powder": day_part(blended, summit_blend if summit_blend is not None else blended, day,
+                                        members, recenter=lead <= DETERMINISTIC_DAYS)}
             days.append(entry)
             for model in by_model.columns:
                 archive.append({"resort": resort.key, "elevation": label, "date": entry["date"], "lead_day": lead,
@@ -323,6 +355,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
             "hourly": {"snow_in": _round(blended["snow_cm"] / CM_PER_IN, 2), "slr": _round(blended["slr"]),
                        "snow_level_ft": _round(blended["snow_level_m"] / M_PER_FT, -1),
                        "wind_mph": _round(blended["wind_ms"] * MPH_PER_MS, 0),
+                       "gust_mph": _round(blended["gust_ms"] * MPH_PER_MS, 0),
+                       "cloud_pct": _round(blended["cloud_pct"], 0),
                        "temp_f": _round(blended["temp_c"] * 1.8 + 32, 0)}}
     payload["hours_utc"] = [h.strftime("%Y-%m-%dT%H:00:00Z") for h in hours]
     return payload, archive
