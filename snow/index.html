@@ -484,14 +484,16 @@ let HOME = "palisades";
 const homeOf = (key) => remembered(`${HOME_KEY}.${key}`) || (key === "tahoe" ? remembered() : null) || REGIONS[key].pick;
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME, region = "tahoe";
 // What differs between regions: the map's data files and framing (see createMap), the Caltrans districts whose
-// chain-control feeds cover it, and its avalanche centers (the first is the one the pane at the bottom reports).
+// chain-control feeds cover it (and closureFeeds, their lane-closure feeds, where the passes shut for the winter:
+// the chain-control feed does not report those), and its avalanche centers (the first is the one the pane at the bottom reports).
+const CALTRANS_CLOSURES = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/lcs/lcsStatusD${String(district).padStart(2, "0")}.json`;
 const CALTRANS = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/cc/ccStatusD${String(district).padStart(2, "0")}.json`;
 const REGIONS = {
   tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897, pick: "palisades",
     lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
     avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/"}]},
   mammoth: {name: "Mammoth", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.34, -118.84], rev: "?v=2", discKm: 115, look: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 72, pick: "mammoth",
-    lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)],
+    lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)], closureFeeds: [CALTRANS_CLOSURES(9)],
     // East of the crest the low ground is sagebrush, not forest.
     land: [[1300, [0.72, 0.66, 0.48]], [2000, [0.62, 0.60, 0.42]], [2350, [0.36, 0.44, 0.30]], [2800, [0.27, 0.40, 0.30]],
       [3200, [0.55, 0.53, 0.48]], [3800, [0.72, 0.70, 0.67]]],
@@ -871,6 +873,22 @@ const tidy = (name) => name.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").replace
 // California roads whose number is also a different road in Nevada.
 const ROAD_ALSO = {207: "Bear Valley"};
 const roadLabel = (n) => `<b>${esc(n)}</b>${ROAD_ALSO[n] ? ` (${ROAD_ALSO[n]})` : ""}`;
+// Winter closures are reported by their gates; the pass between them is the name people know.
+const PASS_NAMES = [["Tioga Pass", 37.911, -119.258], ["Sonora Pass", 38.328, -119.637], ["Monitor Pass", 38.676, -119.62], ["Minaret Summit", 37.654, -119.06]];
+const CLOSURE_STEP_KM = 4;
+// Whole-road closures now in effect from a Caltrans lane-closure feed: [{route, ends: [[lat, lon], [lat, lon]], names, place, winter, since}].
+function fullClosures(feed) {
+  const out = [];
+  for (const {lcs} of (feed && feed.data) || []) {
+    const c = lcs.closure, {begin, end} = lcs.location;
+    if (c.typeOfClosure !== "Full" || !/hwy|highway|freeway|expressway/i.test(c.facility) || c.code1097.isCode1097 !== "true" || c.code1098.isCode1098 === "true") continue;
+    const ends = [[+begin.beginLatitude, +begin.beginLongitude], [+end.endLatitude, +end.endLongitude]];
+    if (ends.flat().some((v) => !v) || out.some((o) => o.route === begin.beginRoute && Math.hypot(o.ends[0][0] - ends[0][0], o.ends[0][1] - ends[0][1]) < 0.01)) continue;
+    out.push({route: begin.beginRoute, ends, names: [begin.beginLocationName, end.endLocationName].map((n) => n.trim()), place: begin.beginNearbyPlace || end.endNearbyPlace,
+      winter: /winter|weather/i.test(c.typeOfWork), since: new Date(c.closureTimestamp.closureStartEpoch * 1000)});
+  }
+  return out;
+}
 const BOUND = {North: "northbound", South: "southbound", East: "eastbound", West: "westbound"};
 // Nevada's feed needs a key, so a scheduled job reads it and publishes the result; anything older than
 // NEVADA_FRESH_MIN is treated as missing rather than shown out of date.
@@ -883,9 +901,11 @@ async function nevadaRoads() {
   } catch (error) { return null; }
 }
 async function loadRoads() {
-  const asked = region, {chainFeeds} = REGIONS[region], center = REGIONS[region].look || REGIONS[region].center, kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180);
+  const asked = region, {chainFeeds, closureFeeds = []} = REGIONS[region], center = REGIONS[region].look || REGIONS[region].center, kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180);
   try {
-    const [nevada, ...feeds] = await Promise.all([nevadaRoads(), ...chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()))]);
+    const [nevada, shut, ...feeds] = await Promise.all([nevadaRoads(),
+      Promise.all(closureFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()).catch(() => null))).then((list) => list.flatMap(fullClosures)),
+      ...chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()))]);
     if (asked !== region || !map) return;
     const points = [];
     for (const feed of feeds) for (const {cc} of feed.data) {
@@ -895,7 +915,12 @@ async function loadRoads() {
       points.push({route: cc.location.route, lat: +cc.location.latitude, lon: +cc.location.longitude, status, level, name: cc.location.locationName,
         direction: cc.location.direction, mile: +cc.location.milepost || +cc.location.postmile || 0, since: t.statusDate ? new Date(`${t.statusDate}T${t.statusTime || "00:00:00"}-08:00`) : null});
     }
-    map.setRoadStatus(nevada ? points.concat(nevada.points) : points);
+    // A closed stretch is painted from points strung between its gates, with one sign at its start.
+    const stretches = shut.flatMap(({route, ends: [[lat0, lon0], [lat1, lon1]], names}) => {
+      const steps = Math.max(1, Math.ceil(Math.hypot((lat1 - lat0) * 111, (lon1 - lon0) * kmPerLon) / CLOSURE_STEP_KM));
+      return Array.from({length: steps + 1}, (_, n) => ({route, lat: lat0 + (lat1 - lat0) * n / steps, lon: lon0 + (lon1 - lon0) * n / steps, status: "closed", name: names[0], sign: n === 0}));
+    });
+    map.setRoadStatus(points.concat(stretches, nevada ? nevada.points : []));
     const km = (p) => Math.hypot((p.lat - center[0]) * 111, (p.lon - center[1]) * kmPerLon);
     const near = points.filter((p) => km(p) <= ROADS_WITHIN_KM), number = (route) => route.replace(/^[A-Z]+-/, "");
     const since = (list) => {
@@ -926,6 +951,15 @@ async function loadRoads() {
         closures.push({recent: started && Date.now() - started < 2 * 864e5, route: number(route),
           html: `<li>${roadLabel(number(route))} closed ${esc(where)}${pass ? ` (${esc(tidy(pass))})` : ""}${since(g)}</li>`});
       }
+    }
+    for (const {route, ends, names, place, winter, since: started} of shut) {
+      const spots = ends.map(([lat, lon]) => ({lat, lon}));
+      if (!spots.some((p) => km(p) <= ROADS_WITHIN_KM + 15)) continue;
+      const pass = PASS_NAMES.find(([, lat, lon]) => spots.some((p) => Math.hypot((p.lat - lat) * 111, (p.lon - lon) * kmPerLon) < 4));
+      const named = names.every((n) => n && !/^route\b/i.test(n)) && names[0] !== names[1];
+      const where = named ? `between ${tidy(names[0])} and ${tidy(names[1])}` : place ? `near ${place}` : "";
+      closures.push({recent: Date.now() - started < 2 * 864e5, route: number(route),
+        html: `<li>${roadLabel(number(route))} closed${winter ? " for the winter" : ""} ${esc(where)}${pass ? ` (${pass[0]})` : ""}${since([{since: started}])}</li>`});
     }
     // Chain controls: for each road and direction, the first and last control point in the direction of travel.
     const chains = [];

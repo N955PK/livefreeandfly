@@ -648,7 +648,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     setTime(value) { time = Math.max(0, Math.min(steps - 1, value)); },
     setElevation(value) { level = value; cumulative = series(); paintedAt = -1; },
     select(key) { picked = key; paintedAt = -1; },
-    // controlPoints: [{route, lat, lon, status: "chains" | "closed", name}] from the Caltrans chain-control feed.
+    // controlPoints: [{route, lat, lon, status: "chains" | "closed", name}] from the Caltrans feeds; a closed
+    // point with sign: false colors the road without getting a sign of its own.
     setRoadStatus(controlPoints) {
       const byRoute = {};
       for (const point of controlPoints) (byRoute[point.route] ||= []).push({...point, x: xOf(point.lon), y: yOf(point.lat)});
@@ -668,7 +669,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       });
       for (const closure of closures) closure.tag.remove();
       closures.length = 0;
-      for (const point of controlPoints.filter((p) => p.status === "closed")) {
+      for (const point of controlPoints.filter((p) => p.status === "closed" && p.sign !== false)) {
         const x = xOf(point.lon), y = yOf(point.lat);
         if (!inGlobe(x, y, globe ? 1 : DISC_FADE_KM * 0.6)) continue;
         if (closures.some((c) => c.route === point.route && Math.hypot(c.x - x, c.y - y) < 6)) continue;
