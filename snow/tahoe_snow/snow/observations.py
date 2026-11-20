@@ -1,8 +1,8 @@
 """Bulk station tables used to train and test the snow model."""
 import pandas as pd
 
-from tahoe_snow.config import SIERRA_BBOX, STATIONS, TABLES
-from tahoe_snow.sources import ghcn, snotel
+from tahoe_snow.config import MAMMOTH_STATIONS, SIERRA_BBOX, STATIONS, TABLES
+from tahoe_snow.sources import cdec, ghcn, snotel
 
 MANUAL_START = "1979-01-01"
 SNOTEL_START = "1998-10-01"
@@ -27,6 +27,24 @@ def pull_manual(end: str) -> tuple:
     stations.to_parquet(TABLES / "manual_stations.parquet")
     table.to_parquet(TABLES / "manual_daily.parquet")
     return stations, table
+
+
+def pull_mammoth(end: str, start: str = "2020-10-01") -> pd.DataFrame:
+    """Daily gains at the snow sensors around Mammoth: pillow water at the CDEC sites, the usual set at SNOTEL."""
+    frames = []
+    for station in MAMMOTH_STATIONS.values():
+        if station.source == "cdec":
+            raw = cdec.daily(station.triplet.split(":")[0], start, end)
+            gains = cdec.pillow_gains(raw["swe_mm"]).rename_axis("date").reset_index()
+        else:
+            gains = snotel.daily_gains(snotel.daily(station.triplet, start, end)).reset_index()
+        gains.insert(0, "station", station.triplet)
+        frames.append(gains)
+        print(f"{station.triplet} {station.name}: {len(gains)} days", flush=True)
+    table = pd.concat(frames, ignore_index=True)
+    TABLES.mkdir(parents=True, exist_ok=True)
+    table.to_parquet(TABLES / "mammoth_daily.parquet")
+    return table
 
 
 def pull_snotel(end: str) -> pd.DataFrame:

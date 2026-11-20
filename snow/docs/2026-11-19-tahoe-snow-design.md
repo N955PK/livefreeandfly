@@ -231,11 +231,40 @@ Sean asked for these on 2026-11-19, after the design above; they replace the
   backcountry), and a pass group. For a backcountry peak the summit is the
   peak and the base is the usual winter trailhead; both were read from the
   Terrain Tiles elevation model.
-- The Mammoth region has no SNOTEL station nearby. Its four locations have no
-  measured depth, and their water is corrected with the map pooled over the
-  Tahoe stations, which has not been tested there. The page says so.
+- Mammoth's water is corrected with Mammoth's own sensors (see the next section); the Tahoe map is not used
+  there.
 - The snow-ratio model was trained on stations up to 2,685 m; Mammoth's summit
   (3,369 m) is further above that than any Tahoe summit.
 - The page reads each avalanche center's rating and forecast from avalanche.org
   in the browser. It is a pointer to the center's forecast, never a substitute.
 - Eighteen locations use roughly 6,800 of Open-Meteo's 10,000 daily calls.
+
+## Added later: Mammoth's own water correction
+
+Sean asked on 2026-11-19 for the Mammoth forecast to use Mammoth data. What the data showed, and what is now in
+use:
+
+- Sensors. The area has one SNOTEL site (Virginia Lakes Ridge) and a set of California Data Exchange Center
+  (CDEC) snow pillows; Mammoth Pass sits 2 km south of Mammoth's summit. NRCS mirrors only a slice of the CDEC
+  record, so there is a CDEC reader. CDEC dates a daily value by the midnight that starts the day (checked
+  against its hourly readings and against the models: the correlation peaks at zero lag).
+- Water record. The CDEC precipitation gauges do not track their pillows (correlation 0.1 to 0.3, half the
+  total), so the pillow is the record. Raw pillow readings jitter, and adding every daily rise overstates a
+  week's water by about 20 %; a three-day median plus a 5 mm dead band holds that within a few percent. A
+  station-day with 25 mm or more that no model had, that day or the days beside it, is dropped as a sensor
+  step (10 of 6,560).
+- The Tahoe map was wrong for Mammoth. Applied to these stations on held-out winters (2024 to 2026) it was
+  worse than no correction: 3-day error 0.52 in against 0.45, and 13 % too wet at Mammoth Pass.
+- In use: a correction fitted to ten stations around Mammoth, kept in its own file (`models/bias_mammoth.json`)
+  so the Tahoe stations and the Mammoth stations are pooled only among themselves; Tahoe's file is unchanged.
+  Over those stations it cuts daily and 3-day error by about 7 % against the raw four-model average.
+- Mammoth Mountain and Sherwin Ridge use Mammoth Pass's map. At Mammoth Pass alone the blend is a tie with
+  raw (daily 0.20 against 0.21 in, 3-day 0.42 against 0.41), because the models' errors there offset: GFS
+  runs 32 % wet, GEM 30 % dry. The map is used anyway because it makes each model right on its own, so the
+  blend does not depend on that offset when a model is missing.
+- June Mountain and Carson Peak have no working sensor nearby (Gem Pass and Agnew Pass stopped reporting)
+  and are left uncorrected. Gem Pass's 2022 and 2023 record says a map borrowed from Mammoth Pass or pooled
+  over the area would make them worse (the models run dry there, and those maps dry them further).
+- A place with no station now gets no correction at all, where it used to get the pooled map.
+- Mammoth Pass's depth gauge is unreliable, so the page shows its water alone.
+- Not done: the snow-ratio model is unchanged, and the blend weights are still the Tahoe ones.

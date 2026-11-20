@@ -39,6 +39,22 @@ def scorecard() -> dict:
          "rows": [[label, f"{100 * water.loc[key, 'total f/o']:.0f}%", f"{water.loc[key, 'daily err in']:.2f}",
                    f"{water.loc[key, '3-day err in']:.2f}", f"{water.loc[key, '3-day 2in+ err']:.2f}"]
                   for key, label in WATER_ROWS.items()]},
+    ]
+    mammoth = TABLES / "bias_methods_mammoth.csv"
+    if mammoth.exists():
+        water = pd.read_csv(mammoth).groupby("method").mean(numeric_only=True)
+        sections.append(
+            {"title": "Water, Mammoth area.",
+             "note": "The same test against 10 snow sensors along the crest around Mammoth, on the 2024, 2025, and "
+                     "2026 winters held out in turn. Mammoth Mountain and Sherwin Ridge use the Mammoth Pass sensor; "
+                     "June Mountain and Carson Peak have no working sensor nearby and are left uncorrected.",
+             "columns": ["Method", "Total vs measured", "Daily error (in)", "3-day error (in)",
+                         "3-day error, 2 in+ storms (in)"],
+             "rows": [[label.replace(" (in use)", " (in use where a sensor is near)"),
+                       f"{100 * water.loc[key, 'total f/o']:.0f}%", f"{water.loc[key, 'daily err in']:.2f}",
+                       f"{water.loc[key, '3-day err in']:.2f}", f"{water.loc[key, '3-day 2in+ err']:.2f}"]
+                      for key, label in WATER_ROWS.items()]})
+    sections += [
         {"title": "Live forecasts.",
          "note": "Every forecast this page shows is archived and will be graded against the stations by lead "
                  "day as it comes due, including the ranges. That table starts filling in after the first week.",

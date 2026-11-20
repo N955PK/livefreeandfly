@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 
 from tahoe_snow import biascorrect, blend, powder
-from tahoe_snow.config import DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, RESORTS, STATIONS
+from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, RESORTS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
-from tahoe_snow.sources import openmeteo, snotel
+from tahoe_snow.sources import cdec, openmeteo, snotel
 
 TZ = "America/Los_Angeles"
 DAYS = 10
@@ -40,9 +40,14 @@ def load_snow_model() -> tuple:
         return SnowModel(ratio.Kuchera(), kind, params), "Kuchera (trained model not yet fitted)"
 
 
-def load_correction() -> biascorrect.Correction | None:
-    path = MODELS / "bias.json"
-    return biascorrect.from_json(json.loads(path.read_text())) if path.exists() else None
+def load_corrections() -> dict:
+    """The liquid correction for each region that has one fitted (bias.json for Tahoe, bias_<region>.json)."""
+    out = {}
+    for region in {resort.region for resort in RESORTS.values()}:
+        path = MODELS / ("bias.json" if region == "tahoe" else f"bias_{region}.json")
+        if path.exists():
+            out[region] = biascorrect.from_json(json.loads(path.read_text()))
+    return out
 
 
 def load_weights() -> dict:
@@ -74,8 +79,12 @@ def local_days(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
 
 def corrected_liquid(precip: pd.Series, model: str, station: str | None, today: pd.Timestamp,
                      correction: biascorrect.Correction | None) -> pd.Series:
-    """Hourly liquid scaled so each local day's total equals the bias-corrected total."""
-    if correction is None:
+    """Hourly liquid scaled so each local day's total equals the bias-corrected total.
+
+    A place with no station is left as the models have it: a map borrowed from other stations did no better
+    than that in testing, and at Gem Pass it did worse.
+    """
+    if correction is None or station is None:
         return precip
     days = local_days(precip.index)
     totals = precip.groupby(days).transform("sum")
@@ -239,17 +248,23 @@ def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
 
 
 def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
-    """What the resort's SNOTEL station has measured: the latest readings, three-day gains, and the hourly
-    depth over the page's history window (settled depth, not board totals). None without a paired station."""
+    """What the resort's snow sensor has measured: the latest readings, three-day gains, and the hourly
+    depth over the page's history window (settled depth, not board totals). None without a paired station.
+    A sensor with no usable depth gauge reports water alone; the depth fields are then None."""
     if resort.station is None:
         return None
-    station = STATIONS[resort.station]
+    station = ALL_STATIONS[resort.station]
     start = (hours[0] - pd.Timedelta(hours=24 + snotel_offset_h())).strftime("%Y-%m-%d")
+    end = (now + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
     try:
-        frame = snotel.hourly(station.triplet, start, (now + pd.Timedelta(days=1)).strftime("%Y-%m-%d"), max_age_h=1.0)
-    except RuntimeError:
+        frame = cdec.hourly(station.triplet.split(":")[0], start, end, max_age_h=1.0) if station.source == "cdec" \
+            else snotel.hourly(station.triplet, start, end, max_age_h=1.0)
+    except (RuntimeError, ValueError):
         return None
-    frame = frame.dropna(subset=["depth_cm"])
+    frame = frame.reindex(columns=["depth_cm", "swe_mm", "tobs_c"])
+    if not station.depth:
+        frame["depth_cm"] = np.nan
+    frame = frame.dropna(subset=["depth_cm", "swe_mm"], how="all")
     if frame.empty:
         return None
     frame.index = frame.index + pd.Timedelta(hours=snotel_offset_h())   # station clock (PST) to UTC
@@ -258,15 +273,25 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
 
     def gain(column: str, hours: int) -> float | None:
         window = frame.loc[frame.index >= last - pd.Timedelta(hours=hours), column].dropna()
-        return None if len(window) < 2 else float(window.iloc[-1] - window.iloc[0])
+        # The readings must reach both ends of the window, or the gain is over some shorter time.
+        slack = pd.Timedelta(hours=6)
+        start = last - pd.Timedelta(hours=hours)
+        if len(window) < 2 or window.index[0] > start + slack or window.index[-1] < last - slack:
+            return None
+        return float(window.iloc[-1] - window.iloc[0])
 
     def inches(value, per_inch: float, digits: int = 0):
         return None if value is None or not np.isfinite(value) else round(value / per_inch, digits)
 
     temp = frame["tobs_c"].dropna()
+    # A depth sensor that has been silent for six hours is not a current reading.
+    depth = frame["depth_cm"].dropna()
+    depth = depth[depth.index >= last - pd.Timedelta(hours=6)]
     return {"station": station.name, "elevation_ft": int(round(station.elev_m / M_PER_FT, -1)),
             "as_of_utc": last.strftime("%Y-%m-%dT%H:00:00Z"),
-            "depth_in": inches(float(frame["depth_cm"].iloc[-1]), 2.54),
+            "depth_in": None if depth.empty else inches(float(depth.iloc[-1]), 2.54),
+            "water_in": inches(None if frame["swe_mm"].dropna().empty else float(frame["swe_mm"].dropna().iloc[-1]),
+                               MM_PER_IN, 1),
             "depth_gain_24h_in": inches(gain("depth_cm", 24), 2.54),
             "depth_gain_72h_in": inches(gain("depth_cm", 72), 2.54),
             "water_gain_24h_in": inches(gain("swe_mm", 24), MM_PER_IN, 1),
@@ -276,8 +301,9 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
 
 
 def water_correction(resort, correction) -> str | None:
-    """Which liquid correction the resort gets: its station's own curve, or the one pooled over all stations."""
-    if correction is None:
+    """Which liquid correction the resort gets: its station's own curve, the one pooled over its region's
+    stations, or none."""
+    if correction is None or resort.station is None:
         return None
     return "station" if correction.fitted(resort.station) else "pooled"
 
@@ -320,7 +346,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                           freq="h")
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
                "region": resort.region, "kind": resort.kind, "pass": resort.pass_group,
-               "station": STATIONS[resort.station].name if resort.station else None,
+               "station": ALL_STATIONS[resort.station].name if resort.station else None,
                "weak_station_match": resort.weak_match, "water_correction": water_correction(resort, correction),
                "observed": observed(resort, now, hours), "elevations": {},
                "models": list(models)}
@@ -387,12 +413,12 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
 def run(now: datetime | None = None) -> dict:
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
     snow_model, ratio_name = load_snow_model()
-    correction = load_correction()
+    corrections = load_corrections()
     weights = load_weights()
     resorts, archive, failed = [], [], []
     for resort in RESORTS.values():
         try:
-            payload, rows = resort_forecast(resort, snow_model, correction, now, weights=weights)
+            payload, rows = resort_forecast(resort, snow_model, corrections.get(resort.region), now, weights=weights)
             resorts.append(payload)
             archive.extend(rows)
             print(f"{resort.name}: {payload['elevations']['summit']['windows']['next72']}", flush=True)
@@ -403,7 +429,7 @@ def run(now: datetime | None = None) -> dict:
         raise SystemExit("no resort forecast could be produced")
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"), "snow_ratio_model": ratio_name,
                 "rain_snow_split": {"kind": snow_model.phase_kind, "params": snow_model.phase_params},
-                "bias_corrected": correction is not None, "deterministic_days": DETERMINISTIC_DAYS,
+                "bias_corrected": "tahoe" in corrections, "deterministic_days": DETERMINISTIC_DAYS,
                 "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts}
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "forecast.json").write_text(json.dumps(forecast, separators=(",", ":")))

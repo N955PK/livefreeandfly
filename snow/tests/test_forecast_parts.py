@@ -3,8 +3,9 @@ import json
 import numpy as np
 import pandas as pd
 
-from tahoe_snow import biascorrect, blend, pipeline, powder
-from tahoe_snow.config import RESORTS, STATIONS
+from tahoe_snow import biascorrect, blend, calibrate, pipeline, powder
+from tahoe_snow.config import ALL_STATIONS, RESORTS
+from tahoe_snow.sources import cdec, snotel
 
 
 def _pairs(bias=1.0, n=400, station="a", seed=0, model="gfs", lead=1):
@@ -110,18 +111,69 @@ def test_robust_mean_ignores_one_runaway_model():
     assert np.allclose(blend.robust_mean(calm), 1.0)
 
 
-def test_resort_without_a_station_gets_the_pooled_correction_and_no_observation():
+def test_resort_without_a_station_is_left_uncorrected_and_has_no_observation():
     pairs = pd.concat([_pairs(bias=1.0, n=2000, station="big"), _pairs(bias=0.5, n=400, station="dry", seed=1)])
     correction = biascorrect.fit(pairs)
-    values = np.array([10.0, 30.0])
-    assert np.allclose(correction.apply("gfs", None, 1, values), correction.apply("gfs", "never_seen", 1, values))
     assert correction.fitted("dry") and not correction.fitted(None)
-    mammoth = RESORTS["mammoth"]
-    assert mammoth.station is None
-    assert pipeline.water_correction(mammoth, correction) == "pooled"
-    assert pipeline.water_correction(mammoth, None) is None
-    hours = pd.date_range("2026-11-12", periods=48, freq="h")
-    assert pipeline.observed(mammoth, hours[-1], hours) is None
+    june = RESORTS["june"]
+    assert june.station is None
+    assert pipeline.water_correction(june, correction) is None
+    assert pipeline.water_correction(RESORTS["mammoth"], None) is None
+    index = pd.date_range("2026-01-02 08:00", periods=48, freq="h")
+    precip = pd.Series(1.0, index=index)
+    today = pd.Timestamp("2026-01-02")
+    assert pipeline.corrected_liquid(precip, "gfs", None, today, correction).equals(precip)
+    assert not np.allclose(pipeline.corrected_liquid(precip, "gfs", "dry", today, correction), precip)
+    assert pipeline.observed(june, index[-1], index) is None
+
+
+def test_cdec_daily_rows_are_dated_like_snotel_and_converted(monkeypatch):
+    payload = [{"SENSOR_NUM": 3, "date": f"2026-01-{day:02d} 00:00", "value": value}
+               for day, value in [(10, 1.0), (11, 1.0), (12, 2.5), (13, -9999)]]
+    payload.append({"SENSOR_NUM": 18, "date": "2026-01-12 00:00", "value": 30})
+    frame = cdec.parse(payload, cdec.DAILY_SENSORS)
+    assert abs(frame.loc["2026-01-12", "swe_mm"] - 63.5) < 1e-9
+    assert abs(frame.loc["2026-01-12", "depth_cm"] - 76.2) < 1e-9
+    assert pd.Timestamp("2026-01-13") not in frame.index
+    # CDEC's value dated the 12th was read at the midnight that starts the 12th, so it closes out the 11th.
+    monkeypatch.setattr(cdec, "_fetch", lambda *args: payload)
+    gains = snotel.daily_gains(cdec.daily("MHP", "2026-01-10", "2026-01-13"))
+    assert abs(gains.loc["2026-01-11", "swe_gain_mm"] - 38.1) < 1e-9
+
+
+def test_pillow_gains_ignore_jitter_and_spikes_but_keep_storms():
+    days = pd.date_range("2026-01-01", periods=14)
+    # Quiet, jitter, a two-day storm, a one-day spike, a real loss of 11 mm, then more snow.
+    swe = pd.Series([100.0, 100, 103, 99, 101, 131, 151, 151, 400, 151, 140, 140, 160, 160], index=days)
+    gains = cdec.pillow_gains(swe)
+    assert abs(gains.sum() - (151 - 100 + 160 - 145)) < 3      # the two storms, give or take the jitter
+    assert gains.max() <= 31                                      # the 400 mm spike is not a storm
+    assert gains.loc["2026-01-06"] > 20 and gains.loc["2026-01-13"] == 15
+    gap = swe.copy()
+    gap.iloc[5:7] = np.nan
+    assert cdec.pillow_gains(gap).reindex(days[5:8]).isna().all()   # no gain is credited across missing days
+
+
+def test_phantom_station_days_are_dropped():
+    days = pd.date_range("2026-01-01", periods=6)
+    table = pd.DataFrame({"model": "gfs", "station": "a", "date": days,
+                          "forecast_mm": [0.0, 0.0, 0.0, 0.0, 30.0, 0.0],
+                          "observed_mm": [0.0, 60.0, 0.0, 40.0, 35.0, 30.0]})
+    kept = calibrate.without_phantoms(table)
+    # The 2nd is a sensor step (no model had anything near it); the 4th and 6th sit beside a real storm day.
+    assert list(kept["date"].dt.day) == [1, 3, 4, 5, 6]
+
+
+def test_observed_reports_water_when_the_sensor_has_no_depth(monkeypatch):
+    hours = pd.date_range("2026-01-01", periods=96, freq="h")
+    now = hours[-1]
+    pst = pd.date_range(hours[0] - pd.Timedelta(hours=40), periods=140, freq="h")
+    frame = pd.DataFrame({"swe_mm": np.linspace(100.0, 200.0, len(pst)), "depth_cm": 43.2, "tobs_c": -5.0}, index=pst)
+    monkeypatch.setattr(cdec, "hourly", lambda *args, **kwargs: frame)
+    out = pipeline.observed(RESORTS["mammoth"], now, hours)
+    assert out["station"] == "Mammoth Pass" and out["depth_in"] is None and out["depth_gain_72h_in"] is None
+    assert out["water_in"] is not None and out["water_gain_72h_in"] > out["water_gain_24h_in"] > 0
+    assert out["temp_f"] == 23
 
 
 def test_every_location_is_well_formed():
@@ -129,5 +181,5 @@ def test_every_location_is_well_formed():
     for resort in RESORTS.values():
         assert resort.kind in ("resort", "backcountry")
         assert (resort.pass_group == "Backcountry") == (resort.kind == "backcountry")
-        assert resort.station is None or resort.station in STATIONS
+        assert resort.station is None or resort.station in ALL_STATIONS
         assert 1500 < resort.base_m < resort.summit_m < 3500

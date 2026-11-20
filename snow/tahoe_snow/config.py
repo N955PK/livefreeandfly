@@ -23,6 +23,9 @@ class Station:
     lat: float
     lon: float
     elev_m: float
+    source: str = "snotel"
+    live: bool = True
+    depth: bool = True
 
 
 @dataclass(frozen=True)
@@ -80,10 +83,35 @@ STATIONS = {
     ]
 }
 
+# Snow sensors along the crest around Mammoth, for that region's water correction: California Data Exchange
+# Center pillows (keyed "<id>:CDEC"; positions and elevations from CDEC's station pages, 2026-11-19) and the
+# one SNOTEL site. Gem Pass and Volcanic Knob stopped reporting in 2023 but their record still counts.
+# Mammoth Pass's depth gauge reports a few hours a day and sat at one value through a storm that added four
+# inches of water (2026-11-19), so only its pillow is used.
+# Rock Creek Lakes is left out because CDEC and NRCS disagree on where it is, and Green Mountain because its
+# pillow was dead for the 2022 winter and jumps by half a meter of water in a day.
+MAMMOTH_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("MHP:CDEC", "Mammoth Pass", 37.6124, -119.0317, _ft(9300), source="cdec", depth=False),
+        Station("GEM:CDEC", "Gem Pass", 37.7800, -119.1700, _ft(10750), source="cdec", live=False),
+        Station("DAN:CDEC", "Dana Meadows", 37.8980, -119.2588, _ft(9760), source="cdec"),
+        Station("TUM:CDEC", "Tuolumne Meadows", 37.8762, -119.3500, _ft(8500), source="cdec"),
+        Station("TNY:CDEC", "Tenaya Lake", 37.8373, -119.4502, _ft(8070), source="cdec"),
+        Station("SLI:CDEC", "Slide Canyon", 38.0912, -119.4319, _ft(9200), source="cdec"),
+        Station("VLC:CDEC", "Volcanic Knob", 37.3879, -118.9050, _ft(10050), source="cdec", live=False),
+        Station("SLK:CDEC", "South Lake", 37.1759, -118.5627, _ft(9600), source="cdec"),
+        Station("SWM:CDEC", "Sawmill", 37.1620, -118.5626, _ft(10200), source="cdec"),
+        Station("846:CA:SNTL", "Virginia Lakes Ridge", 38.0730, -119.2343, _ft(9400)),
+    ]
+}
+ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS}
+
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
-# winter trailhead, both read from the Terrain Tiles elevation model (2026-11-19). No SNOTEL station sits near
-# Mammoth, so those four have no paired station.
+# winter trailhead, both read from the Terrain Tiles elevation model (2026-11-19). Mammoth Mountain and Sherwin
+# Ridge pair with the Mammoth Pass pillow, 2 km south of the summit. Nothing that still reports sits near June
+# (Gem Pass and Agnew Pass went quiet), so June Mountain and Carson Peak have no station and no correction.
 RESORTS = {
     r.key: r
     for r in [
@@ -105,10 +133,10 @@ RESORTS = {
                kind="backcountry"),
         Resort("roundtop", "Round Top", 38.6636, -120.0015, 2613, 3164, "1067:CA:SNTL", "Backcountry",
                kind="backcountry"),
-        Resort("mammoth", "Mammoth Mountain", 37.635, -119.030, _ft(7953), _ft(11053), None, "Ikon",
+        Resort("mammoth", "Mammoth Mountain", 37.635, -119.030, _ft(7953), _ft(11053), "MHP:CDEC", "Ikon",
                region="mammoth"),
         Resort("june", "June Mountain", 37.755, -119.080, _ft(7545), _ft(10090), None, "Ikon", region="mammoth"),
-        Resort("sherwins", "Sherwin Ridge", 37.6043, -118.9794, 2399, 3130, None, "Backcountry",
+        Resort("sherwins", "Sherwin Ridge", 37.6043, -118.9794, 2399, 3130, "MHP:CDEC", "Backcountry",
                region="mammoth", kind="backcountry"),
         Resort("carsonpeak", "Carson Peak", 37.7476, -119.1242, 2204, 3324, None, "Backcountry",
                region="mammoth", kind="backcountry"),
@@ -125,3 +153,4 @@ PRESSURE_LEVELS = [850, 800, 750, 700, 650, 600, 550, 500]
 # Sierra box used to gather hand-measured snowfall for snow-ratio training.
 SIERRA_BBOX = (36.0, 40.5, -121.5, -118.0)
 TAHOE_BBOX = (38.4, 39.7, -120.8, -119.6)
+MAMMOTH_BBOX = (37.0, 38.3, -119.7, -118.4)
