@@ -16,8 +16,8 @@ from scipy.ndimage import median_filter
 ROOT = Path(__file__).resolve().parent.parent
 TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
 ZOOM = 10
-LAT_S, LAT_N, LON_W, LON_E = 38.35, 39.65, -120.85, -119.55
-COLUMNS = 360
+LAT_S, LAT_N, LON_W, LON_E = 38.33, 39.77, -120.96, -119.12
+COLUMNS = 420
 MAX_REAL_M = 3400
 
 

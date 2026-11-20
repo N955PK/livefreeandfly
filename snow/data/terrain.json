@@ -1,1 +1,1 @@
-{"rows": 460, "columns": 360, "lat_s": 38.35, "lat_n": 39.65, "lon_w": -120.85, "lon_e": -119.55, "width_km": 112.47, "height_km": 143.74, "min_m": 211, "max_m": 3395, "source": "Terrain Tiles on AWS (Mapzen terrarium); see tilezen/joerd attribution"}
+{"rows": 420, "columns": 420, "lat_s": 38.33, "lat_n": 39.77, "lon_w": -120.96, "lon_e": -119.12, "width_km": 159.07, "height_km": 159.22, "min_m": 72, "max_m": 3400, "source": "Terrain Tiles on AWS (Mapzen terrarium); see tilezen/joerd attribution"}

@@ -13,7 +13,7 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 SERVERS = ["https://overpass.kumi.systems/api/interpreter", "https://overpass-api.de/api/interpreter",
            "https://overpass.private.coffee/api/interpreter"]
-BBOX = (38.35, -120.85, 39.65, -119.55)
+BBOX = (38.33, -120.96, 39.77, -119.12)
 ROUTES = {"I 80": "I-80", "US 50": "US-50", "CA 89": "SR-89", "CA 28": "SR-28", "CA 267": "SR-267", "CA 88": "SR-88",
           "CA 4": "SR-4", "CA 20": "SR-20", "CA 49": "SR-49", "NV 431": "NV-431", "NV 207": "NV-207", "NV 28": "NV-28",
           "US 395": "US-395", "I 580": "I-580"}

@@ -459,7 +459,7 @@ async function startMap() {
   try {
     const {createMap} = await import("./map3d.js");
     $("mapPanel").style.display = "block";
-    map = await createMap($("map3d"), data, {elevation, selected, onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
+    map = await createMap($("map3d"), data, {elevation, selected, globe: new URLSearchParams(location.search).has("globe"), onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
     $("scrub").max = map.steps - 1;
     $("nowTick").style.left = `calc(${(100 * map.nowStep / (map.steps - 1)).toFixed(1)}% + ${(8 - 16 * map.nowStep / (map.steps - 1)).toFixed(1)}px)`;
     $("scrub").addEventListener("input", (e) => { togglePlay(false); setTime(+e.target.value); });
