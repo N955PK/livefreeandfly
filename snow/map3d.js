@@ -511,8 +511,11 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     terrain.attributes.color.needsUpdate = true;
     for (const item of items) {
       const all = cumulative[item.n][steps - 1], value = interp(cumulative[item.n], time);
-      item.ghost.scale.z = Math.max(0.02, all * STAKE_KM_PER_IN);
       item.fill.scale.z = Math.max(0.02, value * STAKE_KM_PER_IN);
+      // The snow still to come stands on top of the snow so far; two stakes sharing one surface flicker.
+      item.ghost.visible = all - value > 0.05;
+      item.ghost.position.z = item.z + item.fill.scale.z;
+      item.ghost.scale.z = Math.max(0.02, (all - value) * STAKE_KM_PER_IN);
       item.fill.material = item.key === picked ? pickMaterial : fillMaterial;
       const more = all - value;
       item.label.innerHTML = `<b>${item.name}</b><span>${show(value)} in</span>${more >= 0.5 ? `<em>+${show(more)} to come</em>` : ""}`;
