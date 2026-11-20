@@ -82,10 +82,14 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .heat tr:hover td.name b{text-decoration:underline}
 .heat td.total{text-align:right;padding:0 8px;white-space:nowrap;font-size:15px;font-weight:700}
 .heat td.total span{display:block;font-size:11px;font-weight:400;color:var(--muted)}
-.cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;cursor:pointer}
-.cell.b0{color:var(--t0);background:var(--wash);font-weight:400}
-.cell.b1{background:var(--s1);color:var(--t1)}.cell.b2{background:var(--s2);color:var(--t2)}.cell.b3{background:var(--s3);color:var(--t3)}
-.cell.b4{background:var(--s4);color:var(--t4)}.cell.b5{background:var(--s5);color:var(--t5)}.cell.b6{background:var(--s6);color:var(--t6)}
+.cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;cursor:pointer;
+  color:var(--ink);background:linear-gradient(to top,color-mix(in oklab,var(--c) 62%,var(--surface)) var(--fill),var(--wash) var(--fill))}
+.cell.none{color:var(--muted);font-weight:400}
+.legend .blocks{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend .blocks > span{display:inline-flex;border-radius:5px;overflow:hidden}
+.legend .blocks b{font-weight:600;font-size:11px;padding:2px 6px;color:#fff}
+.legend .blocks b.dark{color:#0f1720}
+.legend .sw i.gauge{width:14px;height:16px;border-radius:4px;background:linear-gradient(to top,color-mix(in oklab,var(--q1) 62%,var(--surface)) 45%,var(--wash) 45%)}
 .chance{height:44px;min-width:40px;border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;display:flex;
   align-items:center;justify-content:center;font-size:12.5px;color:var(--ink2);cursor:pointer}
 .chance i{position:absolute;left:0;bottom:0;height:4px;background:var(--snow);border-radius:0 2px 0 0}
@@ -335,7 +339,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "42";
+const BUILD = "43";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -382,7 +386,7 @@ function futureDays(el) { return el.days.filter((d) => !d.past).slice(0, 10); }
 
 function fiveDay(el) {
   const days = futureDays(el).filter((d) => d.lead_day <= data.deterministic_days);
-  return days.reduce((sum, d) => sum + (d.snow_in || 0), 0);
+  return days.reduce((sum, d) => sum + ((d.powder && d.powder.snow_in) || 0), 0);
 }
 
 // The home resort leads; the rest follow by total.
@@ -409,7 +413,7 @@ function renderHeadline() {
 function renderHeat() {
   const resorts = sorted(), days = futureDays(resorts[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
-  let html = `<tr><th></th><th></th><th class="grp" colspan="${near.length}">Snowfall, inches per day</th>` +
+  let html = `<tr><th></th><th></th><th class="grp" colspan="${near.length}">Snow, inches in the 24 hours to 4 pm</th>` +
     (far.length ? `<th class="sep"></th><th class="grp" colspan="${far.length}">Outlook: chance of 6 in or more</th>` : "") + `</tr>`;
   const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
   html += `<tr><th></th><th>${weekday(near[0].date)}–${weekday(near[near.length - 1].date)}</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
@@ -420,7 +424,10 @@ function renderHeat() {
       <td class="total">${inches(total)} in</td>`;
     for (const d of near) {
       const x = byDate[d.date] || {};
-      html += `<td><div class="cell b${bin(x.snow_in)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(x.snow_in)} in${x.low_in == null ? "" : ` (likely ${range(x.low_in, x.high_in)})`}">${whole(x.snow_in)}</div></td>`;
+      // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 36 inches, in the
+      // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
+      const p = x.powder || {}, total = p.snow_in || 0, fill = Math.round(100 * Math.min(total, BAR_FULL_IN) / BAR_FULL_IN);
+      html += `<td><div class="cell${total < 0.5 ? " none" : ""}" style="--fill:${total < 0.5 ? 0 : Math.max(fill, 6)}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} in${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}">${whole(total)}</div></td>`;
     }
     if (far.length) html += '<td class="sep"></td>';
     for (const d of far) {
@@ -430,8 +437,8 @@ function renderHeat() {
     html += "</tr>";
   }
   $("heat").innerHTML = html;
-  $("legend").innerHTML = "<span>Inches per day</span>" + BINS.slice(1).map(([, b, label]) => `<span class="sw"><i style="background:var(--s${b})"></i>${label}</span>`).join("") +
-    "<span>Tap a resort for details</span>";
+  $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
+    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${BAR_FULL_IN}</span><span>Tap a resort for details</span>`;
 }
 
 const ICONS = {
