@@ -179,6 +179,7 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 #map3d:active{cursor:grabbing}
 #map3d canvas{display:block;width:100%;height:100%}
 .map-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.map-label,.map-shield,.map-closed,.map-lake{will-change:transform;backface-visibility:hidden}
 .map-label{position:absolute;left:0;top:0;pointer-events:auto;border:0;cursor:pointer;font:inherit;white-space:nowrap;text-align:center;
   background:rgba(255,255,255,.92);color:#0f1720;border-radius:8px;padding:3px 8px 4px;box-shadow:0 2px 8px rgba(15,23,32,.22);line-height:1.15}
 .map-label b{display:block;font-size:11.5px;font-weight:650}
@@ -272,7 +273,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "19";
+const BUILD = "20";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);

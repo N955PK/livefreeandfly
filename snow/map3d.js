@@ -464,17 +464,15 @@ export async function createMap(container, data, {onSelect, elevation = "summit"
       if (hits(rect)) { label.style.display = "none"; continue; }
       placed.push(rect);
       label.classList.toggle("mini", mini);
-      label.style.transform = `translate(-50%, -100%) translate(${p.x.toFixed(1)}px, ${(p.y - 6).toFixed(1)}px)`;
+      label.style.transform = `translate3d(${p.x.toFixed(2)}px, ${(p.y - 6).toFixed(2)}px, 0) translate(-50%, -100%)`;
       label.style.zIndex = String(100000 + Math.round((1 - p.depth) * 100000));
     }
-    // Whole-pixel positions: at fractional offsets the browser snaps text and shapes differently, so the
-    // number wobbles inside its shield as the map moves.
+    // Each tag is its own compositor layer (see the page's will-change rule), so it is drawn once and then
+    // slid at fractional positions: the motion is smooth and text stays locked to its shape.
     const put = (element, point, allowed = true) => {
       const p = project(point);
       element.style.display = p.shown && allowed ? "" : "none";
-      if (!element._size && element.offsetWidth) element._size = [element.offsetWidth, element.offsetHeight];
-      const [width, height] = element._size || [0, 0];
-      element.style.transform = `translate(${Math.round(p.x - width / 2)}px, ${Math.round(p.y - height / 2)}px)`;
+      element.style.transform = `translate3d(${p.x.toFixed(2)}px, ${p.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
     };
     put(lake, lakeAt);
     // A shield gives way to anything more important: a resort label, or a stake standing in front of it.
