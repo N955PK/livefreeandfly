@@ -1,7 +1,9 @@
 """How this season's snowpack compares with a usual one, at each mountain's snow sensor.
 
-The usual year is the median over the sensor's record: the water in the snow on this date, and the season's
-peak. SNOTEL publishes both; for a California pillow they come from its own daily history.
+The usual year is the median over the sensor's record: the water in the snow on each date, and the season's
+peak. SNOTEL publishes both; for a California pillow they come from its own daily history. Each sensor also
+gives the curves the page draws: the usual year, this year so far, and the ten winters before it, by day of the
+water year.
 """
 import pandas as pd
 
@@ -15,40 +17,74 @@ FULL_YEAR_DAYS = 300
 # Below this much water in a usual year, a percent of normal is a ratio of two small numbers and means little.
 MIN_NORMAL_IN = 1.0
 PST_OFFSET_H = 8
+STEP_DAYS = 3
+PAST_YEARS = 10
+YEAR_DAYS = 365
 
 
 def water_year(index: pd.DatetimeIndex) -> pd.Index:
     return index.year + (index.month >= 10)
 
 
+def day_of_water_year(index: pd.DatetimeIndex) -> pd.Index:
+    """Days since October 1."""
+    return (index - pd.to_datetime((water_year(index) - 1).astype(str) + "-10-01")).days
+
+
+def sampled(by_day: pd.Series) -> list:
+    """One value every few days from October 1, None where the sensor has nothing."""
+    values = by_day[~by_day.index.duplicated()].reindex(range(0, YEAR_DAYS, STEP_DAYS)).clip(lower=0)
+    return [None if pd.isna(value) else round(float(value), 1) for value in values]
+
+
+def describe(swe_in: pd.Series, normal_by_day: pd.Series, day: pd.Timestamp, peak_in: float, peak_date: str) -> dict:
+    """The usual water on this date, the usual peak, and the curves, from daily water and the usual year.
+    Winters are named by the year they end in."""
+    year, into_year = water_year(swe_in.index), day_of_water_year(swe_in.index)
+    this_year = water_year(pd.DatetimeIndex([day]))[0]
+    by_day = pd.Series(swe_in.values, index=into_year)
+    today = day_of_water_year(pd.DatetimeIndex([day]))[0]
+    return {"normal_in": float(normal_by_day.get(today, float("nan"))), "peak_in": peak_in, "peak_date": peak_date,
+            "curve": {"step_days": STEP_DAYS, "normal": sampled(normal_by_day),
+                      "years": {str(winter): sampled(by_day[year == winter])
+                                for winter in range(this_year - PAST_YEARS, this_year + 1) if (year == winter).any()}}}
+
+
 def from_history(swe_in: pd.Series, day: pd.Timestamp) -> dict | None:
-    """The usual water on this date and the usual peak, as medians over the complete water years before this one."""
+    """A sensor's usual year as medians over the complete water years before this one."""
     swe = swe_in.dropna().rolling(5, center=True, min_periods=1).median()
     past = swe[water_year(swe.index) < water_year(pd.DatetimeIndex([day]))[0]]
-    same_day = past[(past.index.month == day.month) & (past.index.day == day.day)]
     years = past.groupby(water_year(past.index))
     full = years.count() >= FULL_YEAR_DAYS
-    if len(same_day) < MIN_YEARS or full.sum() < MIN_YEARS:
+    complete = past[pd.Series(water_year(past.index), index=past.index).map(full).fillna(False).astype(bool)]
+    if full.sum() < MIN_YEARS:
         return None
+    normal_by_day = complete.groupby(day_of_water_year(complete.index)).median()
     peak_day = years.idxmax()[full]
     into_year = (peak_day - pd.to_datetime((peak_day.index - 1).astype(str) + "-10-01").values).dt.days.median()
     usual_peak = pd.Timestamp("2001-10-01") + pd.Timedelta(days=int(into_year))
-    return {"normal_in": float(same_day.median()), "peak_in": float(years.max()[full].median()),
-            "peak_date": usual_peak.strftime("%m-%d"), "years": int(full.sum())}
+    told = describe(swe, normal_by_day, day, float(years.max()[full].median()), usual_peak.strftime("%m-%d"))
+    return {**told, "years": int(full.sum())}
 
 
 def snotel_normals(triplets: list, day: pd.Timestamp) -> dict:
+    start = pd.Timestamp(year=water_year(pd.DatetimeIndex([day]))[0] - PAST_YEARS - 1, month=10, day=1)
     params = {"stationTriplets": ",".join(triplets), "elements": "WTEQ", "duration": "DAILY",
-              "beginDate": (day - pd.Timedelta(days=4)).strftime("%Y-%m-%d"), "endDate": day.strftime("%Y-%m-%d"),
+              "beginDate": start.strftime("%Y-%m-%d"), "endDate": day.strftime("%Y-%m-%d"),
               "centralTendencyType": "MEDIAN"}
     out = {}
     for station in get_json("snotel", snotel.URL, params, 24.0):
         for series in station.get("data", []):
-            medians = [value["median"] for value in series.get("values", []) if value.get("median") is not None]
+            frame = pd.DataFrame(series.get("values", []))
             peak = (series.get("timingCentralTendencies") or {}).get("medianPeak")
-            if medians and peak:
-                out[station["stationTriplet"]] = {"normal_in": medians[-1], "peak_in": peak["value"],
-                                                  "peak_date": f"{peak['month']:02d}-{peak['day']:02d}"}
+            if frame.empty or "median" not in frame or not peak:
+                continue
+            frame.index = pd.to_datetime(frame["date"])
+            # The usual year is the same on every pass through the calendar, so any past year's dates carry all of it.
+            usual = frame["median"].dropna()
+            normal_by_day = usual.groupby(day_of_water_year(usual.index)).last()
+            out[station["stationTriplet"]] = describe(frame["value"].dropna(), normal_by_day, frame.index[-1],
+                                                      peak["value"], f"{peak['month']:02d}-{peak['day']:02d}")
     return out
 
 
@@ -69,7 +105,7 @@ def normals(now: pd.Timestamp) -> dict:
 
 
 def summary(water_in: float | None, normal: dict | None) -> dict | None:
-    if water_in is None or not normal or not normal["peak_in"]:
+    if water_in is None or not normal or not normal["peak_in"] or pd.isna(normal["normal_in"]):
         return None
     usual = normal["normal_in"]
     return {"water_in": water_in, "normal_in": round(usual, 1),

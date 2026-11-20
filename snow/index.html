@@ -295,13 +295,29 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .wh .tick{position:absolute;top:4px;height:14px;width:1.5px;margin-left:-.75px;background:var(--ink2);opacity:.55}
 .wh .dot{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--snow);border:2px solid var(--surface)}
 .pw span.new{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.crow{display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--grid);font-size:13.5px;color:var(--ink2)}
+.crow:first-child{border-top:0}
+.crow .k{color:var(--ink);font-weight:650}
+.crow .fz{color:var(--muted);font-size:12px;margin-top:1px}
+.crow .cw{display:flex;flex-wrap:wrap;gap:2px 14px}
+.crow .cw b{color:var(--ink);font-weight:650}
+.crow.off{color:var(--muted)}
 .season{margin-top:14px}
 .season .shead{display:flex;align-items:baseline;gap:8px;font-size:13.5px;color:var(--ink2)}
 .season .shead b{color:var(--ink);font-weight:650}
-.sbar{position:relative;height:8px;border-radius:4px;background:var(--wash);margin:7px 0 6px}
-.sbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--snow);min-width:4px}
-.sbar u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink2)}
-.season .snote{font-size:12.5px;color:var(--muted)}
+.schart{margin:8px 0 6px;touch-action:pan-y}
+.schart svg{display:block;max-width:100%}
+.schart text{font-size:10.5px;fill:var(--muted)}
+.schart .g{stroke:var(--grid);stroke-width:1}
+.schart .usualfill{fill:var(--wash)}
+.schart .past{fill:none;stroke:var(--muted);stroke-width:1;opacity:.45}
+.schart .usual{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-dasharray:4 3}
+.schart .now{fill:none;stroke:var(--snow);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.schart .nowdot{fill:var(--snow);stroke:var(--surface);stroke-width:2}
+.schart .nowlab{font-size:12px;font-weight:700;fill:var(--ink)}
+.schart .yr{font-size:10px}
+.schart .cur{stroke:var(--ink2);stroke-width:1;opacity:.5}
+.season .snote{font-size:12.5px;color:var(--muted);min-height:2.9em}
 .season .snote b{color:var(--ink2);font-weight:650}
 .meter{display:flex;gap:2px;margin-top:3px}
 .meter i{width:7px;height:10px;border-radius:2px;background:var(--grid)}
@@ -602,7 +618,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "134";
+const BUILD = "136";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -965,20 +981,59 @@ function measured(resort) {
   return `<h3>Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${o.elevation_ft.toLocaleString()} ft, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
     <div class="tiles">${depth}
     ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>in</small>`, `${inches(o.water_gain_24h_in)} in in 24 h`)}
-    ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div>${seasonSoFar(resort.season)}`;
+    ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div>${seasonSoFar(resort)}`;
 }
-// The snowpack's water against a usual year at the same sensor: the bar is a usual season's peak, filled to
-// today's water, with a tick where a usual year stands on this date.
-function seasonSoFar(s) {
+// The snowpack's water through the winter at the mountain's sensor: this winter's line over the usual year and
+// the ten winters before it, from October to July.
+const SEASON_DAYS = 304, MONTHS = [["Oct", 0], ["Nov", 31], ["Dec", 61], ["Jan", 92], ["Feb", 123], ["Mar", 151], ["Apr", 182], ["May", 212], ["Jun", 243], ["Jul", 273]];
+const winterName = (endYear) => `${String(endYear - 1).slice(2)}–${String(endYear).slice(2)}`;
+let seasonView = null;
+function seasonSoFar(resort) {
+  const s = resort.season, curve = (data.season_curves || {})[resort.station];
   if (!s) return "";
   const [month, day] = s.peak_date.split("-").map(Number), today = new Date().toLocaleDateString("en-US", {timeZone: TZ, month: "short", day: "numeric"});
   const around = `${day <= 10 ? "early" : day <= 20 ? "mid" : "late"} ${new Date(2001, month - 1, 1).toLocaleDateString("en-US", {month: "long"})}`;
-  const share = (value) => Math.min(100, 100 * value / s.peak_in);
-  const normal = s.pct_normal == null ? `A usual ${today} has under 1 in` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} in, the tick)`;
-  return `<div class="season"><div class="shead"><b>Season so far</b><span>${inches(s.water_in)} in of water in the snowpack</span></div>
-    <div class="sbar" role="img" aria-label="${s.pct_peak}% of a usual season's peak"><i style="width:${share(s.water_in)}%"></i><u style="left:${share(s.normal_in)}%"></u></div>
-    <div class="snote">${normal} · <b>${s.pct_peak}%</b> of a usual peak (${inches(s.peak_in)} in, ${around})</div></div>`;
+  const normal = s.pct_normal == null ? `A usual ${today} has under 1 in` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} in)`;
+  const note = `${normal} · <b>${s.pct_peak}%</b> of a usual peak (${inches(s.peak_in)} in, ${around})`;
+  const head = `<div class="shead"><b>Season so far</b><span>${inches(s.water_in)} in of water in the snowpack</span></div>`;
+  if (!curve) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
+  const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 250 : 180, L = 8, R = 44, T = 14, B = 20;
+  const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
+  const lines = Object.fromEntries(winters.map((w) => [w, curve.years[w].slice(0, count)])), usual = curve.normal.slice(0, count);
+  const high = Math.max(1, ...usual.filter((v) => v != null), ...Object.values(lines).flat().filter((v) => v != null));
+  const step = [5, 10, 20, 25, 50].find((size) => high / size <= 5) || 100, top = step * Math.ceil(high / step);
+  const x = (k) => L + (W - L - R) * k / (count - 1), y = (v) => T + (H - T - B) * (1 - v / top);
+  const path = (line) => { let d = "", pen = false; line.forEach((v, k) => { if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(k).toFixed(1)} ${y(v).toFixed(1)}`; pen = true; }); return d; };
+  let body = "";
+  for (let v = 0; v <= top; v += step) body += `<line class="g" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${W - R + 6}" y="${y(v) + 3.5}">${v}${v === top ? " in" : ""}</text>`;
+  MONTHS.forEach(([name, start], n) => { if (W > 520 || n % 2 === 0) body += `<text x="${x(start / curve.step_days)}" y="${H - 5}">${name}</text>`; });
+  body += `<path class="usualfill" d="${path(usual)}L${x(count - 1)} ${y(0)}L${x(0)} ${y(0)}Z"/>` + past.map((w) => `<path class="past" d="${path(lines[w])}"/>`).join("");
+  // The biggest of the ten winters is named where it peaked.
+  const peakOf = (w) => Math.max(...lines[w].filter((v) => v != null)), biggest = past.length ? past.reduce((a, b) => peakOf(b) > peakOf(a) ? b : a) : null;
+  if (biggest) { const at = lines[biggest].indexOf(peakOf(biggest)); body += `<text class="yr" text-anchor="middle" x="${Math.min(x(at), W - R - 14)}" y="${Math.max(10, y(peakOf(biggest)) - 5)}">${winterName(+biggest)}</text>`; }
+  const mine = lines[winters[winters.length - 1]], last = mine.reduce((found, v, k) => v == null ? found : k, 0);
+  body += `<path class="usual" d="${path(usual)}"/><path class="now" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="-9" x2="-9"/>
+    <circle class="nowdot" cx="${x(last)}" cy="${y(mine[last] || 0)}" r="4"/><text class="nowlab" x="${x(last) + 7}" y="${y(mine[last] || 0) - 6}">${inches(mine[last])} in</text>`;
+  seasonView = {curve, count, lines, usual, past, mine, note, left: L, span: W - L - R};
+  return `<div class="season">${head}<div class="schart" id="seasonChart"><svg width="${W}" height="${H}" role="img" aria-label="Water in the snowpack through the winter: this winter, a usual year, and the last ten winters">${body}</svg></div>
+    <div class="snote" id="seasonNote">${note}</div>
+    <div class="key"><span><svg viewBox="0 0 34 12"><path d="M1 6H33" stroke="var(--snow)" stroke-width="2.5" fill="none"/></svg>this winter</span><span><svg viewBox="0 0 34 12"><path d="M1 6H33" stroke="var(--ink2)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"/></svg>usual year</span><span><svg viewBox="0 0 34 12"><path d="M1 6H33" stroke="var(--muted)" stroke-width="1" opacity=".55" fill="none"/></svg>last ten winters</span></div></div>`;
 }
+// A finger or pointer on the chart reads out that date: this winter, the usual year, and the ten winters' range.
+function seasonRead(event) {
+  const chart = event.target.closest && event.target.closest("#seasonChart"), v = seasonView;
+  if (!v || !$("seasonNote")) return;
+  if (!chart || event.type === "pointerleave") { $("seasonNote").innerHTML = v.note; $("seasonCur").setAttribute("x1", -9); $("seasonCur").setAttribute("x2", -9); return; }
+  const box = chart.querySelector("svg").getBoundingClientRect(), k = Math.max(0, Math.min(v.count - 1, Math.round((event.clientX - box.left - v.left) / v.span * (v.count - 1))));
+  const date = new Date(Date.UTC(2001, 9, 1 + k * v.curve.step_days)).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
+  const then = v.past.map((w) => [v.lines[w][k], w]).filter(([value]) => value != null).sort((a, b) => a[0] - b[0]);
+  const range = then.length ? ` · ten winters ${inches(then[0][0])} in (${winterName(+then[0][1])}) to ${inches(then[then.length - 1][0])} in (${winterName(+then[then.length - 1][1])})` : "";
+  $("seasonNote").innerHTML = `<b>${date}</b>${v.mine[k] == null ? "" : ` · this winter <b>${inches(v.mine[k])} in</b>`} · usual ${inches(v.usual[k])} in${range}`;
+  const at = v.left + v.span * k / (v.count - 1);
+  $("seasonCur").setAttribute("x1", at); $("seasonCur").setAttribute("x2", at);
+}
+document.addEventListener("pointermove", seasonRead);
+document.addEventListener("pointerdown", seasonRead);
 
 const opener = () => here().find((r) => r.key === HOME) || here().find((r) => r.key === REGIONS[region].pick) || sorted()[0];
 
@@ -1199,6 +1254,63 @@ const RESORT_CAMS = {
   kirkwood: "https://www.kirkwood.com/the-mountain/mountain-conditions/mountain-cams.aspx",
   mammoth: "https://www.mammothmountain.com/on-the-mountain/mammoth-webcam", june: "https://www.junemountain.com/mountain-information/live-cams",
 };
+// ---------- corn window ----------
+// Spring melt-freeze snow on a backcountry peak: whether the night refroze it, and roughly when a 35 degree slope
+// facing east, south, and west softens and then turns to mush. A rule of thumb from sun angle, cloud, and air
+// temperature; nothing here is measured or tuned against real days.
+const CORN = {days: 5, slopeDeg: 35, beamWm2: 900, absorbed: 0.4, wm2PerDegF: 6, openMJ: 1.2, closeMJ: 4, minTempF: 25,
+  solidF: 27, clearSolidF: 31, clearPct: 30, weakF: 32, drySnowIn: 0.5, dryHours: 48,
+  aspects: [["E", 90], ["S", 180], ["W", 270]], firmness: {solid: 1.3, weak: 0.7}};
+function sunAt(when, lat, lon) {
+  const rad = Math.PI / 180, n = (when - Date.UTC(when.getUTCFullYear(), 0, 0)) / 864e5;
+  const tilt = 23.44 * rad * Math.sin(2 * Math.PI * (284 + n) / 365), b = 2 * Math.PI * (n - 81) / 364;
+  const clockMin = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+  const hourAngle = (when.getUTCHours() + when.getUTCMinutes() / 60 + lon / 15 + clockMin / 60 - 12) * 15 * rad, phi = lat * rad;
+  return {up: Math.asin(Math.sin(phi) * Math.sin(tilt) + Math.cos(phi) * Math.cos(tilt) * Math.cos(hourAngle)),
+    bearing: Math.atan2(Math.sin(hourAngle), Math.cos(hourAngle) * Math.sin(phi) - Math.tan(tilt) * Math.cos(phi)) + Math.PI};
+}
+function cornDays(resort, el) {
+  const h = el.hourly, times = resort.hours_utc.map((t) => new Date(t)), rad = Math.PI / 180, tip = CORN.slopeDeg * rad;
+  const local = times.map((t) => ({date: t.toLocaleDateString("en-CA", {timeZone: TZ}), hour: +t.toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24}));
+  const today = new Date().toLocaleDateString("en-CA", {timeZone: TZ});
+  return el.days.filter((d) => d.date >= today).slice(0, CORN.days).map(({date}) => {
+    const day = local.map((at, i) => at.date === date ? i : -1).filter((i) => i >= 0);
+    if (day.length < 20) return null;
+    const night = Array.from({length: 12}, (_, k) => day[0] - 4 + k).filter((i) => i >= 0 && h.temp_f[i] != null);
+    const snow = h.snow_in.slice(Math.max(0, day[0] - CORN.dryHours), day[day.length - 1] + 1).reduce((sum, v) => sum + (v || 0), 0);
+    const low = Math.min(...night.map((i) => h.temp_f[i])), cloud = night.reduce((sum, i) => sum + (h.cloud_pct[i] || 0), 0) / (night.length || 1);
+    const freeze = !night.length ? null : low <= CORN.solidF || (low <= CORN.clearSolidF && cloud < CORN.clearPct) ? "solid" : low <= CORN.weakF ? "weak" : "none";
+    const out = {date, freeze, low: Math.round(low), fresh: snow >= CORN.drySnowIn, windows: []};
+    if (!freeze || freeze === "none" || out.fresh) return out;
+    for (const [name, faces] of CORN.aspects) {
+      let soaked = 0, open = null, close = null, lastSun = null;
+      for (const i of day) {
+        const sun = sunAt(times[i], resort.lat, resort.lon), temp = h.temp_f[i];
+        if (sun.up <= 0 || temp == null) continue;
+        const onSlope = Math.max(0, Math.sin(sun.up) * Math.cos(tip) + Math.cos(sun.up) * Math.sin(tip) * Math.cos(sun.bearing - faces * rad));
+        soaked += (CORN.absorbed * CORN.beamWm2 * onSlope * (1 - 0.8 * (h.cloud_pct[i] || 0) / 100) + CORN.wm2PerDegF * Math.max(0, temp - 32)) * 3600 / 1e6;
+        lastSun = local[i].hour;
+        if (open == null && soaked >= CORN.openMJ * CORN.firmness[freeze] && temp >= CORN.minTempF) open = local[i].hour;
+        if (open != null && close == null && soaked >= CORN.closeMJ * CORN.firmness[freeze]) close = local[i].hour;
+      }
+      if (open != null) out.windows.push({name, open, close: close == null ? null : Math.max(open + 1, close)});
+    }
+    return out;
+  }).filter(Boolean);
+}
+function cornWindow(resort, el) {
+  const days = cornDays(resort, el);
+  if (!days.some((d) => d.windows.length)) return "";
+  const clock = (hour) => `${hour % 12 || 12}`, half = (hour) => hour < 12 ? "am" : "pm";
+  // A slope that softens but never turns to mush before dark has no closing hour.
+  const span = (w) => w.close == null ? `from ${clock(w.open)} ${half(w.open)}` : `${clock(w.open)}${half(w.open) === half(w.close) ? "" : ` ${half(w.open)}`}–${clock(w.close)} ${half(w.close)}`;
+  const rows = days.map((d) => {
+    const told = d.fresh ? "New snow, not corn yet" : d.freeze === "none" ? `No overnight freeze (low ${d.low}°F)` : !d.windows.length ? "Stays frozen all day"
+      : d.windows.map((w) => `<span><b>${w.name}</b> ${span(w)}</span>`).join("");
+    return `<div class="crow${d.windows.length ? "" : " off"}"><span class="k">${weekday(d.date)}</span><div><div class="cw">${told}</div>${d.windows.length ? `<div class="fz">${d.freeze === "solid" ? "Solid" : "Weak"} overnight freeze, low ${d.low}°F</div>` : ""}</div></div>`;
+  }).join("");
+  return `<h3>Corn window</h3><div class="sub">When a ${CORN.slopeDeg}° slope softens after the night's freeze, by the way it faces. A rough estimate from sun, cloud, and temperature.</div><div class="corn">${rows}</div>`;
+}
 function webcams(resort) {
   const road = ROAD_CAMS[resort.key], page = RESORT_CAMS[resort.key];
   if ((!road && !page) || !navigator.onLine) return "";
@@ -1235,6 +1347,7 @@ function renderDetail() {
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>each model</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span class="sw glyph">${barb(23, 270, "var(--ink2)")}W at 20 kt</span><span>G = gust, mph</span><span>18°/4° = temperature / feels like, °F</span><span>PS = powder score</span></div></details>
     <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>°F / feels</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
+    ${resort.kind === "backcountry" ? cornWindow(resort, el) : ""}
     <div class="hhead"><h3>Hourly</h3><button id="tlNow" hidden>Back to now</button><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>

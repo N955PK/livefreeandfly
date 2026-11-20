@@ -248,3 +248,8 @@ def test_season_normal_is_the_median_of_past_years_on_this_date():
     told = season.summary(4.2, normal)
     assert told["pct_peak"] == 14 and told["pct_normal"] == round(100 * 4.2 / normal["normal_in"])
     assert season.summary(4.2, {**normal, "normal_in": 0.4})["pct_normal"] is None
+    curve = normal["curve"]
+    assert sorted(curve["years"]) == [str(year) for year in range(2017, 2028)]
+    assert len(curve["normal"]) == len(curve["years"]["2026"]) == 122 and abs(curve["normal"][60] - 30.0) < 0.5
+    # This winter has run 50 days, so its line stops there.
+    assert curve["years"]["2027"][16] is not None and curve["years"]["2027"][18] is None

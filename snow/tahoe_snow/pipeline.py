@@ -417,8 +417,9 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     return payload, archive
 
 
-def add_season(resorts: list, now: pd.Timestamp) -> None:
-    """Each mountain's snowpack against a usual year. A sensor network that cannot be reached leaves it out."""
+def add_season(resorts: list, now: pd.Timestamp) -> dict:
+    """Each mountain's snowpack against a usual year, and each sensor's curves by its name. A sensor network
+    that cannot be reached leaves both out."""
     try:
         normals = season.normals(now)
     except (RuntimeError, OSError, ValueError, KeyError) as error:
@@ -427,6 +428,7 @@ def add_season(resorts: list, now: pd.Timestamp) -> None:
     for payload in resorts:
         water = (payload["observed"] or {}).get("water_in")
         payload["season"] = season.summary(water, normals.get(RESORTS[payload["key"]].station))
+    return {ALL_STATIONS[triplet].name: normal["curve"] for triplet, normal in normals.items() if normal}
 
 
 def run(now: datetime | None = None) -> dict:
@@ -446,7 +448,7 @@ def run(now: datetime | None = None) -> dict:
             print(f"{resort.name}: FAILED {error}", flush=True)
     if not resorts:
         raise SystemExit("no resort forecast could be produced")
-    add_season(resorts, now)
+    season_curves = add_season(resorts, now)
     stamp = now.to_pydatetime()
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
                 "published_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -454,6 +456,7 @@ def run(now: datetime | None = None) -> dict:
                 "rain_snow_split": {"kind": snow_model.phase_kind, "params": snow_model.phase_params},
                 "bias_corrected": "tahoe" in corrections, "deterministic_days": DETERMINISTIC_DAYS,
                 "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts,
+                "season_curves": season_curves,
                 "usage": usage.summary(usage.record(usage.of_run(cache.REQUESTS), stamp), stamp)}
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "forecast.json").write_text(json.dumps(forecast, separators=(",", ":")))
