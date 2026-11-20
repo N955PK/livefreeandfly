@@ -428,8 +428,8 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
   .key,.legend{justify-content:flex-start;column-gap:28px !important}
   .key:has(.blocks){column-gap:28px !important}
   #avalanche{padding:22px 24px 20px}
-  .acols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"rating problems" "words problems";column-gap:40px;align-items:start}
-  .arating{grid-area:rating}.aproblems{grid-area:problems}.awords{grid-area:words}
+  .acols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"rating problems" "words words" "scale scale";column-gap:40px;align-items:start}
+  .arating{grid-area:rating}.aproblems{grid-area:problems}.awords{grid-area:words}.ascale{grid-area:scale}
   .aproblems h3{margin-top:10px}
   .aadvice{font-size:15.5px}
   .dtable{max-width:none;font-size:14px;gap:7px 10px}
@@ -438,12 +438,36 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
   .probs li{gap:16px;padding:12px 0;font-size:14.5px}
   .probs .ptype{width:64px;height:64px}
   .probs .rose{width:84px;height:84px}
-  .abottom p{font-size:15px}
+  .abottom p{font-size:15px;max-width:none}
   .dscale{font-size:12px;margin-top:22px}
   .dscale img{height:40px}
   .dscale b{font-size:15px}
   .abtn{display:table;margin:16px auto 0;padding:12px 44px}
   .anote{text-align:center}
+  .srow{grid-template-columns:76px minmax(140px,300px) 120px minmax(400px,1fr);gap:20px;font-size:14px;padding:12px 0}
+  .srow .d b{font-size:15px}
+  .srow .amt{font-size:19px}
+  .cond{grid-template-columns:minmax(110px,1.3fr) minmax(84px,1fr) minmax(100px,1fr) 60px;justify-content:stretch;column-gap:14px;font-size:14.5px}
+  .cond .temp small,.cond .wind small{font-size:13px}
+  .cond .sky svg{width:20px;height:17px}
+  .barb{width:23px;height:23px}
+  #wx{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 6px}
+  #wx .orow{display:block;background:var(--wash);border-radius:12px;padding:12px 14px;font-size:15px}
+  #wx .orow .k{display:block;font-size:12.5px;margin-bottom:3px}
+  #wx .orow > span:last-child:empty{display:none}
+  #lifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;align-items:start}
+  .orow{font-size:14.5px}
+  .orow .k{font-size:13px}
+  .orow .meter{height:8px;border-radius:4px;margin-top:6px}
+  #roadNote{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;align-items:start}
+  #roadNote .src{grid-column:1/-1}
+  .roads li,details.roads summary,details.roads summary .sw b,.roads .sw span{font-size:14px}
+  details.roads p,.roadnote .src{font-size:13px}
+  .gridcap,.gridnote,.legend,.key{font-size:13px}
+  .srow.head{font-size:12.5px}
+  .tile .k,.tile .r{font-size:13px}
+  .aby,.anote{font-size:13px}
+  .heat td.name span{font-size:12.5px}
 }
 footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
 @media(max-width:720px){
@@ -569,7 +593,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "129";
+const BUILD = "130";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -775,7 +799,7 @@ function timeline(resort, el) {
   const avail = Math.max(280, $("detail").clientWidth - 36 - 44);
   // A wide screen shows four days at a time, at about the phone's width per hour, and gets taller plots.
   const wide = avail >= 860, pph = wide ? Math.max(10, avail / (24 * 4)) : 10, W = Math.round(n * pph);
-  const T = 20, H1 = wide ? 190 : 132, TA = T + H1 + 16, HA = wide ? 104 : 78, WIND_Y = TA + HA + 10, GUST_Y = WIND_Y + 15, CLOUD_Y = GUST_Y + 15, TEMP_Y = CLOUD_Y + 15, T2 = TEMP_Y + 30, H2 = wide ? 124 : 92, H = T2 + H2 + 6;
+  const T = 20, H1 = wide ? 190 : 132, TA = T + H1 + 16, HA = wide ? 104 : 78, STRIP = wide ? 16 : 10, WIND_Y = TA + HA + 10, GUST_Y = WIND_Y + STRIP + 5, CLOUD_Y = GUST_Y + STRIP + 5, TEMP_Y = CLOUD_Y + STRIP + 5, T2 = TEMP_Y + 30, H2 = wide ? 124 : 92, H = T2 + H2 + 6;
   const snow = Array.from({length: n}, (_, i) => h.snow_in[i] || 0);
   const top = [0.2, 0.5, 1, 1.5, 2, 3, 4].find((v) => v >= Math.max(...snow)) || 5;
   const {running, storms} = stormTotals(snow);
@@ -824,10 +848,10 @@ function timeline(resort, el) {
       body += `<path d="M${x(i) + 0.75} ${T + H1}V${yTop + r}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${T + H1}z" style="fill:${snowColor(h.slr[i])}"${i < nowIndex ? ' fill-opacity=".5"' : ""}/>`;
     }
     const wind = h.wind_mph[i] || 0, gust = Math.max(wind, h.gust_mph[i] || 0), cloud = h.cloud_pct[i];
-    strips += `<rect x="${x(i)}" y="${WIND_Y}" width="${pph + 0.3}" height="10" style="fill:${windColor(wind)}"/>` +
-      `<rect x="${x(i)}" y="${GUST_Y}" width="${pph + 0.3}" height="10" style="fill:${windColor(gust)}"/>`;
-    if (h.temp_f[i] != null) strips += `<rect x="${x(i)}" y="${TEMP_Y}" width="${pph + 0.3}" height="10" style="fill:${tempColor(h.temp_f[i])}"/>`;
-    if (cloud != null) strips += `<rect x="${x(i)}" y="${CLOUD_Y}" width="${pph + 0.3}" height="10" fill="var(--ink)" fill-opacity="${(cloud / 100 * 0.5).toFixed(2)}"/>`;
+    strips += `<rect x="${x(i)}" y="${WIND_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${windColor(wind)}"/>` +
+      `<rect x="${x(i)}" y="${GUST_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${windColor(gust)}"/>`;
+    if (h.temp_f[i] != null) strips += `<rect x="${x(i)}" y="${TEMP_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${tempColor(h.temp_f[i])}"/>`;
+    if (cloud != null) strips += `<rect x="${x(i)}" y="${CLOUD_Y}" width="${pph + 0.3}" height="${STRIP}" fill="var(--ink)" fill-opacity="${(cloud / 100 * 0.5).toFixed(2)}"/>`;
   }
   body += `<line x1="0" x2="${W}" y1="${T + H1}" y2="${T + H1}" stroke="var(--axis)"/><line x1="0" x2="${W}" y1="${ya(0)}" y2="${ya(0)}" stroke="var(--axis)"/>`;
   // Storm totals: one filled curve per storm, with its total written where the snow stops.
@@ -840,7 +864,7 @@ function timeline(resort, el) {
   let measured = "", pen = false;
   gain.forEach((v, i) => { if (v == null) { pen = false; return; } measured += `${pen ? "L" : "M"}${x(i + 0.5).toFixed(1)} ${ya(v).toFixed(1)}`; pen = true; });
   if (measured) body += `<path d="${measured}" fill="none" stroke="var(--ink2)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
-  body += `<rect x="0" y="${WIND_Y}" width="${W}" height="10" rx="3" fill="var(--wash)"/><rect x="0" y="${GUST_Y}" width="${W}" height="10" rx="3" fill="var(--wash)"/><rect x="0" y="${CLOUD_Y}" width="${W}" height="10" rx="3" fill="var(--wash)"/><rect x="0" y="${TEMP_Y}" width="${W}" height="10" rx="3" fill="var(--wash)"/>${strips}`;
+  body += `<rect x="0" y="${WIND_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/><rect x="0" y="${GUST_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/><rect x="0" y="${CLOUD_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/><rect x="0" y="${TEMP_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/>${strips}`;
   let d = ""; pen = false;
   levels.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i + 0.5).toFixed(1)} ${y2(v).toFixed(1)}`; pen = true; });
   body += `<path d="${d}" fill="none" stroke="var(--level)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -849,7 +873,7 @@ function timeline(resort, el) {
   body += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${T2 + H2}" stroke="var(--ink2)" style="display:none"/>`;
   const axis = `<svg width="44" height="${H}" aria-hidden="true"><text x="38" y="${y1(top) + 4}" text-anchor="end">${top} in</text><text x="38" y="${y1(top / 2) + 4}" text-anchor="end">${top / 2}</text>
     <text x="38" y="${TA + 10}" text-anchor="end">Storm</text><text x="38" y="${TA + 22}" text-anchor="end">total</text>
-    <text x="38" y="${WIND_Y + 9}" text-anchor="end">Wind</text><text x="38" y="${GUST_Y + 9}" text-anchor="end">Gust</text><text x="38" y="${CLOUD_Y + 9}" text-anchor="end">Cloud</text><text x="38" y="${TEMP_Y + 9}" text-anchor="end">Temp</text>
+    <text x="38" y="${WIND_Y + STRIP / 2 + 4}" text-anchor="end">Wind</text><text x="38" y="${GUST_Y + STRIP / 2 + 4}" text-anchor="end">Gust</text><text x="38" y="${CLOUD_Y + STRIP / 2 + 4}" text-anchor="end">Cloud</text><text x="38" y="${TEMP_Y + STRIP / 2 + 4}" text-anchor="end">Temp</text>
     <text x="40" y="${y2(summit) + 4}" text-anchor="end">Summit</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text></svg>`;
   return {html: `<div class="tl"><div class="tl-axis">${axis}</div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, storm totals, wind, cloud, temperature, and snow level: the past week and the next six days">${body}</svg></div><div id="tip"></div></div>`,
     n, pph, nowIndex, running, depth};
@@ -1164,7 +1188,14 @@ function webcams(resort) {
   return `<div class="cams"><button class="shot" aria-label="Enlarge the highway camera picture"><img src="${src}" alt="" loading="lazy" onerror="this.parentNode.remove()"></button>
     <span class="what"><b>${road[2]}</b>Caltrans highway camera${link}</span></div>`;
 }
+// The hourly chart is drawn to the width it finds, so a window that changes width gets a fresh one.
+let fitted = 0, refit = 0;
+window.addEventListener("resize", () => {
+  clearTimeout(refit);
+  refit = setTimeout(() => { if (data && Math.abs($("detail").clientWidth - fitted) > 40) renderDetail(); }, 200);
+});
 function renderDetail() {
+  fitted = $("detail").clientWidth;
   const resort = here().find((r) => r.key === selected) || opener();
   selected = resort.key;
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
@@ -1546,7 +1577,7 @@ function renderAvalanche() {
   const clock = (iso) => new Date(iso).toLocaleString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
   const head = `<div class="ahead"><div><h2>Avalanche danger</h2><span class="by">${esc(center.name)}${zone ? ` · ${esc(zone.name)}` : ""}</span></div>${zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
-  const foot = (link) => `${scale}<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
+  const foot = (link, withScale = true) => `${withScale ? scale : ""}<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
     <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p>`;
   if (!state || !state.loaded) { $("avalanche").innerHTML = `${head}<p class="anotice">Loading the avalanche forecast…</p>`; return; }
   if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. It is not saved on your phone, so it is never shown out of date."}</p>${foot(center.url)}`; return; }
@@ -1582,9 +1613,9 @@ function renderAvalanche() {
     const lines = paragraphs(product.bottom_line);
     words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)} · issued ${clock(product.published_time)}${product.expires_time ? ` · expires ${clock(product.expires_time)}` : ""}</p></div>`;
   }
-  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}</div>`;
+  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${scale}</div></div>`;
   const link = (product && product.forecast_zone && product.forecast_zone[0] && product.forecast_zone[0].url) || zone.link || center.url;
-  $("avalanche").innerHTML = `<div class="${expired ? "expired" : ""}">${head}${body}</div>${foot(link)}`;
+  $("avalanche").innerHTML = `<div class="${expired ? "expired" : ""}">${head}${body}</div>${foot(link, false)}`;
 }
 
 function renderNotes() {
