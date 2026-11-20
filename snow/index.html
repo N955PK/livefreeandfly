@@ -138,13 +138,15 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .split svg{width:13px;height:13px;color:var(--muted)}
 .split span{display:inline-flex;align-items:center;gap:3px;margin-right:8px;font-variant-numeric:tabular-nums}
 .split em{font-style:normal;color:var(--muted)}
-.cond{display:grid;grid-template-columns:minmax(0,1fr) 74px 52px;column-gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.cond{display:grid;grid-template-columns:86px 64px auto;justify-content:start;column-gap:10px;align-items:center;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
 .cond .sky{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
 .cond .sky svg{width:17px;height:14px;color:var(--muted)}
 .cond .wind{display:flex;align-items:center;gap:6px}
 .cond .wind i{width:9px;height:9px;border-radius:50%;background:var(--grid);flex:none}
 .srow .pw{text-align:right}
-.cond .pscore{white-space:nowrap;text-align:right}
+.cond .pscore{white-space:nowrap}
+.cond .wind{white-space:nowrap}
+.cond .wind small{font-size:11px;color:var(--muted);margin-left:1px}
 .cond .pscore b{color:var(--ink);font-weight:700}
 .srow .pw b{font-size:15px}
 .srow .pw span{color:var(--muted)}
@@ -334,7 +336,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "39";
+const BUILD = "40";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -443,7 +445,8 @@ const ICONS = {
 function sky(p) {
   if (p.sky_pct == null) return ["", ""];
   if ((p.snowing_hours || 0) >= 3) return [ICONS.snow, "Snowing"];
-  return p.sky_pct < 25 ? [ICONS.sun, "Sunny"] : p.sky_pct < 60 ? [ICONS.partly, "Partly cloudy"] : p.sky_pct < 85 ? [ICONS.partly, "Mostly cloudy"] : [ICONS.cloud, "Cloudy"];
+  // Short words, so the column beside them can sit close.
+  return p.sky_pct < 25 ? [ICONS.sun, "Sunny"] : p.sky_pct < 60 ? [ICONS.partly, "Some sun"] : [ICONS.cloud, "Cloudy"];
 }
 
 // A storm is snowfall with no dry spell of a day or more inside it. Its running total holds for a day after
