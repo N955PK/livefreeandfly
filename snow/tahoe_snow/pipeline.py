@@ -317,7 +317,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     summit_blend = None
     for label, elev_m in resort.elevations().items():
         snow = pd.DataFrame({m: r[label]["hourly"]["snow_cm"] for m, r in models.items()}).reindex(hours)
-        fields = {name: blend.weighted_mean(
+        fields = {name: (blend.robust_mean if name in ("snow_cm", "liquid_mm") else blend.weighted_mean)(
             pd.DataFrame({m: r[label]["hourly"][name] for m, r in models.items()}).reindex(hours), weights)
             for name in ("snow_cm", "liquid_mm", "slr", "snow_fraction", "snow_level_m", "wind_ms", "temp_c",
                          "cloud_pct", "gust_ms")}

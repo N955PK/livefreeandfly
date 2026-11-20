@@ -14,14 +14,18 @@ def _pairs(bias=1.0, n=400, station="a", seed=0, model="gfs", lead=1):
 
 
 def test_identity_when_forecast_equals_observation():
-    correction = biascorrect.fit(_pairs())
-    values = np.array([0.0, 2.0, 10.0, 40.0, 500.0])
+    pairs = _pairs()
+    correction = biascorrect.fit(pairs)
+    values = np.array([0.0, 2.0, 10.0, 40.0, 0.98 * pairs["observed_mm"].max()])
     assert np.allclose(correction.apply("gfs", "a", 1, values), values, rtol=0.03, atol=0.2)
 
 
 def test_dry_model_is_corrected_including_beyond_training_range():
-    correction = biascorrect.fit(_pairs(bias=0.7))
-    values = np.array([7.0, 28.0, 400.0])
+    pairs = _pairs(bias=0.7)
+    correction = biascorrect.fit(pairs)
+    record = pairs["observed_mm"].max()
+    # The last value is above anything the model produced in training, but below the record once corrected.
+    values = np.array([7.0, 28.0, 0.69 * record])
     corrected = correction.apply("gfs", "a", 1, values)
     assert np.allclose(corrected, values / 0.7, rtol=0.05)
 
@@ -84,3 +88,22 @@ def test_powder_score_cases():
     rained_on = powder.score(powder.DayPart(snow_in=12, slr=15, rain_share=0.3, late_rain_mm=5.0))
     assert rained_on < 0.55 * great
     assert powder.score(powder.DayPart(snow_in=60, slr=15, slr_change=3, overnight_share=1.0)) <= 10.0
+
+
+def test_corrected_water_never_exceeds_the_station_record():
+    pairs = _pairs(bias=0.15, n=600)
+    correction = biascorrect.from_json(json.loads(json.dumps(biascorrect.to_json(biascorrect.fit(pairs)))))
+    record = pairs["observed_mm"].max()
+    out = correction.apply("gfs", "a", 0, np.array([0.5 * record, 5.0, np.nan]))
+    assert out[0] <= record + 1e-9          # uncapped this would be several times the record
+    assert abs(out[1] - 5.0 / 0.15) < 6.0   # ordinary days are still corrected
+    assert np.isnan(out[2])
+
+
+def test_robust_mean_ignores_one_runaway_model():
+    index = pd.date_range("2026-01-02 08:00", periods=24, freq="h")
+    frame = pd.DataFrame({"a": 1.0, "b": 1.2, "c": 0.8, "runaway": 9.0}, index=index)
+    assert abs(blend.robust_mean(frame).sum() - 24 * 1.1) < 1e-6      # the median of 24, 28.8, 19.2, 216 is 26.4
+    assert abs(blend.weighted_mean(frame).sum() - 24 * 3.0) < 1e-6
+    calm = pd.DataFrame({"a": 1.0, "b": 1.0}, index=index)
+    assert np.allclose(blend.robust_mean(calm), 1.0)

@@ -5,6 +5,8 @@ import pandas as pd
 from tahoe_snow.snow import features, phase
 
 MIN_AMOUNT_MM = 2.5
+# The ratio model saw few days above this much water; beyond it the amount is held constant.
+MAX_AMOUNT_MM = 100.0
 AMOUNT_WINDOW_H = 24
 
 
@@ -25,7 +27,8 @@ class SnowModel:
         liquid = liquid_mm.reindex(hourly.index).astype(float)
         fraction = phase.hourly_fraction(hourly, elev_m, self.phase_kind, self.phase_params)
         # The ratio model was trained on storm-day totals, so it sees the surrounding 24 h amount.
-        amount = liquid.fillna(0.0).rolling(AMOUNT_WINDOW_H, center=True, min_periods=1).sum().clip(lower=MIN_AMOUNT_MM)
+        amount = liquid.fillna(0.0).rolling(AMOUNT_WINDOW_H, center=True, min_periods=1).sum()
+        amount = amount.clip(lower=MIN_AMOUNT_MM, upper=MAX_AMOUNT_MM)
         rows = features.add_static(hourly, amount, elev_m, hourly.index.day_of_year)
         complete = rows[features.FEATURES].notna().all(axis=1).to_numpy()
         slr = np.full(len(rows), np.nan)

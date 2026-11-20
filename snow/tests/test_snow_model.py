@@ -191,3 +191,14 @@ def test_levels_a_model_does_not_publish_are_ignored():
     b = features.hourly_features(sparse, 2450.0)
     assert not b[["t0", "t1000", "t2000", "tw0", "wind0", "rh0", "snow_level_m"]].isna().any().any()
     assert np.allclose(a["t0"], b["t0"], atol=0.05) and np.allclose(a["snow_level_m"], b["snow_level_m"], atol=30)
+
+
+def test_amount_feature_is_held_above_the_training_range():
+    from tahoe_snow.snow import model as snow_model
+    events = _events(200)
+    fitted = ratio.candidates()["ridge (all)"].fit(events, events["slr"].to_numpy())
+    sm = snow_model.SnowModel(fitted, "wet-bulb logistic", {"center_c": 1.25, "width_c": 0.2})
+    cold = features.hourly_features(make_profile(hours=30, t700=-10.0), 2450.0)
+    heavy = sm.snowfall(cold, pd.Series(5.0, index=cold.index), 2450.0)     # 120 mm in 24 h
+    extreme = sm.snowfall(cold, pd.Series(12.0, index=cold.index), 2450.0)  # 288 mm in 24 h
+    assert np.allclose(heavy["slr"].iloc[12], extreme["slr"].iloc[12])

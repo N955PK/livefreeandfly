@@ -38,6 +38,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>Weather models are consistently too dry or too wet at particular spots in the mountains. Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,206 model-days).</p>
 <figure><img src="water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
 <p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
+<p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. (One model delivers 13% of the measured water at Mt Rose; uncapped, its correction once turned 43 mm into 247.)</p>
 <div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr><tr><td>Raw average of four models</td><td>88%</td><td>0.23</td><td>0.43</td><td>0.90</td></tr><tr><td>Corrected to the sensors (in use)</td><td>102%</td><td>0.21</td><td>0.35</td><td>0.59</td></tr></table></div>
 
 <h2>4. Wind gusts</h2>

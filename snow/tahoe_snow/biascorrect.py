@@ -36,10 +36,10 @@ class Correction:
         by_station, station = found
         pooled = _apply_map(by_station[POOLED], values)
         if station not in by_station:
-            return pooled
+            return _capped(pooled, by_station[POOLED])
         entry = by_station[station]
         weight = entry["n"] / (entry["n"] + self.min_wet_days)
-        return weight * _apply_map(entry, values) + (1 - weight) * pooled
+        return _capped(weight * _apply_map(entry, values) + (1 - weight) * pooled, entry)
 
     def factor(self, model: str, station: str, lead_day: int, daily_mm) -> np.ndarray:
         """Multiplier that turns a raw daily total into the corrected one (1 where the raw total is ~0)."""
@@ -53,7 +53,15 @@ def _fit_map(forecast: np.ndarray, observed: np.ndarray) -> dict:
     fq = np.quantile(forecast[wet], QUANTILES)
     oq = np.quantile(observed[wet], QUANTILES)
     return {"fq": np.concatenate([[0.0], np.maximum.accumulate(fq)]),
-            "oq": np.concatenate([[0.0], np.maximum.accumulate(oq)]), "n": int(wet.sum())}
+            "oq": np.concatenate([[0.0], np.maximum.accumulate(oq)]), "n": int(wet.sum()),
+            "cap": float(observed.max())}
+
+
+def _capped(corrected: np.ndarray, entry: dict) -> np.ndarray:
+    """A corrected day never exceeds the wettest day the station has recorded, and never falls below the
+    raw value it would have had with no correction beyond that record."""
+    cap = entry.get("cap")
+    return corrected if cap is None else np.where(np.isnan(corrected), np.nan, np.minimum(corrected, cap))
 
 
 def _apply_map(entry: dict, values: np.ndarray) -> np.ndarray:
@@ -87,7 +95,8 @@ def fit(pairs: pd.DataFrame, min_wet_days: int = 40) -> Correction:
 def to_json(correction: Correction) -> dict:
     return {"min_wet_days": correction.min_wet_days,
             "maps": [{"model": model, "lead_day": lead,
-                      "stations": {name: {"fq": list(map(float, e["fq"])), "oq": list(map(float, e["oq"])), "n": e["n"]}
+                      "stations": {name: {"fq": list(map(float, e["fq"])), "oq": list(map(float, e["oq"])), "n": e["n"],
+                                          "cap": e.get("cap")}
                                    for name, e in by_station.items()}}
                      for (model, lead), by_station in correction.maps.items()]}
 
