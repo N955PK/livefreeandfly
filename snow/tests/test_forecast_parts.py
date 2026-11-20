@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 
-from tahoe_snow import biascorrect, blend, calibrate, pipeline, powder, usage
+from tahoe_snow import biascorrect, blend, calibrate, pipeline, powder, season, usage
 from tahoe_snow.config import ALL_STATIONS, RESORTS
 from tahoe_snow.sources import cdec, nv511, openmeteo, snotel
 
@@ -231,3 +231,20 @@ def test_nevada_road_status_keeps_restricted_stretches_inside_the_maps():
     assert [(row["route"], row["status"]) for row in status["rows"]] == [("NV-431", "chains"), ("NV-207", "closed")]
     assert {point["route"] for point in status["points"]} == {"NV-431", "NV-207"}
     assert status["updated"] == "2026-11-20T16:00:00Z"
+
+
+def test_season_normal_is_the_median_of_past_years_on_this_date():
+    days = pd.date_range("2000-10-01", "2026-11-20", freq="D")
+    into_year = (days - pd.to_datetime((season.water_year(days) - 1).astype(str) + "-10-01")).days
+    # Every year climbs to its peak on day 180 and melts by day 270; odd years carry twice the snow of even ones.
+    shape = np.clip(np.minimum(into_year / 180, (270 - into_year) / 90), 0, None)
+    swe = pd.Series(shape * np.where(season.water_year(days) % 2, 40.0, 20.0), index=days)
+    normal = season.from_history(swe, pd.Timestamp("2026-11-20"))
+    assert normal["years"] == 26
+    assert abs(normal["peak_in"] - 30.0) < 0.5
+    # The five-day smoothing flattens the top, and the first day of the plateau counts as the peak.
+    assert normal["peak_date"] in {"03-28", "03-29", "03-30"}
+    assert abs(normal["normal_in"] - 30.0 * 50 / 180) < 0.5
+    told = season.summary(4.2, normal)
+    assert told["pct_peak"] == 14 and told["pct_normal"] == round(100 * 4.2 / normal["normal_in"])
+    assert season.summary(4.2, {**normal, "normal_in": 0.4})["pct_normal"] is None

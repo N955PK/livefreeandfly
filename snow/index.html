@@ -295,6 +295,14 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .wh .tick{position:absolute;top:4px;height:14px;width:1.5px;margin-left:-.75px;background:var(--ink2);opacity:.55}
 .wh .dot{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--snow);border:2px solid var(--surface)}
 .pw span.new{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.season{margin-top:14px}
+.season .shead{display:flex;align-items:baseline;gap:8px;font-size:13.5px;color:var(--ink2)}
+.season .shead b{color:var(--ink);font-weight:650}
+.sbar{position:relative;height:8px;border-radius:4px;background:var(--wash);margin:7px 0 6px}
+.sbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--snow);min-width:4px}
+.sbar u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ink2)}
+.season .snote{font-size:12.5px;color:var(--muted)}
+.season .snote b{color:var(--ink2);font-weight:650}
 .meter{display:flex;gap:2px;margin-top:3px}
 .meter i{width:7px;height:10px;border-radius:2px;background:var(--grid)}
 .meter i.f{background:var(--snow)}
@@ -467,6 +475,7 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
   .srow.head{font-size:12.5px}
   .tile .k,.tile .r{font-size:13px}
   .aby,.anote{font-size:13px}
+  .season .shead{font-size:14.5px}.season .snote{font-size:13.5px}
   .heat td.name span{font-size:12.5px}
 }
 footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
@@ -593,7 +602,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "133";
+const BUILD = "134";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -956,7 +965,19 @@ function measured(resort) {
   return `<h3>Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${o.elevation_ft.toLocaleString()} ft, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
     <div class="tiles">${depth}
     ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>in</small>`, `${inches(o.water_gain_24h_in)} in in 24 h`)}
-    ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div>`;
+    ${cell("Temperature", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div>${seasonSoFar(resort.season)}`;
+}
+// The snowpack's water against a usual year at the same sensor: the bar is a usual season's peak, filled to
+// today's water, with a tick where a usual year stands on this date.
+function seasonSoFar(s) {
+  if (!s) return "";
+  const [month, day] = s.peak_date.split("-").map(Number), today = new Date().toLocaleDateString("en-US", {timeZone: TZ, month: "short", day: "numeric"});
+  const around = `${day <= 10 ? "early" : day <= 20 ? "mid" : "late"} ${new Date(2001, month - 1, 1).toLocaleDateString("en-US", {month: "long"})}`;
+  const share = (value) => Math.min(100, 100 * value / s.peak_in);
+  const normal = s.pct_normal == null ? `A usual ${today} has under 1 in` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} in, the tick)`;
+  return `<div class="season"><div class="shead"><b>Season so far</b><span>${inches(s.water_in)} in of water in the snowpack</span></div>
+    <div class="sbar" role="img" aria-label="${s.pct_peak}% of a usual season's peak"><i style="width:${share(s.water_in)}%"></i><u style="left:${share(s.normal_in)}%"></u></div>
+    <div class="snote">${normal} · <b>${s.pct_peak}%</b> of a usual peak (${inches(s.peak_in)} in, ${around})</div></div>`;
 }
 
 const opener = () => here().find((r) => r.key === HOME) || here().find((r) => r.key === REGIONS[region].pick) || sorted()[0];

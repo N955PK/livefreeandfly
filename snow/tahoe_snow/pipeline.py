@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 
-from tahoe_snow import biascorrect, blend, cache, powder, usage
+from tahoe_snow import biascorrect, blend, cache, powder, season, usage
 from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, RESORTS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
@@ -417,6 +417,18 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     return payload, archive
 
 
+def add_season(resorts: list, now: pd.Timestamp) -> None:
+    """Each mountain's snowpack against a usual year. A sensor network that cannot be reached leaves it out."""
+    try:
+        normals = season.normals(now)
+    except (RuntimeError, OSError, ValueError, KeyError) as error:
+        print(f"season: FAILED {error}", flush=True)
+        normals = {}
+    for payload in resorts:
+        water = (payload["observed"] or {}).get("water_in")
+        payload["season"] = season.summary(water, normals.get(RESORTS[payload["key"]].station))
+
+
 def run(now: datetime | None = None) -> dict:
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
     snow_model, ratio_name = load_snow_model()
@@ -434,6 +446,7 @@ def run(now: datetime | None = None) -> dict:
             print(f"{resort.name}: FAILED {error}", flush=True)
     if not resorts:
         raise SystemExit("no resort forecast could be produced")
+    add_season(resorts, now)
     stamp = now.to_pydatetime()
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
                 "published_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
