@@ -643,7 +643,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "148";
+const BUILD = "149";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -929,6 +929,12 @@ function timeline(resort, el) {
     n, pph, nowIndex, running, depth};
 }
 
+// A touch anywhere off the hourly chart puts its readout away.
+document.addEventListener("pointerdown", (event) => {
+  if (event.target.closest("#tlScroll") || !$("tip")) return;
+  $("tip").style.display = "none";
+  if ($("cross")) $("cross").style.display = "none";
+});
 function wireTimeline(resort, el, g) {
   const scroll = $("tlScroll"), tip = $("tip"), cross = $("cross");
   if (!scroll) return;
@@ -939,7 +945,7 @@ function wireTimeline(resort, el, g) {
   // A button to come back appears once the chart has been dragged away from now.
   scroll.addEventListener("scroll", () => { $("tlNow").hidden = Math.abs(scroll.scrollLeft - atNow()) < 40; }, {passive: true});
   $("tlNow").addEventListener("click", () => scroll.scrollTo({left: atNow(), behavior: "smooth"}));
-  const showAt = (clientX) => {
+  const showAt = (clientX, above) => {
     const rect = scroll.getBoundingClientRect(), px = clientX - rect.left + scroll.scrollLeft;
     const k = Math.max(0, Math.min(g.n - 1, Math.floor(px / g.pph))), cx = (k + 0.5) * g.pph;
     cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.style.display = "";
@@ -955,14 +961,18 @@ function wireTimeline(resort, el, g) {
       row("Temperature", h.temp_f[k] == null ? "–" : `${Math.round(h.temp_f[k])}°F, feels like ${Math.round(windChill(h.temp_f[k], wind))}°F`);
     tip.style.display = "block";
     const left = 44 + cx - scroll.scrollLeft, wide = scroll.parentElement.clientWidth;
-    tip.style.left = Math.max(4, Math.min(wide - tip.offsetWidth - 4, left + 12 + tip.offsetWidth > wide ? left - 12 - tip.offsetWidth : left + 12)) + "px";
-    tip.style.top = "22px";
+    // A mouse gets the readout beside the pointer. A finger gets it above the chart, over the hour, clear of the hand.
+    tip.style.left = Math.max(4, Math.min(wide - tip.offsetWidth - 4, above ? left - tip.offsetWidth / 2 : left + 12 + tip.offsetWidth > wide ? left - 12 - tip.offsetWidth : left + 12)) + "px";
+    tip.style.top = above ? `${10 - tip.offsetHeight}px` : "22px";
   };
   const hide = () => { tip.style.display = "none"; cross.style.display = "none"; };
   scroll.addEventListener("mousemove", (e) => showAt(e.clientX));
   scroll.addEventListener("mouseleave", hide);
-  scroll.addEventListener("click", (e) => showAt(e.clientX));
-  scroll.addEventListener("scroll", hide, {passive: true});
+  // Swiping the chart with a finger reads the hour passing under its middle, so the chart scrolls and reads at once.
+  let fingered = false;
+  scroll.addEventListener("touchstart", () => { fingered = true; }, {passive: true});
+  scroll.addEventListener("click", (e) => showAt(e.clientX, fingered));
+  scroll.addEventListener("scroll", () => { if (fingered) showAt(scroll.getBoundingClientRect().left + scroll.clientWidth / 2, true); else hide(); }, {passive: true});
 }
 
 // A day's snow on a fixed 0 to 24 inch scale: a dot for the forecast, a shaded band for one standard deviation
