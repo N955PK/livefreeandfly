@@ -124,31 +124,22 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .legend .sw{display:inline-flex;align-items:center;gap:3px}
 .legend .sw i{width:16px;height:12px;border-radius:3px;display:inline-block}
 #detail{margin-top:14px;padding:18px 18px 8px}
-.outlook{margin-top:16px;border:1px solid var(--grid);border-radius:14px;padding:12px 14px 10px}
-.outlook .ohead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.outlook{margin-top:16px;border:1px solid var(--grid);border-radius:14px;padding:12px 14px}
+.outlook .ohead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
 .outlook h3{margin:0;font-size:17px}
-.outlook .verdict{margin:8px 0 4px;font-size:15.5px;font-weight:650;line-height:1.3}
-.outlook ul{list-style:none;padding:0;margin:0}
-.outlook li{display:flex;gap:9px;align-items:baseline;padding:5px 0;font-size:13.5px;color:var(--ink2);line-height:1.35}
-.outlook li i{flex:none;width:9px;height:9px;border-radius:50%;transform:translateY(-.5px);background:var(--axis)}
-.outlook li.good i{background:#3fa34d}.outlook li.warn i{background:var(--w1)}.outlook li.bad i{background:var(--w2)}
-.outlook li b{color:var(--ink);font-weight:650}
-.outlook .ours{font-size:11.5px;color:var(--muted);margin:4px 0 0}
-.lifts{margin-top:10px;padding-top:10px;border-top:1px solid var(--grid);font-size:13.5px;color:var(--ink2)}
-.lifts .count{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.lifts .count b{color:var(--ink);font-size:15px;font-weight:650}
-.lifts .meter{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--wash);margin:6px 0 8px}
-.lifts .meter span{display:block}
-.lifts .s-open{background:#3fa34d}.lifts .s-hold{background:var(--w1)}.lifts .s-soon{background:#6aa9e9}.lifts .s-closed{background:var(--axis)}
-.lifts details{margin-top:2px}
-.lifts details summary{color:var(--accent);font-size:13.5px;font-weight:600;padding:2px 0}
-.lifts details summary::after{font-size:16px;line-height:1}
-.lifts .area{margin:8px 0 2px;font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.lifts .lift{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
-.lifts .lift span:last-child{display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--muted)}
-.lifts .lift i{width:8px;height:8px;border-radius:50%}
-.lifts .src{display:block;font-size:11.5px;color:var(--muted);margin-top:8px}
-.lifts a{color:var(--accent);font-weight:600;text-decoration:none}
+.outlook h3 span{font-weight:500;color:var(--muted);font-size:13px}
+.orow{display:grid;grid-template-columns:62px minmax(0,1fr);gap:2px 10px;align-items:baseline;padding:7px 0;font-size:13.5px;color:var(--ink2)}
+.orow + .orow{border-top:1px solid var(--grid)}
+.orow .k{color:var(--muted);font-size:12.5px}
+.orow b{color:var(--ink);font-weight:650}
+.orow .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#3fa34d}
+.orow .dot.warn{background:var(--w1)}.orow .dot.bad{background:var(--w2)}
+.orow .meter{grid-column:2;display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--wash);margin-top:3px}
+.orow .meter span{display:block}
+.s-open{background:#3fa34d}.s-hold{background:var(--w1)}.s-soon{background:#6aa9e9}.s-closed{background:var(--axis)}
+.orow .held{color:var(--ink);font-weight:650}
+.outlook .src{display:block;font-size:11.5px;color:var(--muted);margin-top:6px}
+.outlook a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
 .cams{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--grid);font-size:13px;color:var(--ink2)}
 .cams .shot{flex:none;border:0;padding:0;background:none;cursor:zoom-in;line-height:0}
 .cams .shot img{width:76px;height:57px;object-fit:cover;border-radius:8px}
@@ -508,7 +499,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Outlook</b> is our own reading of the forecast for one ski day, not anything the resort has said. Wind holds are flagged from summit wind by rule of thumb: possible from gusts of 35 mph, likely from 50, and the upper mountain likely shut from 70. A late start for avalanche control is flagged after 6 in of overnight snow up high, and a slow one after 12. Every lift and every patrol is different, so treat it as a heads-up. Lift and trail counts, where shown, come live from the resort.</p>
+    <p><b>Outlook</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb (possible from gusts of 35 mph, expected from 50), late openings after 6 in of overnight snow up high, rain down low, low visibility, and wind chill. Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
@@ -520,7 +511,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "111";
+const BUILD = "112";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -899,78 +890,63 @@ const HOLD = {possible: [35, 25], likely: [50, 35], shut: [70, 45]}, CONTROL_IN 
 let outlookShift = null;
 const localHour = () => +new Date().toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24;
 const windChill = (f, mph) => (f == null || mph == null || mph < 3 || f > 50 ? f : 35.74 + 0.6215 * f - 35.75 * mph ** 0.16 + 0.4275 * f * mph ** 0.16);
-function outlookItems(resort, date) {
+// What the forecast says could get in the way on one ski day: [tone, short name, the numbers behind it].
+function outlookImpacts(resort, date) {
   const dayAt = (level) => resort.elevations[level].days.find((d) => d.date === date) || {powder: {}};
   const top = dayAt("summit"), low = dayAt("base"), s = top.powder, b = low.powder, wild = resort.kind === "backcountry";
-  const items = [], add = (tone, title, detail) => items.push({tone, title, detail});
-  const from = s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`, wind = s.wind_mph || 0, gust = Math.max(wind, s.gust_mph || 0);
-  const blowing = `${wind} mph, gusts to ${gust}${from} at the summit`;
-  const over = (level) => gust >= HOLD[level][0] || wind >= HOLD[level][1];
-  if (over("shut")) add("bad", wild ? "Dangerous wind on the ridges" : "Upper mountain likely shut by wind", blowing);
-  else if (over("likely")) add("bad", wild ? "Strong ridge wind" : "Wind holds likely on upper lifts", blowing);
-  else if (over("possible")) add("warn", wild ? "Gusty on the ridges" : "Wind holds possible on exposed lifts", blowing);
-  else if (s.wind_mph != null) add("good", "Light wind", blowing);
-  const night = s.night_in || 0, total = top.snow_in || 0;
-  if (!wild && night >= CONTROL_IN.lots) add("bad", "Expect a slow start", `${inches(night)} in overnight up high; avalanche control usually delays upper lifts`);
-  else if (!wild && night >= CONTROL_IN.some) add("warn", "Upper terrain may open late", `${inches(night)} in overnight up high means avalanche control first`);
-  if (wild && total >= 6) add("warn", "New load on the snowpack", `${inches(total)} in up high${gust >= 25 ? ", and wind to drift it" : ""}; read the avalanche forecast`);
-  if (total >= 0.5) add(s.score >= 6 ? "good" : "info", s.score >= 6 ? "Powder day" : "Fresh snow", `${inches(total)} in at the summit${s.slr ? `, ${quality(s.slr)[0].toLowerCase()} snow` : ""}${s.score ? `, powder score ${s.score.toFixed(1)}` : ""}`);
-  if ((b.rain_share || 0) >= 0.5 && (low.liquid_in || 0) >= 0.1) add("bad", (s.rain_share || 0) >= 0.3 ? "Rain on much of the mountain" : `Rain at the ${wild ? "trailhead" : "base"}`, `about ${Math.round(b.rain_share * 100)}% of what falls down low is rain`);
-  if (s.sky_pct >= 85 && s.snowing_hours >= 3) add("warn", "Poor visibility up high", `snowing ${s.snowing_hours} of 8 lift hours; flat light above the trees`);
-  else if (s.sky_pct != null && s.sky_pct <= 30) add("good", "Sunny", "clear skies through the lift hours");
+  const found = [], add = (tone, name, detail) => found.push({tone, name, detail});
+  const wind = s.wind_mph || 0, gust = Math.max(wind, s.gust_mph || 0), over = (level) => gust >= HOLD[level][0] || wind >= HOLD[level][1];
+  const blowing = `${wind} mph, gusts to ${gust}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit`;
+  if (over("likely")) add("bad", wild ? "strong wind" : over("shut") ? "wind closures" : "wind holds", blowing);
+  else if (over("possible")) add("warn", wild ? "gusty" : "wind holds", blowing);
+  const night = s.night_in || 0;
+  if (!wild && night >= CONTROL_IN.some) add(night >= CONTROL_IN.lots ? "bad" : "warn", "late openings", `${inches(night)} in overnight up high means avalanche control first`);
+  if (wild && (top.snow_in || 0) >= 6) add("warn", "new snow load", `${inches(top.snow_in)} in up high`);
+  if ((b.rain_share || 0) >= 0.5 && (low.liquid_in || 0) >= 0.1) add("bad", "rain", `about ${Math.round(b.rain_share * 100)}% of what falls down low is rain`);
+  if (s.sky_pct >= 85 && s.snowing_hours >= 3) add("warn", "low visibility", `snowing ${s.snowing_hours} of 8 lift hours`);
   const chill = windChill(s.temp_f, wind);
-  if (chill != null && chill <= 10) add(chill <= -5 ? "bad" : "warn", chill <= -5 ? "Bitter cold up high" : "Cold up high", `${Math.round(s.temp_f)}°F at the summit, feels like ${Math.round(chill)}°F in the wind`);
-  return items;
-}
-function outlookVerdict(items, wild) {
-  const has = (title) => items.some((x) => x.title.startsWith(title)), bad = items.filter((x) => x.tone === "bad"), warn = items.filter((x) => x.tone === "warn");
-  const powder = has("Powder day"), windy = has("Upper mountain likely shut") || has("Wind holds likely") || has("Dangerous wind") || has("Strong ridge wind");
-  if (powder && windy) return wild ? "Deep and wild: new snow with strong wind up high." : "Deep, but the wind may keep the best of it out of reach.";
-  if (powder && bad.length) return "A powder day with a catch.";
-  if (powder) return wild ? "A powder day. Mind the new load." : warn.length ? "A powder day, once things open." : "A powder day, and little in the way.";
-  if (windy) return wild ? "Wind is the story up high." : "Wind is the story: expect lift holds.";
-  if (has("Rain")) return "A wet one down low.";
-  if (bad.length) return `${bad[0].title}.`;
-  if (warn.length) return `Mostly fine. ${warn[0].title}.`;
-  return has("Sunny") ? "A clear, easy day." : "A quiet day: no weather trouble expected.";
+  if (chill != null && chill <= 10) add(chill <= -5 ? "bad" : "warn", "cold", `${Math.round(s.temp_f)}°F at the summit, feels like ${Math.round(chill)}°F`);
+  return found;
 }
 function outlook(resort) {
   const days = resort.elevations.summit.days.filter((d) => !d.past), shift = Math.min(days.length - 1, outlookShift ?? (localHour() >= 16 ? 1 : 0));
   if (!days.length) return "";
-  const day = days[shift], wild = resort.kind === "backcountry", items = outlookItems(resort, day.date);
-  const name = (n) => (n === 0 ? "Today" : n === 1 ? "Tomorrow" : "");
+  const day = days[shift], wild = resort.kind === "backcountry", impacts = outlookImpacts(resort, day.date);
+  const worst = impacts.some((x) => x.tone === "bad") ? "bad" : impacts.length ? "warn" : "";
   const label = new Date(`${day.date}T12:00:00`).toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"});
-  const pick = [0, 1].filter((n) => n < days.length).map((n) => `<button data-outlook="${n}" aria-pressed="${n === shift}">${name(n)}</button>`).join("");
-  return `<div class="outlook"><div class="ohead"><h3>Outlook <span style="font-weight:500;color:var(--muted);font-size:13px">${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
-    <p class="verdict">${outlookVerdict(items, wild)}</p>
-    <ul>${items.map((x) => `<li class="${x.tone}"><i></i><span><b>${x.title}</b> · ${esc(x.detail)}</span></li>`).join("")}</ul>
-    <p class="ours">${wild ? `Our read of the forecast. Avalanche danger<span data-avy="${resort.key}"></span>` : "Our read of the forecast, not the resort's call."}</p>
-    ${wild ? "" : `<div class="lifts" id="lifts">${liftsHtml(resort)}</div>`}</div>`;
+  const pick = ["Today", "Tomorrow"].slice(0, days.length).map((name, n) => `<button data-outlook="${n}" aria-pressed="${n === shift}">${name}</button>`).join("");
+  const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
+  return `<div class="outlook"><div class="ohead"><h3>Outlook <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
+    <div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span></div>
+    ${wild ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span></div>` : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
 }
 // ---------- live lifts and trails, where the resort publishes them ----------
 const liftFeeds = {};
 const liftGroup = (status) => (/^open/.test(status) ? "open" : /hold|delay/.test(status) ? "hold" : /expect|sched/.test(status) ? "soon" : "closed");
 function liftsHtml(resort) {
-  const page = STATUS_PAGES[resort.key], link = page ? `<a href="${page}" target="_blank" rel="noopener">${LIFT_FEEDS[resort.key] ? "Full report" : "Lift and trail status"} ↗</a>` : "";
-  if (!LIFT_FEEDS[resort.key]) return link ? `<span>No live lift feed for ${esc(resort.name)}.</span> ${link}` : "";
-  if (!navigator.onLine) return "Lift status needs a signal.";
+  const page = STATUS_PAGES[resort.key], link = page ? `<a href="${page}" target="_blank" rel="noopener">${LIFT_FEEDS[resort.key] ? "Resort report" : "Lift and trail status"} ↗</a>` : "";
+  const blank = (note) => `<div class="orow"><span class="k">Lifts</span><span>${note}</span></div><div class="orow"><span class="k">Trails</span><span>${LIFT_FEEDS[resort.key] ? "" : link}</span></div>`;
+  if (!LIFT_FEEDS[resort.key]) return blank("Not published live");
+  if (!navigator.onLine) return blank("Needs a signal");
   const [id, mine] = LIFT_FEEDS[resort.key], feed = liftFeeds[id];
-  if (!feed || feed.failed) return `${feed ? "Lift status could not be loaded right now." : "Loading lift status…"} ${link}`;
+  if (!feed || feed.failed) return blank(feed ? "Could not be loaded right now" : "Loading…");
   const areas = (feed.data.MountainAreas || []).filter((a) => mine(a.Name)), lifts = areas.flatMap((a) => a.Lifts || []), trails = areas.flatMap((a) => a.Trails || []);
-  const tally = {open: 0, hold: 0, soon: 0, closed: 0};
-  for (const lift of lifts) tally[liftGroup(lift.StatusEnglish || "")]++;
+  const tally = {open: 0, hold: 0, soon: 0, closed: 0}, held = {};
+  for (const lift of lifts) {
+    const group = liftGroup(lift.StatusEnglish || "");
+    tally[group]++;
+    // A hold is reported in the resort's own word for it: Wind Hold, Weather Hold, Delayed.
+    if (group === "hold") held[lift.Status] = (held[lift.Status] || 0) + 1;
+  }
+  const meter = (parts, total) => `<div class="meter">${parts.map(([kind, count]) => `<span class="s-${kind}" style="width:${total ? 100 * count / total : 0}%"></span>`).join("")}</div>`;
   const season = lifts.length && lifts.every((l) => /season/.test(l.StatusEnglish || ""));
+  const holds = Object.entries(held).map(([word, count]) => `<span class="held">${count} ${esc(word.toLowerCase())}</span>`).join(" · ");
   const openTrails = trails.filter((t) => /^open/.test(t.StatusEnglish || "")).length;
   const at = new Date(feed.data.LastUpdate).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
-  const extra = [tally.hold ? `${tally.hold} delayed or on hold` : "", tally.soon ? `${tally.soon} expected` : ""].filter(Boolean).join(", ");
-  const meter = Object.keys(tally).map((key) => `<span class="s-${key}" style="width:${lifts.length ? 100 * tally[key] / lifts.length : 0}%"></span>`).join("");
-  const list = areas.filter((a) => (a.Lifts || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Lifts.map((l) => `<div class="lift"><span>${esc(l.Name)}</span><span><i class="s-${liftGroup(l.StatusEnglish || "")}"></i>${esc(l.Status || "")}</span></div>`).join("")}`).join("");
-  return `<div class="count"><span><b>${season ? "Not open for the season yet" : `${tally.open} of ${lifts.length} lifts open`}</b>${extra ? ` · ${extra}` : ""}</span><span>${openTrails} of ${trails.length} trails</span></div>
-    <div class="meter">${meter}</div>
-    <details${liftsOpen ? " open" : ""}><summary>Every lift</summary>${list}</details>
+  return `<div class="orow"><span class="k">Lifts</span><span>${season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> open${holds ? ` · ${holds}` : ""}${tally.soon ? ` · ${tally.soon} expected` : ""} · ${tally.closed} closed`}</span>${meter(Object.entries(tally), lifts.length)}</div>
+    <div class="orow"><span class="k">Trails</span><span><b>${openTrails}</b> open · ${trails.length - openTrails} closed</span>${meter([["open", openTrails]], trails.length)}</div>
     <span class="src">Live from ${esc(feed.data.Name)}, ${at} · ${link}</span>`;
 }
-let liftsOpen = false;
 async function loadLifts(resort) {
   const spec = LIFT_FEEDS[resort.key];
   if (!spec || !navigator.onLine) return;
@@ -979,12 +955,7 @@ async function loadLifts(resort) {
     try { liftFeeds[id] = {at: Date.now(), data: await fetch(`https://mtnpowder.com/feed?resortId=${id}`, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })}; }
     catch (error) { liftFeeds[id] = {at: Date.now(), failed: true}; }
   }
-  const slot = $("lifts");
-  if (slot && selected === resort.key) {
-    slot.innerHTML = liftsHtml(resort);
-    const more = slot.querySelector("details");
-    if (more) more.addEventListener("toggle", () => { liftsOpen = more.open; });
-  }
+  if ($("lifts") && selected === resort.key) $("lifts").innerHTML = liftsHtml(resort);
 }
 // One look at the weather near each mountain: a Caltrans highway camera within about 10 km (district, camera name,
 // where it is), and a link to the resort's own webcam page. Mountains with neither get no row.
@@ -1331,6 +1302,7 @@ function badges() {
     const spot = data.resorts.find((r) => r.key === slot.dataset.avy), zone = spot && zonesHere().find((z) => inRings(z.rings, spot.lon, spot.lat));
     if (!zone) { slot.innerHTML = ""; continue; }
     const [name, color, ink] = danger(zone.level);
+    if (slot.dataset.form === "plain") { slot.innerHTML = `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${dangerText(zone.level)}</button>`; continue; }
     slot.innerHTML = slot.dataset.form === "dot" ? `<i class="avydot" style="background:${color}" title="Avalanche danger: ${name}"></i>`
       : ` · <button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}" title="Avalanche danger, ${esc(zone.center.name)}">${dangerText(zone.level)}</button>`;
   }
