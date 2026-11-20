@@ -106,8 +106,8 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .dhead h2{font-size:22px;line-height:1.15}
 .dhead .who > span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .dhead .seg{margin-left:0;flex:none}
-.dhead .mine{color:var(--ink2)}
-.dhead .setmine{border:0;background:none;padding:0;font:inherit;color:var(--snow);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.dhead .mine{color:var(--snow);font-size:16px;line-height:1}
+.dhead .setmine{border:0;background:none;padding:4px 8px;margin:-4px -8px;font:inherit;font-size:16px;line-height:1;color:var(--snow);cursor:pointer}
 .tag{font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
 .tile{background:var(--wash);border-radius:12px;padding:12px 14px}
@@ -355,7 +355,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "48";
+const BUILD = "49";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -660,7 +660,7 @@ function renderDetail() {
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}</h2>
-      <span>${el.elevation_ft.toLocaleString()} ft · ${resort.key === HOME ? '<span class="mine">★ my mountain</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on">☆ set as mine</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
+      <span>${el.elevation_ft.toLocaleString()} ft · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
     <h3>Ski days <small>4 pm the day before to 4 pm</small></h3>
