@@ -118,6 +118,15 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .legend .sw{display:inline-flex;align-items:center;gap:3px}
 .legend .sw i{width:16px;height:12px;border-radius:3px;display:inline-block}
 #detail{margin-top:14px;padding:18px 18px 8px}
+.cams{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--grid);font-size:13px;color:var(--ink2)}
+.cams .shot{flex:none;border:0;padding:0;background:none;cursor:zoom-in;line-height:0}
+.cams .shot img{width:76px;height:57px;object-fit:cover;border-radius:8px}
+.cams .what{flex:1 1 0;min-width:0}
+.cams .what b{display:block;color:var(--ink);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cams .what a{display:block;margin-top:1px}
+.cams a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
+.cams.big .shot{flex-basis:100%;cursor:zoom-out}
+.cams.big .shot img{width:100%;max-width:420px;height:auto}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dhead .who{min-width:0}
 .dhead h2{font-size:22px;line-height:1.15}
@@ -474,7 +483,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "99";
+const BUILD = "100";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -801,6 +810,35 @@ function measured(resort) {
 
 const opener = () => here().find((r) => r.key === HOME) || here().find((r) => r.key === REGIONS[region].pick) || sorted()[0];
 
+// One look at the weather near each mountain: a Caltrans highway camera within about 10 km (district, camera name,
+// where it is), and a link to the resort's own webcam page. Mountains with neither get no row.
+const ROAD_CAMS = {
+  palisades: [3, "hwy89atolympicvalley", "Olympic Valley, Hwy 89"], alpine: [3, "hwy89atalpinemeadows", "Alpine Meadows Rd, Hwy 89"],
+  homewood: [3, "hwy89atgranlibakken", "Tahoe City, Hwy 89"], sugarbowl: [3, "hwy80atdonnersummit", "Donner Summit, I-80"],
+  boreal: [3, "hwy80atdonnersummit", "Donner Summit, I-80"], castle: [3, "hwy80atcastlepeak", "Castle Peak exit, I-80"],
+  northstar: [3, "hwy267atnorthstar", "Northstar Dr, Hwy 267"], heavenly: [3, "hwy50atskirun", "Ski Run Blvd, US-50"],
+  sierra: [3, "hwy50atechosummit", "Echo Summit, US-50"], tallac: [3, "hwy50athwy89", "South Lake Tahoe, US-50"],
+  mammoth: [9, "sr203mammothmountain", "Hwy 203 at US-395"], sherwins: [9, "sr203mammothmountain", "Hwy 203 at US-395"],
+  june: [9, "us395obsidiandome", "Obsidian Dome, US-395"], carsonpeak: [9, "us395obsidiandome", "Obsidian Dome, US-395"],
+};
+const RESORT_CAMS = {
+  palisades: "https://www.palisadestahoe.com/mountain-information/webcams", alpine: "https://www.palisadestahoe.com/mountain-information/webcams",
+  homewood: "https://skihomewood.com/webcams/", sugarbowl: "https://www.sugarbowl.com/webcams", boreal: "https://www.rideboreal.com/explore/webcams/",
+  northstar: "https://www.northstarcalifornia.com/the-mountain/mountain-conditions/mountain-cams.aspx", mtrose: "https://skirose.com/the-mountain-web-cams/",
+  heavenly: "https://www.skiheavenly.com/the-mountain/mountain-conditions/mountain-cams.aspx", sierra: "https://sierraattahoe.com/live-cams/",
+  kirkwood: "https://www.kirkwood.com/the-mountain/mountain-conditions/mountain-cams.aspx",
+  mammoth: "https://www.mammothmountain.com/on-the-mountain/mammoth-webcam", june: "https://www.junemountain.com/mountain-information/live-cams",
+};
+function webcams(resort) {
+  const road = ROAD_CAMS[resort.key], page = RESORT_CAMS[resort.key];
+  if ((!road && !page) || !navigator.onLine) return "";
+  const link = page ? `<a href="${page}" target="_blank" rel="noopener">Resort webcams ↗</a>` : "";
+  if (!road) return `<div class="cams">${link}</div>`;
+  // A new address every five minutes, so the browser fetches a fresh picture but not on every redraw.
+  const src = `https://cwwp2.dot.ca.gov/data/d${road[0]}/cctv/image/${road[1]}/${road[1]}.jpg?t=${Math.floor(Date.now() / 3e5)}`;
+  return `<div class="cams"><button class="shot" aria-label="Enlarge the highway camera picture"><img src="${src}" alt="" loading="lazy" onerror="this.parentNode.remove()"></button>
+    <span class="what"><b>${road[2]}</b>Caltrans highway camera${link}</span></div>`;
+}
 function renderDetail() {
   const resort = here().find((r) => r.key === selected) || opener();
   selected = resort.key;
@@ -827,7 +865,9 @@ function renderDetail() {
       <span class="sw"><i style="background:var(--night);border:1px solid var(--grid)"></i>night</span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span>
       <span class="sw"><i style="background:repeating-linear-gradient(90deg,var(--ink2) 0 3px,transparent 3px 6px);height:2px"></i>sensor depth gain</span></div>
-    ${measured(resort)}`;
+    ${measured(resort)}${webcams(resort)}`;
+  const cams = $("detail").querySelector(".cams .shot");
+  if (cams) cams.addEventListener("click", () => cams.parentNode.classList.toggle("big"));
   wireTimeline(resort, el, g);
   badges();
   $("detail").querySelector("details.lgd").addEventListener("toggle", (e) => { legendOpen = e.currentTarget.open; });
