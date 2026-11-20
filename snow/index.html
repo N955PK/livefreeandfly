@@ -474,7 +474,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "95";
+const BUILD = "96";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1175,7 +1175,7 @@ function renderNotes() {
     (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor nearby and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
   const use = data.usage;
-  $("usageNote").textContent = use ? `Data budget: about ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (our own count, rounded up).` : "";
+  $("usageNote").textContent = use ? `Data budget: about ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (${use.measured ? "as Open-Meteo counts them" : "our own count, rounded up"}).` : "";
   $("formula").innerHTML = (data.powder_formula || []).map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join("");
 }
 

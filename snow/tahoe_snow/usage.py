@@ -1,7 +1,7 @@
 """How much of Open-Meteo's free allowance the forecast runs use.
 
-The service publishes no quota counter, so each run adds up its own requests by the service's counting rule and
-keeps a month of run totals beside the forecast archive.
+The service stamps each response with what it charged for the request, so each run adds those up and keeps a month
+of run totals beside the forecast archive. A response without the stamp is counted by the service's published rule.
 """
 import json
 import os
@@ -18,11 +18,13 @@ STAMP = "%Y-%m-%dT%H:%M:%SZ"
 
 def of_run(requests: list) -> dict:
     """Totals for one run from the cache module's request log."""
-    ours = [(url, params, outcome) for url, params, outcome in requests if "open-meteo.com" in url]
-    served = [(url, params) for url, params, outcome in ours if outcome == "ok"]
-    calls = sum(openmeteo.call_weight(url, params or {}) for url, params in served)
-    return {"requests": len(served), "calls": round(calls, 1),
-            "rate_limited": sum(outcome == "limited" for _, _, outcome in ours)}
+    ours = [row for row in requests if "open-meteo.com" in row[0]]
+    served = [(url, params, cost) for url, params, outcome, cost in ours if outcome == "ok"]
+    by_rule = [openmeteo.call_weight(url, params or {}) for url, params, _ in served]
+    calls = sum(rule if cost is None else cost for rule, (_, _, cost) in zip(by_rule, served))
+    return {"requests": len(served), "calls": round(calls, 1), "by_rule": round(sum(by_rule), 1),
+            "measured": all(cost is not None for _, _, cost in served),
+            "rate_limited": sum(row[2] == "limited" for row in ours)}
 
 
 def record(run: dict, now: datetime, path: Path = LEDGER) -> list:
@@ -46,6 +48,7 @@ def summary(ledger: list, now: datetime) -> dict:
     return {"calls_24h": round(sum(row["calls"] for row in day)), "runs_24h": len(day),
             "calls_30d": round(sum(row["calls"] for row in month)),
             "rate_limited_24h": sum(row["rate_limited"] for row in day),
+            "measured": bool(day) and all(row.get("measured") for row in day),
             "daily_limit": openmeteo.DAILY_CALLS, "monthly_limit": openmeteo.MONTHLY_CALLS}
 
 

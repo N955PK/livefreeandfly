@@ -10,7 +10,8 @@ from tahoe_snow.config import RAW, USER_AGENT
 
 _SESSION = requests.Session()
 _SESSION.headers["User-Agent"] = USER_AGENT
-# Every request that went over the network in this process: (url, params, "ok" or "limited").
+# Every request that went over the network in this process: (url, params, "ok" or "limited", cost), where cost is
+# what the service says it charged for the request (its X-RateLimit-Cost header), or None when it does not say.
 REQUESTS: list = []
 
 
@@ -36,11 +37,12 @@ def get_text(kind: str, url: str, params: dict | None = None, max_age_h: float |
         try:
             resp = _SESSION.get(url, params=params, timeout=timeout)
             if resp.status_code == 429:
-                REQUESTS.append((url, params, "limited"))
+                REQUESTS.append((url, params, "limited", None))
             if resp.status_code == 429 or resp.status_code >= 500:
                 raise requests.HTTPError(f"{resp.status_code} from {url}")
             resp.raise_for_status()
-            REQUESTS.append((url, params, "ok"))
+            cost = resp.headers.get("X-RateLimit-Cost")
+            REQUESTS.append((url, params, "ok", float(cost) if cost else None))
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(resp.text)
             return resp.text

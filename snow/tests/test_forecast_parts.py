@@ -199,11 +199,13 @@ def test_call_weight_follows_the_published_examples():
 def test_usage_ledger_totals_the_last_day_and_month(tmp_path):
     now = datetime(2026, 11, 20, 12)
     path = tmp_path / "usage.json"
-    requests = [(openmeteo.FORECAST_URL, {"hourly": "precipitation", "forecast_days": 28}, "ok"),
-                (openmeteo.FORECAST_URL, {"hourly": "precipitation"}, "limited"),
-                ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data", {}, "ok")]
+    requests = [(openmeteo.FORECAST_URL, {"hourly": "precipitation", "forecast_days": 28}, "ok", None),
+                (openmeteo.FORECAST_URL, {"hourly": "precipitation"}, "limited", None),
+                ("https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data", {}, "ok", None)]
     run = usage.of_run(requests)
-    assert run == {"requests": 1, "calls": 2.0, "rate_limited": 1}
+    assert run == {"requests": 1, "calls": 2.0, "by_rule": 2.0, "measured": False, "rate_limited": 1}
+    charged = usage.of_run([(openmeteo.FORECAST_URL, {"hourly": "precipitation", "forecast_days": 28}, "ok", 1.4)])
+    assert (charged["calls"], charged["by_rule"], charged["measured"]) == (1.4, 2.0, True)
     for hours_ago in (40 * 24, 36, 3):
         ledger = usage.record(run, now - timedelta(hours=hours_ago), path)
     ledger = usage.record(run, now, path)
