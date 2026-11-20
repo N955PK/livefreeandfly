@@ -2,7 +2,8 @@
 
 For the mountains whose resort publishes live lift status, each run during lift hours appends one line per
 mountain: how many lifts are open, held, expected, and closed, which lifts are held and in what words, and the
-summit wind the published forecast has for that hour. After a few storms this shows what wind actually produces
+summit wind the published forecast has for that hour, and the wind the resort's own summit station is
+reading. After a few storms this shows what wind actually produces
 holds at each mountain, which the outlook's wind thresholds are then set from. Standard library only.
 python -m tahoe_snow.holds holds.jsonl
 """
@@ -23,6 +24,8 @@ MOUNTAINS = {
     "mammoth": (60, lambda area: True),
     "june": (59, lambda area: True),
 }
+# The resort's own summit weather station in its feed.
+SUMMIT_STATION = {"alpine": "Station6"}
 LIFT_HOURS = (8, 17)
 LOCAL = ZoneInfo("America/Los_Angeles")
 
@@ -60,13 +63,25 @@ def summit_wind(forecast: dict, key: str, now: datetime) -> dict:
     return {name: hourly[name][at] for name in ("wind_mph", "gust_mph", "wind_from_deg") if name in hourly}
 
 
+def measured_wind(feed: dict, key: str) -> dict:
+    """The resort's summit station reading, as live_* fields; empty when it reports none."""
+    station = (feed.get("CurrentConditions") or {}).get(SUMMIT_STATION.get(key, "Summit")) or {}
+    out = {}
+    for name, field in (("live_wind_mph", "WindStrengthMph"), ("live_gust_mph", "WindGustsMph")):
+        try:
+            out[name] = float(station.get(field))
+        except (TypeError, ValueError):
+            return {}
+    return {**out, "live_wind_from": station.get("WindDirection")}
+
+
 def rows(feeds: dict, forecast: dict, now: datetime) -> list[dict]:
     out = []
     for key, (feed_id, mine) in MOUNTAINS.items():
         counts = lift_counts(feeds.get(feed_id) or {}, mine)
         if counts is not None:
             out.append({"utc": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "resort": key, **counts,
-                        **summit_wind(forecast, key, now),
+                        **summit_wind(forecast, key, now), **measured_wind(feeds.get(feed_id) or {}, key),
                         "forecast_utc": forecast.get("published_utc") or forecast.get("generated_utc")})
     return out
 

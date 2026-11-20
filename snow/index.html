@@ -136,6 +136,8 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .orow .meter span{display:block}
 .s-open{background:#3fa34d}.s-hold{background:var(--w1)}.s-soon{background:#6aa9e9}.s-closed{background:var(--axis)}
 .orow .held{color:var(--ink);font-weight:650}
+.orow small{font-size:11px;color:var(--muted);margin-left:4px}
+.orow small.live{color:#2f8a3c;font-weight:650}
 .outlook details.all{padding:0;margin:0;border:0;background:none}
 .outlook details.all > summary{font-size:13.5px;font-weight:400;line-height:inherit}
 .outlook details.all > summary::after{margin:0;justify-self:end;font-size:18px;line-height:1}
@@ -147,7 +149,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .all .lift i{width:8px;height:8px;border-radius:50%}
 .all .lift em{display:inline-block;width:20px;font-style:normal;font-size:10px;color:var(--ink)}
 .all .lift em.ci{color:#3fa34d}.all .lift em.sq{color:#2a78d6}
-.outlook .src{display:block;font-size:11.5px;color:var(--muted);margin-top:6px}
+.outlook .src{display:block;font-size:11.5px;color:var(--muted);margin:-2px 0 4px}
 .outlook a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
 .cams{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--grid);font-size:13px;color:var(--ink2)}
 .cams .shot{flex:none;border:0;padding:0;background:none;cursor:zoom-in;line-height:0}
@@ -512,7 +514,7 @@ for (let n = 0; n < 26; n++) {
     <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
+    <p><b>Status</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own station readings when today is showing and it publishes them (marked live), and the forecast otherwise. Lift and trail counts come live from the resort, including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
@@ -524,7 +526,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "118";
+const BUILD = "119";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -921,13 +923,14 @@ let outlookShift = null;
 const localHour = () => +new Date().toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24;
 const windChill = (f, mph) => (f == null || mph == null || mph < 3 || f > 50 ? f : 35.74 + 0.6215 * f - 35.75 * mph ** 0.16 + 0.4275 * f * mph ** 0.16);
 // What the forecast says could get in the way on one ski day: [tone, short name, the numbers behind it].
-function outlookImpacts(resort, date) {
+function outlookImpacts(resort, date, measured) {
   const dayAt = (level) => resort.elevations[level].days.find((d) => d.date === date) || {powder: {}};
   const top = dayAt("summit"), low = dayAt("base"), s = top.powder, b = low.powder, wild = resort.kind === "backcountry";
   const found = [], add = (tone, name, detail) => found.push({tone, name, detail});
   const HOLD = HOLD_TIERS[WIND_TIER[resort.key] || "average"];
-  const wind = s.wind_mph || 0, gust = Math.max(wind, s.gust_mph || 0), over = (level) => gust >= HOLD[level][0] || wind >= HOLD[level][1];
-  const blowing = `${wind} mph, gusts to ${gust}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit`;
+  // Today, the wind the resort is measuring at its summit counts when it is stronger than the forecast.
+  const wind = Math.max(s.wind_mph || 0, measured ? measured.wind : 0), gust = Math.max(wind, s.gust_mph || 0, measured ? measured.gust : 0), over = (level) => gust >= HOLD[level][0] || wind >= HOLD[level][1];
+  const blowing = `${wind} mph, gusts to ${gust}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit${measured && measured.wind >= (s.wind_mph || 0) ? ", measured" : ""}`;
   if (over("likely")) add("bad", wild ? "strong wind" : over("shut") ? "wind closures" : "wind holds", blowing);
   else if (over("possible")) add("warn", wild ? "gusty" : "wind holds", blowing);
   const night = s.night_in || 0;
@@ -940,26 +943,54 @@ function outlookImpacts(resort, date) {
   if (chill != null && chill <= EXTREME_CHILL_F) add("warn", "extreme cold", `${Math.round(s.temp_f)}°F at the summit, feels like ${Math.round(chill)}°F`);
   return found;
 }
-function outlook(resort) {
+// The resorts' own weather stations in their feed, by elevation; Alpine's sit beside Palisades' in one feed.
+const STATIONS = {alpine: {base: "Station4", mid: "Station5", summit: "Station6"}}, STATION_NAMES = {base: "Base", mid: "MidMountain", summit: "Summit"};
+function statusDay(resort) {
   const days = resort.elevations.summit.days.filter((d) => !d.past), shift = Math.min(days.length - 1, outlookShift ?? (localHour() >= 16 ? 1 : 0));
-  if (!days.length) return "";
-  const day = days[shift], wild = resort.kind === "backcountry", impacts = outlookImpacts(resort, day.date);
+  return {days, shift, day: days[shift]};
+}
+// Temperature and wind for the status: the resort's station reading right now when today is showing and it has
+// one at this elevation, otherwise the forecast for the day's lift hours.
+function weatherRows(resort) {
+  const {shift, day} = statusDay(resort), spec = LIFT_FEEDS[resort.key], feed = spec && liftFeeds[spec[0]];
+  const station = (level) => { const now = shift === 0 && feed && !feed.failed && (feed.data.CurrentConditions || {})[(STATIONS[resort.key] || STATION_NAMES)[level]]; return now && isFinite(+now.TemperatureF) && isFinite(+now.WindStrengthMph) ? now : null; };
+  const live = station(elevation), crest = station("summit");
+  const impacts = outlookImpacts(resort, day.date, crest && {wind: +crest.WindStrengthMph, gust: +crest.WindGustsMph || 0});
   const worst = impacts.some((x) => x.tone === "bad") ? "bad" : impacts.length ? "warn" : "";
+  const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
+  const weather = `<div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>`;
+  const p = ((resort.elevations[elevation].days.find((d) => d.date === day.date) || {}).powder) || {};
+  const tag = `<small class="${live ? "live" : ""}">${live ? "live" : "forecast"}</small>`;
+  const temp = live ? +live.TemperatureF : p.temp_f, wind = live ? +live.WindStrengthMph : p.wind_mph, gust = live ? +live.WindGustsMph : p.gust_mph;
+  const feel = live && isFinite(+live.WindChillF) ? +live.WindChillF : windChill(temp, wind);
+  const from = live ? (/^[NESW]+$/.test(live.WindDirection || "") ? live.WindDirection : "") : compass(p.wind_from_deg);
+  if (temp == null || wind == null) return weather;
+  return `${weather}<div class="orow"><span class="k">Temp</span><span><b>${Math.round(temp)}°F</b>, feels like ${Math.round(feel)}°F ${tag}</span><span></span></div>
+    <div class="orow"><span class="k">Wind</span><span><b>${from ? `${from} ` : ""}${Math.round(wind)} mph</b>${gust > wind + 3 ? `, gusts ${Math.round(gust)}` : ""} ${tag}</span><span></span></div>`;
+}
+function outlook(resort) {
+  const {days, shift, day} = statusDay(resort);
+  if (!days.length) return "";
+  const wild = resort.kind === "backcountry";
   const label = new Date(`${day.date}T12:00:00`).toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"});
   const pick = ["Today", "Tomorrow"].slice(0, days.length).map((name, n) => `<button data-outlook="${n}" aria-pressed="${n === shift}">${name}</button>`).join("");
-  const here = ((resort.elevations[elevation].days.find((d) => d.date === day.date) || {}).powder) || {}, feel = windChill(here.temp_f, here.wind_mph);
-  const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
   return `<div class="outlook"><div class="hhead"><h3>Status <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
-    <div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>
-    ${feel == null ? "" : `<div class="orow"><span class="k">Temp</span><span><b>${Math.round(here.temp_f)}°F</b>, feels like ${Math.round(feel)}°F · ${elevation}</span><span></span></div>`}
+    <span class="src" id="statusSrc">${statusSource(resort)}</span>
+    <div id="wx">${weatherRows(resort)}</div>
     ${wild ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>` : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
 }
 // ---------- live lifts and trails, where the resort publishes them ----------
 const liftFeeds = {};
 const liftGroup = (status) => (/^open/.test(status) ? "open" : /hold|delay/.test(status) ? "hold" : /expect|sched/.test(status) ? "soon" : "closed");
+// Under the heading: when the resort's figures were read, and its own page.
+function statusSource(resort) {
+  const page = STATUS_PAGES[resort.key], spec = LIFT_FEEDS[resort.key], feed = spec && liftFeeds[spec[0]];
+  const link = page ? `<a href="${page}" target="_blank" rel="noopener">${spec ? "Resort report" : "Lift and trail status"} ↗</a>` : "";
+  const at = feed && !feed.failed ? `Live at ${new Date(feed.data.LastUpdate).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}` : "";
+  return [at, link].filter(Boolean).join(" · ");
+}
 function liftsHtml(resort) {
-  const page = STATUS_PAGES[resort.key], link = page ? `<a href="${page}" target="_blank" rel="noopener">${LIFT_FEEDS[resort.key] ? "Resort report" : "Lift and trail status"} ↗</a>` : "";
-  const blank = (note) => `<div class="orow"><span class="k">Lifts</span><span>${note}</span><span></span></div><div class="orow"><span class="k">Trails</span><span>${LIFT_FEEDS[resort.key] ? "" : link}</span><span></span></div>`;
+  const blank = (note) => `<div class="orow"><span class="k">Lifts</span><span>${note}</span><span></span></div>`;
   if (!LIFT_FEEDS[resort.key]) return blank("Not published live");
   if (!navigator.onLine) return blank("Needs a signal");
   const [id, mine] = LIFT_FEEDS[resort.key], feed = liftFeeds[id];
@@ -976,7 +1007,6 @@ function liftsHtml(resort) {
   const season = lifts.length && lifts.every((l) => /season/.test(l.StatusEnglish || ""));
   const holds = Object.entries(held).map(([word, count]) => `<span class="held">${count} ${esc(word.toLowerCase())}</span>`).join(" · ");
   const openTrails = trails.filter((t) => /^open/.test(t.StatusEnglish || "")).length;
-  const at = new Date(feed.data.LastUpdate).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
   const list = areas.filter((a) => (a.Lifts || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Lifts.map((l) => `<div class="lift"><span>${esc(l.Name)}</span><span><i class="s-${liftGroup(l.StatusEnglish || "")}"></i>${esc(l.Status || "")}</span></div>`).join("")}`).join("");
   const liftLine = season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> open${holds ? ` · ${holds}` : ""}${tally.soon ? ` · ${tally.soon} expected` : ""} · ${tally.closed} closed`;
   // The resorts name difficulty differently (Easiest / Easy, Difficult / Intermediate, Extremely Difficult / Expert).
@@ -985,8 +1015,7 @@ function liftsHtml(resort) {
   const trailList = areas.filter((a) => (a.Trails || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Trails.map(trailRow).join("")}`).join("");
   const fold = (kind, label, line, bar, items) => `<details class="all" data-fold="${kind}"${foldOpen[kind] ? " open" : ""}><summary class="orow"><span class="k">${label}</span><div><span>${line}</span>${bar}</div></summary><div class="list">${items}</div></details>`;
   return `${fold("lifts", "Lifts", liftLine, meter(Object.entries(tally), lifts.length), list)}
-    ${fold("trails", "Trails", `<b>${openTrails}</b> open · ${trails.length - openTrails} closed`, meter([["open", openTrails]], trails.length), trailList)}
-    <span class="src">Live at ${at} · ${link}</span>`;
+    ${fold("trails", "Trails", `<b>${openTrails}</b> open · ${trails.length - openTrails} closed`, meter([["open", openTrails]], trails.length), trailList)}`;
 }
 const foldOpen = {lifts: false, trails: false};
 async function loadLifts(resort) {
@@ -999,6 +1028,8 @@ async function loadLifts(resort) {
   }
   if (!$("lifts") || selected !== resort.key) return;
   $("lifts").innerHTML = liftsHtml(resort);
+  if ($("wx")) $("wx").innerHTML = weatherRows(resort);
+  if ($("statusSrc")) $("statusSrc").innerHTML = statusSource(resort);
   for (const fold of $("lifts").querySelectorAll("details.all")) fold.addEventListener("toggle", () => { foldOpen[fold.dataset.fold] = fold.open; });
 }
 // One look at the weather near each mountain: a Caltrans highway camera within about 10 km (district, camera name,
