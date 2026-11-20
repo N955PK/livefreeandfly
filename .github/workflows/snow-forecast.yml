@@ -1,9 +1,16 @@
 name: Snow forecast
 
+# A new forecast is due every three hours. GitHub delays and drops scheduled runs, so the schedule fires hourly and
+# each firing runs the forecast only if the published one is old enough; a dropped firing then costs an hour, not three.
 on:
   schedule:
-    - cron: "17 */3 * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
+    inputs:
+      only_if_due:
+        description: Run only if the forecast is due, as a scheduled firing does
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -13,7 +20,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  due:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      run: ${{ steps.age.outputs.run }}
+    steps:
+      # A run started by hand goes ahead, unless it asks to be treated like a scheduled one. A scheduled one goes
+      # ahead when the data branch was last published more than 2.5 hours ago (or never), which with hourly firings
+      # works out to every three hours.
+      - id: age
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          published="$(gh api "repos/${{ github.repository }}/branches/snow-data" -q .commit.commit.committer.date 2>/dev/null || true)"
+          if [ -n "$published" ]; then minutes=$(( ( $(date -u +%s) - $(date -u -d "$published" +%s) ) / 60 )); else minutes=99999; fi
+          run=false
+          if [ "$minutes" -ge 150 ]; then run=true; fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.only_if_due }}" != "true" ]; then run=true; fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "Forecast last published ${published:-never} (${minutes} minutes ago); run=$run" | tee -a "$GITHUB_STEP_SUMMARY"
+
   forecast:
+    needs: due
+    if: needs.due.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
