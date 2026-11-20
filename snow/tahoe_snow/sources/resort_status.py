@@ -1,9 +1,9 @@
-"""Lift and trail status for the Epic mountains at Tahoe (Heavenly, Northstar, Kirkwood).
+"""Lift and trail status from the resorts' own status pages (Heavenly, Northstar, Kirkwood).
 
 Each resort's lift and terrain status page carries its feed as a JSON literal in the page source. The sites
 reject plain HTTP clients, so the page is read with curl_cffi, which presents a browser TLS fingerprint.
 Writes one small file the page reads, each mountain in the shape of the Ikon feed the rest of the page uses.
-python -m tahoe_snow.sources.epic out.json
+python -m tahoe_snow.sources.resort_status out.json
 """
 import json
 import re

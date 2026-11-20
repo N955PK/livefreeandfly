@@ -34,9 +34,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/lifts"
           if git fetch --depth=1 origin snow-lifts 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$RUNNER_TEMP/lifts"; fi
 
-      - name: Epic (Heavenly, Northstar, Kirkwood)
+      - name: Resort status pages (Heavenly, Northstar, Kirkwood)
         working-directory: snow
-        run: python3 -m tahoe_snow.sources.epic "$RUNNER_TEMP/lifts/epic.json" || echo "::warning::The Epic status pages could not be read"
+        run: python3 -m tahoe_snow.sources.resort_status "$RUNNER_TEMP/lifts/resort_status.json" || echo "::warning::The resort status pages could not be read"
 
       # The branch holds one commit: the latest files.
       - name: Publish to the lifts branch

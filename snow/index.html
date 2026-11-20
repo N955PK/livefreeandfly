@@ -960,16 +960,16 @@ async function sugarBowlFeed() {
   return {Name: "Sugar Bowl", LastUpdate: new Date().toISOString(),
     MountainAreas: [...Object.entries(areas).map(([name, list]) => ({Name: name, Lifts: list, Trails: []})), {Name: "All trails", Lifts: [], Trails: trails}]};
 }
-// The Epic mountains' sites turn away a browser's cross-site request, so a scheduled job reads them and publishes the
-// result; anything older than EPIC_FRESH_MIN is treated as missing rather than shown out of date.
-const EPIC_FRESH_MIN = 30;
-const epicFeed = (key) => async () => {
-  const url = location.hostname === "localhost" ? "data/epic.json" : `https://raw.githubusercontent.com/${REPO}/snow-lifts/epic.json`;
+// These mountains' sites turn away a browser's cross-site request, so a scheduled job reads them and publishes the
+// result; anything older than STATUS_FRESH_MIN is treated as missing rather than shown out of date.
+const STATUS_FRESH_MIN = 30;
+const resortStatusFeed = (key) => async () => {
+  const url = location.hostname === "localhost" ? "data/resort_status.json" : `https://raw.githubusercontent.com/${REPO}/snow-lifts/resort_status.json`;
   const status = await getJsonLive(url);
-  if (!status.resorts[key] || Date.now() - new Date(status.updated) > EPIC_FRESH_MIN * 6e4) throw new Error("No recent Epic status");
+  if (!status.resorts[key] || Date.now() - new Date(status.updated) > STATUS_FRESH_MIN * 6e4) throw new Error("No recent resort status");
   return status.resorts[key];
 };
-const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed, heavenly: epicFeed("heavenly"), northstar: epicFeed("northstar"), kirkwood: epicFeed("kirkwood")};
+const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed, heavenly: resortStatusFeed("heavenly"), northstar: resortStatusFeed("northstar"), kirkwood: resortStatusFeed("kirkwood")};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
 // avalanche control before upper terrain opens. The tiers are a judgment call until the record of real holds
