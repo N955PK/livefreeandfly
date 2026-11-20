@@ -593,7 +593,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "132";
+const BUILD = "133";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1603,10 +1603,10 @@ function renderAvalanche() {
     }
     const problems = [...(product.forecast_avalanche_problems || [])].sort((a, b) => a.rank - b.rank);
     if (problems.length) {
-      trouble = `<div class="aproblems"><h3>Avalanche problems</h3><ol class="probs">${problems.map((x) => {
+      trouble = `<div class="aproblems"><h3>Avalanche problems</h3><ol class="probs">${problems.map((x, n) => {
         const size = (x.size || []).filter(Boolean), facts = [x.likelihood, size.length ? `size D${size[0]}${size[1] && size[1] !== size[0] ? ` to D${size[1]}` : ""}` : "", problemWhere(x.location)];
         const drawing = /^https?:\/\/api\.avalanche\.org\//.test(x.icon || "") ? `<img class="ptype" src="${esc(x.icon.replace(/^http:/, "https:"))}" alt="" onerror="this.remove()">` : "";
-        return `<li>${drawing}<div><b>${esc(x.name || "")}</b>${esc(facts.filter(Boolean).join(" · "))}</div>${rose(x.location)}</li>`;
+        return `<li>${drawing}<div><b>${x.rank || n + 1}. ${esc(x.name || "")}</b>${esc(facts.filter(Boolean).join(" · "))}</div>${rose(x.location)}</li>`;
       }).join("")}</ol></div>`;
     }
     const lines = paragraphs(product.bottom_line);
