@@ -89,13 +89,17 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .gridcap span{color:var(--muted)}
 .heat th.corner{position:sticky;left:0;background:var(--surface);z-index:2}
 .gridwrap.scrolled .heat td.name,.gridwrap.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
-.gridwrap.scrolled .heat tr.on td.name{box-shadow:inset 3px 0 0 var(--select),6px 0 6px -6px rgba(0,0,0,.35)}
+.gridwrap.scrolled .heat tr.on td.name{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
 .heat th.day b{display:block;color:var(--ink);font-size:13px;font-weight:650}
 .heat th.sep,.heat td.sep{width:10px;min-width:10px;padding:0}
 .heat td.name{position:sticky;left:0;background:var(--surface);text-align:left;padding:4px 10px 4px 6px;white-space:nowrap;cursor:pointer;border-radius:8px;z-index:1}
 .heat td.name b{display:block;font-size:14.5px;font-weight:650}
 .heat td.name span{font-size:12px;color:var(--muted)}
-.heat tr.on td.name{box-shadow:inset 3px 0 0 var(--select)}
+/* The open mountain: its name and total sit on one tinted pill, with the name in the accent color. */
+.heat{--pick:color-mix(in oklab,var(--accent) 13%,var(--surface))}
+.heat tr.on td.name{background:var(--pick);border-radius:10px 0 0 10px;box-shadow:3px 0 0 var(--pick)}
+.heat tr.on td.name b{color:var(--accent)}
+.heat tr.on td.total{background:var(--pick);border-radius:0 10px 10px 0}
 .heat tr:hover td.name b{text-decoration:underline}
 .heat td.total{text-align:right;padding:0 8px;white-space:nowrap;font-size:15px;font-weight:700}
 .heat td.total span{display:block;font-size:11px;font-weight:400;color:var(--muted)}
@@ -485,7 +489,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "103";
+const BUILD = "104";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
