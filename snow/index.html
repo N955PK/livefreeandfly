@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tahoe Snow</title>
-<meta property="og:title" content="Tahoe Snow">
-<meta property="og:description" content="A free, verified snow forecast for Tahoe resorts.">
+<title>Sierra Snow</title>
+<meta property="og:title" content="Sierra Snow">
+<meta property="og:description" content="A free, verified snow forecast for Sierra ski resorts.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" as="image" href="icons/mark-white.png?v=2">
-<meta name="apple-mobile-web-app-title" content="Tahoe Snow">
+<meta name="apple-mobile-web-app-title" content="Sierra Snow">
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
 <meta property="og:image" content="https://livefreeandfly.org/snow/icons/icon-512.png">
@@ -350,7 +350,7 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Tahoe Snow</b></div>
+<div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Sierra Snow</b></div>
 <script>
 // A few flakes on the opening screen, placed before anything else loads.
 for (let n = 0; n < 26; n++) {
@@ -360,7 +360,7 @@ for (let n = 0; n < 26; n++) {
 }
 </script>
 <main>
-  <div class="brand"><img src="icons/mark.png" alt="" width="30" height="30"><div class="eyebrow" id="eyebrow">Tahoe snow</div></div>
+  <div class="brand"><img src="icons/mark.png" alt="" width="30" height="30"><div class="eyebrow" id="eyebrow">Sierra snow</div></div>
   <h1 id="headline">Loading the forecast…</h1>
   <p class="lede" id="lede"></p>
   <p class="meta" id="meta"></p>
@@ -380,7 +380,7 @@ for (let n = 0; n < 26; n++) {
 
   <div class="panel summary">
     <div class="bar">
-      <h2 id="summaryTitle">Tahoe summary</h2>
+      <h2>Summary</h2>
       <div class="seg" id="seg" role="group" aria-label="Elevation">
         <button data-el="summit" aria-pressed="true">Summit</button><button data-el="mid" aria-pressed="false">Mid</button><button data-el="base" aria-pressed="false">Base</button>
       </div>
@@ -415,7 +415,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "61";
+const BUILD = "63";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -745,12 +745,12 @@ function renderDetail() {
       <span>${el.elevation_ft.toLocaleString()} ft${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No snow sensor is near this mountain, so there is no measured depth, and the water correction is the average over the Tahoe sensors, untested here">no sensor</span>' : ""}${resort.kind === "backcountry" ? `<span data-avy="${resort.key}"></span>` : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
-    <h3>Ski days <small>from 4 pm previous day</small></h3>
+    <h3>Daily <small>from 4 pm previous day</small></h3>
     <div class="key" style="margin:4px 0 0"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>individual models</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span>G = gust, mph</span><span>PS = powder score</span></div>
     <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
-    <div class="hhead"><h3>Hour by hour</h3><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
+    <div class="hhead"><h3>Hourly</h3><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>50+</b></span>mph</span></div>
@@ -908,7 +908,6 @@ function renderRegion() {
   const keys = Object.keys(REGIONS).filter((key) => data.resorts.some((r) => regionOf(r) === key));
   $("regionBar").hidden = keys.length < 2;
   $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].name}</button>`).join("");
-  $("summaryTitle").textContent = `${REGIONS[region].name} summary`;
 }
 function setRegion(key) {
   if (key === region || !REGIONS[key]) return;
