@@ -378,7 +378,8 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .dchip.big{font-size:16px;padding:7px 14px;flex:none}
 button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;cursor:pointer}
 .avyicon{height:1.15em;width:auto;vertical-align:-.2em;margin-left:8px}
-.avydot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px;border:1px solid rgba(15,23,32,.3)}
+.avyicon.group{height:15px;vertical-align:-3px;margin-left:7px}
+.avyicon.mini{height:12px;vertical-align:-2px;margin-left:6px}
 .awarn{margin-top:12px;border-radius:10px;padding:9px 12px;background:#ed1c24;color:#fff;font-size:14px;font-weight:650}
 .anotice{margin-top:12px;border-radius:10px;padding:9px 12px;background:var(--wash);font-size:13.5px;color:var(--ink2)}
 .aadvice{margin-top:10px;font-size:14.5px;color:var(--ink2);max-width:72ch}
@@ -676,11 +677,11 @@ function renderHeat() {
   html += `<tr><th class="corner"></th><th>Last 3 days</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
   const columns = 2 + near.length + (far.length ? 1 + far.length : 0);
   for (const [pass, list] of byPass()) {
-   html += `<tr class="pass"><td colspan="${columns}"><span>${pass}</span></td></tr>`;
+   html += `<tr class="pass"><td colspan="${columns}"><span>${pass}${pass === "Backcountry" ? '<span data-avy-group></span>' : ""}</span></td></tr>`;
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
-    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="dot"></span>` : ""}</span></td>
+    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}</b><span>${el.elevation_ft.toLocaleString()} ft${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
       <td class="total">${inches(total)} in</td>`;
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
@@ -1439,15 +1440,20 @@ function inRings(rings, x, y) {
 const zonesHere = () => (avy[region] || {}).zones || [];
 // Backcountry peaks carry their zone's rating: a dot in the grid, a chip in the header that jumps to the pane.
 function badges() {
+  const zoneOf = (key) => { const spot = data.resorts.find((r) => r.key === key); return spot && zonesHere().find((z) => inRings(z.rings, spot.lon, spot.lat)); };
+  const icon = (zone, extra = "") => { const name = danger(zone.level)[0]; return `<img class="avyicon${extra}" src="${dangerIcon(zone.level)}" alt="Avalanche danger: ${name}" title="Avalanche danger: ${name}, ${esc(zone.center.name)}" onerror="this.remove()">`; };
+  // The peaks in the grid share one icon beside the group's name when a single report rates them all alike;
+  // otherwise each peak carries its own.
+  const peaks = [...document.querySelectorAll('[data-form="mini"]')].map((slot) => zoneOf(slot.dataset.avy));
+  const shared = peaks.length && peaks.every((zone) => zone && zone.level === peaks[0].level) ? peaks[0] : null;
   for (const slot of document.querySelectorAll("[data-avy]")) {
-    const spot = data.resorts.find((r) => r.key === slot.dataset.avy), zone = spot && zonesHere().find((z) => inRings(z.rings, spot.lon, spot.lat));
+    const zone = zoneOf(slot.dataset.avy);
     if (!zone) { slot.innerHTML = ""; continue; }
-    const [name, color, ink] = danger(zone.level);
-    if (slot.dataset.form === "plain") { slot.innerHTML = `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${dangerText(zone.level)}</button>`; continue; }
-    if (slot.dataset.form === "icon") { slot.innerHTML = `<img class="avyicon" src="${dangerIcon(zone.level)}" alt="Avalanche danger: ${name}" title="Avalanche danger: ${name}" onerror="this.remove()">`; continue; }
-    slot.innerHTML = slot.dataset.form === "dot" ? `<i class="avydot" style="background:${color}" title="Avalanche danger: ${name}"></i>`
-      : ` · <button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}" title="Avalanche danger, ${esc(zone.center.name)}">${dangerText(zone.level)}</button>`;
+    const [, color, ink] = danger(zone.level);
+    slot.innerHTML = slot.dataset.form === "plain" ? `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${dangerText(zone.level)}</button>`
+      : slot.dataset.form === "icon" ? icon(zone) : shared ? "" : icon(zone, " mini");
   }
+  for (const slot of document.querySelectorAll("[data-avy-group]")) slot.innerHTML = shared ? icon(shared, " group") : "";
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-goto]");
