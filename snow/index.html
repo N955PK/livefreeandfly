@@ -120,7 +120,7 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 #tip div{display:flex;justify-content:space-between;gap:14px;color:var(--ink2)}
 #tip div span:last-child{color:var(--ink);font-weight:600}
 .days{margin-top:4px}
-.srow{display:grid;grid-template-columns:56px minmax(120px,1fr) 96px 190px 40px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--grid);font-size:13px}
+.srow{display:grid;grid-template-columns:56px minmax(120px,1fr) 96px 262px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--grid);font-size:13px}
 .srow.head{border-top:0;padding:2px 0;font-size:11.5px;color:var(--muted)}
 .srow.head + .srow{border-top:0}
 .srow .d b{display:block;font-size:14px}
@@ -138,13 +138,13 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .split svg{width:13px;height:13px;color:var(--muted)}
 .split span{display:inline-flex;align-items:center;gap:3px;margin-right:8px;font-variant-numeric:tabular-nums}
 .split em{font-style:normal;color:var(--muted)}
-.cond{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--ink2)}
-.cond .sky{display:flex;align-items:center;gap:5px}
+.cond{display:grid;grid-template-columns:minmax(0,1fr) 74px 52px;column-gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.cond .sky{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
 .cond .sky svg{width:17px;height:14px;color:var(--muted)}
 .cond .wind{display:flex;align-items:center;gap:6px}
 .cond .wind i{width:9px;height:9px;border-radius:50%;background:var(--grid);flex:none}
 .srow .pw{text-align:right}
-.cond .pscore{display:none}
+.cond .pscore{white-space:nowrap;text-align:right}
 .cond .pscore b{color:var(--ink);font-weight:700}
 .srow .pw b{font-size:15px}
 .srow .pw span{color:var(--muted)}
@@ -261,9 +261,8 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   .tile .v{font-size:26px}
   .srow{grid-template-columns:44px minmax(0,1fr) 84px;row-gap:6px;gap:10px}
   .srow .amt{text-align:right;font-size:16px}
-  .srow .cond{grid-column:2 / span 2;flex-direction:row;flex-wrap:wrap;gap:4px 14px}
-  .srow .pw,.srow.head{display:none}
-  .cond .pscore{display:inline}
+  .srow .cond{grid-column:2 / span 2}
+  .srow.head{display:none}
   .drow{grid-template-columns:52px minmax(90px,1fr) 84px;row-gap:4px}
   .drow .q,.drow .pw{grid-column:2 / span 2;display:flex;gap:10px;align-items:baseline}
   .drow.head .q,.drow.head .pw{display:none}
@@ -335,7 +334,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "38";
+const BUILD = "39";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -613,8 +612,9 @@ function skiDay(d) {
     : `<div class="split">No new snow</div>`);
   return `<div class="srow">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
-    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph${gust > wind + 3 ? `, gusts ${gust}` : ""}</span>`}${p.score ? `<span class="pscore">Powder score <b>${p.score.toFixed(1)}</b></span>` : ""}</div>
-    <div class="pw">${p.score ? `<b>${p.score.toFixed(1)}</b>` : '<span>–</span>'}</div></div>`;
+    <div class="cond"><span class="sky">${icon ? `${icon}${word}` : ""}</span>
+      <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${wind} mph${gust > wind + 3 ? `, gusts to ${gust}` : ""}`}">${wind == null ? "" : `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${wind}${gust > wind + 3 ? `G${gust}` : ""}`}</span>
+      <span class="pscore">${p.score ? `PS <b>${p.score.toFixed(1)}</b>` : ""}</span></div></div>`;
 }
 
 function measured(resort) {
@@ -645,8 +645,8 @@ function renderDetail() {
     <h3>Ski days</h3>
     <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>each line covers the full 24 hours ending 4 pm</em></div>
     ${pastDays(resort, el)}
-    <div class="key" style="margin:2px 0 4px"><span class="sw"><i class="kdot"></i>forecast</span><span class="sw"><i class="kband"></i>± one standard deviation</span><span class="sw"><i class="ktick"></i>each weather model</span><span>scale: 0 to ${BAR_FULL_IN} in</span></div>
-    <div class="days"><div class="srow head"><div></div><div>All snow in the 24 hours to 4 pm</div><div></div><div>Lift hours</div><div class="pw">Powder</div></div>${days.map((d) => skiDay(d)).join("")}</div>
+    <div class="key" style="margin:2px 0 4px"><span class="sw"><i class="kdot"></i>forecast</span><span class="sw"><i class="kband"></i>± one standard deviation</span><span class="sw"><i class="ktick"></i>each weather model</span><span>scale: 0 to ${BAR_FULL_IN} in</span><span>wind in mph, G = gusts</span><span>PS = powder score, 0 to 10</span></div>
+    <div class="days"><div class="srow head"><div></div><div>All snow in the 24 hours to 4 pm</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
     <div class="key"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
