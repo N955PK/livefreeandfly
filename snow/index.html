@@ -95,10 +95,9 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .heat td.name{position:sticky;left:0;background:var(--surface);text-align:left;padding:4px 10px 4px 6px;white-space:nowrap;cursor:pointer;border-radius:8px;z-index:1}
 .heat td.name b{display:block;font-size:14.5px;font-weight:650}
 .heat td.name span{font-size:12px;color:var(--muted)}
-/* The open mountain: its name and total sit on one tinted pill, with the name in the accent color. */
-.heat{--pick:color-mix(in oklab,var(--accent) 13%,var(--surface))}
+/* The open mountain: its name and total sit on one grey pill. Grey, because blue in this table means snow. */
+.heat{--pick:color-mix(in oklab,var(--ink) 11%,var(--surface))}
 .heat tr.on td.name{background:var(--pick);border-radius:10px 0 0 10px;box-shadow:3px 0 0 var(--pick)}
-.heat tr.on td.name b{color:var(--accent)}
 .heat tr.on td.total{background:var(--pick);border-radius:0 10px 10px 0}
 .heat tr:hover td.name b{text-decoration:underline}
 .heat td.total{text-align:right;padding:0 8px;white-space:nowrap;font-size:15px;font-weight:700}
@@ -318,6 +317,9 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .regions{white-space:nowrap;font-size:.62em;font-weight:600;letter-spacing:-.01em;margin-left:4px}
 .regions button{border:0;background:none;padding:6px 2px;margin:-6px 0;font:inherit;color:var(--muted);cursor:pointer}
 .regions button[aria-pressed=true]{color:var(--accent)}
+/* Beside the app name on a phone there is only room for the short form of a long region name. */
+.regions .short{display:none}
+@media(max-width:460px){html:not(.embed) .regions .full{display:none}html:not(.embed) .regions .short{display:inline}}
 .regions i{font-style:normal;color:var(--axis);margin:0 5px;font-weight:400}
 .map-toggle{position:absolute;z-index:400000;right:12px;top:10px;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:12px;font-weight:600;
   cursor:pointer;background:rgba(255,255,255,.85);color:#0f1720;box-shadow:0 1px 4px rgba(15,23,32,.2);display:inline-flex;align-items:center;gap:6px}
@@ -489,7 +491,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "104";
+const BUILD = "105";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -507,7 +509,7 @@ const REGIONS = {
   tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897, pick: "palisades",
     lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
     avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/"}]},
-  mammoth: {name: "Mammoth", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.34, -118.84], rev: "?v=3", discKm: 115, look: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 72, pick: "mammoth",
+  mammoth: {name: "Eastern Sierra", short: "E Sierra", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.34, -118.84], rev: "?v=3", discKm: 115, look: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 72, pick: "mammoth",
     lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)], closureFeeds: [CALTRANS_CLOSURES(9)],
     // East of the crest the low ground is sagebrush, not forest.
     land: [[1300, [0.72, 0.66, 0.48]], [2000, [0.62, 0.60, 0.42]], [2350, [0.36, 0.44, 0.30]], [2800, [0.27, 0.40, 0.30]],
@@ -1102,7 +1104,7 @@ function pickRegion() {
 function renderRegion() {
   const keys = Object.keys(REGIONS).filter((key) => data.resorts.some((r) => regionOf(r) === key));
   $("regionBar").hidden = keys.length < 2;
-  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].name}</button>`).join("<i>/</i>");
+  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : REGIONS[key].name}</button>`).join("<i>/</i>");
 }
 function setRegion(key) {
   if (key === region || !REGIONS[key]) return;
