@@ -135,6 +135,8 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .tl-scroll text.lab{fill:var(--ink2);font-weight:550}
 .tl-scroll{margin-left:44px;overflow-x:auto;-webkit-overflow-scrolling:touch;cursor:crosshair}
 .tl-scroll svg{display:block}
+.key .ramp{display:inline-flex;align-items:center;gap:6px}
+.key .ramp i{width:64px;height:8px;border-radius:4px;display:inline-block}
 .key .sw{display:inline-flex;align-items:center;gap:4px}
 .key .sw i{width:14px;height:10px;border-radius:3px;display:inline-block}
 .roadnote .src{color:var(--muted);font-size:12px}
@@ -270,7 +272,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "17";
+const BUILD = "18";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -296,6 +298,10 @@ const QUALITY = [[7, "Wet and heavy"], [10, "Dense"], [13, "Medium"], [17, "Ligh
 const WIND = [[15, "Calm"], [25, "Breezy"], [40, "Windy"], [Infinity, "Strong"]];
 const qualityBin = (ratio) => QUALITY.findIndex(([top]) => ratio < top);
 const windBin = (mph) => WIND.findIndex(([top]) => (mph || 0) < top);
+// Continuous colors: heavy snow (5:1) to light (20:1), and calm (10 mph) through windy (30) to strong (50).
+const mix = (to, from, share) => `color-mix(in oklab, var(${to}) ${Math.round(100 * Math.min(1, Math.max(0, share)))}%, var(${from}))`;
+const snowColor = (ratio) => mix("--q4", "--q0", ((ratio ?? 10) - 5) / 15);
+const windColor = (mph) => (mph || 0) < 30 ? mix("--w2", "--grid", ((mph || 0) - 10) / 20) : mix("--w3", "--w2", (mph - 30) / 20);
 function quality(ratio) { return ratio == null ? ["", ""] : [QUALITY[qualityBin(ratio)][1], `${Math.round(ratio)}:1`]; }
 
 function futureDays(el) { return el.days.filter((d) => !d.past).slice(0, 10); }
@@ -402,10 +408,10 @@ function timeline(resort, el) {
     const bw = Math.max(1, pph - 1.5);
     if (snow[i] > 0.004) {
       const yTop = y1(snow[i]), r = Math.min(2, bw / 2, (T + H1 - yTop) / 2);
-      body += `<path d="M${x(i) + 0.75} ${T + H1}V${yTop + r}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${T + H1}z" fill="var(--q${qualityBin(at("slr", i) ?? 10)})"/>`;
+      body += `<path d="M${x(i) + 0.75} ${T + H1}V${yTop + r}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${T + H1}z" style="fill:${snowColor(at("slr", i))}"/>`;
     }
     const wind = Math.max(at("wind_mph", i) || 0, at("gust_mph", i) || 0), cloud = at("cloud_pct", i);
-    if (windBin(wind)) strips += `<rect x="${x(i)}" y="${WIND_Y}" width="${pph + 0.3}" height="10" fill="var(--w${windBin(wind)})"/>`;
+    strips += `<rect x="${x(i)}" y="${WIND_Y}" width="${pph + 0.3}" height="10" style="fill:${windColor(wind)}"/>`;
     if (cloud != null) strips += `<rect x="${x(i)}" y="${CLOUD_Y}" width="${pph + 0.3}" height="10" fill="var(--ink)" fill-opacity="${(cloud / 100 * 0.5).toFixed(2)}"/>`;
   }
   body += `<text class="lab" x="5" y="13">${x(1) && "Now"}</text><line x1="0" x2="${W}" y1="${T + H1}" y2="${T + H1}" stroke="var(--axis)"/>`;
@@ -453,14 +459,14 @@ function skiDay(d, max) {
   const far = d.lead_day > data.deterministic_days, p = d.powder || {};
   const date = `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
   if (far) return `<div class="srow far">${date}<div class="amt">${pct(d.prob_6in)}<small>chance of 6 in+</small></div></div>`;
-  const total = p.snow_in || 0, q = p.slr == null ? 2 : qualityBin(p.slr), width = (v) => (100 * Math.min(v || 0, max) / max).toFixed(1);
+  const total = p.snow_in || 0, color = snowColor(p.slr), width = (v) => (100 * Math.min(v || 0, max) / max).toFixed(1);
   const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
-  const bars = total >= 0.05 ? `<div class="track"><i class="q${q}" style="width:${width(p.night_in)}%"></i><i class="q${q} dayseg" style="width:${width(p.day_in)}%"></i></div>
+  const bars = total >= 0.05 ? `<div class="track"><i style="width:${width(p.night_in)}%;background-color:${color}"></i><i class="dayseg" style="width:${width(p.day_in)}%;background-color:${color}"></i></div>
       <div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)}</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)}</span>${p.slr ? `<em>${quality(p.slr)[0]}</em>` : ""}</div>`
     : `<div class="track"></div><div class="split">No new snow</div>`;
   return `<div class="srow">${date}<div class="snowbar">${bars}</div>
     <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(Math.max(p.pm_in, 0.1))}</span>`}</div>
-    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i class="w${wb}"></i>${WIND[wb][1]} ${wind} mph</span>`}</div>
+    <div class="cond">${icon ? `<span class="sky">${icon}${word}</span>` : ""}${wind == null ? "" : `<span class="wind"><i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>${WIND[wb][1]} ${wind} mph</span>`}</div>
     <div class="pw">${p.score ? `<b>${p.score.toFixed(1)}</b>` : '<span>–</span>'}</div></div>`;
 }
 
@@ -484,18 +490,19 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small>${pm(x)}</div></div>`;
   const g = timeline(resort, el);
   const max = Math.max(6, ...days.map((d) => (d.powder && d.powder.snow_in) || 0));
-  const swatches = (scale, prefix, from) => scale.slice(from).map(([, name], i) => `<span class="sw"><i style="background:var(--${prefix}${i + from})"></i>${name}</span>`).join("");
   $("detail").innerHTML = `<div class="dhead"><h2>${esc(resort.name)}</h2><span>${elevation === "mid" ? "mid-mountain" : elevation}, ${el.elevation_ft.toLocaleString()} ft</span>
       ${resort.weak_station_match ? '<span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
     <h3>Ski days</h3>
-    <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>darker bars are heavier snow</em></div>
+    <div class="sub split" style="margin:0 0 2px"><span>${ICONS.moon}overnight</span><span>${ICONS.sun}during the day</span><em>darker is heavier snow</em></div>
     <div class="days"><div class="srow head"><div></div><div>New snow by 4 pm</div><div></div><div>Lift hours</div><div class="pw">Powder</div></div>${days.map((d) => skiDay(d, max)).join("")}</div>
     <h3>Hour by hour</h3>
     ${g.html}
-    <div class="key"><span>Snow:</span>${swatches(QUALITY, "q", 0)}<span class="sw"><i style="background:var(--night);border:1px solid var(--grid)"></i>Night</span></div>
-    <div class="key"><span>Wind:</span>${swatches(WIND, "w", 1)}<span class="sw"><i style="background:var(--level);height:3px"></i>Snow level (rain below it)</span></div>
+    <div class="key"><span class="ramp">heavy<i style="background:linear-gradient(90deg,var(--q0),var(--q4))"></i>light snow</span>
+      <span class="ramp">calm<i style="background:linear-gradient(90deg,var(--grid),var(--w2),var(--w3))"></i>strong wind</span>
+      <span class="sw"><i style="background:var(--night);border:1px solid var(--grid)"></i>night</span>
+      <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span></div>
     ${measured(resort)}`;
   wireTimeline(resort, el, g);
 }
