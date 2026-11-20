@@ -81,9 +81,11 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .legend .sw{display:inline-flex;align-items:center;gap:3px}
 .legend .sw i{width:16px;height:12px;border-radius:3px;display:inline-block}
 #detail{margin-top:14px;padding:18px 18px 8px}
-.dhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.dhead h2{font-size:22px}
-.dhead span{color:var(--muted);font-size:13px}
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dhead .who{min-width:0}
+.dhead h2{font-size:22px;line-height:1.15}
+.dhead .who > span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.dhead .seg{margin-left:0;flex:none}
 .tag{font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
 .tile{background:var(--wash);border-radius:12px;padding:12px 14px}
@@ -240,6 +242,8 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   .drow.head .q,.drow.head .pw{display:none}
   .meter{margin-top:0}
   #detail{padding:16px 14px 6px}
+  .dhead h2{font-size:20px}
+  .dhead .seg button{padding:6px 10px}
   .heat td.name b{font-size:13.5px}
 }
 </style>
@@ -293,7 +297,7 @@ const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "25";
+const BUILD = "26";
 const HOME = "palisades";
 let data = null, elevation = "summit", selected = location.hash.slice(1) || HOME;
 const $ = (id) => document.getElementById(id);
@@ -589,8 +593,9 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small>${pm(x)}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dhead"><h2>${esc(resort.name)}</h2><span>${el.elevation_ft.toLocaleString()} ft</span>
-      ${resort.weak_station_match ? '<span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}<div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
+  $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}</h2>
+      <span>${el.elevation_ft.toLocaleString()} ft${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}</span></div>
+      <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles">${tile("Next 24 hours", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}
       <div class="tile"><div class="k">Days 6–10</div><div class="v">${pct(w.days6to10.prob_6in)}</div><div class="r">chance of 6 in+</div></div></div>
     <h3>Ski days</h3>
