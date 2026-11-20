@@ -46,7 +46,7 @@ class Kuchera(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, X):
-        return physics.kuchera_slr(X["tmax_col"].to_numpy() + 273.15)
+        return np.clip(physics.kuchera_slr(X["tmax_col"].to_numpy() + 273.15), 0.0, None)
 
 
 class ColumnModel(BaseEstimator, RegressorMixin):
