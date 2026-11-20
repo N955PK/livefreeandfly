@@ -428,7 +428,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "71";
+const BUILD = "72";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -785,7 +785,7 @@ let map = null, playing = false, playFrame = 0;
 function showTime(value) {
   const t = map.timeAt(value), rate = map.rateAt(value), level = Math.round(map.snowLevelFtAt(value) / 100) * 100;
   const atNow = Math.abs(value - map.nowStep) < 0.3;
-  $("mapWhen").textContent = atNow ? "Right now" : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+  $("mapWhen").textContent = atNow ? "Live" : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
   $("toNow").classList.toggle("away", !atNow);
   const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}${rate >= 0.05 ? `, ${rate.toFixed(1)} in/hr up high` : ""}`;
   $("mapWhat").textContent = `${falling} · snow level ${level > 12000 ? "above the peaks" : level.toLocaleString() + " ft"}`;
