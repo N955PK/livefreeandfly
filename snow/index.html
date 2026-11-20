@@ -474,7 +474,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "94";
+const BUILD = "95";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -866,6 +866,9 @@ const ROADS_WITHIN_KM = 62;
 const CHAIN_MEANING = {"R-1": "chains or snow tires", "R-2": "chains unless 4WD with snow tires", "R-3": "chains on all vehicles"};
 const tidy = (name) => name.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").replace(/[\s\-]+$/, "").trim().toLowerCase().replace(/(^|[\s\-\/])[a-z]/g, (c) => c.toUpperCase())
   .replace(/\bJct\b/g, "junction").replace(/\bHwy\b/g, "Hwy").replace(/\bSr\b/g, "SR").replace(/\bDli\b/g, "Donner Lake");
+// California roads whose number is also a different road in Nevada.
+const ROAD_ALSO = {207: "Bear Valley"};
+const roadLabel = (n) => `<b>${esc(n)}</b>${ROAD_ALSO[n] ? ` (${ROAD_ALSO[n]})` : ""}`;
 const BOUND = {North: "northbound", South: "southbound", East: "eastbound", West: "westbound"};
 // Nevada's feed needs a key, so a scheduled job reads it and publishes the result; anything older than
 // NEVADA_FRESH_MIN is treated as missing rather than shown out of date.
@@ -919,7 +922,7 @@ async function loadRoads() {
         const where = names.length > 1 ? `between ${names[0]} and ${names[names.length - 1]}` : `at ${names[0]}${g.length === 1 && BOUND[g[0].direction] ? ` (${BOUND[g[0].direction]})` : ""}`;
         const started = g.map((p) => p.since).filter(Boolean).sort((a, b) => a - b)[0];
         closures.push({recent: started && Date.now() - started < 2 * 864e5, route: number(route),
-          html: `<li><b>${esc(number(route))}</b> closed ${esc(where)}${pass ? ` (${esc(tidy(pass))})` : ""}${since(g)}</li>`});
+          html: `<li>${roadLabel(number(route))} closed ${esc(where)}${pass ? ` (${esc(tidy(pass))})` : ""}${since(g)}</li>`});
       }
     }
     // Chain controls: for each road and direction, the first and last control point in the direction of travel.
@@ -933,7 +936,7 @@ async function loadRoads() {
         const from = tidy(same[0].name), to = tidy(same[same.length - 1].name), worst = same.map((p) => p.level).sort().pop();
         parts.push(`${BOUND[direction]} ${from === to ? `at ${esc(from)}` : `${esc(from)} to ${esc(to)}`} (${worst})`);
       }
-      chains.push(`<li><b>${esc(number(route))}</b> ${parts.join("; ")}</li>`);
+      chains.push(`<li>${roadLabel(number(route))} ${parts.join("; ")}</li>`);
     }
     const chainRoutes = byRoute("chains").map(([route]) => number(route));
     // Nevada reports whole stretches in its own words, so its rows are written out as given.
