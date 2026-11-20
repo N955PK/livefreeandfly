@@ -174,7 +174,8 @@ h3{font-size:14px;font-weight:650;margin:22px 0 2px}
 .key .blocks > span{display:inline-flex;border-radius:5px;overflow:hidden}
 .key .blocks b{font-weight:600;font-size:11px;padding:2px 6px;color:#fff}
 .key .blocks b.dark{color:#0f1720}
-.key .blocks > span{box-sizing:border-box;width:118px}
+.key .blocks > span{box-sizing:border-box;width:112px}
+.key .blocks b{padding-left:4px;padding-right:4px}
 .key .blocks > span:not(.ramp) b{flex:1 1 auto;text-align:center}
 .key .blocks .ramp{justify-content:space-between}
 .key .blocks .ramp b{background:none}
@@ -374,7 +375,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "57";
+const BUILD = "58";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const remembered = () => { try { return localStorage.getItem(HOME_KEY); } catch (error) { return null; } };
@@ -690,8 +691,8 @@ function renderDetail() {
     <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     <div class="hhead"><h3>Hour by hour</h3><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
-    <div class="key"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
-      <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>50+ mph</b></span></span></div>
+    <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
+      <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>50+</b></span>mph</span></div>
     <div class="key">
       <span class="sw"><i style="background:var(--night);border:1px solid var(--grid)"></i>night</span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span>
