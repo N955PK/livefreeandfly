@@ -423,18 +423,16 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
 .abtn{display:block;text-align:center;margin-top:14px;background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 16px;font-size:15px;font-weight:650;text-decoration:none}
 .anote{font-size:12px;color:var(--muted);margin-top:10px}
 .expired .dtable,.expired .probs,.expired .abottom,.expired .aadvice{opacity:.5}
-/* A wide screen: legends gather at the left instead of stretching across, and the avalanche pane sets its problems beside the rating. */
+/* A wide screen: legends gather at the left instead of stretching across, and the avalanche pane's parts are larger. */
 @media(min-width:900px){
   .key,.legend{justify-content:flex-start;column-gap:28px !important}
   .key:has(.blocks){column-gap:28px !important}
   #avalanche{padding:22px 24px 20px}
-  .acols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"rating problems" "words words" "scale scale";column-gap:40px;align-items:start}
-  .arating{grid-area:rating}.aproblems{grid-area:problems}.awords{grid-area:words}.ascale{grid-area:scale}
-  .aproblems h3{margin-top:10px}
   .aadvice{font-size:15.5px}
-  .dtable{max-width:none;font-size:14px;gap:7px 10px}
+  .dtable{max-width:560px;font-size:14px;gap:7px 10px}
   .dtable b{font-size:12.5px}
   .dtable .dchip{padding:7px 10px;font-size:14px}
+  .probs{max-width:640px}
   .probs li{gap:16px;padding:12px 0;font-size:14.5px}
   .probs .ptype{width:64px;height:64px}
   .probs .rose{width:84px;height:84px}
@@ -593,7 +591,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "130";
+const BUILD = "131";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1591,7 +1589,6 @@ function renderAvalanche() {
     const rated = product.product_type === "forecast" && (product.danger || []).some((d) => BANDS.some(([band]) => d[band] > 0));
     if (!rated) body += `<p class="anotice">No danger rating: the center has posted ${product.product_type === "summary" ? "a general summary" : "an update"}, not a daily forecast.</p>`;
   }
-  // Three blocks, so a wide screen can set the problems beside the rating and the bottom line.
   let rating = zone.advice ? `<p class="aadvice">${esc(zone.advice)}</p>` : "", trouble = "", words = "";
   if (product) {
     const days = ["current", "tomorrow"].map((key) => (product.danger || []).find((d) => d.valid_day === key)).filter(Boolean);
