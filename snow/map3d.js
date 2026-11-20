@@ -623,7 +623,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
         if (!inGlobe(x, y, globe ? 1 : DISC_FADE_KM * 0.6)) continue;
         if (closures.some((c) => c.route === point.route && Math.hypot(c.x - x, c.y - y) < 6)) continue;
         const tag = document.createElement("div");
-        tag.className = "map-closed"; tag.textContent = "Closed"; tag.title = `${point.route} ${point.name}`;
+        tag.className = "map-closed"; tag.title = `Closed: ${point.route} ${point.name}`; tag.setAttribute("role", "img"); tag.setAttribute("aria-label", tag.title);
+        tag.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#fff"/><circle cx="12" cy="12" r="9.6" fill="#c8161d"/><rect x="5.2" y="9.9" width="13.6" height="4.2" rx=".6" fill="#fff"/></svg>';
         overlay.appendChild(tag);
         closures.push({tag, route: point.route, x, y, point: new THREE.Vector3(x, y, zOf(heightAt(point.lat, point.lon)) + 0.9)});
       }
