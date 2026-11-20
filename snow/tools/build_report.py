@@ -137,7 +137,33 @@ def water_figures() -> dict:
     methods = pd.read_csv(TABLES / "bias_methods.csv").groupby("method").mean(numeric_only=True)
     for key, label in [("raw", "Raw average of four models"), ("corrected", "Corrected to the sensors (in use)")]:
         out["methods"][label] = {k: round(float(methods.loc[key, k]), 2) for k in ["total f/o", "daily err in", "3-day err in", "3-day 2in+ err"]}
+    out["mammoth"] = mammoth_block(names)
     return out
+
+
+def mammoth_block(names: dict) -> str:
+    """The Mammoth-area water test, as HTML; empty until that region's tables exist."""
+    if not (TABLES / "bias_methods_mammoth.csv").exists():
+        return ""
+    methods = pd.read_csv(TABLES / "bias_methods_mammoth.csv").groupby("method").mean(numeric_only=True)
+    pairs = pd.read_parquet(TABLES / "bias_pairs_mammoth.parquet")
+    # Only days every model covers, so the four shares are over the same storms.
+    at_pass = pairs[pairs["station"] == "MHP:CDEC"]
+    at_pass = at_pass[at_pass.groupby("date")["model"].transform("size") == len(names)]
+    share = at_pass.groupby("model").apply(lambda g: g["forecast_mm"].sum() / g["observed_mm"].sum())
+    shares = ", ".join(f"{names[model]} {100 * share[model]:.0f}%" for model in share.sort_values().index)
+    rows = "".join(
+        f"<tr><td>{label}</td><td>{100 * methods.loc[key, 'total f/o']:.0f}%</td><td>{methods.loc[key, 'daily err in']:.2f}</td>"
+        f"<td>{methods.loc[key, '3-day err in']:.2f}</td><td>{methods.loc[key, '3-day 2in+ err']:.2f}</td></tr>"
+        for key, label in [("raw", "Raw average of four models"), ("corrected", "Corrected to the Mammoth sensors (in use)")])
+    return f"""
+<h3>Around Mammoth</h3>
+<p>Mammoth gets its own correction, fitted to {pairs['station'].nunique()} snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
+<div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr>{rows}</table></div>
+<p><b>Mammoth Mountain and Sherwin Ridge</b> use the Mammoth Pass sensor, 2 km south of the summit. The models' shares of its measured water: {shares}. Those misses offset, so at this one sensor the corrected blend only ties the raw one; the correction is kept because it makes each model right on its own.</p>
+<p><b>June Mountain and Carson Peak</b> have no working sensor nearby and are left uncorrected. The record of a sensor that has since gone quiet (Gem Pass) says a correction borrowed from Mammoth Pass would make them worse.</p>
+<p><b>The sensors:</b> most are state snow pillows that are not quality-controlled the way SNOTEL is. Adding up their daily rises counts sensor jitter as snow (about 20% too much over a week), so readings are smoothed and small dips ignored before any of this is fitted or scored.</p>
+"""
 
 
 def page(ratio_out: dict, phase_out: dict, water_out: dict) -> str:
@@ -155,7 +181,7 @@ def page(ratio_out: dict, phase_out: dict, water_out: dict) -> str:
 <style>
 body{{margin:0;background:#f4f6f8;color:#0f1720;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}}
 main{{max-width:780px;margin:0 auto;padding:28px 16px 56px}}
-a{{color:#1c5cab}} h1{{font-size:30px;letter-spacing:-.02em;margin:8px 0 6px}} h2{{font-size:20px;margin:34px 0 6px}}
+a{{color:#1c5cab}} h1{{font-size:30px;letter-spacing:-.02em;margin:8px 0 6px}} h2{{font-size:20px;margin:34px 0 6px}} h3{{font-size:16px;margin:24px 0 4px}}
 p{{margin:0 0 12px;color:#333c46}} .lede{{font-size:17px}}
 figure{{margin:14px 0 18px;background:#fff;border:1px solid rgba(15,23,32,.1);border-radius:14px;padding:12px}}
 figure img{{width:100%;height:auto;display:block}} figcaption{{font-size:13px;color:#6b7480;margin-top:8px}}
@@ -190,7 +216,7 @@ Given the measured water, it misses the snowfall by <b>{s['This site']['snow_mae
 <p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
 <p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. (One model delivers 13% of the measured water at Mt Rose; uncapped, its correction once turned 43 mm into 247.)</p>
 <div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr>{water_rows}</table></div>
-
+{water_out['mammoth']}
 <h2>4. Wind gusts</h2>
 <p>The weather models' own gust field runs low in the mountains, so above the base this site estimates gusts from the faster air 500 m higher up, which is where gusts come from.
 Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, five winters), the wind 500 m up tracks the measured gusts better than the wind at the sensor's own height: correlation 0.79 against 0.73, and an average miss of 5.7 mph against 6.7.</p>
@@ -198,7 +224,7 @@ Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, f
 
 <h2>What is not tested yet</h2>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
-<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, and model archives from Open-Meteo.</p>
+<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p>
 </main></body></html>
 """
 

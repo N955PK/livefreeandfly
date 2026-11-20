@@ -5,7 +5,7 @@
 <style>
 body{margin:0;background:#f4f6f8;color:#0f1720;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
 main{max-width:780px;margin:0 auto;padding:28px 16px 56px}
-a{color:#1c5cab} h1{font-size:30px;letter-spacing:-.02em;margin:8px 0 6px} h2{font-size:20px;margin:34px 0 6px}
+a{color:#1c5cab} h1{font-size:30px;letter-spacing:-.02em;margin:8px 0 6px} h2{font-size:20px;margin:34px 0 6px} h3{font-size:16px;margin:24px 0 4px}
 p{margin:0 0 12px;color:#333c46} .lede{font-size:17px}
 figure{margin:14px 0 18px;background:#fff;border:1px solid rgba(15,23,32,.1);border-radius:14px;padding:12px}
 figure img{width:100%;height:auto;display:block} figcaption{font-size:13px;color:#6b7480;margin-top:8px}
@@ -41,6 +41,13 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. (One model delivers 13% of the measured water at Mt Rose; uncapped, its correction once turned 43 mm into 247.)</p>
 <div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr><tr><td>Raw average of four models</td><td>88%</td><td>0.23</td><td>0.43</td><td>0.90</td></tr><tr><td>Corrected to the sensors (in use)</td><td>102%</td><td>0.21</td><td>0.35</td><td>0.59</td></tr></table></div>
 
+<h3>Around Mammoth</h3>
+<p>Mammoth gets its own correction, fitted to 10 snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
+<div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr><tr><td>Raw average of four models</td><td>107%</td><td>0.22</td><td>0.42</td><td>0.70</td></tr><tr><td>Corrected to the Mammoth sensors (in use)</td><td>102%</td><td>0.21</td><td>0.39</td><td>0.70</td></tr></table></div>
+<p><b>Mammoth Mountain and Sherwin Ridge</b> use the Mammoth Pass sensor, 2 km south of the summit. The models' shares of its measured water: GEM 69%, ECMWF 88%, ICON 101%, GFS 133%. Those misses offset, so at this one sensor the corrected blend only ties the raw one; the correction is kept because it makes each model right on its own.</p>
+<p><b>June Mountain and Carson Peak</b> have no working sensor nearby and are left uncorrected. The record of a sensor that has since gone quiet (Gem Pass) says a correction borrowed from Mammoth Pass would make them worse.</p>
+<p><b>The sensors:</b> most are state snow pillows that are not quality-controlled the way SNOTEL is. Adding up their daily rises counts sensor jitter as snow (about 20% too much over a week), so readings are smoothed and small dips ignored before any of this is fitted or scored.</p>
+
 <h2>4. Wind gusts</h2>
 <p>The weather models' own gust field runs low in the mountains, so above the base this site estimates gusts from the faster air 500 m higher up, which is where gusts come from.
 Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, five winters), the wind 500 m up tracks the measured gusts better than the wind at the sensor's own height: correlation 0.79 against 0.73, and an average miss of 5.7 mph against 6.7.</p>
@@ -48,5 +55,5 @@ Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, f
 
 <h2>What is not tested yet</h2>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
-<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, and model archives from Open-Meteo.</p>
+<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p>
 </main></body></html>

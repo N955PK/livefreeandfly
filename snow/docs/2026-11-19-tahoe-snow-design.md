@@ -32,8 +32,9 @@ both are doable with free data.
 ## Non-goals
 
 - Resorts outside the Tahoe area (the pipeline should not block adding them).
+  Superseded: Mammoth was added; see the sections at the end.
 - Written forecaster discussions, maps, webcams, avalanche forecasts, alerts,
-  mobile apps, accounts.
+  mobile apps, accounts. Superseded for the map and for avalanche danger.
 - Days 11–15.
 - Ads or any monetization (Open-Meteo's free tier is non-commercial).
 
