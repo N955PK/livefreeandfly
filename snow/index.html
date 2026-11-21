@@ -146,7 +146,8 @@ html.tabs .dtop > .jump,html.tabs .sumhead > .jump{position:absolute;left:14px;r
 /* The Region bar's last row is the table's own column headings, not chips. */
 .sumcols{display:none}
 html.tabs .sumcols{display:block;position:absolute;left:0;right:0;bottom:1px;overflow:hidden}
-html.tabs .sumcols table.heat{table-layout:fixed;width:auto;padding-top:0;padding-bottom:0}
+html.tabs .sumcols table.heat{table-layout:fixed;width:auto;padding-top:0;padding-bottom:0;will-change:transform}
+html.tabs .sumcols .heat th.corner{position:relative;left:auto;will-change:transform}
 html.tabs .sumcols .heat th{padding:0 0 3px;line-height:1.15}
 html.tabs .sumcols .heat th b{line-height:1.15}
 html.tabs .sumcols.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
@@ -355,9 +356,24 @@ html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-to
    The panes and the map run on underneath it; --tabbar is the room it takes, which the map's controls, the cards
    and the panes' last lines all keep clear of. */
 :root{--tabgap:max(10px,calc(env(safe-area-inset-bottom) - 10px));--tabbar:calc(58px + var(--tabgap))}
-html.tabs .tabbar{left:50%;right:auto;bottom:var(--tabgap);transform:translateX(-50%);width:min(calc(100vw - 20px),440px);box-sizing:border-box;padding:5px;border:1px solid color-mix(in srgb,var(--surface) 55%,transparent);border-radius:999px;
+html.tabs .tabbar{left:0;right:0;bottom:var(--tabgap);margin:0 auto;width:min(calc(100vw - 20px),440px);box-sizing:border-box;padding:6px;border:0;border-radius:999px;background:none}
+/* The glass is a layer of its own behind the tabs, so the capsule sliding over it never makes the blur be worked out again. */
+.tabglass{display:none}
+html.tabs .tabglass{display:block;position:absolute;inset:0;border-radius:999px;border:1px solid color-mix(in srgb,var(--surface) 55%,transparent);
   background:color-mix(in srgb,var(--surface) 58%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
   box-shadow:0 8px 28px rgba(15,23,32,.2),0 1px 3px rgba(15,23,32,.12),inset 0 1px 0 color-mix(in srgb,#fff 45%,transparent)}
+/* The small pickers (today or tomorrow, depth or snowfall or water, units, clock) work the same way: one capsule that
+   slides to the choice, drawn behind the words, and no flash on a press. */
+html.tabs .seg:not(.tri){position:relative}
+html.tabs .seg:not(.tri) button{position:relative;z-index:1;-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none;outline:none}
+html.tabs .seg.slid button[aria-pressed=true]{background:none;box-shadow:none}
+.segind{display:none}
+html.tabs .segind{display:block;position:absolute;z-index:0;top:3px;bottom:3px;left:0;border-radius:999px;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12);
+  will-change:transform;transition:transform .3s cubic-bezier(.3,1.2,.4,1),width .3s cubic-bezier(.3,1.2,.4,1)}
+html.tabs .segind.still{transition:none}
+@media (prefers-reduced-motion:reduce){html.tabs .segind{transition:none}}
+/* A press shows nothing of its own (no gray flash, no wait for a second tap): the capsule arriving is the answer. */
+html.tabs .tabbar button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none;outline:none}
 html.tabs .tabbar div{max-width:none;gap:2px}
 html.tabs .tabbar button{height:46px;border:0;border-radius:999px;color:var(--mark-mid)}
 html.tabs .tabbar button[aria-current="page"]{color:var(--mark)}
@@ -1206,7 +1222,7 @@ if (new URLSearchParams(location.search).has("embed")) {
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
   </div></details>
 </main>
-<nav class="tabbar" id="tabbar" aria-label="Sections"><div><i class="tabind" id="tabInd" aria-hidden="true"></i>
+<nav class="tabbar" id="tabbar" aria-label="Sections"><span class="tabglass" aria-hidden="true"></span><div><i class="tabind" id="tabInd" aria-hidden="true"></i>
   <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
 </div></nav>
 <dialog id="settingsSheet" class="sheet top"><div class="grab"><b tabindex="-1" autofocus>Settings</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody"><div id="settings">
@@ -1886,6 +1902,7 @@ document.addEventListener("click", (event) => {
   if (!resort) return;
   seasonMeasure = tab.dataset.season;
   $("seasonBox").innerHTML = seasonSoFar(resort);
+  placeSegs();
 });
 document.addEventListener("pointermove", seasonRead);
 document.addEventListener("pointercancel", seasonRead);
@@ -2244,6 +2261,7 @@ function renderDetail() {
   if (cams) cams.addEventListener("click", () => cams.parentNode.classList.toggle("big"));
   wireTimeline(resort, el, g);
   badges();
+  placeSegs();
   $("detail").querySelector("details.lgd").addEventListener("toggle", (e) => { legendOpen = e.currentTarget.open; });
 }
 
@@ -2255,6 +2273,29 @@ const tabbed = () => document.documentElement.classList.contains("tabs");
 const JUMPS = [["jump", () => $("detail")], ["avyJump", () => $("avalanche")]];
 const JUMP_SHORT = {"Mountain Collective": "Collective"};
 let jumpHold = null;
+// The small pickers' capsules. A picker is often drawn afresh when its choice changes, so where each one's capsule
+// last stood is remembered by the picker's name: the new capsule starts there and slides to the new choice.
+const segWas = {};
+function placeSegs(jump) {
+  if (!tabbed()) return;
+  for (const seg of document.querySelectorAll(".seg:not(.tri)")) {
+    const on = seg.querySelector('button[aria-pressed="true"]');
+    if (!on || !on.offsetWidth) continue;
+    const key = seg.getAttribute("aria-label") || "", to = {x: on.offsetLeft, w: on.offsetWidth}, was = segWas[key];
+    let ind = seg.querySelector(".segind");
+    const put = (at) => { ind.style.width = `${at.w}px`; ind.style.transform = `translate3d(${at.x}px,0,0)`; };
+    if (!ind) {
+      ind = document.createElement("i"); ind.className = "segind still"; ind.setAttribute("aria-hidden", "true");
+      seg.prepend(ind); seg.classList.add("slid");
+      put(!jump && was ? was : to);
+      ind.getBoundingClientRect();
+    }
+    ind.classList.toggle("still", !!jump);
+    put(to);
+    segWas[key] = to;
+  }
+}
+window.addEventListener("resize", () => placeSegs(true));
 // Puts the tab bar's capsule behind the open tab; it slides there unless told to jump (first placing, a resize).
 function placeTabInd(jump) {
   const on = document.querySelector('#tabbar button[aria-current="page"]'), ind = $("tabInd");
@@ -2277,6 +2318,7 @@ function showView(view) {
   placeTabInd();
   window.scrollTo(0, 0);
   markJump();
+  placeSegs(true);
   if (view === "forecast") syncCols();
   // The hourly chart is drawn to the width it finds, and it found none while its tab was closed.
   if (view === "mountain" && data && Math.abs($("detail").clientWidth - fitted) > 40) renderDetail();
@@ -2324,7 +2366,7 @@ document.addEventListener("touchend", (e) => {
 }, {passive: true});
 document.addEventListener("touchcancel", () => { swipe = null; }, {passive: true});
 applyLayout("map");
-function showPrefs() { for (const b of document.querySelectorAll("[data-pref]")) b.setAttribute("aria-pressed", prefs[b.dataset.pref] === b.dataset.value); }
+function showPrefs() { for (const b of document.querySelectorAll("[data-pref]")) b.setAttribute("aria-pressed", prefs[b.dataset.pref] === b.dataset.value); placeSegs(); }
 showPrefs();
 document.addEventListener("click", (event) => {
   const b = event.target.closest && event.target.closest("[data-pref]");
@@ -2588,7 +2630,7 @@ $("sumPick").addEventListener("change", (e) => setRegion(e.target.value));
 const markHeader = () => { const b = document.querySelector(".brand"); if (b && b.offsetHeight) document.documentElement.style.setProperty("--headb", `${b.offsetTop + b.offsetHeight + 10}px`); };
 markHeader();
 window.addEventListener("resize", markHeader);
-$("setBtn").addEventListener("click", () => { markHeader(); $("settingsSheet").showModal(); });
+$("setBtn").addEventListener("click", () => { markHeader(); $("settingsSheet").showModal(); placeSegs(true); });
 // The roads pill opens the sheet; Done, the pill again, or a touch on the map puts it away.
 $("roadPill").addEventListener("click", () => $("roadSheet").classList.toggle("open"));
 // The button names the view it switches to: 2D is straight down with north up, 3D is the tilted view the map opens in.
@@ -2946,7 +2988,25 @@ document.addEventListener("click", (e) => {
   for (const x of document.querySelectorAll(".seg button[data-el]")) x.setAttribute("aria-pressed", x.dataset.el === elevation);
   renderAll();
 });
-$("heat").parentElement.addEventListener("scroll", (e) => { e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); $("sumCols").scrollLeft = e.currentTarget.scrollLeft; $("sumCols").classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); }, {passive: true});
+$("heat").parentElement.addEventListener("scroll", (e) => { e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); slideCols(); }, {passive: true});
+// The headings in the bar are slid by exactly as far as the table has scrolled, including the little way a phone lets
+// a table be pulled past either end before it springs back, so each stays over its column the whole time. The blank
+// corner over the names holds still, as the names do, except during that pull.
+function slideCols() {
+  const wrap = $("heat").parentElement, x = wrap.scrollLeft, held = Math.max(0, Math.min(x, wrap.scrollWidth - wrap.clientWidth));
+  const table = $("sumColsRow").closest("table"), corner = $("sumColsRow").querySelector("th.corner");
+  table.style.transform = `translate3d(${-x}px,0,0)`;
+  // The names stick once the table's small left margin has scrolled away, so the corner gives up that much first.
+  if (corner) corner.style.transform = `translate3d(${Math.max(0, held - corner.offsetLeft)}px,0,0)`;
+  $("sumCols").classList.toggle("scrolled", x > 2);
+}
+// The headings can be dragged too: a sideways drag on them moves the table.
+{
+  let from = null;
+  $("sumCols").addEventListener("touchstart", (e) => { from = e.touches.length === 1 ? e.touches[0].clientX : null; }, {passive: true});
+  $("sumCols").addEventListener("touchmove", (e) => { if (from == null) return; const x = e.touches[0].clientX; $("heat").parentElement.scrollLeft += from - x; from = x; }, {passive: true});
+  $("sumCols").addEventListener("touchend", () => { from = null; }, {passive: true});
+}
 // In tabs the summary's column headings live in the frozen bar, so the days stay named however far down the table is
 // read. The table's own heading row still sets the column widths; it is tucked up out of sight, and the copy in the
 // bar takes each column's width from it and slides sideways with the table.
@@ -2957,7 +3017,7 @@ function syncCols() {
   [...head.children].forEach((cell, n) => { const w = cell.getBoundingClientRect().width; if (copy.children[n]) copy.children[n].style.cssText = `width:${w}px;min-width:${w}px;max-width:${w}px`; });
   copy.closest("table").style.width = `${heat.offsetWidth}px`;
   heat.style.marginTop = `${-(head.offsetHeight + parseFloat(getComputedStyle(heat).borderSpacing) + parseFloat(getComputedStyle(heat).paddingTop))}px`;
-  $("sumCols").scrollLeft = heat.parentElement.scrollLeft;
+  slideCols();
 }
 window.addEventListener("resize", syncCols);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { markTop.done = false; markTop(); });
