@@ -444,7 +444,11 @@ html.tabs .orow.stat .k{display:block;font-size:11.5px}
 html.tabs .orow.stat b{display:block;font-size:19px;line-height:1.25;letter-spacing:-.01em}
 html.tabs .orow.stat em{display:inline;font-size:12.5px;color:var(--mark-dull)}
 html.tabs .orow.stat em::before{content:none}
-html.tabs .orow.stat small:not(.live){display:none}
+/* Whether the reading is live from the mountain or from the forecast is said in the block's top right corner. */
+html.tabs .orow.stat{position:relative}
+html.tabs .orow.stat small{position:absolute;top:8px;right:11px;margin:0;font-size:11.5px;font-weight:600;color:var(--mark-dull)}
+html.tabs .orow.stat small.live{color:#2f8a3c;font-weight:650}
+@media (prefers-color-scheme:dark){html.tabs .orow.stat small.live{color:#6fd08c}}
 html.tabs details.both > summary.orow{display:block;padding:4px 0 2px}
 html.tabs details.both > summary.orow::after{content:none}
 html.tabs details.both .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px;text-align:center}
@@ -771,7 +775,11 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 /* What can be pressed is round, what cannot is squared off: in tabs the map's name labels and the summary's chosen
    mountain take round ends; the roads' highway numbers and the daily bars take small corners. */
 html.tabs .map-label{border-radius:17px;padding-left:11px;padding-right:11px}
-html.tabs .heat tr.on td.name{border-radius:26px 0 0 26px}
+/* The name column stays put while the days slide under it, so its cells are square and opaque: nothing sliding by
+   shows at a corner. The chosen mountain's round-ended highlight is drawn on top of that. */
+html.tabs .heat td.name{border-radius:0}
+html.tabs .heat tr.on td.name{background:var(--surface);border-radius:0;box-shadow:none}
+html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 0 0;z-index:-1;border-radius:26px 0 0 26px;background:var(--pick)}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
 .map-label.on::after{border-top-color:#0f1720}
 .map-lake{position:absolute;left:0;top:0;font-size:12px;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
@@ -1969,7 +1977,7 @@ function weatherRows(resort) {
   const weather = resort.kind === "backcountry" ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>`
     : `<div class="orow verdict ${worst}"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>`;
   const p = ((resort.elevations[elevation].days.find((d) => d.date === day.date) || {}).powder) || {};
-  const tag = `<small class="${live ? "live" : ""}">${live ? "live" : "forecast"}</small>`;
+  const said = live ? "live" : "forecast", tag = `<small class="${live ? "live" : ""}">${tabbed() ? said[0].toUpperCase() + said.slice(1) : said}</small>`;
   const temp = live ? +live.TemperatureF : p.temp_f, wind = live ? +live.WindStrengthMph : p.wind_mph, gust = live ? +live.WindGustsMph : p.gust_mph;
   const feel = live && isFinite(+live.WindChillF) ? +live.WindChillF : windChill(temp, wind);
   const from = live ? (/^[NESW]+$/.test(live.WindDirection || "") ? live.WindDirection : "") : compass(p.wind_from_deg);
