@@ -792,6 +792,18 @@ html.tabs .panel.summary .legend{font-size:12.5px}
 html.tabs #detail .cams .what{font-size:13.5px}
 html.tabs #detail .tile,html.tabs #detail .stats > *,html.tabs #detail .orow.verdict{border-radius:11px}
 dialog.sheet .seg,dialog.sheet .seg button{border-radius:999px}
+/* The forecast-quality list: a mountain, its grade, and the sensor it is checked against. The grades are not pressed, so they are squared off. */
+.qkey{display:grid;gap:6px;margin:2px 0 12px;font-size:13px;line-height:1.4;color:var(--ink2)}
+.qkey > div{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;align-items:start}
+.q{justify-self:start;box-sizing:border-box;min-width:86px;text-align:center;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:700;white-space:nowrap;border:1px solid}
+.q.good{color:#1f7a3d;background:rgba(31,122,61,.1);border-color:rgba(31,122,61,.3)}
+.q.rough{color:#b3541e;background:rgba(179,84,30,.1);border-color:rgba(179,84,30,.35)}
+.q.none{color:var(--mark-dull);background:var(--wash);border-color:var(--border)}
+@media (prefers-color-scheme:dark){.q.good{color:#6fd08c}.q.rough{color:#f0a070}}
+.qrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--border)}
+.qrow b{font-size:14px;font-weight:650;color:var(--ink)}
+.qrow small{grid-column:1/-1;font-size:12.5px;color:var(--mark-dull)}
+#quality .pickgroup{margin:14px 0 4px}
 /* Every popup is one card, in the map's roads-card style: frosted, round-cornered, floating just above the tab bar,
    with its name at the top left and a round close button at the top right. A touch outside it puts it away. The
    mountain, zone and region choosers open in it too, in place of the phone's own picker. */
@@ -1107,6 +1119,7 @@ if (new URLSearchParams(location.search).has("embed")) {
 
   <div class="panel" id="avalanche" data-tab="avalanche"></div>
 
+  <details class="panel" id="quality" data-tab="more"><summary>How good is each mountain's forecast?</summary><div class="inner"><div id="qualityBody"></div></div></details>
   <details class="panel" id="score" data-tab="more"><summary>How accurate is this?</summary><div class="inner"><div id="scoreBody"></div><p><a href="report/">How we tested it, with the plots</a></p></div></details>
   <details class="panel" id="how" data-tab="more"><summary>How the forecast is made</summary><div class="inner">
     <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
@@ -2109,7 +2122,7 @@ function renderDetail() {
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(resort.name)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
-      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${resort.key === HOME ? `<span class="mine" title="My mountain">★${tabbed() ? "<i>Home</i>" : ""}</span>` : `<button class="setmine" data-home="${resort.key}" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆${tabbed() ? "<i>Set home</i>" : ""}</button>`}${tabbed() ? ` · ${esc(passOf(resort))}` : ""}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}</span></div>
+      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${resort.key === HOME ? `<span class="mine" title="My mountain">★${tabbed() ? "<i>Home</i>" : ""}</span>` : `<button class="setmine" data-home="${resort.key}" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆${tabbed() ? "<i>Set home</i>" : ""}</button>`}${tabbed() ? ` · ${esc(passOf(resort))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     <nav class="jump" id="jump" aria-label="Sections"></nav></div>
     ${outlook(resort)}
@@ -2158,7 +2171,7 @@ function applyLayout(view) {
   const on = !document.documentElement.classList.contains("embed");
   document.documentElement.classList.toggle("tabs", on);
   // In tabs the two explainers live in the settings sheet; on one page they close out the page.
-  for (const id of ["score", "how"]) (on ? $("moreSlot") : document.querySelector("main")).appendChild($(id));
+  for (const id of ["quality", "score", "how"]) (on ? $("moreSlot") : document.querySelector("main")).appendChild($(id));
   if (on) showView(view === "more" ? "map" : view);
 }
 // Brings a block into view, opening its tab first when the page is in tabs.
@@ -2744,7 +2757,20 @@ function renderNotes() {
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
   const use = data.usage;
   $("usageNote").textContent = use ? `Data budget: about ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (${use.measured ? "as Open-Meteo counts them" : "our own count, rounded up"}).` : "";
+  renderQuality();
   $("formula").innerHTML = (data.powder_formula || []).map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join("");
+}
+
+// How far to trust each mountain's numbers: the weather models' water is corrected against the nearest snow sensor,
+// which fits well where the sensor stands near the mountain's height, loosely where it sits well below, and not at
+// all where no sensor works nearby.
+function renderQuality() {
+  const grade = (r) => r.station === null || r.station === undefined ? ["none", "Uncorrected"] : r.weak_station_match ? ["rough", "Rough"] : ["good", "Good"];
+  const row = (r) => { const [cls, word] = grade(r), o = r.observed; return `<div class="qrow"><b>${esc(r.name)}</b><span class="q ${cls}">${word}</span><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}` : "No working sensor nearby"}</small></div>`; };
+  const regions = Object.keys(REGIONS).filter((key) => data.resorts.some((r) => regionOf(r) === key));
+  $("qualityBody").innerHTML = `<p>Each mountain's forecast is corrected against years of readings from its nearest snow sensor. How well that works depends on the sensor.</p>
+    <div class="qkey"><div><span class="q good">Good</span>The sensor stands near the mountain's own height.</div><div><span class="q rough">Rough</span>The sensor sits well below the mountain, so the correction is a looser fit.</div><div><span class="q none">Uncorrected</span>No working sensor nearby: the models are used as they are, and there is no measured snow.</div></div>
+    ${regions.map((key) => `${regions.length > 1 ? `<div class="pickgroup">${esc(REGIONS[key].name)}</div>` : ""}${data.resorts.filter((r) => regionOf(r) === key).map(row).join("")}`).join("")}`;
 }
 
 function renderScore(card) {
