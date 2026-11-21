@@ -800,7 +800,7 @@ function renderHeadline() {
   // Each step allows an hour on top of the update interval, for a late start and the run itself.
   const missed = age <= UPDATE_EVERY_H + 1 ? 0 : age <= 2 * UPDATE_EVERY_H + 1 ? 1 : 2;
   const stamp = `<span class="${["", "late", "stale"][missed]}" title="${missed ? `${Math.round(age)} hours old; a new forecast is due every ${UPDATE_EVERY_H} hours` : `A new forecast is due every ${UPDATE_EVERY_H} hours`}">${when}</span>`;
-  $("meta").innerHTML = offlineCopy ? `<span class="warn">Offline.</span> Showing the forecast from ${stamp}` : `Updated ${stamp}`;
+  $("meta").innerHTML = offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`;
 }
 
 function renderHeat() {
