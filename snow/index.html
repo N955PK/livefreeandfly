@@ -318,7 +318,7 @@ html.tabs .roadsheet .roads li > b{justify-self:start;min-width:38px;box-sizing:
 html.tabs .roadsheet details.roads.older{margin:0}
 html.tabs .roadsheet details.roads.older summary{font-size:13px;color:var(--mark-dull)}
 html.tabs .roadsheet details.roads p{margin:0 0 4px;font-size:12px;color:var(--mark-dull)}
-html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-top:4px;padding-top:9px;font-size:12px;color:var(--mark-dull)}
+html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-top:4px;padding-top:9px;font-size:12.5px;color:var(--mark-dull)}
 @media (max-width:720px){html.tabs[data-view="map"] #mapPanel{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0;border-bottom:0}}
 .tabbar div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 @media (max-width:460px){.tabbar button{font-size:12px;letter-spacing:0}}
@@ -400,7 +400,7 @@ html.tabs .gridfresh{display:block}
    one block with the resort's own report linked under it. */
 html.tabs .outlook{display:flex;flex-direction:column}
 html.tabs .outlook .hhead h3 span{display:none}
-html.tabs .outlook .hhead #statusSrc{flex:none;margin:0;font-size:12px}
+html.tabs .outlook .hhead #statusSrc{flex:none;margin:0;font-size:12.5px}
 html.tabs .orow.verdict{display:block;margin:10px 0 8px;padding:9px 12px;border-radius:10px;font-size:13.5px;background:color-mix(in srgb,#3fa34d 14%,var(--surface));color:var(--mark-mid)}
 html.tabs .orow.verdict.warn{background:color-mix(in srgb,var(--w1) 22%,var(--surface))}
 html.tabs .orow.verdict.bad{background:color-mix(in srgb,var(--w2) 20%,var(--surface))}
@@ -449,6 +449,9 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .mtnpick svg{flex:none;width:12px;height:8px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mtnpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
 .mtnpick:focus-within{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+/* With one region, or inside another page (which has its own region bar), the summary's title is plain words. */
+.sumpick.solo,.embed .sumpick{pointer-events:none;cursor:default}
+.sumpick.solo svg,.embed .sumpick svg,.sumpick.solo select,.embed .sumpick select{display:none}
 .dhead .who > span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .dhead .who > .dfresh{display:none;font-size:12.5px}
 html.tabs .dhead .who > .dfresh{display:block}
@@ -456,11 +459,23 @@ html.tabs .dhead .who > .dfresh{display:block}
    baseline of the last line beside it, with the lines between spaced evenly. */
 html.tabs .dhead{align-items:flex-start}
 html.tabs .dhead .seg.tri{margin-top:4px}
-html.tabs .dhead .who > span{margin-top:6.5px}
-html.tabs .dhead .who > .dfresh{margin-top:7px}
+/* Each level's height stands beside its row of the picker, the chosen one in navy. */
+.lvlft{flex:none;display:flex;flex-direction:column;gap:2px;height:65px;margin:4px -4px 0 auto;text-align:right;font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--mark-dull)}
+.lvlft span{flex:1;display:flex;align-items:center;justify-content:flex-end}
+.lvlft span.on{font-weight:700;color:var(--mark)}
+/* Their right ends step in along the triangle's slanted side (12px a row), each the same short gap from it. */
+.lvlft{position:relative;z-index:1;pointer-events:none}
+.lvlft span:nth-child(1){transform:translateX(33px)}
+.lvlft span:nth-child(2){transform:translateX(21px)}
+.lvlft span:nth-child(3){transform:translateX(9px)}
+html.tabs .dhead .who > span{margin-top:7px}
+html.tabs .dhead .who > .dfresh{margin-top:6.5px}
 .dhead .seg{margin-left:0;flex:none}
 .dhead .mine{color:var(--accent);font-size:16px;line-height:1}
 .dhead .setmine{border:0;background:none;padding:4px 8px;margin:-4px -8px;font:inherit;font-size:16px;line-height:1;color:var(--accent);cursor:pointer}
+/* In tabs the star says what it is, and the mountain's pass follows it. */
+.dhead .mine i,.dhead .setmine i{font-style:normal;font-size:13px;font-weight:600;margin-left:5px;vertical-align:1px}
+html.tabs .dhead .who > span{white-space:nowrap}
 .tag{white-space:nowrap;font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
 .tile{background:var(--wash);border-radius:12px;padding:12px 14px}
@@ -768,6 +783,15 @@ html.tabs .heat tr.on td.name{border-radius:26px 0 0 26px}
 #moreSlot details.panel{display:block!important;margin:0;padding:0;border:0;border-top:1px solid var(--border);border-radius:0;background:none}
 #moreSlot details summary{font-size:14.5px;font-weight:600;padding:12px 0}
 #moreSlot details p,#moreSlot details li{font-size:13.5px}
+/* One last set of house sizes in tabs: captions at 12.5px, running text at 13.5px, content cards with an 11px corner,
+   and the settings card's pickers round-ended like every other thing that can be pressed. */
+html.tabs .panel.summary .gridcap{font-size:12.5px;padding-top:8.500px}
+/* The forecast time sits the same distance under the title here as on the Mountain tab. */
+html.tabs .panel.summary .gridfresh{padding-top:6.500px}
+html.tabs .panel.summary .legend{font-size:12.5px}
+html.tabs #detail .cams .what{font-size:13.5px}
+html.tabs #detail .tile,html.tabs #detail .stats > *,html.tabs #detail .orow.verdict{border-radius:11px}
+dialog.sheet .seg,dialog.sheet .seg button{border-radius:999px}
 /* Every popup is one card, in the map's roads-card style: frosted, round-cornered, floating just above the tab bar,
    with its name at the top left and a round close button at the top right. A touch outside it puts it away. The
    mountain, zone and region choosers open in it too, in place of the phone's own picker. */
@@ -1066,7 +1090,7 @@ if (new URLSearchParams(location.search).has("embed")) {
   <div class="panel summary" data-tab="forecast">
     <div class="sumhead">
     <div class="bar">
-      <h2>Regional Summary</h2>
+      <h2><label class="mtnpick sumpick" id="sumPickWrap">Regional Summary<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="sumPick" aria-label="Region"></select></label></h2>
       <div class="seg tri" id="seg" role="group" aria-label="Elevation">
         <button data-el="summit" aria-pressed="true">Summit</button><button data-el="mid" aria-pressed="false">Mid</button><button data-el="base" aria-pressed="false">Base</button>
       </div>
@@ -2084,9 +2108,9 @@ function renderDetail() {
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(resort.name)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
-      <span>${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}</span>
-      <span class="meta dfresh" id="detailFresh">${freshNote}</span></div>
-      <div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
+      <span class="meta dfresh" id="detailFresh">${freshNote}</span>
+      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${resort.key === HOME ? `<span class="mine" title="My mountain">★${tabbed() ? "<i>Home</i>" : ""}</span>` : `<button class="setmine" data-home="${resort.key}" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆${tabbed() ? "<i>Set home</i>" : ""}</button>`}${tabbed() ? ` · ${esc(passOf(resort))}` : ""}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}</span></div>
+      ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     <nav class="jump" id="jump" aria-label="Sections"></nav></div>
     ${outlook(resort)}
     <h3 data-sec="Daily">Daily</h3>
@@ -2381,6 +2405,9 @@ function renderRegion() {
   $("regionBar").hidden = keys.length < 2;
   $("regionPickWrap").hidden = keys.length < 2;
   $("regionPick").innerHTML = keys.map((key) => `<option value="${key}"${key === region ? " selected" : ""}>${REGIONS[key].name}</option>`).join("");
+  // The summary's title is a second way to the same choice, as the Mountain and Avalanche titles choose theirs.
+  $("sumPick").innerHTML = $("regionPick").innerHTML;
+  $("sumPickWrap").classList.toggle("solo", keys.length < 2);
   // The title names the region the pin last chose; a long name takes its short form.
   $("regionName").textContent = keys.length < 2 ? "" : REGIONS[region].short || REGIONS[region].name;
   $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : REGIONS[key].name}</button>`).join("<i>/</i>");
@@ -2403,6 +2430,7 @@ document.addEventListener("click", (e) => {
   if (b) setRegion(b.dataset.region);
 });
 $("regionPick").addEventListener("change", (e) => setRegion(e.target.value));
+$("sumPick").addEventListener("change", (e) => setRegion(e.target.value));
 $("setBtn").addEventListener("click", () => $("settingsSheet").showModal());
 // The roads pill opens the sheet; Done, the pill again, or a touch on the map puts it away.
 $("roadPill").addEventListener("click", () => $("roadSheet").classList.toggle("open"));
