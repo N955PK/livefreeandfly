@@ -105,6 +105,31 @@ html.tabs[data-view="map"] [data-tab]:not([data-tab~="map"]),html.tabs[data-view
 html.tabs[data-view="mountain"] [data-tab]:not([data-tab~="mountain"]),html.tabs[data-view="more"] [data-tab]:not([data-tab~="more"]){display:none!important}
 html.tabs .tabbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
 html.tabs #mapPanel{margin-top:12px}
+/* The headline and the forecast time belong to the one-page layout (data-tab="onepage" is no tab); the Region tab opens on the summary. */
+html.tabs .panel.summary{margin-top:12px}
+/* The Region tab speaks in the map's colors: what was black is navy and what was gray is dull blue. The numbers in
+   the day boxes stay the page's own dark, since they sit on colored fills. */
+:root{--true-ink:var(--ink)}
+html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(--mark-dull);color:var(--mark)}
+html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
+/* On a phone the Region tab's table runs edge to edge, with day boxes narrow enough that a week shows without scrolling sideways. */
+@media (max-width:720px){
+  html.tabs .panel.summary{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0}
+  html.tabs .panel.summary .bar{padding:14px 12px 0}
+  html.tabs .gridcap,html.tabs .gridnote{padding-left:12px;padding-right:12px}
+  html.tabs .legend{padding:2px 12px 12px}
+  html.tabs table.heat{border-spacing:2px;padding:4px 2px 8px}
+  html.tabs .cell{min-width:29px;height:40px;border-radius:6px;font-size:13px}
+  html.tabs .heat td.name{padding:4px 4px 4px 10px}
+  html.tabs .heat td.name b{font-size:13.5px}
+  html.tabs .heat td.name span{font-size:11px}
+  html.tabs .heat td.total{padding:0 5px 0 2px;font-size:14px}
+  html.tabs .heat th.day b{font-size:12.5px}
+  /* Each pass heads its mountains with its name in the accent blue (the mountains are navy) and a thin rule running to the right edge. */
+  html.tabs .heat tr.pass td{padding:12px 0 2px;text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:700;color:var(--accent)}
+  html.tabs .heat tr.pass td > span{display:flex;align-items:center;gap:10px;left:12px;width:calc(100vw - 24px)}
+  html.tabs .heat tr.pass td > span::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
+}
 /* The Map tab is one still screen: the map fills what is left between the header and the tabs, the storm slider
    floats on it, and the roads are a pill that opens a sheet. Nothing scrolls, so one finger moves the map. */
 :root{--tabbar:calc(51px + env(safe-area-inset-bottom))}
@@ -199,7 +224,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .gridwrap.scrolled .heat td.name,.gridwrap.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
 .gridwrap.scrolled .heat tr.on td.name{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
 .heat th.day b{display:block;color:var(--ink);font-size:13px;font-weight:650}
-.heat th.sep,.heat td.sep{width:10px;min-width:10px;padding:0}
+.heat th.sep,.heat td.sep{display:none}
 .heat td.name{position:sticky;left:0;background:var(--surface);text-align:left;padding:4px 10px 4px 6px;white-space:nowrap;cursor:pointer;border-radius:8px;z-index:1}
 .heat td.name b{display:block;font-size:14.5px;font-weight:650}
 .heat td.name span{font-size:12px;color:var(--muted)}
@@ -213,7 +238,9 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;cursor:pointer;
   color:var(--ink);background:linear-gradient(to top,color-mix(in oklab,var(--c) 62%,var(--surface)) var(--fill),var(--wash) var(--fill))}
 .cell.none{color:var(--muted);font-weight:400}
-.cell.far{opacity:.6}
+/* In the summary the days run evenly with no gap; after day 5 they are greyed, since that far out the numbers are a rough guide. */
+.cell.far{filter:grayscale(1);opacity:.55}
+.heat th.day.far{opacity:.55}
 .heat tr.pass td{padding:9px 6px 1px;font-size:11px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);cursor:default}
 .heat tr.pass span{display:inline-block;position:sticky;left:16px}
 .legend .blocks{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
@@ -708,8 +735,8 @@ if (new URLSearchParams(location.search).has("embed")) {
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Turbo Snow</b></div>
 <main>
   <div class="brand"><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.png" alt="" width="26" height="26"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
-  <p class="lede" id="headline" data-tab="forecast">Loading the forecast…</p>
-  <p class="meta" id="meta" data-tab="forecast"></p>
+  <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
+  <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
     <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="flatbtn" id="flatToggle" aria-label="Switch to the flat view from above" hidden>2D</button><button class="map-toggle roadpill" id="roadPill" hidden>Roads</button><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button><div class="map-key" id="avyKey" hidden></div></div>
     <div class="mapbar">
@@ -742,7 +769,7 @@ if (new URLSearchParams(location.search).has("embed")) {
   <details class="panel" id="how" data-tab="more"><summary>How the forecast is made</summary><div class="inner">
     <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
     <p><b>Snow.</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
-    <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days 6–10 are shown faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much.</p>
+    <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort.</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
     <p><b>Temperature</b> is the free air at that elevation, averaged over the lift hours for a day. <b>Feels like</b> is the standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
@@ -757,7 +784,7 @@ if (new URLSearchParams(location.search).has("embed")) {
   </div></details>
 </main>
 <nav class="tabbar" id="tabbar" aria-label="Sections"><div>
-  <button data-view="map">Map</button><button data-view="forecast">Forecast</button><button data-view="mountain">Mountain</button><button data-view="more">More</button>
+  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="more">More</button>
 </div></nav>
 <dialog id="settingsSheet"><div id="settings"><h3>Settings</h3>
     <div class="setrow layoutrow"><span>Layout</span><div class="seg" role="group" aria-label="Layout"><button data-pref="layout" data-value="tabs">Tabs</button><button data-pref="layout" data-value="scroll">One page</button></div></div>
@@ -931,8 +958,8 @@ function renderHeat() {
   const days = futureDays(here()[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = "";
-  const dayHead = (d) => `<th class="day">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
-  html += `<tr><th class="corner"></th><th>Last 3 days</th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
+  const dayHead = (d) => `<th class="day${d.lead_day > data.deterministic_days ? " far" : ""}">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
+  html += `<tr><th class="corner"></th><th class="day">Last<b>3 days</b></th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
   const columns = 2 + near.length + (far.length ? 1 + far.length : 0);
   for (const [pass, list] of byPass()) {
    html += `<tr class="pass"><td colspan="${columns}"><span>${pass}${pass === "Backcountry" ? '<span data-avy-group></span>' : ""}</span></td></tr>`;

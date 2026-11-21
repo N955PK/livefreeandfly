@@ -12,7 +12,8 @@ from tahoe_snow.snow.model import SnowModel
 from tahoe_snow.sources import cdec, openmeteo, snotel
 
 TZ = "America/Los_Angeles"
-DAYS = 10
+# Two weeks. Past day 10 only the models that run that far are in the blend (ICON stops near 7 days, GEM at 10).
+DAYS = 14
 HISTORY_DAYS = 7
 DETERMINISTIC_DAYS = 5
 MAX_GAP_H = 6
