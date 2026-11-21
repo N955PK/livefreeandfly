@@ -2420,13 +2420,13 @@ function pagerClose(go) {
   const bar = inn.querySelector(".dtop");
   if (pinned && bar && (to === "mountain" || to === "avalanche")) window.scrollTo(0, Math.ceil(bar.getBoundingClientRect().top + window.scrollY - pin));
 }
-// A tab chosen by hand slides across the same way, with no finger to follow.
+// A tab chosen from the bar simply opens: the capsule slides to it and the pane changes, with no slide of the page
+// (that is kept for a finger dragging it). The pane follows two frames later, once the capsule is under way.
 function switchTab(view) {
   if (pager || view === document.documentElement.dataset.view) return;
   for (const b of document.querySelectorAll("#tabbar button")) { if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
   placeTabInd();
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !pagerOpen(view, true)) { requestAnimationFrame(() => requestAnimationFrame(() => showView(view))); return; }
-  requestAnimationFrame(() => requestAnimationFrame(() => pagerSettle(true)));
+  requestAnimationFrame(() => requestAnimationFrame(() => showView(view)));
 }
 window.addEventListener("resize", () => placeTabInd(true));
 function showView(view) {
