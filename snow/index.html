@@ -74,7 +74,6 @@ html:not(.embed) .regions{display:none}
 @media (prefers-color-scheme:dark){:root{--mark:#ebebeb;--mark-dull:#8a929b}}
 .regionpick svg{fill:none;stroke:var(--mark);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .regionpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
-.regionpick:focus-within{outline:2px solid var(--accent);outline-offset:1px}
 .embed .regionname{display:none}
 /* On a phone the snowflake and the pin sit over the map's two columns of buttons, centered 32px in from each edge. */
 @media (max-width:720px){html.tabs .setbtn{margin-left:-3px}html.tabs .regionpick{margin-right:3.5px}}
@@ -124,6 +123,14 @@ html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(-
    Region, and a bar of chips pinned at the top of the screen jumps between them. */
 .jump{display:none}
 /* The mountain's name, the level picker and the chips stay at the top of the screen together while the tab scrolls. */
+/* Nothing flashes a color when it is pressed. What can be pressed gives a little instead: it dips and springs back
+   (.pressed, put on at the touch). The choosers' outline shows only for someone moving through the page by keyboard. */
+html{-webkit-tap-highlight-color:transparent}
+.mtnpick:focus-within,.regionpick:focus-within{outline:none}
+.mtnpick:has(select:focus-visible),.regionpick:has(select:focus-visible){outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+@keyframes press{0%{transform:scale(1)}32%{transform:scale(.92)}100%{transform:scale(1)}}
+.pressed{animation:press .34s cubic-bezier(.3,1.5,.5,1)}
+@media (prefers-reduced-motion:reduce){.pressed{animation:none}}
 /* The strip at the very top of a phone's screen (clock, battery) takes its color from what the page puts there. A thin
    fixed band holds that color: the page's gray while the header shows, the pane's own color once a frozen bar is
    pinned under it (html.stuck). The page's theme color is kept in step with it. */
@@ -538,7 +545,6 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .mtnpick{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
 .mtnpick svg{flex:none;width:12px;height:8px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mtnpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
-.mtnpick:focus-within{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 /* With one region, or inside another page (which has its own region bar), the summary's title is plain words. */
 .sumpick.solo,.embed .sumpick{pointer-events:none;cursor:default}
 .sumpick.solo svg,.embed .sumpick svg,.sumpick.solo select,.embed .sumpick select{display:none}
@@ -2381,6 +2387,16 @@ function goTo(el) {
   el.scrollIntoView({behavior: "smooth", block: "start"});
 }
 $("tabbar").addEventListener("click", (e) => { const b = e.target.closest("button[data-view]"); if (b) switchTab(b.dataset.view); });
+// The dip under a press: any button, chooser, link button or fold-out heading that is touched plays it once. The map's
+// name labels are left out, since the map itself places them by the same means.
+document.addEventListener("pointerdown", (e) => {
+  const el = e.target.closest && e.target.closest("button, label.mtnpick, label.regionpick, a.abtn, summary");
+  if (!el || el.classList.contains("map-label") || el.disabled) return;
+  el.classList.remove("pressed");
+  void el.offsetWidth;
+  el.classList.add("pressed");
+}, {passive: true});
+document.addEventListener("animationend", (e) => { if (e.animationName === "press") e.target.classList.remove("pressed"); });
 // A sideways swipe on anything that does not itself move goes to the next tab (swipe left) or the one before (swipe
 // right). Things that take a sideways drag for themselves are left alone: the map, a slider, a card, and anything
 // that scrolls sideways (the summary table, the hourly chart and its days, the season chart's readout).

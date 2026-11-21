@@ -145,7 +145,19 @@ def normals(now: pd.Timestamp) -> dict:
     """The usual year at every sensor a mountain is paired with, keyed by the sensor's id."""
     day = (now - pd.Timedelta(hours=PST_OFFSET_H)).normalize()
     used = {ALL_STATIONS[resort.station] for resort in RESORTS.values() if resort.station}
-    return {station.triplet: station_normal(station, day) for station in used}
+    return {station.triplet: _normal_or_none(station, day) for station in used}
+
+
+def _normal_or_none(station, day: pd.Timestamp) -> dict:
+    """One sensor's usual year, or nothing where its network cannot be read. A sensor that answers with an error
+    page or half a reply is tried once more and then left out, so it costs only its own mountains their season
+    figures and not every mountain theirs."""
+    for attempt in (1, 2):
+        try:
+            return station_normal(station, day)
+        except (RuntimeError, OSError, ValueError, KeyError) as error:
+            print(f"season: {station.name} FAILED (try {attempt}) {error}", flush=True)
+    return {}
 
 
 def summary(observed: dict | None, normal: dict | None) -> dict | None:

@@ -277,3 +277,21 @@ def test_a_run_waits_for_room_only_once_the_service_has_refused_or_it_was_starte
     assert usage.room(ledger(10), now, by_hand=False)[0] and not usage.room(ledger(10), now, by_hand=True)[0]
     assert not usage.room(ledger(10, refused=4), now, by_hand=False)[0]
     assert usage.room([], now, by_hand=True)[0]
+
+
+def test_one_unreadable_sensor_does_not_cost_the_others_their_season(monkeypatch):
+    from tahoe_snow import season
+
+    bad = sorted({resort.station for resort in season.RESORTS.values() if resort.station})[0]
+
+    def fake(station, day):
+        if station.name == season.ALL_STATIONS[bad].name:
+            raise ValueError("Expecting value: line 1 column 2 (char 1)")
+        return {"water": {"curve": {}}}
+
+    monkeypatch.setattr(season, "station_normal", fake)
+    found = season.normals(pd.Timestamp("2026-11-21T16:00:00Z"))
+    assert found[season.ALL_STATIONS[bad].triplet] == {}
+    assert all(normal for triplet, normal in found.items() if triplet != season.ALL_STATIONS[bad].triplet)
+    assert len(found) > 1
+

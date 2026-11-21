@@ -55,4 +55,13 @@ def get_text(kind: str, url: str, params: dict | None = None, max_age_h: float |
 
 
 def get_json(kind: str, url: str, params: dict | None = None, max_age_h: float | None = None, **kw):
-    return json.loads(get_text(kind, url, params, max_age_h, suffix=".json", **kw))
+    """The reply as JSON. A reply that is not JSON (an error page, half a body) is thrown out of the cache and asked
+    for once more: kept, it would be handed back on every run until it aged out."""
+    for attempt in (1, 2):
+        text = get_text(kind, url, params, max_age_h, suffix=".json", **kw)
+        try:
+            return json.loads(text)
+        except ValueError:
+            _path(kind, url, params, ".json").unlink(missing_ok=True)
+            if attempt == 2:
+                raise
