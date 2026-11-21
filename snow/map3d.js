@@ -118,7 +118,7 @@ export function stormWindow(rate, nowIndex) {
 // (how close the view opens; 1 when absent), discKm (the disc's radius), and look ([lat, lon] the view opens on
 // when that is not the disc's center).
 // ``data.resorts`` holds only that region's locations.
-export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}}) {
+export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false}) {
   const RADIUS = globe ? GLOBE_KM : region.discKm || DISC_KM, TARGET_Z = globe ? 7 : 1;
   // A region whose files were rebuilt carries a rev, so a phone never pairs the new page with its saved old files.
   const rev = region.rev || "";
@@ -182,20 +182,35 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ---------- gestures: one finger and a plain scroll wheel belong to the page; two fingers move the map ----------
+  // Where the page says it is not scrolling (freeTouch), one finger slides the map and a plain wheel zooms it.
   const canvas = renderer.domElement;
   controls.touches = {ONE: -1, TWO: -1};
   canvas.style.touchAction = "pan-y";
-  canvas.addEventListener("wheel", (e) => { if (!e.ctrlKey && !e.metaKey) e.stopImmediatePropagation(); }, {capture: true});
-  let lastTouch = 0, gesture = null;
+  canvas.addEventListener("wheel", (e) => { if (!freeTouch() && !e.ctrlKey && !e.metaKey) e.stopImmediatePropagation(); }, {capture: true});
+  let lastTouch = 0, gesture = null, single = null;
+  const oneFinger = (e) => freeTouch() && e.touches.length === 1 ? {x: e.touches[0].clientX, y: e.touches[0].clientY} : null;
   const UP = new THREE.Vector3(0, 0, 1);
   const twoFingers = (e) => {
     const [a, b] = e.touches;
     return {x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2,
       span: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY), angle: Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX)};
   };
-  canvas.addEventListener("touchstart", (e) => { gesture = e.touches.length === 2 ? twoFingers(e) : null; lastTouch = performance.now(); }, {passive: true});
-  canvas.addEventListener("touchend", (e) => { gesture = e.touches.length === 2 ? twoFingers(e) : null; lastTouch = performance.now(); }, {passive: true});
+  canvas.addEventListener("touchstart", (e) => { gesture = e.touches.length === 2 ? twoFingers(e) : null; single = oneFinger(e); lastTouch = performance.now(); }, {passive: true});
+  canvas.addEventListener("touchend", (e) => { gesture = e.touches.length === 2 ? twoFingers(e) : null; single = oneFinger(e); lastTouch = performance.now(); }, {passive: true});
   canvas.addEventListener("touchmove", (e) => {
+    if (e.touches.length === 1 && single) {
+      e.preventDefault();
+      // One finger slides the ground under it, the same as the two-finger drag.
+      const at = oneFinger(e), reach = camera.position.distanceTo(controls.target);
+      const scale = 2 * reach * Math.tan(camera.fov * Math.PI / 360) / canvas.clientHeight;
+      const across = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0).setZ(0).normalize();
+      const along = new THREE.Vector3().crossVectors(UP, across);
+      const move = across.multiplyScalar(-(at.x - single.x) * scale).add(along.multiplyScalar((at.y - single.y) * scale));
+      controls.target.add(move); camera.position.add(move);
+      single = at; lastTouch = performance.now();
+      controls.dispatchEvent({type: "change"});
+      return;
+    }
     if (e.touches.length !== 2 || !gesture) return;
     e.preventDefault();
     const now = twoFingers(e), offset = camera.position.clone().sub(controls.target);
@@ -221,13 +236,40 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   controls.addEventListener("start", () => { dragging = true; });
   controls.addEventListener("end", () => { dragging = false; lastInput = performance.now(); });
   const sway = (t, dt) => {
-    const idle = !calm && !dragging && !gesture && t - Math.max(lastInput, lastTouch) > IDLE_S * 1000;
+    const idle = !calm && !dragging && !gesture && !glide && !flat && t - Math.max(lastInput, lastTouch) > IDLE_S * 1000;
     if (!idle) { swayEase = 0; swayClock = 0; return; }
     swayEase = Math.min(1, swayEase + dt / 3);
     const before = Math.sin(2 * Math.PI * swayClock / SWAY_PERIOD_S);
     swayClock += dt;
     const step = (Math.sin(2 * Math.PI * swayClock / SWAY_PERIOD_S) - before) * SWAY_DEG * Math.PI / 180 * swayEase;
     camera.position.sub(controls.target).applyAxisAngle(UP, step).add(controls.target);
+  };
+  // ---------- north up, and the flat view from straight above ----------
+  // The camera's place around its target: how far, how tilted from straight above, and how far turned from north-up.
+  const pose = () => {
+    const o = camera.position.clone().sub(controls.target), r = o.length();
+    return {r, polar: Math.acos(Math.min(1, Math.max(-1, o.z / r))), turn: Math.atan2(o.x, -o.y)};
+  };
+  const setPose = ({r, polar, turn}) => camera.position.set(
+    controls.target.x + r * Math.sin(polar) * Math.sin(turn), controls.target.y - r * Math.sin(polar) * Math.cos(turn), controls.target.z + r * Math.cos(polar));
+  const TILT_MIN = controls.minPolarAngle, TILT_MAX = controls.maxPolarAngle, HOME_POLAR = pose().polar, FLAT_POLAR = 0.02, GLIDE_MS = 450;
+  let flat = false, glide = null;
+  const settle = () => { controls.minPolarAngle = flat ? 0 : TILT_MIN; controls.maxPolarAngle = flat ? FLAT_POLAR : TILT_MAX; lastInput = performance.now(); };
+  // Eases the camera to a new tilt and turn, the short way round. The tilt limits open up while it moves.
+  const glideTo = (to) => {
+    const from = pose();
+    let swing = (to.turn ?? from.turn) - from.turn;
+    swing -= 2 * Math.PI * Math.round(swing / (2 * Math.PI));
+    const goal = {r: from.r, polar: to.polar ?? from.polar, turn: from.turn + swing};
+    controls.minPolarAngle = 0; controls.maxPolarAngle = TILT_MAX;
+    if (calm) { setPose(goal); settle(); return; }
+    glide = {from, goal, began: performance.now()};
+  };
+  const stepGlide = (t) => {
+    if (!glide) return;
+    const f = Math.min(1, (t - glide.began) / GLIDE_MS), e = f * f * (3 - 2 * f), {from, goal} = glide;
+    setPose({r: pose().r, polar: from.polar + (goal.polar - from.polar) * e, turn: from.turn + (goal.turn - from.turn) * e});
+    if (f >= 1) { glide = null; settle(); }
   };
   scene.add(new THREE.HemisphereLight(0xe8f1fa, 0x6b6253, 1.15));
   const sun = new THREE.DirectionalLight(0xfff4e2, 2.1);
@@ -338,7 +380,11 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   overlay.className = "map-labels";
   container.appendChild(overlay);
   const compass = document.createElement("div");
-  compass.className = "map-compass"; compass.title = "The red end points north";
+  compass.className = "map-compass"; compass.title = "The red end points north. Tap to face north.";
+  compass.setAttribute("role", "button"); compass.setAttribute("aria-label", "Face north"); compass.tabIndex = 0;
+  compass.style.pointerEvents = "auto"; compass.style.cursor = "pointer";
+  compass.addEventListener("click", () => glideTo({turn: 0}));
+  compass.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); glideTo({turn: 0}); } });
   compass.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 15.2 12H8.8z" fill="#d6322f"/><path d="M12 21.5 8.8 12h6.4z" fill="#8a929b"/><circle cx="12" cy="12" r="1.3" fill="#fff"/></svg>';
   container.appendChild(compass);
   const needle = compass.firstChild;
@@ -630,6 +676,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       flakeGeometry.attributes.position.needsUpdate = true;
     }
     flakeLook.tall.value = renderer.domElement.height;
+    stepGlide(t);
     sway(t, dt);
     controls.update();
     renderer.render(scene, camera);
@@ -685,6 +732,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     // zones: [{rings: [[[lon, lat], ...], ...], color: "#rrggbb", ink, label, title}], one per avalanche forecast zone.
     setAvalanche,
     showAvalanche(on) { dangerOn = on; paintedAt = -1; },
+    northUp() { glideTo({turn: 0}); },
+    // Flat is the view from straight above, north up; leaving it tilts back to the opening angle.
+    setFlat(on) { flat = on; glideTo(on ? {polar: FLAT_POLAR, turn: 0} : {polar: HOME_POLAR}); },
     dispose() {
       running = false;
       for (const watcher of watchers) watcher.disconnect();
