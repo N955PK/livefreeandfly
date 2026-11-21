@@ -471,9 +471,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   // ---------- resorts ----------
   const stakes = new THREE.Group();
   scene.add(stakes);
-  const ghostMaterial = new THREE.MeshBasicMaterial({color: 0x3987e5, transparent: true, opacity: 0.25, depthWrite: false});
-  const fillMaterial = new THREE.MeshStandardMaterial({color: 0x3f8ff0, roughness: 0.4, emissive: 0x16407c, emissiveIntensity: 0.5});
-  const pickMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.4, emissive: 0x3f8ff0, emissiveIntensity: 0.9});
+  const ghostMaterial = new THREE.MeshBasicMaterial({color: 0x2a78d6, transparent: true, opacity: 0.25, depthWrite: false});
+  const fillMaterial = new THREE.MeshStandardMaterial({color: 0x2a78d6, roughness: 0.4, emissive: 0x0d366b, emissiveIntensity: 0.5});
+  const pickMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.4, emissive: 0x2a78d6, emissiveIntensity: 0.9});
   const unit = new THREE.CylinderGeometry(STAKE_RADIUS, STAKE_RADIUS, 1, 20).rotateX(Math.PI / 2).translate(0, 0, 0.5);
   const items = data.resorts.map((r, n) => {
     const x = xOf(r.lon), y = yOf(r.lat), z = zOf(heightAt(r.lat, r.lon));

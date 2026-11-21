@@ -68,8 +68,8 @@ html:not(.embed) .regions{display:none}
 .regionpick{justify-self:end;position:relative;display:flex;padding:4px;margin:-4px;border-radius:10px;cursor:pointer}
 .regionpick[hidden]{display:none}
 /* Every button you can press wears the snowflake's navy (near-white in the dark): the pin, the roads, 2D, play, and back. */
-:root{--mark:#0d366b}
-@media (prefers-color-scheme:dark){:root{--mark:#ebebeb}}
+:root{--mark:#0d366b;--mark-dull:#7f93ad}
+@media (prefers-color-scheme:dark){:root{--mark:#ebebeb;--mark-dull:#8a929b}}
 .regionpick svg{fill:none;stroke:var(--mark);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .regionpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
 .regionpick:focus-within{outline:2px solid var(--accent);outline-offset:1px}
@@ -142,11 +142,11 @@ html.tabs[data-view="map"] #scrub{height:14px}
 html.tabs[data-view="map"] #toNow{top:6px;width:8px;height:8px;padding:0;border-radius:50%;background:#d03b3b;font-size:0;pointer-events:none}
 html.tabs[data-view="map"] #toNow::before{display:none}
 #backNow{display:none}
-html.tabs[data-view="map"] #backNow{display:grid;place-items:center;grid-column:3;grid-row:1 / 3;align-self:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--wash);color:var(--ink);padding:0;cursor:pointer;opacity:.35}
-html.tabs[data-view="map"] #backNow.away{opacity:1;color:var(--mark)}
+html.tabs[data-view="map"] #backNow{display:grid;place-items:center;grid-column:3;grid-row:1 / 3;align-self:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--wash);color:var(--mark-dull);padding:0;cursor:pointer}
+html.tabs[data-view="map"] #backNow.away{color:var(--mark)}
 #backNow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-html.tabs[data-view="map"] .mapbar .cap{grid-column:2;margin-top:5px;font-size:12px;line-height:15px;display:flex;align-items:baseline;gap:10px}
-html.tabs[data-view="map"] .mapbar .cap b{margin-right:0;white-space:nowrap}
+html.tabs[data-view="map"] .mapbar .cap{grid-column:2;margin-top:5px;font-size:12px;line-height:15px;color:var(--mark-dull);display:flex;align-items:baseline;gap:10px}
+html.tabs[data-view="map"] .mapbar .cap b{margin-right:0;white-space:nowrap;color:var(--mark)}
 html.tabs[data-view="map"] .mapbar .cap span{margin-left:auto;text-align:right}
 html.tabs .roadpill[hidden]{display:none}
 .roadpill svg{width:22px;height:22px;fill:none;stroke:#0d366b;stroke-width:1.8;stroke-linecap:round}
@@ -159,8 +159,8 @@ html.tabs .roadsheet .grab{display:flex;align-items:center;justify-content:space
 .roadsheet .grab button svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 @media (max-width:720px){html.tabs[data-view="map"] #mapPanel{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0;border-bottom:0}}
 .tabbar div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
-.tabbar button{border:0;border-top:2px solid transparent;background:none;color:var(--ink2);font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;height:50px;padding:0 4px;cursor:pointer}
-.tabbar button[aria-current="page"]{color:var(--ink);border-top-color:var(--accent)}
+.tabbar button{border:0;border-top:2px solid transparent;background:none;color:var(--mark-dull);font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;height:50px;padding:0 4px;cursor:pointer}
+.tabbar button[aria-current="page"]{color:var(--mark);border-top-color:var(--accent)}
 .panel.summary{margin-top:26px}
 .panel.summary .bar{margin:0;padding:16px 16px 0;flex-wrap:nowrap}
 .panel.summary h2{font-size:22px;line-height:1.15;white-space:nowrap}
@@ -214,7 +214,7 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .orow .dot.warn{background:var(--w1)}.orow .dot.bad{background:var(--w2)}
 .orow .meter{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--wash);margin-top:5px}
 .orow .meter span{display:block}
-.s-open{background:#3fa34d}.s-hold{background:var(--w1)}.s-soon{background:#6aa9e9}.s-closed{background:var(--axis)}
+.s-open{background:#3fa34d}.s-hold{background:var(--w1)}.s-soon{background:#6da7ec}.s-closed{background:var(--axis)}
 .orow .held{color:var(--ink);font-weight:650}
 .orow small{font-size:11px;color:var(--muted);margin-left:4px}
 .orow small.live{color:#2f8a3c;font-weight:650}
@@ -464,7 +464,7 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .map-label{position:absolute;left:0;top:0;pointer-events:auto;border:0;cursor:pointer;font:inherit;white-space:nowrap;text-align:center;
   background:rgba(255,255,255,.92);color:#0f1720;border-radius:8px;padding:3px 8px 4px;box-shadow:0 2px 8px rgba(15,23,32,.22);line-height:1.15}
 .map-label b{display:block;font-size:11.5px;font-weight:650}
-.map-label span{font-size:13px;font-weight:700;color:#1c5cab;font-variant-numeric:tabular-nums}
+.map-label span{font-size:13px;font-weight:700;color:#2a78d6;font-variant-numeric:tabular-nums}
 .map-label em{display:block;font-style:normal;font-size:10.5px;color:#4b5560}
 .map-label.on em{color:#c0c6cc}
 .map-label.mini b,.map-label.mini em{display:none}
@@ -744,7 +744,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "180";
+const BUILD = "181";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
