@@ -350,6 +350,8 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .skey i.typ{border-top:1.5px dashed var(--ink2)}
 .skey i.old{border-top:1px solid var(--muted);opacity:.6}
 .skey i.rec{border-top:2px dotted var(--ink2)}
+.skey button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font:inherit;color:var(--ink2);background:none;border:1px solid var(--border);border-radius:999px;padding:2px 9px;margin:-3px 0;cursor:pointer}
+.skey button[aria-pressed=false]{color:var(--muted);opacity:.6;text-decoration:line-through}
 .season .snote{font-size:12.5px;line-height:1.5;color:var(--muted)}
 @media(max-width:720px){.season .seg{display:flex;width:100%}.season .seg button{flex:1}}
 .season .snote b{color:var(--ink2);font-weight:650}
@@ -661,7 +663,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "162";
+const BUILD = "164";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1106,7 +1108,9 @@ function seasonSoFar(resort) {
   const eased = (line) => line.map((v, k) => { if (v == null) return null; const near = [line[k - 1], v, line[k + 1]].filter((n) => n != null); return near.reduce((sum, n) => sum + n, 0) / near.length; });
   const drawn = Object.fromEntries(past.map((w) => [w, eased(lines[w])])), typical = eased(usual);
   // The biggest winter the sensor has on record, which may be one of the ten or an older one.
-  const best = curve.record && curve.record.values.some((v) => v != null) ? {year: +curve.record.year, line: eased(shown(curve.record.values))} : null;
+  // The reader can put the record away, and the scale then fits the rest.
+  const record = curve.record && curve.record.values.some((v) => v != null) ? {year: +curve.record.year, line: eased(shown(curve.record.values))} : null;
+  const best = prefs.record === "off" ? null : record;
   const high = Math.max(1, ...typical.filter((v) => v != null), ...Object.values(drawn).flat().filter((v) => v != null), ...(best ? best.line.filter((v) => v != null) : []), nowDeep);
   const step = [5, 10, 20, 25, 50, 100, 200, 250, 500].find((size) => high / size <= 4.5) || 1000, top = high * 1.1;
   const x = (k) => L + (W - L - R) * k / (count - 1), y = (v) => T + (H - T - B) * (1 - v / top);
@@ -1137,10 +1141,25 @@ function seasonSoFar(resort) {
   const along = ceiling.map((v, k) => v == null ? null : k).filter((k) => k != null);
   if (along.length > 1) body += `<path class="band" d="M${along.map((k) => `${x(k).toFixed(1)} ${y(ceiling[k]).toFixed(1)}`).join("L")}L${[...along].reverse().map((k) => `${x(k).toFixed(1)} ${y(floor[k]).toFixed(1)}`).join("L")}Z"/>`;
   body += past.map((w) => `<path class="past" d="${path(drawn[w])}"/>`).join("");
-  // The record winter gets its own line, named where it peaked.
+  // The record winter gets its own line, named where it peaked. The biggest of the ten winters is named at its
+  // peak too, unless it is the record itself; where the two names would run into each other, it steps aside.
+  const peakOf = (line) => Math.max(...line.filter((v) => v != null)), named = [];
   if (best) {
-    const peak = Math.max(...best.line.filter((v) => v != null)), at = best.line.indexOf(peak);
-    body += `<path class="record" d="${path(best.line)}"/><text class="yr" text-anchor="middle" x="${Math.max(L + 30, Math.min(x(at), W - R - 30))}" y="${Math.max(10, y(peak) - 6)}">${winterName(best.year)} record</text>`;
+    const peak = peakOf(best.line), at = best.line.indexOf(peak);
+    named.push({x: Math.max(L + 30, Math.min(x(at), W - R - 30)), y: Math.max(10, y(peak) - 6), half: 36});
+    body += `<path class="record" d="${path(best.line)}"/><text class="yr" text-anchor="middle" x="${named[0].x}" y="${named[0].y}">${winterName(best.year)} record</text>`;
+  }
+  const biggest = past.length ? past.reduce((a, b) => peakOf(drawn[b]) > peakOf(drawn[a]) ? b : a) : null;
+  if (biggest && !(best && best.year === +biggest)) {
+    const peak = peakOf(drawn[biggest]), at = drawn[biggest].indexOf(peak), other = named[0];
+    let nameX = Math.max(L + 16, Math.min(x(at), W - R - 16)), anchor = "middle";
+    const nameY = Math.max(10, y(peak) - 6);
+    if (other && Math.abs(nameY - other.y) < 13 && Math.abs(nameX - other.x) < other.half + 20) {
+      const left = other.x - other.half - 5 > L + 30;
+      nameX = left ? other.x - other.half - 5 : other.x + other.half + 5;
+      anchor = left ? "end" : "start";
+    }
+    body += `<text class="yr" text-anchor="${anchor}" x="${nameX}" y="${nameY}">${winterName(+biggest)}</text>`;
   }
   // The line ends at the sensor's latest reading, which the every-few-days history can trail during a storm.
   const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = new Date().toLocaleDateString("en-CA", {timeZone: TZ}).split("-").map(Number);
@@ -1155,7 +1174,7 @@ function seasonSoFar(resort) {
     <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${rounded(mine[last])} ${LEN()}</text>`;
   seasonView = {curve, count, lines, usual, past, mine, best, y, left: L, span: W - L - R};
   return `<div class="season">${head}<div class="schart" id="seasonChart"><div class="stip" id="seasonTip" hidden></div><svg width="${W}" height="${H}" role="img" aria-label="${view.tab} through the winter: the current winter, a typical year, and the last ten winters">${body}</svg></div>
-    <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span>${best ? `<span><i class="rec"></i>record, ${winterName(best.year)}</span>` : ""}</div>
+    <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span>${record ? `<button data-record aria-pressed="${!!best}" title="${best ? "Hide" : "Show"} the record winter"><i class="rec"></i>record, ${winterName(record.year)}</button>` : ""}</div>
     <div class="snote" id="seasonNote">${note}</div></div>`;
 }
 // A finger or pointer on the chart reads out that date: the current winter, the typical year, and the ten winters' range.
@@ -1187,6 +1206,13 @@ document.addEventListener("click", (event) => {
   const tab = event.target.closest && event.target.closest("[data-season]"), resort = tab && data.resorts.find((r) => r.key === selected);
   if (!resort) return;
   seasonMeasure = tab.dataset.season;
+  $("seasonBox").innerHTML = seasonSoFar(resort);
+});
+document.addEventListener("click", (event) => {
+  const toggle = event.target.closest && event.target.closest("[data-record]"), resort = toggle && data.resorts.find((r) => r.key === selected);
+  if (!resort) return;
+  prefs.record = prefs.record === "off" ? "on" : "off";
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (error) { /* private browsing: the choice lasts for this visit */ }
   $("seasonBox").innerHTML = seasonSoFar(resort);
 });
 document.addEventListener("pointermove", seasonRead);

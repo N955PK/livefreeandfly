@@ -26,6 +26,7 @@ PST_OFFSET_H = 8
 STEP_DAYS = 3
 PAST_YEARS = 10
 RECORD_HOLD_DAYS = 15
+RECORD_MIN_DAYS = 120
 YEAR_DAYS = 365
 
 
@@ -76,8 +77,10 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
     into_year = (peak_day - pd.to_datetime((peak_day.index - 1).astype(str) + "-10-01").values).dt.days.median()
     usual_peak = pd.Timestamp("2001-10-01") + pd.Timedelta(days=int(into_year))
     # The record winter is judged on a level that holds for two weeks, so a gauge's stray spike cannot claim it.
+    # It needs only a season's worth of readings, not the whole year: the biggest winters are the ones that
+    # bury or break a gauge partway through.
     steady = past.rolling(RECORD_HOLD_DAYS, center=True, min_periods=RECORD_HOLD_DAYS // 2).median()
-    record_year = steady.groupby(water_year(steady.index)).max()[full].idxmax()
+    record_year = steady.groupby(water_year(steady.index)).max()[years.count() >= RECORD_MIN_DAYS].idxmax()
     told = describe(smooth, normal_by_day, day, float(years.max()[full].median()), usual_peak.strftime("%m-%d"),
                     steady[water_year(steady.index) == record_year].dropna())
     return {**told, "years": int(full.sum())}
@@ -86,7 +89,15 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
 def history(station, day: pd.Timestamp) -> pd.DataFrame:
     end = day.strftime("%Y-%m-%d")
     if station.source == "cdec":
-        return cdec.daily(station.triplet.split(":")[0], HISTORY_START, end, max_age_h=24.0)
+        name = station.triplet.split(":")[0]
+        frame = cdec.daily(name, HISTORY_START, end, max_age_h=24.0)
+        # The corrected water record stands in for the raw one as far as it reaches; the raw readings carry on
+        # from there to today.
+        revised = cdec.daily_revised_water(name, HISTORY_START, end, max_age_h=24.0)
+        if not revised.empty:
+            frame = frame.reindex(frame.index.union(revised.index))
+            frame["swe_mm"] = revised.reindex(frame.index).where(frame.index <= revised.index[-1], frame["swe_mm"])
+        return frame
     return snotel.daily(station.triplet, HISTORY_START, end, max_age_h=24.0)
 
 

@@ -15,6 +15,7 @@ URL = "https://cdec.water.ca.gov/dynamicapp/req/JSONDataServlet"
 # CDEC sensor number -> column. Snow water content and depth are in inches, temperatures in Fahrenheit.
 DAILY_SENSORS = {3: "swe_mm", 18: "depth_cm", 30: "tavg_c"}
 HOURLY_SENSORS = {3: "swe_mm", 18: "depth_cm", 4: "tobs_c"}
+REVISED_WATER = {82: "swe_mm"}
 MISSING_BELOW = -9000
 # A pillow's reading wanders by a few millimeters from day to day. Dips smaller than this are treated as that
 # wander, not as snow lost and regained.
@@ -59,6 +60,15 @@ def daily(station_id: str, start: str, end: str, max_age_h: float | None = None)
         frame["tavg_c"] = frame["tavg_c"].shift(-1)
     frame.index.name = "date"
     return frame
+
+
+def daily_revised_water(station_id: str, start: str, end: str, max_age_h: float | None = None) -> pd.Series:
+    """The pillow's daily water (mm) after CDEC's own corrections, dated like ``daily``. It has the spikes and
+    drift of the raw readings taken out, and trails them by some days."""
+    frame = parse(_fetch(station_id, REVISED_WATER, "D", start, end, max_age_h), REVISED_WATER)
+    frame.index = frame.index - pd.Timedelta(days=1)
+    frame.index.name = "date"
+    return frame["swe_mm"].dropna()
 
 
 def hourly(station_id: str, start: str, end: str, max_age_h: float | None = None) -> pd.DataFrame:
