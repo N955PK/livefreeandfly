@@ -646,7 +646,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "158";
+const BUILD = "159";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -682,6 +682,8 @@ const tenths = (v) => v == null ? "–" : (Math.round(v * 10) / 10).toString();
 const whole = (v) => v == null ? "–" : v < 0.5 ? "·" : Math.round(v).toString();
 const pct = (v) => v == null ? "–" : Math.round(v * 100) + "%";
 const bin = (v) => BINS.find(([top]) => (v || 0) < top)[1];
+// A clock time in the reader's own timezone, for when something was last updated.
+const localClock = (date) => date.toLocaleTimeString("en-US", {hour: "numeric", minute: "2-digit"});
 const weekday = (iso, style = "short") => new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", {weekday: style, timeZone: "UTC"});
 const dayOfMonth = (iso) => +iso.slice(8);
 const range = (lo, hi) => lo == null ? "" : `${inches(lo)}–${inches(hi)} in`;
@@ -772,9 +774,10 @@ function renderHeadline() {
   $("headline").title = `At the ${where}, ${el.elevation_ft.toLocaleString()} ft`;
   // generated_utc is the hour the forecast is worked out for; published_utc is when the run actually finished.
   const made = new Date(data.published_utc || data.generated_utc), age = (Date.now() - made) / 36e5;
-  // "Today" is the reader's own calendar day, wherever they are; the time beside it stays mountain time like the rest of the page.
+  // When something was last updated is told in the reader's own time and calendar day, wherever they are. Everything
+  // about the weather itself is told in the time at the mountains.
   const dayOf = (date) => date.toLocaleDateString("en-CA");
-  const when = `${dayOf(made) === dayOf(new Date()) ? "today" : made.toLocaleDateString("en-US", {timeZone: TZ, weekday: "short"})} ${made.toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}`;
+  const when = `${dayOf(made) === dayOf(new Date()) ? "today" : made.toLocaleDateString("en-US", {weekday: "short"})} ${localClock(made)}`;
   // The time is grey while the forecast is on schedule, yellow once an update has been missed, and red after two.
   // Each step allows an hour on top of the update interval, for a late start and the run itself.
   const missed = age <= UPDATE_EVERY_H + 1 ? 0 : age <= 2 * UPDATE_EVERY_H + 1 ? 1 : 2;
@@ -1303,7 +1306,7 @@ const liftGroup = (status) => (/^open/.test(status) ? "open" : /hold|delay/.test
 // Under the heading: when the resort's figures were read, and its own page.
 function statusSource(resort) {
   const page = STATUS_PAGES[resort.key], spec = LIFT_FEEDS[resort.key], feed = spec && liftFeeds[spec[0]];
-  const words = feed && !feed.failed ? `Live at ${new Date(feed.data.LastUpdate).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}` : spec ? "Resort report" : "Lift and trail status";
+  const words = feed && !feed.failed ? `Live at ${localClock(new Date(feed.data.LastUpdate))}` : spec ? "Resort report" : "Lift and trail status";
   return page ? `<a href="${page}" target="_blank" rel="noopener" title="Open the resort's own report">${words} ↗</a>` : "";
 }
 function liftsHtml(resort) {
@@ -1631,7 +1634,7 @@ async function loadRoads() {
       else { chains.push(html); chainRoutes.push(number(row.route)); }
     }
     const levels = [...new Set(near.filter((p) => p.status === "chains").map((p) => p.level))].sort();
-    const when = new Date().toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"});
+    const when = localClock(new Date());
     const fresh = closures.filter((c) => c.recent), older = closures.filter((c) => !c.recent);
     const dot = (color) => `<i style="background:${color}"></i>`;
     // Closed and Chains share one layout: a summary line with a + on the right that opens the detail.
@@ -1642,7 +1645,7 @@ async function loadRoads() {
         (fresh.length ? `<ul>${fresh.map((c) => c.html).join("")}</ul>` : "") + olderList, fresh.length > 0) +
       section("#f0a80d", "Chains", chains.length ? [...new Set(chainRoutes)].sort((a, b) => a - b).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
-      `<span class="src">Caltrans, ${when} · ${nevada ? `Nevada 511, ${new Date(nevada.updated).toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}` : "California roads only"}</span>`;
+      `<span class="src">Caltrans, ${when} · ${nevada ? `Nevada 511, ${localClock(new Date(nevada.updated))}` : "California roads only"}</span>`;
   } catch (error) { if (asked === region) $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; }
 }
 // One map at a time: switching regions throws the old one away and builds the new one.
