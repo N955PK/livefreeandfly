@@ -663,7 +663,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "173";
+const BUILD = "174";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1163,7 +1163,9 @@ function seasonSoFar(resort) {
     <line class="today" x1="${endX}" x2="${endX}" y1="${endY}" y2="${y(0)}"/><path class="now" pathLength="1" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="0" x2="0" visibility="hidden"/><circle class="tdot" id="seasonTypDot" r="3.5" visibility="hidden"/><circle class="cdot" id="seasonNowDot" r="3.5" visibility="hidden"/>
     <circle class="nowhalo" cx="${endX}" cy="${endY}" r="8"/><circle class="nowdot" cx="${endX}" cy="${endY}" r="4.5"/>
     <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${rounded(mine[last])} ${LEN()}</text>`;
-  seasonView = {curve, count, lines, usual, past, mine, best, y, left: L, span: W - L - R};
+  // The readout's record high is the most there has been on the touched date in any winter, which is not always
+  // the winter the dotted line follows: that one is the winter with the highest peak.
+  seasonView = {curve, count, lines, usual, past, mine, high: curve.high ? {values: shown(curve.high.values), years: curve.high.years} : null, y, left: L, span: W - L - R};
   return `<div class="season">${head}<div class="schart" id="seasonChart"><div class="stip" id="seasonTip" hidden></div><svg width="${W}" height="${H}" role="img" aria-label="${view.tab} through the winter: the current winter, a typical year, and the last ten winters">${body}</svg></div>
     <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span></div>
     ${recordNote ? `<div class="srec">${recordNote}</div>` : ""}<div class="snote" id="seasonNote">${note}</div></div>`;
@@ -1184,8 +1186,7 @@ function seasonRead(event) {
   const then = v.past.map((w) => [v.lines[w][k], w]).filter(([value]) => value != null).sort((a, b) => a[0] - b[0]);
   tip.innerHTML = `<b>${date}</b>${v.mine[k] == null ? "" : `<span class="c">current <b>${rounded(v.mine[k])} ${LEN()}</b></span>`}<span>typical <b>${rounded(v.usual[k])} ${LEN()}</b></span>
     ${then.length ? `<span>ten-year range <b>${rounded(then[0][0])}–${rounded(then[then.length - 1][0])} ${LEN()}</b></span>` : ""}
-    ${then.length && !(v.best && v.best.year === +then[then.length - 1][1]) ? `<span>ten-year high ${winterName(+then[then.length - 1][1])} <b>${rounded(then[then.length - 1][0])} ${LEN()}</b></span>` : ""}
-    ${v.best && v.best.line[k] != null ? `<span>record high ${winterName(v.best.year)} <b>${rounded(v.best.line[k])} ${LEN()}</b></span>` : ""}`;
+    ${v.high && v.high.values[k] != null ? `<span>record high ${winterName(v.high.years[k])} <b>${rounded(v.high.values[k])} ${LEN()}</b></span>` : ""}`;
   tip.hidden = false;
   // The readout rides above the plot, over the date, so a thumb on the chart never covers it.
   const at = v.left + v.span * k / (v.count - 1), half = tip.offsetWidth / 2;

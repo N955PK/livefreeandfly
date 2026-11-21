@@ -256,6 +256,8 @@ def test_season_normal_is_the_median_of_past_years_on_this_date():
     assert season.snowfall_in(frame).round(1).tolist() == [0.0, 8.0, 22.0, 22.0, 22.0, 22.0, 22.0]
     curve = normal["curve"]
     assert sorted(curve["years"]) == [str(year) for year in range(2017, 2028)]
+    # The most ever on a date is an odd winter's reading, since they carry twice the snow.
+    assert abs(curve["high"]["values"][60] - 40.0) < 0.5 and curve["high"]["years"][60] % 2 == 1
     # Odd winters are the big ones and all alike, so the latest of them holds the record.
     assert curve["record"]["year"] == "2025" and 37.0 < max(curve["record"]["values"]) <= 40.0
     assert len(curve["normal"]) == len(curve["years"]["2026"]) == 122 and abs(curve["normal"][60] - 30.0) < 0.5

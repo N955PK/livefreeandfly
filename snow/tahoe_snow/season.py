@@ -90,6 +90,12 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
     record_year = peaks[peaks == peaks.max()].index[-1]
     told = describe(smooth, normal_by_day, day, float(years.max()[full].median()), usual_peak.strftime("%m-%d"),
                     past[water_year(past.index) == record_year])
+    # The most there has been on each day of the year, in any past winter, and which winter it was.
+    days = pd.DataFrame({"value": past.values, "winter": water_year(past.index), "day": day_of_water_year(past.index)})
+    most = days.loc[days.groupby("day")["value"].idxmax()].set_index("day")
+    winters = most["winter"].reindex(range(0, YEAR_DAYS, STEP_DAYS))
+    told["curve"]["high"] = {"values": sampled(most["value"]),
+                             "years": [None if pd.isna(winter) else int(winter) for winter in winters]}
     return {**told, "years": int(full.sum())}
 
 
