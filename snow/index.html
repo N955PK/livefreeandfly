@@ -461,12 +461,6 @@ html.tabs .dhead .who > span{margin-top:6.5px}
 html.tabs .dhead .who > .dfresh{margin-top:7px}
 .dhead .seg{margin-left:0;flex:none}
 .dhead .mine{color:var(--accent);font-size:16px;line-height:1}
-#homeAsk{border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--ink);padding:20px 20px 16px;margin:auto;max-width:min(340px,calc(100vw - 32px))}
-#homeAsk::backdrop{background:rgba(15,23,32,.45)}
-#homeAsk p{font-size:15px;line-height:1.45;margin-bottom:16px}
-#homeAsk .btns{display:flex;gap:8px;justify-content:flex-end}
-#homeAsk button{font:inherit;font-size:14px;font-weight:600;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--ink);cursor:pointer}
-#homeAsk button.yes{background:var(--accent);border-color:var(--accent);color:#fff}
 .dhead .setmine{border:0;background:none;padding:4px 8px;margin:-4px -8px;font:inherit;font-size:16px;line-height:1;color:var(--accent);cursor:pointer}
 .tag{white-space:nowrap;font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
@@ -771,20 +765,45 @@ html.tabs .heat tr.on td.name{border-radius:26px 0 0 26px}
 .map-key span{display:flex;align-items:center;gap:6px}
 .map-key i{width:9px;height:9px;border-radius:50%;border:1.5px solid;box-sizing:border-box}
 #avalanche{margin-top:14px;padding:18px 18px 16px}
-#settingsSheet{border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--ink);padding:18px 18px 14px;margin:auto;width:min(420px,calc(100vw - 32px))}
-#settingsSheet{max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain}
-#moreSlot:not(:empty){margin-top:14px;border-bottom:1px solid var(--border)}
+#moreSlot:not(:empty){margin-top:14px}
 #moreSlot details.panel{display:block!important;margin:0;padding:0;border:0;border-top:1px solid var(--border);border-radius:0;background:none}
 #moreSlot details summary{font-size:14.5px;font-weight:600;padding:12px 0}
 #moreSlot details p,#moreSlot details li{font-size:13.5px}
-#settingsSheet::backdrop{background:rgba(15,23,32,.45)}
-/* The title and its close button stay at the top while the explainers scroll under them. */
-#settingsSheet .sethead{position:sticky;top:-18px;z-index:1;display:flex;align-items:center;justify-content:space-between;margin:-18px -18px 4px;padding:14px 12px 8px 18px;background:var(--surface)}
-#settingsSheet .sethead h3{margin:0}
-#setDone{border:1px solid var(--border);width:36px;height:36px;border-radius:50%;background:var(--wash);color:var(--mark);display:grid;place-items:center;padding:0;cursor:pointer}
-#setDone svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+/* Every popup is one card, in the map's roads-card style: frosted, round-cornered, floating just above the tab bar,
+   with its name at the top left and a round close button at the top right. A touch outside it puts it away. The
+   mountain, zone and region choosers open in it too, in place of the phone's own picker. */
+dialog.sheet{box-sizing:border-box;width:calc(100vw - 8px);max-width:520px;max-height:calc(100dvh - var(--tabbar) - 28px - env(safe-area-inset-top));margin:auto auto calc(var(--tabbar) + 14px);padding:0;border:0;border-radius:26px;overflow:hidden;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 2px 14px rgba(15,23,32,.24);color:var(--mark)}
+dialog.sheet[open]{display:flex;flex-direction:column;animation:sheetup .22s ease}
+dialog.sheet > form{display:flex;flex-direction:column;min-height:0}
+dialog.sheet::backdrop{background:rgba(15,23,32,.28)}
+@keyframes sheetup{from{transform:translateY(24px);opacity:0}}
+@media (prefers-reduced-motion:reduce){dialog.sheet[open]{animation:none}}
+dialog.sheet .grab{flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:16px;color:var(--mark)}
+dialog.sheet .grab b{font-weight:700;letter-spacing:-.01em;outline:none}
+dialog.sheet button:focus{outline:none}
+dialog.sheet button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+dialog.sheet .grab button{flex:none;border:1px solid var(--border);width:44px;height:44px;border-radius:50%;background:var(--wash);color:var(--mark);display:grid;place-items:center;padding:0;cursor:pointer}
+dialog.sheet .grab button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavior:contain;min-height:0}
+#homeAsk p{font-size:14.5px;line-height:1.45;margin:4px 0 16px;color:var(--mark-mid)}
+#homeAsk p b{color:var(--mark)}
+#homeAsk .btns{display:flex;gap:8px}
+#homeAsk .btns button{flex:1;font:inherit;font-size:14.5px;font-weight:650;padding:11px 14px;border-radius:999px;border:1px solid var(--border);background:var(--wash);color:var(--mark);cursor:pointer}
+#homeAsk .btns button.yes{background:var(--mark);border-color:var(--mark);color:var(--surface)}
+.picklist{padding:0 8px 10px;overflow-y:auto;overscroll-behavior:contain;min-height:0}
+.pickgroup{display:flex;align-items:center;gap:10px;margin:10px 10px 2px;font-size:12.5px;font-weight:700;color:var(--accent)}
+.pickgroup::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
+.pickopt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;padding:0 12px 0 14px;border:0;border-radius:999px;background:none;color:var(--mark);font:inherit;font-size:15px;font-weight:550;text-align:left;cursor:pointer}
+.pickopt svg{flex:none;width:15px;height:12px;fill:none;stroke:var(--surface);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
+.pickopt[aria-current="true"]{background:var(--mark);color:var(--surface);font-weight:700}
+.pickopt[aria-current="true"] svg{visibility:visible}
+@media(hover:hover){.pickopt:not([aria-current="true"]):hover{background:var(--wash)}}
+/* The choosers' own lists never open: a touch on the name goes to the card. */
+.mtnpick select,.regionpick select{pointer-events:none}
 /* Inside another page there is no snowflake to open them, so the settings sit at the foot of the page as a panel. */
-.embed #settingsSheet{display:block;position:static;width:auto;max-width:1040px;margin:14px 18px 0}
+.embed #settingsSheet{display:block;position:static;width:auto;max-width:1040px;max-height:none;margin:14px 18px 0;border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;color:var(--ink)}
+.embed #settingsSheet .grab{padding:16px 18px 4px}
 .embed #setDone{display:none}
 #settings h3{margin:0 0 6px}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;color:var(--ink2)}
@@ -1021,8 +1040,10 @@ if (new URLSearchParams(location.search).has("embed")) {
   if (parent !== window) { follow(); setInterval(follow, 1500); }
 }
 </script>
-<dialog id="homeAsk"><form method="dialog"><p>Make <b id="homeName"></b> your home mountain? The page will open on it from now on.</p>
-  <div class="btns"><button value="no">Cancel</button><button value="yes" class="yes">Make it home</button></div></form></dialog>
+<dialog id="homeAsk" class="sheet"><form method="dialog"><div class="grab"><b tabindex="-1" autofocus>Home mountain</b><button value="no" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
+  <div class="sheetbody"><p>Make <b id="homeName"></b> your home mountain? The page will open on it from now on.</p>
+  <div class="btns"><button value="no">Cancel</button><button value="yes" class="yes">Make it home</button></div></div></form></dialog>
+<dialog id="pickSheet" class="sheet"><div class="grab"><b id="pickTitle" tabindex="-1" autofocus></b><button id="pickClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist" id="pickList"></div></dialog>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Turbo Snow</b></div>
 <main>
   <div class="brand"><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.png" alt="" width="26" height="26"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
@@ -1080,11 +1101,11 @@ if (new URLSearchParams(location.search).has("embed")) {
 <nav class="tabbar" id="tabbar" aria-label="Sections"><div>
   <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
 </div></nav>
-<dialog id="settingsSheet"><div class="sethead"><h3>Settings</h3><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div id="settings">
+<dialog id="settingsSheet" class="sheet"><div class="grab"><b tabindex="-1" autofocus>Settings</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody"><div id="settings">
     <div class="setrow layoutrow"><span>Layout</span><div class="seg" role="group" aria-label="Layout"><button data-pref="layout" data-value="tabs">Tabs</button><button data-pref="layout" data-value="scroll">One page</button></div></div>
     <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
     <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
-  </div><div id="moreSlot"></div></dialog>
+  </div><div id="moreSlot"></div></div></dialog>
 <script>
 const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
@@ -2396,6 +2417,39 @@ $("roadClose").addEventListener("click", () => $("roadSheet").classList.remove("
 new ResizeObserver(() => { const h = document.querySelector(".mapbar").offsetHeight; if (h) document.documentElement.style.setProperty("--mapbar-h", h + "px"); }).observe(document.querySelector(".mapbar"));
 $("map3d").addEventListener("pointerdown", (e) => { if (!e.target.closest("#roadPill")) $("roadSheet").classList.remove("open"); });
 $("settingsSheet").addEventListener("click", (e) => { if (e.target === $("settingsSheet") || e.target.closest("#setDone")) $("settingsSheet").close(); });
+// The mountain, zone and region choosers open the app's own card. Its rows are the chooser's options (under their
+// group names where it has groups); a touch on one sets the chooser and tells the page, as picking from the list would.
+let pickFor = null;
+function openPicker(select) {
+  const row = (o) => `<button class="pickopt" data-value="${esc(o.value)}"${o.selected ? ' aria-current="true"' : ""}><span>${esc(o.textContent)}</span><svg viewBox="0 0 15 12" aria-hidden="true"><path d="M1.500 6.500 5.500 10.500 13.500 1.500"/></svg></button>`;
+  const groups = [...select.querySelectorAll("optgroup")];
+  pickFor = select;
+  $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
+  $("pickList").innerHTML = groups.length ? groups.map((g) => `<div class="pickgroup">${esc(g.label)}</div>${[...g.children].map(row).join("")}`).join("") : [...select.options].map(row).join("");
+  $("pickSheet").showModal();
+  const now = $("pickList").querySelector('[aria-current="true"]');
+  if (now) now.scrollIntoView({block: "center"});
+}
+document.addEventListener("click", (e) => {
+  const label = e.target.closest && e.target.closest("label.mtnpick, label.regionpick");
+  if (!label) return;
+  e.preventDefault();
+  openPicker(label.querySelector("select"));
+});
+document.addEventListener("keydown", (e) => {
+  if (!e.target.matches || !e.target.matches(".mtnpick select, .regionpick select") || ![" ", "Enter", "ArrowDown", "ArrowUp"].includes(e.key)) return;
+  e.preventDefault();
+  openPicker(e.target);
+});
+$("pickSheet").addEventListener("click", (e) => {
+  const opt = e.target.closest(".pickopt");
+  if (opt && pickFor) {
+    const changed = pickFor.value !== opt.dataset.value;
+    pickFor.value = opt.dataset.value;
+    $("pickSheet").close();
+    if (changed) pickFor.dispatchEvent(new Event("change", {bubbles: true}));
+  } else if (e.target === $("pickSheet") || e.target.closest("#pickClose")) $("pickSheet").close();
+});
 
 // ---------- avalanche danger ----------
 // The centers' own ratings, read from avalanche.org in the reader's browser, so they are as fresh as the page load.
@@ -2585,7 +2639,7 @@ function renderAvalanche() {
   const listed = [...all].sort((a, b) => midLat(b) - midLat(a));
   // A center with one zone names it after itself; the title drops the repeat ("Bridgeport").
   const zoneName = (z) => z.name === z.center.name ? z.name.replace(/ Avalanche Center$/, "") : z.name;
-  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche forecast zone">${listed.map((z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`).join("")}</select></label>`;
+  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${listed.map((z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`).join("")}</select></label>`;
   const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
   const brief = (iso) => iso ? new Date(iso).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"})) : "";
