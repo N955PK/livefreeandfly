@@ -397,7 +397,7 @@ html.tabs .tabbar{left:0;right:0;bottom:var(--tabgap);margin:0 auto;width:min(ca
 /* The glass is a layer of its own behind the tabs, so the capsule sliding over it never makes the blur be worked out again. */
 .tabglass{display:none}
 html.tabs .tabglass{display:block;position:absolute;inset:0;border-radius:999px;border:1px solid color-mix(in srgb,var(--surface) 55%,transparent);
-  background:color-mix(in srgb,var(--surface) 76%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
+  background:color-mix(in srgb,var(--surface) 66%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
   box-shadow:0 8px 28px rgba(15,23,32,.2),0 1px 3px rgba(15,23,32,.12),inset 0 1px 0 color-mix(in srgb,#fff 45%,transparent)}
 /* The small pickers (today or tomorrow, depth or snowfall or water, units, clock) work the same way: one capsule that
    slides to the choice, drawn behind the words, and no flash on a press. */
@@ -2395,6 +2395,12 @@ function pagerOpen(to, byTap) {
   out.classList.add("dragout"); inn.classList.add("dragin");
   pager = {from, to, sign, out, inn, w: window.innerWidth, byTap, pinned: top === pin && window.scrollY > 0, pin, busy: false};
   if (to === "mountain" && data && Math.abs(inn.clientWidth - fitted) > 40) renderDetail();
+  // The pane comes in at its top, so its first chip is lit from the start rather than once the slide is over.
+  const chips = inn.querySelector(".dtop > .jump"), first = chips && chips.querySelector("button");
+  if (first) {
+    for (const b of chips.querySelectorAll("button")) b.setAttribute("aria-current", b === first);
+    chips.dataset.lit = first.dataset.jump; chips.scrollLeft = 0;
+  }
   placeSegs(true);
   pagerMove(0, true);
   return true;
