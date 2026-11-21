@@ -332,6 +332,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .schart .band{fill:var(--wash)}
 .schart .past{fill:none;stroke:var(--muted);stroke-width:1;opacity:.3;stroke-linejoin:round}
 .schart .record{fill:none;stroke:var(--ink2);stroke-width:1.25;stroke-dasharray:1 4;stroke-linecap:round;opacity:.9}
+.schart .surveyed{fill:var(--surface);stroke:var(--ink2);stroke-width:1.5}
 .schart .usual{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-dasharray:5 4;stroke-linecap:round}
 .schart .nowfill{fill:url(#seasonFill)}
 .schart .today{stroke:var(--snow);stroke-width:1;opacity:.45}
@@ -356,6 +357,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .skey button[aria-checked=true] .box{background:var(--ink2);border-color:var(--ink2)}
 .skey button[aria-checked=true] .box::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid var(--surface);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
 .skey button[aria-checked=false]{opacity:.6}
+.season .srec{font-size:12px;line-height:1.45;color:var(--muted);margin:-2px 0 8px}
 .season .snote{font-size:12.5px;line-height:1.5;color:var(--muted)}
 @media(max-width:720px){.season .seg{display:flex;width:100%}.season .seg button{flex:1}}
 .season .snote b{color:var(--ink2);font-weight:650}
@@ -667,7 +669,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "165";
+const BUILD = "166";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1115,7 +1117,9 @@ function seasonSoFar(resort) {
   // The reader can put the record away, and the scale then fits the rest.
   const record = curve.record && curve.record.values.some((v) => v != null) ? {year: +curve.record.year, line: eased(shown(curve.record.values))} : null;
   const best = prefs.record === "off" ? null : record;
-  const high = Math.max(1, ...typical.filter((v) => v != null), ...Object.values(drawn).flat().filter((v) => v != null), ...(best ? best.line.filter((v) => v != null) : []), nowDeep);
+  // A record winter whose gauge stopped before the peak carries the manual snow survey's later measurement.
+  const survey = best && curve.record.survey ? {value: asLen(curve.record.survey.value_in), date: curve.record.survey.date} : null;
+  const high = Math.max(1, ...typical.filter((v) => v != null), ...Object.values(drawn).flat().filter((v) => v != null), ...(best ? best.line.filter((v) => v != null) : []), survey ? survey.value : 0, nowDeep);
   const step = [5, 10, 20, 25, 50, 100, 200, 250, 500].find((size) => high / size <= 4.5) || 1000, top = high * 1.1;
   const x = (k) => L + (W - L - R) * k / (count - 1), y = (v) => T + (H - T - B) * (1 - v / top);
   // A line through its points with rounded corners: each point is a bend, each midpoint a place it passes through.
@@ -1153,6 +1157,16 @@ function seasonSoFar(resort) {
     named.push({x: Math.max(L + 30, Math.min(x(at), W - R - 30)), y: Math.max(10, y(peak) - 6), half: 36});
     body += `<path class="record" d="${path(best.line)}"/><text class="yr" text-anchor="middle" x="${named[0].x}" y="${named[0].y}">${winterName(best.year)} record</text>`;
   }
+  const monthDay = (stamp) => new Date(Date.UTC(2001, +stamp.slice(0, 2) - 1, +stamp.slice(3))).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
+  let recordNote = "";
+  if (best && curve.record.stopped) {
+    recordNote = survey ? `The gauge stopped on ${monthDay(curve.record.stopped)} that winter, before the peak. The state's manual survey measured ${tenths(curve.record.survey.value_in)} ${LEN()} on ${monthDay(survey.date)} (the open dot).`
+      : `The gauge stopped on ${monthDay(curve.record.stopped)} that winter, so its line ends before the season did.`;
+    if (survey) {
+      const [month, day] = survey.date.split("-").map(Number), into = Math.round((Date.UTC(month >= 10 ? 2000 : 2001, month - 1, day) - Date.UTC(2000, 9, 1)) / 864e5);
+      body += `<circle class="surveyed" cx="${x(into / curve.step_days).toFixed(1)}" cy="${y(survey.value).toFixed(1)}" r="3.5"/>`;
+    }
+  }
   const biggest = past.length ? past.reduce((a, b) => peakOf(drawn[b]) > peakOf(drawn[a]) ? b : a) : null;
   if (biggest && !(best && best.year === +biggest)) {
     const peak = peakOf(drawn[biggest]), at = drawn[biggest].indexOf(peak), other = named[0];
@@ -1179,7 +1193,7 @@ function seasonSoFar(resort) {
   seasonView = {curve, count, lines, usual, past, mine, best, y, left: L, span: W - L - R};
   return `<div class="season">${head}<div class="schart" id="seasonChart"><div class="stip" id="seasonTip" hidden></div><svg width="${W}" height="${H}" role="img" aria-label="${view.tab} through the winter: the current winter, a typical year, and the last ten winters">${body}</svg></div>
     <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span>${record ? `<button data-record role="switch" aria-checked="${!!best}" title="${best ? "Hide" : "Show"} the record winter"><i class="rec"></i>record, ${winterName(record.year)}<b class="box"></b></button>` : ""}</div>
-    <div class="snote" id="seasonNote">${note}</div></div>`;
+    ${recordNote ? `<div class="srec">${recordNote}</div>` : ""}<div class="snote" id="seasonNote">${note}</div></div>`;
 }
 // A finger or pointer on the chart reads out that date: the current winter, the typical year, and the ten winters' range.
 function seasonRead(event) {

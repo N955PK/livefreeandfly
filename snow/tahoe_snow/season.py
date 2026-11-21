@@ -27,6 +27,9 @@ STEP_DAYS = 3
 PAST_YEARS = 10
 RECORD_HOLD_DAYS = 15
 RECORD_MIN_DAYS = 120
+# Record winters whose gauge stopped before the peak: the day it stopped, and what the state's manual snow survey
+# measured afterward (CDEC snow course 205, Mammoth Pass, 104.5 in of water on April 1, 2023).
+GAUGE_STOPPED = {"MHP:CDEC": {"2023": {"stopped": "03-16", "survey": {"water": {"date": "04-01", "value_in": 104.5}}}}}
 YEAR_DAYS = 365
 
 
@@ -117,7 +120,15 @@ def station_normal(station, day: pd.Timestamp) -> dict:
     series = {"depth": frame["depth_cm"] / CM_PER_IN if station.depth and "depth_cm" in frame else None,
               "snowfall": snowfall_in(frame), "water": frame["swe_mm"] / MM_PER_IN}
     found = {measure: from_history(daily, day) for measure, daily in series.items() if daily is not None}
-    return {measure: normal for measure, normal in found.items() if normal}
+    found = {measure: normal for measure, normal in found.items() if normal}
+    for measure, normal in found.items():
+        record = normal["curve"]["record"]
+        cut_short = GAUGE_STOPPED.get(station.triplet, {}).get(record["year"])
+        if cut_short:
+            record["stopped"] = cut_short["stopped"]
+            if measure in cut_short.get("survey", {}):
+                record["survey"] = cut_short["survey"][measure]
+    return found
 
 
 def normals(now: pd.Timestamp) -> dict:
