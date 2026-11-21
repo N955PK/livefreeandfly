@@ -1319,7 +1319,8 @@ document.addEventListener("pointerdown", (event) => {
   if (event.target.closest("#tlScroll") || !$("tip")) return;
   $("tip").style.display = "none";
   if ($("cross")) $("cross").style.display = "none";
-  if ($("crossFixed")) $("crossFixed").hidden = true;
+  // The tabs chart's reading line is always there; only the one-page layout's touch line goes away on a tap elsewhere.
+  if ($("crossFixed") && !$("crossFixed").classList.contains("quarter")) $("crossFixed").hidden = true;
 });
 function wireTimeline(resort, el, g) {
   const scroll = $("tlScroll"), tip = $("tip"), cross = $("cross"), fixed = $("crossFixed");
