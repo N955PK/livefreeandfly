@@ -49,7 +49,8 @@
 .embed .regions i{margin:0 .35em}
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .2s ease,visibility .2s}
-#splash img{width:min(38vw,170px);height:auto}
+/* The mark sits at the optical center, a little above the measured one, where a lone mark reads as centered. */
+#splash img{width:min(38vw,170px);height:auto;transform:translateY(-4vh)}
 .embed #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
