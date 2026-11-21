@@ -639,14 +639,21 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .srow .pw span{color:var(--muted)}
 .tl{position:relative;margin-top:6px}
 /* Hourly in tabs: day chips, then a strip that reads the hour under the chart's fixed line in numbers. */
-.hchips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;margin:8px -14px 0;padding:0 14px}
+/* The days are one track, like the other pickers, with a round capsule that slides to the day being read: each day
+   is a circle's worth of the track, the past ones in the dull blue. The track is longer than the screen and scrolls. */
+.hchips{overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;margin:8px -14px 0;padding:0 14px}
 .hchips::-webkit-scrollbar{display:none}
-.hchips button{flex:none;width:46px;height:46px;border:0;border-radius:50%;padding:0;font:inherit;font-size:15px;font-weight:650;line-height:1.1;color:var(--mark);background:var(--wash);cursor:pointer;font-variant-numeric:tabular-nums}
+.htrack{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--wash);vertical-align:top}
+.hchips button{position:relative;z-index:1;flex:none;width:42px;height:42px;border:0;border-radius:50%;padding:0;font:inherit;font-size:15px;font-weight:650;line-height:1.1;color:var(--mark-mid);background:none;cursor:pointer;font-variant-numeric:tabular-nums;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .hchips button small{display:block;font-size:11px;font-weight:600;color:var(--mark-dull)}
-.hchips button.past{background:none;box-shadow:inset 0 0 0 1px var(--border);color:var(--mark-dull);font-weight:600}
-.hchips button[aria-current=true]{background:var(--mark);color:var(--surface)}
-.hchips button.past[aria-current=true]{background:var(--mark-dull);box-shadow:none;color:var(--surface)}
-.hchips button[aria-current=true] small{color:var(--surface);opacity:.8}
+.hchips button.past{color:var(--mark-dull);font-weight:600}
+.hchips button[aria-current=true]{color:var(--mark)}
+.hchips button.past[aria-current=true]{color:var(--mark-mid)}
+/* Today is the one day marked out whether or not it is the day being read: a ring in the accent blue, and its
+   letter and date in that blue. */
+.hchips button.today{color:var(--accent);font-weight:750;box-shadow:inset 0 0 0 2px var(--accent)}
+.hchips button.today small{color:var(--accent);font-weight:700}
+.hchips button.today[aria-current=true]{color:var(--accent)}
 .hread{margin-top:8px;padding:8px 11px 9px;border-radius:11px;background:var(--wash)}
 .hread .when{display:flex;align-items:baseline;gap:8px}
 .hread .when b{font-size:14px;font-weight:700;color:var(--mark)}
@@ -1678,7 +1685,7 @@ function wireTimeline(resort, el, g) {
     const today = dayKey(g.nowIndex);
     // A round button for each day in the chart, in one row that scrolls: the past week greyed, then today and up to
     // two weeks ahead. Each is the weekday's letter over the date.
-    $("hChips").innerHTML = days.filter((d) => d.key < today).concat(days.filter((d) => d.key >= today).slice(0, 14)).map((d) => `<button data-hday="${d.k}" data-key="${d.key}"${d.key < today ? ' class="past"' : ""} aria-label="${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "long", month: "long", day: "numeric"})}"><small>${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "narrow"})}</small>${+d.key.slice(8)}</button>`).join("");
+    $("hChips").innerHTML = `<div class="htrack" id="hTrack">${days.filter((d) => d.key < today).concat(days.filter((d) => d.key >= today).slice(0, 14)).map((d) => `<button data-hday="${d.k}" data-key="${d.key}"${d.key < today ? ' class="past"' : d.key === today ? ' class="today"' : ""} aria-label="${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "long", month: "long", day: "numeric"})}"><small>${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "narrow"})}</small>${+d.key.slice(8)}</button>`).join("")}</div>`;
     const cell = (label, value) => `<span><small>${label}</small><b>${value}</b></span>`;
     read = (k, hover) => {
       const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
@@ -1693,7 +1700,9 @@ function wireTimeline(resort, el, g) {
         cell("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) + "</div>";
       const key = dayKey(k), bar = $("hChips");
       // The row is one line of circles that slides to keep the day being read in its middle.
-      for (const b of bar.children) { const on = b.dataset.key === key; b.setAttribute("aria-current", on); if (on && !hover) bar.scrollLeft = b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2; }
+      for (const b of bar.querySelectorAll("button")) { const on = b.dataset.key === key; b.setAttribute("aria-current", on); if (on && !hover) bar.scrollLeft += b.getBoundingClientRect().left - bar.getBoundingClientRect().left - (bar.clientWidth - b.offsetWidth) / 2; }
+      // The circle behind the day slides to it when the day being read changes.
+      if (bar.dataset.day !== key) { bar.dataset.day = key; placeSegs(); }
     };
     const under = () => Math.max(0, Math.min(g.n - 1, Math.floor((scroll.scrollLeft + ref()) / g.pph)));
     fixed.hidden = false; fixed.classList.add("quarter");
@@ -2339,7 +2348,7 @@ function watchSeason() {
 const segWas = {};
 function placeSegs(jump) {
   if (!tabbed()) return;
-  for (const seg of document.querySelectorAll(".seg:not(.tri), .jump")) {
+  for (const seg of document.querySelectorAll(".seg:not(.tri), .jump, .htrack")) {
     const on = seg.querySelector('button[aria-pressed="true"], button[aria-current="true"]');
     if (!on || !on.offsetWidth) continue;
     const key = seg.id || seg.getAttribute("aria-label") || "", to = {x: on.offsetLeft, w: on.offsetWidth}, was = segWas[key];
