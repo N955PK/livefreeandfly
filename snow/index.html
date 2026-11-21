@@ -109,7 +109,6 @@ h2{font-size:18px;font-weight:650;letter-spacing:-.01em}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px}
 /* Tabs layout (a setting; the other choice is one long page): each block belongs to a tab and only the open tab's blocks show. */
 .tabbar{display:none}
-.embed .layoutrow{display:none}
 html.tabs main{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 html.tabs[data-view="map"] [data-tab]:not([data-tab~="map"]),html.tabs[data-view="forecast"] [data-tab]:not([data-tab~="forecast"]),
 html.tabs[data-view="mountain"] [data-tab]:not([data-tab~="mountain"]),html.tabs[data-view="avalanche"] [data-tab]:not([data-tab~="avalanche"]),html.tabs[data-view="more"] [data-tab]:not([data-tab~="more"]){display:none!important}
@@ -778,6 +777,10 @@ dialog.sheet[open]{display:flex;flex-direction:column;animation:sheetup .22s eas
 dialog.sheet > form{display:flex;flex-direction:column;min-height:0}
 dialog.sheet::backdrop{background:rgba(15,23,32,.28)}
 @keyframes sheetup{from{transform:translateY(24px);opacity:0}}
+/* The cards opened from the header (settings from the snowflake, regions from the pin) drop from under it instead. */
+dialog.sheet.top{margin:calc(54px + env(safe-area-inset-top)) auto auto;max-height:calc(100dvh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+dialog.sheet.top[open]{animation-name:sheetdown}
+@keyframes sheetdown{from{transform:translateY(-24px);opacity:0}}
 @media (prefers-reduced-motion:reduce){dialog.sheet[open]{animation:none}}
 dialog.sheet .grab{flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:16px;color:var(--mark)}
 dialog.sheet .grab b{font-weight:700;letter-spacing:-.01em;outline:none}
@@ -802,7 +805,7 @@ dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavio
 /* The choosers' own lists never open: a touch on the name goes to the card. */
 .mtnpick select,.regionpick select{pointer-events:none}
 /* Inside another page there is no snowflake to open them, so the settings sit at the foot of the page as a panel. */
-.embed #settingsSheet{display:block;position:static;width:auto;max-width:1040px;max-height:none;margin:14px 18px 0;border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;color:var(--ink)}
+.embed #settingsSheet.sheet{display:block;position:static;width:auto;max-width:1040px;max-height:none;margin:14px 18px 0;animation:none;border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;color:var(--ink)}
 .embed #settingsSheet .grab{padding:16px 18px 4px}
 .embed #setDone{display:none}
 #settings h3{margin:0 0 6px}
@@ -1043,7 +1046,7 @@ if (new URLSearchParams(location.search).has("embed")) {
 <dialog id="homeAsk" class="sheet"><form method="dialog"><div class="grab"><b tabindex="-1" autofocus>Home mountain</b><button value="no" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
   <div class="sheetbody"><p>Make <b id="homeName"></b> your home mountain? The page will open on it from now on.</p>
   <div class="btns"><button value="no">Cancel</button><button value="yes" class="yes">Make it home</button></div></div></form></dialog>
-<dialog id="pickSheet" class="sheet"><div class="grab"><b id="pickTitle" tabindex="-1" autofocus></b><button id="pickClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist" id="pickList"></div></dialog>
+<dialog id="pickSheet" class="sheet top"><div class="grab"><b id="pickTitle" tabindex="-1" autofocus></b><button id="pickClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist" id="pickList"></div></dialog>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Turbo Snow</b></div>
 <main>
   <div class="brand"><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.png" alt="" width="26" height="26"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
@@ -1101,8 +1104,7 @@ if (new URLSearchParams(location.search).has("embed")) {
 <nav class="tabbar" id="tabbar" aria-label="Sections"><div>
   <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
 </div></nav>
-<dialog id="settingsSheet" class="sheet"><div class="grab"><b tabindex="-1" autofocus>Settings</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody"><div id="settings">
-    <div class="setrow layoutrow"><span>Layout</span><div class="seg" role="group" aria-label="Layout"><button data-pref="layout" data-value="tabs">Tabs</button><button data-pref="layout" data-value="scroll">One page</button></div></div>
+<dialog id="settingsSheet" class="sheet top"><div class="grab"><b tabindex="-1" autofocus>Settings</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody"><div id="settings">
     <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
     <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
   </div><div id="moreSlot"></div></div></dialog>
@@ -1147,7 +1149,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 // The reader's choices, kept on their device. The forecast is worked out in inches, °F, mph, and feet; these turn
 // each number into the chosen units at the moment it is written.
 const PREFS_KEY = "turbo-snow.prefs";
-const prefs = {units: "us", clock: "12", layout: "tabs", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
+const prefs = {units: "us", clock: "12", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
 const metric = () => prefs.units === "metric";
 const LEN = () => metric() ? "cm" : "in", DEG = () => metric() ? "°C" : "°F", SPEED = () => metric() ? "km/h" : "mph";
 const asLen = (inchesDeep) => inchesDeep == null ? null : metric() ? inchesDeep * 2.54 : inchesDeep;
@@ -2119,7 +2121,7 @@ function renderDetail() {
 
 function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) { map.setElevation(elevation); map.select(selected); } }
 // Units and clock: the choice is saved on this device and everything on the page is written again in it.
-// Layout: tabs (the map is the landing tab) or one long page. Inside another page (?embed) it is always one page.
+// Layout: tabs, with the map as the landing tab. Only inside another page (?embed) is it one long page.
 const tabbed = () => document.documentElement.classList.contains("tabs");
 function showView(view) {
   document.documentElement.dataset.view = view;
@@ -2129,7 +2131,7 @@ function showView(view) {
   if (view === "mountain" && data && Math.abs($("detail").clientWidth - fitted) > 40) renderDetail();
 }
 function applyLayout(view) {
-  const on = prefs.layout === "tabs" && !document.documentElement.classList.contains("embed");
+  const on = !document.documentElement.classList.contains("embed");
   document.documentElement.classList.toggle("tabs", on);
   // In tabs the two explainers live in the settings sheet; on one page they close out the page.
   for (const id of ["score", "how"]) (on ? $("moreSlot") : document.querySelector("main")).appendChild($(id));
@@ -2426,6 +2428,11 @@ function openPicker(select) {
   pickFor = select;
   $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
   $("pickList").innerHTML = groups.length ? groups.map((g) => `<div class="pickgroup">${esc(g.label)}</div>${[...g.children].map(row).join("")}`).join("") : [...select.options].map(row).join("");
+  // The card opens just under the name that was touched (never higher than the settings card does) and stops short of the tab bar.
+  const under = Math.max(54, Math.round(select.closest("label").getBoundingClientRect().bottom + 8));
+  $("pickSheet").classList.add("top");
+  $("pickSheet").style.marginTop = `${under}px`;
+  $("pickSheet").style.maxHeight = `calc(100dvh - ${under}px - var(--tabbar) - 14px)`;
   $("pickSheet").showModal();
   const now = $("pickList").querySelector('[aria-current="true"]');
   if (now) now.scrollIntoView({block: "center"});
