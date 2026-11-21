@@ -118,7 +118,7 @@ export function stormWindow(rate, nowIndex) {
 // (how close the view opens; 1 when absent), discKm (the disc's radius), and look ([lat, lon] the view opens on
 // when that is not the disc's center).
 // ``data.resorts`` holds only that region's locations.
-export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false}) {
+export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}}) {
   const RADIUS = globe ? GLOBE_KM : region.discKm || DISC_KM, TARGET_Z = globe ? 7 : 1;
   // A region whose files were rebuilt carries a rev, so a phone never pairs the new page with its saved old files.
   const rev = region.rev || "";
@@ -545,7 +545,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       item.ghost.scale.z = Math.max(0.02, (all - value) * STAKE_KM_PER_IN);
       item.fill.material = item.key === picked ? pickMaterial : fillMaterial;
       const more = all - value;
-      item.label.innerHTML = `<b>${item.name}</b><span>${show(value)} in</span>${more >= 0.5 ? `<em>+${show(more)} to come</em>` : ""}`;
+      item.label.innerHTML = `<b>${item.name}</b><span>${show(value * depth.per)} ${depth.unit}</span>${more >= 0.5 ? `<em>+${show(more * depth.per)} to come</em>` : ""}`;
       item.label.classList.toggle("on", item.key === picked);
       item.label.title = item.name;
       item.width = 16 + Math.max(item.name.length * 6.6, more >= 0.5 ? 78 : 44);
@@ -648,6 +648,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     setTime(value) { time = Math.max(0, Math.min(steps - 1, value)); },
     setElevation(value) { level = value; cumulative = series(); paintedAt = -1; },
     select(key) { picked = key; paintedAt = -1; },
+    // Depths are kept in inches; the labels show them times `per`, in `unit`.
+    setDepthUnits(units) { depth = units; paintedAt = -1; },
     // controlPoints: [{route, lat, lon, status: "chains" | "closed", name}] from the Caltrans feeds; a closed
     // point with sign: false colors the road without getting a sign of its own.
     setRoadStatus(controlPoints) {

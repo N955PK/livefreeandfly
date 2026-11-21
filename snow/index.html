@@ -430,6 +430,11 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .map-key span{display:flex;align-items:center;gap:6px}
 .map-key i{width:9px;height:9px;border-radius:50%;border:1.5px solid;box-sizing:border-box}
 #avalanche{margin-top:14px;padding:18px 18px 16px}
+#settings{margin-top:14px;padding:16px 18px}
+#settings h3{margin:0 0 6px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;color:var(--ink2)}
+.setrow .seg{margin-left:0}
+@media(max-width:460px){.setrow .seg button{padding:6px 9px;font-size:12.5px}}
 .ahead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .ahead h2{font-size:22px;line-height:1.15}
 .ahead .by{display:block;color:var(--muted);font-size:13px;margin-top:2px}
@@ -612,7 +617,7 @@ for (let n = 0; n < 26; n++) {
         <button data-el="summit" aria-pressed="true">Summit</button><button data-el="mid" aria-pressed="false">Mid</button><button data-el="base" aria-pressed="false">Base</button>
       </div>
     </div>
-    <div class="gridcap">Snow in inches, from 4 pm previous day<br><span>Tap a name for details</span></div>
+    <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span>Tap a name for details</span></div>
     <div class="gridwrap"><table class="heat" id="heat"></table></div>
     <div class="gridnote" id="unratedNote" hidden>* No avalanche forecast covers this peak</div>
     <div class="legend" id="legend"></div>
@@ -639,6 +644,10 @@ for (let n = 0; n < 26; n++) {
     <ul id="formula"></ul>
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
   </div></details>
+  <div class="panel" id="settings"><h3>Settings</h3>
+    <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
+    <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
+  </div>
 </main>
 <script>
 const TZ = "America/Los_Angeles";
@@ -646,7 +655,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "159";
+const BUILD = "160";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -677,16 +686,33 @@ const regionOf = (r) => r.region || "tahoe";
 const here = () => data.resorts.filter((r) => regionOf(r) === region);
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const inches = (v) => v == null ? "–" : v < 0.05 ? "0" : v < 0.5 ? "<1" : String(Math.round(v));
-const tenths = (v) => v == null ? "–" : (Math.round(v * 10) / 10).toString();
-const whole = (v) => v == null ? "–" : v < 0.5 ? "·" : Math.round(v).toString();
+// ---------- units and clock ----------
+// The reader's choices, kept on their device. The forecast is worked out in inches, °F, mph, and feet; these turn
+// each number into the chosen units at the moment it is written.
+const PREFS_KEY = "turbo-snow.prefs";
+const prefs = {units: "us", clock: "12", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
+const metric = () => prefs.units === "metric";
+const LEN = () => metric() ? "cm" : "in", DEG = () => metric() ? "°C" : "°F", SPEED = () => metric() ? "km/h" : "mph";
+const asLen = (inchesDeep) => inchesDeep == null ? null : metric() ? inchesDeep * 2.54 : inchesDeep;
+const rounded = (v) => v == null ? "–" : v < 0.05 ? "0" : v < 0.5 ? "<1" : String(Math.round(v));
+const inches = (v) => rounded(asLen(v));
+const tenths = (v) => v == null ? "–" : (Math.round(asLen(v) * 10) / 10).toString();
+const whole = (v) => v == null ? "–" : asLen(v) < 0.5 ? "·" : Math.round(asLen(v)).toString();
+// A small amount with its decimals: hundredths of an inch, or tenths of a centimeter.
+const fine = (v, digits) => metric() ? (v * 2.54).toFixed(1) : v.toFixed(digits);
+const deg = (f) => Math.round(metric() ? (f - 32) / 1.8 : f);
+const speed = (mph) => Math.round(metric() ? mph * 1.609 : mph);
+const height = (ft) => metric() ? `${(Math.round(ft * 0.3048 / 10) * 10).toLocaleString()} m` : `${ft.toLocaleString()} ft`;
+// A time with its hour, in the chosen clock: "Fri 2 PM" or "Fri 14:00".
+const clockOpts = (o) => prefs.clock === "24" ? {...o, hour: "2-digit", minute: "2-digit", hourCycle: "h23"} : o;
+const hourName = (h) => prefs.clock === "24" ? `${String(h).padStart(2, "0")}:00` : `${h % 12 || 12} ${h < 12 ? "am" : "pm"}`;
 const pct = (v) => v == null ? "–" : Math.round(v * 100) + "%";
 const bin = (v) => BINS.find(([top]) => (v || 0) < top)[1];
 // A clock time in the reader's own timezone, for when something was last updated.
-const localClock = (date) => date.toLocaleTimeString("en-US", {hour: "numeric", minute: "2-digit"});
+const localClock = (date) => date.toLocaleTimeString("en-US", clockOpts({hour: "numeric", minute: "2-digit"}));
 const weekday = (iso, style = "short") => new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", {weekday: style, timeZone: "UTC"});
 const dayOfMonth = (iso) => +iso.slice(8);
-const range = (lo, hi) => lo == null ? "" : `${inches(lo)}–${inches(hi)} in`;
+const range = (lo, hi) => lo == null ? "" : `${inches(lo)}–${inches(hi)} ${LEN()}`;
 
 // Safari only parses timestamps that include seconds.
 const withSeconds = (t) => /T\d\d:\d\dZ$/.test(t) ? t.replace("Z", ":00Z") : t;
@@ -770,8 +796,8 @@ function renderHeadline() {
   const el = home.elevations[elevation], w = el.windows, where = elevation === "mid" ? "mid-mountain" : elevation;
   const name = `<b>${esc(home.name)}</b>`;
   $("headline").innerHTML = (w.next72.snow_in || 0) < 0.5 ? `${name}: no snow of note in the next three days`
-    : `${name}: <b>${inches(w.next72.snow_in)} in</b>${pm(w.next72)} in the next three days`;
-  $("headline").title = `At the ${where}, ${el.elevation_ft.toLocaleString()} ft`;
+    : `${name}: <b>${inches(w.next72.snow_in)} ${LEN()}</b>${pm(w.next72)} in the next three days`;
+  $("headline").title = `At the ${where}, ${height(el.elevation_ft)}`;
   // generated_utc is the hour the forecast is worked out for; published_utc is when the run actually finished.
   const made = new Date(data.published_utc || data.generated_utc), age = (Date.now() - made) / 36e5;
   // When something was last updated is told in the reader's own time and calendar day, wherever they are. Everything
@@ -786,6 +812,7 @@ function renderHeadline() {
 }
 
 function renderHeat() {
+  $("gridCap").textContent = `Snow in ${metric() ? "cm" : "inches"}, from ${hourName(16)} previous day`;
   const days = futureDays(here()[0].elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = "";
@@ -797,14 +824,14 @@ function renderHeat() {
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
-    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}</b><span>${el.elevation_ft.toLocaleString()} ft${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
-      <td class="total">${inches(total)} in</td>`;
+    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}</b><span>${height(el.elevation_ft)}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
+      <td class="total">${inches(total)} ${LEN()}</td>`;
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
     const cell = (d, dim) => {
       const x = byDate[d.date] || {};
       const p = x.powder || {}, total = p.snow_in || 0, fill = Math.round(100 * Math.min(total, BAR_FULL_IN) / BAR_FULL_IN);
-      return `<td><div class="cell${dim}${total < 0.5 ? " none" : ""}" style="--fill:${total < 0.5 ? 0 : Math.max(fill, 6)}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} in${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}${dim ? `, ${pct(x.prob_6in)} chance of 6 in or more` : ""}">${whole(total)}</div></td>`;
+      return `<td><div class="cell${dim}${total < 0.5 ? " none" : ""}" style="--fill:${total < 0.5 ? 0 : Math.max(fill, 6)}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} ${LEN()}${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}${dim ? `, ${pct(x.prob_6in)} chance of 6 in or more` : ""}">${whole(total)}</div></td>`;
     };
     html += near.map((d) => cell(d, "")).join("");
     if (far.length) html += '<td class="sep"></td>';
@@ -815,7 +842,7 @@ function renderHeat() {
   $("heat").innerHTML = html;
   badges();
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
-    `<span class="sw"><i class="gauge"></i>fill = inches, full at ${BAR_FULL_IN}</span>`;
+    `<span class="sw"><i class="gauge"></i>fill = ${metric() ? "cm" : "inches"}, full at ${Math.round(asLen(BAR_FULL_IN))}</span>`;
 }
 
 const ICONS = {
@@ -917,7 +944,7 @@ function timeline(resort, el) {
     let line = `M${x(storm.start)} ${ya(0)}`;
     for (let i = storm.start; i <= storm.end; i++) line += `L${x(i + 1).toFixed(1)} ${ya(running[i]).toFixed(1)}`;
     body += `<path d="${line}V${ya(0)}z" fill="var(--snow)" fill-opacity=".1"/><path d="${line}" fill="none" stroke="var(--snow)" stroke-width="2" stroke-linejoin="round"/>`;
-    if (storm.total >= 0.5) body += `<circle cx="${x(storm.last + 1)}" cy="${ya(storm.total)}" r="3" fill="var(--snow)" stroke="var(--surface)" stroke-width="1.5"/><text class="lab" x="${x(storm.last + 1) + (x(storm.last + 1) > W - 60 ? -6 : 6)}" y="${Math.max(TA + 10, ya(storm.total) - 6)}" text-anchor="${x(storm.last + 1) > W - 60 ? "end" : "start"}">${inches(storm.total)} in</text>`;
+    if (storm.total >= 0.5) body += `<circle cx="${x(storm.last + 1)}" cy="${ya(storm.total)}" r="3" fill="var(--snow)" stroke="var(--surface)" stroke-width="1.5"/><text class="lab" x="${x(storm.last + 1) + (x(storm.last + 1) > W - 60 ? -6 : 6)}" y="${Math.max(TA + 10, ya(storm.total) - 6)}" text-anchor="${x(storm.last + 1) > W - 60 ? "end" : "start"}">${inches(storm.total)} ${LEN()}</text>`;
   }
   let measured = "", pen = false;
   gain.forEach((v, i) => { if (v == null) { pen = false; return; } measured += `${pen ? "L" : "M"}${x(i + 0.5).toFixed(1)} ${ya(v).toFixed(1)}`; pen = true; });
@@ -929,7 +956,7 @@ function timeline(resort, el) {
   body += `<line x1="${x(nowIndex)}" x2="${x(nowIndex)}" y1="16" y2="${H}" stroke="var(--ink)" stroke-width="1.5"/><text class="lab" x="${x(nowIndex) + 5}" y="13" style="fill:var(--ink)">Now</text>`;
   if (nowIndex > 30) body += `<text x="${x(nowIndex) - 6}" y="13" text-anchor="end">past</text>`;
   body += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${T2 + H2}" stroke="var(--ink2)" style="display:none"/>`;
-  const axis = `<svg width="44" height="${H}" aria-hidden="true"><text x="38" y="${y1(top) + 4}" text-anchor="end">${top} in</text><text x="38" y="${y1(top / 2) + 4}" text-anchor="end">${top / 2}</text>
+  const axis = `<svg width="44" height="${H}" aria-hidden="true"><text x="38" y="${y1(top) + 4}" text-anchor="end">${metric() ? Math.round(top * 2.54) : top} ${LEN()}</text><text x="38" y="${y1(top / 2) + 4}" text-anchor="end">${metric() ? Math.round(top * 1.27) : top / 2}</text>
     <text x="38" y="${TA + 10}" text-anchor="end">Storm</text><text x="38" y="${TA + 22}" text-anchor="end">total</text>
     <text x="38" y="${WIND_Y + STRIP / 2 + 4}" text-anchor="end">Wind</text><text x="38" y="${GUST_Y + STRIP / 2 + 4}" text-anchor="end">Gust</text><text x="38" y="${CLOUD_Y + STRIP / 2 + 4}" text-anchor="end">Cloud</text><text x="38" y="${TEMP_Y + STRIP / 2 + 4}" text-anchor="end">Temp</text>
     <text x="40" y="${y2(summit) + 4}" text-anchor="end">Summit</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text></svg>`;
@@ -960,18 +987,18 @@ function wireTimeline(resort, el, g) {
     // A mouse gets a line on the hour it points at. A finger gets one that stays put at the chart's middle while the hours slide under it.
     cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.style.display = above ? "none" : "";
     fixed.hidden = !above;
-    const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+    const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
     const snowing = h.snow_in[k] > 0.004, wind = h.wind_mph[k], gust = h.gust_mph[k], past = k < g.nowIndex;
     const row = (a, b) => `<div><span>${a}</span><span>${b}</span></div>`;
     // Under a finger the readout keeps the same rows for every hour, so it holds one size and one place as hours pass.
-    tip.innerHTML = `<b>${when}${past ? " (past, estimated)" : ""}</b>` + row("Snow this hour", `${(h.snow_in[k] || 0).toFixed(2)} in`) +
-      (g.running[k] != null ? row("Storm total", `${tenths(g.running[k])} in`) : above ? row("Storm total", "–") : "") +
-      (past && g.depth[k] != null ? row("Sensor gain", `${g.depth[k]} in`) : above ? row("Sensor gain", "–") : "") +
+    tip.innerHTML = `<b>${when}${past ? " (past, estimated)" : ""}</b>` + row("Snow this hour", `${fine(h.snow_in[k] || 0, 2)} ${LEN()}`) +
+      (g.running[k] != null ? row("Storm total", `${tenths(g.running[k])} ${LEN()}`) : above ? row("Storm total", "–") : "") +
+      (past && g.depth[k] != null ? row("Sensor gain", `${inches(g.depth[k])} ${LEN()}`) : above ? row("Sensor gain", "–") : "") +
       (snowing ? row("Quality", `${quality(h.slr[k])[0]} snow, ${quality(h.slr[k])[1]}`) : above ? row("Quality", "–") : "") +
-      row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${wind} mph${h.wind_from_deg && h.wind_from_deg[k] != null ? ` ${compass(h.wind_from_deg[k])}` : ""}${gust > wind + 5 ? `, gusts ${gust}` : ""}`) +
+      row("Wind", wind == null ? "–" : `${WIND[windBin(Math.max(wind, gust || 0))][1]}, ${speed(wind)} ${SPEED()}${h.wind_from_deg && h.wind_from_deg[k] != null ? ` ${compass(h.wind_from_deg[k])}` : ""}${gust > wind + 5 ? `, gusts ${speed(gust)}` : ""}`) +
       row("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) +
-      row("Snow level", h.snow_level_ft[k] == null ? "–" : `${(Math.round(h.snow_level_ft[k] / 100) * 100).toLocaleString()} ft`) +
-      row("Temperature", h.temp_f[k] == null ? "–" : `${Math.round(h.temp_f[k])}°F, feels like ${Math.round(windChill(h.temp_f[k], wind))}°F`);
+      row("Snow level", h.snow_level_ft[k] == null ? "–" : height(Math.round(h.snow_level_ft[k] / 100) * 100)) +
+      row("Temperature", h.temp_f[k] == null ? "–" : `${deg(h.temp_f[k])}${DEG()}, feels like ${deg(windChill(h.temp_f[k], wind))}${DEG()}`);
     tip.style.display = "block";
     const left = 44 + cx - scroll.scrollLeft, wide = scroll.parentElement.clientWidth;
     // A mouse gets the readout beside the pointer. A finger gets it in one fixed spot above the chart, clear of the hand.
@@ -1014,38 +1041,38 @@ function skiDay(d) {
   const total = p.snow_in || 0;
   const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
   const bars = `${dayBar(p, true)}` + (total >= 0.05
-    ? `<div class="split"><span title="Overnight, 4 pm to 8 am">${ICONS.moon}${inches(p.night_in)} in</span><span title="During the day, 8 am to 4 pm">${ICONS.sun}${inches(p.day_in)} in</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
+    ? `<div class="split"><span title="Overnight, ${hourName(16)} to ${hourName(8)}">${ICONS.moon}${inches(p.night_in)} ${LEN()}</span><span title="During the day, ${hourName(8)} to ${hourName(16)}">${ICONS.sun}${inches(p.day_in)} ${LEN()}</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
     : `<div class="split">No new snow</div>`);
   return `<div class="srow${far ? " far" : ""}">${date}<div class="snowbar">${bars}</div>
-    <div class="amt">${inches(total)} in${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
+    <div class="amt">${inches(total)} ${LEN()}${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
     <div class="cond"><span class="sky">${icon ? `${icon}${word}` : ""}</span>
-      <span class="temp" title="${p.temp_f == null ? "" : `${Math.round(p.temp_f)}°F through the lift hours, feels like ${Math.round(windChill(p.temp_f, wind))}°F in the wind`}">${p.temp_f == null ? "" : `${Math.round(p.temp_f)}°<small>/${Math.round(windChill(p.temp_f, wind))}°</small>`}</span>
-      <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${wind} mph${p.wind_from_deg == null ? "" : ` from the ${compass(p.wind_from_deg)}`}${gust > wind + 3 ? `, gusts to ${gust}` : ""}`}">${wind == null ? "" : `${p.wind_from_deg == null ? `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>` : barb(wind, p.wind_from_deg, wb > 1 ? windColor(Math.max(wind, gust || 0)) : "var(--muted)")}${wind}${gust > wind + 3 ? `G${gust}` : ""}`}</span>
+      <span class="temp" title="${p.temp_f == null ? "" : `${deg(p.temp_f)}${DEG()} through the lift hours, feels like ${deg(windChill(p.temp_f, wind))}${DEG()} in the wind`}">${p.temp_f == null ? "" : `${deg(p.temp_f)}°<small>/${deg(windChill(p.temp_f, wind))}°</small>`}</span>
+      <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${speed(wind)} ${SPEED()}${p.wind_from_deg == null ? "" : ` from the ${compass(p.wind_from_deg)}`}${gust > wind + 3 ? `, gusts to ${speed(gust)}` : ""}`}">${wind == null ? "" : `${p.wind_from_deg == null ? `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>` : barb(wind, p.wind_from_deg, wb > 1 ? windColor(Math.max(wind, gust || 0)) : "var(--muted)")}${speed(wind)}${gust > wind + 3 ? `G${speed(gust)}` : ""}`}</span>
       <span class="pscore">${p.score ? `PS <b>${p.score.toFixed(1)}</b>` : ""}</span></div></div>`;
 }
 
 function measured(resort) {
   const o = resort.observed;
   if (!o || (o.depth_in == null && o.water_in == null)) return "";
-  const signed = (v) => v == null ? "–" : (v > 0 ? "+" : "") + v;
-  const when = new Date(withSeconds(o.as_of_utc)).toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+  const signed = (v) => v == null ? "–" : (v > 0 ? "+" : "") + Math.round(asLen(v));
+  const when = new Date(withSeconds(o.as_of_utc)).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
   const cell = (k, v, r) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="r">${r}</div></div>`;
   // Some sensors weigh the snow but have no working depth gauge; those show the water alone.
   const depth = o.depth_in == null
-    ? cell("Water on the ground", `${inches(o.water_in)} <small>in</small>`, "&nbsp;")
-    : cell("On the ground", `${o.depth_in} <small>in</small>`, `${signed(o.depth_gain_24h_in)} in in 24 h`) + cell("Depth, 3 days", `${signed(o.depth_gain_72h_in)} <small>in</small>`, "&nbsp;");
-  return `<h3>Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${o.elevation_ft.toLocaleString()} ft, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
+    ? cell("Water on the ground", `${inches(o.water_in)} <small>${LEN()}</small>`, "&nbsp;")
+    : cell("On the ground", `${inches(o.depth_in)} <small>${LEN()}</small>`, `${signed(o.depth_gain_24h_in)} ${LEN()} in 24 h`) + cell("Depth, 3 days", `${signed(o.depth_gain_72h_in)} <small>${LEN()}</small>`, "&nbsp;");
+  return `<h3>Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${height(o.elevation_ft)}, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
     <div class="tiles">${depth}
-    ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>in</small>`, `${inches(o.water_gain_24h_in)} in in 24 h`)}
-    ${cell("Temp at sensor", o.temp_f == null ? "–" : `${o.temp_f}°F`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
+    ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>${LEN()}</small>`, `${inches(o.water_gain_24h_in)} ${LEN()} in 24 h`)}
+    ${cell("Temp at sensor", o.temp_f == null ? "–" : `${deg(o.temp_f)}${DEG()}`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
 }
 // The winter at the mountain's sensor, three ways: snow on the ground, snow fallen so far, and the water the
 // snowpack holds. Each is this winter's line over the usual year and the ten winters before it, October to July.
 // Depth shows first; a sensor with no depth gauge starts on snowfall.
 const SEASON_VIEWS = {
-  depth: {tab: "Depth", now: (v) => `${v} in of snow on the ground`, total: "peak", what: "Settled snow on the ground at the sensor, so it rises less than the snow that fell."},
-  snowfall: {tab: "Snowfall", now: (v) => `about ${v} in of snow has fallen`, total: "season total", what: "An estimate: the water the sensor gained on days cold enough to snow, times a snow ratio for the day's temperature. Resorts measure higher on the mountain."},
-  water: {tab: "Water", now: (v) => `${v} in of water in the snowpack`, total: "peak", what: "How deep the water would be if the snow on the ground melted. It does not shrink as snow settles."}};
+  depth: {tab: "Depth", now: (v) => `${v} ${LEN()} of snow on the ground`, total: "peak", what: "Settled snow on the ground at the sensor, so it rises less than the snow that fell."},
+  snowfall: {tab: "Snowfall", now: (v) => `about ${v} ${LEN()} of snow has fallen`, total: "season total", what: "An estimate: the water the sensor gained on days cold enough to snow, times a snow ratio for the day's temperature. Resorts measure higher on the mountain."},
+  water: {tab: "Water", now: (v) => `${v} ${LEN()} of water in the snowpack`, total: "peak", what: "How deep the water would be if the snow on the ground melted. It does not shrink as snow settles."}};
 let seasonMeasure = "depth";
 const SEASON_DAYS = 304, MONTHS = [["Oct", 0], ["Nov", 31], ["Dec", 61], ["Jan", 92], ["Feb", 123], ["Mar", 151], ["Apr", 182], ["May", 212], ["Jun", 243], ["Jul", 273]];
 const winterName = (endYear) => `${String(endYear - 1).slice(2)}–${String(endYear).slice(2)}`;
@@ -1057,20 +1084,22 @@ function seasonSoFar(resort) {
   const s = all[measure], curve = ((data.season_curves || {})[resort.station] || {})[measure];
   const [month, day] = s.peak_date.split("-").map(Number), today = new Date().toLocaleDateString("en-US", {timeZone: TZ, month: "short", day: "numeric"});
   const around = `${day <= 10 ? "early" : day <= 20 ? "mid" : "late"} ${new Date(2001, month - 1, 1).toLocaleDateString("en-US", {month: "long"})}`;
-  const normal = s.pct_normal == null ? `A typical ${today} has under 1 in` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} in)`;
-  const note = `<div>${normal}</div><div><b>${s.pct_peak}%</b> of a typical ${view.total} (${inches(s.peak_in)} in${measure === "snowfall" ? "" : `, ${around}`})</div>`;
+  const normal = s.pct_normal == null ? `A typical ${today} has under ${metric() ? "3 cm" : "1 in"}` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} ${LEN()})`;
+  const note = `<div>${normal}</div><div><b>${s.pct_peak}%</b> of a typical ${view.total} (${inches(s.peak_in)} ${LEN()}${measure === "snowfall" ? "" : `, ${around}`})</div>`;
   const tabs = has.length < 2 ? "" : `<div class="seg" role="group" aria-label="Measure">${has.map((key) => `<button data-season="${key}" aria-pressed="${key === measure}">${SEASON_VIEWS[key].tab}</button>`).join("")}</div>`;
   const head = `<div class="shead"><div><b>Season totals</b><span>${view.now(inches(s.now_in))}</span></div>${tabs}</div><div class="swhat">${view.what}</div>`;
   if (!curve || !curve.years) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
   const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 260 : 200, L = 8, R = 44, T = 16, B = 22;
   const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
-  const lines = Object.fromEntries(winters.map((w) => [w, curve.years[w].slice(0, count)])), usual = curve.normal.slice(0, count);
+  // The chart works in the reader's units from here on, so its scale lands on round numbers in either.
+  const shown = (line) => line.slice(0, count).map(asLen), nowDeep = asLen(s.now_in);
+  const lines = Object.fromEntries(winters.map((w) => [w, shown(curve.years[w])])), usual = shown(curve.normal);
   // Past winters and the typical year are drawn eased over neighboring readings, which takes the gauge's jitter
   // out of the picture; the readout under the chart keeps the readings as they are.
   const eased = (line) => line.map((v, k) => { if (v == null) return null; const near = [line[k - 1], v, line[k + 1]].filter((n) => n != null); return near.reduce((sum, n) => sum + n, 0) / near.length; });
   const drawn = Object.fromEntries(past.map((w) => [w, eased(lines[w])])), typical = eased(usual);
-  const high = Math.max(1, ...typical.filter((v) => v != null), ...Object.values(drawn).flat().filter((v) => v != null), s.now_in);
-  const step = [5, 10, 20, 25, 50, 100].find((size) => high / size <= 4.5) || 200, top = high * 1.1;
+  const high = Math.max(1, ...typical.filter((v) => v != null), ...Object.values(drawn).flat().filter((v) => v != null), nowDeep);
+  const step = [5, 10, 20, 25, 50, 100, 200, 250, 500].find((size) => high / size <= 4.5) || 1000, top = high * 1.1;
   const x = (k) => L + (W - L - R) * k / (count - 1), y = (v) => T + (H - T - B) * (1 - v / top);
   // A line through its points with rounded corners: each point is a bend, each midpoint a place it passes through.
   const path = (line) => {
@@ -1088,7 +1117,7 @@ function seasonSoFar(resort) {
     return d;
   };
   let body = `<defs><linearGradient id="seasonFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--snow)" stop-opacity=".3"/><stop offset="1" stop-color="var(--snow)" stop-opacity="0"/></linearGradient></defs>`;
-  for (let v = 0; v <= top; v += step) body += `<line class="g" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${W - R + 6}" y="${y(v) + 3.5}">${v}${v + step > top ? " in" : ""}</text>`;
+  for (let v = 0; v <= top; v += step) body += `<line class="g" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${W - R + 6}" y="${y(v) + 3.5}">${v}${v + step > top ? ` ${LEN()}` : ""}</text>`;
   MONTHS.forEach(([name, start], n) => {
     if (W <= 520 && n % 2) return;
     const at = x(start / curve.step_days);
@@ -1105,14 +1134,14 @@ function seasonSoFar(resort) {
   // The line ends at the sensor's latest reading, which the every-few-days history can trail during a storm.
   const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = new Date().toLocaleDateString("en-CA", {timeZone: TZ}).split("-").map(Number);
   const sinceOct = Math.round((Date.UTC(yearNow, monthNow - 1, dayNow) - Date.UTC(monthNow >= 10 ? yearNow : yearNow - 1, 9, 1)) / 864e5);
-  if (sinceOct < SEASON_DAYS) mine[Math.min(count - 1, Math.round(sinceOct / curve.step_days))] = s.now_in;
+  if (sinceOct < SEASON_DAYS) mine[Math.min(count - 1, Math.round(sinceOct / curve.step_days))] = nowDeep;
   const last = mine.reduce((found, v, k) => v == null ? found : k, 0), first = mine.findIndex((v) => v != null), endX = x(last), endY = y(mine[last] || 0);
   // The label sits left of the dot once the line is far enough along that it would run off the right edge.
   const flip = endX > W - R - 44;
   body += `<path class="usual" d="${path(typical)}"/><path class="nowfill" d="${path(mine)}L${endX.toFixed(1)} ${y(0)}L${x(Math.max(0, first)).toFixed(1)} ${y(0)}Z"/>
     <line class="today" x1="${endX}" x2="${endX}" y1="${endY}" y2="${y(0)}"/><path class="now" pathLength="1" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="0" x2="0" visibility="hidden"/><circle class="tdot" id="seasonTypDot" r="3.5" visibility="hidden"/><circle class="cdot" id="seasonNowDot" r="3.5" visibility="hidden"/>
     <circle class="nowhalo" cx="${endX}" cy="${endY}" r="8"/><circle class="nowdot" cx="${endX}" cy="${endY}" r="4.5"/>
-    <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${inches(mine[last])} in</text>`;
+    <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${rounded(mine[last])} ${LEN()}</text>`;
   seasonView = {curve, count, lines, usual, past, mine, y, left: L, span: W - L - R};
   return `<div class="season">${head}<div class="schart" id="seasonChart"><div class="stip" id="seasonTip" hidden></div><svg width="${W}" height="${H}" role="img" aria-label="${view.tab} through the winter: the current winter, a typical year, and the last ten winters">${body}</svg></div>
     <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span></div>
@@ -1132,8 +1161,8 @@ function seasonRead(event) {
   const box = chart.querySelector("svg").getBoundingClientRect(), k = Math.max(0, Math.min(v.count - 1, Math.round((event.clientX - box.left - v.left) / v.span * (v.count - 1))));
   const date = new Date(Date.UTC(2001, 9, 1 + k * v.curve.step_days)).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
   const then = v.past.map((w) => [v.lines[w][k], w]).filter(([value]) => value != null).sort((a, b) => a[0] - b[0]);
-  tip.innerHTML = `<b>${date}</b>${v.mine[k] == null ? "" : `<span class="c">current <b>${inches(v.mine[k])} in</b></span>`}<span>typical <b>${inches(v.usual[k])} in</b></span>
-    ${then.length ? `<span>ten winters <b>${inches(then[0][0])}–${inches(then[then.length - 1][0])} in</b></span>` : ""}`;
+  tip.innerHTML = `<b>${date}</b>${v.mine[k] == null ? "" : `<span class="c">current <b>${rounded(v.mine[k])} ${LEN()}</b></span>`}<span>typical <b>${rounded(v.usual[k])} ${LEN()}</b></span>
+    ${then.length ? `<span>ten winters <b>${rounded(then[0][0])}–${rounded(then[then.length - 1][0])} ${LEN()}</b></span>` : ""}`;
   tip.hidden = false;
   // The readout rides above the plot, over the date, so a thumb on the chart never covers it.
   const at = v.left + v.span * k / (v.count - 1), half = tip.offsetWidth / 2;
@@ -1249,17 +1278,17 @@ function outlookImpacts(resort, date, measured) {
   const HOLD = HOLD_TIERS[WIND_TIER[resort.key] || "average"];
   // Today, the wind the resort is measuring at its summit counts when it is stronger than the forecast.
   const wind = Math.max(s.wind_mph || 0, measured ? measured.wind : 0), gust = Math.max(wind, s.gust_mph || 0, measured ? measured.gust : 0), over = (level) => gust >= HOLD[level][0] || wind >= HOLD[level][1];
-  const blowing = `${wind} mph, gusts to ${gust}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit${measured && measured.wind >= (s.wind_mph || 0) ? ", measured" : ""}`;
+  const blowing = `${speed(wind)} ${SPEED()}, gusts to ${speed(gust)}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit${measured && measured.wind >= (s.wind_mph || 0) ? ", measured" : ""}`;
   if (over("likely")) add("bad", wild ? "strong wind" : over("shut") ? "wind closures" : "wind holds", blowing);
   else if (over("possible")) add("warn", wild ? "gusty" : "wind holds", blowing);
   const night = s.night_in || 0;
-  if (!wild && night >= CONTROL_IN.some) add(night >= CONTROL_IN.lots ? "bad" : "warn", "late openings", `${inches(night)} in overnight up high means avalanche control first`);
-  if (wild && (top.snow_in || 0) >= 6) add("warn", "new snow load", `${inches(top.snow_in)} in up high`);
+  if (!wild && night >= CONTROL_IN.some) add(night >= CONTROL_IN.lots ? "bad" : "warn", "late openings", `${inches(night)} ${LEN()} overnight up high means avalanche control first`);
+  if (wild && (top.snow_in || 0) >= 6) add("warn", "new snow load", `${inches(top.snow_in)} ${LEN()} up high`);
   if ((b.rain_share || 0) >= 0.5 && (low.liquid_in || 0) >= 0.1) add("bad", "rain", `about ${Math.round(b.rain_share * 100)}% of what falls down low is rain`);
   if (s.sky_pct >= 85 && s.snowing_hours >= 3) add("warn", "low visibility", `snowing ${s.snowing_hours} of 8 lift hours`);
   const chill = windChill(s.temp_f, wind);
   // Ordinary winter cold is not an impact; only the kind that brings frostbite warnings is flagged.
-  if (chill != null && chill <= EXTREME_CHILL_F) add("warn", "extreme cold", `${Math.round(s.temp_f)}°F at the summit, feels like ${Math.round(chill)}°F`);
+  if (chill != null && chill <= EXTREME_CHILL_F) add("warn", "extreme cold", `${deg(s.temp_f)}${DEG()} at the summit, feels like ${deg(chill)}${DEG()}`);
   return found;
 }
 // The resorts' own weather stations in their feed, by elevation; Alpine's sit beside Palisades' in one feed.
@@ -1286,8 +1315,8 @@ function weatherRows(resort) {
   const feel = live && isFinite(+live.WindChillF) ? +live.WindChillF : windChill(temp, wind);
   const from = live ? (/^[NESW]+$/.test(live.WindDirection || "") ? live.WindDirection : "") : compass(p.wind_from_deg);
   if (temp == null || wind == null) return weather;
-  return `${weather}<div class="orow"><span class="k">Temp</span><span><b>${Math.round(temp)}°F</b>, feels like ${Math.round(feel)}°F ${tag}</span><span></span></div>
-    <div class="orow"><span class="k">Wind</span><span><b>${from ? `${from} ` : ""}${Math.round(wind)} mph</b>${gust > wind + 3 ? `, gusts ${Math.round(gust)}` : ""} ${tag}</span><span></span></div>`;
+  return `${weather}<div class="orow"><span class="k">Temp</span><span><b>${deg(temp)}${DEG()}</b>, feels like ${deg(feel)}${DEG()} ${tag}</span><span></span></div>
+    <div class="orow"><span class="k">Wind</span><span><b>${from ? `${from} ` : ""}${speed(wind)} ${SPEED()}</b>${gust > wind + 3 ? `, gusts ${speed(gust)}` : ""} ${tag}</span><span></span></div>`;
 }
 function outlook(resort) {
   const {days, shift, day} = statusDay(resort);
@@ -1420,11 +1449,12 @@ function cornWindow(resort, el) {
   if (!days.some((d) => d.windows.length)) return "";
   const clock = (hour) => `${hour % 12 || 12}`, half = (hour) => hour < 12 ? "am" : "pm";
   // A slope that softens but never turns to mush before dark has no closing hour.
-  const span = (w) => w.close == null ? `from ${clock(w.open)} ${half(w.open)}` : `${clock(w.open)}${half(w.open) === half(w.close) ? "" : ` ${half(w.open)}`}–${clock(w.close)} ${half(w.close)}`;
+  const span = (w) => prefs.clock === "24" ? (w.close == null ? `from ${hourName(w.open)}` : `${hourName(w.open)}–${hourName(w.close)}`)
+    : w.close == null ? `from ${clock(w.open)} ${half(w.open)}` : `${clock(w.open)}${half(w.open) === half(w.close) ? "" : ` ${half(w.open)}`}–${clock(w.close)} ${half(w.close)}`;
   const rows = days.map((d) => {
-    const told = d.fresh ? "New snow, not corn yet" : d.freeze === "none" ? `No overnight freeze (low ${d.low}°F)` : !d.windows.length ? "Stays frozen all day"
+    const told = d.fresh ? "New snow, not corn yet" : d.freeze === "none" ? `No overnight freeze (low ${deg(d.low)}${DEG()})` : !d.windows.length ? "Stays frozen all day"
       : d.windows.map((w) => `<span><b>${w.name}</b> ${span(w)}</span>`).join("");
-    return `<div class="crow${d.windows.length ? "" : " off"}"><span class="k">${weekday(d.date)}</span><div><div class="cw">${told}</div>${d.windows.length ? `<div class="fz">${d.freeze === "solid" ? "Solid" : "Weak"} overnight freeze, low ${d.low}°F</div>` : ""}</div></div>`;
+    return `<div class="crow${d.windows.length ? "" : " off"}"><span class="k">${weekday(d.date)}</span><div><div class="cw">${told}</div>${d.windows.length ? `<div class="fz">${d.freeze === "solid" ? "Solid" : "Weak"} overnight freeze, low ${deg(d.low)}${DEG()}</div>` : ""}</div></div>`;
   }).join("");
   return `<h3>Corn window</h3><div class="sub">When a ${CORN.slopeDeg}° slope softens after the night's freeze, by the way it faces. A rough estimate from sun, cloud, and temperature.</div><div class="corn">${rows}</div>`;
 }
@@ -1450,26 +1480,26 @@ function renderDetail() {
   selected = resort.key;
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   // The forecast summary: four across, even on a phone. The ± sits under the number so each stays narrow.
-  const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>in</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} in`}</div></div>`;
+  const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
-      <span>${el.elevation_ft.toLocaleString()} ft${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}</span></div>
+      <span>${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}</span></div>
       <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
     ${outlook(resort)}
     <h3>Daily</h3>
-    <details class="lgd"${legendOpen ? " open" : ""}><summary><span>From 4 pm previous day</span><em>Legend</em></summary>
+    <details class="lgd"${legendOpen ? " open" : ""}><summary><span>From ${hourName(16)} previous day</span><em>Legend</em></summary>
     <div class="key" style="margin:4px 0 0;column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>each model</span></div>
-    <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span class="sw glyph">${barb(23, 270, "var(--ink2)")}W at 20 kt</span><span>G = gust, mph</span><span>18°/4° = temperature / feels like, °F</span><span>PS = powder score</span></div></details>
-    <div class="days"><div class="srow head"><div></div><div>Snow, from 4 pm previous day</div><div></div><div class="cond"><span>Lift hours</span><span>°F / feels</span><span>Wind, mph</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
+    <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span class="sw glyph">${barb(23, 270, "var(--ink2)")}W at 20 kt</span><span>G = gust, ${SPEED()}</span><span>${deg(18)}°/${deg(4)}° = temperature / feels like, ${DEG()}</span><span>PS = powder score</span></div></details>
+    <div class="days"><div class="srow head"><div></div><div>Snow, from ${hourName(16)} previous day</div><div></div><div class="cond"><span>Lift hours</span><span>${DEG()} / feels</span><span>Wind, ${SPEED()}</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     ${resort.kind === "backcountry" ? cornWindow(resort, el) : ""}
     <div class="hhead"><h3>Hourly</h3><button id="tlNow" hidden>Back to now</button><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
-      <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>50+</b></span>mph</span></div>
-    <div class="key" style="column-gap:8px"><span class="blocks">Temp<span class="ramp" style="background:linear-gradient(90deg,var(--snow),var(--grid) 64%,var(--w1))"><b>0°</b><b class="dark">50°F</b></span></span>
+      <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>${speed(50)}+</b></span>${SPEED()}</span></div>
+    <div class="key" style="column-gap:8px"><span class="blocks">Temp<span class="ramp" style="background:linear-gradient(90deg,var(--snow),var(--grid) 64%,var(--w1))"><b>${deg(0)}°</b><b class="dark">${deg(50)}${DEG()}</b></span></span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span></div>
     ${measured(resort)}${webcams(resort)}`;
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
@@ -1482,6 +1512,19 @@ function renderDetail() {
 }
 
 function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) { map.setElevation(elevation); map.select(selected); } }
+// Units and clock: the choice is saved on this device and everything on the page is written again in it.
+function showPrefs() { for (const b of document.querySelectorAll("[data-pref]")) b.setAttribute("aria-pressed", prefs[b.dataset.pref] === b.dataset.value); }
+showPrefs();
+document.addEventListener("click", (event) => {
+  const b = event.target.closest && event.target.closest("[data-pref]");
+  if (!b || prefs[b.dataset.pref] === b.dataset.value) return;
+  prefs[b.dataset.pref] = b.dataset.value;
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (error) { /* private browsing: the choice lasts for this visit */ }
+  showPrefs();
+  if (!data) return;
+  renderAll(); renderAvalanche(); loadRoads();
+  if (map) { map.setDepthUnits(mapDepth()); showTime(+$("scrub").value); }
+});
 
 // Playback runs the map's whole window in this long, whatever its length.
 const PLAY_SECONDS = 10;
@@ -1489,10 +1532,10 @@ let map = null, playing = false, playFrame = 0;
 function showTime(value) {
   const t = map.timeAt(value), rate = map.rateAt(value), level = Math.round(map.snowLevelFtAt(value) / 100) * 100;
   const atNow = Math.abs(value - map.nowStep) < 0.3;
-  $("mapWhen").textContent = atNow ? (offlineCopy ? "Saved" : "Live") : t.toLocaleString("en-US", {timeZone: TZ, weekday: "short", hour: "numeric"});
+  $("mapWhen").textContent = atNow ? (offlineCopy ? "Saved" : "Live") : t.toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
   $("toNow").classList.toggle("away", !atNow);
-  const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}${rate >= 0.05 ? `, ${rate.toFixed(1)} in/hr` : ""}`;
-  $("mapWhat").textContent = `${falling} · snow level ${level > 12000 ? "above the peaks" : level.toLocaleString() + " ft"}`;
+  const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}${rate >= 0.05 ? `, ${fine(rate, 1)} ${LEN()}/hr` : ""}`;
+  $("mapWhat").textContent = `${falling} · snow level ${level > 12000 ? "above the peaks" : height(level)}`;
 }
 function setTime(value) {
   $("scrub").value = value; $("scrub").style.setProperty("--p", `${(100 * value / (map.steps - 1)).toFixed(2)}%`);
@@ -1578,7 +1621,7 @@ async function loadRoads() {
       const first = list.map((p) => p.since).filter(Boolean).sort((a, b) => a - b)[0];
       if (!first) return "";
       const recent = Date.now() - first < 6 * 864e5;
-      return ` since ${first.toLocaleString("en-US", recent ? {timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"} : {timeZone: TZ, month: "short", day: "numeric"})}`;
+      return ` since ${first.toLocaleString("en-US", recent ? clockOpts({timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"}) : {timeZone: TZ, month: "short", day: "numeric"})}`;
     };
     const byRoute = (status, list = near) => {
       const out = {};
@@ -1650,6 +1693,7 @@ async function loadRoads() {
 }
 // One map at a time: switching regions throws the old one away and builds the new one.
 let mapBuild = 0, mapWired = false;
+const mapDepth = () => ({per: metric() ? 2.54 : 1, unit: LEN()});
 async function startMap() {
   const list = here(), build = ++mapBuild;
   if (!list.length || !list[0].lat) return;
@@ -1659,7 +1703,7 @@ async function startMap() {
     if (map) { map.dispose(); map = null; }
     $("roadNote").textContent = "";
     $("mapPanel").style.display = "block";
-    const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[region], elevation, selected, globe: new URLSearchParams(location.search).has("globe"),
+    const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[region], elevation, selected, depth: mapDepth(), globe: new URLSearchParams(location.search).has("globe"),
       onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
     if (build !== mapBuild) { made.dispose(); return; }
     map = made;
@@ -1828,7 +1872,7 @@ function paragraphs(html) {
 function renderAvalanche() {
   const state = avy[region], center = REGIONS[region].avalanche[0];
   const zone = state && state.zones.find((z) => z.center === center), product = state && state.product;
-  const clock = (iso) => new Date(iso).toLocaleString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
+  const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
   const head = `<div class="ahead"><div><h2>Avalanche danger</h2><span class="by">${esc(center.name)}${zone ? ` · ${esc(zone.name)}` : ""}</span></div>${zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
   const foot = (link, withScale = true) => `${withScale ? scale : ""}<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
