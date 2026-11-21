@@ -130,7 +130,11 @@ html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(-
 #topTint{display:none}
 /* On a phone in tabs the page itself is the panes' color, so the header, a pinned bar and the screen's top strip are
    all one color whatever the phone takes the strip's color from. */
-@media (max-width:720px){html.tabs{--page:var(--surface)}}
+@media (max-width:720px){
+  html.tabs{--page:var(--surface)}
+  /* With the header and the panes one color there is no line between them: the header runs straight into the pane. */
+  html.tabs .panel.summary,html.tabs #detail,html.tabs #avalanche,html.tabs #mapPanel{border-top-color:transparent}
+}
 html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(env(safe-area-inset-top),4px);z-index:7;pointer-events:none;background:var(--page)}
 html.tabs.stuck #topTint{background:var(--surface)}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
@@ -355,14 +359,16 @@ html.tabs .tabbar{left:50%;right:auto;bottom:var(--tabgap);transform:translateX(
   background:color-mix(in srgb,var(--surface) 58%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
   box-shadow:0 8px 28px rgba(15,23,32,.2),0 1px 3px rgba(15,23,32,.12),inset 0 1px 0 color-mix(in srgb,#fff 45%,transparent)}
 html.tabs .tabbar div{max-width:none;gap:2px}
-html.tabs .tabbar button{height:46px;border:0;border-radius:999px;color:var(--mark-mid);transition:background .18s ease,color .18s ease}
+html.tabs .tabbar button{height:46px;border:0;border-radius:999px;color:var(--mark-mid)}
 html.tabs .tabbar button[aria-current="page"]{color:var(--mark)}
-/* The open tab's capsule is one piece that slides from tab to tab, easing out with a slight overshoot. */
+/* The open tab's capsule is one piece that slides from tab to tab, easing out with a slight overshoot. Only its
+   position is animated, which the phone's graphics chip does by itself; nothing in the bar is repainted on the way,
+   and the pane is switched a moment after the slide has begun, so the work of drawing it cannot stutter the slide. */
 html.tabs .tabbar div{position:relative}
 html.tabs .tabbar button{position:relative;z-index:1;background:none}
 .tabind{display:none}
 html.tabs .tabind{display:block;position:absolute;z-index:0;top:0;left:0;height:46px;border-radius:999px;background:color-mix(in srgb,var(--mark) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mark) 10%,transparent);
-  transition:transform .34s cubic-bezier(.3,1.25,.4,1),width .34s cubic-bezier(.3,1.25,.4,1)}
+  will-change:transform;transition:transform .34s cubic-bezier(.3,1.25,.4,1)}
 html.tabs .tabind.still{transition:none}
 @media (prefers-reduced-motion:reduce){html.tabs .tabind{transition:none}}
 html.tabs[data-view="map"] main{padding-bottom:0}
@@ -2254,8 +2260,15 @@ function placeTabInd(jump) {
   const on = document.querySelector('#tabbar button[aria-current="page"]'), ind = $("tabInd");
   if (!on || !ind || !on.offsetWidth) return;
   ind.classList.toggle("still", !!jump || !ind.style.width);
-  ind.style.width = `${on.offsetWidth}px`;
-  ind.style.transform = `translateX(${on.offsetLeft}px)`;
+  if (ind.style.width !== `${on.offsetWidth}px`) ind.style.width = `${on.offsetWidth}px`;
+  ind.style.transform = `translate3d(${on.offsetLeft}px,0,0)`;
+}
+// A tab chosen by hand: the capsule sets off at once and the pane follows two frames later, once the slide is under way.
+function switchTab(view) {
+  if (view === document.documentElement.dataset.view) return;
+  for (const b of document.querySelectorAll("#tabbar button")) { if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
+  placeTabInd();
+  requestAnimationFrame(() => requestAnimationFrame(() => showView(view)));
 }
 window.addEventListener("resize", () => placeTabInd(true));
 function showView(view) {
@@ -2283,7 +2296,7 @@ function goTo(el) {
   if (tabbed() && block && !block.dataset.tab.split(" ").includes(document.documentElement.dataset.view)) showView(block.dataset.tab.split(" ")[0]);
   el.scrollIntoView({behavior: "smooth", block: "start"});
 }
-$("tabbar").addEventListener("click", (e) => { const b = e.target.closest("button[data-view]"); if (b) showView(b.dataset.view); });
+$("tabbar").addEventListener("click", (e) => { const b = e.target.closest("button[data-view]"); if (b) switchTab(b.dataset.view); });
 // A sideways swipe on anything that does not itself move goes to the next tab (swipe left) or the one before (swipe
 // right). Things that take a sideways drag for themselves are left alone: the map, a slider, a card, and anything
 // that scrolls sideways (the summary table, the hourly chart and its days, the season chart's readout).
@@ -2307,7 +2320,7 @@ document.addEventListener("touchend", (e) => {
   swipe = null;
   if (!quick || Math.abs(dx) < 60 || Math.abs(dx) < 2 * Math.abs(dy)) return;
   const to = SWIPE_TABS[SWIPE_TABS.indexOf(document.documentElement.dataset.view) + (dx < 0 ? 1 : -1)];
-  if (to) showView(to);
+  if (to) switchTab(to);
 }, {passive: true});
 document.addEventListener("touchcancel", () => { swipe = null; }, {passive: true});
 applyLayout("map");
