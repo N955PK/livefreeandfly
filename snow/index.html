@@ -217,9 +217,11 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
 /* On a phone the Region tab's table runs edge to edge, with day boxes narrow enough that a week shows without scrolling sideways. */
 @media (max-width:720px){
   html.tabs .panel.summary{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0}
-  html.tabs .panel.summary .bar{padding:14px 12px 0}
-  html.tabs .gridcap,html.tabs .gridnote,html.tabs .gridfresh{padding-left:12px;padding-right:12px}
-  html.tabs .legend{padding:2px 12px 12px}
+  /* The heading, its lines and the level picker keep the 14px gutter the mountain names below them have, the same as the Mountain tab's. */
+  html.tabs .panel.summary .bar{padding:14px 14px 0}
+  html.tabs .gridcap,html.tabs .gridnote,html.tabs .gridfresh{padding-left:14px;padding-right:14px}
+  html.tabs .panel.summary .seg.tri{right:14px}
+  html.tabs .legend{padding:2px 14px 12px}
   html.tabs table.heat{border-spacing:2px;padding:4px 2px 8px}
   html.tabs .cell{min-width:29px;height:40px;border-radius:6px;font-size:13px}
   html.tabs .heat td.name{padding:4px 4px 4px 10px}
@@ -229,7 +231,7 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
   html.tabs .heat th.day b{font-size:12.5px}
   /* Each pass heads its mountains with its name in the accent blue (the mountains are navy) and a thin rule running to the right edge. */
   html.tabs .heat tr.pass td{padding:12px 0 2px;text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:700;color:var(--accent)}
-  html.tabs .heat tr.pass td > span{display:flex;align-items:center;gap:10px;left:12px;width:calc(100vw - 24px)}
+  html.tabs .heat tr.pass td > span{display:flex;align-items:center;gap:10px;left:14px;width:calc(100vw - 28px)}
   html.tabs .heat tr.pass td > span::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 }
 /* The Map tab is one still screen: the map fills what is left between the header and the tabs, the storm slider
@@ -443,6 +445,12 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .dhead .who > span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
 .dhead .who > .dfresh{display:none;font-size:12.5px}
 html.tabs .dhead .who > .dfresh{display:block}
+/* The level picker sits where it does on the Region tab: its top at the top of the name's capitals, its bottom on the
+   baseline of the last line beside it, with the lines between spaced evenly. */
+html.tabs .dhead{align-items:flex-start}
+html.tabs .dhead .seg.tri{margin-top:4px}
+html.tabs .dhead .who > span{margin-top:6.5px}
+html.tabs .dhead .who > .dfresh{margin-top:7px}
 .dhead .seg{margin-left:0;flex:none}
 .dhead .mine{color:var(--accent);font-size:16px;line-height:1}
 #homeAsk{border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--ink);padding:20px 20px 16px;margin:auto;max-width:min(340px,calc(100vw - 32px))}
@@ -782,6 +790,56 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
 .heat td.name b i{font-style:normal;font-weight:500;color:var(--ink2);margin-left:1px}
 .gridnote{font-size:11.5px;color:var(--muted);padding:6px 16px 0}
 .awarn{margin-top:12px;border-radius:10px;padding:9px 12px;background:#ed1c24;color:#fff;font-size:14px;font-weight:650}
+/* In tabs the avalanche pane is cut into titled parts like the Mountain tab: blue headings with a rule, pill-ended chips and button. */
+html.tabs #avalanche h3{display:flex;align-items:center;gap:10px;margin-top:28px;font-size:15.5px;color:var(--accent)}
+html.tabs #avalanche h3::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
+html.tabs #avalanche .ahead .by{font-size:12.5px;color:var(--mark-dull)}
+html.tabs #avalanche .ahead .by b{font-weight:650;color:var(--mark-mid)}
+html.tabs #avalanche .dtable{max-width:none;margin-top:8px;gap:6px 8px}
+html.tabs #avalanche .dtable .dchip,html.tabs #avalanche .abtn{border-radius:999px}
+html.tabs #avalanche .dscale{margin-top:10px}
+html.tabs #avalanche .dscale div:first-child span{border-radius:999px 0 0 999px}
+html.tabs #avalanche .dscale div:last-child span{border-radius:0 999px 999px 0}
+html.tabs #avalanche .abtn{margin-top:18px;background:var(--mark)}
+html.tabs #avalanche .probs li{padding:6px 0}
+/* The center's running text (bottom line, discussion, weather) is set flush on both sides, hyphenated so the gaps stay small. */
+html.tabs #avalanche .abottom p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+html.tabs #avalanche .ahead .by .late{color:#c62828}
+@media (prefers-color-scheme:dark){html.tabs #avalanche .ahead .by .late{color:#ff6b6b}}
+.abanner{display:flex;align-items:center;gap:12px;margin-top:10px;padding:11px 14px 11px 10px;border-radius:14px;background:color-mix(in srgb,var(--d) 20%,var(--surface));border:1px solid color-mix(in srgb,var(--d) 45%,var(--surface))}
+.abanner img{flex:none;width:62px}
+.abanner b{display:block;font-size:16px;font-weight:700;color:var(--ink)}
+.abanner p{margin:2px 0 0;font-size:13.5px;line-height:1.4;color:var(--ink2)}
+@media (prefers-color-scheme:dark){.abanner img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
+/* The title and its lines stand exactly where the Mountain tab's do: same top, same left, same line spacing. */
+html.tabs #avalanche .ahead{align-items:flex-start;margin-top:-2px}
+html.tabs #avalanche .ahead .by{margin-top:7px}
+html.tabs #avalanche .ahead h2 + .by{margin-top:6.5px;font-size:13px}
+.aloc{flex:none;width:110px;height:85px}
+.aloc .other{fill:var(--mark-dull);opacity:.4}
+.aloc .here{stroke:var(--mark);stroke-width:.45;stroke-linejoin:round}
+.aloc ellipse{fill:var(--accent)}
+.aloc circle{fill:var(--mark-mid)}
+.aloc text{font-size:3.1px;font-weight:600;fill:var(--mark-mid);paint-order:stroke;stroke:var(--surface);stroke-width:1.1px;stroke-linejoin:round}
+.probs details.prob{flex:1;min-width:0;margin:0;padding:0}
+.probs details.prob > summary{display:flex;gap:12px;align-items:center;padding:0;font-size:inherit;font-weight:400}
+.probs details.prob > summary::after{margin-left:0;font-size:18px;color:var(--mark-dull)}
+.probs details.prob[open] .rose{width:84px;height:84px}
+.pmore{margin:8px 0 6px;padding:10px 12px;border-radius:11px;background:var(--wash)}
+.pmore h4{margin:0 0 3px;font-size:12px;font-weight:650;color:var(--accent)}
+.pmore p{margin:0 0 8px;font-size:13.5px;line-height:1.45;color:var(--ink2);max-width:none}
+.pmore p:last-child{margin-bottom:0}
+.ddefs{margin-top:12px}
+.ddefs > div{padding:10px 12px;border-radius:11px;margin-top:6px;border:1px solid var(--border)}
+.ddefs > div.on{background:var(--wash);border-color:var(--mark-dull)}
+.ddefs .dchip{border-radius:999px;margin-bottom:6px}
+.ddefs p{margin:0 0 4px;font-size:13px;line-height:1.4;color:var(--ink2)}
+.ddefs p b{font-weight:600;color:var(--ink)}
+.ddefs p i{display:block;font-style:normal;font-size:11px;font-weight:650;color:var(--mark-dull)}
+.ddefs > .aby{margin-top:8px;font-size:12px}
+html.tabs #avalanche .afoot{margin-top:24px;padding:12px;border-radius:14px;background:var(--wash)}
+html.tabs #avalanche .afoot .abtn{margin-top:0}
+html.tabs #avalanche .afoot .anote{margin:8px 2px 0;text-align:center}
 .anotice{margin-top:12px;border-radius:10px;padding:9px 12px;background:var(--wash);font-size:13.5px;color:var(--ink2)}
 .aadvice{margin-top:10px;font-size:14.5px;color:var(--ink2);max-width:72ch}
 .dtable{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:5px 8px;align-items:center;margin-top:14px;max-width:460px;font-size:13px;color:var(--ink2)}
@@ -1953,6 +2011,7 @@ function renderDetail() {
   fitted = $("detail").clientWidth;
   const resort = here().find((r) => r.key === selected) || opener();
   selected = resort.key;
+  if (avyShown !== selected && avy[region] && avy[region].loaded) renderAvalanche();
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   // The forecast summary: four across, even on a phone. The ± sits under the number so each stays narrow.
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
@@ -2312,8 +2371,13 @@ const ASPECTS = [["north", "N"], ["northeast", "NE"], ["east", "E"], ["southeast
 const avy = {};
 let avyOn = false;
 const getJson = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-async function loadAvalanche() {
-  const asked = region, centers = REGIONS[asked].avalanche, state = avy[asked] ||= {zones: [], product: null, loaded: false};
+// The Avalanche tab can be pointed at any zone of any region's centers. The choice lasts until the region changes;
+// zones of the other regions and the forecasts of picked zones are fetched when first wanted.
+let avyPick = null, avyShown = null;
+const avyElsewhere = {}, avyProducts = {}, avyAsked = new Set();
+const zoneKey = (zone) => `${zone.center.id}/${zone.id}`;
+const zoneProduct = (zone) => getJson(`${AVY_API}/product?type=forecast&center_id=${zone.center.id}&zone_id=${zone.id}`).catch(() => null);
+async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => getJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
   layers.forEach((layer, n) => {
@@ -2324,8 +2388,13 @@ async function loadAvalanche() {
         rings: (g.type === "MultiPolygon" ? g.coordinates : [g.coordinates]).flat()});
     }
   });
+  return zones;
+}
+async function loadAvalanche() {
+  const asked = region, centers = REGIONS[asked].avalanche, state = avy[asked] ||= {zones: [], product: null, loaded: false};
+  const zones = await zonesFrom(centers);
   const main = zones.find((zone) => zone.center === centers[0]);
-  const product = main ? await getJson(`${AVY_API}/product?type=forecast&center_id=${main.center.id}&zone_id=${main.id}`).catch(() => null) : null;
+  const product = main ? await zoneProduct(main) : null;
   Object.assign(state, {zones, product, loaded: true});
   if (asked !== region) return;
   renderAvalanche(); badges(); mapAvalanche();
@@ -2393,6 +2462,27 @@ function problemWhere(location) {
   const high = bands.size >= BANDS.length ? "all elevations" : BANDS.filter(([key]) => bands.has(key)).map(([, label]) => label.toLowerCase()).join(" and ");
   return [facing, high].filter(Boolean).join(", ");
 }
+// What each danger level means, in the words of the North American Public Avalanche Danger Scale: travel advice,
+// likelihood of avalanches, and their size and distribution.
+const DANGER_MEANS = [
+  ["Generally safe avalanche conditions. Watch for unstable snow on isolated terrain features.", "Natural and human-triggered avalanches unlikely.", "Small avalanches in isolated areas or extreme terrain."],
+  ["Heightened avalanche conditions on specific terrain features. Evaluate snow and terrain carefully; identify features of concern.", "Natural avalanches unlikely; human-triggered avalanches possible.", "Small avalanches in specific areas; or large avalanches in isolated areas."],
+  ["Dangerous avalanche conditions. Careful snowpack evaluation, cautious route-finding and conservative decision-making essential.", "Natural avalanches possible; human-triggered avalanches likely.", "Small avalanches in many areas; or large avalanches in specific areas; or very large avalanches in isolated areas."],
+  ["Very dangerous avalanche conditions. Travel in avalanche terrain not recommended.", "Natural avalanches likely; human-triggered avalanches very likely.", "Large avalanches in many areas; or very large avalanches in specific areas."],
+  ["Avoid all avalanche terrain.", "Natural and human-triggered avalanches certain.", "Large to very large avalanches in many areas."]];
+// Bearings for the small zone map: two lakes (lon, lat, half-width, half-height in map units) and three names.
+const SIERRA_LAKES = [[-120.04, 39.09, 0.9, 1.6], [-119, 38, 0.9, 0.7]];
+// Names sit to the east of their spots, clear of the zones. Tahoe names the lake, so it gets no dot of its own.
+const SIERRA_TOWNS = [["Tahoe", -120.04, 39.09, false], ["Bridgeport", -119.23, 38.26, true], ["Bishop", -118.39, 37.36, true]];
+// A small flat map, north up, from Lake Tahoe to Bishop: the two lakes, the names, the other covered zones faint,
+// and the forecast zone in its danger color.
+function locator(zone, all) {
+  const xy = ([lon, lat]) => [(lon + 124.6) * 7.93, (42.15 - lat) * 10], at = (spot) => xy(spot).map((v) => v.toFixed(1)).join(" ");
+  const shape = (z) => z.rings.map((ring) => `M${ring.filter((_, k) => k % 3 === 0).map(at).join("L")}Z`).join("");
+  const lakes = SIERRA_LAKES.map(([lon, lat, rx, ry]) => { const [x, y] = xy([lon, lat]); return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${ry}"/>`; }).join("");
+  const towns = SIERRA_TOWNS.map(([name, lon, lat, dot]) => { const [x, y] = xy([lon, lat]); return `${dot ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/>` : ""}<text x="${(x + (dot ? 1.6 : 2)).toFixed(1)}" y="${(y + 1.1).toFixed(1)}">${name}</text>`; }).join("");
+  return `<svg class="aloc" viewBox="27 23.500 35.500 27.500" role="img" aria-label="Where in the Sierra Nevada the ${esc(zone.name)} forecast applies">${all.filter((z) => z !== zone).map((z) => `<path class="other" d="${shape(z)}"/>`).join("")}<path class="here" style="fill:${danger(zone.level)[1]}" d="${shape(zone)}"/>${lakes}${towns}</svg>`;
+}
 // The forecasters' aspect and elevation rose: north up, the summit at the middle, filled where the problem is.
 function rose(location) {
   const where = new Set(location || []), at = (r, deg) => [(30 + r * Math.sin(deg * Math.PI / 180)).toFixed(1), (34 - r * Math.cos(deg * Math.PI / 180)).toFixed(1)];
@@ -2410,19 +2500,60 @@ function paragraphs(html) {
   return parts.length ? parts : [body.textContent.replace(/\s+/g, " ").trim()].filter(Boolean);
 }
 function renderAvalanche() {
-  const state = avy[region], center = REGIONS[region].avalanche[0];
-  const zone = state && state.zones.find((z) => z.center === center), product = state && state.product;
+  const state = avy[region], home = REGIONS[region].avalanche[0];
+  const main = state && state.zones.find((z) => z.center === home);
+  // Every zone the app's regions cover, this region's first, without repeats where two regions share a center.
+  const seen = new Set(), all = [region, ...Object.keys(REGIONS).filter((key) => key !== region)]
+    .flatMap((key) => (avy[key] && avy[key].zones.length ? avy[key].zones : avyElsewhere[key]) || [])
+    .filter((z) => !seen.has(zoneKey(z)) && seen.add(zoneKey(z)));
+  if (state && state.loaded && !avyAsked.has("elsewhere")) {
+    avyAsked.add("elsewhere");
+    Promise.all(Object.keys(REGIONS).filter((key) => key !== region && !(avy[key] && avy[key].zones.length)).map(async (key) => { avyElsewhere[key] = await zonesFrom(REGIONS[key].avalanche); })).then(renderAvalanche);
+  }
+  // The pane opens on the zone the selected mountain stands in (the region's first where none covers it). A zone
+  // picked from the title holds until another mountain or region is chosen.
+  const spot = data && data.resorts.find((r) => r.key === selected);
+  const mine = spot && state ? state.zones.find((z) => inRings(z.rings, spot.lon, spot.lat)) : null;
+  avyShown = selected;
+  const picked = avyPick && avyPick.region === region && avyPick.mountain === selected ? all.find((z) => zoneKey(z) === avyPick.key) : null;
+  const zone = picked || mine || main, center = zone ? zone.center : home;
+  // A picked zone's forecast is fetched once; until it answers, product is undefined and the pane says it is loading.
+  const product = !zone || zone === main ? state && state.product : avyProducts[zoneKey(zone)];
+  if (zone && zone !== main && !avyAsked.has(zoneKey(zone))) {
+    avyAsked.add(zoneKey(zone));
+    zoneProduct(zone).then((found) => { avyProducts[zoneKey(zone)] = found; renderAvalanche(); });
+  }
+  // The center's mountain weather write-up is a product of its own, named by the forecast.
+  const weatherId = product && product.weather_data && product.weather_data.weather_product_id;
+  if (weatherId && !avyAsked.has(`w${weatherId}`)) {
+    avyAsked.add(`w${weatherId}`);
+    getJson(`${AVY_API}/product/${weatherId}`).catch(() => null).then((found) => { avyProducts[`w${weatherId}`] = found; if (found) renderAvalanche(); });
+  }
+  const weather = weatherId ? avyProducts[`w${weatherId}`] : null;
+  // The picker lists the zones alone, north to south by the middle of each.
+  const midLat = (z) => { const points = z.rings.flat(); return points.reduce((sum, c) => sum + c[1], 0) / points.length; };
+  const listed = [...all].sort((a, b) => midLat(b) - midLat(a));
+  // A center with one zone names it after itself; the title drops the repeat ("Bridgeport").
+  const zoneName = (z) => z.name === z.center.name ? z.name.replace(/ Avalanche Center$/, "") : z.name;
+  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche forecast zone">${listed.map((z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`).join("")}</select></label>`;
   const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
-  const head = `<div class="ahead"><div><h2>Avalanche danger</h2><span class="by">${esc(center.name)}${zone ? ` · ${esc(zone.name)}` : ""}</span></div>${zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
+  // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
+  const brief = (iso) => iso ? new Date(iso).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"})) : "";
+  const issue = brief(product && product.published_time), ends = brief(product && product.expires_time), over = ends && new Date(product.expires_time) < Date.now();
+  const by = tabbed() ? `<span class="by">${esc(center.name)}</span>${zone && issue ? `<span class="by issued">Issued <b>${issue}</b></span>${ends ? `<span class="by issued">${over ? "Expired" : "Expires"} <b${over ? ' class="late"' : ""}>${ends}</b></span>` : ""}` : ""}`
+    : `<span class="by">${zone ? "Avalanche danger · " : ""}${esc(center.name)}</span>`;
+  // In tabs the map sits beside the title, and the danger sign moves into the banner under it with the level and advice.
+  const head = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) : zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
-  const foot = (link, withScale = true) => `${withScale ? scale : ""}<a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
-    <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p>`;
+  const foot = (link, withScale = true) => `${withScale ? scale : ""}<div class="afoot"><a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
+    <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p></div>`;
   if (!state || !state.loaded) { $("avalanche").innerHTML = `${head}<p class="anotice">Loading the avalanche forecast…</p>`; return; }
   if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. It is not saved on your phone, so it is never shown out of date."}</p>${foot(center.url)}`; return; }
   let body = zone.warning ? `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>` : "";
   let expired = false;
   if (zone.offSeason) body += `<p class="anotice">Off season: the center is not issuing daily forecasts.</p>`;
-  if (!product) body += `<p class="anotice">The forecast details could not be loaded right now.</p>`;
+  if (product === undefined) body += `<p class="anotice">Loading the avalanche forecast…</p>`;
+  else if (!product) body += `<p class="anotice">The forecast details could not be loaded right now.</p>`;
   else {
     expired = product.expires_time && new Date(product.expires_time) < Date.now();
     if (expired) body += `<p class="anotice"><b>Expired ${clock(product.expires_time)}.</b> The center may have posted a newer forecast.</p>`;
@@ -2430,30 +2561,40 @@ function renderAvalanche() {
     if (!rated) body += `<p class="anotice">No danger rating: the center has posted ${product.product_type === "summary" ? "a general summary" : "an update"}, not a daily forecast.</p>`;
   }
   let rating = zone.advice ? `<p class="aadvice">${esc(zone.advice)}</p>` : "", trouble = "", words = "";
+  if (tabbed()) rating = `<div class="abanner" style="--d:${danger(zone.level)[1]}"><img src="${dangerIcon(zone.level)}" alt="" onerror="this.remove()"><div><b>${dangerText(zone.level)}</b>${zone.advice ? `<p>${esc(zone.advice)}</p>` : ""}</div></div>`;
   if (product) {
     const days = ["current", "tomorrow"].map((key) => (product.danger || []).find((d) => d.valid_day === key)).filter(Boolean);
     if (days.length && product.product_type === "forecast") {
       // The first column is the day the forecast was issued for, the second the day after.
       const issued = new Date(product.published_time).getTime();
       const dayName = (n) => new Date(issued + n * 864e5).toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric"});
-      rating += `<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
+      rating += `${tabbed() ? "<h3>Danger by elevation</h3>" : ""}<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
         ${BANDS.map(([band, label]) => `<span>${label}</span>${days.map((d) => chip(d[band])).join("")}${days.length < 2 ? "<span></span>" : ""}`).join("")}</div>`;
     }
     const problems = [...(product.forecast_avalanche_problems || [])].sort((a, b) => a.rank - b.rank);
     if (problems.length) {
-      trouble = `<div class="aproblems"><h3>Avalanche problems</h3><ol class="probs">${problems.map((x, n) => {
+      trouble = `<div class="aproblems"><h3>${tabbed() ? "Problems" : "Avalanche problems"}</h3><ol class="probs">${problems.map((x, n) => {
         const size = (x.size || []).filter(Boolean), facts = [x.likelihood, size.length ? `size D${size[0]}${size[1] && size[1] !== size[0] ? ` to D${size[1]}` : ""}` : "", problemWhere(x.location)];
         const drawing = /^https?:\/\/api\.avalanche\.org\//.test(x.icon || "") ? `<img class="ptype" src="${esc(x.icon.replace(/^http:/, "https:"))}" alt="" onerror="this.remove()">` : "";
-        return `<li>${drawing}<div><b>${x.rank || n + 1}. ${esc(x.name || "")}</b>${esc(facts.filter(Boolean).join(" · "))}</div>${rose(x.location)}</li>`;
+        const row = `${drawing}<div><b>${x.rank || n + 1}. ${esc(x.name || "")}</b>${esc(facts.filter(Boolean).join(" · "))}</div>${rose(x.location)}`;
+        // In tabs a problem opens to the center's own words: what this kind of avalanche is, and what it is doing today.
+        const what = paragraphs(x.problem_description), today = paragraphs(x.discussion);
+        if (!tabbed() || (!what.length && !today.length)) return `<li>${row}</li>`;
+        return `<li><details class="prob"><summary>${row}</summary><div class="pmore">${what.length ? `<h4>What it is</h4>${what.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}${today.length ? `<h4>Today</h4>${today.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}</div></details></li>`;
       }).join("")}</ol></div>`;
     }
+    // The center's longer write-ups, where it posts them: the forecast discussion and the mountain weather.
+    const told = (title, html, by = "") => { const text = paragraphs(html); return text.length ? `<h3>${title}</h3><div class="abottom">${text.map((line) => `<p>${esc(line)}</p>`).join("")}</div>${by ? `<p class="aby">${by}</p>` : ""}` : ""; };
+    const more = told("Forecast discussion", product.hazard_discussion) + told("Weather", product.weather_discussion || (weather && weather.weather_discussion), weather && weather.published_time ? `${weather.author ? `${esc(weather.author)} · ` : ""}issued ${brief(weather.published_time)}` : "");
     const lines = paragraphs(product.bottom_line);
-    words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)} · issued ${clock(product.published_time)}${product.expires_time ? ` · expires ${clock(product.expires_time)}` : ""}</p></div>`;
+    words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more : ""}</div>`;
   }
-  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${scale}</div></div>`;
+  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${tabbed() ? "<h3>Definitions</h3>" : ""}${scale}${tabbed() ? `<div class="ddefs">${DANGER_MEANS.map(([advice, likely, size], n) => `<div class="${zone.level === n + 1 ? "on" : ""}">${chip(n + 1)}<p><b>${advice}</b></p><p><i>Likelihood</i>${likely}</p><p><i>Size and spread</i>${size}</p></div>`).join("")}<p class="aby">North American Public Avalanche Danger Scale.</p></div>` : ""}</div></div>`;
   const link = (product && product.forecast_zone && product.forecast_zone[0] && product.forecast_zone[0].url) || zone.link || center.url;
   $("avalanche").innerHTML = `<div class="${expired ? "expired" : ""}">${head}${body}</div>${foot(link, false)}`;
 }
+
+document.addEventListener("change", (e) => { if (e.target.id === "avyPick") { avyPick = {region, mountain: selected, key: e.target.value}; renderAvalanche(); } });
 
 function renderNotes() {
   const unsensed = data.bias_corrected ? data.resorts.filter((r) => r.station === null).map((r) => r.name) : [];
