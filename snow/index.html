@@ -134,9 +134,9 @@ html.tabs .panel.summary.dragin:not(#_){display:flex!important}
 /* Held like that the pane is its own scroller, so its pinned bar would pin against the pane's top edge and sit a
    status strip's height too low until the slide ended. While sliding, the bar just sits at the pane's top. */
 html.tabs .dragin .dtop{position:relative;top:0}
-/* A capsule kept on a layer of its own puts the words over it on another, which a phone paints a beat late on a pane
-   that has only just been shown. While sliding, the capsules are plain paint in the pane. */
-html.dragging .segind{will-change:auto;transition:none}
+/* The capsules are never kept on a layer of their own: that puts the chosen word over them on another layer, which a
+   phone makes a beat late whenever the layers are rebuilt (a pane shown, a slide ending), so the word blinks. */
+html.dragging .segind{transition:none}
 /* Nothing flashes a color when it is pressed. What can be pressed gives a little instead: it dips for as long as the
    finger is down (.pressed, put on at the touch) and springs back when it lifts (.sprung), which is also when the tap
    counts. A pill of choices dips as one piece, whichever choice was touched. The choosers' outline shows only for someone moving through the page by keyboard. */
@@ -412,7 +412,7 @@ html.tabs .seg:not(.tri) button{position:relative;z-index:1;-webkit-tap-highligh
 html.tabs .seg.slid button[aria-pressed=true]{background:none;box-shadow:none}
 .segind{display:none}
 html.tabs .segind{display:block;position:absolute;z-index:0;top:3px;bottom:3px;left:0;border-radius:999px;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12);
-  will-change:transform;transition:transform .3s cubic-bezier(.3,1.2,.4,1),width .3s cubic-bezier(.3,1.2,.4,1)}
+  transition:transform .3s cubic-bezier(.3,1.2,.4,1),width .3s cubic-bezier(.3,1.2,.4,1)}
 html.tabs .segind.still{transition:none}
 @media (prefers-reduced-motion:reduce){html.tabs .segind{transition:none}}
 /* A press shows nothing of its own (no gray flash, no wait for a second tap): the capsule arriving is the answer. */
