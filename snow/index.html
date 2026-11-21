@@ -350,8 +350,12 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .skey i.typ{border-top:1.5px dashed var(--ink2)}
 .skey i.old{border-top:1px solid var(--muted);opacity:.6}
 .skey i.rec{border-top:2px dotted var(--ink2)}
-.skey button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font:inherit;color:var(--ink2);background:none;border:1px solid var(--border);border-radius:999px;padding:2px 9px;margin:-3px 0;cursor:pointer}
-.skey button[aria-pressed=false]{color:var(--muted);opacity:.6;text-decoration:line-through}
+/* The record's entry reads like the rest of the legend, with a small check box after it to show it can be switched. */
+.skey button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.skey .box{box-sizing:border-box;width:13px;height:13px;border-radius:4px;border:1.5px solid var(--muted);margin-left:1px;position:relative;flex:none}
+.skey button[aria-checked=true] .box{background:var(--ink2);border-color:var(--ink2)}
+.skey button[aria-checked=true] .box::after{content:"";position:absolute;left:3px;top:0;width:3px;height:7px;border:solid var(--surface);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.skey button[aria-checked=false]{opacity:.6}
 .season .snote{font-size:12.5px;line-height:1.5;color:var(--muted)}
 @media(max-width:720px){.season .seg{display:flex;width:100%}.season .seg button{flex:1}}
 .season .snote b{color:var(--ink2);font-weight:650}
@@ -663,7 +667,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "164";
+const BUILD = "165";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1174,7 +1178,7 @@ function seasonSoFar(resort) {
     <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${rounded(mine[last])} ${LEN()}</text>`;
   seasonView = {curve, count, lines, usual, past, mine, best, y, left: L, span: W - L - R};
   return `<div class="season">${head}<div class="schart" id="seasonChart"><div class="stip" id="seasonTip" hidden></div><svg width="${W}" height="${H}" role="img" aria-label="${view.tab} through the winter: the current winter, a typical year, and the last ten winters">${body}</svg></div>
-    <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span>${record ? `<button data-record aria-pressed="${!!best}" title="${best ? "Hide" : "Show"} the record winter"><i class="rec"></i>record, ${winterName(record.year)}</button>` : ""}</div>
+    <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span>${record ? `<button data-record role="switch" aria-checked="${!!best}" title="${best ? "Hide" : "Show"} the record winter"><i class="rec"></i>record, ${winterName(record.year)}<b class="box"></b></button>` : ""}</div>
     <div class="snote" id="seasonNote">${note}</div></div>`;
 }
 // A finger or pointer on the chart reads out that date: the current winter, the typical year, and the ten winters' range.

@@ -431,6 +431,17 @@ def add_season(resorts: list, now: pd.Timestamp) -> dict:
             for triplet, normal in normals.items() if normal}
 
 
+def refresh_season(now: datetime | None = None) -> dict:
+    """Bring the published forecast's season figures and curves up to date from the snow sensors alone. The
+    forecast itself, and the time it was made, are left as they are."""
+    now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
+    path = DATA / "forecast.json"
+    forecast = json.loads(path.read_text())
+    forecast["season_curves"] = add_season(forecast["resorts"], now)
+    path.write_text(json.dumps(forecast, separators=(",", ":")))
+    return forecast
+
+
 def run(now: datetime | None = None) -> dict:
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
     snow_model, ratio_name = load_snow_model()

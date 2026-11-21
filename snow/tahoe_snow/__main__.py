@@ -1,4 +1,4 @@
-"""Command line: python -m tahoe_snow run | prune | usage."""
+"""Command line: python -m tahoe_snow run | season | prune | usage | budget."""
 import argparse
 import sys
 from datetime import datetime, timedelta, timezone
@@ -28,13 +28,20 @@ def main() -> int:
     sub.add_parser("run", help="fetch, forecast, and write the site's data files")
     sub.add_parser("prune", help="delete archived forecasts that are no longer needed").add_argument(
         "--days", type=int, default=ARCHIVE_DAYS)
+    sub.add_parser("season", help="refresh the season figures from the snow sensors, leaving the forecast alone")
     sub.add_parser("usage", help="report the Open-Meteo allowance used; exit 1 near the limit").add_argument(
         "--fail-over", type=float, default=0.9)
+    sub.add_parser("budget", help="exit 1 if another forecast run does not fit the allowance").add_argument(
+        "--by-hand", action="store_true", help="hold the run to the stricter rule for runs started by hand")
     args = parser.parse_args()
     if args.command == "run":
         pipeline.run()
+    elif args.command == "season":
+        pipeline.refresh_season()
     elif args.command == "usage":
         return usage.check(args.fail_over)
+    elif args.command == "budget":
+        return usage.gate(args.by_hand)
     else:
         print(f"removed {prune(args.days)} archived forecasts")
     return 0

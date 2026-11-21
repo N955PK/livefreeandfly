@@ -11,6 +11,14 @@ on:
         description: Run only if the forecast is due, as a scheduled firing does
         type: boolean
         default: false
+      season_only:
+        description: Refresh only the season figures from the snow sensors (no forecast, no Open-Meteo calls)
+        type: boolean
+        default: false
+      over_budget:
+        description: Run the forecast even if it does not fit the day's Open-Meteo allowance
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -38,6 +46,7 @@ jobs:
           run=false
           if [ "$minutes" -ge 150 ]; then run=true; fi
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.only_if_due }}" != "true" ]; then run=true; fi
+          if [ "${{ inputs.season_only }}" = "true" ]; then run=false; fi
           echo "run=$run" >> "$GITHUB_OUTPUT"
           echo "Forecast last published ${published:-never} (${minutes} minutes ago); run=$run" | tee -a "$GITHUB_STEP_SUMMARY"
 
@@ -90,7 +99,18 @@ jobs:
             git archive FETCH_HEAD archive 2>/dev/null | tar -x -C snow/data || true
           fi
 
+      # The ledger of past runs came back with the archive. A scheduled run goes ahead until Open-Meteo has refused
+      # requests, then waits for room; a run started by hand has to fit the day's allowance unless told otherwise.
+      - name: Check there is room in the data budget
+        id: budget
+        working-directory: snow
+        run: |
+          strict=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then strict="--by-hand"; fi
+          if [ "${{ inputs.over_budget }}" = "true" ] || python -m tahoe_snow budget $strict; then echo "go=true" >> "$GITHUB_OUTPUT"; else echo "go=false" >> "$GITHUB_OUTPUT"; echo "::warning::Forecast skipped: no room in the Open-Meteo allowance"; fi
+
       - name: Run the forecast
+        if: steps.budget.outputs.go == 'true'
         working-directory: snow
         run: |
           python -m tahoe_snow run
@@ -98,6 +118,7 @@ jobs:
 
       # The data branch holds one commit: the latest forecast and the last three weeks of archive.
       - name: Publish to the data branch
+        if: steps.budget.outputs.go == 'true'
         run: |
           out="$(mktemp -d)"
           cp snow/data/forecast.json snow/data/scorecard.json "$out/"
@@ -112,5 +133,48 @@ jobs:
 
       # Last, so the forecast is published either way; a failure here sends the repository owner an email.
       - name: Check the data budget
+        if: steps.budget.outputs.go == 'true'
         working-directory: snow
         run: python -m tahoe_snow usage --fail-over 0.9
+
+  # The season figures come from the snow sensors alone, so they can be brought up to date without a forecast run.
+  # The data branch keeps the date of the forecast it holds, so the next forecast still comes due on time.
+  season:
+    if: github.event_name == 'workflow_dispatch' && inputs.season_only
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: snow/requirements.txt
+
+      - name: Install
+        run: pip install -r snow/requirements.txt
+
+      - name: Bring the published data back
+        run: |
+          mkdir -p snow/data
+          git fetch --depth=1 origin snow-data
+          git archive FETCH_HEAD | tar -x -C snow/data
+          echo "FORECAST_DATE=$(git log -1 --format=%cI FETCH_HEAD)" >> "$GITHUB_ENV"
+
+      - name: Refresh the season figures
+        working-directory: snow
+        run: python -m tahoe_snow season
+
+      - name: Publish to the data branch
+        run: |
+          out="$(mktemp -d)"
+          cp snow/data/forecast.json snow/data/scorecard.json "$out/"
+          cp -r snow/data/archive "$out/archive"
+          cd "$out"
+          git init -q -b snow-data
+          git config user.name "snow-forecast"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          GIT_AUTHOR_DATE="$FORECAST_DATE" GIT_COMMITTER_DATE="$FORECAST_DATE" git commit -q -m "Forecast data, season refreshed $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-data

@@ -262,3 +262,17 @@ def test_season_normal_is_the_median_of_past_years_on_this_date():
     assert len(curve["normal"]) == len(curve["years"]["2026"]) == 122 and abs(curve["normal"][60] - 30.0) < 0.5
     # This winter has run 50 days, so its line stops there.
     assert curve["years"]["2027"][16] is not None and curve["years"]["2027"][18] is None
+
+
+def test_a_run_waits_for_room_only_once_the_service_has_refused_or_it_was_started_by_hand():
+    now = datetime(2026, 11, 21, 1, 0)
+
+    def ledger(runs, refused=0):
+        return [{"utc": (now - timedelta(hours=hour + 1)).strftime(usage.STAMP), "calls": 970.0,
+                 "rate_limited": refused, "measured": True} for hour in range(runs)]
+
+    assert usage.room(ledger(3), now, by_hand=False)[0] and usage.room(ledger(3), now, by_hand=True)[0]
+    # Ten runs fill the day: a scheduled run still goes while nothing has been refused, one started by hand does not.
+    assert usage.room(ledger(10), now, by_hand=False)[0] and not usage.room(ledger(10), now, by_hand=True)[0]
+    assert not usage.room(ledger(10, refused=4), now, by_hand=False)[0]
+    assert usage.room([], now, by_hand=True)[0]

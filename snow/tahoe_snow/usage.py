@@ -14,6 +14,10 @@ from tahoe_snow.sources import openmeteo
 LEDGER = DATA / "archive" / "usage.json"
 KEEP_DAYS = 31
 STAMP = "%Y-%m-%dT%H:%M:%SZ"
+# What a run is taken to cost when the ledger has no runs to go by.
+TYPICAL_RUN_CALLS = 1000
+# A run started by hand has to leave this much of the day's allowance for the scheduled ones.
+BY_HAND_SHARE = 0.9
 
 
 def of_run(requests: list) -> dict:
@@ -73,3 +77,35 @@ def check(fail_over: float, path: Path = LEDGER) -> int:
         print(f"::error::The forecast is using more than {fail_over:.0%} of the Open-Meteo free allowance, "
               "or was rate limited.")
     return int(over)
+
+
+def room(ledger: list, now: datetime, by_hand: bool) -> tuple:
+    """Whether another forecast run fits the day's allowance, and a line saying why.
+
+    A scheduled run goes ahead until the service has actually refused requests; the ledger's rolling day is
+    stricter than however the service counts, and a forecast is worth more than the margin. Once it has been
+    refused, runs wait until the ledger shows a run's worth of room. A run started by hand always has to fit,
+    with room left over."""
+    use = summary(ledger, now)
+    recent = [row["calls"] for row in ledger[-3:]]
+    next_run = sum(recent) / len(recent) if recent else TYPICAL_RUN_CALLS
+    limit = use["daily_limit"] * (BY_HAND_SHARE if by_hand else 1.0)
+    fits = use["calls_24h"] + next_run <= limit
+    told = (f"{use['calls_24h']:,} calls in the last 24 hours, about {next_run:,.0f} more for this run, "
+            f"limit {limit:,.0f}")
+    if fits:
+        return True, f"Room for a run: {told}."
+    if not by_hand and use["rate_limited_24h"] == 0:
+        return True, f"Over the ledger's count but nothing has been refused, so the run goes ahead: {told}."
+    return False, f"No room for a run: {told}."
+
+
+def gate(by_hand: bool, path: Path = LEDGER) -> int:
+    """Print whether a run should go ahead and return 0 if so, 1 to skip it."""
+    ledger = json.loads(path.read_text()) if path.exists() else []
+    go, why = room(ledger, datetime.now(timezone.utc), by_hand)
+    print(why)
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as out:
+            out.write(f"### Data budget\n\n{why}\n")
+    return 0 if go else 1
