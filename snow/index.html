@@ -183,8 +183,8 @@ html.tabs #detail .season .shead b{font-size:15.5px;font-weight:650;color:var(--
   /* The foot of the bar's scale is level with the foot of the total card, and the weather line sits just above the bar. */
   html.tabs .srow.day2 > .track{grid-column:2;grid-row:2;align-self:end}
   .track.zero{height:31px;margin:0}
-  .track.zero::before{left:0;right:0;top:0;height:18px;border-radius:9px;background:var(--wash)}
-  .track.zero .fill{position:absolute;left:0;top:0;height:18px;min-width:8px;border-radius:9px}
+  .track.zero::before{left:0;right:0;top:0;height:18px;border-radius:4px;background:var(--wash)}
+  .track.zero .fill{position:absolute;left:0;top:0;height:18px;min-width:8px;border-radius:4px}
   .track.zero .whisk{position:absolute;top:8px;height:2px;min-width:2px;background:var(--mark)}
   .track.zero .whisk::before,.track.zero .whisk::after{content:"";position:absolute;top:-6px;width:2px;height:14px;border-radius:1px;background:var(--mark)}
   .track.zero .whisk::before{left:0}.track.zero .whisk::after{right:0}
@@ -240,6 +240,14 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
 .roadpill,.roadsheet .grab{display:none}
 html.tabs[data-view="map"],html.tabs[data-view="map"] body{height:100%;overflow:hidden;overscroll-behavior:none}
 html.tabs[data-view="map"] main{height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:var(--tabbar)}
+/* On a phone the other tabs' panes run white all the way down to the tab bar, each ending in the same 28px of space;
+   a pane shorter than the screen stretches to reach it. */
+@media (max-width:720px){
+  html.tabs:not([data-view="map"]) main{min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:var(--tabbar)}
+  html.tabs .panel.summary,html.tabs #detail,html.tabs #avalanche{flex:1 0 auto;border-bottom:0;padding-bottom:28px}
+  html.tabs .panel.summary .legend{padding-bottom:0}
+  html.tabs #detail .cams{padding-bottom:0}
+}
 html.tabs[data-view="map"] #mapPanel{position:relative;flex:1;min-height:0;margin-top:10px}
 html.tabs[data-view="map"] #map3d{position:absolute;inset:0;height:auto;min-height:0;touch-action:none}
 html.tabs[data-view="map"] #map3d canvas{touch-action:none!important}
@@ -307,7 +315,7 @@ html.tabs .roadsheet details.roads summary .sw b{font-size:14px;font-weight:700;
 html.tabs .roadsheet details.roads summary::after{color:var(--mark-dull);font-size:18px}
 html.tabs .roadsheet .roads ul{margin:2px 0 6px}
 html.tabs .roadsheet .roads li{display:grid;grid-template-columns:38px minmax(0,1fr);column-gap:10px;align-items:start;font-size:13px;line-height:1.45;margin:0;padding:6px 0;color:var(--ink2)}
-html.tabs .roadsheet .roads li > b{justify-self:start;min-width:38px;box-sizing:border-box;text-align:center;padding:1px 6px;border-radius:999px;background:var(--wash);border:1px solid var(--border);color:var(--mark);font-size:12.5px;font-weight:700}
+html.tabs .roadsheet .roads li > b{justify-self:start;min-width:38px;box-sizing:border-box;text-align:center;padding:1px 6px;border-radius:6px;background:var(--wash);border:1px solid var(--border);color:var(--mark);font-size:12.5px;font-weight:700}
 html.tabs .roadsheet details.roads.older{margin:0}
 html.tabs .roadsheet details.roads.older summary{font-size:13px;color:var(--mark-dull)}
 html.tabs .roadsheet details.roads p{margin:0 0 4px;font-size:12px;color:var(--mark-dull)}
@@ -719,6 +727,10 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .roadnote .sw i{width:18px;height:5px;border-radius:3px;display:inline-block}
 .roadnote b{color:var(--ink);font-weight:650}
 .map-label.on{background:#0f1720;color:#fff}.map-label.on span{color:#9ec5f4}
+/* What can be pressed is round, what cannot is squared off: in tabs the map's name labels and the summary's chosen
+   mountain take round ends; the roads' highway numbers and the daily bars take small corners. */
+html.tabs .map-label{border-radius:17px;padding-left:11px;padding-right:11px}
+html.tabs .heat tr.on td.name{border-radius:26px 0 0 26px}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
 .map-label.on::after{border-top-color:#0f1720}
 .map-lake{position:absolute;left:0;top:0;font-size:12px;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
@@ -791,22 +803,31 @@ button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-
 .gridnote{font-size:11.5px;color:var(--muted);padding:6px 16px 0}
 .awarn{margin-top:12px;border-radius:10px;padding:9px 12px;background:#ed1c24;color:#fff;font-size:14px;font-weight:650}
 /* In tabs the avalanche pane is cut into titled parts like the Mountain tab: blue headings with a rule, pill-ended chips and button. */
-html.tabs #avalanche h3{display:flex;align-items:center;gap:10px;margin-top:28px;font-size:15.5px;color:var(--accent)}
+html.tabs #avalanche h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:15.5px;color:var(--accent)}
 html.tabs #avalanche h3::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 html.tabs #avalanche .ahead .by{font-size:12.5px;color:var(--mark-dull)}
 html.tabs #avalanche .ahead .by b{font-weight:650;color:var(--mark-mid)}
-html.tabs #avalanche .dtable{max-width:none;margin-top:8px;gap:6px 8px}
-html.tabs #avalanche .dtable .dchip,html.tabs #avalanche .abtn{border-radius:999px}
-html.tabs #avalanche .dscale{margin-top:10px}
-html.tabs #avalanche .dscale div:first-child span{border-radius:999px 0 0 999px}
-html.tabs #avalanche .dscale div:last-child span{border-radius:0 999px 999px 0}
+html.tabs #avalanche .dtable{max-width:none;margin-top:6px;gap:6px 8px}
+html.tabs #avalanche .dtable .dchip{border-radius:6px}
+html.tabs #avalanche .abtn{border-radius:999px}
+html.tabs #avalanche .dscale{margin-top:6px}
+html.tabs #avalanche .dscale div:first-child span{border-radius:6px 0 0 6px}
+html.tabs #avalanche .dscale div:last-child span{border-radius:0 6px 6px 0}
 html.tabs #avalanche .abtn{margin-top:18px;background:var(--mark)}
 html.tabs #avalanche .probs li{padding:6px 0}
-/* The center's running text (bottom line, discussion, weather) is set flush on both sides, hyphenated so the gaps stay small. */
-html.tabs #avalanche .abottom p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+html.tabs #avalanche .probs li:last-child{padding-bottom:0}
+/* House sizes: running text 13.5px, captions 12.5px in the dull blue, cards with an 11px corner, 10px from a heading to its content. */
+html.tabs #avalanche .abottom p{font-size:13.5px;line-height:1.45}
+html.tabs #avalanche .abottom p:first-child{margin-top:6px}
+html.tabs #avalanche .ddefs p,html.tabs #avalanche .dsizes > div:not(.lscale){font-size:13.5px}
+html.tabs #avalanche .ddefs > .aby,html.tabs #avalanche .dsizes > .aby,html.tabs #avalanche .anote{font-size:12.5px;color:var(--mark-dull)}
+html.tabs #avalanche .dsizes{margin-top:30px}
+html.tabs #avalanche .dsizes h4{font-size:15.5px;margin-bottom:6px}
+/* The center's running text (bottom line, discussion, weather, each problem's words) is set flush on both sides, hyphenated so the gaps stay small. */
+html.tabs #avalanche .abottom p,html.tabs #avalanche .pmore p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 html.tabs #avalanche .ahead .by .late{color:#c62828}
 @media (prefers-color-scheme:dark){html.tabs #avalanche .ahead .by .late{color:#ff6b6b}}
-.abanner{display:flex;align-items:center;gap:12px;margin-top:10px;padding:11px 14px 11px 10px;border-radius:14px;background:color-mix(in srgb,var(--d) 20%,var(--surface));border:1px solid color-mix(in srgb,var(--d) 45%,var(--surface))}
+.abanner{display:flex;align-items:center;gap:12px;margin-top:10px;padding:11px 14px 11px 10px;border-radius:11px;background:color-mix(in srgb,var(--d) 20%,var(--surface));border:1px solid color-mix(in srgb,var(--d) 45%,var(--surface))}
 .abanner img{flex:none;width:62px}
 .abanner b{display:block;font-size:16px;font-weight:700;color:var(--ink)}
 .abanner p{margin:2px 0 0;font-size:13.5px;line-height:1.4;color:var(--ink2)}
@@ -832,7 +853,8 @@ html.tabs #avalanche .ahead .by.when{display:grid;grid-template-columns:max-cont
 .pmore p:last-child{margin-bottom:0}
 .ddefs{margin-top:12px}
 /* Each level folds to its sign and name; the level in force today starts open. */
-.ddefs > details{padding:8px 12px;border-radius:11px;margin-top:6px;border:1px solid var(--border)}
+.ddefs > details{padding:8px 14px;border-radius:26px;margin-top:6px;border:1px solid var(--border)}
+.ddefs > details[open]{padding-bottom:12px}
 .ddefs > details.on{background:var(--wash);border-color:var(--mark-dull)}
 .ddefs > details > summary{padding:0;font-size:inherit;font-weight:400}
 .ddefs > details > summary::after{font-size:18px;color:var(--mark-dull)}
@@ -846,7 +868,7 @@ html.tabs #avalanche .ahead .by.when{display:grid;grid-template-columns:max-cont
 .ddefs p i{display:block;font-style:normal;font-size:11px;font-weight:650;color:var(--mark-dull)}
 .ddefs > .aby{margin-top:8px;font-size:12px}
 .lscale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:4px 0 10px}
-.lscale span{padding:5px 0;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:600;text-align:center;white-space:nowrap;color:var(--mark-dull)}
+.lscale span{padding:5px 0;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:600;text-align:center;white-space:nowrap;color:var(--mark-dull)}
 .lscale span.on{background:var(--mark);border-color:var(--mark);color:var(--surface)}
 .dsizes .lscale{margin-bottom:6px}
 .dsizes .lscale span{background:var(--wash)}
@@ -857,9 +879,10 @@ html.tabs #avalanche .ahead .by.when{display:grid;grid-template-columns:max-cont
 .dsizes span b{font-weight:600;color:var(--ink);margin-right:6px}
 .dsizes > .aby{margin-top:0;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
 .dsizes > .lscale + .aby{padding-top:0;border-top:0}
-html.tabs #avalanche .afoot{margin-top:24px;padding:12px;border-radius:14px;background:var(--wash)}
+html.tabs #avalanche .afoot{margin-top:30px;padding:12px;border-radius:11px;background:var(--wash)}
 html.tabs #avalanche .afoot .abtn{margin-top:0}
 html.tabs #avalanche .afoot .anote{margin:8px 2px 0;text-align:center}
+html.tabs #avalanche .afoot .anote span{display:block}
 .anotice{margin-top:12px;border-radius:10px;padding:9px 12px;background:var(--wash);font-size:13.5px;color:var(--ink2)}
 .aadvice{margin-top:10px;font-size:14.5px;color:var(--ink2);max-width:72ch}
 .dtable{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:5px 8px;align-items:center;margin-top:14px;max-width:460px;font-size:13px;color:var(--ink2)}
@@ -2573,7 +2596,7 @@ function renderAvalanche() {
   const head = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) : zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
   const foot = (link, withScale = true) => `${withScale ? scale : ""}<div class="afoot"><a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
-    <p class="anote">A pointer to the avalanche center's forecast, not a substitute for it. Read the full forecast before any trip into avalanche terrain.</p></div>`;
+    <p class="anote"><span>A pointer to the center's forecast, not a substitute.</span> <span>Read the full forecast before entering avalanche terrain.</span></p></div>`;
   if (!state || !state.loaded) { $("avalanche").innerHTML = `${head}<p class="anotice">Loading the avalanche forecast…</p>`; return; }
   if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. It is not saved on your phone, so it is never shown out of date."}</p>${foot(center.url)}`; return; }
   let body = zone.warning ? `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>` : "";
@@ -2612,7 +2635,7 @@ function renderAvalanche() {
     }
     // The center's longer write-ups, where it posts them: the forecast discussion and the mountain weather.
     const told = (title, html, by = "") => { const text = paragraphs(html); return text.length ? `<h3>${title}</h3><div class="abottom">${text.map((line) => `<p>${esc(line)}</p>`).join("")}</div>${by ? `<p class="aby">${by}</p>` : ""}` : ""; };
-    const more = told("Forecast discussion", product.hazard_discussion) + told("Weather", product.weather_discussion || (weather && weather.weather_discussion), weather && weather.published_time ? `${weather.author ? `${esc(weather.author)} · ` : ""}issued ${brief(weather.published_time)}` : "");
+    const more = told("Forecast discussion", product.hazard_discussion) + told("Weather", product.weather_discussion || (weather && weather.weather_discussion), weather && weather.published_time ? `${weather.author ? `${esc(weather.author)}<br>` : ""}Issued ${clock(weather.published_time)}` : "");
     const lines = paragraphs(product.bottom_line);
     words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more : ""}</div>`;
   }
