@@ -116,17 +116,19 @@ html.tabs .map-hint{display:none}
 /* Roads, avalanche and the compass sit at the bottom right, above the storm slider, in the manner of a maps app:
    the two buttons share one frosted block with a hairline between them, and the compass is a circle under it. */
 html.tabs #map3d{--rail:calc(var(--mapbar-h,84px) + 22px)}
-html.tabs .map-compass{top:auto;bottom:calc(var(--rail) + 48px);left:12px;right:auto;width:40px;height:40px;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+html.tabs .map-compass{top:auto;bottom:calc(var(--rail) + 48px);left:12px;right:auto;width:40px;height:40px;background:color-mix(in srgb,var(--surface) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 html.tabs #map3d .map-toggle{top:auto;right:12px;left:auto;width:40px;height:40px;padding:0;justify-content:center;gap:0;font-size:0;
-  background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 5px rgba(15,23,32,.2)}
+  background:color-mix(in srgb,var(--surface) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 5px rgba(15,23,32,.2)}
 .flatbtn{position:absolute;z-index:400000;right:54px;bottom:10px;width:34px;height:34px;border:0;border-radius:50%;padding:0;font:inherit;font-size:12px;font-weight:700;letter-spacing:.02em;
   color:#0d366b;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 4px rgba(15,23,32,.2);cursor:pointer}
 .flatbtn[hidden]{display:none}
-html.tabs .flatbtn{left:12px;right:auto;bottom:var(--rail);width:40px;height:40px;font-size:13px}
-html.tabs #map3d #avyToggle{bottom:var(--rail);height:44px;border-radius:0 0 20px 20px;border-top:1px solid rgba(15,23,32,.14)}
+html.tabs .flatbtn{left:12px;right:auto;bottom:var(--rail);width:40px;height:40px;font-size:13px;color:var(--mark);background:color-mix(in srgb,var(--surface) 84%,transparent)}
+html.tabs #map3d #avyToggle{bottom:var(--rail);height:44px;border-radius:0 0 20px 20px;border-top:1px solid var(--border)}
 html.tabs #map3d #roadPill{bottom:calc(var(--rail) + 44px);height:44px;border-radius:20px 20px 0 0}
 html.tabs #roadPill:has(+ #avyToggle[hidden]){border-radius:20px}
-html.tabs #avyToggle[aria-pressed=true]{background:#0f1720}
+html.tabs #avyToggle[aria-pressed=true]{background:var(--ink)}
+html.tabs .roadpill svg{stroke:var(--mark)}
+html.tabs #roadPill::before{border-color:var(--surface)}
 html.tabs #avyToggle img{height:24px;margin:0}
 html.tabs #avyToggle:not(.sign)::before{width:14px;height:14px}
 html.tabs .map-key{top:auto;right:60px;bottom:var(--rail)}
@@ -138,8 +140,8 @@ html.tabs[data-view="map"] #play svg{width:14px;height:14px}
 html.tabs[data-view="map"] #play{color:var(--mark)}
 html.tabs[data-view="map"] .mapbar .ticks{padding:3px 0 0}
 html.tabs[data-view="map"] #scrub{height:14px}
-/* Now is a red dot on the bar; the round arrow at the bubble's right end is what goes back to it. */
-html.tabs[data-view="map"] #toNow{top:6px;width:8px;height:8px;padding:0;border-radius:50%;background:#d03b3b;font-size:0;pointer-events:none}
+/* Now is a navy dot on the bar; the round arrow at the bubble's right end is what goes back to it. */
+html.tabs[data-view="map"] #toNow{top:6px;width:8px;height:8px;padding:0;border-radius:50%;background:var(--mark);font-size:0;pointer-events:none}
 html.tabs[data-view="map"] #toNow::before{display:none}
 #backNow{display:none}
 html.tabs[data-view="map"] #backNow{display:grid;place-items:center;grid-column:3;grid-row:1 / 3;align-self:center;width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--wash);color:var(--mark-dull);padding:0;cursor:pointer}
@@ -150,7 +152,10 @@ html.tabs[data-view="map"] .mapbar .cap b{margin-right:0;white-space:nowrap;colo
 html.tabs[data-view="map"] .mapbar .cap span{margin-left:auto;text-align:right}
 html.tabs .roadpill[hidden]{display:none}
 .roadpill svg{width:22px;height:22px;fill:none;stroke:#0d366b;stroke-width:1.8;stroke-linecap:round}
-.roadpill::before{position:absolute;right:2px;top:2px;width:11px;height:11px;box-sizing:border-box;background:var(--dot,#8a929b);border:1.5px solid #fff}
+/* A badge on the corner counts the closed roads (red), or the roads with chain controls when none is closed (amber). */
+#roadPill::before{content:attr(data-count);width:auto;position:absolute;right:-5px;top:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;box-sizing:border-box;
+  display:grid;place-items:center;font-size:11px;font-weight:700;line-height:1;color:#fff;background:var(--dot,#8a929b);border:1.5px solid #fff}
+#roadPill:not([data-count])::before{display:none}
 html.tabs .roadsheet{position:absolute;z-index:400002;left:0;right:0;bottom:0;max-height:calc(100% - 70px);overflow:auto;background:var(--surface);border-radius:16px 16px 0 0;
   box-shadow:0 -4px 18px rgba(15,23,32,.22);transform:translateY(105%);transition:transform .22s ease;padding-top:2px}
 html.tabs .roadsheet.open{transform:none}
@@ -1826,7 +1831,8 @@ async function loadRoads() {
     const shutRoutes = new Set(closures.map((c) => c.route)).size, chainCount = new Set(chainRoutes).size;
     const roadWords = shutRoutes ? `Roads: ${shutRoutes} closed${chainCount ? `, chains on ${chainCount}` : ""}` : chainCount ? `Roads: chains on ${chainCount}` : "Roads clear";
     $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", roadWords); $("roadPill").title = roadWords;
-    $("roadPill").style.setProperty("--dot", shutRoutes ? "#d03b3b" : chainCount ? "#f0a80d" : "#3a9d5d");
+    $("roadPill").style.setProperty("--dot", shutRoutes ? "#d03b3b" : "#d98a00");
+    if (shutRoutes || chainCount) $("roadPill").dataset.count = shutRoutes || chainCount; else delete $("roadPill").dataset.count;
     $("roadPill").hidden = false;
     $("roadNote").innerHTML =
       section("#d03b3b", "Closed", closures.length ? [...new Set(closures.map((c) => c.route))].sort((a, b) => a - b).join(", ") : "none",
@@ -1834,7 +1840,7 @@ async function loadRoads() {
       section("#f0a80d", "Chains", chains.length ? [...new Set(chainRoutes)].sort((a, b) => a - b).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
       `<span class="src">Caltrans, ${when} · ${nevada ? `Nevada 511, ${localClock(new Date(nevada.updated))}` : "California roads only"}</span>`;
-  } catch (error) { if (asked === region) { $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", "Roads"); $("roadPill").style.removeProperty("--dot"); $("roadPill").hidden = false; } }
+  } catch (error) { if (asked === region) { $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", "Roads"); $("roadPill").style.removeProperty("--dot"); delete $("roadPill").dataset.count; $("roadPill").hidden = false; } }
 }
 const ROAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 5 21M15 3l4 18M12 4v3M12 10.500v3M12 17v3"/></svg>';
 // One map at a time: switching regions throws the old one away and builds the new one.
