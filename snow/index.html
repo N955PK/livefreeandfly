@@ -497,10 +497,47 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .srow .pw b{font-size:15px}
 .srow .pw span{color:var(--muted)}
 .tl{position:relative;margin-top:6px}
+/* Hourly in tabs: day chips, then a strip that reads the hour under the chart's fixed line in numbers. */
+.hchips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;margin:8px -14px 0;padding:0 14px}
+.hchips::-webkit-scrollbar{display:none}
+.hchips button{flex:none;width:46px;height:46px;border:0;border-radius:50%;padding:0;font:inherit;font-size:15px;font-weight:650;line-height:1.1;color:var(--mark);background:var(--wash);cursor:pointer;font-variant-numeric:tabular-nums}
+.hchips button small{display:block;font-size:11px;font-weight:600;color:var(--mark-dull)}
+.hchips button.past{background:none;box-shadow:inset 0 0 0 1px var(--border);color:var(--mark-dull);font-weight:600}
+.hchips button[aria-current=true]{background:var(--mark);color:var(--surface)}
+.hchips button.past[aria-current=true]{background:var(--mark-dull);box-shadow:none;color:var(--surface)}
+.hchips button[aria-current=true] small{color:var(--surface);opacity:.8}
+.hread{margin-top:8px;padding:8px 11px 9px;border-radius:11px;background:var(--wash)}
+.hread .when{display:flex;align-items:baseline;gap:8px}
+.hread .when b{font-size:14px;font-weight:700;color:var(--mark)}
+.hread .when small{font-size:11.5px;color:var(--mark-dull)}
+.hread .vals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px 10px;margin-top:5px}
+.hread .vals span{min-width:0}
+.hread .vals small{display:block;font-size:10.5px;color:var(--mark-dull)}
+.hread .vals b{display:block;font-size:13px;font-weight:650;color:var(--mark);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* The line the readout follows is thin, with a knob on top, so it reads as a marker and not as the chart's Now line. */
+.tl-fixed.quarter{left:25%;width:1px;background:var(--mark)}
+/* In tabs the plot runs the full width, edge to edge with the readout above it; its left-hand labels sit on the plot. */
+html.tabs .tl-scroll{margin-left:0}
+html.tabs .tl-axis{z-index:2;pointer-events:none}
+html.tabs .tl-axis text{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+html.tabs .tl-axis text.in{font-size:11px;font-weight:650;fill:var(--mark);stroke-width:2.5px}
+.tl-fixed.quarter::before{content:"";position:absolute;left:-4px;top:-10px;width:9px;height:9px;border-radius:50%;background:var(--mark)}
+.tl-scroll text.lvl{font-size:10.5px;font-weight:650;fill:var(--level);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+html.tabs #tlNow{display:none}
+/* Room after the last hour, so the final day can be brought under the fixed line too. */
+html.tabs .tl-scroll{display:flex}
+html.tabs .tl-scroll svg{flex:none}
+html.tabs .tl-scroll::after{content:"";flex:none;width:75%}
 .tl-fixed{position:absolute;z-index:3;left:calc(44px + (100% - 44px) / 2);width:1px;background:var(--ink2);pointer-events:none}
 .tl-fixed[hidden]{display:none}
 .tl-axis{position:absolute;left:0;top:0;width:44px}
 .tl-axis text,.tl-scroll text{font-size:11px;fill:var(--muted);font-family:inherit}
+.tl-scroll text.hr{font-size:10px}
+/* In tabs the chart's dates are navy like the tab's other headings; its numbers and strip names are the gray-blue. */
+html.tabs .tl-scroll text.lab{fill:var(--mark);font-weight:650}
+html.tabs details.hlgd{margin-top:6px}
+.tl-axis-r{position:absolute;right:0;top:0;width:40px;z-index:2;pointer-events:none}
+.tl-axis-r text{font-size:10.5px;font-weight:650;fill:var(--snow);font-family:inherit;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 .tl-scroll text.lab{fill:var(--ink2);font-weight:550}
 .tl-scroll{margin-left:44px;overflow-x:auto;-webkit-overflow-scrolling:touch;cursor:crosshair}
 .tl-scroll svg{display:block}
@@ -1164,13 +1201,21 @@ function stormTotals(snow) {
 function timeline(resort, el) {
   const h = el.hourly, hours = resort.hours_utc, nowMs = new Date(data.generated_utc).getTime();
   const nowIndex = Math.max(0, hours.findIndex((t) => new Date(t).getTime() >= nowMs));
-  const n = Math.min(hours.length, nowIndex + 24 * 6);
+  // Six days ahead in the one-page layout; in tabs, as far as the forecast runs, up to two weeks.
+  const n = Math.min(hours.length, nowIndex + 24 * (tabbed() ? 14 : 6));
   const avail = Math.max(280, $("detail").clientWidth - 36 - 44);
   // A wide screen shows four days at a time, at about the phone's width per hour, and gets taller plots.
   const wide = avail >= 860, pph = wide ? Math.max(10, avail / (24 * 4)) : 10, W = Math.round(n * pph);
-  const T = 20, H1 = wide ? 190 : 132, TA = T + H1 + 16, HA = wide ? 104 : 78, STRIP = wide ? 16 : 10, WIND_Y = TA + HA + 10, GUST_Y = WIND_Y + STRIP + 5, CLOUD_Y = GUST_Y + STRIP + 5, TEMP_Y = CLOUD_Y + STRIP + 5, T2 = TEMP_Y + 30, H2 = wide ? 124 : 92, H = T2 + H2 + 6;
+  // In tabs the storm totals and the measured gain are drawn on the snowfall plot itself, on their own scale, and
+  // have no panel of their own.
+  const merged = tabbed();
+  const T = 20, H1 = wide ? 190 : 132, TA = merged ? T : T + H1 + 16, HA = merged ? H1 : wide ? 104 : 78, STRIP = merged ? 20 : wide ? 16 : 10, LAB = 0, WIND_Y = TA + HA + (merged ? 24 : 10) + LAB, GUST_Y = merged ? WIND_Y : WIND_Y + STRIP + 5, CLOUD_Y = GUST_Y + STRIP + 5 + LAB, TEMP_Y = CLOUD_Y + STRIP + 5 + LAB, T2 = TEMP_Y + (merged ? STRIP + 18 : 30), H2 = merged ? (wide ? 64 : 48) : wide ? 124 : 92, H = T2 + H2 + 6;
   const snow = Array.from({length: n}, (_, i) => h.snow_in[i] || 0);
-  const top = [0.2, 0.5, 1, 1.5, 2, 3, 4].find((v) => v >= Math.max(...snow)) || 5;
+  // In tabs, an hour when the snow level is above this elevation while it snows at the summit is rain here. Its bar
+  // is drawn hatched, as tall as the summit's snowfall that hour: what would have been snow.
+  const above = resort.elevations.summit.hourly.snow_in;
+  const rain = Array.from({length: n}, (_, i) => tabbed() && h.snow_level_ft[i] != null && h.snow_level_ft[i] > el.elevation_ft && (above[i] || 0) > 0.004 ? Math.max(above[i], snow[i]) : 0);
+  const top = [0.2, 0.5, 1, 1.5, 2, 3, 4].find((v) => v >= Math.max(...snow, ...rain)) || 5;
   const {running, storms} = stormTotals(snow);
   // Measured depth gain at the sensor since each storm began (past hours only).
   const depth = (resort.observed && resort.observed.depth_in_hourly) || [], gain = new Array(n).fill(null);
@@ -1180,7 +1225,8 @@ function timeline(resort, el) {
     if (base == null) continue;
     for (let i = storm.start; i <= Math.min(storm.end, nowIndex); i++) if (depth[i] != null) gain[i] = Math.max(0, depth[i] - base);
   }
-  const sumTop = Math.max(2, ...storms.map((x) => x.total), ...gain.map((v) => v || 0));
+  // On the shared plot the totals' scale leaves headroom, so the line and its number sit below the top gridline.
+  const sumTop = Math.max(2, ...storms.map((x) => x.total), ...gain.map((v) => v || 0)) * (tabbed() ? 1.25 : 1);
   const levels = Array.from({length: n}, (_, i) => h.snow_level_ft[i]);
   const base = resort.elevations.base.elevation_ft, summit = resort.elevations.summit.elevation_ft;
   const known = levels.filter((v) => v != null);
@@ -1190,17 +1236,22 @@ function timeline(resort, el) {
   const hourOf = (i) => +when(i).toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24;
   // Night (4 pm to 8 am, the overnight half of a ski day) is hatched from the snow bars down through every row,
   // with a moon where it begins and a sun where the lifts start turning.
-  let body = `<defs><pattern id="nighthatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="var(--hatch)" stroke-width="1.6"/></pattern></defs>`, strips = "", night = null;
+  let body = `<defs><pattern id="nighthatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="var(--hatch)" stroke-width="1.6"/></pattern><pattern id="rainhatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="var(--mark-dull)" stroke-width="1.4"/></pattern></defs>`, strips = "", night = null;
   const clear = (i) => Math.abs(i - nowIndex) > 5 && x(i) < W - 14;
+  if (merged) {
+    // Everything left of now is the past: a faint wash over the snowfall plot.
+    body += `<rect x="0" y="${T}" width="${x(nowIndex)}" height="${H1}" fill="var(--mark)" fill-opacity=".05"/>`;
+  }
   for (let i = 0; i <= n; i++) {
     const dark = i < n && (hourOf(i) >= 16 || hourOf(i) < 8);
     if (dark && night == null) {
       night = i;
-      if (i && clear(i)) body += `<path d="M${x(i) + 8.2} 4.6a4.3 4.3 0 1 0 3.9 6.1a3.5 3.5 0 0 1 -3.9 -6.1z" fill="var(--muted)"/>`;
+      if (!merged && i && clear(i)) body += `<path d="M${x(i) + 8.2} 4.6a4.3 4.3 0 1 0 3.9 6.1a3.5 3.5 0 0 1 -3.9 -6.1z" fill="var(--muted)"/>`;
     }
     if (!dark && night != null) {
-      body += `<rect x="${x(night)}" y="${T}" width="${x(i) - x(night)}" height="${T2 + H2 - T}" fill="url(#nighthatch)"/>`;
-      if (i < n && clear(i)) body += `<g stroke="var(--w1)" stroke-width="1.2" stroke-linecap="round"><circle cx="${x(i) + 9}" cy="9" r="2.4" fill="var(--w1)" stroke="none"/>${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<path d="M${x(i) + 9} 4.3v1" transform="rotate(${a} ${x(i) + 9} 9)"/>`).join("")}</g>`;
+      body += merged ? `<rect x="${x(night)}" y="${T}" width="${x(i) - x(night)}" height="${H1}" fill="var(--night)"/>`
+        : `<rect x="${x(night)}" y="${T}" width="${x(i) - x(night)}" height="${T2 + H2 - T}" fill="url(#nighthatch)"/>`;
+      if (!merged && i < n && clear(i)) body += `<g stroke="var(--w1)" stroke-width="1.2" stroke-linecap="round"><circle cx="${x(i) + 9}" cy="9" r="2.4" fill="var(--w1)" stroke="none"/>${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<path d="M${x(i) + 9} 4.3v1" transform="rotate(${a} ${x(i) + 9} 9)"/>`).join("")}</g>`;
       night = null;
     }
   }
@@ -1212,13 +1263,22 @@ function timeline(resort, el) {
       body += `<line x1="${x(i)}" x2="${x(i)}" y1="4" y2="${H}" stroke="var(--grid)"/>`;
       if (x(i) < W - 44 && Math.abs(i - nowIndex) > 3) body += `<text class="lab" x="${x(i) + 5}" y="13">${when(i).toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", day: "numeric"})}</text>`;
     }
+    // In tabs the time axis is marked every six hours under the snowfall plot.
+    if (merged && [6, 12, 18].includes(hourOf(i))) {
+      const name = prefs.clock === "24" ? String(hourOf(i)).padStart(2, "0") : {6: "6a", 12: "noon", 18: "6p"}[hourOf(i)];
+      body += `<line x1="${x(i)}" x2="${x(i)}" y1="${T + H1}" y2="${T + H1 + 4}" stroke="var(--axis)"/><text class="hr" x="${x(i)}" y="${T + H1 + 15}" text-anchor="middle">${name}</text>`;
+    }
+    if (rain[i] > snow[i] + 0.004) {
+      const yTop = y1(Math.min(rain[i], top));
+      body += `<rect x="${x(i) + 0.75}" y="${yTop}" width="${bw}" height="${T + H1 - yTop}" rx="1.5" fill="url(#rainhatch)" stroke="var(--mark-dull)" stroke-width=".75"/>`;
+    }
     if (snow[i] > 0.004) {
       const yTop = y1(snow[i]), r = Math.min(2, bw / 2, (T + H1 - yTop) / 2);
       body += `<path d="M${x(i) + 0.75} ${T + H1}V${yTop + r}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}V${T + H1}z" style="fill:${snowColor(h.slr[i])}"${i < nowIndex ? ' fill-opacity=".5"' : ""}/>`;
     }
     const wind = h.wind_mph[i] || 0, gust = Math.max(wind, h.gust_mph[i] || 0), cloud = h.cloud_pct[i];
-    strips += `<rect x="${x(i)}" y="${WIND_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${windColor(wind)}"/>` +
-      `<rect x="${x(i)}" y="${GUST_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${windColor(gust)}"/>`;
+    strips += `<rect x="${x(i)}" y="${WIND_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${windColor(merged ? gust : wind)}"/>` +
+      (merged ? "" : `<rect x="${x(i)}" y="${GUST_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${windColor(gust)}"/>`);
     if (h.temp_f[i] != null) strips += `<rect x="${x(i)}" y="${TEMP_Y}" width="${pph + 0.3}" height="${STRIP}" style="fill:${tempColor(h.temp_f[i])}"/>`;
     if (cloud != null) strips += `<rect x="${x(i)}" y="${CLOUD_Y}" width="${pph + 0.3}" height="${STRIP}" fill="var(--ink)" fill-opacity="${(cloud / 100 * 0.5).toFixed(2)}"/>`;
   }
@@ -1227,24 +1287,30 @@ function timeline(resort, el) {
   for (const storm of storms) {
     let line = `M${x(storm.start)} ${ya(0)}`;
     for (let i = storm.start; i <= storm.end; i++) line += `L${x(i + 1).toFixed(1)} ${ya(running[i]).toFixed(1)}`;
-    body += `<path d="${line}V${ya(0)}z" fill="var(--snow)" fill-opacity=".1"/><path d="${line}" fill="none" stroke="var(--snow)" stroke-width="2" stroke-linejoin="round"/>`;
+    body += `${merged ? "" : `<path d="${line}V${ya(0)}z" fill="var(--snow)" fill-opacity=".1"/>`}<path d="${line}" fill="none" stroke="var(--snow)" stroke-width="2" stroke-linejoin="round"/>`;
     if (storm.total >= 0.5) body += `<circle cx="${x(storm.last + 1)}" cy="${ya(storm.total)}" r="3" fill="var(--snow)" stroke="var(--surface)" stroke-width="1.5"/><text class="lab" x="${x(storm.last + 1) + (x(storm.last + 1) > W - 60 ? -6 : 6)}" y="${Math.max(TA + 10, ya(storm.total) - 6)}" text-anchor="${x(storm.last + 1) > W - 60 ? "end" : "start"}">${inches(storm.total)} ${LEN()}</text>`;
   }
   let measured = "", pen = false;
   gain.forEach((v, i) => { if (v == null) { pen = false; return; } measured += `${pen ? "L" : "M"}${x(i + 0.5).toFixed(1)} ${ya(v).toFixed(1)}`; pen = true; });
   if (measured) body += `<path d="${measured}" fill="none" stroke="var(--ink2)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
-  body += `<rect x="0" y="${WIND_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/><rect x="0" y="${GUST_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/><rect x="0" y="${CLOUD_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/><rect x="0" y="${TEMP_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/>${strips}`;
+  body += `<rect x="0" y="${WIND_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/>${merged ? "" : `<rect x="0" y="${GUST_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/>`}<rect x="0" y="${CLOUD_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/><rect x="0" y="${TEMP_Y}" width="${W}" height="${STRIP}" rx="3" fill="var(--wash)"/>${strips}`;
   let d = ""; pen = false;
   levels.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i + 0.5).toFixed(1)} ${y2(v).toFixed(1)}`; pen = true; });
   body += `<path d="${d}" fill="none" stroke="var(--level)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  if (merged && levels[nowIndex] != null) body += `<text class="lvl" x="${x(nowIndex) + 7}" y="${Math.max(T2 + 10, y2(levels[nowIndex]) - 6)}">${height(Math.round(levels[nowIndex] / 100) * 100)}</text>`;
   body += `<line x1="${x(nowIndex)}" x2="${x(nowIndex)}" y1="16" y2="${H}" stroke="var(--ink)" stroke-width="1.5"/><text class="lab" x="${x(nowIndex) + 5}" y="13" style="fill:var(--ink)">Now</text>`;
-  if (nowIndex > 30) body += `<text x="${x(nowIndex) - 6}" y="13" text-anchor="end">past</text>`;
+  if (nowIndex > 30 && !merged) body += `<text x="${x(nowIndex) - 6}" y="13" text-anchor="end">past</text>`;
   body += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${T2 + H2}" stroke="var(--ink2)" style="display:none"/>`;
-  const axis = `<svg width="44" height="${H}" aria-hidden="true"><text x="38" y="${y1(top) + 4}" text-anchor="end">${metric() ? Math.round(top * 2.54) : top} ${LEN()}</text><text x="38" y="${y1(top / 2) + 4}" text-anchor="end">${metric() ? Math.round(top * 1.27) : top / 2}</text>
-    <text x="38" y="${TA + 10}" text-anchor="end">Storm</text><text x="38" y="${TA + 22}" text-anchor="end">total</text>
-    <text x="38" y="${WIND_Y + STRIP / 2 + 4}" text-anchor="end">Wind</text><text x="38" y="${GUST_Y + STRIP / 2 + 4}" text-anchor="end">Gust</text><text x="38" y="${CLOUD_Y + STRIP / 2 + 4}" text-anchor="end">Cloud</text><text x="38" y="${TEMP_Y + STRIP / 2 + 4}" text-anchor="end">Temp</text>
-    <text x="40" y="${y2(summit) + 4}" text-anchor="end">Summit</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text></svg>`;
-  return {html: `<div class="tl"><div class="tl-axis">${axis}</div><div class="tl-fixed" id="crossFixed" hidden></div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, storm totals, wind, cloud, temperature, and snow level: the past week and the next six days">${body}</svg></div><div id="tip"></div></div>`,
+  const axis = `<svg width="${merged ? 130 : 44}" height="${H}" aria-hidden="true"><text x="${merged ? 4 : 38}" y="${y1(top) + (merged ? 13 : 4)}" text-anchor="${merged ? "start" : "end"}">${metric() ? Math.round(top * 2.54) : top} ${LEN()}</text><text x="${merged ? 4 : 38}" y="${y1(top / 2) + (merged ? 13 : 4)}" text-anchor="${merged ? "start" : "end"}">${metric() ? Math.round(top * 1.27) : top / 2}</text>
+    ${merged ? "" : `<text x="38" y="${TA + 10}" text-anchor="end">Storm</text><text x="38" y="${TA + 22}" text-anchor="end">total</text>`}
+    ${merged ? `<text class="in" x="7" y="${WIND_Y + STRIP / 2 + 4}">Wind</text><text class="in" x="7" y="${CLOUD_Y + STRIP / 2 + 4}">Cloud</text><text class="in" x="7" y="${TEMP_Y + STRIP / 2 + 4}">Temp</text>`
+      : `<text x="38" y="${WIND_Y + STRIP / 2 + 4}" text-anchor="end">Wind</text><text x="38" y="${GUST_Y + STRIP / 2 + 4}" text-anchor="end">Gust</text><text x="38" y="${CLOUD_Y + STRIP / 2 + 4}" text-anchor="end">Cloud</text><text x="38" y="${TEMP_Y + STRIP / 2 + 4}" text-anchor="end">Temp</text>`}
+    ${merged ? `<text x="0" y="${y2(summit) - 4}">Summit</text><text x="0" y="${y2(base) + 12}">Base</text>` : `<text x="40" y="${y2(summit) + 4}" text-anchor="end">Summit</text><text x="38" y="${y2(base) + 4}" text-anchor="end">Base</text>`}</svg>`;
+  // The storm total and the measured gain have their own scale, written at the chart's right edge in their blue.
+  const sumStep = [1, 2, 5, 10, 20, 25, 50, 100].find((v) => sumTop / v <= 3.2) || 200, sumTicks = [];
+  for (let v = sumStep; v <= sumTop * 0.97; v += sumStep) sumTicks.push(v);
+  const axisR = merged ? `<div class="tl-axis-r"><svg width="40" height="${H}" aria-hidden="true">${sumTicks.map((v, k) => `<line x1="32" x2="40" y1="${ya(v)}" y2="${ya(v)}" stroke="var(--snow)" stroke-width="1.5"/><text x="38" y="${ya(v) + 13}" text-anchor="end">${metric() ? Math.round(v * 2.54) : v}${k === sumTicks.length - 1 ? ` ${LEN()}` : ""}</text>`).join("")}</svg></div>` : "";
+  return {html: `<div class="tl"><div class="tl-axis">${axis}</div>${axisR}<div class="tl-fixed" id="crossFixed" hidden></div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, storm totals, wind, cloud, temperature, and snow level: the past week and the next six days">${body}</svg></div><div id="tip"></div></div>`,
     n, pph, nowIndex, running, depth};
 }
 
@@ -1265,6 +1331,47 @@ function wireTimeline(resort, el, g) {
   // A button to come back appears once the chart has been dragged away from now.
   scroll.addEventListener("scroll", () => { $("tlNow").hidden = Math.abs(scroll.scrollLeft - atNow()) < 40; }, {passive: true});
   $("tlNow").addEventListener("click", () => scroll.scrollTo({left: atNow(), behavior: "smooth"}));
+  // In tabs the chart has a fixed line a quarter of the way in (where now sits when it opens). A strip above the chart
+  // always reads out the hour under that line in numbers, and a row of day chips jumps the chart from day to day.
+  if (tabbed() && $("hRead")) {
+    const ref = () => scroll.clientWidth * 0.25, dayKey = (k) => new Date(resort.hours_utc[k]).toLocaleDateString("en-CA", {timeZone: TZ});
+    const days = [];
+    for (let k = 0; k < g.n; k++) if (!days.length || dayKey(k) !== days[days.length - 1].key) days.push({key: dayKey(k), k});
+    const today = dayKey(g.nowIndex);
+    // A round button for each day in the chart, in one row that scrolls: the past week greyed, then today and up to
+    // two weeks ahead. Each is the weekday's letter over the date.
+    $("hChips").innerHTML = days.filter((d) => d.key < today).concat(days.filter((d) => d.key >= today).slice(0, 14)).map((d) => `<button data-hday="${d.k}" data-key="${d.key}"${d.key < today ? ' class="past"' : ""} aria-label="${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "long", month: "long", day: "numeric"})}"><small>${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "narrow"})}</small>${+d.key.slice(8)}</button>`).join("");
+    const cell = (label, value) => `<span><small>${label}</small><b>${value}</b></span>`;
+    const read = (k, hover) => {
+      const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
+      const wind = h.wind_mph[k], gust = h.gust_mph[k], from = h.wind_from_deg && h.wind_from_deg[k] != null ? `${compass(h.wind_from_deg[k])} ` : "";
+      $("hRead").innerHTML = `<div class="when"><b>${k === g.nowIndex && !hover ? "Now" : when}</b>${k < g.nowIndex ? "<small>past, estimated</small>" : ""}</div><div class="vals">` +
+        cell("Snow", `${fine(h.snow_in[k] || 0, 2)} ${LEN()}/hr`) + cell("Storm total", g.running[k] != null ? `${tenths(g.running[k])} ${LEN()}` : "–") +
+        cell("Temp", h.temp_f[k] == null ? "–" : `${deg(h.temp_f[k])}° / ${deg(windChill(h.temp_f[k], wind))}°`) +
+        cell("Wind", wind == null ? "–" : `${from}${speed(wind)}${gust > wind + 3 ? ` G${speed(gust)}` : ""}`) +
+        cell("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) + cell("Snow level", h.snow_level_ft[k] == null ? "–" : height(Math.round(h.snow_level_ft[k] / 100) * 100)) + "</div>";
+      const key = dayKey(k), bar = $("hChips");
+      // The row is one line of circles that slides to keep the day being read in its middle.
+      for (const b of bar.children) { const on = b.dataset.key === key; b.setAttribute("aria-current", on); if (on && !hover) bar.scrollLeft = b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2; }
+    };
+    const under = () => Math.max(0, Math.min(g.n - 1, Math.floor((scroll.scrollLeft + ref()) / g.pph)));
+    fixed.hidden = false; fixed.classList.add("quarter");
+    fixed.style.top = `${scroll.offsetTop + +cross.getAttribute("y1")}px`;
+    fixed.style.height = `${cross.getAttribute("y2") - cross.getAttribute("y1")}px`;
+    scroll.addEventListener("scroll", () => read(under()), {passive: true});
+    let touched = 0;
+    scroll.addEventListener("touchstart", () => { touched = Date.now(); }, {passive: true});
+    scroll.addEventListener("mousemove", (e) => { if (Date.now() - touched < 1000) return; read(Math.max(0, Math.min(g.n - 1, Math.floor((e.clientX - scroll.getBoundingClientRect().left + scroll.scrollLeft) / g.pph))), true); });
+    scroll.addEventListener("mouseleave", () => read(under()));
+    $("hChips").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-hday]"); if (!b) return;
+      // Today goes to now; any other day goes to its 8 am, when the lifts start.
+      const start = +b.dataset.hday, to = b.dataset.key === today ? atNow() : Math.min(g.n - 1, start + 8) * g.pph - ref();
+      scroll.scrollTo({left: Math.max(0, to), behavior: "smooth"});
+    });
+    read(under());
+    return;
+  }
   const showAt = (clientX, above) => {
     const rect = scroll.getBoundingClientRect(), px = clientX - rect.left + scroll.scrollLeft;
     const k = Math.max(0, Math.min(g.n - 1, Math.floor(px / g.pph))), cx = (k + 0.5) * g.pph;
@@ -1841,11 +1948,15 @@ function renderDetail() {
     <div class="days"><div class="srow head"><div></div><div>Snow, from ${hourName(16)} previous day</div><div></div><div class="cond"><span>Lift hours</span><span>${DEG()} / feels</span><span>Wind, ${SPEED()}</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     ${resort.kind === "backcountry" ? cornWindow(resort, el) : ""}
     <div class="hhead" data-sec="Hourly"><h3>Hourly</h3><button id="tlNow" hidden>Back to now</button><div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
+    ${tabbed() ? `<div class="hchips" id="hChips"></div><div class="hread" id="hRead"></div>` : ""}
     ${g.html}
+    ${tabbed() ? `<details class="lgd hlgd"><summary><span>Swipe the chart to move through the hours</span><em>Legend</em></summary>` : ""}
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>${speed(50)}+</b></span>${SPEED()}</span></div>
     <div class="key" style="column-gap:8px"><span class="blocks">Temp<span class="ramp" style="background:linear-gradient(90deg,var(--snow),var(--grid) 64%,var(--w1))"><b>${deg(0)}°</b><b class="dark">${deg(50)}${DEG()}</b></span></span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span></div>
+    ${tabbed() ? `<div class="key" style="column-gap:14px"><span class="sw"><i style="background:var(--snow);height:3px"></i>storm total</span><span class="sw"><i style="background:none;border-top:1.5px dashed var(--ink2);height:0"></i>measured at the sensor</span></div>
+      <div class="key" style="column-gap:14px"><span class="sw"><i style="height:11px;border-radius:2px;border:.75px solid var(--mark-dull);background:repeating-linear-gradient(45deg,var(--mark-dull) 0 1.4px,transparent 1.4px 4px)"></i>rain at this height, snow higher up</span><span>wind strip shows gusts</span></div></details>` : ""}
     ${measured(resort)}${webcams(resort)}`;
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
   $("jump").innerHTML = [...$("detail").querySelectorAll("[data-sec]")].map((el) => `<button data-jump="${el.dataset.sec}">${el.dataset.sec}</button>`).join("");
