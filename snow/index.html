@@ -134,14 +134,20 @@ html.tabs .panel.summary.dragin:not(#_){display:flex!important}
 /* Held like that the pane is its own scroller, so its pinned bar would pin against the pane's top edge and sit a
    status strip's height too low until the slide ended. While sliding, the bar just sits at the pane's top. */
 html.tabs .dragin .dtop{position:relative;top:0}
-/* Nothing flashes a color when it is pressed. What can be pressed gives a little instead: it dips and springs back
-   (.pressed, put on at the touch). The choosers' outline shows only for someone moving through the page by keyboard. */
+/* A capsule kept on a layer of its own puts the words over it on another, which a phone paints a beat late on a pane
+   that has only just been shown. While sliding, the capsules are plain paint in the pane. */
+html.dragging .segind{will-change:auto;transition:none}
+/* Nothing flashes a color when it is pressed. What can be pressed gives a little instead: it dips for as long as the
+   finger is down (.pressed, put on at the touch) and springs back when it lifts (.sprung), which is also when the tap
+   counts. A pill of choices dips as one piece, whichever choice was touched. The choosers' outline shows only for someone moving through the page by keyboard. */
 html{-webkit-tap-highlight-color:transparent}
 .mtnpick:focus-within,.regionpick:focus-within{outline:none}
 .mtnpick:has(select:focus-visible),.regionpick:has(select:focus-visible){outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
-@keyframes press{0%{transform:scale(1)}32%{transform:scale(.92)}100%{transform:scale(1)}}
-.pressed{animation:press .34s cubic-bezier(.3,1.5,.5,1)}
-@media (prefers-reduced-motion:reduce){.pressed{animation:none}}
+.pressed:not(#_){transform:scale(.92);transition:transform .12s ease-out}
+.pressed.aspill:not(#_){transform:scale(.965)}
+.sprung:not(#_){transition:transform .32s cubic-bezier(.3,1.6,.5,1)}
+button,summary,label.mtnpick,label.regionpick{-webkit-touch-callout:none}
+@media (prefers-reduced-motion:reduce){.pressed:not(#_){transform:none}}
 /* The strip at the very top of a phone's screen (clock, battery) takes its color from what the page puts there. A thin
    fixed band holds that color: the page's gray while the header shows, the pane's own color once a frozen bar is
    pinned under it (html.stuck). The page's theme color is kept in step with it. */
@@ -1049,8 +1055,7 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .aloc text{font-size:4px;font-weight:600;fill:var(--mark-mid);paint-order:stroke;stroke:var(--surface);stroke-width:1.1px;stroke-linejoin:round}
 .probs details.prob{flex:1;min-width:0;margin:0;padding:0}
 .probs details.prob > summary{display:flex;gap:12px;align-items:center;padding:0;font-size:inherit;font-weight:400}
-.probs details.prob > summary::after{margin-left:0;font-size:18px;color:var(--mark-dull)}
-.probs details.prob[open] .rose{width:84px;height:84px}
+.probs details.prob > summary::after{flex:none;width:12px;text-align:center;margin-left:0;font-size:18px;color:var(--mark-dull)}
 .pmore{margin:8px 0 6px;padding:10px 12px;border-radius:11px;background:var(--wash)}
 .pmore h4{margin:0 0 3px;font-size:12px;font-weight:650;color:var(--accent)}
 .pmore p{margin:0 0 8px;font-size:13.5px;line-height:1.45;color:var(--ink2);max-width:none}
@@ -1061,7 +1066,7 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .ddefs > details[open]{padding-bottom:12px}
 .ddefs > details.on{background:var(--wash);border-color:var(--mark-dull)}
 .ddefs > details > summary{padding:0;font-size:inherit;font-weight:400}
-.ddefs > details > summary::after{font-size:18px;color:var(--mark-dull)}
+.ddefs > details > summary::after{flex:none;width:12px;text-align:center;font-size:18px;color:var(--mark-dull)}
 .ddefs > details[open] > summary{margin-bottom:7px}
 .ddefs .dhd{display:flex;align-items:center;gap:10px}
 .ddefs .dhd img{flex:none;height:34px}
@@ -2383,17 +2388,27 @@ function placeTabInd(jump) {
 const TAB_ORDER = ["map", "forecast", "mountain", "avalanche"];
 const PANES = {map: () => $("mapPanel"), forecast: () => document.querySelector(".panel.summary"), mountain: () => $("detail"), avalanche: () => $("avalanche")};
 let pager = null;
+const paneTop = {};
 function pagerOpen(to, byTap) {
   const from = document.documentElement.dataset.view;
   if (pager || to === from || !PANES[to] || !PANES[from]) return false;
   const out = PANES[from](), inn = PANES[to](), sign = TAB_ORDER.indexOf(to) > TAB_ORDER.indexOf(from) ? 1 : -1;
   // The new pane starts where the old one does on screen; under a pinned bar that is where the bar is pinned.
   const bar = out.querySelector(".dtop"), pin = bar ? parseFloat(getComputedStyle(bar).top) || 0 : 0;
-  const top = Math.max(pin, Math.round(out.getBoundingClientRect().top));
+  const outTop = out.getBoundingClientRect().top, pinned = !!bar && window.scrollY > 0 && outTop <= pin;
+  // Unscrolled, it starts exactly where it sat the last time it was open (panes do not all start at the same height).
+  // A pane not opened yet is opened for an instant, unseen (nothing is painted in between), to learn where it sits.
+  if (!window.scrollY && paneTop[to] == null) {
+    document.documentElement.dataset.view = to; paneTop[to] = inn.getBoundingClientRect().top; document.documentElement.dataset.view = from;
+  }
+  let top = pinned ? pin : window.scrollY > 0 || paneTop[to] == null ? Math.max(pin, outTop) : paneTop[to];
   document.documentElement.style.setProperty("--gtop", `${top}px`);
   document.documentElement.classList.add("dragging");
   out.classList.add("dragout"); inn.classList.add("dragin");
-  pager = {from, to, sign, out, inn, w: window.innerWidth, byTap, pinned: top === pin && window.scrollY > 0, pin, busy: false};
+  // Under a pinned bar it is the new pane's own bar, not its edge, that has to land on the pin.
+  const innBar = inn.querySelector(".dtop");
+  if (pinned && innBar) { top -= innBar.getBoundingClientRect().top - pin; document.documentElement.style.setProperty("--gtop", `${top}px`); }
+  pager = {from, to, sign, out, inn, w: window.innerWidth, byTap, pinned, pin, sy: window.scrollY, busy: false};
   if (to === "mountain" && data && Math.abs(inn.clientWidth - fitted) > 40) renderDetail();
   // The pane comes in at its top, so its first chip is lit from the start rather than once the slide is over.
   const chips = inn.querySelector(".dtop > .jump"), first = chips && chips.querySelector("button");
@@ -2427,7 +2442,7 @@ function pagerSettle(go) {
 }
 function pagerClose(go) {
   if (!pager) return;
-  const {out, inn, to, pinned, pin} = pager;
+  const {out, inn, to, pinned, pin, sy} = pager;
   for (const el of [out, inn]) { el.style.transition = ""; el.style.transform = ""; }
   out.classList.remove("dragout"); inn.classList.remove("dragin");
   document.documentElement.classList.remove("dragging");
@@ -2436,7 +2451,10 @@ function pagerClose(go) {
   showView(to);
   // Coming from a page scrolled under its pinned bar, a pane that scrolls opens with its own bar pinned the same way.
   const bar = inn.querySelector(".dtop");
-  if (pinned && bar && (to === "mountain" || to === "avalanche")) window.scrollTo(0, Math.ceil(bar.getBoundingClientRect().top + window.scrollY - pin));
+  if (!bar || (to !== "mountain" && to !== "avalanche")) return;
+  if (pinned) window.scrollTo(0, Math.ceil(bar.getBoundingClientRect().top + window.scrollY - pin));
+  // Scrolled only a little (the header part way off), it opens scrolled just as far, so nothing jumps.
+  else if (sy > 0) window.scrollTo(0, sy);
 }
 // A tab chosen from the bar simply opens: the capsule slides to it and the pane changes, with no slide of the page
 // (that is kept for a finger dragging it). The pane follows two frames later, once the capsule is under way.
@@ -2452,6 +2470,7 @@ function showView(view) {
   for (const b of document.querySelectorAll("#tabbar button")) { if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
   placeTabInd();
   window.scrollTo(0, 0);
+  if (PANES[view] && PANES[view]()) paneTop[view] = PANES[view]().getBoundingClientRect().top;
   markJump();
   placeSegs(true);
   // The hourly chart is drawn to the width it finds, and it found none while its tab was closed.
@@ -2473,16 +2492,28 @@ function goTo(el) {
   el.scrollIntoView({behavior: "smooth", block: "start"});
 }
 $("tabbar").addEventListener("click", (e) => { const b = e.target.closest("button[data-view]"); if (b) switchTab(b.dataset.view); });
-// The dip under a press: any button, chooser, link button or fold-out heading that is touched plays it once. The map's
-// name labels are left out, since the map itself places them by the same means.
+// The dip under a press: any button, chooser, link button or fold-out heading that is touched dips and stays down
+// until the finger lifts (the tap itself counts on the lift, as taps do) or wanders off into a scroll or a drag. A
+// choice in a pill dips the whole pill. The map's name labels are left out, since the map places them by the same means.
+let held = null;
+function letGo() {
+  if (!held) return;
+  const el = held.el; held = null;
+  el.classList.remove("pressed"); el.classList.add("sprung");
+  setTimeout(() => { if (!el.classList.contains("pressed")) el.classList.remove("sprung"); }, 340);
+}
 document.addEventListener("pointerdown", (e) => {
-  const el = e.target.closest && e.target.closest("button, label.mtnpick, label.regionpick, a.abtn, summary");
+  let el = e.target.closest && e.target.closest("button, label.mtnpick, label.regionpick, a.abtn, summary");
   if (!el || el.classList.contains("map-label") || el.disabled) return;
-  el.classList.remove("pressed");
-  void el.offsetWidth;
-  el.classList.add("pressed");
+  const pill = el.closest("#tabbar, .seg:not(.tri), .jump");
+  if (pill) el = pill;
+  letGo();
+  held = {el, x: e.clientX, y: e.clientY};
+  el.classList.toggle("aspill", !!pill);
+  el.classList.remove("sprung"); el.classList.add("pressed");
 }, {passive: true});
-document.addEventListener("animationend", (e) => { if (e.animationName === "press") e.target.classList.remove("pressed"); });
+document.addEventListener("pointermove", (e) => { if (held && Math.hypot(e.clientX - held.x, e.clientY - held.y) > 10) letGo(); }, {passive: true});
+for (const kind of ["pointerup", "pointercancel", "blur"]) window.addEventListener(kind, letGo, {passive: true});
 // A sideways swipe on anything that does not itself move goes to the next tab (swipe left) or the one before (swipe
 // right). Things that take a sideways drag for themselves are left alone: the map, a slider, a card, and anything
 // that scrolls sideways (the summary table, the hourly chart and its days, the season chart's readout).
