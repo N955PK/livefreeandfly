@@ -646,7 +646,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "157";
+const BUILD = "158";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -772,7 +772,8 @@ function renderHeadline() {
   $("headline").title = `At the ${where}, ${el.elevation_ft.toLocaleString()} ft`;
   // generated_utc is the hour the forecast is worked out for; published_utc is when the run actually finished.
   const made = new Date(data.published_utc || data.generated_utc), age = (Date.now() - made) / 36e5;
-  const dayOf = (date) => date.toLocaleDateString("en-CA", {timeZone: TZ});
+  // "Today" is the reader's own calendar day, wherever they are; the time beside it stays mountain time like the rest of the page.
+  const dayOf = (date) => date.toLocaleDateString("en-CA");
   const when = `${dayOf(made) === dayOf(new Date()) ? "today" : made.toLocaleDateString("en-US", {timeZone: TZ, weekday: "short"})} ${made.toLocaleTimeString("en-US", {timeZone: TZ, hour: "numeric", minute: "2-digit"})}`;
   // The time is grey while the forecast is on schedule, yellow once an update has been missed, and red after two.
   // Each step allows an hour on top of the update interval, for a late start and the run itself.
