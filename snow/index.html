@@ -11,8 +11,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" as="image" href="icons/mark-white.png?v=2">
 <meta name="apple-mobile-web-app-title" content="Turbo Snow">
-<meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161a1f" media="(prefers-color-scheme: dark)">
 <meta property="og:image" content="https://livefreeandfly.org/snow/icons/icon-512.png">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
@@ -128,6 +128,9 @@ html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(-
    fixed band holds that color: the page's gray while the header shows, the pane's own color once a frozen bar is
    pinned under it (html.stuck). The page's theme color is kept in step with it. */
 #topTint{display:none}
+/* On a phone in tabs the page itself is the panes' color, so the header, a pinned bar and the screen's top strip are
+   all one color whatever the phone takes the strip's color from. */
+@media (max-width:720px){html.tabs{--page:var(--surface)}}
 html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(env(safe-area-inset-top),4px);z-index:7;pointer-events:none;background:var(--page)}
 html.tabs.stuck #topTint{background:var(--surface)}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
@@ -248,7 +251,7 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
   html.tabs .heat td.total{padding:0 5px 0 2px;font-size:14px}
   html.tabs .heat th.day b{font-size:12.5px}
   /* Each pass heads its mountains with its name in the accent blue (the mountains are navy) and a thin rule running to the right edge. */
-  html.tabs .heat tr.pass td{padding:12px 0 2px;text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:700;color:var(--accent)}
+  html.tabs .heat tr.pass td{padding:12px 0 2px;text-transform:none;letter-spacing:0;font-size:15.5px;font-weight:650;color:var(--accent)}
   html.tabs .heat tr.pass td > span{display:flex;align-items:center;gap:10px;left:14px;width:calc(100vw - 28px)}
   html.tabs .heat tr.pass td > span::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 }
@@ -353,7 +356,15 @@ html.tabs .tabbar{left:50%;right:auto;bottom:var(--tabgap);transform:translateX(
   box-shadow:0 8px 28px rgba(15,23,32,.2),0 1px 3px rgba(15,23,32,.12),inset 0 1px 0 color-mix(in srgb,#fff 45%,transparent)}
 html.tabs .tabbar div{max-width:none;gap:2px}
 html.tabs .tabbar button{height:46px;border:0;border-radius:999px;color:var(--mark-mid);transition:background .18s ease,color .18s ease}
-html.tabs .tabbar button[aria-current="page"]{color:var(--mark);background:color-mix(in srgb,var(--mark) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mark) 10%,transparent)}
+html.tabs .tabbar button[aria-current="page"]{color:var(--mark)}
+/* The open tab's capsule is one piece that slides from tab to tab, easing out with a slight overshoot. */
+html.tabs .tabbar div{position:relative}
+html.tabs .tabbar button{position:relative;z-index:1;background:none}
+.tabind{display:none}
+html.tabs .tabind{display:block;position:absolute;z-index:0;top:0;left:0;height:46px;border-radius:999px;background:color-mix(in srgb,var(--mark) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mark) 10%,transparent);
+  transition:transform .34s cubic-bezier(.3,1.25,.4,1),width .34s cubic-bezier(.3,1.25,.4,1)}
+html.tabs .tabind.still{transition:none}
+@media (prefers-reduced-motion:reduce){html.tabs .tabind{transition:none}}
 html.tabs[data-view="map"] main{padding-bottom:0}
 html.tabs[data-view="map"] .mapbar{bottom:calc(var(--tabbar) + 14px)}
 html.tabs #map3d{--rail:calc(var(--mapbar-h,56px) + 28px + var(--tabbar))}
@@ -453,8 +464,7 @@ html.tabs .orow.stat em::before{content:none}
 /* Whether the reading is live from the mountain or from the forecast is said in the block's top right corner. */
 html.tabs .orow.stat{position:relative}
 html.tabs .orow.stat small{position:absolute;top:8px;right:11px;margin:0;font-size:11.5px;font-weight:600;color:var(--mark-dull)}
-html.tabs .orow.stat small.live{color:#2f8a3c;font-weight:650}
-@media (prefers-color-scheme:dark){html.tabs .orow.stat small.live{color:#6fd08c}}
+html.tabs .orow.stat small.live{color:var(--accent);font-weight:650}
 html.tabs details.both > summary.orow{display:block;padding:4px 0 2px}
 html.tabs details.both > summary.orow::after{content:none}
 html.tabs details.both .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px;text-align:center}
@@ -1190,7 +1200,7 @@ if (new URLSearchParams(location.search).has("embed")) {
     <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
   </div></details>
 </main>
-<nav class="tabbar" id="tabbar" aria-label="Sections"><div>
+<nav class="tabbar" id="tabbar" aria-label="Sections"><div><i class="tabind" id="tabInd" aria-hidden="true"></i>
   <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
 </div></nav>
 <dialog id="settingsSheet" class="sheet top"><div class="grab"><b tabindex="-1" autofocus>Settings</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody"><div id="settings">
@@ -1432,12 +1442,13 @@ function stormTotals(snow) {
 // One timeline: the past week on the left (estimated the same way as the forecast, with the snow sensor's
 // measured depth gain beside it), six days ahead on the right. It opens at now and scrolls both ways.
 function timeline(resort, el) {
-  // Now is the present moment, not the hour the forecast was worked out for: the last hour that has begun (the
-  // first, or the last, where the present falls outside the hours the forecast holds). It is read out in the
-  // mountains' own Pacific time, like every other time on the chart.
-  const h = el.hourly, hours = resort.hours_utc, nowMs = Date.now();
-  const after = hours.findIndex((t) => new Date(t).getTime() > nowMs);
-  const nowIndex = after < 0 ? hours.length - 1 : Math.max(0, after - 1);
+  // Now is the present moment, not the hour the forecast was worked out for. nowAt() is where it falls among the
+  // hours, to the minute (held at the first or last hour where the present is outside what the forecast holds);
+  // nowIndex is the hour it is in, whose numbers are read out. The line is drawn at the exact spot and a ticker moves
+  // it on as time passes. It is read out in the mountains' own Pacific time, like every other time on the chart.
+  const h = el.hourly, hours = resort.hours_utc, t0 = new Date(hours[0]).getTime();
+  const nowAt = () => Math.max(0, Math.min(hours.length - 1, (Date.now() - t0) / 36e5));
+  const nowIndex = Math.floor(nowAt());
   // Six days ahead in the one-page layout; in tabs, as far as the forecast runs, up to two weeks.
   const n = Math.min(hours.length, nowIndex + 24 * (tabbed() ? 14 : 6));
   const avail = Math.max(280, $("detail").clientWidth - 36 - 44);
@@ -1477,7 +1488,7 @@ function timeline(resort, el) {
   const clear = (i) => Math.abs(i - nowIndex) > 5 && x(i) < W - 14;
   if (merged) {
     // Everything left of now is the past: a faint wash over the snowfall plot.
-    body += `<rect x="0" y="${T}" width="${x(nowIndex)}" height="${H1}" fill="var(--mark)" fill-opacity=".05"/>`;
+    body += `<rect id="tlWash" x="0" y="${T}" width="${x(nowAt())}" height="${H1}" fill="var(--mark)" fill-opacity=".05"/>`;
   }
   for (let i = 0; i <= n; i++) {
     const dark = i < n && (hourOf(i) >= 16 || hourOf(i) < 8);
@@ -1534,8 +1545,8 @@ function timeline(resort, el) {
   let d = ""; pen = false;
   levels.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? "L" : "M"}${x(i + 0.5).toFixed(1)} ${y2(v).toFixed(1)}`; pen = true; });
   body += `<path d="${d}" fill="none" stroke="var(--level)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-  if (merged && levels[nowIndex] != null) body += `<text class="lvl" x="${x(nowIndex) + 7}" y="${Math.max(T2 + 10, y2(levels[nowIndex]) - 6)}">${height(Math.round(levels[nowIndex] / 100) * 100)}</text>`;
-  body += `<line x1="${x(nowIndex)}" x2="${x(nowIndex)}" y1="16" y2="${H}" stroke="var(--ink)" stroke-width="1.5"/><text class="lab" x="${x(nowIndex) + 5}" y="13" style="fill:var(--ink)">Now</text>`;
+  if (merged && levels[nowIndex] != null) body += `<text class="lvl" id="tlLvl" x="${x(nowAt()) + 7}" y="${Math.max(T2 + 10, y2(levels[nowIndex]) - 6)}">${height(Math.round(levels[nowIndex] / 100) * 100)}</text>`;
+  body += `<line id="tlNowLine" x1="${x(nowAt())}" x2="${x(nowAt())}" y1="16" y2="${H}" stroke="var(--ink)" stroke-width="1.5"/><text class="lab" id="tlNowLab" x="${x(nowAt()) + 5}" y="13" style="fill:var(--ink)">Now</text>`;
   if (nowIndex > 30 && !merged) body += `<text x="${x(nowIndex) - 6}" y="13" text-anchor="end">past</text>`;
   body += `<line id="cross" x1="0" x2="0" y1="${T}" y2="${T2 + H2}" stroke="var(--ink2)" style="display:none"/>`;
   const axis = `<svg width="${merged ? 130 : 44}" height="${H}" aria-hidden="true"><text x="${merged ? 4 : 38}" y="${y1(top) + (merged ? 13 : 4)}" text-anchor="${merged ? "start" : "end"}">${metric() ? Math.round(top * 2.54) : top} ${LEN()}</text><text x="${merged ? 4 : 38}" y="${y1(top / 2) + (merged ? 13 : 4)}" text-anchor="${merged ? "start" : "end"}">${metric() ? Math.round(top * 1.27) : top / 2}</text>
@@ -1548,7 +1559,7 @@ function timeline(resort, el) {
   for (let v = sumStep; v <= sumTop * 0.97; v += sumStep) sumTicks.push(v);
   const axisR = merged ? `<div class="tl-axis-r"><svg width="40" height="${H}" aria-hidden="true">${sumTicks.map((v, k) => `<line x1="32" x2="40" y1="${ya(v)}" y2="${ya(v)}" stroke="var(--snow)" stroke-width="1.5"/><text x="38" y="${ya(v) + 13}" text-anchor="end">${metric() ? Math.round(v * 2.54) : v}${k === sumTicks.length - 1 ? ` ${LEN()}` : ""}</text>`).join("")}</svg></div>` : "";
   return {html: `<div class="tl"><div class="tl-axis">${axis}</div>${axisR}<div class="tl-fixed" id="crossFixed" hidden></div><div class="tl-scroll" id="tlScroll"><svg width="${W}" height="${H}" role="img" aria-label="Hourly snowfall, storm totals, wind, cloud, temperature, and snow level: the past week and the next six days">${body}</svg></div><div id="tip"></div></div>`,
-    n, pph, nowIndex, running, depth};
+    n, pph, nowIndex, nowAt, running, depth};
 }
 
 // A touch anywhere off the hourly chart puts its readout away.
@@ -1559,15 +1570,31 @@ document.addEventListener("pointerdown", (event) => {
   // The tabs chart's reading line is always there; only the one-page layout's touch line goes away on a tap elsewhere.
   if ($("crossFixed") && !$("crossFixed").classList.contains("quarter")) $("crossFixed").hidden = true;
 });
+let tlTicker = 0;
 function wireTimeline(resort, el, g) {
   const scroll = $("tlScroll"), tip = $("tip"), cross = $("cross"), fixed = $("crossFixed");
   if (!scroll) return;
   const h = el.hourly;
   // Open with now about a quarter of the way in, so a little of the past shows and the rest is a swipe away.
-  const atNow = () => Math.max(0, g.nowIndex * g.pph - scroll.clientWidth * 0.25);
+  const atNow = () => Math.max(0, g.nowAt() * g.pph - scroll.clientWidth * 0.25);
   scroll.scrollLeft = atNow();
+  // The chart follows now for as long as it is left sitting on it; dragging it away stops that until it is brought back.
+  let follow = true, read = null;
   // A button to come back appears once the chart has been dragged away from now.
-  scroll.addEventListener("scroll", () => { $("tlNow").hidden = Math.abs(scroll.scrollLeft - atNow()) < 40; }, {passive: true});
+  scroll.addEventListener("scroll", () => { $("tlNow").hidden = Math.abs(scroll.scrollLeft - atNow()) < 40; follow = Math.abs(scroll.scrollLeft - atNow()) < 6; }, {passive: true});
+  // Every quarter minute the Now line is put where the present has got to, and a chart sitting on now goes with it.
+  clearInterval(tlTicker);
+  tlTicker = setInterval(() => {
+    if (!$("tlNowLine") || !scroll.isConnected) { clearInterval(tlTicker); return; }
+    const at = g.nowAt() * g.pph;
+    g.nowIndex = Math.floor(g.nowAt());
+    for (const end of ["x1", "x2"]) $("tlNowLine").setAttribute(end, at);
+    $("tlNowLab").setAttribute("x", at + 5);
+    if ($("tlWash")) $("tlWash").setAttribute("width", at);
+    if ($("tlLvl")) $("tlLvl").setAttribute("x", at + 7);
+    if (follow && scroll.clientWidth) scroll.scrollLeft = atNow();
+    if (read && scroll.clientWidth) read(Math.max(0, Math.min(g.n - 1, Math.floor((scroll.scrollLeft + scroll.clientWidth * 0.25) / g.pph))));
+  }, 15000);
   $("tlNow").addEventListener("click", () => scroll.scrollTo({left: atNow(), behavior: "smooth"}));
   // In tabs the chart has a fixed line a quarter of the way in (where now sits when it opens). A strip above the chart
   // always reads out the hour under that line in numbers, and a row of day chips jumps the chart from day to day.
@@ -1580,7 +1607,7 @@ function wireTimeline(resort, el, g) {
     // two weeks ahead. Each is the weekday's letter over the date.
     $("hChips").innerHTML = days.filter((d) => d.key < today).concat(days.filter((d) => d.key >= today).slice(0, 14)).map((d) => `<button data-hday="${d.k}" data-key="${d.key}"${d.key < today ? ' class="past"' : ""} aria-label="${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "long", month: "long", day: "numeric"})}"><small>${new Date(resort.hours_utc[d.k]).toLocaleDateString("en-US", {timeZone: TZ, weekday: "narrow"})}</small>${+d.key.slice(8)}</button>`).join("");
     const cell = (label, value) => `<span><small>${label}</small><b>${value}</b></span>`;
-    const read = (k, hover) => {
+    read = (k, hover) => {
       const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
       const wind = h.wind_mph[k], gust = h.gust_mph[k], from = h.wind_from_deg && h.wind_from_deg[k] != null ? `${compass(h.wind_from_deg[k])} ` : "";
       $("hRead").innerHTML = `<div class="when"><b>${k === g.nowIndex && !hover ? "Now" : when}</b>${k === g.nowIndex && !hover ? `<small>${new Date().toLocaleTimeString("en-US", clockOpts({timeZone: TZ, hour: "numeric", minute: "2-digit"}))}</small>` : k < g.nowIndex ? "<small>past, estimated</small>" : ""}</div><div class="vals">` +
@@ -2222,9 +2249,19 @@ const tabbed = () => document.documentElement.classList.contains("tabs");
 const JUMPS = [["jump", () => $("detail")], ["avyJump", () => $("avalanche")]];
 const JUMP_SHORT = {"Mountain Collective": "Collective"};
 let jumpHold = null;
+// Puts the tab bar's capsule behind the open tab; it slides there unless told to jump (first placing, a resize).
+function placeTabInd(jump) {
+  const on = document.querySelector('#tabbar button[aria-current="page"]'), ind = $("tabInd");
+  if (!on || !ind || !on.offsetWidth) return;
+  ind.classList.toggle("still", !!jump || !ind.style.width);
+  ind.style.width = `${on.offsetWidth}px`;
+  ind.style.transform = `translateX(${on.offsetLeft}px)`;
+}
+window.addEventListener("resize", () => placeTabInd(true));
 function showView(view) {
   document.documentElement.dataset.view = view;
   for (const b of document.querySelectorAll("#tabbar button")) { if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
+  placeTabInd();
   window.scrollTo(0, 0);
   markJump();
   if (view === "forecast") syncCols();
@@ -2247,6 +2284,32 @@ function goTo(el) {
   el.scrollIntoView({behavior: "smooth", block: "start"});
 }
 $("tabbar").addEventListener("click", (e) => { const b = e.target.closest("button[data-view]"); if (b) showView(b.dataset.view); });
+// A sideways swipe on anything that does not itself move goes to the next tab (swipe left) or the one before (swipe
+// right). Things that take a sideways drag for themselves are left alone: the map, a slider, a card, and anything
+// that scrolls sideways (the summary table, the hourly chart and its days, the season chart's readout).
+const SWIPE_TABS = ["map", "forecast", "mountain", "avalanche"];
+let swipe = null;
+const takesDrag = (el) => {
+  if (el.closest("#map3d, .mapbar, #seasonChart, dialog, input, select, .roadsheet")) return true;
+  for (let node = el; node && node !== document.body; node = node.parentElement) {
+    if (node.scrollWidth > node.clientWidth + 1 && /auto|scroll|hidden/.test(getComputedStyle(node).overflowX)) return true;
+  }
+  return false;
+};
+document.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  // A start at the very edge is the phone's own back gesture, and two fingers are a pinch.
+  swipe = tabbed() && e.touches.length === 1 && t.clientX > 16 && t.clientX < window.innerWidth - 16 && !takesDrag(e.target) ? {x: t.clientX, y: t.clientY, at: Date.now()} : null;
+}, {passive: true});
+document.addEventListener("touchend", (e) => {
+  if (!swipe) return;
+  const t = e.changedTouches[0], dx = t.clientX - swipe.x, dy = t.clientY - swipe.y, quick = Date.now() - swipe.at < 700;
+  swipe = null;
+  if (!quick || Math.abs(dx) < 60 || Math.abs(dx) < 2 * Math.abs(dy)) return;
+  const to = SWIPE_TABS[SWIPE_TABS.indexOf(document.documentElement.dataset.view) + (dx < 0 ? 1 : -1)];
+  if (to) showView(to);
+}, {passive: true});
+document.addEventListener("touchcancel", () => { swipe = null; }, {passive: true});
 applyLayout("map");
 function showPrefs() { for (const b of document.querySelectorAll("[data-pref]")) b.setAttribute("aria-pressed", prefs[b.dataset.pref] === b.dataset.value); }
 showPrefs();
