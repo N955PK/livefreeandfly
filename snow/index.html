@@ -815,6 +815,7 @@ html.tabs #avalanche .ahead .by .late{color:#c62828}
 html.tabs #avalanche .ahead{align-items:flex-start;margin-top:-2px}
 html.tabs #avalanche .ahead .by{margin-top:7px}
 html.tabs #avalanche .ahead h2 + .by{margin-top:6.5px;font-size:13px}
+html.tabs #avalanche .ahead .by.when{display:grid;grid-template-columns:max-content max-content;column-gap:7px;line-height:18px}
 .aloc{flex:none;width:110px;height:85px}
 .aloc .other{fill:var(--mark-dull);opacity:.4}
 .aloc .here{stroke:var(--mark);stroke-width:.45;stroke-linejoin:round}
@@ -830,13 +831,32 @@ html.tabs #avalanche .ahead h2 + .by{margin-top:6.5px;font-size:13px}
 .pmore p{margin:0 0 8px;font-size:13.5px;line-height:1.45;color:var(--ink2);max-width:none}
 .pmore p:last-child{margin-bottom:0}
 .ddefs{margin-top:12px}
-.ddefs > div{padding:10px 12px;border-radius:11px;margin-top:6px;border:1px solid var(--border)}
-.ddefs > div.on{background:var(--wash);border-color:var(--mark-dull)}
-.ddefs .dchip{border-radius:999px;margin-bottom:6px}
+/* Each level folds to its sign and name; the level in force today starts open. */
+.ddefs > details{padding:8px 12px;border-radius:11px;margin-top:6px;border:1px solid var(--border)}
+.ddefs > details.on{background:var(--wash);border-color:var(--mark-dull)}
+.ddefs > details > summary{padding:0;font-size:inherit;font-weight:400}
+.ddefs > details > summary::after{font-size:18px;color:var(--mark-dull)}
+.ddefs > details[open] > summary{margin-bottom:7px}
+.ddefs .dhd{display:flex;align-items:center;gap:10px}
+.ddefs .dhd img{flex:none;height:34px}
+.ddefs .dchip{border-radius:999px}
+@media (prefers-color-scheme:dark){.ddefs .dhd img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
 .ddefs p{margin:0 0 4px;font-size:13px;line-height:1.4;color:var(--ink2)}
 .ddefs p b{font-weight:600;color:var(--ink)}
 .ddefs p i{display:block;font-style:normal;font-size:11px;font-weight:650;color:var(--mark-dull)}
 .ddefs > .aby{margin-top:8px;font-size:12px}
+.lscale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:4px 0 10px}
+.lscale span{padding:5px 0;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:600;text-align:center;white-space:nowrap;color:var(--mark-dull)}
+.lscale span.on{background:var(--mark);border-color:var(--mark);color:var(--surface)}
+.dsizes .lscale{margin-bottom:6px}
+.dsizes .lscale span{background:var(--wash)}
+.dsizes{margin-top:20px}
+.dsizes h4{margin:0 0 4px;font-size:13.5px;font-weight:650;color:var(--accent)}
+.dsizes > div:not(.lscale){display:flex;align-items:baseline;gap:12px;padding:7px 0;border-top:1px solid var(--border);font-size:13px;line-height:1.4;color:var(--ink2)}
+.dsizes > div:not(.lscale) > b{flex:none;width:26px;font-weight:700;color:var(--ink)}
+.dsizes span b{font-weight:600;color:var(--ink);margin-right:6px}
+.dsizes > .aby{margin-top:0;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
+.dsizes > .lscale + .aby{padding-top:0;border-top:0}
 html.tabs #avalanche .afoot{margin-top:24px;padding:12px;border-radius:14px;background:var(--wash)}
 html.tabs #avalanche .afoot .abtn{margin-top:0}
 html.tabs #avalanche .afoot .anote{margin:8px 2px 0;text-align:center}
@@ -2469,7 +2489,14 @@ const DANGER_MEANS = [
   ["Heightened avalanche conditions on specific terrain features. Evaluate snow and terrain carefully; identify features of concern.", "Natural avalanches unlikely; human-triggered avalanches possible.", "Small avalanches in specific areas; or large avalanches in isolated areas."],
   ["Dangerous avalanche conditions. Careful snowpack evaluation, cautious route-finding and conservative decision-making essential.", "Natural avalanches possible; human-triggered avalanches likely.", "Small avalanches in many areas; or large avalanches in specific areas; or very large avalanches in isolated areas."],
   ["Very dangerous avalanche conditions. Travel in avalanche terrain not recommended.", "Natural avalanches likely; human-triggered avalanches very likely.", "Large avalanches in many areas; or very large avalanches in specific areas."],
-  ["Avoid all avalanche terrain.", "Natural and human-triggered avalanches certain.", "Large to very large avalanches in many areas."]];
+  ["Extraordinarily dangerous avalanche conditions. Avoid all avalanche terrain.", "Natural and human-triggered avalanches certain.", "Very large avalanches in many areas."]];
+// Avalanche sizes by destructive force (the D scale the problems are sized in), with the names the centers' forecasts
+// use and what each can do, after avalanche.org's encyclopedia.
+const SIZE_MEANS = [["D1", "Small", "Relatively harmless to people."], ["D2", "Large", "Could bury, injure or kill a person."], ["D3", "Very large", "Could destroy a house or a car."],
+  ["D4", "Historic", "Could destroy buildings or mature forest."], ["D5", "Historic", "Could gouge the landscape."]];
+// The five steps a problem's likelihood is given in, least to most; a problem's own step is marked on the row.
+const LIKELY = ["Unlikely", "Possible", "Likely", "Very likely", "Certain"];
+const likelyScale = (said) => { const at = LIKELY.findIndex((step) => (said || "").toLowerCase().replace("almost ", "") === step.toLowerCase()); return `<div class="lscale" role="img" aria-label="Likelihood${at < 0 ? " scale: unlikely, possible, likely, very likely, certain" : `: ${LIKELY[at].toLowerCase()}, step ${at + 1} of 5`}">${LIKELY.map((step, n) => `<span${n === at ? ' class="on"' : ""}>${step}</span>`).join("")}</div>`; };
 // Bearings for the small zone map: two lakes (lon, lat, half-width, half-height in map units) and three names.
 const SIERRA_LAKES = [[-120.04, 39.09, 0.9, 1.6], [-119, 38, 0.9, 0.7]];
 // Names sit to the east of their spots, clear of the zones. Tahoe names the lake, so it gets no dot of its own.
@@ -2540,7 +2567,7 @@ function renderAvalanche() {
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
   const brief = (iso) => iso ? new Date(iso).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"})) : "";
   const issue = brief(product && product.published_time), ends = brief(product && product.expires_time), over = ends && new Date(product.expires_time) < Date.now();
-  const by = tabbed() ? `<span class="by">${esc(center.name)}</span>${zone && issue ? `<span class="by issued">Issued <b>${issue}</b></span>${ends ? `<span class="by issued">${over ? "Expired" : "Expires"} <b${over ? ' class="late"' : ""}>${ends}</b></span>` : ""}` : ""}`
+  const by = tabbed() ? `<span class="by">${esc(center.name)}</span>${zone && issue ? `<span class="by when"><span>Issued</span><b>${issue}</b>${ends ? `<span>${over ? "Expired" : "Expires"}</span><b${over ? ' class="late"' : ""}>${ends}</b>` : ""}</span>` : ""}`
     : `<span class="by">${zone ? "Avalanche danger · " : ""}${esc(center.name)}</span>`;
   // In tabs the map sits beside the title, and the danger sign moves into the banner under it with the level and advice.
   const head = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) : zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
@@ -2580,16 +2607,18 @@ function renderAvalanche() {
         // In tabs a problem opens to the center's own words: what this kind of avalanche is, and what it is doing today.
         const what = paragraphs(x.problem_description), today = paragraphs(x.discussion);
         if (!tabbed() || (!what.length && !today.length)) return `<li>${row}</li>`;
-        return `<li><details class="prob"><summary>${row}</summary><div class="pmore">${what.length ? `<h4>What it is</h4>${what.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}${today.length ? `<h4>Today</h4>${today.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}</div></details></li>`;
+        return `<li><details class="prob"><summary>${row}</summary><div class="pmore"><h4>Likelihood</h4>${likelyScale(x.likelihood)}${what.length ? `<h4>What it is</h4>${what.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}${today.length ? `<h4>Today</h4>${today.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}</div></details></li>`;
       }).join("")}</ol></div>`;
     }
     // The center's longer write-ups, where it posts them: the forecast discussion and the mountain weather.
     const told = (title, html, by = "") => { const text = paragraphs(html); return text.length ? `<h3>${title}</h3><div class="abottom">${text.map((line) => `<p>${esc(line)}</p>`).join("")}</div>${by ? `<p class="aby">${by}</p>` : ""}` : ""; };
     const more = told("Forecast discussion", product.hazard_discussion) + told("Weather", product.weather_discussion || (weather && weather.weather_discussion), weather && weather.published_time ? `${weather.author ? `${esc(weather.author)} · ` : ""}issued ${brief(weather.published_time)}` : "");
     const lines = paragraphs(product.bottom_line);
-    words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more : ""}</div>`;
+    words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more : ""}</div>`;
   }
-  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${tabbed() ? "<h3>Definitions</h3>" : ""}${scale}${tabbed() ? `<div class="ddefs">${DANGER_MEANS.map(([advice, likely, size], n) => `<div class="${zone.level === n + 1 ? "on" : ""}">${chip(n + 1)}<p><b>${advice}</b></p><p><i>Likelihood</i>${likely}</p><p><i>Size and spread</i>${size}</p></div>`).join("")}<p class="aby">North American Public Avalanche Danger Scale.</p></div>` : ""}</div></div>`;
+  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${tabbed() ? "<h3>Definitions</h3>" : ""}${scale}${tabbed() ? `<div class="ddefs">${DANGER_MEANS.map(([advice, likely, size], n) => `<details class="${zone.level === n + 1 ? "on" : ""}"${zone.level === n + 1 ? " open" : ""}><summary class="dhd"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()">${chip(n + 1)}</summary><p><b>${advice}</b></p><p><i>Likelihood of avalanches</i>${likely}</p><p><i>Avalanche size and distribution</i>${size}</p></details>`).join("")}<p class="aby">North American Public Avalanche Danger Scale.</p></div>
+    <div class="dsizes"><h4>Likelihood</h4>${likelyScale("")}<p class="aby">How likely a problem is to produce an avalanche, least to most.</p></div>
+    <div class="dsizes"><h4>Avalanche size</h4>${SIZE_MEANS.map(([code, name, means]) => `<div><b>${code}</b><span><b>${name}</b>${means}</span></div>`).join("")}<p class="aby">Destructive size (D scale). Half sizes, like D1.5, fall between two.</p></div>` : ""}</div></div>`;
   const link = (product && product.forecast_zone && product.forecast_zone[0] && product.forecast_zone[0].url) || zone.link || center.url;
   $("avalanche").innerHTML = `<div class="${expired ? "expired" : ""}">${head}${body}</div>${foot(link, false)}`;
 }
