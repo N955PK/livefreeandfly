@@ -314,9 +314,6 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
   background:var(--bg);color:var(--ink);overflow:hidden;transition:opacity .45s ease,visibility .45s}
 #splash.done{opacity:0;visibility:hidden}
 :root.nosplash #splash{display:none}
-/* The opening screen starts on black and the scene fades up out of it, so nothing from the page behind it is ever seen. */
-#splash::after{content:"";position:absolute;inset:0;background:#000;pointer-events:none;animation:fromblack .6s ease .2s forwards}
-@keyframes fromblack{to{opacity:0;visibility:hidden}}
 #splash .hill{position:relative;flex:none;width:400px;height:200px}
 #splash svg{position:absolute;inset:0;width:400px;height:200px;overflow:visible}
 #splash .ground{position:absolute;inset:0;translate:-544px 0;transform:translateY(700px);animation:pastx 2.8s linear,pasty 2.8s linear}

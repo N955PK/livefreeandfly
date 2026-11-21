@@ -56,9 +56,6 @@
 .embed #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
 :root.nosplash #splash{display:none}
-/* The opening screen starts on black and the scene fades up out of it, so nothing behind it is ever seen. */
-#splash::after{content:"";position:absolute;inset:0;background:#000;pointer-events:none;animation:fromblack .6s ease .2s forwards}
-@keyframes fromblack{to{opacity:0;visibility:hidden}}
 @keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.92;transform:none}}
