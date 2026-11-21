@@ -14,6 +14,7 @@
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
 <meta property="og:image" content="https://livefreeandfly.org/snow/icons/icon-512.png">
+<script>try{if(sessionStorage.getItem("turbo-snow-opened"))document.documentElement.classList.add("nosplash");else sessionStorage.setItem("turbo-snow-opened","1");}catch(e){}</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
 :root{
@@ -54,6 +55,10 @@
 #splash i{position:absolute;top:-12px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:drift linear infinite}
 .embed #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
+:root.nosplash #splash{display:none}
+/* The opening screen starts on black and the scene fades up out of it, so nothing behind it is ever seen. */
+#splash::after{content:"";position:absolute;inset:0;background:#000;pointer-events:none;animation:fromblack .6s ease .2s forwards}
+@keyframes fromblack{to{opacity:0;visibility:hidden}}
 @keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.92;transform:none}}
@@ -2056,6 +2061,8 @@ function reveal() {
   }, Math.max(0, 1500 - (performance.now() - opened)));
 }
 setTimeout(reveal, 8000);
+// Restored from the back/forward cache, the page is already open: no opening screen.
+window.addEventListener("pageshow", (e) => { if (e.persisted) document.documentElement.classList.add("nosplash"); });
 liveForecast().then(async (d) => {
   data = fixTimes(d);
   pickRegion();
