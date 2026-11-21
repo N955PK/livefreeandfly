@@ -302,7 +302,7 @@ html.tabs .roadsheet{position:absolute;z-index:400002;left:4px;right:4px;bottom:
   box-shadow:0 2px 14px rgba(15,23,32,.24);transform:translateY(calc(100% + 22px));transition:transform .22s ease}
 html.tabs .roadsheet.open{transform:none}
 html.tabs .roadsheet .grab{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:16px;color:var(--mark)}
-html.tabs .roadsheet .grab b{font-weight:700;letter-spacing:-.01em}
+html.tabs .roadsheet .grab b{font-weight:700;letter-spacing:-.01em;color:var(--accent)}
 .roadsheet .grab button{border:1px solid var(--border);width:44px;height:44px;border-radius:50%;background:var(--wash);color:var(--mark);display:grid;place-items:center;padding:0;cursor:pointer}
 .roadsheet .grab button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 html.tabs .roadsheet .roadnote{display:block;padding:0 18px 14px}
@@ -813,13 +813,14 @@ dialog.sheet[open]{display:flex;flex-direction:column;animation:sheetup .22s eas
 dialog.sheet > form{display:flex;flex-direction:column;min-height:0}
 dialog.sheet::backdrop{background:rgba(15,23,32,.28)}
 @keyframes sheetup{from{transform:translateY(24px);opacity:0}}
-/* The cards opened from the header (settings from the snowflake, regions from the pin) drop from under it instead. */
-dialog.sheet.top{margin:calc(54px + env(safe-area-inset-top)) auto auto;max-height:calc(100dvh - 68px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+/* Settings and every chooser drop from under the header, as far below it (14px) as the roads card stands above the
+   tab bar, and stop the same distance short of the tab bar. */
+dialog.sheet.top{margin:calc(62px + env(safe-area-inset-top)) auto auto;max-height:calc(100dvh - 76px - var(--tabbar) - env(safe-area-inset-top))}
 dialog.sheet.top[open]{animation-name:sheetdown}
 @keyframes sheetdown{from{transform:translateY(-24px);opacity:0}}
 @media (prefers-reduced-motion:reduce){dialog.sheet[open]{animation:none}}
 dialog.sheet .grab{flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:16px;color:var(--mark)}
-dialog.sheet .grab b{font-weight:700;letter-spacing:-.01em;outline:none}
+dialog.sheet .grab b{font-weight:700;letter-spacing:-.01em;outline:none;color:var(--accent)}
 dialog.sheet button:focus{outline:none}
 dialog.sheet button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 dialog.sheet .grab button{flex:none;border:1px solid var(--border);width:44px;height:44px;border-radius:50%;background:var(--wash);color:var(--mark);display:grid;place-items:center;padding:0;cursor:pointer}
@@ -2469,11 +2470,6 @@ function openPicker(select) {
   pickFor = select;
   $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
   $("pickList").innerHTML = groups.length ? groups.map((g) => `<div class="pickgroup">${esc(g.label)}</div>${[...g.children].map(row).join("")}`).join("") : [...select.options].map(row).join("");
-  // The card opens just under the name that was touched (never higher than the settings card does) and stops short of the tab bar.
-  const under = Math.max(54, Math.round(select.closest("label").getBoundingClientRect().bottom + 8));
-  $("pickSheet").classList.add("top");
-  $("pickSheet").style.marginTop = `${under}px`;
-  $("pickSheet").style.maxHeight = `calc(100dvh - ${under}px - var(--tabbar) - 14px)`;
   $("pickSheet").showModal();
   const now = $("pickList").querySelector('[aria-current="true"]');
   if (now) now.scrollIntoView({block: "center"});
