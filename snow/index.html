@@ -669,7 +669,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "166";
+const BUILD = "167";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1275,7 +1275,9 @@ async function sierraFeed() {
 // Bowl's trails) are picked out of the page. A redesign there breaks this; it then reads as "could not be loaded".
 const pageOf = (html) => new DOMParser().parseFromString(html, "text/html");
 const said = (node) => (node ? node.textContent.replace(/\s+/g, " ").trim() : "");
-const entry = (name, status, difficulty) => ({Name: name, Status: status.replace(/^./, (c) => c.toUpperCase()), StatusEnglish: status.toLowerCase(), Difficulty: difficulty});
+// A status is the resort's own word for it and nothing more: "Scheduled to open 9:00 am" is "Scheduled".
+const statusWord = (status) => status.replace(/\s+(?:to|at|until|till|from|by)\s.*$|\s*[-–:,(]?\s*\d.*$/i, "").trim() || status;
+const entry = (name, status, difficulty) => { const word = statusWord(status); return {Name: name, Status: word.replace(/^./, (c) => c.toUpperCase()), StatusEnglish: word.toLowerCase(), Difficulty: difficulty}; };
 async function mtRoseFeed() {
   const pages = await getJsonLive("https://skirose.com/wp-json/wp/v2/pages?slug=snow-report&_fields=content");
   const lifts = [...pageOf(pages[0].content.rendered).querySelectorAll("#lift-status .row.data")].map((row) => entry(said(row.querySelector(".rose-name")), said(row.querySelector(".column-status"))));
@@ -1401,19 +1403,21 @@ function liftsHtml(resort) {
   const [id, mine] = LIFT_FEEDS[resort.key], feed = liftFeeds[id];
   if (!feed || feed.failed) return blank(feed ? "Could not be loaded right now" : "Loading…");
   const areas = (feed.data.MountainAreas || []).filter((a) => mine(a.Name)), lifts = areas.flatMap((a) => a.Lifts || []), trails = areas.flatMap((a) => a.Trails || []);
-  const tally = {open: 0, hold: 0, soon: 0, closed: 0}, held = {};
+  const tally = {open: 0, hold: 0, soon: 0, closed: 0}, held = {}, due = {};
   for (const lift of lifts) {
     const group = liftGroup(lift.StatusEnglish || "");
     tally[group]++;
     // A hold is reported in the resort's own word for it: Wind Hold, Weather Hold, Delayed.
     if (group === "hold") held[lift.Status] = (held[lift.Status] || 0) + 1;
+    // Lifts yet to open are counted under the resort's word for them too: Scheduled, Expected.
+    if (group === "soon") due[lift.Status] = (due[lift.Status] || 0) + 1;
   }
   const meter = (parts, total) => `<div class="meter">${parts.map(([kind, count]) => `<span class="s-${kind}" style="width:${total ? 100 * count / total : 0}%"></span>`).join("")}</div>`;
   const season = !lifts.length || lifts.every((l) => /season/.test(l.StatusEnglish || ""));
   const holds = Object.entries(held).map(([word, count]) => `<span class="held">${count} ${esc(word.toLowerCase())}</span>`).join(" · ");
   const openTrails = trails.filter((t) => /^open/.test(t.StatusEnglish || "")).length;
   const list = areas.filter((a) => (a.Lifts || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Lifts.map((l) => `<div class="lift"><span>${esc(l.Name)}</span><span><i class="s-${liftGroup(l.StatusEnglish || "")}"></i>${esc(l.Status || "")}</span></div>`).join("")}`).join("");
-  const liftLine = season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> open${holds ? ` · ${holds}` : ""}${tally.soon ? ` · ${tally.soon} expected` : ""} · ${tally.closed} closed`;
+  const liftLine = season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> open${holds ? ` · ${holds}` : ""}${Object.entries(due).map(([word, count]) => ` · ${count} ${esc(word.toLowerCase())}`).join("")} · ${tally.closed} closed`;
   // The resorts name difficulty differently (Easiest / Easy / Green Circle, Difficult / Intermediate / Blue Square, and so on).
   const grade = (trail) => { const d = (trail.Difficulty || "").toLowerCase(); return /extreme|expert|double/.test(d) ? ["◆◆", ""] : /very|black/.test(d) ? ["◆", ""] : /eas|begin|green/.test(d) ? ["●", "ci"] : /difficult|inter|blue/.test(d) ? ["■", "sq"] : ["", ""]; };
   const trailRow = (t) => `<div class="lift"><span><em class="${grade(t)[1]}">${grade(t)[0]}</em>${esc(t.Name)}</span><span><i class="s-${liftGroup(t.StatusEnglish || "")}"></i>${esc(t.Status || "")}</span></div>`;
