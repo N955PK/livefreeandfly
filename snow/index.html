@@ -123,6 +123,29 @@ html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(-
    Region, and a bar of chips pinned at the top of the screen jumps between them. */
 .jump{display:none}
 /* The mountain's name, the level picker and the chips stay at the top of the screen together while the tab scrolls. */
+/* Going from one tab to another, the page itself moves: the old pane slides off toward the side it is leaving by,
+   sinking back and dimming a little, while the new one sweeps in over it from the other side. The header and the tab
+   bar are not part of the slide; they stay where they are, live. Which way it goes is html[data-dir], set from the
+   order of the tabs. (A phone that cannot do this simply switches panes.) */
+@supports (view-transition-name:none){
+  html.tabs .brand{view-transition-name:brand}
+  html.tabs .tabbar{view-transition-name:tabbar}
+  ::view-transition-group(brand),::view-transition-group(tabbar){animation:none;z-index:2}
+  ::view-transition-old(brand),::view-transition-old(tabbar){display:none}
+  ::view-transition-new(brand),::view-transition-new(tabbar){animation:none}
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.46s;animation-timing-function:cubic-bezier(.22,1,.36,1);mix-blend-mode:normal}
+  html[data-dir="fwd"]::view-transition-old(root){animation-name:pageoutleft}
+  html[data-dir="fwd"]::view-transition-new(root){animation-name:pageinright}
+  html[data-dir="back"]::view-transition-old(root){animation-name:pageoutright}
+  html[data-dir="back"]::view-transition-new(root){animation-name:pageinleft}
+  ::view-transition-new(root){z-index:1}
+}
+/* The glass cannot blur a page that is mid-slide, so for that moment the tab bar is nearly solid. */
+html[data-dir] .tabglass{background:color-mix(in srgb,var(--surface) 94%,transparent)}
+@keyframes pageoutleft{to{transform:translateX(-26%) scale(.95);opacity:.25}}
+@keyframes pageoutright{to{transform:translateX(26%) scale(.95);opacity:.25}}
+@keyframes pageinright{from{transform:translateX(100%)}}
+@keyframes pageinleft{from{transform:translateX(-100%)}}
 /* Nothing flashes a color when it is pressed. What can be pressed gives a little instead: it dips and springs back
    (.pressed, put on at the touch). The choosers' outline shows only for someone moving through the page by keyboard. */
 html{-webkit-tap-highlight-color:transparent}
@@ -163,6 +186,10 @@ html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:
   html.tabs .heat tr.head th{position:sticky;top:0;z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
   html.tabs .heat tr.head th b{line-height:1.15}
   html.tabs .heat tr.head th.corner{left:0;z-index:5}
+  /* The days past the fifth are grayed by their ink, not by being see-through: a see-through heading would show the
+     rows passing under it. */
+  html.tabs .heat tr.head th.day.far{opacity:1;color:color-mix(in srgb,var(--muted) 55%,var(--surface))}
+  html.tabs .heat tr.head th.day.far b{color:color-mix(in srgb,var(--ink) 55%,var(--surface))}
   html.tabs .heat td.name{z-index:2}
 }
 html.tabs .dtop > .jump,html.tabs .sumhead > .jump{position:absolute;left:14px;right:14px;bottom:0;margin:0}
@@ -2358,7 +2385,16 @@ function switchTab(view) {
   if (view === document.documentElement.dataset.view) return;
   for (const b of document.querySelectorAll("#tabbar button")) { if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
   placeTabInd();
-  requestAnimationFrame(() => requestAnimationFrame(() => showView(view)));
+  // Where the phone can, the change of pane is a slide of the whole page (see the page-transition styles): forward
+  // for a tab further along the bar, back for one before. Otherwise the pane just changes, two frames on.
+  const order = ["map", "forecast", "mountain", "avalanche"], from = document.documentElement.dataset.view;
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!document.startViewTransition || calm) { requestAnimationFrame(() => requestAnimationFrame(() => showView(view))); return; }
+  document.documentElement.dataset.dir = order.indexOf(view) > order.indexOf(from) ? "fwd" : "back";
+  requestAnimationFrame(() => {
+    const slide = document.startViewTransition(() => showView(view));
+    slide.finished.finally(() => { delete document.documentElement.dataset.dir; });
+  });
 }
 window.addEventListener("resize", () => placeTabInd(true));
 function showView(view) {
