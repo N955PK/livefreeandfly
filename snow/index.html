@@ -140,18 +140,33 @@ html.tabs.stuck #topTint{background:var(--surface)}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
    right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
 html.tabs .dtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;box-sizing:border-box;height:129px;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
-html.tabs .sumhead{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;box-sizing:border-box;height:129px;background:var(--surface);border-bottom:1px solid var(--border)}
+html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:var(--surface)}
+/* On a phone the Region tab is one still screen, like the map: the title block at the top, and under it the table in
+   a box of its own that scrolls both ways. The table's heading row is simply its first row, held at the top of that
+   box as the names are held at its left, so the phone moves both with the table itself: no copy, nothing to keep in
+   step, and a pull past either end takes the headings with it. Title block and heading row together are the 129px
+   of the other tabs' frozen bars. */
+@media (max-width:720px){
+  html.tabs[data-view="forecast"],html.tabs[data-view="forecast"] body{height:100%;overflow:hidden;overscroll-behavior:none}
+  html.tabs[data-view="forecast"] main{height:100dvh;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:0}
+  html.tabs[data-view="forecast"] .panel.summary{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
+  html.tabs .sumhead{flex:none;height:94px}
+  html.tabs[data-view="forecast"] .gridwrap{flex:1 1 0;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(28px + var(--tabbar))}
+  html.tabs .panel.summary table.heat{padding-top:0}
+  html.tabs .heat tr.head th{position:sticky;top:0;z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
+  html.tabs .heat tr.head th b{line-height:1.15}
+  html.tabs .heat tr.head th.corner{left:0;z-index:5}
+  html.tabs .heat td.name{z-index:2}
+}
 html.tabs .dtop > .jump,html.tabs .sumhead > .jump{position:absolute;left:14px;right:14px;bottom:0;margin:0}
 .jump.many button{flex:1 1 auto;padding:6px 6px;white-space:nowrap}
-/* The Region bar's last row is the table's own column headings, not chips. */
-.sumcols{display:none}
-html.tabs .sumcols{display:block;position:absolute;left:0;right:0;bottom:1px;overflow:hidden}
-html.tabs .sumcols table.heat{table-layout:fixed;width:auto;padding-top:0;padding-bottom:0;will-change:transform}
-html.tabs .sumcols .heat th.corner{position:relative;left:auto;will-change:transform}
-html.tabs .sumcols .heat th{padding:0 0 3px;line-height:1.15}
-html.tabs .sumcols .heat th b{line-height:1.15}
-html.tabs .sumcols.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
-html.tabs .panel.summary .gridwrap{overflow-y:hidden}
+/* The chips are one pill, like the tab bar and the small pickers: the part being read is a capsule that slides. */
+html.tabs .dtop > .jump{bottom:6px;gap:0;padding:3px;border-radius:999px;background:var(--wash)}
+html.tabs .jump button{position:relative;z-index:1;padding:5px 4px;background:none;color:var(--mark-dull);-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none;outline:none}
+html.tabs .jump.many button{padding:5px 6px}
+html.tabs .jump button[aria-current=true]{background:none;color:var(--mark)}
+/* The note and the key under the table stay put when the table is slid sideways. */
+.gridwrap > .gridnote,.gridwrap > .legend{position:sticky;left:0}
 html.tabs .jump{display:flex;gap:6px;margin:10px 0 0;padding:0 0 9px;overflow-x:auto;scrollbar-width:none}
 html.tabs .jump::-webkit-scrollbar{display:none}
 .jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
@@ -750,13 +765,34 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .schart .usual{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-dasharray:5 4;stroke-linecap:round}
 .schart .nowfill{fill:url(#seasonFill)}
 .schart .today{stroke:var(--snow);stroke-width:1;opacity:.45}
-.schart .now{fill:none;stroke:var(--snow);stroke-width:2.75;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:seasondraw .9s ease-out .1s forwards}
+/* The current winter's line is alive: a faint copy always shows the whole of it, and over that the bright line draws
+   itself from October to today behind a glowing spark, sets off a ripple and a little bounce of the dot where it
+   arrives, rests, fades back to the faint copy, and starts again. One round takes 4.6 seconds. It runs only while
+   the chart is on screen (.inview), and not at all for a reader who has asked for less motion. */
+.schart .nowbase{fill:none;stroke:var(--snow);stroke-width:2.75;stroke-linejoin:round;stroke-linecap:round;opacity:.3}
+.schart .now{fill:none;stroke:var(--snow);stroke-width:2.75;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:0}
+.schart .nowglow{fill:none;stroke:var(--snow);stroke-width:11;stroke-linecap:round;stroke-dasharray:.001 2;opacity:0}
+.schart .nowspark{fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-dasharray:.001 2;opacity:0}
 .schart .nowhalo{fill:var(--snow);opacity:.18}
-.schart .nowdot{fill:var(--snow);stroke:var(--surface);stroke-width:2}
+.schart .nowring{fill:none;stroke:var(--snow);stroke-width:1.5;opacity:0;transform-box:fill-box;transform-origin:center}
+.schart .nowdot{fill:var(--snow);stroke:var(--surface);stroke-width:2;transform-box:fill-box;transform-origin:center}
+.schart.inview .now{animation:seasonline 4.6s cubic-bezier(.45,0,.25,1) infinite}
+.schart.inview .nowglow{animation:seasonrun 4.6s cubic-bezier(.45,0,.25,1) infinite,seasonglow 4.6s linear infinite}
+.schart.inview .nowspark{animation:seasonrun 4.6s cubic-bezier(.45,0,.25,1) infinite,seasonspark 4.6s linear infinite}
+.schart.inview .nowring{animation:seasonring 4.6s ease-out infinite}
+.schart.inview .nowring.two{animation-delay:.28s}
+.schart.inview .nowhalo{animation:seasonhalo 4.6s ease-in-out infinite}
+.schart.inview .nowdot{animation:seasondot 4.6s ease-out infinite}
+@keyframes seasonline{0%{stroke-dashoffset:1;opacity:1}50%{stroke-dashoffset:0;opacity:1}86%{stroke-dashoffset:0;opacity:1}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes seasonrun{0%{stroke-dashoffset:0}50%,100%{stroke-dashoffset:-1}}
+@keyframes seasonglow{0%{opacity:0}5%,46%{opacity:.4}54%,100%{opacity:0}}
+@keyframes seasonspark{0%{opacity:0}5%,48%{opacity:1}55%,100%{opacity:0}}
+@keyframes seasonring{0%,49%{opacity:0;transform:scale(1)}51%{opacity:.7;transform:scale(1)}82%,100%{opacity:0;transform:scale(4.2)}}
+@keyframes seasonhalo{0%,46%{opacity:.18}54%{opacity:.5}70%,100%{opacity:.18}}
+@keyframes seasondot{0%,48%{transform:scale(1)}54%{transform:scale(1.5)}62%{transform:scale(.92)}70%,100%{transform:scale(1)}}
 .schart .nowlab{font-size:12.5px;font-weight:700;fill:var(--ink)}
 .schart .nowlab{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
-@keyframes seasondraw{to{stroke-dashoffset:0}}
-@media (prefers-reduced-motion:reduce){.schart .now{animation:none;stroke-dasharray:none}}
+@media (prefers-reduced-motion:reduce){.schart.inview .now,.schart.inview .nowglow,.schart.inview .nowspark,.schart.inview .nowring,.schart.inview .nowhalo,.schart.inview .nowdot{animation:none}}
 .schart .cur{stroke:var(--ink2);stroke-width:1;opacity:.5}
 .skey{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin:2px 0 8px}
 .skey span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
@@ -1192,11 +1228,10 @@ if (new URLSearchParams(location.search).has("embed")) {
     </div>
     <div class="gridfresh meta" id="gridFresh"></div>
     <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span>Tap a mountain for details</span></div>
-    <div class="sumcols" id="sumCols" aria-hidden="true"><table class="heat"><tbody id="sumColsRow"></tbody></table></div>
     </div>
-    <div class="gridwrap"><table class="heat" id="heat"></table></div>
+    <div class="gridwrap"><table class="heat" id="heat"></table>
     <div class="gridnote" id="unratedNote" hidden>* No avalanche forecast covers this peak</div>
-    <div class="legend" id="legend"></div>
+    <div class="legend" id="legend"></div></div>
   </div>
 
   <div class="panel" id="detail" data-tab="mountain"></div>
@@ -1424,8 +1459,6 @@ function renderHeat() {
    }
   }
   $("heat").innerHTML = html;
-  $("sumColsRow").innerHTML = `<tr>${headRow}</tr>`;
-  syncCols();
   badges();
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
     `<span class="sw"><i class="gauge"></i>fill = ${metric() ? "cm" : "inches"}, full at ${Math.round(asLen(BAR_FULL_IN))}</span>`;
@@ -1862,8 +1895,8 @@ function seasonSoFar(resort) {
   // The label sits left of the dot once the line is far enough along that it would run off the right edge.
   const flip = endX > W - R - 44;
   body += `<path class="usual" d="${path(typical)}"/><path class="nowfill" d="${path(mine)}L${endX.toFixed(1)} ${y(0)}L${x(Math.max(0, first)).toFixed(1)} ${y(0)}Z"/>
-    <line class="today" x1="${endX}" x2="${endX}" y1="${endY}" y2="${y(0)}"/><path class="now" pathLength="1" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="0" x2="0" visibility="hidden"/><circle class="tdot" id="seasonTypDot" r="3.5" visibility="hidden"/><circle class="cdot" id="seasonNowDot" r="3.5" visibility="hidden"/>
-    <circle class="nowhalo" cx="${endX}" cy="${endY}" r="8"/><circle class="nowdot" cx="${endX}" cy="${endY}" r="4.5"/>
+    <line class="today" x1="${endX}" x2="${endX}" y1="${endY}" y2="${y(0)}"/><path class="nowbase" d="${path(mine)}"/><path class="now" pathLength="1" d="${path(mine)}"/><path class="nowglow" pathLength="1" d="${path(mine)}"/><path class="nowspark" pathLength="1" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="0" x2="0" visibility="hidden"/><circle class="tdot" id="seasonTypDot" r="3.5" visibility="hidden"/><circle class="cdot" id="seasonNowDot" r="3.5" visibility="hidden"/>
+    <circle class="nowring" cx="${endX}" cy="${endY}" r="5"/><circle class="nowring two" cx="${endX}" cy="${endY}" r="5"/><circle class="nowhalo" cx="${endX}" cy="${endY}" r="8"/><circle class="nowdot" cx="${endX}" cy="${endY}" r="4.5"/>
     <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${rounded(mine[last])} ${LEN()}</text>${scale}`;
   // The readout's record high is the most there has been on the touched date in any winter, which is not always
   // the winter the dotted line follows: that one is the winter with the highest peak.
@@ -1903,6 +1936,7 @@ document.addEventListener("click", (event) => {
   seasonMeasure = tab.dataset.season;
   $("seasonBox").innerHTML = seasonSoFar(resort);
   placeSegs();
+  watchSeason();
 });
 document.addEventListener("pointermove", seasonRead);
 document.addEventListener("pointercancel", seasonRead);
@@ -2262,6 +2296,7 @@ function renderDetail() {
   wireTimeline(resort, el, g);
   badges();
   placeSegs();
+  watchSeason();
   $("detail").querySelector("details.lgd").addEventListener("toggle", (e) => { legendOpen = e.currentTarget.open; });
 }
 
@@ -2273,15 +2308,23 @@ const tabbed = () => document.documentElement.classList.contains("tabs");
 const JUMPS = [["jump", () => $("detail")], ["avyJump", () => $("avalanche")]];
 const JUMP_SHORT = {"Mountain Collective": "Collective"};
 let jumpHold = null;
+// The season chart's line only animates while the chart is on screen, so it costs nothing the rest of the time.
+const seasonSeen = "IntersectionObserver" in window ? new IntersectionObserver((seen) => { for (const one of seen) one.target.classList.toggle("inview", one.isIntersecting); }, {threshold: 0.15}) : null;
+function watchSeason() {
+  const chart = $("seasonChart"); if (!chart) return;
+  if (!seasonSeen) { chart.classList.add("inview"); return; }
+  seasonSeen.disconnect();
+  seasonSeen.observe(chart);
+}
 // The small pickers' capsules. A picker is often drawn afresh when its choice changes, so where each one's capsule
 // last stood is remembered by the picker's name: the new capsule starts there and slides to the new choice.
 const segWas = {};
 function placeSegs(jump) {
   if (!tabbed()) return;
-  for (const seg of document.querySelectorAll(".seg:not(.tri)")) {
-    const on = seg.querySelector('button[aria-pressed="true"]');
+  for (const seg of document.querySelectorAll(".seg:not(.tri), .jump")) {
+    const on = seg.querySelector('button[aria-pressed="true"], button[aria-current="true"]');
     if (!on || !on.offsetWidth) continue;
-    const key = seg.getAttribute("aria-label") || "", to = {x: on.offsetLeft, w: on.offsetWidth}, was = segWas[key];
+    const key = seg.id || seg.getAttribute("aria-label") || "", to = {x: on.offsetLeft, w: on.offsetWidth}, was = segWas[key];
     let ind = seg.querySelector(".segind");
     const put = (at) => { ind.style.width = `${at.w}px`; ind.style.transform = `translate3d(${at.x}px,0,0)`; };
     if (!ind) {
@@ -2319,7 +2362,6 @@ function showView(view) {
   window.scrollTo(0, 0);
   markJump();
   placeSegs(true);
-  if (view === "forecast") syncCols();
   // The hourly chart is drawn to the width it finds, and it found none while its tab was closed.
   if (view === "mountain" && data && Math.abs($("detail").clientWidth - fitted) > 40) renderDetail();
 }
@@ -2988,38 +3030,7 @@ document.addEventListener("click", (e) => {
   for (const x of document.querySelectorAll(".seg button[data-el]")) x.setAttribute("aria-pressed", x.dataset.el === elevation);
   renderAll();
 });
-$("heat").parentElement.addEventListener("scroll", (e) => { e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); slideCols(); }, {passive: true});
-// The headings in the bar are slid by exactly as far as the table has scrolled, including the little way a phone lets
-// a table be pulled past either end before it springs back, so each stays over its column the whole time. The blank
-// corner over the names holds still, as the names do, except during that pull.
-function slideCols() {
-  const wrap = $("heat").parentElement, x = wrap.scrollLeft, held = Math.max(0, Math.min(x, wrap.scrollWidth - wrap.clientWidth));
-  const table = $("sumColsRow").closest("table"), corner = $("sumColsRow").querySelector("th.corner");
-  table.style.transform = `translate3d(${-x}px,0,0)`;
-  // The names stick once the table's small left margin has scrolled away, so the corner gives up that much first.
-  if (corner) corner.style.transform = `translate3d(${Math.max(0, held - corner.offsetLeft)}px,0,0)`;
-  $("sumCols").classList.toggle("scrolled", x > 2);
-}
-// The headings can be dragged too: a sideways drag on them moves the table.
-{
-  let from = null;
-  $("sumCols").addEventListener("touchstart", (e) => { from = e.touches.length === 1 ? e.touches[0].clientX : null; }, {passive: true});
-  $("sumCols").addEventListener("touchmove", (e) => { if (from == null) return; const x = e.touches[0].clientX; $("heat").parentElement.scrollLeft += from - x; from = x; }, {passive: true});
-  $("sumCols").addEventListener("touchend", () => { from = null; }, {passive: true});
-}
-// In tabs the summary's column headings live in the frozen bar, so the days stay named however far down the table is
-// read. The table's own heading row still sets the column widths; it is tucked up out of sight, and the copy in the
-// bar takes each column's width from it and slides sideways with the table.
-function syncCols() {
-  const heat = $("heat"), head = heat.querySelector("tr.head"), copy = $("sumColsRow").firstElementChild;
-  heat.style.marginTop = "";
-  if (!tabbed() || !head || !copy || !head.offsetHeight) return;
-  [...head.children].forEach((cell, n) => { const w = cell.getBoundingClientRect().width; if (copy.children[n]) copy.children[n].style.cssText = `width:${w}px;min-width:${w}px;max-width:${w}px`; });
-  copy.closest("table").style.width = `${heat.offsetWidth}px`;
-  heat.style.marginTop = `${-(head.offsetHeight + parseFloat(getComputedStyle(heat).borderSpacing) + parseFloat(getComputedStyle(heat).paddingTop))}px`;
-  slideCols();
-}
-window.addEventListener("resize", syncCols);
+$("heat").parentElement.addEventListener("scroll", (e) => { e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); }, {passive: true});
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { markTop.done = false; markTop(); });
 // The jump bars: a chip for each part of a tab's pane, in the frozen bar at its top. A tap goes to the part; the chip
 // of the part being read is filled. Long names take a short form on the chip.
@@ -3027,6 +3038,7 @@ function fillJump(id, root) {
   const bar = $(id); if (!bar) return;
   const secs = [...root.querySelectorAll("[data-sec]")];
   bar.innerHTML = secs.map((el) => `<button data-jump="${esc(el.dataset.sec)}">${esc(JUMP_SHORT[el.dataset.sec] || el.dataset.sec)}</button>`).join("");
+  delete bar.dataset.lit;
   bar.classList.toggle("many", secs.length > 4);
   markJump();
 }
@@ -3053,7 +3065,10 @@ function markJump() {
     if (!current && secs.length) current = secs[0].dataset.sec;
     // A chip that was just tapped stays lit until the reader scrolls for themselves.
     if (jumpHold && secs.some((el) => el.dataset.sec === jumpHold)) current = jumpHold;
-    for (const b of bar.children) { const on = b.dataset.jump === current; b.setAttribute("aria-current", on); if (on && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = b.offsetLeft - 16; }
+    if (bar.dataset.lit === String(current) && bar.querySelector(".segind")) continue;
+    bar.dataset.lit = String(current);
+    for (const b of bar.querySelectorAll("button")) { const on = b.dataset.jump === current; b.setAttribute("aria-current", on); if (on && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = b.offsetLeft - 16; }
+    placeSegs();
   }
 }
 window.addEventListener("scroll", markJump, {passive: true});
