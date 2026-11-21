@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="ski/lease">
+<script>/* The opening screen: false shows just the logo until the page is ready; true brings back the full animation. */window.SPLASH_ANIMATED=false;if(!window.SPLASH_ANIMATED)document.documentElement.classList.add("calm");</script>
 <script>try{if(sessionStorage.getItem('ski-lease-opened'))document.documentElement.classList.add('nosplash');else sessionStorage.setItem('ski-lease-opened','1');}catch(e){}</script>
 <script>try{var l=JSON.parse(localStorage.getItem('shredule-look')||'{}');if(l.mode==='light'||l.mode==='dark')document.documentElement.dataset.theme=l.mode;}catch(e){}</script>
 <style>
@@ -314,6 +315,11 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
   background:var(--bg);color:var(--ink);overflow:hidden;transition:opacity .45s ease,visibility .45s}
 #splash.done{opacity:0;visibility:hidden}
 :root.nosplash #splash{display:none}
+/* Calm opening screen: the logo alone, still, on the page's own color, gone as soon as the page is ready. The animation above is kept; set SPLASH_ANIMATED to true at the top of the page to bring it back. */
+.calm #splash{transition-duration:.2s}
+.calm #splash::after,.calm #splash .ground,.calm #splash i,.calm #splash u{display:none}
+.calm #splash .rider{animation:none}
+.calm #splash b{animation:none;opacity:1}
 /* The opening screen starts on black and the scene fades up out of it, so nothing from the page behind it is ever seen. */
 #splash::after{content:"";position:absolute;inset:0;background:#000;pointer-events:none;animation:fromblack .6s ease .2s forwards}
 @keyframes fromblack{to{opacity:0;visibility:hidden}}
@@ -988,7 +994,7 @@ let revealed = false;
 function reveal(){
   if (revealed) return;
   revealed = true;
-  setTimeout(() => $('#splash').classList.add('done'), Math.max(0, 3200 - (performance.now() - opened)));
+  setTimeout(() => $('#splash').classList.add('done'), Math.max(0, (window.SPLASH_ANIMATED ? 3200 : 0) - (performance.now() - opened)));
 }
 setTimeout(reveal, 8000);
 

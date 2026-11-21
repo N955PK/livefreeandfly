@@ -14,6 +14,7 @@
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
 <meta property="og:image" content="https://livefreeandfly.org/snow/icons/icon-512.png">
+<script>/* The opening screen: false shows just the logo until the page is ready; true brings back the full animation. */window.SPLASH_ANIMATED=false;if(!window.SPLASH_ANIMATED)document.documentElement.classList.add("calm");</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
 :root{
@@ -54,6 +55,11 @@
 #splash i{position:absolute;top:-12px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:drift linear infinite}
 .embed #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
+/* Calm opening screen: the logo alone, still, gone as soon as the page is ready. The animation above is kept; set SPLASH_ANIMATED to true at the top of the page to bring it back. */
+.calm #splash{transition-duration:.2s}
+.calm #splash i{display:none}
+.calm #splash img{animation:none}
+.calm #splash b{animation:none;opacity:.92}
 @keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.92;transform:none}}
@@ -2029,14 +2035,14 @@ function reveal() {
   setTimeout(() => {
     const splash = $("splash"), logo = splash.querySelector("img");
     const finish = () => splash.classList.add("done");
-    if (!logo.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
+    if (!window.SPLASH_ANIMATED || !logo.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
     // The prop winds down: from wherever it is now, a little over one more turn, easing to a stop upright.
     const m = new DOMMatrixReadOnly(getComputedStyle(logo).transform);
     const angle = (Math.atan2(m.b, m.a) * 180 / Math.PI + 360) % 360, target = angle + (360 - angle) + 360;
     for (const running of logo.getAnimations()) running.cancel();
     logo.animate([{transform: `rotate(${angle}deg)`}, {transform: `rotate(${target}deg)`}],
       {duration: 1300, easing: "cubic-bezier(.12,.55,.25,1)", fill: "forwards"}).finished.then(() => setTimeout(finish, 250), finish);
-  }, Math.max(0, 1500 - (performance.now() - opened)));
+  }, Math.max(0, (window.SPLASH_ANIMATED ? 1500 : 0) - (performance.now() - opened)));
 }
 setTimeout(reveal, 8000);
 liveForecast().then(async (d) => {
