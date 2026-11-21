@@ -124,12 +124,25 @@ html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(-
    Region, and a bar of chips pinned at the top of the screen jumps between them. */
 .jump{display:none}
 /* The mountain's name, the level picker and the chips stay at the top of the screen together while the tab scrolls. */
-html.tabs .dtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
+/* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
+   right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
+html.tabs .dtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;box-sizing:border-box;height:129px;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
+html.tabs .sumhead{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;box-sizing:border-box;height:129px;background:var(--surface);border-bottom:1px solid var(--border)}
+html.tabs .dtop > .jump,html.tabs .sumhead > .jump{position:absolute;left:14px;right:14px;bottom:0;margin:0}
+.jump.many button{flex:1 1 auto;padding:6px 6px;white-space:nowrap}
+/* The Region bar's last row is the table's own column headings, not chips. */
+.sumcols{display:none}
+html.tabs .sumcols{display:block;position:absolute;left:0;right:0;bottom:1px;overflow:hidden}
+html.tabs .sumcols table.heat{table-layout:fixed;width:auto;padding-top:0;padding-bottom:0}
+html.tabs .sumcols .heat th{padding:0 0 3px;line-height:1.15}
+html.tabs .sumcols .heat th b{line-height:1.15}
+html.tabs .sumcols.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
+html.tabs .panel.summary .gridwrap{overflow-y:hidden}
 html.tabs .jump{display:flex;gap:6px;margin:10px 0 0;padding:0 0 9px;overflow-x:auto;scrollbar-width:none}
 html.tabs .jump::-webkit-scrollbar{display:none}
 .jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
 .jump button[aria-current=true]{background:var(--mark);color:var(--surface)}
-html.tabs #detail [data-sec]{scroll-margin-top:calc(136px + env(safe-area-inset-top,0px))}
+html.tabs #detail [data-sec],html.tabs #avalanche [data-sec],html.tabs .panel.summary [data-sec]{scroll-margin-top:calc(136px + env(safe-area-inset-top,0px))}
 html.tabs #detail h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:15.5px;color:var(--accent)}
 html.tabs #detail h3::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 html.tabs #detail h3 span{color:var(--mark-dull)}
@@ -324,6 +337,26 @@ html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-to
 @media (max-width:460px){.tabbar button{font-size:12px;letter-spacing:0}}
 .tabbar button{border:0;border-top:2px solid transparent;background:none;color:var(--mark-dull);font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;height:50px;padding:0 4px;cursor:pointer}
 .tabbar button[aria-current="page"]{color:var(--mark);border-top-color:var(--accent)}
+/* The tab bar is a floating glass pill: clear enough for the page to show through blurred, lifted off the bottom edge
+   (a little into the home-indicator strip on a phone that has one), with the open tab as a tinted capsule inside it.
+   The panes and the map run on underneath it; --tabbar is the room it takes, which the map's controls, the cards
+   and the panes' last lines all keep clear of. */
+:root{--tabgap:max(10px,calc(env(safe-area-inset-bottom) - 10px));--tabbar:calc(58px + var(--tabgap))}
+html.tabs .tabbar{left:50%;right:auto;bottom:var(--tabgap);transform:translateX(-50%);width:min(calc(100vw - 20px),440px);box-sizing:border-box;padding:5px;border:1px solid color-mix(in srgb,var(--surface) 55%,transparent);border-radius:999px;
+  background:color-mix(in srgb,var(--surface) 58%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
+  box-shadow:0 8px 28px rgba(15,23,32,.2),0 1px 3px rgba(15,23,32,.12),inset 0 1px 0 color-mix(in srgb,#fff 45%,transparent)}
+html.tabs .tabbar div{max-width:none;gap:2px}
+html.tabs .tabbar button{height:46px;border:0;border-radius:999px;color:var(--mark-mid);transition:background .18s ease,color .18s ease}
+html.tabs .tabbar button[aria-current="page"]{color:var(--mark);background:color-mix(in srgb,var(--mark) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mark) 10%,transparent)}
+html.tabs[data-view="map"] main{padding-bottom:0}
+html.tabs[data-view="map"] .mapbar{bottom:calc(var(--tabbar) + 14px)}
+html.tabs #map3d{--rail:calc(var(--mapbar-h,56px) + 28px + var(--tabbar))}
+html.tabs .roadsheet{bottom:calc(var(--tabbar) + 14px);max-height:calc(100% - 84px - var(--tabbar))}
+html.tabs .roadsheet:not(.open){transform:translateY(calc(100% + 36px + var(--tabbar)));visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
+@media (max-width:720px){
+  html.tabs:not([data-view="map"]) main{padding-bottom:0}
+  html.tabs .panel.summary,html.tabs #detail,html.tabs #avalanche{padding-bottom:calc(28px + var(--tabbar))}
+}
 .panel.summary{margin-top:26px}
 .panel.summary .bar{margin:0;padding:16px 16px 0;flex-wrap:nowrap}
 .panel.summary h2{font-size:22px;line-height:1.15;white-space:nowrap}
@@ -814,8 +847,9 @@ dialog.sheet > form{display:flex;flex-direction:column;min-height:0}
 dialog.sheet::backdrop{background:rgba(15,23,32,.28)}
 @keyframes sheetup{from{transform:translateY(24px);opacity:0}}
 /* Settings and every chooser drop from under the header, as far below it (14px) as the roads card stands above the
-   tab bar, and stop the same distance short of the tab bar. */
-dialog.sheet.top{margin:calc(62px + env(safe-area-inset-top)) auto auto;max-height:calc(100dvh - 76px - var(--tabbar) - env(safe-area-inset-top))}
+   tab bar, and stop the same distance short of the tab bar. --headb is where the header ends, measured on the page,
+   since it starts lower when the page runs from a phone's home screen. */
+dialog.sheet.top{margin:calc(var(--headb,48px) + 14px) auto auto;max-height:calc(100dvh - var(--headb,48px) - 28px - var(--tabbar))}
 dialog.sheet.top[open]{animation-name:sheetdown}
 @keyframes sheetdown{from{transform:translateY(-24px);opacity:0}}
 @media (prefers-reduced-motion:reduce){dialog.sheet[open]{animation:none}}
@@ -892,16 +926,16 @@ html.tabs #avalanche .ahead .by .late{color:#c62828}
 .abanner p{margin:2px 0 0;font-size:13.5px;line-height:1.4;color:var(--ink2)}
 @media (prefers-color-scheme:dark){.abanner img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
 /* The title and its lines stand exactly where the Mountain tab's do: same top, same left, same line spacing. */
-html.tabs #avalanche .ahead{align-items:flex-start;margin-top:-2px}
+html.tabs #avalanche .ahead{align-items:flex-start}
 html.tabs #avalanche .ahead .by{margin-top:7px}
-html.tabs #avalanche .ahead h2 + .by{margin-top:6.5px;font-size:13px}
-html.tabs #avalanche .ahead .by.when{display:grid;grid-template-columns:max-content max-content;column-gap:7px;line-height:18px}
-.aloc{flex:none;width:110px;height:85px}
+html.tabs #avalanche .ahead h2 + .by{margin-top:6.5px}
+html.tabs #avalanche .ahead .by{white-space:nowrap}
+.aloc{flex:none;width:102px;height:65px;margin-top:4px}
 .aloc .other{fill:var(--mark-dull);opacity:.4}
 .aloc .here{stroke:var(--mark);stroke-width:.45;stroke-linejoin:round}
 .aloc ellipse{fill:var(--accent)}
 .aloc circle{fill:var(--mark-mid)}
-.aloc text{font-size:3.1px;font-weight:600;fill:var(--mark-mid);paint-order:stroke;stroke:var(--surface);stroke-width:1.1px;stroke-linejoin:round}
+.aloc text{font-size:4px;font-weight:600;fill:var(--mark-mid);paint-order:stroke;stroke:var(--surface);stroke-width:1.1px;stroke-linejoin:round}
 .probs details.prob{flex:1;min-width:0;margin:0;padding:0}
 .probs details.prob > summary{display:flex;gap:12px;align-items:center;padding:0;font-size:inherit;font-weight:400}
 .probs details.prob > summary::after{margin-left:0;font-size:18px;color:var(--mark-dull)}
@@ -1110,6 +1144,7 @@ if (new URLSearchParams(location.search).has("embed")) {
     </div>
     <div class="gridfresh meta" id="gridFresh"></div>
     <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span>Tap a mountain for details</span></div>
+    <div class="sumcols" id="sumCols" aria-hidden="true"><table class="heat"><tbody id="sumColsRow"></tbody></table></div>
     </div>
     <div class="gridwrap"><table class="heat" id="heat"></table></div>
     <div class="gridnote" id="unratedNote" hidden>* No avalanche forecast covers this peak</div>
@@ -1317,10 +1352,11 @@ function renderHeat() {
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = "";
   const dayHead = (d) => `<th class="day${d.lead_day > data.deterministic_days ? " far" : ""}">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
-  html += `<tr><th class="corner"></th><th class="day">Last<b>3 days</b></th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}</tr>`;
+  const headRow = `<th class="corner"></th><th class="day">Last<b>3 days</b></th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}`;
+  html += `<tr class="head">${headRow}</tr>`;
   const columns = 2 + near.length + (far.length ? 1 + far.length : 0);
   for (const [pass, list] of byPass()) {
-   html += `<tr class="pass"><td colspan="${columns}"><span>${pass}${pass === "Backcountry" ? '<span data-avy-group></span>' : ""}</span></td></tr>`;
+   html += `<tr class="pass" data-sec="${esc(pass)}"><td colspan="${columns}"><span>${pass}${pass === "Backcountry" ? '<span data-avy-group></span>' : ""}</span></td></tr>`;
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
@@ -1340,6 +1376,8 @@ function renderHeat() {
    }
   }
   $("heat").innerHTML = html;
+  $("sumColsRow").innerHTML = `<tr>${headRow}</tr>`;
+  syncCols();
   badges();
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
     `<span class="sw"><i class="gauge"></i>fill = ${metric() ? "cm" : "inches"}, full at ${Math.round(asLen(BAR_FULL_IN))}</span>`;
@@ -1525,7 +1563,7 @@ function wireTimeline(resort, el, g) {
     const read = (k, hover) => {
       const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
       const wind = h.wind_mph[k], gust = h.gust_mph[k], from = h.wind_from_deg && h.wind_from_deg[k] != null ? `${compass(h.wind_from_deg[k])} ` : "";
-      $("hRead").innerHTML = `<div class="when"><b>${k === g.nowIndex && !hover ? "Now" : when}</b>${k < g.nowIndex ? "<small>past, estimated</small>" : ""}</div><div class="vals">` +
+      $("hRead").innerHTML = `<div class="when"><b>${k === g.nowIndex && !hover ? "Now" : when}</b>${k === g.nowIndex && !hover ? `<small>${new Date().toLocaleTimeString("en-US", clockOpts({hour: "numeric", minute: "2-digit"}))}</small>` : k < g.nowIndex ? "<small>past, estimated</small>" : ""}</div><div class="vals">` +
         // Two columns of label-left, value-right rows: snow on the left, weather on the right.
         cell("Snow", `${fine(h.snow_in[k] || 0, 2)} ${LEN()}/hr`) +
         cell("Temp", h.temp_f[k] == null ? "–" : `${deg(h.temp_f[k])}° / ${deg(windChill(h.temp_f[k], wind))}°`) +
@@ -2147,8 +2185,7 @@ function renderDetail() {
       <div class="key" style="column-gap:14px"><span class="sw"><i style="height:11px;border-radius:2px;border:.75px solid var(--mark-dull);background:repeating-linear-gradient(45deg,var(--mark-dull) 0 1.4px,transparent 1.4px 4px)"></i>rain at this height, snow higher up</span><span>wind strip shows gusts</span></div></details>` : ""}
     ${measured(resort)}${webcams(resort)}`;
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
-  $("jump").innerHTML = [...$("detail").querySelectorAll("[data-sec]")].map((el) => `<button data-jump="${el.dataset.sec}">${el.dataset.sec}</button>`).join("");
-  markJump();
+  fillJump("jump", $("detail"));
   loadLifts(resort);
   const cams = $("detail").querySelector(".cams .shot");
   if (cams) cams.addEventListener("click", () => cams.parentNode.classList.toggle("big"));
@@ -2161,10 +2198,16 @@ function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) 
 // Units and clock: the choice is saved on this device and everything on the page is written again in it.
 // Layout: tabs, with the map as the landing tab. Only inside another page (?embed) is it one long page.
 const tabbed = () => document.documentElement.classList.contains("tabs");
+// The Mountain and Avalanche panes' jump bars (see fillJump and markJump): each bar's id and the pane whose parts it lists.
+const JUMPS = [["jump", () => $("detail")], ["avyJump", () => $("avalanche")]];
+const JUMP_SHORT = {"Mountain Collective": "Collective"};
+let jumpHold = null;
 function showView(view) {
   document.documentElement.dataset.view = view;
   for (const b of document.querySelectorAll("#tabbar button")) { if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
   window.scrollTo(0, 0);
+  markJump();
+  if (view === "forecast") syncCols();
   // The hourly chart is drawn to the width it finds, and it found none while its tab was closed.
   if (view === "mountain" && data && Math.abs($("detail").clientWidth - fitted) > 40) renderDetail();
 }
@@ -2445,7 +2488,11 @@ document.addEventListener("click", (e) => {
 });
 $("regionPick").addEventListener("change", (e) => setRegion(e.target.value));
 $("sumPick").addEventListener("change", (e) => setRegion(e.target.value));
-$("setBtn").addEventListener("click", () => $("settingsSheet").showModal());
+// Where the header ends (the panes start 10px under the title row), for the cards that open beneath it.
+const markHeader = () => { const b = document.querySelector(".brand"); if (b && b.offsetHeight) document.documentElement.style.setProperty("--headb", `${b.offsetTop + b.offsetHeight + 10}px`); };
+markHeader();
+window.addEventListener("resize", markHeader);
+$("setBtn").addEventListener("click", () => { markHeader(); $("settingsSheet").showModal(); });
 // The roads pill opens the sheet; Done, the pill again, or a touch on the map puts it away.
 $("roadPill").addEventListener("click", () => $("roadSheet").classList.toggle("open"));
 // The button names the view it switches to: 2D is straight down with north up, 3D is the tilted view the map opens in.
@@ -2470,6 +2517,7 @@ function openPicker(select) {
   pickFor = select;
   $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
   $("pickList").innerHTML = groups.length ? groups.map((g) => `<div class="pickgroup">${esc(g.label)}</div>${[...g.children].map(row).join("")}`).join("") : [...select.options].map(row).join("");
+  markHeader();
   $("pickSheet").showModal();
   const now = $("pickList").querySelector('[aria-current="true"]');
   if (now) now.scrollIntoView({block: "center"});
@@ -2629,7 +2677,7 @@ function locator(zone, all) {
   const shape = (z) => z.rings.map((ring) => `M${ring.filter((_, k) => k % 3 === 0).map(at).join("L")}Z`).join("");
   const lakes = SIERRA_LAKES.map(([lon, lat, rx, ry]) => { const [x, y] = xy([lon, lat]); return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${ry}"/>`; }).join("");
   const towns = SIERRA_TOWNS.map(([name, lon, lat, dot]) => { const [x, y] = xy([lon, lat]); return `${dot ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/>` : ""}<text x="${(x + (dot ? 1.6 : 2)).toFixed(1)}" y="${(y + 1.1).toFixed(1)}">${name}</text>`; }).join("");
-  return `<svg class="aloc" viewBox="27 23.500 35.500 27.500" role="img" aria-label="Where in the Sierra Nevada the ${esc(zone.name)} forecast applies">${all.filter((z) => z !== zone).map((z) => `<path class="other" d="${shape(z)}"/>`).join("")}<path class="here" style="fill:${danger(zone.level)[1]}" d="${shape(zone)}"/>${lakes}${towns}</svg>`;
+  return `<svg class="aloc" viewBox="27 23.500 43 27.500" role="img" aria-label="Where in the Sierra Nevada the ${esc(zone.name)} forecast applies">${all.filter((z) => z !== zone).map((z) => `<path class="other" d="${shape(z)}"/>`).join("")}<path class="here" style="fill:${danger(zone.level)[1]}" d="${shape(zone)}"/>${lakes}${towns}</svg>`;
 }
 // The forecasters' aspect and elevation rose: north up, the summit at the middle, filled where the problem is.
 function rose(location) {
@@ -2647,7 +2695,8 @@ function paragraphs(html) {
   const parts = [...body.querySelectorAll("p, li")].map((node) => node.textContent.replace(/\s+/g, " ").trim()).filter(Boolean);
   return parts.length ? parts : [body.textContent.replace(/\s+/g, " ").trim()].filter(Boolean);
 }
-function renderAvalanche() {
+function renderAvalanche() { drawAvalanche(); fillJump("avyJump", $("avalanche")); }
+function drawAvalanche() {
   const state = avy[region], home = REGIONS[region].avalanche[0];
   const main = state && state.zones.find((z) => z.center === home);
   // Every zone the app's regions cover, this region's first, without repeats where two regions share a center.
@@ -2688,10 +2737,12 @@ function renderAvalanche() {
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
   const brief = (iso) => iso ? new Date(iso).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric", minute: "2-digit"})) : "";
   const issue = brief(product && product.published_time), ends = brief(product && product.expires_time), over = ends && new Date(product.expires_time) < Date.now();
-  const by = tabbed() ? `<span class="by">${esc(center.name)}</span>${zone && issue ? `<span class="by when"><span>Issued</span><b>${issue}</b>${ends ? `<span>${over ? "Expired" : "Expires"}</span><b${over ? ' class="late"' : ""}>${ends}</b>` : ""}</span>` : ""}`
+  // Under the title in tabs: when it was issued, then when it runs out (the center is named with the bottom line).
+  const by = tabbed() ? (zone && issue ? `<span class="by">Issued <b>${issue}</b></span>${ends ? `<span class="by">${over ? "Expired" : "Expires"} <b${over ? ' class="late"' : ""}>${ends}</b></span>` : ""}` : `<span class="by">${esc(center.name)}</span>`)
     : `<span class="by">${zone ? "Avalanche danger · " : ""}${esc(center.name)}</span>`;
   // In tabs the map sits beside the title, and the danger sign moves into the banner under it with the level and advice.
-  const head = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) : zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
+  const top = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) : zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
+  const head = tabbed() ? `<div class="dtop">${top}<nav class="jump" id="avyJump" aria-label="Sections"></nav></div>` : top;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
   const foot = (link, withScale = true) => `${withScale ? scale : ""}<div class="afoot"><a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
     <p class="anote"><span>A pointer to the center's forecast, not a substitute.</span> <span>Read the full forecast before entering avalanche terrain.</span></p></div>`;
@@ -2716,12 +2767,12 @@ function renderAvalanche() {
       // The first column is the day the forecast was issued for, the second the day after.
       const issued = new Date(product.published_time).getTime();
       const dayName = (n) => new Date(issued + n * 864e5).toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", month: "short", day: "numeric"});
-      rating += `${tabbed() ? "<h3>Danger by elevation</h3>" : ""}<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
+      rating += `${tabbed() ? '<h3 data-sec="Danger">Danger by elevation</h3>' : ""}<div class="dtable"><span></span>${days.map((d, n) => `<b>${dayName(n)}</b>`).join("")}${days.length < 2 ? "<span></span>" : ""}
         ${BANDS.map(([band, label]) => `<span>${label}</span>${days.map((d) => chip(d[band])).join("")}${days.length < 2 ? "<span></span>" : ""}`).join("")}</div>`;
     }
     const problems = [...(product.forecast_avalanche_problems || [])].sort((a, b) => a.rank - b.rank);
     if (problems.length) {
-      trouble = `<div class="aproblems"><h3>${tabbed() ? "Problems" : "Avalanche problems"}</h3><ol class="probs">${problems.map((x, n) => {
+      trouble = `<div class="aproblems"><h3 data-sec="Problems">${tabbed() ? "Problems" : "Avalanche problems"}</h3><ol class="probs">${problems.map((x, n) => {
         const size = (x.size || []).filter(Boolean), facts = [x.likelihood, size.length ? `size D${size[0]}${size[1] && size[1] !== size[0] ? ` to D${size[1]}` : ""}` : "", problemWhere(x.location)];
         const drawing = /^https?:\/\/api\.avalanche\.org\//.test(x.icon || "") ? `<img class="ptype" src="${esc(x.icon.replace(/^http:/, "https:"))}" alt="" onerror="this.remove()">` : "";
         const row = `${drawing}<div><b>${x.rank || n + 1}. ${esc(x.name || "")}</b>${esc(facts.filter(Boolean).join(" · "))}</div>${rose(x.location)}`;
@@ -2732,12 +2783,12 @@ function renderAvalanche() {
       }).join("")}</ol></div>`;
     }
     // The center's longer write-ups, where it posts them: the forecast discussion and the mountain weather.
-    const told = (title, html, by = "") => { const text = paragraphs(html); return text.length ? `<h3>${title}</h3><div class="abottom">${text.map((line) => `<p>${esc(line)}</p>`).join("")}</div>${by ? `<p class="aby">${by}</p>` : ""}` : ""; };
+    const told = (title, html, by = "") => { const text = paragraphs(html); return text.length ? `<h3 data-sec="${title === "Forecast discussion" ? "Discussion" : title}">${title}</h3><div class="abottom">${text.map((line) => `<p>${esc(line)}</p>`).join("")}</div>${by ? `<p class="aby">${by}</p>` : ""}` : ""; };
     const more = told("Forecast discussion", product.hazard_discussion) + told("Weather", product.weather_discussion || (weather && weather.weather_discussion), weather && weather.published_time ? `${weather.author ? `${esc(weather.author)}<br>` : ""}Issued ${clock(weather.published_time)}` : "");
     const lines = paragraphs(product.bottom_line);
-    words = `<div class="awords">${lines.length ? `<h3>Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more : ""}</div>`;
+    words = `<div class="awords">${lines.length ? `<h3 data-sec="Bottom line">Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more : ""}</div>`;
   }
-  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${tabbed() ? "<h3>Definitions</h3>" : ""}${scale}${tabbed() ? `<div class="ddefs">${DANGER_MEANS.map(([advice, likely, size], n) => `<details class="${zone.level === n + 1 ? "on" : ""}"${zone.level === n + 1 ? " open" : ""}><summary class="dhd"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()">${chip(n + 1)}</summary><p><b>${advice}</b></p><p><i>Likelihood of avalanches</i>${likely}</p><p><i>Avalanche size and distribution</i>${size}</p></details>`).join("")}<p class="aby">North American Public Avalanche Danger Scale.</p></div>
+  body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${tabbed() ? '<h3 data-sec="Definitions">Definitions</h3>' : ""}${scale}${tabbed() ? `<div class="ddefs">${DANGER_MEANS.map(([advice, likely, size], n) => `<details class="${zone.level === n + 1 ? "on" : ""}"${zone.level === n + 1 ? " open" : ""}><summary class="dhd"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()">${chip(n + 1)}</summary><p><b>${advice}</b></p><p><i>Likelihood of avalanches</i>${likely}</p><p><i>Avalanche size and distribution</i>${size}</p></details>`).join("")}<p class="aby">North American Public Avalanche Danger Scale.</p></div>
     <div class="dsizes"><h4>Likelihood</h4>${likelyScale("")}<p class="aby">How likely a problem is to produce an avalanche, least to most.</p></div>
     <div class="dsizes"><h4>Avalanche size</h4>${SIZE_MEANS.map(([code, name, means]) => `<div><b>${code}</b><span><b>${name}</b>${means}</span></div>`).join("")}<p class="aby">Destructive size (D scale). Half sizes, like D1.5, fall between two.</p></div>` : ""}</div></div>`;
   const link = (product && product.forecast_zone && product.forecast_zone[0] && product.forecast_zone[0].url) || zone.link || center.url;
@@ -2799,26 +2850,50 @@ document.addEventListener("click", (e) => {
   for (const x of document.querySelectorAll(".seg button[data-el]")) x.setAttribute("aria-pressed", x.dataset.el === elevation);
   renderAll();
 });
-$("heat").parentElement.addEventListener("scroll", (e) => e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2), {passive: true});
-// The jump bar: a chip for each section of the Mountain tab, pinned under the top of the screen. A tap goes to the
-// section; the chip of the section being read is filled.
-let jumpHold = null;
+$("heat").parentElement.addEventListener("scroll", (e) => { e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); $("sumCols").scrollLeft = e.currentTarget.scrollLeft; $("sumCols").classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); }, {passive: true});
+// In tabs the summary's column headings live in the frozen bar, so the days stay named however far down the table is
+// read. The table's own heading row still sets the column widths; it is tucked up out of sight, and the copy in the
+// bar takes each column's width from it and slides sideways with the table.
+function syncCols() {
+  const heat = $("heat"), head = heat.querySelector("tr.head"), copy = $("sumColsRow").firstElementChild;
+  heat.style.marginTop = "";
+  if (!tabbed() || !head || !copy || !head.offsetHeight) return;
+  [...head.children].forEach((cell, n) => { const w = cell.getBoundingClientRect().width; if (copy.children[n]) copy.children[n].style.cssText = `width:${w}px;min-width:${w}px;max-width:${w}px`; });
+  copy.closest("table").style.width = `${heat.offsetWidth}px`;
+  heat.style.marginTop = `${-(head.offsetHeight + parseFloat(getComputedStyle(heat).borderSpacing) + parseFloat(getComputedStyle(heat).paddingTop))}px`;
+  $("sumCols").scrollLeft = heat.parentElement.scrollLeft;
+}
+window.addEventListener("resize", syncCols);
+// The jump bars: a chip for each part of a tab's pane, in the frozen bar at its top. A tap goes to the part; the chip
+// of the part being read is filled. Long names take a short form on the chip.
+function fillJump(id, root) {
+  const bar = $(id); if (!bar) return;
+  const secs = [...root.querySelectorAll("[data-sec]")];
+  bar.innerHTML = secs.map((el) => `<button data-jump="${esc(el.dataset.sec)}">${esc(JUMP_SHORT[el.dataset.sec] || el.dataset.sec)}</button>`).join("");
+  bar.classList.toggle("many", secs.length > 4);
+  markJump();
+}
 function markJump() {
-  const bar = $("jump"); if (!bar || !bar.offsetParent) return;
-  const line = bar.getBoundingClientRect().bottom + 40, secs = [...$("detail").querySelectorAll("[data-sec]")];
-  let current = null;
-  for (const el of secs) if (el.getBoundingClientRect().top <= line) current = el.dataset.sec;
-  // At the foot of the page the last sections can never reach the top, so the last one counts as being read.
-  if (secs.length && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = secs[secs.length - 1].dataset.sec;
-  // A chip that was just tapped stays lit until the reader scrolls for themselves.
-  if (jumpHold) current = jumpHold;
-  for (const b of bar.children) { const on = b.dataset.jump === current; b.setAttribute("aria-current", on); if (on && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = b.offsetLeft - 16; }
+  for (const [id, root] of JUMPS) {
+    const bar = $(id); if (!bar || !bar.offsetParent) continue;
+    const line = bar.getBoundingClientRect().bottom + 40, secs = [...root().querySelectorAll("[data-sec]")];
+    let current = null;
+    for (const el of secs) if (el.getBoundingClientRect().top <= line) current = el.dataset.sec;
+    // At the foot of the page the last sections can never reach the top, so the last one counts as being read.
+    if (secs.length && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = secs[secs.length - 1].dataset.sec;
+    // Above the first part (the top of the pane) the first chip is the one lit.
+    if (!current && secs.length) current = secs[0].dataset.sec;
+    // A chip that was just tapped stays lit until the reader scrolls for themselves.
+    if (jumpHold && secs.some((el) => el.dataset.sec === jumpHold)) current = jumpHold;
+    for (const b of bar.children) { const on = b.dataset.jump === current; b.setAttribute("aria-current", on); if (on && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = b.offsetLeft - 16; }
+  }
 }
 window.addEventListener("scroll", markJump, {passive: true});
 for (const kind of ["wheel", "touchmove"]) window.addEventListener(kind, () => { jumpHold = null; }, {passive: true});
-$("detail").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-jump]"); if (!b) return;
-  const to = $("detail").querySelector(`[data-sec="${b.dataset.jump}"]`);
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest(".jump [data-jump]"); if (!b) return;
+  const found = JUMPS.find(([id]) => id === b.parentNode.id);
+  const to = found && [...found[1]().querySelectorAll("[data-sec]")].find((el) => el.dataset.sec === b.dataset.jump);
   if (!to) return;
   jumpHold = b.dataset.jump;
   to.scrollIntoView({behavior: "smooth", block: "start"});
