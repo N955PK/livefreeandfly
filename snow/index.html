@@ -319,7 +319,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .season .swhat span{grid-area:1/1}
 .season .swhat .ghost{visibility:hidden}
 .schart{position:relative;margin:8px 0 6px;touch-action:pan-y}
-.stip{position:absolute;z-index:2;bottom:calc(100% - 10px);transform:translateX(-50%);display:flex;flex-direction:column;gap:1px;white-space:nowrap;pointer-events:none;box-sizing:border-box;width:176px;font-variant-numeric:tabular-nums;
+.stip{position:absolute;z-index:2;bottom:calc(100% - 10px);transform:translateX(-50%);display:flex;flex-direction:column;gap:1px;white-space:nowrap;pointer-events:none;box-sizing:border-box;width:200px;font-variant-numeric:tabular-nums;
   background:var(--ink);color:var(--surface);border-radius:9px;padding:6px 10px;font-size:12px;line-height:1.35;box-shadow:0 3px 10px rgba(15,23,32,.25)}
 .stip[hidden]{display:none}
 .stip > b{font-size:12.5px}
@@ -333,7 +333,6 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .schart .g.month{opacity:.5}
 .schart .band{fill:var(--wash)}
 .schart .past{fill:none;stroke:var(--muted);stroke-width:1;opacity:.3;stroke-linejoin:round}
-.schart .past.top{stroke:var(--ink2);stroke-width:1.25;opacity:.75}
 .schart .record{fill:none;stroke:var(--ink2);stroke-width:1.25;stroke-dasharray:1 4;stroke-linecap:round;opacity:.9}
 .schart .surveyed{fill:var(--surface);stroke:var(--ink2);stroke-width:1.5}
 .schart .usual{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-dasharray:5 4;stroke-linecap:round}
@@ -343,8 +342,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .schart .nowhalo{fill:var(--snow);opacity:.18}
 .schart .nowdot{fill:var(--snow);stroke:var(--surface);stroke-width:2}
 .schart .nowlab{font-size:12.5px;font-weight:700;fill:var(--ink)}
-.schart .nowlab,.schart .yr{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
-.schart .yr{font-size:10.5px}
+.schart .nowlab{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 @keyframes seasondraw{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){.schart .now{animation:none;stroke-dasharray:none}}
 .schart .cur{stroke:var(--ink2);stroke-width:1;opacity:.5}
@@ -665,7 +663,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "170";
+const BUILD = "171";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1100,7 +1098,7 @@ function seasonSoFar(resort) {
   const head = `<div class="shead"><div><b>Season totals</b><span>${view.now(inches(s.now_in))}</span></div>${tabs}</div>
     <div class="swhat">${has.map((key) => `<span${key === measure ? "" : ' class="ghost" aria-hidden="true"'}>${SEASON_VIEWS[key].what}</span>`).join("")}</div>`;
   if (!curve || !curve.years) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
-  const W = Math.max(280, $("detail").clientWidth - 36), NAMES = 30, H = (W > 700 ? 260 : 200) + NAMES, L = 8, R = 44, T = 16 + NAMES, B = 22;
+  const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 260 : 200, L = 8, R = 44, T = 16, B = 22;
   const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
   // The chart works in the reader's units from here on, so its scale lands on round numbers in either.
   const shown = (line) => line.slice(0, count).map(asLen), nowDeep = asLen(s.now_in);
@@ -1143,33 +1141,18 @@ function seasonSoFar(resort) {
   const along = ceiling.map((v, k) => v == null ? null : k).filter((k) => k != null);
   if (along.length > 1) body += `<path class="band" d="M${along.map((k) => `${x(k).toFixed(1)} ${y(ceiling[k]).toFixed(1)}`).join("L")}L${[...along].reverse().map((k) => `${x(k).toFixed(1)} ${y(floor[k]).toFixed(1)}`).join("L")}Z"/>`;
   body += past.map((w) => `<path class="past" d="${path(drawn[w])}"/>`).join("");
-  // The record winter gets its own dotted line, and the biggest of the ten winters a darker one. Both are named in
-  // a strip of their own above the plot, which no line can reach. The strip is always there, so the plot keeps its
-  // place whether one winter is named or two. A winter that is both is named once, as the record.
+  // The record winter gets its own dotted line. Neither it nor the biggest of the ten winters is named on the plot,
+  // where the names crowd each other; the readout names both winters when a date is touched.
   const peakOf = (line) => Math.max(...line.filter((v) => v != null));
   const biggest = past.length ? past.reduce((a, b) => peakOf(drawn[b]) > peakOf(drawn[a]) ? b : a) : null;
-  const names = [];
-  if (best) {
-    body += `<path class="record" d="${path(best.line)}"/>`;
-    names.push(["record", `Record ${winterName(best.year)}, ${rounded(peakOf(best.line))} ${LEN()}`]);
-  }
-  if (biggest && !(best && best.year === +biggest)) {
-    body += `<path class="past top" d="${path(drawn[biggest])}"/>`;
-    names.push(["past top", `Last ten ${winterName(+biggest)}, ${rounded(peakOf(drawn[biggest]))} ${LEN()}`]);
-  }
-  names.forEach(([style, text], n) => {
-    const at = 11 + n * 14;
-    body += `<line class="${style}" x1="${L}" x2="${L + 18}" y1="${at - 3.5}" y2="${at - 3.5}"/><text class="yr" x="${L + 24}" y="${at}">${text}</text>`;
-  });
+  const surveyX = () => { const [month, day] = survey.date.split("-").map(Number); return x(Math.round((Date.UTC(month >= 10 ? 2000 : 2001, month - 1, day) - Date.UTC(2000, 9, 1)) / 864e5) / curve.step_days); };
+  if (best) body += `<path class="record" d="${path(best.line)}"/>`;
   const monthDay = (stamp) => new Date(Date.UTC(2001, +stamp.slice(0, 2) - 1, +stamp.slice(3))).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
   let recordNote = "";
   if (best && curve.record.stopped) {
     recordNote = survey ? `The gauge stopped on ${monthDay(curve.record.stopped)} that winter, before the peak. The state's manual survey measured ${tenths(curve.record.survey.value_in)} ${LEN()} on ${monthDay(survey.date)} (the open dot).`
       : `The gauge stopped on ${monthDay(curve.record.stopped)} that winter, so its line ends before the season did.`;
-    if (survey) {
-      const [month, day] = survey.date.split("-").map(Number), into = Math.round((Date.UTC(month >= 10 ? 2000 : 2001, month - 1, day) - Date.UTC(2000, 9, 1)) / 864e5);
-      body += `<circle class="surveyed" cx="${x(into / curve.step_days).toFixed(1)}" cy="${y(survey.value).toFixed(1)}" r="3.5"/>`;
-    }
+    if (survey) body += `<circle class="surveyed" cx="${surveyX().toFixed(1)}" cy="${y(survey.value).toFixed(1)}" r="3.5"/>`;
   }
   // The line ends at the sensor's latest reading, which the every-few-days history can trail during a storm.
   const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = new Date().toLocaleDateString("en-CA", {timeZone: TZ}).split("-").map(Number);
@@ -1182,7 +1165,7 @@ function seasonSoFar(resort) {
     <line class="today" x1="${endX}" x2="${endX}" y1="${endY}" y2="${y(0)}"/><path class="now" pathLength="1" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="0" x2="0" visibility="hidden"/><circle class="tdot" id="seasonTypDot" r="3.5" visibility="hidden"/><circle class="cdot" id="seasonNowDot" r="3.5" visibility="hidden"/>
     <circle class="nowhalo" cx="${endX}" cy="${endY}" r="8"/><circle class="nowdot" cx="${endX}" cy="${endY}" r="4.5"/>
     <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${rounded(mine[last])} ${LEN()}</text>`;
-  seasonView = {curve, count, lines, usual, past, mine, best, y, left: L, span: W - L - R};
+  seasonView = {curve, count, lines, usual, past, mine, best, biggest: biggest && !(best && best.year === +biggest) ? biggest : null, y, left: L, span: W - L - R};
   return `<div class="season">${head}<div class="schart" id="seasonChart"><div class="stip" id="seasonTip" hidden></div><svg width="${W}" height="${H}" role="img" aria-label="${view.tab} through the winter: the current winter, a typical year, and the last ten winters">${body}</svg></div>
     <div class="skey"><span><i class="now"></i>current</span><span><i class="typ"></i>typical year</span><span><i class="old"></i>last ten winters</span></div>
     ${recordNote ? `<div class="srec">${recordNote}</div>` : ""}<div class="snote" id="seasonNote">${note}</div></div>`;
@@ -1203,7 +1186,8 @@ function seasonRead(event) {
   const then = v.past.map((w) => [v.lines[w][k], w]).filter(([value]) => value != null).sort((a, b) => a[0] - b[0]);
   tip.innerHTML = `<b>${date}</b>${v.mine[k] == null ? "" : `<span class="c">current <b>${rounded(v.mine[k])} ${LEN()}</b></span>`}<span>typical <b>${rounded(v.usual[k])} ${LEN()}</b></span>
     ${then.length ? `<span>ten winters <b>${rounded(then[0][0])}–${rounded(then[then.length - 1][0])} ${LEN()}</b></span>` : ""}
-    ${v.best && v.best.line[k] != null ? `<span>record <b>${rounded(v.best.line[k])} ${LEN()}</b></span>` : ""}`;
+    ${v.best && v.best.line[k] != null ? `<span>record ${winterName(v.best.year)} <b>${rounded(v.best.line[k])} ${LEN()}</b></span>` : ""}
+    ${v.biggest && v.lines[v.biggest][k] != null ? `<span>ten-year high ${winterName(+v.biggest)} <b>${rounded(v.lines[v.biggest][k])} ${LEN()}</b></span>` : ""}`;
   tip.hidden = false;
   // The readout rides above the plot, over the date, so a thumb on the chart never covers it.
   const at = v.left + v.span * k / (v.count - 1), half = tip.offsetWidth / 2;
