@@ -668,7 +668,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "169";
+const BUILD = "170";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1103,7 +1103,7 @@ function seasonSoFar(resort) {
   const head = `<div class="shead"><div><b>Season totals</b><span>${view.now(inches(s.now_in))}</span></div>${tabs}</div>
     <div class="swhat">${has.map((key) => `<span${key === measure ? "" : ' class="ghost" aria-hidden="true"'}>${SEASON_VIEWS[key].what}</span>`).join("")}</div>`;
   if (!curve || !curve.years) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
-  const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 260 : 200, L = 8, R = 44, T = 16, B = 22;
+  const W = Math.max(280, $("detail").clientWidth - 36), NAMES = 30, H = (W > 700 ? 260 : 200) + NAMES, L = 8, R = 44, T = 16 + NAMES, B = 22;
   const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
   // The chart works in the reader's units from here on, so its scale lands on round numbers in either.
   const shown = (line) => line.slice(0, count).map(asLen), nowDeep = asLen(s.now_in);
@@ -1147,8 +1147,8 @@ function seasonSoFar(resort) {
   if (along.length > 1) body += `<path class="band" d="M${along.map((k) => `${x(k).toFixed(1)} ${y(ceiling[k]).toFixed(1)}`).join("L")}L${[...along].reverse().map((k) => `${x(k).toFixed(1)} ${y(floor[k]).toFixed(1)}`).join("L")}Z"/>`;
   body += past.map((w) => `<path class="past" d="${path(drawn[w])}"/>`).join("");
   // The record winter gets its own dotted line, and the biggest of the ten winters a darker one. Both are named in
-  // the plot's top left corner, where a winter's line is always still near the ground, so the names never run into
-  // the lines or each other. A winter that is both is named once, as the record.
+  // a strip of their own above the plot, which no line can reach. The strip is always there, so the plot keeps its
+  // place whether one winter is named or two. A winter that is both is named once, as the record.
   const peakOf = (line) => Math.max(...line.filter((v) => v != null));
   const biggest = past.length ? past.reduce((a, b) => peakOf(drawn[b]) > peakOf(drawn[a]) ? b : a) : null;
   const names = [];
@@ -1161,8 +1161,8 @@ function seasonSoFar(resort) {
     names.push(["past top", `Last ten ${winterName(+biggest)}, ${rounded(peakOf(drawn[biggest]))} ${LEN()}`]);
   }
   names.forEach(([style, text], n) => {
-    const at = T + 9 + n * 14;
-    body += `<line class="${style}" x1="${L + 4}" x2="${L + 22}" y1="${at - 3.5}" y2="${at - 3.5}"/><text class="yr" x="${L + 27}" y="${at}">${text}</text>`;
+    const at = 11 + n * 14;
+    body += `<line class="${style}" x1="${L}" x2="${L + 18}" y1="${at - 3.5}" y2="${at - 3.5}"/><text class="yr" x="${L + 24}" y="${at}">${text}</text>`;
   });
   const monthDay = (stamp) => new Date(Date.UTC(2001, +stamp.slice(0, 2) - 1, +stamp.slice(3))).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
   let recordNote = "";
