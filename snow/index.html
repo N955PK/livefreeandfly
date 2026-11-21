@@ -510,10 +510,10 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .hread .when{display:flex;align-items:baseline;gap:8px}
 .hread .when b{font-size:14px;font-weight:700;color:var(--mark)}
 .hread .when small{font-size:11.5px;color:var(--mark-dull)}
-.hread .vals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px 10px;margin-top:5px}
-.hread .vals span{min-width:0}
-.hread .vals small{display:block;font-size:10.5px;color:var(--mark-dull)}
-.hread .vals b{display:block;font-size:13px;font-weight:650;color:var(--mark);white-space:nowrap;font-variant-numeric:tabular-nums}
+.hread .vals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:6px}
+.hread .vals span{min-width:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0;border-top:1px solid var(--border)}
+.hread .vals small{font-size:11.5px;color:var(--mark-dull);white-space:nowrap}
+.hread .vals b{font-size:13px;font-weight:650;color:var(--mark);white-space:nowrap;font-variant-numeric:tabular-nums}
 /* The line the readout follows is thin, with a knob on top, so it reads as a marker and not as the chart's Now line. */
 .tl-fixed.quarter{left:25%;width:1px;background:var(--mark)}
 /* In tabs the plot runs the full width, edge to edge with the readout above it; its left-hand labels sit on the plot. */
@@ -1347,10 +1347,13 @@ function wireTimeline(resort, el, g) {
       const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
       const wind = h.wind_mph[k], gust = h.gust_mph[k], from = h.wind_from_deg && h.wind_from_deg[k] != null ? `${compass(h.wind_from_deg[k])} ` : "";
       $("hRead").innerHTML = `<div class="when"><b>${k === g.nowIndex && !hover ? "Now" : when}</b>${k < g.nowIndex ? "<small>past, estimated</small>" : ""}</div><div class="vals">` +
-        cell("Snow", `${fine(h.snow_in[k] || 0, 2)} ${LEN()}/hr`) + cell("Storm total", g.running[k] != null ? `${tenths(g.running[k])} ${LEN()}` : "–") +
+        // Two columns of label-left, value-right rows: snow on the left, weather on the right.
+        cell("Snow", `${fine(h.snow_in[k] || 0, 2)} ${LEN()}/hr`) +
         cell("Temp", h.temp_f[k] == null ? "–" : `${deg(h.temp_f[k])}° / ${deg(windChill(h.temp_f[k], wind))}°`) +
+        cell("Storm total", g.running[k] != null ? `${tenths(g.running[k])} ${LEN()}` : "–") +
         cell("Wind", wind == null ? "–" : `${from}${speed(wind)}${gust > wind + 3 ? ` G${speed(gust)}` : ""}`) +
-        cell("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) + cell("Snow level", h.snow_level_ft[k] == null ? "–" : height(Math.round(h.snow_level_ft[k] / 100) * 100)) + "</div>";
+        cell("Snow level", h.snow_level_ft[k] == null ? "–" : height(Math.round(h.snow_level_ft[k] / 100) * 100)) +
+        cell("Cloud", h.cloud_pct[k] == null ? "–" : `${h.cloud_pct[k]}%`) + "</div>";
       const key = dayKey(k), bar = $("hChips");
       // The row is one line of circles that slides to keep the day being read in its middle.
       for (const b of bar.children) { const on = b.dataset.key === key; b.setAttribute("aria-current", on); if (on && !hover) bar.scrollLeft = b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2; }
