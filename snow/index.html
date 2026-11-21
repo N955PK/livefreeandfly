@@ -14,11 +14,6 @@
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
 <meta property="og:image" content="https://livefreeandfly.org/snow/icons/icon-512.png">
-<script>
-// The opening screen plays on every load in a browser tab. Installed on a home screen, or inside the cabin app, the
-// page is reloaded behind the reader's back when they switch away and return, so there it plays once per session.
-try{var app=navigator.standalone||matchMedia("(display-mode: standalone)").matches||/[?&]embed\b/.test(location.search);if(app&&sessionStorage.getItem("turbo-snow-opened"))document.documentElement.classList.add("nosplash");else sessionStorage.setItem("turbo-snow-opened","1");}catch(e){}
-</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
 :root{
@@ -59,7 +54,6 @@ try{var app=navigator.standalone||matchMedia("(display-mode: standalone)").match
 #splash i{position:absolute;top:-12px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:drift linear infinite}
 .embed #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
-:root.nosplash #splash{display:none}
 @keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.92;transform:none}}
@@ -667,7 +661,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "175";
+const BUILD = "176";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -2045,8 +2039,6 @@ function reveal() {
   }, Math.max(0, 1500 - (performance.now() - opened)));
 }
 setTimeout(reveal, 8000);
-// Restored from the back/forward cache, the page is already open: no opening screen.
-window.addEventListener("pageshow", (e) => { if (e.persisted) document.documentElement.classList.add("nosplash"); });
 liveForecast().then(async (d) => {
   data = fixTimes(d);
   pickRegion();
