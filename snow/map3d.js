@@ -118,6 +118,8 @@ export function stormWindow(rate, nowIndex) {
 // (how close the view opens; 1 when absent), discKm (the disc's radius), and look ([lat, lon] the view opens on
 // when that is not the disc's center).
 // ``data.resorts`` holds only that region's locations.
+// Below this many inches an hour, averaged over the region, it is not snowing: no flakes on the map, and the page says so.
+const QUIET_RATE = 0.02;
 export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false}) {
   const RADIUS = globe ? GLOBE_KM : region.discKm || DISC_KM, TARGET_Z = globe ? 7 : 1;
   // A region whose files were rebuilt carries a rev, so a phone never pairs the new page with its saved old files.
@@ -597,7 +599,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       item.width = 16 + Math.max(item.name.length * 6.6, more >= 0.5 ? 78 : 44);
       item.tall = more >= 0.5 ? 54 : 40;
     }
-    flakeLook.opacity.value = Math.min(0.95, interp(rate, time, storm.start) * 3.2);
+    // Flakes fall only at a rate the caption also calls snow; under it, both say it is not snowing.
+    const falling = interp(rate, time, storm.start);
+    flakeLook.opacity.value = falling < QUIET_RATE ? 0 : Math.min(0.95, falling * 3.2);
     paintedAt = time;
   }
 
@@ -691,6 +695,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     steps, nowStep, stormActive: storm.active,
     timeAt: (i) => new Date(hoursUtc[storm.start + Math.min(steps - 1, Math.max(0, Math.round(i)))]),
     rateAt: (i) => interp(rate, i, storm.start),
+    quietRate: QUIET_RATE,
     snowLevelFtAt: (i) => interp(snowLevel, i, storm.start) / 0.3048,
     setTime(value) { time = Math.max(0, Math.min(steps - 1, value)); },
     setElevation(value) { level = value; cumulative = series(); paintedAt = -1; },

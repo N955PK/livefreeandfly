@@ -56,6 +56,8 @@
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
 main{max-width:1040px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom))}
+/* Saved to an iPhone's home screen, iOS softens whatever sits just under its status bar. The header starts a little lower there, clear of it. */
+@media (display-mode:standalone){main{padding-top:calc(24px + env(safe-area-inset-top))}}
 a{color:inherit}
 .brand{display:flex;align-items:center;gap:10px}
 /* The header is one short row: the snowflake opens the settings, the name sits in the middle, the region is picked at the right. */
@@ -768,7 +770,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "181";
+const BUILD = "182";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1697,7 +1699,7 @@ function showTime(value) {
   const atNow = Math.abs(value - map.nowStep) < 0.3;
   $("mapWhen").textContent = atNow ? (offlineCopy ? "Saved" : "Live") : t.toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
   $("toNow").classList.toggle("away", !atNow); $("backNow").classList.toggle("away", !atNow);
-  const falling = rate < 0.02 ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}`;
+  const falling = rate < map.quietRate ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}`;
   $("mapWhat").textContent = `${falling} · ${level > 12000 ? "snow level above the peaks" : height(level)}`;
 }
 function setTime(value) {
