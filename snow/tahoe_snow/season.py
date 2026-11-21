@@ -11,7 +11,7 @@ import pandas as pd
 from tahoe_snow.config import ALL_STATIONS, MM_PER_IN, RESORTS
 from tahoe_snow.sources import cdec, snotel
 
-HISTORY_START = "1990-10-01"
+HISTORY_START = "1980-10-01"
 MIN_YEARS = 10
 FULL_YEAR_DAYS = 300
 # Below this much in a usual year, a percent of normal is a ratio of two small numbers and means little.
@@ -25,6 +25,7 @@ CM_PER_IN = 2.54
 PST_OFFSET_H = 8
 STEP_DAYS = 3
 PAST_YEARS = 10
+RECORD_HOLD_DAYS = 15
 YEAR_DAYS = 365
 
 
@@ -43,9 +44,10 @@ def sampled(by_day: pd.Series) -> list:
     return [None if pd.isna(value) else round(float(value), 1) for value in values]
 
 
-def describe(daily_in: pd.Series, normal_by_day: pd.Series, day: pd.Timestamp, peak_in: float, peak_date: str) -> dict:
+def describe(daily_in: pd.Series, normal_by_day: pd.Series, day: pd.Timestamp, peak_in: float, peak_date: str,
+             record: pd.Series) -> dict:
     """The usual reading on this date, the usual peak, and the curves, from daily readings and the usual year.
-    Winters are named by the year they end in."""
+    Winters are named by the year they end in; the record is the complete winter with the highest peak."""
     year, into_year = water_year(daily_in.index), day_of_water_year(daily_in.index)
     this_year = water_year(pd.DatetimeIndex([day]))[0]
     by_day = pd.Series(daily_in.values, index=into_year)
@@ -55,7 +57,9 @@ def describe(daily_in: pd.Series, normal_by_day: pd.Series, day: pd.Timestamp, p
             "latest_in": None if latest.empty else round(float(latest.iloc[-1]), 1),
             "curve": {"step_days": STEP_DAYS, "normal": sampled(normal_by_day),
                       "years": {str(winter): sampled(by_day[year == winter])
-                                for winter in range(this_year - PAST_YEARS, this_year + 1) if (year == winter).any()}}}
+                                for winter in range(this_year - PAST_YEARS, this_year + 1) if (year == winter).any()},
+                      "record": {"year": str(water_year(record.index)[0]),
+                                 "values": sampled(pd.Series(record.values, index=day_of_water_year(record.index)))}}}
 
 
 def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
@@ -71,7 +75,11 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
     peak_day = years.idxmax()[full]
     into_year = (peak_day - pd.to_datetime((peak_day.index - 1).astype(str) + "-10-01").values).dt.days.median()
     usual_peak = pd.Timestamp("2001-10-01") + pd.Timedelta(days=int(into_year))
-    told = describe(smooth, normal_by_day, day, float(years.max()[full].median()), usual_peak.strftime("%m-%d"))
+    # The record winter is judged on a level that holds for two weeks, so a gauge's stray spike cannot claim it.
+    steady = past.rolling(RECORD_HOLD_DAYS, center=True, min_periods=RECORD_HOLD_DAYS // 2).median()
+    record_year = steady.groupby(water_year(steady.index)).max()[full].idxmax()
+    told = describe(smooth, normal_by_day, day, float(years.max()[full].median()), usual_peak.strftime("%m-%d"),
+                    steady[water_year(steady.index) == record_year].dropna())
     return {**told, "years": int(full.sum())}
 
 

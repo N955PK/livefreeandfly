@@ -256,6 +256,9 @@ def test_season_normal_is_the_median_of_past_years_on_this_date():
     assert season.snowfall_in(frame).round(1).tolist() == [0.0, 8.0, 22.0, 22.0, 22.0, 22.0, 22.0]
     curve = normal["curve"]
     assert sorted(curve["years"]) == [str(year) for year in range(2017, 2028)]
+    # Odd winters are the big ones and all alike, so the first of them holds the record. Its line is the level
+    # held for two weeks, which sits a little under the one-day peak of 40.
+    assert curve["record"]["year"] == "2001" and 37.0 < max(curve["record"]["values"]) <= 40.0
     assert len(curve["normal"]) == len(curve["years"]["2026"]) == 122 and abs(curve["normal"][60] - 30.0) < 0.5
     # This winter has run 50 days, so its line stops there.
     assert curve["years"]["2027"][16] is not None and curve["years"]["2027"][18] is None
