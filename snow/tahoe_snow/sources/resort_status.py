@@ -31,6 +31,9 @@ def feed_of(html: str) -> dict:
     feed, _ = json.JSONDecoder().raw_decode(html[match.end():])
     if not feed.get("IsSuccessful"):
         raise ValueError(f"feed reported an error: {feed.get('ErrorDetails')}")
+    if not feed.get("Lifts") and not any(area.get("Trails") for area in feed.get("GroomingAreas", [])):
+        # A resort before its season publishes its areas with nothing in them; that is no status yet, not a closed mountain.
+        raise ValueError("feed has no lifts or trails")
     return feed
 
 
