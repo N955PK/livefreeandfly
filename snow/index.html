@@ -131,6 +131,9 @@ html.dragging,html.dragging body{overflow-x:clip}
 html.tabs .dragout:not(#_){will-change:transform}
 html.tabs .dragin:not(#_){display:block!important;position:fixed!important;z-index:5;top:var(--gtop,0px);left:0;right:0;bottom:0;width:auto;height:auto;min-height:0;margin:0!important;overflow:hidden;box-sizing:border-box;will-change:transform}
 html.tabs .panel.summary.dragin:not(#_){display:flex!important}
+/* Held like that the pane is its own scroller, so its pinned bar would pin against the pane's top edge and sit a
+   status strip's height too low until the slide ended. While sliding, the bar just sits at the pane's top. */
+html.tabs .dragin .dtop{position:relative;top:0}
 /* Nothing flashes a color when it is pressed. What can be pressed gives a little instead: it dips and springs back
    (.pressed, put on at the touch). The choosers' outline shows only for someone moving through the page by keyboard. */
 html{-webkit-tap-highlight-color:transparent}
