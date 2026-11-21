@@ -10,8 +10,6 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="ski/lease">
-<script>/* The opening screen: false shows just the logo until the page is ready; true brings back the full animation. */window.SPLASH_ANIMATED=false;if(!window.SPLASH_ANIMATED)document.documentElement.classList.add("calm");</script>
-<script>try{if(sessionStorage.getItem('ski-lease-opened'))document.documentElement.classList.add('nosplash');else sessionStorage.setItem('ski-lease-opened','1');}catch(e){}</script>
 <script>try{var l=JSON.parse(localStorage.getItem('shredule-look')||'{}');if(l.mode==='light'||l.mode==='dark')document.documentElement.dataset.theme=l.mode;}catch(e){}</script>
 <style>
 :root{
@@ -309,71 +307,19 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 #toast.on{opacity:1}
 
 .gate{max-width:420px;margin:12vh auto 0;padding:0 22px}
-/* The opening screen: the skier holds the middle of the screen and only tips; the hill and its trees rush past underneath, the jump ends in a cliff,
-   and he is left flying in the logo's own pose until the house has loaded. */
-#splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;
-  background:var(--bg);color:var(--ink);overflow:hidden;transition:opacity .45s ease,visibility .45s}
+/* The opening screen is the logo on the page’s own color, up only until the page is ready. */
+#splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background:var(--bg);color:var(--ink);transition:opacity .2s ease,visibility .2s}
 #splash.done{opacity:0;visibility:hidden}
-:root.nosplash #splash{display:none}
-/* Calm opening screen: the logo alone, still, on the page's own color, gone as soon as the page is ready. The animation above is kept; set SPLASH_ANIMATED to true at the top of the page to bring it back. */
-.calm #splash{transition-duration:.2s}
-.calm #splash::after,.calm #splash .ground,.calm #splash i,.calm #splash u{display:none}
-.calm #splash .rider{animation:none}
-.calm #splash b{animation:none;opacity:1}
-/* The opening screen starts on black and the scene fades up out of it, so nothing from the page behind it is ever seen. */
-#splash::after{content:"";position:absolute;inset:0;background:#000;pointer-events:none;animation:fromblack .6s ease .2s forwards}
-@keyframes fromblack{to{opacity:0;visibility:hidden}}
-#splash .hill{position:relative;flex:none;width:400px;height:200px}
-#splash svg{position:absolute;inset:0;width:400px;height:200px;overflow:visible}
-#splash .ground{position:absolute;inset:0;translate:-544px 0;transform:translateY(700px);animation:pastx 2.8s linear,pasty 2.8s linear}
-#splash .snowpack{fill:var(--ink);opacity:.045}
-#splash .line{fill:none;stroke:var(--dim);stroke-width:2;stroke-linejoin:round;opacity:.5}
-#splash .trees{fill:var(--dim);opacity:.42}
-#splash .rider{position:absolute;left:128px;top:48.5px;width:120px;height:75px;transform-origin:72px 63.5px;
-  animation:tip 2.8s linear,float 2.4s ease-in-out 2.8s infinite}
-#splash .skier{display:block;width:100%;height:100%;background:url(skier-mark.png) center/contain no-repeat}
+#splash .skier{display:block;width:120px;height:75px;background:url(skier-mark.png) center/contain no-repeat}
 :root[data-accent]:not([data-accent="chairlift"]) #splash .skier{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
-#splash u{position:absolute;border-radius:50%;background:var(--dim);opacity:0;animation:kick var(--t) cubic-bezier(.12,.6,.3,1) var(--d) both}
-#splash b{position:relative;font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em;opacity:0;animation:wordup .6s ease 1.7s forwards}
+#splash b{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em}
 #splash b span{color:var(--accent-ink);font-weight:700}
-#splash i{position:absolute;left:100%;height:2px;border-radius:2px;background:var(--ink);opacity:.11;animation:streak linear infinite}
-@keyframes pastx{from{translate:800px 0}to{translate:-544px 0}}
-@keyframes pasty{0%{transform:translateY(125.8px)}47.62%{transform:translateY(11.3px)}49.33%{transform:translateY(7.9px)}50.89%{transform:translateY(6.4px)}52.31%{transform:translateY(6.8px)}53.57%{transform:translateY(9px);animation-timing-function:cubic-bezier(.4,.05,.55,1)}100%{transform:translateY(700px)}}
-@keyframes tip{0%,47.62%{rotate:23.2deg}49.33%{rotate:19.3deg}50.89%{rotate:14.6deg}52.31%{rotate:8.9deg}53.57%{rotate:1.9deg}58%,100%{rotate:0deg}}
-@keyframes float{0%,100%{transform:none}50%{transform:translateY(-4px) rotate(-1.5deg)}}
-@keyframes kick{0%{opacity:0;transform:scale(.5)}10%{opacity:.6}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.7)}}
-@keyframes wordup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes streak{to{transform:translateX(calc(-100vw - 80px))}}
-@media (prefers-reduced-motion:reduce){#splash .rider,#splash b{animation:none}#splash b{opacity:1}#splash .ground,#splash i{display:none}}
 @media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:18px;height:18px;font-size:10px} .day .dots{gap:2px;max-height:38px} .day .more{width:18px;height:18px;font-size:10px} }
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><div class="hill"><div class="ground"><svg viewBox="0 0 400 200"><defs><path id="pine" d="M0-46L-9-28H-5L-13-12H-8L-17 4H-2V11H2V4H17L8-12H13L5-28H9Z"/></defs><g class="trees"><use href="#pine" transform="translate(-560 -17.8) scale(1.15)"/><use href="#pine" transform="translate(-505 -4.1) scale(0.8)"/><use href="#pine" transform="translate(-372 14.2) scale(1.3)"/><use href="#pine" transform="translate(-300 31.5) scale(0.9)"/><use href="#pine" transform="translate(-268 39.4) scale(0.7)"/><use href="#pine" transform="translate(-150 55.0) scale(1.2)"/><use href="#pine" transform="translate(-112 66.7) scale(0.75)"/><use href="#pine" transform="translate(-18 81.4) scale(0.95)"/></g><path class="snowpack" d="M-2000 -264L40 100.7Q88 109.3 120 103L124 113L117 152L122 214L114 300L119 420L115 4000H-2000Z"/><path class="line" d="M-2000 -264L40 100.7Q88 109.3 120 103L124 113L117 152L122 214L114 300L119 420L115 4000"/></svg></div>
-<span class="rider"><span class="skier"></span></span></div><b>ski<span>/</span>lease</b></div>
-<script>
-{
-  const splash = document.getElementById('splash'), ground = splash.querySelector('.ground');
-  // Snow thrown from one spot on the hill: a fan of specks, each flung along its own heading (degrees above level, back up the hill being 180).
-  const kickUp = (x, y, count, delay, from, to, reach) => {
-    for (let n = 0; n < count; n++) {
-      const speck = document.createElement('u'), size = 3 + Math.random() * 5, far = reach * (.45 + Math.random() * .55);
-      const heading = (from + (to - from) * Math.random()) * Math.PI / 180;
-      speck.style.cssText = `left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px;--x:${Math.cos(heading) * far}px;--y:${-Math.sin(heading) * far}px;--t:${.45 + Math.random() * .35}s;--d:${delay + Math.random() * .06}s`;
-      ground.appendChild(speck);
-    }
-  };
-  kickUp(-340, 33, 5, .54, 140, 180, 34);
-  kickUp(-200, 58, 5, .83, 140, 180, 34);
-  kickUp(-60, 83, 5, 1.12, 140, 180, 34);
-  kickUp(120, 103, 16, 1.5, 95, 178, 66);
-  for (let n = 0; n < 16; n++) {
-    const streak = document.createElement('i');
-    streak.style.cssText = `top:${Math.random() * 100}%;width:${n % 3 ? 14 + Math.random() * 40 : 3}px;${n % 3 ? '' : 'height:3px;'}animation-duration:${.45 + Math.random() * .9}s;animation-delay:${-Math.random() * 2}s`;
-    splash.appendChild(streak);
-  }
-}
-</script>
+<div id="splash" aria-hidden="true"><span class="skier"></span><b>ski<span>/</span>lease</b></div>
 <header class="top">
   <span class="brand"><span class="mark" aria-hidden="true"></span><span>ski<span class="slash">/</span>lease</span></span>
   <button class="who" id="who" data-act="me-edit" aria-label="Change your name and details" hidden></button>
@@ -989,12 +935,12 @@ function showSnow(on){
   if (!frame.getAttribute('src')) frame.src = SNOW_URL;
 }
 
-const opened = performance.now();
+// The opening screen goes the moment there is something to show.
 let revealed = false;
 function reveal(){
   if (revealed) return;
   revealed = true;
-  setTimeout(() => $('#splash').classList.add('done'), Math.max(0, (window.SPLASH_ANIMATED ? 3200 : 0) - (performance.now() - opened)));
+  $('#splash').classList.add('done');
 }
 setTimeout(reveal, 8000);
 
@@ -2241,8 +2187,8 @@ async function start(){
   const back = new URLSearchParams((location.hash || '').slice(1) || location.search);
   if (back.get('error_description')){ S.authErr = 'Sign-in didn’t finish: ' + back.get('error_description').replace(/\+/g, ' '); history.replaceState(null, '', location.pathname); }
   S.gate = 'loading';
-  // Already opened in this session: show the last house this phone loaded right away, then refresh it quietly below.
-  if (document.documentElement.classList.contains('nosplash') && LIVE && useStash()){ S.offline = null; S.gate = null; if (firstLoad){ S.month = defaultMonth(); S.loaded = true; S.dayStamp = iso(today()); } }
+  // Show the last house this phone loaded right away, then refresh it quietly below.
+  if (LIVE && useStash()){ S.offline = null; S.gate = null; if (firstLoad){ S.month = defaultMonth(); S.loaded = true; S.dayStamp = iso(today()); } }
   render();
   try {
     if (LIVE){
@@ -2359,7 +2305,7 @@ function checkNewDay(){
   S.dayStamp = k; S.month = defaultMonth(); render();
 }
 document.addEventListener('visibilitychange', checkNewDay);
-window.addEventListener('pageshow', e => { if (e.persisted) document.documentElement.classList.add('nosplash'); checkNewDay(); });
+window.addEventListener('pageshow', checkNewDay);
 setInterval(checkNewDay, 60000);
 // Keeps the page on the phone so it opens with no signal (see sw.js).
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});

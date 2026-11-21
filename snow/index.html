@@ -14,7 +14,6 @@
 <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
 <meta property="og:image" content="https://livefreeandfly.org/snow/icons/icon-512.png">
-<script>/* The opening screen: false shows just the logo until the page is ready; true brings back the full animation. */window.SPLASH_ANIMATED=false;if(!window.SPLASH_ANIMATED)document.documentElement.classList.add("calm");</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <style>
 :root{
@@ -49,22 +48,11 @@
 .embed .regions{font-size:1em;font-weight:inherit;letter-spacing:inherit;margin-left:0}
 .embed .regions i{margin:0 .35em}
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-  background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .5s ease,visibility .5s}
-#splash img{width:min(38vw,170px);height:auto;animation:spinup 1.4s cubic-bezier(.55,0,.9,.5) both,spin .55s linear 1.4s infinite}
-#splash b{font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:650;opacity:0;animation:rise .6s ease .25s forwards}
-#splash i{position:absolute;top:-12px;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.55;animation:drift linear infinite}
+  background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .2s ease,visibility .2s}
+#splash img{width:min(38vw,170px);height:auto}
+#splash b{font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:650;opacity:.92}
 .embed #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
-/* Calm opening screen: the logo alone, still, gone as soon as the page is ready. The animation above is kept; set SPLASH_ANIMATED to true at the top of the page to bring it back. */
-.calm #splash{transition-duration:.2s}
-.calm #splash i{display:none}
-.calm #splash img{animation:none}
-.calm #splash b{animation:none;opacity:.92}
-@keyframes spinup{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:.92;transform:none}}
-@keyframes drift{to{transform:translateY(105vh)}}
-@media (prefers-reduced-motion:reduce){#splash img{animation:none}#splash i{display:none}}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
 main{max-width:1040px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom))}
@@ -600,14 +588,6 @@ if (new URLSearchParams(location.search).has("embed")) {
 <dialog id="homeAsk"><form method="dialog"><p>Make <b id="homeName"></b> your home mountain? The page will open on it from now on.</p>
   <div class="btns"><button value="no">Cancel</button><button value="yes" class="yes">Make it home</button></div></form></dialog>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"><b>Turbo Snow</b></div>
-<script>
-// A few flakes on the opening screen, placed before anything else loads.
-for (let n = 0; n < 26; n++) {
-  const flake = document.createElement("i"), size = 3 + Math.random() * 4;
-  flake.style.cssText = `left:${Math.random() * 100}%;width:${size}px;height:${size}px;animation-duration:${4 + Math.random() * 5}s;animation-delay:${-Math.random() * 8}s`;
-  document.getElementById("splash").appendChild(flake);
-}
-</script>
 <main>
   <div class="brand"><img src="icons/mark.png" alt="" width="34" height="34"><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span></h1></div>
   <p class="lede" id="headline">Loading the forecast…</p>
@@ -2025,24 +2005,12 @@ async function liveForecast() {
 }
 window.addEventListener("online", () => { if (offlineCopy) location.reload(); });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
-// The opening screen stays up until the page and the map are ready (or 8 seconds pass), and at least long
-// enough for the logo to spin up.
-const opened = performance.now();
+// The opening screen goes as soon as the page and the map are ready (or 8 seconds pass).
 let revealed = false;
 function reveal() {
   if (revealed) return;
   revealed = true;
-  setTimeout(() => {
-    const splash = $("splash"), logo = splash.querySelector("img");
-    const finish = () => splash.classList.add("done");
-    if (!window.SPLASH_ANIMATED || !logo.animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
-    // The prop winds down: from wherever it is now, a little over one more turn, easing to a stop upright.
-    const m = new DOMMatrixReadOnly(getComputedStyle(logo).transform);
-    const angle = (Math.atan2(m.b, m.a) * 180 / Math.PI + 360) % 360, target = angle + (360 - angle) + 360;
-    for (const running of logo.getAnimations()) running.cancel();
-    logo.animate([{transform: `rotate(${angle}deg)`}, {transform: `rotate(${target}deg)`}],
-      {duration: 1300, easing: "cubic-bezier(.12,.55,.25,1)", fill: "forwards"}).finished.then(() => setTimeout(finish, 250), finish);
-  }, Math.max(0, (window.SPLASH_ANIMATED ? 1500 : 0) - (performance.now() - opened)));
+  $("splash").classList.add("done");
 }
 setTimeout(reveal, 8000);
 liveForecast().then(async (d) => {
