@@ -96,13 +96,23 @@ h2{font-size:18px;font-weight:650;letter-spacing:-.01em}
 .seg{margin-left:auto;display:inline-flex;background:var(--wash);border-radius:10px;padding:3px}
 .seg button{border:0;background:none;color:var(--ink2);font:inherit;font-size:13px;font-weight:550;padding:6px 14px;border-radius:8px;cursor:pointer}
 .seg button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+/* Summit, mid and base are three stacked tabs whose left ends are cut to one slope, so the control is half a mountain
+   with a name at each height. The chosen row is navy. */
+.seg.tri{display:flex;flex-direction:column;gap:2px;flex:none;width:106px;height:65px;padding:0;background:none;border-radius:0}
+.seg.tri button{position:relative;flex:1;height:auto;display:flex;align-items:center;padding:0 0 0 44px!important;border-radius:0 10px 10px 0;box-shadow:none;text-align:left;font-size:12px;font-weight:600;line-height:1;color:var(--mark);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--mark) 24%,var(--surface)) 0 36px,color-mix(in srgb,var(--mark) 7%,var(--surface)) 36px)}
+.seg.tri button::before{content:"";position:absolute;left:-1px;top:-1px;width:37px;height:calc(100% + 2px);background:var(--surface)}
+.seg.tri button[data-el=summit]::before{clip-path:polygon(0 0,37px 0,25px 100%,0 100%)}
+.seg.tri button[data-el=mid]::before{clip-path:polygon(0 0,25px 0,13px 100%,0 100%)}
+.seg.tri button[data-el=base]::before{clip-path:polygon(0 0,13px 0,1px 100%,0 100%)}
+.seg.tri button[aria-pressed=true]{background:var(--mark);color:var(--surface);box-shadow:none}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px}
 /* Tabs layout (a setting; the other choice is one long page): each block belongs to a tab and only the open tab's blocks show. */
 .tabbar{display:none}
 .embed .layoutrow{display:none}
 html.tabs main{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 html.tabs[data-view="map"] [data-tab]:not([data-tab~="map"]),html.tabs[data-view="forecast"] [data-tab]:not([data-tab~="forecast"]),
-html.tabs[data-view="mountain"] [data-tab]:not([data-tab~="mountain"]),html.tabs[data-view="more"] [data-tab]:not([data-tab~="more"]){display:none!important}
+html.tabs[data-view="mountain"] [data-tab]:not([data-tab~="mountain"]),html.tabs[data-view="avalanche"] [data-tab]:not([data-tab~="avalanche"]),html.tabs[data-view="more"] [data-tab]:not([data-tab~="more"]){display:none!important}
 html.tabs .tabbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
 html.tabs #mapPanel{margin-top:12px}
 /* The headline and the forecast time belong to the one-page layout (data-tab="onepage" is no tab); the Region tab opens on the summary. */
@@ -111,12 +121,95 @@ html.tabs .panel.summary{margin-top:12px}
    the day boxes stay the page's own dark, since they sit on colored fills. */
 :root{--true-ink:var(--ink)}
 html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(--mark-dull);color:var(--mark)}
+/* The Mountain tab's sections each open on a heading in the accent blue with a rule to the edge, like the passes on
+   Region, and a bar of chips pinned at the top of the screen jumps between them. */
+.jump{display:none}
+/* The mountain's name, the level picker and the chips stay at the top of the screen together while the tab scrolls. */
+html.tabs .dtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
+html.tabs .jump{display:flex;gap:6px;margin:10px 0 0;padding:0 0 9px;overflow-x:auto;scrollbar-width:none}
+html.tabs .jump::-webkit-scrollbar{display:none}
+.jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
+.jump button[aria-current=true]{background:var(--mark);color:var(--surface)}
+html.tabs #detail [data-sec]{scroll-margin-top:calc(136px + env(safe-area-inset-top,0px))}
+html.tabs #detail h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:15.5px;color:var(--accent)}
+html.tabs #detail h3::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
+html.tabs #detail h3 span{color:var(--mark-dull)}
+html.tabs #detail .hhead{margin-top:30px}
+html.tabs #detail .hhead h3{flex:1;margin:0}
+/* The first section sits close under the pinned top, the same distance a chip jump lands it at. */
+html.tabs #detail .dtop + .outlook .hhead,html.tabs #detail .dtop + h3{margin-top:12px}
+/* The level picker pinned at the top is the only one in tabs; the copy beside Hourly is for the one-page layout. */
+html.tabs #detail .hhead .seg.tri{display:none}
+html.tabs #detail .season{margin-top:30px}
+html.tabs #detail .season .shead b{font-size:15.5px;font-weight:650;color:var(--accent)}
+/* Daily in tabs, on a phone: beside the day is a box with the total and, under it, the night and day amounts; the
+   spread runs to its right; under both are four fixed columns for weather, temperature, wind and powder score.
+   There is no header row. The snow type is told by the color of the spread, not in words. */
+@media (max-width:720px){
+  /* The second grid row is exactly the bar and its scale; the first takes what is left of the card's height, so the
+     weather line sits a fixed 8px above the bar. */
+  html.tabs .srow{grid-template-columns:66px minmax(0,1fr) 88px;grid-template-rows:1fr auto;column-gap:12px;row-gap:8px;align-items:center;padding:10px 0}
+  /* The day: the weekday large across the top, and under it the weather icon beside the date's number. */
+  /* It is set so the weekday is level with the weather line and the icon and date are level with the bar. */
+  html.tabs .srow .d.cal{display:grid;width:58px;align-self:end;margin-bottom:11px;grid-template-columns:26px auto;column-gap:5px;row-gap:1px;align-items:center;justify-content:center;line-height:1.1}
+  html.tabs .srow .d.cal span{grid-column:1 / span 2;grid-row:1;display:block;text-align:center;font-size:23px;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--mark-dull)}
+  html.tabs .srow .d.cal .wx{grid-column:1;grid-row:2;line-height:0}
+  html.tabs .srow .d.cal .wx svg{width:26px;height:22px;color:var(--mark)}
+  html.tabs .srow .d.cal b{grid-column:2;grid-row:2;display:block;font-size:17px;font-weight:600;color:var(--mark-mid)}
+  /* The total is a card: the number large with its unit and ± small beside it, centered, and under it a white strip
+     split into the night and the day amounts. */
+  html.tabs .srow .tot{grid-column:3;grid-row:1 / span 2;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:7px 3px 3px;border-radius:11px;background:var(--wash)}
+  /* Every day's row is the same height, snow or none. */
+  html.tabs .srow .tot{min-height:66px;box-sizing:border-box}
+  html.tabs .srow.head + .srow{border-top:1px solid transparent}
+  html.tabs .srow .tot.none{padding-bottom:7px}
+  html.tabs .srow .tot .amt{text-align:center;white-space:nowrap;font-size:21px;font-weight:650;line-height:1;letter-spacing:-.01em}
+  html.tabs .srow .tot .amt .unit{font-size:11.5px;font-weight:500;letter-spacing:0;color:var(--mark-dull)}
+  html.tabs .srow .tot.none .amt{color:var(--mark-dull);font-weight:600}
+  html.tabs .srow .tot .num{display:inline-block;width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+  html.tabs .srow .tot .amt > .num{width:auto;min-width:1.150em}
+  html.tabs .srow .tot .split{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0;border-radius:8px;background:var(--surface);font-size:12px}
+  html.tabs .srow .tot .split span{justify-content:center;margin:0;padding:3px 0;gap:2px}
+  html.tabs .srow .tot .split span + span{border-left:1px solid var(--border)}
+  /* The foot of the bar's scale is level with the foot of the total card, and the weather line sits just above the bar. */
+  html.tabs .srow.day2 > .track{grid-column:2;grid-row:2;align-self:end}
+  .track.zero{height:31px;margin:0}
+  .track.zero::before{left:0;right:0;top:0;height:18px;border-radius:9px;background:var(--wash)}
+  .track.zero .fill{position:absolute;left:0;top:0;height:18px;min-width:8px;border-radius:9px}
+  .track.zero .whisk{position:absolute;top:8px;height:2px;min-width:2px;background:var(--mark)}
+  .track.zero .whisk::before,.track.zero .whisk::after{content:"";position:absolute;top:-6px;width:2px;height:14px;border-radius:1px;background:var(--mark)}
+  .track.zero .whisk::before{left:0}.track.zero .whisk::after{right:0}
+  .track.zero .mdl{position:absolute;top:5px;width:8px;height:8px;margin-left:-4px;box-sizing:border-box;border-radius:50%;background:var(--surface);border:1.5px solid var(--mark)}
+  .track.zero .notch{position:absolute;top:0;width:1px;height:18px;background:var(--border)}
+  .track.zero em{position:absolute;top:21px;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:10px;color:var(--mark-dull);font-variant-numeric:tabular-nums}
+  .track.zero em:first-of-type{transform:none}
+  .track.zero em:last-of-type{transform:translateX(-100%)}
+  /* Fixed columns, so the temperatures, winds and scores each start at the same place on every row. The weather's
+     icon is above the date, not on this line. */
+  html.tabs .srow .cond{grid-column:2;grid-row:1;align-self:end;grid-template-columns:54px 64px 46px;column-gap:0;justify-content:space-between;font-size:12.5px;line-height:16px}
+  html.tabs .srow .cond .sky{display:none}
+  html.tabs .srow .cond .wind svg{flex:none;width:18px}
+  /* Beside the spread there is room for the weather's icon but not its word. */
+  html.tabs .srow .cond .sky{font-size:0}
+  html.tabs .srow .cond .sky svg{width:19px;height:16px}
+  html.tabs .srow .cond .wind{gap:3px}
+  html.tabs .srow .d{grid-row:1 / span 2}
+  html.tabs .srow .cond .pscore{text-align:right}
+  html.tabs .srow.head{display:none}
+  html.tabs .srow.far{opacity:.55}
+}
+html.tabs #detail .tiles.four{margin-bottom:10px}
+/* The Mountain and Avalanche tabs take the same colors. Their running text is a middle navy, since there is more of it to read. */
+:root{--mark-mid:#46618a}
+@media (prefers-color-scheme:dark){:root{--mark-mid:#c0c6cc}}
+html.tabs #detail,html.tabs #avalanche{--ink:var(--mark);--ink2:var(--mark-mid);--muted:var(--mark-dull);color:var(--mark);margin-top:12px}
+@media (max-width:720px){html.tabs #detail,html.tabs #avalanche{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0}}
 html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
 /* On a phone the Region tab's table runs edge to edge, with day boxes narrow enough that a week shows without scrolling sideways. */
 @media (max-width:720px){
   html.tabs .panel.summary{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0}
   html.tabs .panel.summary .bar{padding:14px 12px 0}
-  html.tabs .gridcap,html.tabs .gridnote{padding-left:12px;padding-right:12px}
+  html.tabs .gridcap,html.tabs .gridnote,html.tabs .gridfresh{padding-left:12px;padding-right:12px}
   html.tabs .legend{padding:2px 12px 12px}
   html.tabs table.heat{border-spacing:2px;padding:4px 2px 8px}
   html.tabs .cell{min-width:29px;height:40px;border-radius:6px;font-size:13px}
@@ -209,17 +302,28 @@ html.tabs .roadsheet details.roads.older summary{font-size:13px;color:var(--mark
 html.tabs .roadsheet details.roads p{margin:0 0 4px;font-size:12px;color:var(--mark-dull)}
 html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-top:4px;padding-top:9px;font-size:12px;color:var(--mark-dull)}
 @media (max-width:720px){html.tabs[data-view="map"] #mapPanel{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0;border-bottom:0}}
-.tabbar div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabbar div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+@media (max-width:460px){.tabbar button{font-size:12px;letter-spacing:0}}
 .tabbar button{border:0;border-top:2px solid transparent;background:none;color:var(--mark-dull);font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;height:50px;padding:0 4px;cursor:pointer}
 .tabbar button[aria-current="page"]{color:var(--mark);border-top-color:var(--accent)}
 .panel.summary{margin-top:26px}
 .panel.summary .bar{margin:0;padding:16px 16px 0;flex-wrap:nowrap}
 .panel.summary h2{font-size:22px;line-height:1.15;white-space:nowrap}
+/* The level picker hangs at the right of the heading and the lines under it, its top level with the heading and its foot with the last line, so it adds no height. */
+.sumhead{position:relative}
+/* (Measured to the letters, not their boxes: the top of the heading's capitals and the baseline of the last line.) */
+.panel.summary .seg.tri{position:absolute;top:18px;right:12px}
+.panel.summary .gridfresh,.panel.summary .gridcap{padding-right:128px}
 .gridwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-numeric:tabular-nums;padding:4px 10px 8px}
 .heat th{font-size:11px;font-weight:600;color:var(--muted);text-align:center;padding:2px 0 4px;white-space:nowrap}
+/* In tabs the forecast's age sits under the Summary heading; the one-page layout has it at the top of the page. */
+.gridfresh{display:none;font-size:12.5px;color:var(--muted);padding:4px 16px 0;margin-top:0}
+html.tabs .gridfresh{display:block}
 .gridcap{font-size:11.5px;color:var(--ink2);padding:12px 16px 0}
 .gridcap span{color:var(--muted)}
+/* The line saying what the numbers are is retired; the element stays because the page still writes to it. */
+#gridCap,#gridCap + br{display:none}
 .heat th.corner{position:sticky;left:0;background:var(--surface);z-index:2}
 .gridwrap.scrolled .heat td.name,.gridwrap.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
 .gridwrap.scrolled .heat tr.on td.name{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
@@ -271,6 +375,31 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .orow .held{color:var(--ink);font-weight:650}
 .orow small{font-size:11px;color:var(--muted);margin-left:4px}
 .orow small.live{color:#2f8a3c;font-weight:650}
+.orow em{font-style:normal}
+.orow em::before{content:", "}
+.stats{display:contents}
+/* Status in tabs: the verdict is a tinted strip, temperature and wind are a pair of blocks, and lifts and trails are
+   one block with the resort's own report linked under it. */
+html.tabs .outlook{display:flex;flex-direction:column}
+html.tabs .outlook .hhead h3 span{display:none}
+html.tabs .outlook .hhead #statusSrc{flex:none;margin:0;font-size:12px}
+html.tabs .orow.verdict{display:block;margin:10px 0 8px;padding:9px 12px;border-radius:10px;font-size:13.5px;background:color-mix(in srgb,#3fa34d 14%,var(--surface));color:var(--mark-mid)}
+html.tabs .orow.verdict.warn{background:color-mix(in srgb,var(--w1) 22%,var(--surface))}
+html.tabs .orow.verdict.bad{background:color-mix(in srgb,var(--w2) 20%,var(--surface))}
+html.tabs .orow.verdict .k,html.tabs .orow.verdict .dot{display:none}
+html.tabs .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+html.tabs .orow.stat{display:block;padding:8px 11px;border-radius:10px;background:var(--wash)}
+html.tabs .orow.stat .k{display:block;font-size:11.5px}
+html.tabs .orow.stat b{display:block;font-size:19px;line-height:1.25;letter-spacing:-.01em}
+html.tabs .orow.stat em{display:inline;font-size:12.5px;color:var(--mark-dull)}
+html.tabs .orow.stat em::before{content:none}
+html.tabs .orow.stat small:not(.live){display:none}
+html.tabs details.both > summary.orow{display:block;padding:4px 0 2px}
+html.tabs details.both > summary.orow::after{content:none}
+html.tabs details.both .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px;text-align:center}
+html.tabs details.both .extra{display:block;margin-top:5px;font-size:12.5px;color:var(--mark-dull)}
+html.tabs details.both .list{padding:4px 0 6px}
+html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacing:0;text-transform:none;color:var(--accent)}
 .outlook details.all{padding:0;margin:0;border:0;background:none}
 .outlook details.all > summary{font-size:13.5px;font-weight:400;line-height:inherit}
 .outlook details.all > summary::after{margin:0;justify-self:end;font-size:18px;line-height:1}
@@ -297,7 +426,14 @@ table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-n
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dhead .who{min-width:0}
 .dhead h2{font-size:22px;line-height:1.15}
+/* The name is the mountain picker: the phone's own menu opens from a select laid invisibly over it. */
+.mtnpick{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.mtnpick svg{flex:none;width:12px;height:8px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mtnpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.mtnpick:focus-within{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 .dhead .who > span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.dhead .who > .dfresh{display:none;font-size:12.5px}
+html.tabs .dhead .who > .dfresh{display:block}
 .dhead .seg{margin-left:0;flex:none}
 .dhead .mine{color:var(--accent);font-size:16px;line-height:1}
 #homeAsk{border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--ink);padding:20px 20px 16px;margin:auto;max-width:min(340px,calc(100vw - 32px))}
@@ -749,13 +885,16 @@ if (new URLSearchParams(location.search).has("embed")) {
   </div>
 
   <div class="panel summary" data-tab="forecast">
+    <div class="sumhead">
     <div class="bar">
-      <h2>Summary</h2>
-      <div class="seg" id="seg" role="group" aria-label="Elevation">
+      <h2>Regional Summary</h2>
+      <div class="seg tri" id="seg" role="group" aria-label="Elevation">
         <button data-el="summit" aria-pressed="true">Summit</button><button data-el="mid" aria-pressed="false">Mid</button><button data-el="base" aria-pressed="false">Base</button>
       </div>
     </div>
-    <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span>Tap a name for details</span></div>
+    <div class="gridfresh meta" id="gridFresh"></div>
+    <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span>Tap a mountain for details</span></div>
+    </div>
     <div class="gridwrap"><table class="heat" id="heat"></table></div>
     <div class="gridnote" id="unratedNote" hidden>* No avalanche forecast covers this peak</div>
     <div class="legend" id="legend"></div>
@@ -763,7 +902,7 @@ if (new URLSearchParams(location.search).has("embed")) {
 
   <div class="panel" id="detail" data-tab="mountain"></div>
 
-  <div class="panel" id="avalanche" data-tab="mountain"></div>
+  <div class="panel" id="avalanche" data-tab="avalanche"></div>
 
   <details class="panel" id="score" data-tab="more"><summary>How accurate is this?</summary><div class="inner"><div id="scoreBody"></div><p><a href="report/">How we tested it, with the plots</a></p></div></details>
   <details class="panel" id="how" data-tab="more"><summary>How the forecast is made</summary><div class="inner">
@@ -784,7 +923,7 @@ if (new URLSearchParams(location.search).has("embed")) {
   </div></details>
 </main>
 <nav class="tabbar" id="tabbar" aria-label="Sections"><div>
-  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="more">More</button>
+  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button><button data-view="more">More</button>
 </div></nav>
 <dialog id="settingsSheet"><div id="settings"><h3>Settings</h3>
     <div class="setrow layoutrow"><span>Layout</span><div class="seg" role="group" aria-label="Layout"><button data-pref="layout" data-value="tabs">Tabs</button><button data-pref="layout" data-value="scroll">One page</button></div></div>
@@ -901,7 +1040,7 @@ const mix = (to, from, share) => `color-mix(in oklab, var(${to}) ${Math.round(10
 const windColor = (mph) => (mph || 0) < 30 ? mix("--w1", "--grid", ((mph || 0) - 10) / 20) : mix("--w2", "--w1", (mph - 30) / 20);
 function quality(ratio) { return ratio == null ? ["", ""] : [QUALITY[qualityBin(ratio)][1], `${Math.round(ratio)}:1`]; }
 
-function futureDays(el) { return el.days.filter((d) => !d.past).slice(0, 10); }
+function futureDays(el) { return el.days.filter((d) => !d.past).slice(0, 14); }
 
 // Snow over the last three days: the hourly estimate summed over the 72 hours up to now.
 const RECENT_HOURS = 72;
@@ -950,6 +1089,9 @@ function renderHeadline() {
   // Each step allows an hour on top of the update interval, for a late start and the run itself.
   const missed = age <= UPDATE_EVERY_H + 1 ? 0 : age <= 2 * UPDATE_EVERY_H + 1 ? 1 : 2;
   const stamp = `<span class="${["", "late", "stale"][missed]}" title="${missed ? `${Math.round(age)} hours old; a new forecast is due every ${UPDATE_EVERY_H} hours` : `A new forecast is due every ${UPDATE_EVERY_H} hours`}">${when}</span>`;
+  freshNote = offlineCopy ? `<span class="warn">Offline.</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`;
+  $("gridFresh").innerHTML = freshNote;
+  if ($("detailFresh")) $("detailFresh").innerHTML = freshNote;
   $("meta").innerHTML = offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`;
 }
 
@@ -1167,8 +1309,18 @@ function wireTimeline(resort, el, g) {
 
 // A day's snow on a fixed 0 to 24 inch scale: a dot for the forecast, a shaded band for one standard deviation
 // either side, and a tick for each weather model. Anything past 24 inches sits at the end.
-function dayBar(p, withRange) {
+function dayBar(p, withRange, fromZero) {
   const total = p.snow_in || 0, at = (v) => (100 * Math.min(Math.max(v || 0, 0), BAR_FULL_IN) / BAR_FULL_IN).toFixed(1);
+  // In tabs the bar fills from zero to the day's total in the snow type's color, one solid color so the color keeps
+  // its meaning. The ± range is a dark error bar across its end, each model is a ringed dot on the bar, and a scale
+  // of quarter marks runs under it.
+  if (fromZero) {
+    let parts = total >= 0.05 ? `<i class="fill" style="width:${at(total)}%;background:${snowColor(p.slr)}"></i>` : "";
+    if (p.pm_in != null && total >= 0.5) parts += `<i class="whisk" style="left:${at(total - p.pm_in)}%;width:${(at(total + p.pm_in) - at(total - p.pm_in)).toFixed(1)}%"></i>`;
+    for (const v of Object.values(p.models || {})) if (v != null) parts += `<i class="mdl" style="left:${at(v)}%"></i>`;
+    const scale = [0, 1, 2, 3, 4].map((q) => `<em style="left:${25 * q}%">${Math.round(asLen(BAR_FULL_IN * q / 4))}</em>`).join("");
+    return `<div class="track zero">${[1, 2, 3].map((q) => `<i class="notch" style="left:${25 * q}%"></i>`).join("")}${parts}${scale}</div>`;
+  }
   let marks = "";
   if (withRange && p.pm_in != null && total >= 0.5) marks += `<i class="band" style="left:${at(total - p.pm_in)}%;width:${(at(total + p.pm_in) - at(total - p.pm_in)).toFixed(1)}%;background:${snowColor(p.slr)}"></i>`;
   for (const v of Object.values(p.models || {})) if (v != null) marks += `<i class="tick" style="left:${at(v)}%"></i>`;
@@ -1179,18 +1331,28 @@ function dayBar(p, withRange) {
 let legendOpen = false;
 function skiDay(d) {
   const far = d.lead_day > data.deterministic_days, p = d.powder || {};
-  const date = `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
+  // In tabs the day reads like the Region table's headings: the weekday small, the date's number bold under it.
+  // The day's weather icon sits above it.
+  const date = tabbed() ? `<div class="d cal">${sky(p)[0] ? `<i class="wx" title="${sky(p)[1]}">${sky(p)[0]}</i>` : ""}<span>${weekday(d.date)}</span><b>${dayOfMonth(d.date)}</b></div>`
+    : `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
   const total = p.snow_in || 0;
   const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
   const bars = `${dayBar(p, true)}` + (total >= 0.05
     ? `<div class="split"><span title="Overnight, ${hourName(16)} to ${hourName(8)}">${ICONS.moon}${inches(p.night_in)} ${LEN()}</span><span title="During the day, ${hourName(8)} to ${hourName(16)}">${ICONS.sun}${inches(p.day_in)} ${LEN()}</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
     : `<div class="split">No new snow</div>`);
-  return `<div class="srow${far ? " far" : ""}">${date}<div class="snowbar">${bars}</div>
-    <div class="amt">${inches(total)} ${LEN()}${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>
-    <div class="cond"><span class="sky">${icon ? `${icon}${word}` : ""}</span>
+  const amount = `<div class="amt">${inches(total)} ${LEN()}${p.pm_in == null || total < 0.5 ? "" : ` <span class="pm">± ${inches(p.pm_in)}</span>`}</div>`;
+  // In tabs the total sits in a box with the night and day amounts under it, and the spread runs beside the box.
+  // Every number sits centered in a two-digit slot, so "in", the ±, the moon and the sun are in the same place on
+  // every row, however many digits a day has.
+  const num = (text) => `<span class="num">${text}</span>`;
+  const lead = tabbed()
+    ? `<div class="tot${total < 0.05 ? " none" : ""}"><div class="amt">${num(inches(total))}<span class="unit"> ${LEN()}${p.pm_in == null || total < 0.5 ? "" : ` ± ${num(inches(p.pm_in))}`}</span></div>${total >= 0.05 ? `<div class="split"><span title="Overnight, ${hourName(16)} to ${hourName(8)}">${ICONS.moon}${num(inches(p.night_in))}</span><span title="During the day, ${hourName(8)} to ${hourName(16)}">${ICONS.sun}${num(inches(p.day_in))}</span></div>` : ""}</div>${dayBar(p, true, true)}`
+    : `<div class="snowbar">${bars}</div>${amount}`;
+  return `<div class="srow${far ? " far" : ""}${tabbed() ? " day2" : ""}">${date}${lead}
+    <div class="cond"><span class="sky" title="${icon ? word : ""}">${icon ? `${icon}${word}` : ""}</span>
       <span class="temp" title="${p.temp_f == null ? "" : `${deg(p.temp_f)}${DEG()} through the lift hours, feels like ${deg(windChill(p.temp_f, wind))}${DEG()} in the wind`}">${p.temp_f == null ? "" : `${deg(p.temp_f)}°<small>/${deg(windChill(p.temp_f, wind))}°</small>`}</span>
       <span class="wind" title="${wind == null ? "" : `${WIND[wb][1]}: ${speed(wind)} ${SPEED()}${p.wind_from_deg == null ? "" : ` from the ${compass(p.wind_from_deg)}`}${gust > wind + 3 ? `, gusts to ${speed(gust)}` : ""}`}">${wind == null ? "" : `${p.wind_from_deg == null ? `<i style="background:${windColor(Math.max(wind || 0, gust || 0))}"></i>` : barb(wind, p.wind_from_deg, wb > 1 ? windColor(Math.max(wind, gust || 0)) : "var(--muted)")}${speed(wind)}${gust > wind + 3 ? `G${speed(gust)}` : ""}`}</span>
-      <span class="pscore">${p.score ? `PS <b>${p.score.toFixed(1)}</b>` : ""}</span></div></div>`;
+      <span class="pscore">${p.score ? `PS <b>${p.score.toFixed(1)}</b>` : tabbed() ? "PS <b>0.0</b>" : ""}</span></div></div>`;
 }
 
 function measured(resort) {
@@ -1203,7 +1365,7 @@ function measured(resort) {
   const depth = o.depth_in == null
     ? cell("Water on the ground", `${inches(o.water_in)} <small>${LEN()}</small>`, "&nbsp;")
     : cell("On the ground", `${inches(o.depth_in)} <small>${LEN()}</small>`, `${signed(o.depth_gain_24h_in)} ${LEN()} in 24 h`) + cell("Depth, 3 days", `${signed(o.depth_gain_72h_in)} <small>${LEN()}</small>`, "&nbsp;");
-  return `<h3>Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${height(o.elevation_ft)}, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
+  return `<h3 data-sec="Measured">Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${height(o.elevation_ft)}, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
     <div class="tiles">${depth}
     ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>${LEN()}</small>`, `${inches(o.water_gain_24h_in)} ${LEN()} in 24 h`)}
     ${cell("Temp at sensor", o.temp_f == null ? "–" : `${deg(o.temp_f)}${DEG()}`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
@@ -1475,24 +1637,25 @@ function weatherRows(resort) {
   const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
   // A backcountry peak has no lifts to hold, so its first row is the avalanche rating, not the weather's impacts.
   const weather = resort.kind === "backcountry" ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>`
-    : `<div class="orow"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>`;
+    : `<div class="orow verdict ${worst}"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>`;
   const p = ((resort.elevations[elevation].days.find((d) => d.date === day.date) || {}).powder) || {};
   const tag = `<small class="${live ? "live" : ""}">${live ? "live" : "forecast"}</small>`;
   const temp = live ? +live.TemperatureF : p.temp_f, wind = live ? +live.WindStrengthMph : p.wind_mph, gust = live ? +live.WindGustsMph : p.gust_mph;
   const feel = live && isFinite(+live.WindChillF) ? +live.WindChillF : windChill(temp, wind);
   const from = live ? (/^[NESW]+$/.test(live.WindDirection || "") ? live.WindDirection : "") : compass(p.wind_from_deg);
   if (temp == null || wind == null) return weather;
-  return `${weather}<div class="orow"><span class="k">Temp</span><span><b>${deg(temp)}${DEG()}</b>, feels like ${deg(feel)}${DEG()} ${tag}</span><span></span></div>
-    <div class="orow"><span class="k">Wind</span><span><b>${from ? `${from} ` : ""}${speed(wind)} ${SPEED()}</b>${gust > wind + 3 ? `, gusts ${speed(gust)}` : ""} ${tag}</span><span></span></div>`;
+  return `${weather}<div class="stats"><div class="orow stat"><span class="k">Temp</span><span><b>${deg(temp)}${DEG()}</b><em>feels like ${deg(feel)}${DEG()}</em> ${tag}</span><span></span></div>
+    <div class="orow stat"><span class="k">Wind</span><span><b>${from ? `${from} ` : ""}${speed(wind)} ${SPEED()}</b>${gust > wind + 3 ? `<em>gusts ${speed(gust)}</em>` : ""} ${tag}</span><span></span></div></div>`;
 }
 function outlook(resort) {
   const {days, shift, day} = statusDay(resort);
   if (!days.length) return "";
   const wild = resort.kind === "backcountry";
   const label = new Date(`${day.date}T12:00:00`).toLocaleDateString("en-US", {weekday: "short", month: "short", day: "numeric"});
-  const pick = ["Today", "Tomorrow"].slice(0, days.length).map((name, n) => `<button data-outlook="${n}" aria-pressed="${n === shift}">${name}</button>`).join("");
-  return `<div class="outlook"><div class="hhead"><h3>Status <span>${label}</span></h3><div class="seg" role="group" aria-label="Day">${pick}</div></div>
-    <span class="src" id="statusSrc">${statusSource(resort)}</span>
+  const short = (d) => `${new Date(`${d.date}T12:00:00`).toLocaleDateString("en-US", {weekday: "short"})} ${+d.date.slice(8)}`;
+  const pick = ["Today", tabbed() && days[1] ? short(days[1]) : "Tomorrow"].slice(0, days.length).map((name, n) => `<button data-outlook="${n}" aria-pressed="${n === shift}">${name}</button>`).join("");
+  return `<div class="outlook" data-sec="Status"><div class="hhead"><h3>Status <span>${label}</span></h3>${tabbed() ? `<span class="src" id="statusSrc">${statusSource(resort)}</span>` : ""}<div class="seg" role="group" aria-label="Day">${pick}</div></div>
+    ${tabbed() ? "" : `<span class="src" id="statusSrc">${statusSource(resort)}</span>`}
     <div id="wx">${weatherRows(resort)}</div>
     ${wild ? "" : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
 }
@@ -1532,6 +1695,15 @@ function liftsHtml(resort) {
   const trailRow = (t) => `<div class="lift"><span><em class="${grade(t)[1]}">${grade(t)[0]}</em>${esc(t.Name)}</span><span><i class="s-${liftGroup(t.StatusEnglish || "")}"></i>${esc(t.Status || "")}</span></div>`;
   const trailList = areas.filter((a) => (a.Trails || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Trails.map(trailRow).join("")}`).join("");
   const fold = (kind, label, line, bar, items) => `<details class="all" data-fold="${kind}"${foldOpen[kind] ? " open" : ""}><summary class="orow"><span class="k">${label}</span><div><span>${line}</span>${bar}</div></summary><div class="list">${items}</div></details>`;
+  // In tabs, lifts and trails are one block: both counts on a line, their two meters side by side, and one list.
+  if (tabbed()) {
+    const extra = [holds, ...Object.entries(due).map(([word, count]) => `${count} ${esc(word.toLowerCase())}`)].filter(Boolean).join(" · ");
+    // Two columns: the lifts' count, meter and holds on the left, the trails' count and meter on the right.
+    const liftCol = `<div><span>${season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> of ${lifts.length} lifts`}</span>${meter(Object.entries(tally), lifts.length)}${extra ? `<span class="extra">${extra}</span>` : ""}</div>`;
+    const trailCol = trails.length ? `<div><span><b>${openTrails}</b> of ${trails.length} trails</span>${meter([["open", openTrails]], trails.length)}</div>` : "";
+    return `<details class="all both" data-fold="lifts"${foldOpen.lifts ? " open" : ""}><summary class="orow"><div class="pair">${liftCol}${trailCol}</div></summary>
+      <div class="list"><div class="area head">Lifts</div>${list}${trails.length ? `<div class="area head">Trails</div>${trailList}` : ""}</div></details>`;
+  }
   return `${fold("lifts", "Lifts", liftLine, meter(Object.entries(tally), lifts.length), list)}
     ${trails.length ? fold("trails", "Trails", `<b>${openTrails}</b> open · ${trails.length - openTrails} closed`, meter([["open", openTrails]], trails.length), trailList)
       : `<div class="orow"><span class="k">Trails</span><span>Not listed by the resort</span><span></span></div>`}`;
@@ -1625,7 +1797,7 @@ function cornWindow(resort, el) {
       : d.windows.map((w) => `<span><b>${w.name}</b> ${span(w)}</span>`).join("");
     return `<div class="crow${d.windows.length ? "" : " off"}"><span class="k">${weekday(d.date)}</span><div><div class="cw">${told}</div>${d.windows.length ? `<div class="fz">${d.freeze === "solid" ? "Solid" : "Weak"} overnight freeze, low ${deg(d.low)}${DEG()}</div>` : ""}</div></div>`;
   }).join("");
-  return `<h3>Corn window</h3><div class="sub">When a ${CORN.slopeDeg}° slope softens after the night's freeze, by the way it faces. A rough estimate from sun, cloud, and temperature.</div><div class="corn">${rows}</div>`;
+  return `<h3 data-sec="Corn">Corn window</h3><div class="sub">When a ${CORN.slopeDeg}° slope softens after the night's freeze, by the way it faces. A rough estimate from sun, cloud, and temperature.</div><div class="corn">${rows}</div>`;
 }
 function webcams(resort) {
   const road = ROAD_CAMS[resort.key], page = RESORT_CAMS[resort.key];
@@ -1643,6 +1815,8 @@ window.addEventListener("resize", () => {
   clearTimeout(refit);
   refit = setTimeout(() => { if (data && Math.abs($("detail").clientWidth - fitted) > 40) renderDetail(); }, 200);
 });
+// The line saying how old the forecast is, as last written by the headline; the Region and Mountain tabs both show it.
+let freshNote = "";
 function renderDetail() {
   fitted = $("detail").clientWidth;
   const resort = here().find((r) => r.key === selected) || opener();
@@ -1652,19 +1826,21 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dhead"><div class="who"><h2>${esc(resort.name)}${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
-      <span>${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}</span></div>
-      <div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
-    <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
+  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(resort.name)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
+      <span>${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · ${resort.key === HOME ? '<span class="mine" title="My mountain">★</span>' : '<button class="setmine" data-home="' + resort.key + '" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆</button>'}${resort.weak_station_match ? ' · <span class="tag" title="The nearest snow sensor sits well below this mountain, so the correction is rougher here">rough match</span>' : ""}${resort.station === null ? ' · <span class="tag" title="No working snow sensor is near this mountain, so its water is left as the weather models have it, and there is no measured snow">no sensor</span>' : ""}</span>
+      <span class="meta dfresh" id="detailFresh">${freshNote}</span></div>
+      <div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
+    <nav class="jump" id="jump" aria-label="Sections"></nav></div>
     ${outlook(resort)}
-    <h3>Daily</h3>
+    <h3 data-sec="Daily">Daily</h3>
+    <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
     <details class="lgd"${legendOpen ? " open" : ""}><summary><span>From ${hourName(16)} previous day</span><em>Legend</em></summary>
     <div class="key" style="margin:4px 0 0;column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>each model</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span class="sw glyph">${barb(23, 270, "var(--ink2)")}W at 20 kt</span><span>G = gust, ${SPEED()}</span><span>${deg(18)}°/${deg(4)}° = temperature / feels like, ${DEG()}</span><span>PS = powder score</span></div></details>
     <div class="days"><div class="srow head"><div></div><div>Snow, from ${hourName(16)} previous day</div><div></div><div class="cond"><span>Lift hours</span><span>${DEG()} / feels</span><span>Wind, ${SPEED()}</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
     ${resort.kind === "backcountry" ? cornWindow(resort, el) : ""}
-    <div class="hhead"><h3>Hourly</h3><button id="tlNow" hidden>Back to now</button><div class="seg" role="group" aria-label="Elevation">${toggle}</div></div>
+    <div class="hhead" data-sec="Hourly"><h3>Hourly</h3><button id="tlNow" hidden>Back to now</button><div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     ${g.html}
     <div class="key" style="column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>${speed(50)}+</b></span>${SPEED()}</span></div>
@@ -1672,6 +1848,8 @@ function renderDetail() {
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span></div>
     ${measured(resort)}${webcams(resort)}`;
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
+  $("jump").innerHTML = [...$("detail").querySelectorAll("[data-sec]")].map((el) => `<button data-jump="${el.dataset.sec}">${el.dataset.sec}</button>`).join("");
+  markJump();
   loadLifts(resort);
   const cams = $("detail").querySelector(".cams .shot");
   if (cams) cams.addEventListener("click", () => cams.parentNode.classList.toggle("big"));
@@ -1712,7 +1890,7 @@ document.addEventListener("click", (event) => {
   prefs[b.dataset.pref] = b.dataset.value;
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (error) { /* private browsing: the choice lasts for this visit */ }
   showPrefs();
-  if (b.dataset.pref === "layout") { applyLayout(document.documentElement.dataset.view || "map"); if (!tabbed() && data) renderDetail(); return; }
+  if (b.dataset.pref === "layout") { applyLayout(document.documentElement.dataset.view || "map"); if (data) renderDetail(); return; }
   if (!data) return;
   renderAll(); renderAvalanche(); loadRoads();
   if (map) { map.setDepthUnits(mapDepth()); showTime(+$("scrub").value); }
@@ -2178,6 +2356,38 @@ document.addEventListener("click", (e) => {
   renderAll();
 });
 $("heat").parentElement.addEventListener("scroll", (e) => e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2), {passive: true});
+// The jump bar: a chip for each section of the Mountain tab, pinned under the top of the screen. A tap goes to the
+// section; the chip of the section being read is filled.
+let jumpHold = null;
+function markJump() {
+  const bar = $("jump"); if (!bar || !bar.offsetParent) return;
+  const line = bar.getBoundingClientRect().bottom + 40, secs = [...$("detail").querySelectorAll("[data-sec]")];
+  let current = null;
+  for (const el of secs) if (el.getBoundingClientRect().top <= line) current = el.dataset.sec;
+  // At the foot of the page the last sections can never reach the top, so the last one counts as being read.
+  if (secs.length && window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = secs[secs.length - 1].dataset.sec;
+  // A chip that was just tapped stays lit until the reader scrolls for themselves.
+  if (jumpHold) current = jumpHold;
+  for (const b of bar.children) { const on = b.dataset.jump === current; b.setAttribute("aria-current", on); if (on && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = b.offsetLeft - 16; }
+}
+window.addEventListener("scroll", markJump, {passive: true});
+for (const kind of ["wheel", "touchmove"]) window.addEventListener(kind, () => { jumpHold = null; }, {passive: true});
+$("detail").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-jump]"); if (!b) return;
+  const to = $("detail").querySelector(`[data-sec="${b.dataset.jump}"]`);
+  if (!to) return;
+  jumpHold = b.dataset.jump;
+  to.scrollIntoView({behavior: "smooth", block: "start"});
+  markJump();
+});
+// The mountain's name on its own tab is a menu of every mountain in the region, grouped by pass.
+$("detail").addEventListener("change", (e) => {
+  if (e.target.id !== "mtnPick") return;
+  selected = e.target.value;
+  history.replaceState(null, "", "#" + selected);
+  renderHeat(); renderDetail();
+  if (map) map.select(selected);
+});
 $("heat").addEventListener("click", (e) => {
   const row = e.target.closest("tr[data-key]"); if (!row) return;
   selected = row.dataset.key;
