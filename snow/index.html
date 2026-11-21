@@ -124,6 +124,12 @@ html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(-
    Region, and a bar of chips pinned at the top of the screen jumps between them. */
 .jump{display:none}
 /* The mountain's name, the level picker and the chips stay at the top of the screen together while the tab scrolls. */
+/* The strip at the very top of a phone's screen (clock, battery) takes its color from what the page puts there. A thin
+   fixed band holds that color: the page's gray while the header shows, the pane's own color once a frozen bar is
+   pinned under it (html.stuck). The page's theme color is kept in step with it. */
+#topTint{display:none}
+html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(env(safe-area-inset-top),4px);z-index:7;pointer-events:none;background:var(--page)}
+html.tabs.stuck #topTint{background:var(--surface)}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
    right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
 html.tabs .dtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;box-sizing:border-box;height:129px;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
@@ -935,7 +941,8 @@ html.tabs #avalanche .ahead .by .late{color:#c62828}
 @media (prefers-color-scheme:dark){.abanner img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
 /* The title and its lines stand exactly where the Mountain tab's do: same top, same left, same line spacing. */
 html.tabs #avalanche .ahead{align-items:flex-start}
-html.tabs #avalanche .ahead .by{margin-top:7px}
+/* Issued and expires read as one pair: the second sits directly under the first, not a full line-step below. */
+html.tabs #avalanche .ahead .by{margin-top:0}
 html.tabs #avalanche .ahead h2 + .by{margin-top:6.5px}
 html.tabs #avalanche .ahead .by{white-space:nowrap}
 .aloc{flex:none;width:102px;height:65px;margin-top:4px}
@@ -1126,6 +1133,7 @@ if (new URLSearchParams(location.search).has("embed")) {
   <div class="sheetbody"><p>Make <b id="homeName"></b> your home mountain? The page will open on it from now on.</p>
   <div class="btns"><button value="no">Cancel</button><button value="yes" class="yes">Make it home</button></div></div></form></dialog>
 <dialog id="pickSheet" class="sheet top"><div class="grab"><b id="pickTitle" tabindex="-1" autofocus></b><button id="pickClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist" id="pickList"></div></dialog>
+<div id="topTint" aria-hidden="true"></div>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"></div>
 <main>
   <div class="brand"><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.png" alt="" width="26" height="26"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
@@ -1424,8 +1432,12 @@ function stormTotals(snow) {
 // One timeline: the past week on the left (estimated the same way as the forecast, with the snow sensor's
 // measured depth gain beside it), six days ahead on the right. It opens at now and scrolls both ways.
 function timeline(resort, el) {
-  const h = el.hourly, hours = resort.hours_utc, nowMs = new Date(data.generated_utc).getTime();
-  const nowIndex = Math.max(0, hours.findIndex((t) => new Date(t).getTime() >= nowMs));
+  // Now is the present moment, not the hour the forecast was worked out for: the last hour that has begun (the
+  // first, or the last, where the present falls outside the hours the forecast holds). It is read out in the
+  // mountains' own Pacific time, like every other time on the chart.
+  const h = el.hourly, hours = resort.hours_utc, nowMs = Date.now();
+  const after = hours.findIndex((t) => new Date(t).getTime() > nowMs);
+  const nowIndex = after < 0 ? hours.length - 1 : Math.max(0, after - 1);
   // Six days ahead in the one-page layout; in tabs, as far as the forecast runs, up to two weeks.
   const n = Math.min(hours.length, nowIndex + 24 * (tabbed() ? 14 : 6));
   const avail = Math.max(280, $("detail").clientWidth - 36 - 44);
@@ -1571,7 +1583,7 @@ function wireTimeline(resort, el, g) {
     const read = (k, hover) => {
       const when = new Date(resort.hours_utc[k]).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
       const wind = h.wind_mph[k], gust = h.gust_mph[k], from = h.wind_from_deg && h.wind_from_deg[k] != null ? `${compass(h.wind_from_deg[k])} ` : "";
-      $("hRead").innerHTML = `<div class="when"><b>${k === g.nowIndex && !hover ? "Now" : when}</b>${k === g.nowIndex && !hover ? `<small>${new Date().toLocaleTimeString("en-US", clockOpts({hour: "numeric", minute: "2-digit"}))}</small>` : k < g.nowIndex ? "<small>past, estimated</small>" : ""}</div><div class="vals">` +
+      $("hRead").innerHTML = `<div class="when"><b>${k === g.nowIndex && !hover ? "Now" : when}</b>${k === g.nowIndex && !hover ? `<small>${new Date().toLocaleTimeString("en-US", clockOpts({timeZone: TZ, hour: "numeric", minute: "2-digit"}))}</small>` : k < g.nowIndex ? "<small>past, estimated</small>" : ""}</div><div class="vals">` +
         // Two columns of label-left, value-right rows: snow on the left, weather on the right.
         cell("Snow", `${fine(h.snow_in[k] || 0, 2)} ${LEN()}/hr`) +
         cell("Temp", h.temp_f[k] == null ? "–" : `${deg(h.temp_f[k])}° / ${deg(windChill(h.temp_f[k], wind))}°`) +
@@ -2872,6 +2884,7 @@ function syncCols() {
   $("sumCols").scrollLeft = heat.parentElement.scrollLeft;
 }
 window.addEventListener("resize", syncCols);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { markTop.done = false; markTop(); });
 // The jump bars: a chip for each part of a tab's pane, in the frozen bar at its top. A tap goes to the part; the chip
 // of the part being read is filled. Long names take a short form on the chip.
 function fillJump(id, root) {
@@ -2881,7 +2894,18 @@ function fillJump(id, root) {
   bar.classList.toggle("many", secs.length > 4);
   markJump();
 }
+// Whether a pane's frozen bar is pinned at the top, which sets the color of the screen's top strip (see #topTint).
+function markTop() {
+  const bar = [...document.querySelectorAll(".dtop, .sumhead")].find((el) => el.offsetParent);
+  const stuck = !!bar && tabbed() && bar.getBoundingClientRect().top <= (parseFloat(getComputedStyle(bar).top) || 0) + 0.5 && window.scrollY > 0;
+  if (document.documentElement.classList.contains("stuck") === stuck && markTop.done) return;
+  markTop.done = true;
+  document.documentElement.classList.toggle("stuck", stuck);
+  const color = getComputedStyle(document.documentElement).getPropertyValue(stuck ? "--surface" : "--page").trim();
+  if (color) for (const meta of document.querySelectorAll('meta[name="theme-color"]')) meta.setAttribute("content", color);
+}
 function markJump() {
+  markTop();
   for (const [id, root] of JUMPS) {
     const bar = $(id); if (!bar || !bar.offsetParent) continue;
     const line = bar.getBoundingClientRect().bottom + 40, secs = [...root().querySelectorAll("[data-sec]")];
