@@ -26,6 +26,8 @@ class Station:
     source: str = "snotel"
     live: bool = True
     depth: bool = True
+    # The first day of the record a season is compared against, where the earlier record is not comparable.
+    season_from: str | None = None
 
 
 @dataclass(frozen=True)
@@ -75,7 +77,9 @@ STATIONS = {
         Station("541:CA:SNTL", "Independence Lake", 39.428, -120.313, _ft(8340)),
         Station("615:NV:SNTL", "Marlette Lake", 39.164, -119.897, _ft(7860)),
         Station("652:NV:SNTL", "Mt Rose Ski Area", 39.316, -119.895, _ft(8810)),
-        Station("784:CA:SNTL", "Palisades Tahoe", 39.190, -120.266, _ft(8010)),
+        # Through the mid-2000s this gauge peaked at 1.5 to 2 times what Ward Creek, CSS Lab, and Echo Peak did
+        # in the same winters; since then it has matched them. Its seasons are compared from water year 2008 on.
+        Station("784:CA:SNTL", "Palisades Tahoe", 39.190, -120.266, _ft(8010), season_from="2007-10-01"),
         Station("724:CA:SNTL", "Rubicon #2", 38.999, -120.131, _ft(7560)),
         Station("809:CA:SNTL", "Tahoe City Cross", 39.172, -120.154, _ft(6760)),
         Station("834:CA:SNTL", "Truckee #2", 39.301, -120.184, _ft(6500)),

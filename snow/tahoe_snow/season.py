@@ -90,18 +90,18 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
 
 
 def history(station, day: pd.Timestamp) -> pd.DataFrame:
-    end = day.strftime("%Y-%m-%d")
+    end, start = day.strftime("%Y-%m-%d"), station.season_from or HISTORY_START
     if station.source == "cdec":
         name = station.triplet.split(":")[0]
-        frame = cdec.daily(name, HISTORY_START, end, max_age_h=24.0)
+        frame = cdec.daily(name, start, end, max_age_h=24.0)
         # The corrected water record stands in for the raw one as far as it reaches; the raw readings carry on
         # from there to today.
-        revised = cdec.daily_revised_water(name, HISTORY_START, end, max_age_h=24.0)
+        revised = cdec.daily_revised_water(name, start, end, max_age_h=24.0)
         if not revised.empty:
             frame = frame.reindex(frame.index.union(revised.index))
             frame["swe_mm"] = revised.reindex(frame.index).where(frame.index <= revised.index[-1], frame["swe_mm"])
         return frame
-    return snotel.daily(station.triplet, HISTORY_START, end, max_age_h=24.0)
+    return snotel.daily(station.triplet, start, end, max_age_h=24.0)
 
 
 def snowfall_in(frame: pd.DataFrame) -> pd.Series:
