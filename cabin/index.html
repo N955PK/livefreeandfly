@@ -367,7 +367,9 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
   <span class="brand"><span class="mark" aria-hidden="true"></span><span>ski<span class="slash">/</span>lease</span></span>
   <button class="who" id="who" data-act="me-edit" aria-label="Change your name and details" hidden></button>
 </header>
-<main id="main"></main>
+<main id="main"><div class="gate"><h1>ski/lease</h1>
+  <p class="sub">ski/lease is a private web app for the members of one shared Tahoe ski house. It keeps the nightly calendar of who is staying at the house and how many guests they are bringing, and tracks shared house bills and who owes whom. It is for lease members only and is not open to the public.</p>
+  <p class="note" style="margin-top:22px"><a href="privacy.html">Privacy policy</a></p></div></main>
 <div class="snowframe" id="snowframe" hidden><iframe title="Turbo Snow forecast" loading="lazy"></iframe></div>
 <nav class="tabs" id="tabs" aria-label="Sections" hidden><div>
   <button data-act="tab" data-view="nights">Calendar</button>
@@ -953,7 +955,9 @@ function viewGate(){
     <p class="sub">${esc(sessionEmail)} isn’t a member yet. Ask someone in the house to add this email under House Info, then reload.</p>
     <div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div></div>`;
   return `<div class="gate"><h1>Sign in</h1>
+    <p class="sub">ski/lease is a private web app for the members of one shared Tahoe ski house. It keeps the nightly calendar of who is staying at the house and how many guests they are bringing, and tracks shared house bills and who owes whom. It is for lease members only and is not open to the public.</p>
     <p class="sub">Use the Google account the house has on file.</p>
+    <p class="sub">Members sign in with Google. The app uses your Google email and name only to match you to the house’s member list; it doesn’t read any other Google data.</p>
     <div class="actions"><button class="btn primary wide" data-act="google">Continue with Google</button></div>
     <p class="err" id="err">${esc(S.authErr || '')}</p>
     <p class="note" style="margin-top:22px"><a href="privacy.html">Privacy policy</a></p></div>`;
