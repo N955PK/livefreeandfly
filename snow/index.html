@@ -267,7 +267,8 @@ html.tabs #map3d #roadPill{bottom:calc(var(--rail) + 48px);height:48px;border-ra
 html.tabs #roadPill:has(+ #avyToggle[hidden]){border-radius:22px}
 html.tabs #avyToggle[aria-pressed=true]{background:var(--ink)}
 html.tabs .roadpill svg{stroke:var(--mark)}
-html.tabs #roadPill::before{border-color:var(--surface)}
+/* The count sits on the pill's top corner without reaching past its right side, so nothing stands nearer the screen's edge than the pill. */
+html.tabs #roadPill::before{border-color:var(--surface);right:0}
 html.tabs #avyToggle img{height:26px;margin:0}
 html.tabs #avyToggle:not(.sign)::before{width:14px;height:14px}
 html.tabs .map-key{top:auto;right:62px;bottom:var(--rail)}
