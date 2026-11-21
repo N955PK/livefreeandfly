@@ -140,7 +140,16 @@ html.tabs #detail .hhead h3{flex:1;margin:0}
 html.tabs #detail .dtop + .outlook .hhead,html.tabs #detail .dtop + h3{margin-top:12px}
 /* The level picker pinned at the top is the only one in tabs; the copy beside Hourly is for the one-page layout. */
 html.tabs #detail .hhead .seg.tri{display:none}
+/* The Mountain tab's pickers have fully round ends, like the map's controls. */
+html.tabs #detail .seg:not(.tri),html.tabs #detail .seg:not(.tri) button{border-radius:999px}
 html.tabs #detail .season{margin-top:30px}
+html.tabs #detail .season .swhat{font-size:12.5px;margin-top:6px}
+html.tabs #detail .sub.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.tabs #detail .camhead{margin-top:30px;font-size:15.5px;font-weight:650;color:var(--accent)}
+html.tabs #detail .cams{margin-top:10px;padding:0 0 14px;border-top:0;gap:8px 14px}
+html.tabs #detail .cams .shot img{width:104px;height:78px;border-radius:10px;display:block}
+html.tabs #detail .cams.big .shot img{width:100%;height:auto}
+html.tabs #detail .cams .what a{margin-top:4px}
 html.tabs #detail .season .shead b{font-size:15.5px;font-weight:650;color:var(--accent)}
 /* Daily in tabs, on a phone: beside the day is a box with the total and, under it, the night and day amounts; the
    spread runs to its right; under both are four fixed columns for weather, temperature, wind and powder score.
@@ -302,7 +311,7 @@ html.tabs .roadsheet details.roads.older summary{font-size:13px;color:var(--mark
 html.tabs .roadsheet details.roads p{margin:0 0 4px;font-size:12px;color:var(--mark-dull)}
 html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-top:4px;padding-top:9px;font-size:12px;color:var(--mark-dull)}
 @media (max-width:720px){html.tabs[data-view="map"] #mapPanel{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0;border-bottom:0}}
-.tabbar div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabbar div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 @media (max-width:460px){.tabbar button{font-size:12px;letter-spacing:0}}
 .tabbar button{border:0;border-top:2px solid transparent;background:none;color:var(--mark-dull);font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;height:50px;padding:0 4px;cursor:pointer}
 .tabbar button[aria-current="page"]{color:var(--mark);border-top-color:var(--accent)}
@@ -743,12 +752,20 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .map-key i{width:9px;height:9px;border-radius:50%;border:1.5px solid;box-sizing:border-box}
 #avalanche{margin-top:14px;padding:18px 18px 16px}
 #settingsSheet{border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--ink);padding:18px 18px 14px;margin:auto;width:min(420px,calc(100vw - 32px))}
+#settingsSheet{max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain}
+#moreSlot:not(:empty){margin-top:14px;border-bottom:1px solid var(--border)}
+#moreSlot details.panel{display:block!important;margin:0;padding:0;border:0;border-top:1px solid var(--border);border-radius:0;background:none}
+#moreSlot details summary{font-size:14.5px;font-weight:600;padding:12px 0}
+#moreSlot details p,#moreSlot details li{font-size:13.5px}
 #settingsSheet::backdrop{background:rgba(15,23,32,.45)}
-#settingsSheet .btns{display:flex;justify-content:flex-end;margin-top:12px}
-#settingsSheet .btns button{font:inherit;font-size:14px;font-weight:600;padding:8px 16px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+/* The title and its close button stay at the top while the explainers scroll under them. */
+#settingsSheet .sethead{position:sticky;top:-18px;z-index:1;display:flex;align-items:center;justify-content:space-between;margin:-18px -18px 4px;padding:14px 12px 8px 18px;background:var(--surface)}
+#settingsSheet .sethead h3{margin:0}
+#setDone{border:1px solid var(--border);width:36px;height:36px;border-radius:50%;background:var(--wash);color:var(--mark);display:grid;place-items:center;padding:0;cursor:pointer}
+#setDone svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 /* Inside another page there is no snowflake to open them, so the settings sit at the foot of the page as a panel. */
 .embed #settingsSheet{display:block;position:static;width:auto;max-width:1040px;margin:14px 18px 0}
-.embed #settingsSheet .btns{display:none}
+.embed #setDone{display:none}
 #settings h3{margin:0 0 6px}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;color:var(--ink2)}
 .setrow .seg{margin-left:0}
@@ -960,13 +977,13 @@ if (new URLSearchParams(location.search).has("embed")) {
   </div></details>
 </main>
 <nav class="tabbar" id="tabbar" aria-label="Sections"><div>
-  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button><button data-view="more">More</button>
+  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
 </div></nav>
-<dialog id="settingsSheet"><div id="settings"><h3>Settings</h3>
+<dialog id="settingsSheet"><div class="sethead"><h3>Settings</h3><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div id="settings">
     <div class="setrow layoutrow"><span>Layout</span><div class="seg" role="group" aria-label="Layout"><button data-pref="layout" data-value="tabs">Tabs</button><button data-pref="layout" data-value="scroll">One page</button></div></div>
     <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
     <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
-  </div><div class="btns"><button id="setDone">Done</button></div></dialog>
+  </div><div id="moreSlot"></div></dialog>
 <script>
 const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
@@ -1472,22 +1489,24 @@ function measured(resort) {
   const signed = (v) => v == null ? "–" : (v > 0 ? "+" : "") + Math.round(asLen(v));
   const when = new Date(withSeconds(o.as_of_utc)).toLocaleString("en-US", clockOpts({timeZone: TZ, weekday: "short", hour: "numeric"}));
   const cell = (k, v, r) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="r">${r}</div></div>`;
+  // In tabs the four tiles share one row, so their labels are the short forms.
+  const row = tabbed();
   // Some sensors weigh the snow but have no working depth gauge; those show the water alone.
   const depth = o.depth_in == null
-    ? cell("Water on the ground", `${inches(o.water_in)} <small>${LEN()}</small>`, "&nbsp;")
-    : cell("On the ground", `${inches(o.depth_in)} <small>${LEN()}</small>`, `${signed(o.depth_gain_24h_in)} ${LEN()} in 24 h`) + cell("Depth, 3 days", `${signed(o.depth_gain_72h_in)} <small>${LEN()}</small>`, "&nbsp;");
-  return `<h3 data-sec="Measured">Measured</h3><div class="sub">${esc(o.station)} snow sensor, ${height(o.elevation_ft)}, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>
-    <div class="tiles">${depth}
-    ${cell("Water, 3 days", `${inches(o.water_gain_72h_in)} <small>${LEN()}</small>`, `${inches(o.water_gain_24h_in)} ${LEN()} in 24 h`)}
-    ${cell("Temp at sensor", o.temp_f == null ? "–" : `${deg(o.temp_f)}${DEG()}`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
+    ? cell(row ? "Water" : "Water on the ground", `${inches(o.water_in)} <small>${LEN()}</small>`, "&nbsp;")
+    : cell(row ? "Depth" : "On the ground", `${inches(o.depth_in)} <small>${LEN()}</small>`, `${signed(o.depth_gain_24h_in)} ${LEN()} in 24 h`) + cell(row ? "3-day depth" : "Depth, 3 days", `${signed(o.depth_gain_72h_in)} <small>${LEN()}</small>`, "&nbsp;");
+  return `<h3 data-sec="Measured">Measured</h3>${row ? `<div class="sub one">${esc(o.station)} sensor · ${height(o.elevation_ft)} · ${when}</div>` : `<div class="sub">${esc(o.station)} snow sensor, ${height(o.elevation_ft)}, ${when}. ${o.depth_in == null ? "It weighs the snow as inches of water; its depth gauge is not reliable." : "Depth is settled snow, so it gains less than a storm total."}</div>`}
+    <div class="tiles${row ? " four" : ""}">${depth}
+    ${cell(row ? "3-day water" : "Water, 3 days", `${inches(o.water_gain_72h_in)} <small>${LEN()}</small>`, `${inches(o.water_gain_24h_in)} ${LEN()} in 24 h`)}
+    ${cell(row ? "Sensor temp" : "Temp at sensor", o.temp_f == null ? "–" : `${deg(o.temp_f)}${DEG()}`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
 }
 // The winter at the mountain's sensor, three ways: snow on the ground, snow fallen so far, and the water the
 // snowpack holds. Each is this winter's line over the usual year and the ten winters before it, October to July.
 // Depth shows first; a sensor with no depth gauge starts on snowfall.
 const SEASON_VIEWS = {
-  depth: {tab: "Depth", now: (v) => `${v} ${LEN()} of snow on the ground`, total: "peak", what: "Settled snow on the ground at the sensor, so it rises less than the snow that fell."},
-  snowfall: {tab: "Snowfall", now: (v) => `about ${v} ${LEN()} of snow has fallen`, total: "season total", what: "An estimate: the water the sensor gained on days cold enough to snow, times a snow ratio for the day's temperature. Resorts measure higher on the mountain."},
-  water: {tab: "Water", now: (v) => `${v} ${LEN()} of water in the snowpack`, total: "peak", what: "How deep the water would be if the snow on the ground melted. It does not shrink as snow settles."}};
+  depth: {tab: "Depth", now: (v) => `${v} ${LEN()} of snow on the ground`, total: "peak", short: "Settled depth at the sensor", what: "Settled snow on the ground at the sensor, so it rises less than the snow that fell."},
+  snowfall: {tab: "Snowfall", now: (v) => `about ${v} ${LEN()} of snow has fallen`, total: "season total", short: "Estimated from the sensor's water gain on cold days", what: "An estimate: the water the sensor gained on days cold enough to snow, times a snow ratio for the day's temperature. Resorts measure higher on the mountain."},
+  water: {tab: "Water", now: (v) => `${v} ${LEN()} of water in the snowpack`, total: "peak", short: "Water held in the snowpack", what: "How deep the water would be if the snow on the ground melted. It does not shrink as snow settles."}};
 let seasonMeasure = "depth";
 // The season runs from October 1 through July 7 (day 279, which the every-three-days history lands on).
 const SEASON_DAYS = 282, MONTHS = [["Oct", 0], ["Nov", 31], ["Dec", 61], ["Jan", 92], ["Feb", 123], ["Mar", 151], ["Apr", 182], ["May", 212], ["Jun", 243], ["Jul", 273]];
@@ -1503,8 +1522,8 @@ function seasonSoFar(resort) {
   const normal = s.pct_normal == null ? `A typical ${today} has under ${metric() ? "3 cm" : "1 in"}` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} ${LEN()})`;
   const note = `<div>${normal}</div><div><b>${s.pct_peak}%</b> of a typical ${view.total} (${inches(s.peak_in)} ${LEN()}${measure === "snowfall" ? "" : `, ${around}`})</div>`;
   const tabs = has.length < 2 ? "" : `<div class="seg" role="group" aria-label="Measure">${has.map((key) => `<button data-season="${key}" aria-pressed="${key === measure}">${SEASON_VIEWS[key].tab}</button>`).join("")}</div>`;
-  const head = `<div class="shead"><div><b>Season totals</b><span>${view.now(inches(s.now_in))}</span></div>${tabs}</div>
-    <div class="swhat">${has.map((key) => `<span${key === measure ? "" : ' class="ghost" aria-hidden="true"'}>${SEASON_VIEWS[key].what}</span>`).join("")}</div>`;
+  const head = `<div class="shead"><div><b>Season totals</b>${tabbed() ? "" : `<span>${view.now(inches(s.now_in))}</span>`}</div>${tabs}</div>
+    <div class="swhat">${has.map((key) => `<span${key === measure ? "" : ' class="ghost" aria-hidden="true"'}>${tabbed() ? SEASON_VIEWS[key].short : SEASON_VIEWS[key].what}</span>`).join("")}</div>`;
   if (!curve || !curve.years) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
   const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 260 : 200, L = 8, R = 8, T = 16, B = 22;
   const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
@@ -1914,10 +1933,12 @@ function webcams(resort) {
   const road = ROAD_CAMS[resort.key], page = RESORT_CAMS[resort.key];
   if ((!road && !page) || !navigator.onLine) return "";
   const link = page ? `<a href="${page}" target="_blank" rel="noopener">Resort webcams ↗</a>` : "";
-  if (!road) return `<div class="cams">${link}</div>`;
+  // In tabs the cameras are a titled part of Measured, like Season totals; on one page they are a ruled footer row.
+  const head = tabbed() ? `<div class="camhead">Webcams</div>` : "";
+  if (!road) return `${head}<div class="cams">${link}</div>`;
   // A new address every five minutes, so the browser fetches a fresh picture but not on every redraw.
   const src = `https://cwwp2.dot.ca.gov/data/d${road[0]}/cctv/image/${road[1]}/${road[1]}.jpg?t=${Math.floor(Date.now() / 3e5)}`;
-  return `<div class="cams"><button class="shot" aria-label="Enlarge the highway camera picture"><img src="${src}" alt="" loading="lazy" onerror="this.parentNode.remove()"></button>
+  return `${head}<div class="cams"><button class="shot" aria-label="Enlarge the highway camera picture"><img src="${src}" alt="" loading="lazy" onerror="this.parentNode.remove()"></button>
     <span class="what"><b>${road[2]}</b>Caltrans highway camera${link}</span></div>`;
 }
 // The hourly chart is drawn to the width it finds, so a window that changes width gets a fresh one.
@@ -1987,11 +2008,15 @@ function showView(view) {
 function applyLayout(view) {
   const on = prefs.layout === "tabs" && !document.documentElement.classList.contains("embed");
   document.documentElement.classList.toggle("tabs", on);
-  if (on) showView(view);
+  // In tabs the two explainers live in the settings sheet; on one page they close out the page.
+  for (const id of ["score", "how"]) (on ? $("moreSlot") : document.querySelector("main")).appendChild($(id));
+  if (on) showView(view === "more" ? "map" : view);
 }
 // Brings a block into view, opening its tab first when the page is in tabs.
 function goTo(el) {
   const block = el.closest("[data-tab]");
+  // The explainers sit in the settings sheet in tabs, so a link to one opens the sheet.
+  if (el.closest("#settingsSheet")) { if (!$("settingsSheet").open) $("settingsSheet").showModal(); if (el.tagName === "DETAILS") el.open = true; el.scrollIntoView({block: "start"}); return; }
   if (tabbed() && block && !block.dataset.tab.split(" ").includes(document.documentElement.dataset.view)) showView(block.dataset.tab.split(" ")[0]);
   el.scrollIntoView({behavior: "smooth", block: "start"});
 }
@@ -2268,7 +2293,7 @@ $("roadClose").addEventListener("click", () => $("roadSheet").classList.remove("
 // The rail of map buttons sits just above the storm slider, whatever height that comes to.
 new ResizeObserver(() => { const h = document.querySelector(".mapbar").offsetHeight; if (h) document.documentElement.style.setProperty("--mapbar-h", h + "px"); }).observe(document.querySelector(".mapbar"));
 $("map3d").addEventListener("pointerdown", (e) => { if (!e.target.closest("#roadPill")) $("roadSheet").classList.remove("open"); });
-$("settingsSheet").addEventListener("click", (e) => { if (e.target === $("settingsSheet") || e.target.id === "setDone") $("settingsSheet").close(); });
+$("settingsSheet").addEventListener("click", (e) => { if (e.target === $("settingsSheet") || e.target.closest("#setDone")) $("settingsSheet").close(); });
 
 // ---------- avalanche danger ----------
 // The centers' own ratings, read from avalanche.org in the reader's browser, so they are as fresh as the page load.
