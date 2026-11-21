@@ -663,7 +663,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "171";
+const BUILD = "172";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1185,9 +1185,9 @@ function seasonRead(event) {
   const date = new Date(Date.UTC(2001, 9, 1 + k * v.curve.step_days)).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
   const then = v.past.map((w) => [v.lines[w][k], w]).filter(([value]) => value != null).sort((a, b) => a[0] - b[0]);
   tip.innerHTML = `<b>${date}</b>${v.mine[k] == null ? "" : `<span class="c">current <b>${rounded(v.mine[k])} ${LEN()}</b></span>`}<span>typical <b>${rounded(v.usual[k])} ${LEN()}</b></span>
-    ${then.length ? `<span>ten winters <b>${rounded(then[0][0])}–${rounded(then[then.length - 1][0])} ${LEN()}</b></span>` : ""}
-    ${v.best && v.best.line[k] != null ? `<span>record ${winterName(v.best.year)} <b>${rounded(v.best.line[k])} ${LEN()}</b></span>` : ""}
-    ${v.biggest && v.lines[v.biggest][k] != null ? `<span>ten-year high ${winterName(+v.biggest)} <b>${rounded(v.lines[v.biggest][k])} ${LEN()}</b></span>` : ""}`;
+    ${then.length ? `<span>ten-year range <b>${rounded(then[0][0])}–${rounded(then[then.length - 1][0])} ${LEN()}</b></span>` : ""}
+    ${v.biggest && v.lines[v.biggest][k] != null ? `<span>ten-year high ${winterName(+v.biggest)} <b>${rounded(v.lines[v.biggest][k])} ${LEN()}</b></span>` : ""}
+    ${v.best && v.best.line[k] != null ? `<span>record high ${winterName(v.best.year)} <b>${rounded(v.best.line[k])} ${LEN()}</b></span>` : ""}`;
   tip.hidden = false;
   // The readout rides above the plot, over the date, so a thumb on the chart never covers it.
   const at = v.left + v.span * k / (v.count - 1), half = tip.offsetWidth / 2;
