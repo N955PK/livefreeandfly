@@ -2361,7 +2361,9 @@ function placeSegs(jump) {
     if (!on || !on.offsetWidth) continue;
     const key = seg.id || seg.getAttribute("aria-label") || "", to = {x: on.offsetLeft, w: on.offsetWidth}, was = segWas[key];
     let ind = seg.querySelector(".segind");
-    const put = (at) => { ind.style.width = `${at.w}px`; ind.style.transform = `translate3d(${at.x}px,0,0)`; };
+    // A flat move, not a 3D one: a 3D move keeps the capsule on a layer of its own for good, and then the chosen
+    // word over it is on another, made a beat late (so it blinks) whenever a phone rebuilds its layers.
+    const put = (at) => { ind.style.width = `${at.w}px`; ind.style.transform = `translate(${at.x}px,0)`; };
     if (!ind) {
       ind = document.createElement("i"); ind.className = "segind still"; ind.setAttribute("aria-hidden", "true");
       seg.prepend(ind); seg.classList.add("slid");
@@ -2443,6 +2445,8 @@ function pagerSettle(go) {
 function pagerClose(go) {
   if (!pager) return;
   const {out, inn, to, pinned, pin, sy} = pager;
+  // The new pane is made the open one before it stops being held open, so it is never, even for an instant, put away.
+  if (go) document.documentElement.dataset.view = to;
   for (const el of [out, inn]) { el.style.transition = ""; el.style.transform = ""; }
   out.classList.remove("dragout"); inn.classList.remove("dragin");
   document.documentElement.classList.remove("dragging");
