@@ -331,6 +331,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .schart .g.month{opacity:.5}
 .schart .band{fill:var(--wash)}
 .schart .past{fill:none;stroke:var(--muted);stroke-width:1;opacity:.3;stroke-linejoin:round}
+.schart .past.top{stroke:var(--ink2);stroke-width:1.25;opacity:.75}
 .schart .record{fill:none;stroke:var(--ink2);stroke-width:1.25;stroke-dasharray:1 4;stroke-linecap:round;opacity:.9}
 .schart .surveyed{fill:var(--surface);stroke:var(--ink2);stroke-width:1.5}
 .schart .usual{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-dasharray:5 4;stroke-linecap:round}
@@ -341,7 +342,7 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 .schart .nowdot{fill:var(--snow);stroke:var(--surface);stroke-width:2}
 .schart .nowlab{font-size:12.5px;font-weight:700;fill:var(--ink)}
 .schart .nowlab,.schart .yr{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
-.schart .yr{font-size:10px}
+.schart .yr{font-size:10.5px}
 @keyframes seasondraw{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){.schart .now{animation:none;stroke-dasharray:none}}
 .schart .cur{stroke:var(--ink2);stroke-width:1;opacity:.5}
@@ -662,7 +663,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "168";
+const BUILD = "169";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1140,14 +1141,24 @@ function seasonSoFar(resort) {
   const along = ceiling.map((v, k) => v == null ? null : k).filter((k) => k != null);
   if (along.length > 1) body += `<path class="band" d="M${along.map((k) => `${x(k).toFixed(1)} ${y(ceiling[k]).toFixed(1)}`).join("L")}L${[...along].reverse().map((k) => `${x(k).toFixed(1)} ${y(floor[k]).toFixed(1)}`).join("L")}Z"/>`;
   body += past.map((w) => `<path class="past" d="${path(drawn[w])}"/>`).join("");
-  // The record winter gets its own line, named where it peaked. The biggest of the ten winters is named at its
-  // peak too, unless it is the record itself; where the two names would run into each other, it steps aside.
-  const peakOf = (line) => Math.max(...line.filter((v) => v != null)), named = [];
+  // The record winter gets its own dotted line, and the biggest of the ten winters a darker one. Both are named in
+  // the plot's top left corner, where a winter's line is always still near the ground, so the names never run into
+  // the lines or each other. A winter that is both is named once, as the record.
+  const peakOf = (line) => Math.max(...line.filter((v) => v != null));
+  const biggest = past.length ? past.reduce((a, b) => peakOf(drawn[b]) > peakOf(drawn[a]) ? b : a) : null;
+  const names = [];
   if (best) {
-    const peak = peakOf(best.line), at = best.line.indexOf(peak);
-    named.push({x: Math.max(L + 30, Math.min(x(at), W - R - 30)), y: Math.max(10, y(peak) - 6), half: 36});
-    body += `<path class="record" d="${path(best.line)}"/><text class="yr" text-anchor="middle" x="${named[0].x}" y="${named[0].y}">${winterName(best.year)} record</text>`;
+    body += `<path class="record" d="${path(best.line)}"/>`;
+    names.push(["record", `Record ${winterName(best.year)}, ${rounded(peakOf(best.line))} ${LEN()}`]);
   }
+  if (biggest && !(best && best.year === +biggest)) {
+    body += `<path class="past top" d="${path(drawn[biggest])}"/>`;
+    names.push(["past top", `Last ten ${winterName(+biggest)}, ${rounded(peakOf(drawn[biggest]))} ${LEN()}`]);
+  }
+  names.forEach(([style, text], n) => {
+    const at = T + 9 + n * 14;
+    body += `<line class="${style}" x1="${L + 4}" x2="${L + 22}" y1="${at - 3.5}" y2="${at - 3.5}"/><text class="yr" x="${L + 27}" y="${at}">${text}</text>`;
+  });
   const monthDay = (stamp) => new Date(Date.UTC(2001, +stamp.slice(0, 2) - 1, +stamp.slice(3))).toLocaleDateString("en-US", {timeZone: "UTC", month: "short", day: "numeric"});
   let recordNote = "";
   if (best && curve.record.stopped) {
@@ -1157,18 +1168,6 @@ function seasonSoFar(resort) {
       const [month, day] = survey.date.split("-").map(Number), into = Math.round((Date.UTC(month >= 10 ? 2000 : 2001, month - 1, day) - Date.UTC(2000, 9, 1)) / 864e5);
       body += `<circle class="surveyed" cx="${x(into / curve.step_days).toFixed(1)}" cy="${y(survey.value).toFixed(1)}" r="3.5"/>`;
     }
-  }
-  const biggest = past.length ? past.reduce((a, b) => peakOf(drawn[b]) > peakOf(drawn[a]) ? b : a) : null;
-  if (biggest && !(best && best.year === +biggest)) {
-    const peak = peakOf(drawn[biggest]), at = drawn[biggest].indexOf(peak), other = named[0];
-    let nameX = Math.max(L + 16, Math.min(x(at), W - R - 16)), anchor = "middle";
-    const nameY = Math.max(10, y(peak) - 6);
-    if (other && Math.abs(nameY - other.y) < 13 && Math.abs(nameX - other.x) < other.half + 20) {
-      const left = other.x - other.half - 5 > L + 30;
-      nameX = left ? other.x - other.half - 5 : other.x + other.half + 5;
-      anchor = left ? "end" : "start";
-    }
-    body += `<text class="yr" text-anchor="${anchor}" x="${nameX}" y="${nameY}">${winterName(+biggest)}</text>`;
   }
   // The line ends at the sensor's latest reading, which the every-few-days history can trail during a storm.
   const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = new Date().toLocaleDateString("en-CA", {timeZone: TZ}).split("-").map(Number);

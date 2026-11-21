@@ -27,6 +27,7 @@ STEP_DAYS = 3
 PAST_YEARS = 10
 RECORD_HOLD_DAYS = 15
 RECORD_MIN_DAYS = 120
+RECORD_HELD_SHARE = 0.85
 # Record winters whose gauge stopped before the peak: the day it stopped, and what the state's manual snow survey
 # measured afterward (CDEC snow course 205, Mammoth Pass, 104.5 in of water on April 1, 2023).
 GAUGE_STOPPED = {"MHP:CDEC": {"2023": {"stopped": "03-16", "survey": {"water": {"date": "04-01", "value_in": 104.5}}}}}
@@ -79,13 +80,16 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
     peak_day = years.idxmax()[full]
     into_year = (peak_day - pd.to_datetime((peak_day.index - 1).astype(str) + "-10-01").values).dt.days.median()
     usual_peak = pd.Timestamp("2001-10-01") + pd.Timedelta(days=int(into_year))
-    # The record winter is judged on a level that holds for two weeks, so a gauge's stray spike cannot claim it.
-    # It needs only a season's worth of readings, not the whole year: the biggest winters are the ones that
-    # bury or break a gauge partway through.
+    # The record is the winter with the highest peak, among winters with a season's worth of readings (the biggest
+    # ones are the ones that bury or break a gauge partway through). A peak counts only if the level it reached held
+    # for two weeks at close to that height, so a gauge's stray spike cannot claim the record.
     steady = past.rolling(RECORD_HOLD_DAYS, center=True, min_periods=RECORD_HOLD_DAYS // 2).median()
-    record_year = steady.groupby(water_year(steady.index)).max()[years.count() >= RECORD_MIN_DAYS].idxmax()
+    held = steady.groupby(water_year(steady.index)).max() >= RECORD_HELD_SHARE * years.max()
+    peaks = years.max()[(years.count() >= RECORD_MIN_DAYS) & held]
+    # Winters that tie (a depth gauge tops out at its own height) go to the latest one.
+    record_year = peaks[peaks == peaks.max()].index[-1]
     told = describe(smooth, normal_by_day, day, float(years.max()[full].median()), usual_peak.strftime("%m-%d"),
-                    steady[water_year(steady.index) == record_year].dropna())
+                    past[water_year(past.index) == record_year])
     return {**told, "years": int(full.sum())}
 
 
