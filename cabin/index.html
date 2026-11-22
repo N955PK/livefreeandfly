@@ -1139,7 +1139,7 @@ function sheetCollector(){
   return `<form data-form="collector"><h2>Who guests pay</h2>
     <p class="sub">Guests pay this person directly for the nights they stay. Their Venmo is shown to the house, and they can mark guest fees and leases as received.</p>
     <label>Guests pay<select name="who"><option value=""${cur ? '' : ' selected'}>Nobody yet</option>${active().map(m => `<option value="${m.id}"${m.id === cur ? ' selected' : ''}>${esc(m.name)}${m.venmo ? '' : ' (no Venmo yet)'}</option>`).join('')}</select></label>
-    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save who guests pay</button></div></form>`;
+    <div class="actions"><button type="button" class="btn" data-act="sheet-close">Cancel</button><button class="btn primary">Save</button></div></form>`;
 }
 
 const venmoUrl = (m, kind, amt, note) => `https://venmo.com/${encodeURIComponent(m.venmo)}?txn=${kind}&amount=${(amt/100).toFixed(2)}&note=${encodeURIComponent(note || ((S.house.name || 'Ski house') + ' settle up'))}`;
