@@ -122,7 +122,7 @@ export function stormWindow(rate, nowIndex) {
 // ``data.resorts`` holds only that region's locations.
 // Below this many inches an hour, averaged over the region, it is not snowing: no flakes on the map, and the page says so.
 const QUIET_RATE = 0.02;
-export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false, finger = () => "pan"}) {
+export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false, finger = () => "spin"}) {
   const RADIUS = globe ? GLOBE_KM : region.discKm || DISC_KM, TARGET_Z = globe ? 7 : 1;
   // A region whose files were rebuilt carries a rev, so a phone never pairs the new page with its saved old files.
   const rev = region.rev || "";
@@ -204,8 +204,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   canvas.addEventListener("touchmove", (e) => {
     if (e.touches.length === 1 && single) {
       e.preventDefault();
-      // One finger either slides the ground under it, the same as the two-finger drag, or (when the reader has chosen
-      // "spin") turns the map about the point it is looking at: sideways turns it, up and down tilts it.
+      // One finger turns the map about the point it is looking at (the default: sideways turns it, up and down tilts
+      // it), or, when the reader has chosen "pan", slides the ground under it the same as the two-finger drag.
       if (finger() === "spin") {
         const now = oneFinger(e), offset = camera.position.clone().sub(controls.target);
         offset.applyAxisAngle(UP, -(now.x - single.x) * 2 * Math.PI / canvas.clientWidth * 0.6);
