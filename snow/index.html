@@ -2124,8 +2124,11 @@ function outlookImpacts(resort, date, measured) {
   const blowing = `${speed(wind)} ${SPEED()}, gusts to ${speed(gust)}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit${measured && measured.wind > (s.wind_mph || 0) ? (measured.note || ", measured") : ""}`;
   if (over("likely")) add("bad", wild ? "strong wind" : over("shut") ? "wind closures" : "wind holds", blowing);
   else if (over("possible")) add("warn", wild ? "gusty" : "wind holds", blowing);
-  const night = s.night_in || 0;
-  if (!wild && night >= CONTROL_IN.some) add(night >= CONTROL_IN.lots ? "bad" : "warn", "late openings", `${inches(night)} ${LEN()} overnight up high means avalanche control first`);
+  // Overnight snow is the forecast's or, when the mountain's sensor has measured more since 4 pm, the sensor's.
+  const fell = nightSnow(resort, date), night = Math.max(s.night_in || 0, fell ? fell.gain : 0), sensed = !!fell && fell.gain > (s.night_in || 0);
+  if (!wild && night >= CONTROL_IN.some) add(night >= CONTROL_IN.lots ? "bad" : "warn", `${inches(night)} ${LEN()} overnight, late openings`,
+    sensed ? `${inches(night)} ${LEN()} measured at the ${fell.station} sensor since 4 pm (${inches(s.night_in || 0)} ${LEN()} was forecast up high); avalanche control comes first`
+      : `${inches(night)} ${LEN()} overnight up high means avalanche control first`);
   if (wild && (top.snow_in || 0) >= 6) add("warn", "new snow load", `${inches(top.snow_in)} ${LEN()} up high`);
   if ((b.rain_share || 0) >= 0.5 && (low.liquid_in || 0) >= 0.1) add("bad", "rain", `about ${Math.round(b.rain_share * 100)}% of what falls down low is rain`);
   if (s.sky_pct >= 85 && s.snowing_hours >= 3) add("warn", "low visibility", `snowing ${s.snowing_hours} of 8 lift hours`);
@@ -2139,6 +2142,28 @@ const STATIONS = {alpine: {base: "Station4", mid: "Station5", summit: "Station6"
 function statusDay(resort) {
   const days = resort.elevations.summit.days.filter((d) => !d.past), shift = Math.min(days.length - 1, outlookShift ?? (localHour() >= 16 ? 1 : 0));
   return {days, shift, day: days[shift]};
+}
+// The snow the mountain's sensor has measured in the night before the ski day `date`: its greatest depth since 4 pm
+// the day before (up to opening at 8 am, or now if that is sooner) over its depth at 4 pm. Depth settles, so this
+// is if anything less than what fell. Null with no depth sensor, or before that night has begun.
+function nightSnow(resort, date) {
+  const o = resort.observed, read = o && o.depth_in_hourly, hours = resort.hours_utc || [];
+  if (!read || !hours.length) return null;
+  // A wall-clock hour in Pacific time is one of two instants (standard or daylight); keep the one that reads back right.
+  const at = (day, hour) => ["-08:00", "-07:00"].map((zone) => new Date(`${day}T${String(hour).padStart(2, "0")}:00:00${zone}`))
+    .find((d) => +d.toLocaleString("en-US", {timeZone: TZ, hour: "numeric", hour12: false}) % 24 === hour);
+  const before = new Date(new Date(`${date}T12:00:00Z`).getTime() - 864e5).toISOString().slice(0, 10);
+  const from = at(before, 16), to = at(date, 8);
+  if (!from || !to || Date.now() <= from.getTime()) return null;
+  const until = Math.min(to.getTime(), Date.now());
+  let base = null, top = null;
+  for (let i = 0; i < hours.length; i++) {
+    const t = new Date(hours[i]).getTime(), v = read[i];
+    if (v == null) continue;
+    if (t <= from.getTime()) base = v;
+    else if (t <= until) { if (base == null) base = v; top = top == null ? v : Math.max(top, v); }
+  }
+  return base == null || top == null ? null : {gain: Math.max(0, top - base), station: o.station};
 }
 // The summit wind to judge the day's lifts by, given what the resort's station reads now. While the lifts are running
 // or about to (from 7 am), that is the reading itself. Earlier, in the night, what blows now is not what will blow
