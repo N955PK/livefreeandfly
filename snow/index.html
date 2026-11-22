@@ -3225,7 +3225,8 @@ async function startMap() {
     const {createMap} = await import(`./map3d.js?v=${BUILD}`);
     togglePlay(false);
     if (map) { map.dispose(); map = null; }
-    $("roadNote").textContent = ""; $("roadPill").hidden = true; $("roadSheet").classList.remove("open");
+    // The Roads button stays where it is while the new region's roads load; only the last region's count is dropped.
+    $("roadNote").textContent = ""; delete $("roadPill").dataset.count; $("roadSheet").classList.remove("open");
     $("mapPanel").style.display = "block";
     const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[region], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
       onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
