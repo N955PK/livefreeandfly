@@ -998,7 +998,7 @@ dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden
 .gnav button b{display:block;font-size:14.5px;font-weight:650}
 .gnav button span{display:block;margin-top:1px;font-size:12.5px;line-height:1.35;color:var(--mark-dull)}
 .gnav button::after{content:"";position:absolute;right:18px;top:50%;width:7px;height:7px;margin-top:-4px;border-right:2px solid var(--mark-dull);border-bottom:2px solid var(--mark-dull);transform:rotate(-45deg)}
-.gfoot{margin:26px 0 2px;font-size:12px;line-height:1.5;color:var(--mark-dull)}
+.gfoot{margin:12px 2px 2px;font-size:12px;line-height:1.5;color:var(--mark-dull)}
 .gpage p,.gpage li{font-size:13.5px;line-height:1.5;color:var(--ink2)}
 .gpage p{margin:0 0 10px}
 .gpage ul{margin:0 0 10px;padding-left:18px}
@@ -1010,8 +1010,18 @@ dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden
 figure.plot{margin:10px 0 14px;padding:10px;border-radius:11px;background:#fff;border:1px solid var(--border)}
 figure.plot img{display:block;width:100%;height:auto}
 figure.plot figcaption{margin-top:8px;font-size:12px;line-height:1.4;color:#6b7480}
-.gpage .gridwrap{margin:6px -18px 14px;padding:0 18px;overflow-x:auto}
-.gpage table.plain{font-size:12.5px}
+/* Tables in the sheet fit its width: cells wrap, and nothing scrolls sideways. */
+.gpage .gridwrap{margin:6px 0 16px;padding:0;overflow:visible}
+.gpage table.plain{width:100%;margin:0;font-size:12.5px;line-height:1.3}
+.gpage table.plain th,.gpage table.plain td{padding:7px 0 7px 10px;white-space:normal;vertical-align:bottom}
+.gpage table.plain td{vertical-align:top}
+.gpage table.plain th:first-child,.gpage table.plain td:first-child{padding-left:0;width:42%}
+.gpage table.plain th{font-size:11.5px;line-height:1.25}
+/* The sources are kept behind a small round-ended toggle at the foot of the front page. */
+details.gcredit{margin:22px 0 0;padding:0;border:0;background:none}
+details.gcredit > summary{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:var(--wash);font-size:12.5px;font-weight:600;color:var(--mark-mid)}
+details.gcredit > summary::after{margin:0;font-size:16px;line-height:1;color:var(--mark-dull)}
+details.gcredit p{margin:10px 2px 0;font-size:12px;line-height:1.5;color:var(--mark-dull)}
 /* One last set of house sizes in tabs: captions at 12.5px, running text at 13.5px, content cards with an 11px corner,
    and the settings card's pickers round-ended like every other thing that can be pressed. */
 html.tabs .panel.summary .gridcap{font-size:12.5px;padding-top:3.6px}
@@ -1368,7 +1378,10 @@ if (HOSTED) {
     <button data-page-to="score"><b>How it is tested</b><span>Scored against winters and stations it never saw</span></button>
     <button data-page-to="how"><b>How the forecast is made</b><span>The models, snow ratio, wind, and the powder score</span></button>
   </div>
-  <p class="gfoot">Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
+  <details class="gcredit"><summary>Data sources</summary>
+    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org.</p>
+    <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
+  <p class="gfoot">Not for avalanche or travel decisions.</p>
   </div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
   <div class="gpage" id="score" data-page="score" data-title="How it is tested" hidden>
@@ -1413,7 +1426,6 @@ Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, f
 
 <h4 class="ghead">What is not tested yet</h4>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
-<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p>
   </div>
   <div class="gpage" id="how" data-page="how" data-title="How the forecast is made" hidden>
     <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
@@ -3545,9 +3557,15 @@ function renderQuality() {
 }
 function renderScore(card) {
   if (!card || !card.sections) { $("scoreBody").innerHTML = "<p>No scores yet.</p>"; return; }
-  $("scoreBody").innerHTML = card.sections.map((s) => `<p><b>${esc(s.title)}</b> ${esc(s.note || "")}</p>
-    <div class="gridwrap"><table class="plain"><tr>${s.columns.map((c) => `<th>${esc(c)}</th>`).join("")}</tr>
-    ${s.rows.map((row) => `<tr>${row.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div>`).join("");
+  // A table has to fit the sheet's width with nothing to scroll sideways, so one with more than three columns is
+  // turned on its side: the methods become the columns and each measure a row.
+  const table = (s) => {
+    const wide = s.columns.length > 3;
+    const head = wide ? ["", ...s.rows.map((row) => row[0])] : s.columns;
+    const rows = wide ? s.columns.slice(1).map((name, j) => [name, ...s.rows.map((row) => row[j + 1])]) : s.rows;
+    return `<table class="plain"><tr>${head.map((c) => `<th>${esc(c)}</th>`).join("")}</tr>${rows.map((row) => `<tr>${row.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table>`;
+  };
+  $("scoreBody").innerHTML = card.sections.map((s) => `<p><b>${esc(s.title)}</b> ${esc(s.note || "")}</p><div class="gridwrap">${table(s)}</div>`).join("");
 }
 
 // A star only asks; the home mountain changes when the question is answered yes.
