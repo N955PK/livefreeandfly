@@ -580,7 +580,6 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .ilevels small{display:block;font-size:11.5px;color:var(--mark-dull);font-variant-numeric:tabular-nums}
 .ilist{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border);display:grid;gap:10px;font-size:13.5px;line-height:1.45;color:var(--mark-mid)}
 .ilist b{display:block;margin-bottom:1px;font-size:12px;font-weight:650;color:var(--accent)}
-.inote{margin:12px 0 0;font-size:12px;color:var(--mark-dull)}
 .outlook details.all{padding:0;margin:0;border:0;background:none}
 .outlook details.all > summary{font-size:13.5px;font-weight:400;line-height:inherit}
 .outlook details.all > summary::after{margin:0;justify-self:end;font-size:18px;line-height:1}
@@ -2346,65 +2345,47 @@ function surface(f) {
   if (windy && f.rain < 0.5) { type += ", windblown"; text += f.fresh + f.recent >= 2 ? ", wind-affected where exposed" : ", scoured where exposed"; q -= 1.5; }
   return {type, text, q};
 }
-// What the groomed runs should be like, read off mid-mountain.
-function groomers(f) {
-  if (f.rain >= 0.5 && f.liquid >= 0.1) return "Wet and slow, and icy afterward if it freezes.";
-  if (f.night >= 3) return `Buried: ${inches(f.night)} ${LEN()} of new snow lies over the corduroy, so they ski soft and deep at first chair and track out into bumps.`;
-  if ((f.prevTemp ?? 0) >= 35 && (f.temp ?? 99) <= 30) return "The best surface on the hill: the cats break up the refrozen crust. Firm and fast, with good edge hold.";
-  if ((f.temp ?? 0) >= 36) return "Good early while the overnight corduroy is still firm; soft and pushed into piles by afternoon.";
-  if ((f.temp ?? 99) <= 30) return "Should ski well: cold air keeps the corduroy crisp and fast through the morning.";
-  return "Smooth and firm to start, softening a little through the day.";
+// What is skiing best, in a sentence or two, the way a forecaster's daily note puts it: what kind of run, where on
+// the mountain, and when. Groomed runs are named only when they are the answer.
+function skiingBest(levels, best, wild) {
+  const [top, mid, low] = levels, same = levels.every((l) => Math.abs(l.q - best.q) <= 0.4);
+  const where = same ? "" : best === top ? " up high" : best === mid ? " at mid-mountain" : " lower down";
+  const kind = best.type.split(",")[0], windy = top.wind >= 25 || top.gust >= 40;
+  const shelter = windy ? " Stay in the trees, out of the wind." : "";
+  if (best.q < 1.5) return wild ? "Nothing is skiing well: rain on snow at every elevation." : "Nothing is skiing well: rain on snow at every elevation. Groomed runs are the least bad.";
+  if (/powder$/i.test(kind) && best.fresh >= 3) {
+    const total = best.night + best.daytime;
+    const when = total > 0 && best.night >= 0.65 * total ? " Go early, before it tracks out." : total > 0 && best.daytime >= 0.6 * total ? " It refills through the day, so the afternoon may beat the morning." : "";
+    return `${wild ? "Sheltered slopes" : "Off the groomed runs"}${where}: ${inches(best.fresh)} ${LEN()} of ${kind === "Heavy powder" ? "dense " : best.slr >= 15 ? "light " : ""}powder.${when}${shelter}`;
+  }
+  if (kind === "Packed powder" || kind === "Machine groomed") {
+    const left = best.dump ? (best.warmSince ? " Leftover powder only in north facing shade." : " Soft leftovers in north facing trees and lee gullies.") : "";
+    return wild ? `Settled, supportive snow${where}.${left}${shelter}` : `Groomed runs${where}: soft, grippy packed snow.${left}${shelter}`;
+  }
+  if (kind === "Spring conditions") return "Follow the sun: east facing slopes first, south by late morning, west after lunch. It turns to slush by mid-afternoon.";
+  if (kind === "Wet packed snow" || kind === "Wet granular") return wild ? `Go early${where}, before it softens to mush.` : `Groomed runs, early${where}, before the snow softens and piles up.`;
+  if (kind === "Wet snow") return `${wild ? "Higher is better" : "Groomed runs up high"}: the new snow is wet and heavy.`;
+  // Hard pack and frozen granular.
+  return wild ? "Not much: firm and refrozen. Sunny aspects may soften late in the morning." : (mid.sky ?? 100) <= 60 ? "Groomed runs, from mid-morning once the sun has been on them." : "Groomed runs: firm and fast all day.";
 }
 function insights(resort) {
   const {day} = statusDay(resort);
   if (!day) return "";
   const levels = ["summit", "mid", "base"].map((level) => { const f = insightFacts(resort, day.date, level); return {...f, ...surface(f)}; });
-  const [top, mid, low] = levels, wild = resort.kind === "backcountry", lines = [];
-  const say = (title, text) => lines.push(`<li><b>${title}</b>${text}</li>`);
-  // Best bet: the elevation with the best surface; a tie goes to the higher one.
+  const [top, mid, low] = levels, wild = resort.kind === "backcountry", notes = [];
+  // The elevation with the best surface; a tie goes to the higher one.
   const best = levels.reduce((a, b) => (b.q > a.q + 0.4 ? b : a));
-  const same = levels.every((l) => Math.abs(l.q - best.q) <= 0.4);
-  const where = best.q < 3.5 ? "It is a groomed-run day everywhere" : same ? "Much the same top to bottom"
-    : best === top ? "Up high" : best === mid ? "Mid-mountain" : "Lower mountain";
-  const why = best.q < 3.5 ? "stick to what the cats have been over."
-    : same ? `${best.text.charAt(0).toLowerCase()}${best.text.slice(1)}${(top.temp ?? 0) < (low.temp ?? 0) - 4 ? ", a little drier the higher you go" : ""}.`
-    : best === top && low.rain >= 0.2 ? "the lower mountain is getting rain or wet snow, so the higher the better."
-    : best !== top && (top.wind >= 25 || top.gust >= 40) ? "the summit is taking the wind; the snow is better kept lower down and in the trees."
-    : best === top && (top.temp ?? 0) < (low.temp ?? 0) - 4 ? "it is colder up there, so the snow stays drier."
-    : `${best.text.charAt(0).toLowerCase()}${best.text.slice(1)}.`;
-  say("Best bet", `${where}: ${why}`);
-  if (!wild) say("Groomers", groomers(mid));
-  // Wind: where it puts the snow and where it takes it from.
-  const loose = top.fresh >= 2 || top.recent >= 4;
-  if (top.from != null && top.wind >= 15 && loose && top.rain < 0.3) {
-    const lee = facing((top.from + 180) % 360), windward = compass(top.from);
-    say("Wind", `From the ${windward} at ${speed(top.wind)} ${SPEED()} up top, it carries snow onto ${listed(lee)} facing slopes: look for deeper, wind-laid pockets just below ridgelines and in gullies there. The ${windward} facing side will be scoured and firmer.${top.wind >= 30 || top.gust >= 45 ? " Open ridges will be stripped; trees and sheltered bowls hold the best of it." : ""}${wild ? " Those loaded slopes are also where wind slabs form: read the avalanche forecast first." : ""}`);
-  } else if (top.fresh >= 3 && top.wind < 10) say("Wind", "Light, so the new snow should lie evenly and not drift.");
-  // Sun: which aspects it softens, and which stay cold.
-  if ((mid.sky ?? 100) <= 45) {
-    say("Sun", (mid.temp ?? 0) >= 30
-      ? "Mostly sunny and mild: east facing slopes soften first, south by midday, west in the afternoon. North facing terrain stays cold and keeps dry snow longest."
-      : "Clear and cold: the snow stays dry on every aspect. North facing slopes and shaded trees will be the coldest and chalkiest.");
-  } else if ((mid.sky ?? 0) >= 85 && mid.snowing >= 3) say("Light", "Flat light while it snows: tree runs give the best definition.");
-  // Timing: when the new snow arrives.
-  const total = top.night + top.daytime;
-  if (top.fresh >= 3 && total > 0) {
-    if (top.night >= 0.65 * total) say("Timing", `Most of it (${inches(top.night)} ${LEN()}) falls before opening: first chair is the prize.`);
-    else if (top.daytime >= 0.6 * total) say("Timing", `It keeps snowing through the day (${inches(top.daytime)} ${LEN()} after opening): tracks refill, and the afternoon may ski better than the morning.`);
+  // After that, only what changes where you would go, most important first, and no more than two of them.
+  if (low.rain >= 0.3 && top.rain < 0.15) notes.push(["Rain line", `Rain or wet snow at the base, snow up top: stay above ${mid.rain >= 0.3 ? "the upper" : "mid-"}mountain.`]);
+  if (top.from != null && top.wind >= 15 && (top.fresh >= 2 || top.recent >= 4) && top.rain < 0.3) {
+    const windward = compass(top.from);
+    notes.push(["Wind", `${windward} at ${speed(top.wind)} ${SPEED()} up top: ${listed(facing((top.from + 180) % 360))} facing slopes collect wind-laid pockets below the ridgelines; ${windward} faces are scoured.${wild ? " Loaded slopes are where slabs form: read the avalanche forecast." : ""}`]);
   }
-  // Rain line.
-  if (low.rain >= 0.3 && top.rain < 0.15) say("Rain line", `Rain or wet snow at the base, snow up top: the line sits somewhere around ${mid.rain >= 0.3 ? "the upper" : "mid-"}mountain, so stay above it.`);
-  // Leftover powder after a recent fall.
-  if (top.fresh < 3 && top.dump && top.rain < 0.2) {
-    const when = top.dump.ago === 1 ? "yesterday" : `${top.dump.ago} days ago`;
-    say("Powder pockets", top.warmSince || (top.temp ?? 0) >= 35
-      ? `${inches(top.dump.snow)} ${LEN()} fell ${when}, but warmth has worked on it since: sunny aspects will be crusted or heavy. North facing shade up high is the one place it may still be dry.`
-      : `${inches(top.dump.snow)} ${LEN()} fell ${when} and it has stayed cold: leftovers should survive in north facing trees, lee gullies, and anywhere that takes a traverse or a hike to reach.`);
-  }
+  if ((mid.sky ?? 100) <= 45 && (mid.temp ?? 0) >= 30 && !/^Spring/.test(best.type)) notes.push(["Sun", "East facing slopes soften first, south by midday; north facing terrain keeps the driest snow."]);
+  if ((mid.sky ?? 0) >= 85 && mid.snowing >= 3) notes.push(["Light", "Flat light while it snows: trees give the best definition."]);
   return `<details class="insight" data-fold="insight"${foldOpen.insight ? " open" : ""}><summary><b>Insights</b></summary>
     <div class="ibody"><div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
-    <ul class="ilist">${lines.join("")}</ul>
-    <p class="inote">Rules of thumb from the forecast, not a report from the hill.</p></div></details>`;
+    <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 2).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul></div></details>`;
 }
 function outlook(resort) {
   const {days, shift, day} = statusDay(resort);
