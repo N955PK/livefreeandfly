@@ -1420,9 +1420,9 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p><b>The sensors:</b> most are state snow pillows that are not quality-controlled the way SNOTEL is. Adding up their daily rises counts sensor jitter as snow (about 20% too much over a week), so readings are smoothed and small dips ignored before any of this is fitted or scored.</p>
 
 <h4 class="ghead">Wind gusts</h4>
-<p>The weather models' own gust field runs low in the mountains, so above the base this site estimates gusts from the faster air 500 m higher up, which is where gusts come from.
-Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, five winters), the wind 500 m up tracks the measured gusts better than the wind at the sensor's own height: correlation 0.79 against 0.73, and an average miss of 5.7 mph against 6.7.</p>
-<p><b>The limit:</b> that sensor sits in a sheltered spot and averages only 7 mph, and the one other free sensor is more sheltered still. So the method's shape is tested, but how strong gusts get on an exposed ridge is not. Treat ridge gusts as estimates.</p>
+<p>The weather models' own gust field runs low in the mountains, so above the base this site estimates gusts from the faster air 500 m higher up, which is where gusts come from. The method is the same at every mountain.</p>
+<p>It could only be checked at one place. Testing a gust forecast takes a station that records gusts hour by hour, and the Palisades snow sensor (8,010 ft) is the one free station in the area with a usable record: 29,068 hours over five winters. There, the wind 500 m up tracks the measured gusts better than the wind at the sensor's own height: correlation 0.79 against 0.73, and an average miss of 5.7 mph against 6.7.</p>
+<p><b>The limit:</b> that sensor sits in a sheltered spot and averages only 7 mph, and the one other free sensor is more sheltered still. So the method's shape is tested, at Palisades, but how strong gusts get on an exposed ridge is not tested anywhere. Treat ridge gusts as estimates at every mountain.</p>
 
 <h4 class="ghead">What is not tested yet</h4>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
@@ -1435,7 +1435,7 @@ Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, f
     <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
     <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
     <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
-    <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken near crest height (about 10,000 ft) for every elevation; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
+    <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken near crest height (about 10,000 ft) for every elevation; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
