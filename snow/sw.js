@@ -1,7 +1,8 @@
 // Turbo Snow offline support. Keeps the page, the map code, and both terrain sets on the phone so the page still
 // opens with no signal. The page is fetched fresh whenever there's signal (falling back to the saved copy after a
 // few seconds on a weak one). The forecast itself isn't cached here: the page keeps its own copy of the last one
-// it loaded. Road status and avalanche danger are never saved, so they are never shown stale.
+// it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
+// avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
 const VERSION = 'sierra-snow-v4';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';

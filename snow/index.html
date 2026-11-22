@@ -3433,14 +3433,31 @@ const ASPECTS = [["north", "N"], ["northeast", "NE"], ["east", "E"], ["southeast
 const avy = {};
 let avyOn = false;
 const getJson = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+// The avalanche centers' answers are kept on the phone as they arrive, so with no signal the last forecast read is
+// still there. It says when it was issued and when it expires, and the pane says plainly that it is a saved copy.
+const AVY_SAVED = "sierra-snow-avy";
+let avySavedCopy = false;
+async function avyJson(url) {
+  try {
+    const fresh = await getJson(url);
+    avySavedCopy = false;
+    if (window.caches) caches.open(AVY_SAVED).then((c) => c.put(url, new Response(JSON.stringify(fresh), {headers: {"Content-Type": "application/json"}}))).catch(() => {});
+    return fresh;
+  } catch (error) {
+    const saved = window.caches && await (await caches.open(AVY_SAVED)).match(url);
+    if (!saved) throw error;
+    avySavedCopy = true;
+    return saved.json();
+  }
+}
 // The Avalanche tab can be pointed at any zone of any region's centers. The choice lasts until the region changes;
 // zones of the other regions and the forecasts of picked zones are fetched when first wanted.
 let avyPick = null, avyShown = null;
 const avyElsewhere = {}, avyProducts = {}, avyAsked = new Set();
 const zoneKey = (zone) => `${zone.center.id}/${zone.id}`;
-const zoneProduct = (zone) => getJson(`${AVY_API}/product?type=forecast&center_id=${zone.center.id}&zone_id=${zone.id}`).catch(() => null);
+const zoneProduct = (zone) => avyJson(`${AVY_API}/product?type=forecast&center_id=${zone.center.id}&zone_id=${zone.id}`).catch(() => null);
 async function zonesFrom(centers) {
-  const layers = await Promise.all(centers.map((center) => getJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
+  const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
   layers.forEach((layer, n) => {
     for (const feature of (layer && layer.features) || []) {
@@ -3621,7 +3638,7 @@ function drawAvalanche() {
   const weatherId = product && product.weather_data && product.weather_data.weather_product_id;
   if (weatherId && !avyAsked.has(`w${weatherId}`)) {
     avyAsked.add(`w${weatherId}`);
-    getJson(`${AVY_API}/product/${weatherId}`).catch(() => null).then((found) => { avyProducts[`w${weatherId}`] = found; if (found) renderAvalanche(); });
+    avyJson(`${AVY_API}/product/${weatherId}`).catch(() => null).then((found) => { avyProducts[`w${weatherId}`] = found; if (found) renderAvalanche(); });
   }
   const weather = weatherId ? avyProducts[`w${weatherId}`] : null;
   // The picker lists the zones alone, north to south by the middle of each.
@@ -3644,8 +3661,9 @@ function drawAvalanche() {
   const foot = (link, withScale = true) => `${withScale ? scale : ""}<div class="afoot"><a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
     <p class="anote"><span>A pointer to the center's forecast, not a substitute.</span> <span>Read the full forecast before entering avalanche terrain.</span></p></div>`;
   if (!state || !state.loaded) { $("avalanche").innerHTML = `${head}<p class="anotice">Loading the avalanche forecast…</p>`; return; }
-  if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. It is not saved on your phone, so it is never shown out of date."}</p>${foot(center.url)}`; return; }
-  let body = zone.warning ? `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>` : "";
+  if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. No forecast has been saved on this phone yet."}</p>${foot(center.url)}`; return; }
+  let body = avySavedCopy ? `<p class="anotice"><b>${navigator.onLine ? "Could not reach the center." : "Offline."}</b> This is the last forecast saved on your phone. The center may have posted a newer one.</p>` : "";
+  if (zone.warning) body += `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>`;
   let expired = false;
   if (zone.offSeason) body += `<p class="anotice">Off season: the center is not issuing daily forecasts.</p>`;
   if (product === undefined) body += `<p class="anotice">Loading the avalanche forecast…</p>`;
@@ -3852,7 +3870,7 @@ async function liveForecast() {
     return saved.json();
   }
 }
-window.addEventListener("online", () => { if (offlineCopy) location.reload(); });
+window.addEventListener("online", () => { if (offlineCopy) location.reload(); else if (avySavedCopy) loadAvalanche(); });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
 // The opening screen stays until the page, the map and everything drawn on the map (roads, avalanche zones and so the
 // whole block of buttons, and the resorts' own depths on the labels) are ready, so nothing arrives after it lifts. A slow source holds it up 4 seconds at most
