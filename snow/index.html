@@ -42,7 +42,15 @@
 [hidden]{display:none !important}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-  background:linear-gradient(var(--surface) 0,var(--surface) calc(var(--sat) + 10px),#2a78d6 42%,#0d366b);color:#fff;transition:opacity .2s ease,visibility .2s}
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120' preserveAspectRatio='none'%3E%3Cpath d='M0 120V78l46-34 38 26 58-52 52 44 46-30 44 34 52-40 64 46v48z' fill='%23fff' fill-opacity='.07'/%3E%3Cpath d='M0 120V98l70-30 54 24 66-42 60 38 58-26 92 40v18z' fill='%23fff' fill-opacity='.09'/%3E%3C/svg%3E") bottom/100% 24% no-repeat,
+    radial-gradient(circle at 50% 46%,var(--splash-glow),transparent 46%),
+    linear-gradient(var(--surface) 0,var(--surface) calc(var(--sat) + 10px),var(--splash-mid) 44%,var(--splash-low));
+  color:#fff;transition:opacity .2s ease,visibility .2s}
+/* The opening screen is a sky: the page's own color at the top (night in the dark, daylight in the light) running
+   down into the blue, a glow behind the mark, and a ridge line along the foot. The top has to be the page's color
+   (see below); the rest is made to look as if that were the idea. */
+:root{--splash-mid:#2a78d6;--splash-low:#0d366b;--splash-glow:rgba(140,190,255,.30)}
+@media (prefers-color-scheme:dark){:root{--splash-mid:#12386c;--splash-low:#2a78d6;--splash-glow:rgba(90,150,235,.34)}}
 /* The mark sits at the optical center, a little above the measured one, where a lone mark reads as centered. */
 #splash img{width:min(38vw,170px);height:auto;transform:translateY(-4vh)}
 /* Inside ski/lease the page is in a frame, and a phone lets a framed page slide both ways at once, where the page on
