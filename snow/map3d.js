@@ -733,6 +733,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     snowLevelFtAt: (i) => interp(snowLevel, i, storm.start) / 0.3048,
     setTime(value) { time = Math.max(0, Math.min(steps - 1, value)); },
     setElevation(value) { level = value; cumulative = series(); paintedAt = -1; },
+    // A better figure for the snow on the ground at some mountains (key: inches), in place of the sensor's.
+    setGround(byKey) { for (const item of items) if (byKey[item.key] != null) item.ground = byKey[item.key]; paintedAt = -1; },
     select(key) { picked = key; paintedAt = -1; },
     // Depths are kept in inches; the labels show them times `per`, in `unit`.
     setDepthUnits(units) { depth = units; paintedAt = -1; },

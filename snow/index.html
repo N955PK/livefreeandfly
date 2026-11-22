@@ -1356,7 +1356,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "185";
+const BUILD = "186";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -2315,6 +2315,33 @@ function outlook(resort) {
     ${wild ? "" : `<div id="lifts">${liftsHtml(resort)}</div>`}
     ${insights(resort)}</div>`;
 }
+// ---------- the resorts' own snow stakes ----------
+// Four resorts publish the depth at their own stakes at the base, mid-mountain and summit. That is the snow on the
+// mountain itself, at the elevation being looked at, so on the map it is used ahead of the nearest snow sensor (which
+// is one point, often off the mountain and lower). A stake reporting nothing, or zero before the season, is passed
+// over for the next nearest one, and a mountain with no stake reading keeps its sensor's.
+const STAKES = {palisades: [61, ["BaseArea", "MidMountainArea", "SummitArea"]], alpine: [61, ["Station4", "Station5", "Station6"]],
+  mammoth: [60, ["BaseArea", "MidMountainArea", "SummitArea"]], june: [59, ["BaseArea", "MidMountainArea", "SummitArea"]]};
+function stakeDepth(key, level) {
+  const spec = STAKES[key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
+  if (!report) return null;
+  const at = ["base", "mid", "summit"].indexOf(level), order = [at, 1, at === 2 ? 0 : 2, at === 2 ? 2 : 0];
+  for (const i of order) { const inches = +((report[spec[1][i]] || {}).BaseIn); if (inches > 0) return inches; }
+  return null;
+}
+async function stakeDepths() {
+  if (!map || !navigator.onLine) return;
+  const asked = map, keys = Object.keys(STAKES).filter((key) => data.resorts.some((r) => r.key === key && regionOf(r) === region));
+  await Promise.all([...new Set(keys.map((key) => STAKES[key][0]))].map(async (id) => {
+    const held = liftFeeds[id];
+    if (held && Date.now() - held.at < 5 * 60 * 1000) return;
+    try { liftFeeds[id] = {at: Date.now(), data: await getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`)}; }
+    catch (error) { if (!held) liftFeeds[id] = {at: Date.now(), failed: true}; }
+  }));
+  if (map !== asked) return;
+  const found = Object.fromEntries(keys.map((key) => [key, stakeDepth(key, elevation)]).filter(([, inches]) => inches != null));
+  map.setGround(found);
+}
 // ---------- live lifts and trails, where the resort publishes them ----------
 const liftFeeds = {};
 const liftGroup = (status) => (/^open/.test(status) ? "open" : /hold|delay/.test(status) ? "hold" : /expect|sched/.test(status) ? "soon" : "closed");
@@ -2523,7 +2550,7 @@ function renderDetail() {
   $("detail").querySelector("details.lgd").addEventListener("toggle", (e) => { legendOpen = e.currentTarget.open; });
 }
 
-function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) { map.setElevation(elevation); map.select(selected); } }
+function renderAll() { renderHeadline(); renderHeat(); renderDetail(); if (map) { map.setElevation(elevation); map.select(selected); stakeDepths(); } }
 // Units and clock: the choice is saved on this device and everything on the page is written again in it.
 // Layout: tabs, with the map as the landing tab.
 const tabbed = () => document.documentElement.classList.contains("tabs");
@@ -2965,6 +2992,7 @@ async function startMap() {
       onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
     if (build !== mapBuild) { made.dispose(); return; }
     map = made;
+    stakeDepths();
     $("flatToggle").hidden = false; $("flatToggle").textContent = "2D";
     $("scrub").max = map.steps - 1;
     $("toNow").style.left = `calc(${(100 * map.nowStep / (map.steps - 1)).toFixed(1)}% + ${(8 - 16 * map.nowStep / (map.steps - 1)).toFixed(1)}px)`;
