@@ -58,6 +58,9 @@
 html.hosted #heat{touch-action:pan-y}
 /* Opened from ski/lease, the opening screen wears that app's accent color in place of Snow's blue. */
 .hosted #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
+/* There the opening screen starts under the header, so the header (with the way back) is on screen from the first
+   moment and the skier never leaves its place as ski/lease hands over. */
+.hosted #splash{top:calc(var(--sat) + 48px)}
 /* A phone colors its status strip from the top of whatever is showing, and changes it a quarter of a second late.
    So the opening screen is the page's own color at the very top and runs into its blue below: the strip is the
    page's color from the first frame and has nothing to change to when the opening screen goes. */
