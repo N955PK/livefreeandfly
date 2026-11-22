@@ -43,7 +43,7 @@
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
 /* Inside another page (?embed) the host supplies the name. */
 .embed .brand img,.embed .appname{display:none}
-.embed main{padding:16px 18px calc(48px + env(safe-area-inset-bottom))}
+.embed main{padding:16px 18px calc(48px + var(--sab))}
 .embed h1{font-family:var(--host-font,inherit);font-size:var(--host-title,26px);font-weight:600;letter-spacing:.01em;line-height:1.2}
 .embed .regions{font-size:1em;font-weight:inherit;letter-spacing:inherit;margin-left:0}
 .embed .regions i{margin:0 .35em}
@@ -55,9 +55,9 @@
 #splash.done{opacity:0;visibility:hidden}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
-main{max-width:1040px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom))}
+main{max-width:1040px;margin:0 auto;padding:calc(12px + var(--sat)) 16px calc(48px + var(--sab))}
 /* Saved to an iPhone's home screen, iOS softens whatever sits just under its status bar. The header starts a little lower there, clear of it. */
-@media (display-mode:standalone){main{padding-top:calc(24px + env(safe-area-inset-top))}}
+@media (display-mode:standalone){main{padding-top:calc(24px + var(--sat))}}
 a{color:inherit}
 .brand{display:flex;align-items:center;gap:10px}
 /* The header is one short row: the snowflake opens the settings, the name sits in the middle, the region is picked at the right. */
@@ -71,6 +71,18 @@ html:not(.embed) .regions{display:none}
 .regionpick[hidden]{display:none}
 /* Every button you can press wears the snowflake's navy (near-white in the dark): the pin, the roads, 2D, play, and back. */
 :root{--mark:#0d366b;--mark-dull:#7f93ad}
+/* The screen's safe edges (the status strip, the home bar). A page shown inside another (see "hosted") is told
+   nothing about them by the phone, so they go through these two and the host's are put in their place. */
+:root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+/* Hosted (?host): the whole page, tabs and all, shown full-screen inside ski/lease. The way back sits where the
+   snowflake does, as ski/lease's skier, and the snowflake moves over beside the pin. */
+.hostback{display:none}
+.hosted .hostback{display:flex;grid-column:1;grid-row:1;justify-self:start;border:0;background:none;padding:6px;margin:-6px -6px -6px -3px;border-radius:999px;cursor:pointer}
+.hosted .hostback i{display:block;width:36px;height:24px;background:var(--host-fill,var(--accent));-webkit-mask:url(../cabin/skier-mark.png) center/contain no-repeat;mask:url(../cabin/skier-mark.png) center/contain no-repeat}
+.hosted .brand h1{grid-column:2;grid-row:1}
+.hosted .brand .setbtn{grid-column:3;grid-row:1;justify-self:end;margin-right:34px}
+.hosted .brand .regionpick{grid-column:3;grid-row:1}
+.hosted .brand:has(.regionpick[hidden]) .setbtn{margin-right:-3px}
 @media (prefers-color-scheme:dark){:root{--mark:#ebebeb;--mark-dull:#8a929b}}
 .regionpick svg{fill:none;stroke:var(--mark);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .regionpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
@@ -108,10 +120,10 @@ h2{font-size:18px;font-weight:650;letter-spacing:-.01em}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px}
 /* Tabs layout (a setting; the other choice is one long page): each block belongs to a tab and only the open tab's blocks show. */
 .tabbar{display:none}
-html.tabs main{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+html.tabs main{padding-bottom:calc(84px + var(--sab))}
 html.tabs[data-view="map"] [data-tab]:not([data-tab~="map"]),html.tabs[data-view="forecast"] [data-tab]:not([data-tab~="forecast"]),
 html.tabs[data-view="mountain"] [data-tab]:not([data-tab~="mountain"]),html.tabs[data-view="avalanche"] [data-tab]:not([data-tab~="avalanche"]),html.tabs[data-view="more"] [data-tab]:not([data-tab~="more"]){display:none!important}
-html.tabs .tabbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom)}
+html.tabs .tabbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--border);padding-bottom:var(--sab)}
 html.tabs #mapPanel{margin-top:12px}
 /* The headline and the forecast time belong to the one-page layout (data-tab="onepage" is no tab); the Region tab opens on the summary. */
 html.tabs .panel.summary{margin-top:12px}
@@ -160,11 +172,11 @@ button,summary,label.mtnpick,label.regionpick{-webkit-touch-callout:none}
   /* With the header and the panes one color there is no line between them: the header runs straight into the pane. */
   html.tabs .panel.summary,html.tabs #detail,html.tabs #avalanche,html.tabs #mapPanel{border-top-color:transparent}
 }
-html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(env(safe-area-inset-top),4px);z-index:7;pointer-events:none;background:var(--page)}
+html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(var(--sat),4px);z-index:7;pointer-events:none;background:var(--page)}
 html.tabs.stuck #topTint{background:var(--surface)}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
    right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
-html.tabs .dtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;box-sizing:border-box;height:129px;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
+html.tabs .dtop{position:sticky;top:var(--sat);z-index:6;box-sizing:border-box;height:129px;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
 html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:var(--surface)}
 /* On a phone the Region tab scrolls as the other tabs do: the page itself moves, the app's header goes off the top,
    and the title block stays (the same frozen bar, with the table's heading row held under it). The table is wider
@@ -177,11 +189,11 @@ html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:
   html.tabs[data-view="forecast"] main{width:max-content;min-width:100%;max-width:none;margin:0;padding-right:0;box-sizing:border-box}
   html.tabs[data-view="forecast"] .panel.summary{margin-right:0}
   html.tabs[data-view="forecast"] .brand{position:sticky;left:16px;width:calc(100vw - 32px);touch-action:pan-y}
-  html.tabs .sumhead{position:sticky;top:env(safe-area-inset-top,0px);left:0;width:100vw;height:94px;touch-action:pan-y}
+  html.tabs .sumhead{position:sticky;top:var(--sat);left:0;width:100vw;height:94px;touch-action:pan-y}
   html.tabs:not(.one) .gridwrap{overflow:visible}
   html.tabs:not(.one) .gridwrap > .gridnote,html.tabs:not(.one) .gridwrap > .legend{left:16px;width:calc(100vw - 32px);max-width:none;box-sizing:border-box;touch-action:pan-y}
   html.tabs .panel.summary table.heat{padding-top:0}
-  html.tabs .heat tr.head th{position:sticky;top:calc(env(safe-area-inset-top,0px) + 94px);z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
+  html.tabs .heat tr.head th{position:sticky;top:calc(var(--sat) + 94px);z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
   html.tabs .heat tr.head th b{line-height:1.15}
   html.tabs .heat tr.head th.corner{left:0;z-index:5}
   /* The days past the fifth are grayed by their ink, not by being see-through: a see-through heading would show the
@@ -203,7 +215,7 @@ html.tabs .jump{display:flex;gap:6px;margin:10px 0 0;padding:0 0 9px;overflow-x:
 html.tabs .jump::-webkit-scrollbar{display:none}
 .jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
 .jump button[aria-current=true]{background:var(--mark);color:var(--surface)}
-html.tabs #detail [data-sec],html.tabs #avalanche [data-sec],html.tabs .panel.summary [data-sec]{scroll-margin-top:calc(136px + env(safe-area-inset-top,0px))}
+html.tabs #detail [data-sec],html.tabs #avalanche [data-sec],html.tabs .panel.summary [data-sec]{scroll-margin-top:calc(136px + var(--sat))}
 html.tabs #detail h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:15.5px;color:var(--accent)}
 html.tabs #detail h3::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 html.tabs #detail h3 span{color:var(--mark-dull)}
@@ -311,7 +323,7 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
 }
 /* The Map tab is one still screen: the map fills what is left between the header and the tabs, the storm slider
    floats on it, and the roads are a pill that opens a sheet. Nothing scrolls, so one finger moves the map. */
-:root{--tabbar:calc(51px + env(safe-area-inset-bottom))}
+:root{--tabbar:calc(51px + var(--sab))}
 .roadpill,.roadsheet .grab{display:none}
 html.tabs[data-view="map"],html.tabs[data-view="map"] body{height:100%;overflow:hidden;overscroll-behavior:none}
 html.tabs[data-view="map"] main{height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:var(--tabbar)}
@@ -404,7 +416,7 @@ html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-to
    (a little into the home-indicator strip on a phone that has one), with the open tab as a tinted capsule inside it.
    The panes and the map run on underneath it; --tabbar is the room it takes, which the map's controls, the cards
    and the panes' last lines all keep clear of. */
-:root{--tabgap:max(10px,calc(env(safe-area-inset-bottom) - 10px));--tabbar:calc(58px + var(--tabgap))}
+:root{--tabgap:max(10px,calc(var(--sab) - 10px));--tabbar:calc(58px + var(--tabgap))}
 html.tabs .tabbar{left:0;right:0;bottom:var(--tabgap);margin:0 auto;width:min(calc(100vw - 20px),440px);box-sizing:border-box;padding:6px;border:0;border-radius:999px;background:none}
 /* The glass is a layer of its own behind the tabs, so the capsule sliding over it never makes the blur be worked out again. */
 .tabglass{display:none}
@@ -976,7 +988,7 @@ dialog.sheet .seg,dialog.sheet .seg button{border-radius:999px}
 /* Every popup is one card, in the map's roads-card style: frosted, round-cornered, floating just above the tab bar,
    with its name at the top left and a round close button at the top right. A touch outside it puts it away. The
    mountain, zone and region choosers open in it too, in place of the phone's own picker. */
-dialog.sheet{box-sizing:border-box;width:calc(100vw - 8px);max-width:520px;max-height:calc(100dvh - var(--tabbar) - 28px - env(safe-area-inset-top));margin:auto auto calc(var(--tabbar) + 14px);padding:0;border:0;border-radius:26px;overflow:hidden;
+dialog.sheet{box-sizing:border-box;width:calc(100vw - 8px);max-width:520px;max-height:calc(100dvh - var(--tabbar) - 28px - var(--sat));margin:auto auto calc(var(--tabbar) + 14px);padding:0;border:0;border-radius:26px;overflow:hidden;
   background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 2px 14px rgba(15,23,32,.24);color:var(--mark)}
 dialog.sheet[open]{display:flex;flex-direction:column;animation:sheetup .22s ease}
 dialog.sheet > form{display:flex;flex-direction:column;min-height:0}
@@ -1232,11 +1244,15 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
 <body>
 <script>
 // Inside the cabin app (?embed) the page hides its own name and follows that app's accent color, including while it changes.
-if (new URLSearchParams(location.search).has("embed")) {
-  document.documentElement.classList.add("embed");
+// Hosted (?host) it is the whole tabbed page, full-screen inside that app, with a way back; it follows the accent too,
+// and takes the screen's safe edges from the host, since a framed page is told nothing about them.
+const HOSTED = new URLSearchParams(location.search).has("host") && parent !== window;
+if (new URLSearchParams(location.search).has("embed") || HOSTED) {
+  document.documentElement.classList.add(HOSTED ? "hosted" : "embed");
   const follow = () => {
     try {
       const host = getComputedStyle(parent.document.documentElement);
+      if (HOSTED) { document.documentElement.style.setProperty("--sat", host.paddingTop || "0px"); document.documentElement.style.setProperty("--sab", host.paddingBottom || "0px"); }
       const accent = host.getPropertyValue("--accent-ink").trim(), fill = host.getPropertyValue("--accent").trim();
       if (accent) document.documentElement.style.setProperty("--accent", accent);
       if (fill) document.documentElement.style.setProperty("--host-fill", fill);
@@ -1257,7 +1273,7 @@ if (new URLSearchParams(location.search).has("embed")) {
 <div id="topTint" aria-hidden="true"></div>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"></div>
 <main>
-  <div class="brand"><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.png" alt="" width="26" height="26"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
+  <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.png" alt="" width="26" height="26"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
   <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
@@ -2866,6 +2882,8 @@ const markHeader = () => { const b = document.querySelector(".brand"); if (b && 
 markHeader();
 window.addEventListener("resize", markHeader);
 $("setBtn").addEventListener("click", () => { markHeader(); $("settingsSheet").showModal(); placeSegs(true); });
+// Hosted in ski/lease, the skier at the top left hands the screen back to it.
+$("hostBack").addEventListener("click", () => { try { parent.postMessage({snow: "back"}, location.origin); } catch (error) { /* no host to go back to */ } });
 // The roads pill opens the sheet; Done, the pill again, or a touch on the map puts it away.
 $("roadPill").addEventListener("click", () => $("roadSheet").classList.toggle("open"));
 // The button names the view it switches to: 2D is straight down with north up, 3D is the tilted view the map opens in.
