@@ -567,6 +567,20 @@ html.tabs details.both .pair{display:grid;grid-template-columns:repeat(auto-fit,
 html.tabs details.both .extra{display:block;margin-top:5px;font-size:12.5px;color:var(--mark-dull)}
 html.tabs details.both .list{padding:4px 0 6px}
 html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacing:0;text-transform:none;color:var(--accent)}
+/* Insights: a pill that opens (it can be pressed, so it is round-ended) onto a squared card of what the snow should
+   be like at each elevation and where it should ski best. */
+.outlook details.insight{margin:12px 0 0;padding:0;border:0;background:none}
+.outlook details.insight > summary{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:var(--wash);font-size:13.5px;font-weight:400;line-height:1.3;color:var(--mark-mid)}
+.outlook details.insight > summary b{flex:none;font-weight:650;color:var(--accent)}
+.outlook details.insight > summary span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outlook details.insight > summary::after{flex:none;width:12px;margin:0;text-align:center;font-size:18px;line-height:1;color:var(--mark-dull)}
+.ibody{margin-top:8px;padding:12px 14px;border-radius:11px;background:var(--wash)}
+.ilevels{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-size:13.5px;line-height:1.35;color:var(--mark-mid)}
+.ilevels b{display:block;font-weight:650;color:var(--mark)}
+.ilevels small{display:block;font-size:11.5px;color:var(--mark-dull);font-variant-numeric:tabular-nums}
+.ilist{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border);display:grid;gap:10px;font-size:13.5px;line-height:1.45;color:var(--mark-mid)}
+.ilist b{display:block;margin-bottom:1px;font-size:12px;font-weight:650;color:var(--accent)}
+.inote{margin:12px 0 0;font-size:12px;color:var(--mark-dull)}
 .outlook details.all{padding:0;margin:0;border:0;background:none}
 .outlook details.all > summary{font-size:13.5px;font-weight:400;line-height:inherit}
 .outlook details.all > summary::after{margin:0;justify-self:end;font-size:18px;line-height:1}
@@ -2202,6 +2216,92 @@ function weatherRows(resort) {
   return `${weather}<div class="stats"><div class="orow stat"><span class="k">Temp</span><span><b>${deg(temp)}${DEG()}</b><em>feels like ${deg(feel)}${DEG()}</em> ${tag}</span><span></span></div>
     <div class="orow stat"><span class="k">Wind</span><span><b>${from ? `${from} ` : ""}${speed(wind)} ${SPEED()}</b>${gust > wind + 3 ? `<em>gusts ${speed(gust)}</em>` : ""} ${tag}</span><span></span></div></div>`;
 }
+// ---------- insights: what the snow is likely to be like, and where it will ski best ----------
+// Rules of thumb read off the forecast for the day the status shows: the new snow and how dense it is, the days
+// before it, the temperature, the wind and where it blows from, the sun, and rain. Nothing here is measured on the
+// hill; it says what those numbers usually mean on snow. One line per elevation, then the best bet and why.
+const LEVEL_NAMES = {summit: "Summit", mid: "Mid", base: "Base"};
+const ASPECTS8 = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const facing = (deg, spread = 1) => { const c = Math.round(deg / 45) % 8; return Array.from({length: 2 * spread + 1}, (_, k) => ASPECTS8[(c + k - spread + 8) % 8]); };
+const listed = (items) => items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+function insightFacts(resort, date, level) {
+  const all = resort.elevations[level].days, i = all.findIndex((d) => d.date === date);
+  const day = all[i] || {}, p = day.powder || {}, back = (n) => (i - n >= 0 ? all[i - n] : null);
+  const snowOf = (d) => (d ? ((d.powder || {}).snow_in ?? d.snow_in ?? 0) : 0), tempOf = (d) => (d ? (d.powder || {}).temp_f : null);
+  const fresh = p.snow_in ?? day.snow_in ?? 0, recent = snowOf(back(1)) + snowOf(back(2));
+  // The last day with real snow (4 in or more) in the four before this one, and whether it has stayed cold since.
+  let dump = null, warmSince = false;
+  for (let n = 1; n <= 4 && !dump; n++) { const d = back(n); if (!d) break; if (snowOf(d) >= 4) dump = {ago: n, snow: snowOf(d)}; else if ((tempOf(d) ?? 0) >= 35 || ((d.powder || {}).rain_share || 0) >= 0.3) warmSince = true; }
+  return {level, ft: resort.elevations[level].elevation_ft, fresh, recent, slr: p.slr, rain: p.rain_share || 0, liquid: day.liquid_in || 0, temp: p.temp_f, prevTemp: tempOf(back(1)),
+    wind: p.wind_mph || 0, gust: p.gust_mph || 0, from: p.wind_from_deg, sky: p.sky_pct, snowing: p.snowing_hours || 0, night: p.night_in || 0, daytime: p.day_in || 0, dump, warmSince};
+}
+// One elevation's surface in a phrase, with a rough 0 to 10 for how good it should ski.
+function surface(f) {
+  const light = f.slr == null ? "" : f.slr >= 15 ? "light, dry " : f.slr >= 11 ? "" : "dense ", windy = f.wind >= 25 || f.gust >= 40;
+  let text, q;
+  if (f.rain >= 0.5 && f.liquid >= 0.1) [text, q] = ["Rain on snow: wet and heavy, firm if it refreezes", 0.5];
+  else if (f.rain >= 0.2 && f.fresh >= 1) [text, q] = [`${inches(f.fresh)} ${LEN()} of wet, heavy new snow`, 3];
+  else if (f.fresh >= 8) [text, q] = [`Deep ${light}powder: ${inches(f.fresh)} ${LEN()} new`, f.slr != null && f.slr < 11 ? 7.5 : 9.5];
+  else if (f.fresh >= 3) [text, q] = [`${inches(f.fresh)} ${LEN()} of ${light}new snow`, f.slr != null && f.slr < 11 ? 6 : 7.5];
+  else if (f.fresh >= 1) [text, q] = [`A dusting (${inches(f.fresh)} ${LEN()}) over ${f.recent >= 6 ? "soft snow from the days before" : "a firm base"}`, f.recent >= 6 ? 6 : 4];
+  else if (f.recent >= 6) [text, q] = (f.temp ?? 0) <= 32 ? ["Packed powder, with soft leftovers off the groomed runs", 5.5] : ["Settled snow, softening in the warmth", 4.5];
+  else if ((f.prevTemp ?? 0) >= 35 && (f.temp ?? 99) <= 30) [text, q] = ["Refrozen and firm: groomed runs will be best", 2];
+  else if ((f.temp ?? 0) >= 36) [text, q] = (f.sky ?? 100) <= 60 ? ["Spring-like: firm early, softening by late morning", 4.5] : ["Soft and damp", 3];
+  else [text, q] = ["Firm and packed: groomed runs will be best", 3];
+  if (windy && f.rain < 0.5) { text += f.fresh + f.recent >= 2 ? ", wind-affected where exposed" : ", scoured where exposed"; q -= 1.5; }
+  return {text, q};
+}
+function insights(resort) {
+  const {day} = statusDay(resort);
+  if (!day) return "";
+  const levels = ["summit", "mid", "base"].map((level) => { const f = insightFacts(resort, day.date, level); return {...f, ...surface(f)}; });
+  const [top, mid, low] = levels, wild = resort.kind === "backcountry", lines = [];
+  const say = (title, text) => lines.push(`<li><b>${title}</b>${text}</li>`);
+  // Best bet: the elevation with the best surface; a tie goes to the higher one.
+  const best = levels.reduce((a, b) => (b.q > a.q + 0.4 ? b : a));
+  const same = levels.every((l) => Math.abs(l.q - best.q) <= 0.4);
+  const where = best.q < 3.5 ? "It is a groomed-run day everywhere" : same ? "Much the same top to bottom"
+    : best === top ? "Up high" : best === mid ? "Mid-mountain" : "Lower mountain";
+  const why = best.q < 3.5 ? "stick to what the cats have been over."
+    : same ? `${best.text.charAt(0).toLowerCase()}${best.text.slice(1)}${(top.temp ?? 0) < (low.temp ?? 0) - 4 ? ", a little drier the higher you go" : ""}.`
+    : best === top && low.rain >= 0.2 ? "the lower mountain is getting rain or wet snow, so the higher the better."
+    : best !== top && (top.wind >= 25 || top.gust >= 40) ? "the summit is taking the wind; the snow is better kept lower down and in the trees."
+    : best === top && (top.temp ?? 0) < (low.temp ?? 0) - 4 ? "it is colder up there, so the snow stays drier."
+    : `${best.text.charAt(0).toLowerCase()}${best.text.slice(1)}.`;
+  say("Best bet", `${where}: ${why}`);
+  // Wind: where it puts the snow and where it takes it from.
+  const loose = top.fresh >= 2 || top.recent >= 4;
+  if (top.from != null && top.wind >= 15 && loose && top.rain < 0.3) {
+    const lee = facing((top.from + 180) % 360), windward = compass(top.from);
+    say("Wind", `From the ${windward} at ${speed(top.wind)} ${SPEED()} up top, it carries snow onto ${listed(lee)} facing slopes: look for deeper, wind-laid pockets just below ridgelines and in gullies there. The ${windward} facing side will be scoured and firmer.${top.wind >= 30 || top.gust >= 45 ? " Open ridges will be stripped; trees and sheltered bowls hold the best of it." : ""}${wild ? " Those loaded slopes are also where wind slabs form: read the avalanche forecast first." : ""}`);
+  } else if (top.fresh >= 3 && top.wind < 10) say("Wind", "Light, so the new snow should lie evenly and not drift.");
+  // Sun: which aspects it softens, and which stay cold.
+  if ((mid.sky ?? 100) <= 45) {
+    say("Sun", (mid.temp ?? 0) >= 30
+      ? "Mostly sunny and mild: east facing slopes soften first, south by midday, west in the afternoon. North facing terrain stays cold and keeps dry snow longest."
+      : "Clear and cold: the snow stays dry on every aspect. North facing slopes and shaded trees will be the coldest and chalkiest.");
+  } else if ((mid.sky ?? 0) >= 85 && mid.snowing >= 3) say("Light", "Flat light while it snows: tree runs give the best definition.");
+  // Timing: when the new snow arrives.
+  const total = top.night + top.daytime;
+  if (top.fresh >= 3 && total > 0) {
+    if (top.night >= 0.65 * total) say("Timing", `Most of it (${inches(top.night)} ${LEN()}) falls before opening: first chair is the prize.`);
+    else if (top.daytime >= 0.6 * total) say("Timing", `It keeps snowing through the day (${inches(top.daytime)} ${LEN()} after opening): tracks refill, and the afternoon may ski better than the morning.`);
+  }
+  // Rain line.
+  if (low.rain >= 0.3 && top.rain < 0.15) say("Rain line", `Rain or wet snow at the base, snow up top: the line sits somewhere around ${mid.rain >= 0.3 ? "the upper" : "mid-"}mountain, so stay above it.`);
+  // Leftover powder after a recent fall.
+  if (top.fresh < 3 && top.dump && top.rain < 0.2) {
+    const when = top.dump.ago === 1 ? "yesterday" : `${top.dump.ago} days ago`;
+    say("Powder pockets", top.warmSince || (top.temp ?? 0) >= 35
+      ? `${inches(top.dump.snow)} ${LEN()} fell ${when}, but warmth has worked on it since: sunny aspects will be crusted or heavy. North facing shade up high is the one place it may still be dry.`
+      : `${inches(top.dump.snow)} ${LEN()} fell ${when} and it has stayed cold: leftovers should survive in north facing trees, lee gullies, and anywhere that takes a traverse or a hike to reach.`);
+  }
+  const headline = `${where}${best.q >= 3.5 ? `: ${best.text.charAt(0).toLowerCase()}${best.text.slice(1)}` : ""}`;
+  return `<details class="insight" data-fold="insight"${foldOpen.insight ? " open" : ""}><summary><b>Insights</b><span>${headline}</span></summary>
+    <div class="ibody"><div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div>${l.text}</div>`).join("")}</div>
+    <ul class="ilist">${lines.join("")}</ul>
+    <p class="inote">Rules of thumb from the forecast, not a report from the hill.</p></div></details>`;
+}
 function outlook(resort) {
   const {days, shift, day} = statusDay(resort);
   if (!days.length) return "";
@@ -2212,7 +2312,8 @@ function outlook(resort) {
   return `<div class="outlook" data-sec="Status"><div class="hhead"><h3>Status <span>${label}</span></h3>${tabbed() ? `<span class="src" id="statusSrc">${statusSource(resort)}</span>` : ""}<div class="seg" role="group" aria-label="Day">${pick}</div></div>
     ${tabbed() ? "" : `<span class="src" id="statusSrc">${statusSource(resort)}</span>`}
     <div id="wx">${weatherRows(resort)}</div>
-    ${wild ? "" : `<div id="lifts">${liftsHtml(resort)}</div>`}</div>`;
+    ${wild ? "" : `<div id="lifts">${liftsHtml(resort)}</div>`}
+    ${insights(resort)}</div>`;
 }
 // ---------- live lifts and trails, where the resort publishes them ----------
 const liftFeeds = {};
@@ -2263,7 +2364,7 @@ function liftsHtml(resort) {
     ${trails.length ? fold("trails", "Trails", `<b>${openTrails}</b> open · ${trails.length - openTrails} closed`, meter([["open", openTrails]], trails.length), trailList)
       : `<div class="orow"><span class="k">Trails</span><span>Not listed by the resort</span><span></span></div>`}`;
 }
-const foldOpen = {lifts: false, trails: false};
+const foldOpen = {lifts: false, trails: false, insight: false};
 async function loadLifts(resort) {
   const spec = LIFT_FEEDS[resort.key];
   if (!spec || !navigator.onLine) return;
@@ -2409,6 +2510,7 @@ function renderDetail() {
     ${tabbed() ? `<div class="key" style="column-gap:14px"><span class="sw"><i style="background:var(--snow);height:3px"></i>storm total</span><span class="sw"><i style="background:none;border-top:1.5px dashed var(--ink2);height:0"></i>measured at the sensor</span></div>
       <div class="key" style="column-gap:14px"><span class="sw"><i style="height:11px;border-radius:2px;border:.75px solid var(--mark-dull);background:repeating-linear-gradient(45deg,var(--mark-dull) 0 1.4px,transparent 1.4px 4px)"></i>rain at this height, snow higher up</span><span>wind strip shows gusts</span></div></details>` : ""}
     ${measured(resort)}${webcams(resort)}`;
+  for (const fold of $("detail").querySelectorAll("details.insight")) fold.addEventListener("toggle", () => { foldOpen.insight = fold.open; });
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
   fillJump("jump", $("detail"));
   loadLifts(resort);
