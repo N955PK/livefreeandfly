@@ -363,6 +363,7 @@ html.tabs #map3d .map-toggle{top:auto;right:10px;left:auto;width:44px;height:44p
 html.tabs .flatbtn{left:10px;right:auto;bottom:var(--rail);width:44px;height:44px;font-size:14px;color:var(--mark);background:color-mix(in srgb,var(--surface) 84%,transparent)}
 /* The map's buttons are one block on the right, top to bottom: what is marked on the map (names, highway shields, road
    conditions), then what is laid over it (radar, avalanche danger). A button that is not showing leaves no gap. */
+html.tabs #map3d .maprail:not(.ready){visibility:hidden}
 html.tabs #map3d .maprail{position:absolute;z-index:400000;right:10px;bottom:var(--rail);width:44px;display:flex;flex-direction:column}
 html.tabs #map3d .maprail .map-toggle{position:relative;inset:auto;flex:none;height:48px;border-radius:0;border-top:1px solid var(--border)}
 html.tabs #map3d .maprail #labelsToggle{border-radius:22px 22px 0 0;border-top:0}
@@ -3205,18 +3206,23 @@ async function loadRoads() {
     $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", roadWords); $("roadPill").title = roadWords;
     $("roadPill").style.setProperty("--dot", shutRoutes ? "#d03b3b" : "#d98a00");
     if (shutRoutes || chainCount) $("roadPill").dataset.count = shutRoutes || chainCount; else delete $("roadPill").dataset.count;
-    $("roadPill").hidden = false;
+    $("roadPill").hidden = false; railReady();
     $("roadNote").innerHTML =
       section("#d03b3b", "Closed", closures.length ? [...new Set(closures.map((c) => c.route))].sort((a, b) => a - b).join(", ") : "none",
         (fresh.length ? `<ul>${fresh.map((c) => c.html).join("")}</ul>` : "") + olderList, fresh.length > 0) +
       section("#f0a80d", "Chains", chains.length ? [...new Set(chainRoutes)].sort((a, b) => a - b).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
       `<span class="src">Caltrans, ${when} · ${nevada ? `Nevada 511, ${localClock(new Date(nevada.updated))}` : "California roads only"}</span>`;
-  } catch (error) { if (asked === region) { $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", "Roads"); $("roadPill").style.removeProperty("--dot"); delete $("roadPill").dataset.count; $("roadPill").hidden = false; } }
+  } catch (error) { if (asked === region) { $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", "Roads"); $("roadPill").style.removeProperty("--dot"); delete $("roadPill").dataset.count; $("roadPill").hidden = false; railReady(); } }
 }
 const ROAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 5 21M15 3l4 18M12 4v3M12 10.500v3M12 17v3"/></svg>';
 // One map at a time: switching regions throws the old one away and builds the new one.
 let mapBuild = 0, mapWired = false, staleMap = null;
+// The block of map buttons first shows once the map, the roads and the avalanche zones have all arrived, so it appears
+// whole instead of growing a button at a time. If one of them is slow, it shows without it after a few seconds.
+function railReady(anyway) {
+  if (anyway || (!$("radarToggle").hidden && !$("roadPill").hidden && avy[region] && avy[region].loaded)) document.querySelector(".maprail").classList.add("ready");
+}
 const mapDepth = () => ({per: metric() ? 2.54 : 1, unit: LEN()});
 async function startMap() {
   const list = here(), build = ++mapBuild;
@@ -3253,6 +3259,7 @@ async function startMap() {
     setTime(map.nowStep);
     mapAvalanche();
     $("radarToggle").hidden = false;
+    railReady(); setTimeout(() => railReady(true), 4000);
     if (radarOn) mapRadar();
     loadRoads();
   } catch (error) { if (staleMap) { staleMap.dispose(); staleMap = null; } $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
@@ -3450,7 +3457,7 @@ async function loadAvalanche() {
   const product = main ? await zoneProduct(main) : null;
   Object.assign(state, {zones, product, loaded: true});
   if (asked !== region) return;
-  renderAvalanche(); badges(); mapAvalanche();
+  renderAvalanche(); badges(); mapAvalanche(); railReady();
 }
 // Even-odd test against every ring of a zone at once.
 function inRings(rings, x, y) {
