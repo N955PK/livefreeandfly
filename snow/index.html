@@ -2409,8 +2409,9 @@ function insights(resort) {
   const [top, mid, low] = levels, wild = resort.kind === "backcountry", notes = [];
   // The elevation with the best surface; a tie goes to the higher one.
   const best = levels.reduce((a, b) => (b.q > a.q + 0.4 ? b : a));
-  // After that, only what changes where you would go, most important first, and no more than two of them. Each says
-  // where, in whole sentences.
+  // After that, only what changes where you would go, and no more than three of them: first what is particular to
+  // the day (rain line, wind, light or sun), last the thin cover that stands all through the early season, so that it
+  // never crowds out the day's own notes. Each says where, in whole sentences.
   if (low.rain >= 0.3 && top.rain < 0.15) notes.push(["Rain line", `It is raining at the base and snowing up top. Stay above ${mid.rain >= 0.3 ? "the upper mountain" : "mid-mountain"}.`]);
   // Wind moves snow from about 10 mph and loads lee slopes most at 15 to 25; stronger than that it strips the ridges
   // and drops the snow lower, in gullies and trees. Lee is simply the side facing away from the wind.
@@ -2422,14 +2423,14 @@ function insights(resort) {
       ? `${blowing} It has blown the snow off the ridges into gullies and trees on ${lee}-facing slopes, and scraped ${windward}-facing slopes firm.${caution}`
       : `${blowing} It has piled snow on ${lee}-facing slopes just below the ridges, and scraped ${windward}-facing slopes firm.${caution}`]);
   }
+  if ((mid.sky ?? 100) <= 45 && (mid.temp ?? 0) >= 30 && !/^(Corn|Spring)/.test(best.type)) notes.push(["Sun", mid.month >= 3 && mid.month <= 6 ? "East-facing slopes soften first, then south-facing, then west-facing. North-facing slopes keep the driest snow." : "Only south-facing slopes soften in the sun. Everything else stays cold."]);
+  if ((mid.sky ?? 0) >= 90) notes.push(["Light", `The light is flat under ${mid.snowing >= 3 ? "the falling snow" : "thick cloud"}. Ski next to the trees, where you can see the surface.`]);
   // Thin cover: under about 40 in on the ground the mountain is still in early-season shape.
   const stake = stakeDepth(resort.key, "mid"), ground = stake ?? (resort.observed && resort.observed.depth_in);
   if (ground != null && ground < 40) notes.push(["Cover", `Cover is thin, with ${inches(ground)} ${LEN()} on the ground. Watch for rocks and stumps off the groomed runs.`]);
-  if ((mid.sky ?? 100) <= 45 && (mid.temp ?? 0) >= 30 && !/^(Corn|Spring)/.test(best.type)) notes.push(["Sun", mid.month >= 3 && mid.month <= 6 ? "East-facing slopes soften first, then south-facing, then west-facing. North-facing slopes keep the driest snow." : "Only south-facing slopes soften in the sun. Everything else stays cold."]);
-  if ((mid.sky ?? 0) >= 90) notes.push(["Light", `The light is flat under ${mid.snowing >= 3 ? "the falling snow" : "thick cloud"}. Ski next to the trees, where you can see the surface.`]);
   return `<details class="insight" data-fold="insight"${foldOpen.insight ? " open" : ""}><summary><b>Insights</b></summary>
     <div class="ibody"><div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
-    <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 2).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul></div></details>`;
+    <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 3).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul></div></details>`;
 }
 function outlook(resort) {
   const {days, shift, day} = statusDay(resort);
