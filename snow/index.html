@@ -525,6 +525,8 @@ html.tabs .outlook .hhead #statusSrc{flex:none;margin:0;font-size:12.5px}
 html.tabs .orow.verdict{display:block;margin:10px 0 8px;padding:9px 12px;border-radius:10px;font-size:13.5px;background:color-mix(in srgb,#3fa34d 14%,var(--surface));color:var(--mark-mid)}
 html.tabs .orow.verdict.warn{background:color-mix(in srgb,var(--w1) 22%,var(--surface))}
 html.tabs .orow.verdict.bad{background:color-mix(in srgb,var(--w2) 20%,var(--surface))}
+html.tabs .orow.verdict[data-avy]{background:var(--wash)}
+html.tabs .orow.verdict[hidden]{display:none}
 html.tabs .orow.verdict .k,html.tabs .orow.verdict .dot{display:none}
 html.tabs .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 html.tabs .orow.stat{display:block;padding:8px 11px;border-radius:10px;background:var(--wash)}
@@ -2127,8 +2129,9 @@ function weatherRows(resort) {
   const impacts = outlookImpacts(resort, day.date, crest && {wind: +crest.WindStrengthMph, gust: +crest.WindGustsMph || 0});
   const worst = impacts.some((x) => x.tone === "bad") ? "bad" : impacts.length ? "warn" : "";
   const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
-  // A backcountry peak has no lifts to hold, so its first row is the avalanche rating, not the weather's impacts.
-  const weather = resort.kind === "backcountry" ? `<div class="orow"><span class="k">Avalanche</span><span data-avy="${resort.key}" data-form="plain"></span><span></span></div>`
+  // A backcountry peak has no lifts to hold, so the status box gives the avalanche danger instead of the weather's
+  // impacts, in the same box, tinted by the danger's own color (filled in by the avalanche pass, where the zones are known).
+  const weather = resort.kind === "backcountry" ? `<div class="orow verdict" data-avy="${resort.key}" data-form="verdict" hidden><span class="k">Avalanche</span><span></span><span></span></div>`
     : `<div class="orow verdict ${worst}"><span class="k">Weather</span><span><i class="dot ${worst}"></i><b>${worst === "bad" ? "Impacts expected" : worst ? "Impacts possible" : "No impacts expected"}</b>${causes ? `: ${causes}` : ""}</span><span></span></div>`;
   const p = ((resort.elevations[elevation].days.find((d) => d.date === day.date) || {}).powder) || {};
   const said = live ? "live" : "forecast", tag = `<small class="${live ? "live" : ""}">${tabbed() ? said[0].toUpperCase() + said.slice(1) : said}</small>`;
@@ -2988,6 +2991,14 @@ function badges() {
   $("unratedNote").hidden = !unrated;
   for (const slot of document.querySelectorAll("[data-avy]")) {
     const zone = zoneOf(slot.dataset.avy);
+    if (slot.dataset.form === "verdict") {
+      // The status box itself: "Avalanche danger: Considerable" on a wash of the danger's color.
+      const text = zone ? `<b>Avalanche danger: ${danger(zone.level)[0]}</b>` : zonesHere().length ? "<b>No avalanche forecast covers this peak</b>" : "";
+      slot.hidden = !text;
+      slot.style.background = zone ? `color-mix(in srgb, ${danger(zone.level)[1]} 26%, var(--surface))` : "";
+      slot.innerHTML = text;
+      continue;
+    }
     if (!zone) { slot.innerHTML = slot.dataset.form === "plain" && zonesHere().length ? "No forecast covers this peak" : ""; continue; }
     const [, color, ink] = danger(zone.level);
     slot.innerHTML = slot.dataset.form === "plain" ? `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${dangerText(zone.level)}</button>`
