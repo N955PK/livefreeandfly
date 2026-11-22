@@ -985,7 +985,8 @@ html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 
 .map-key i{width:9px;height:9px;border-radius:50%;border:1.5px solid;box-sizing:border-box}
 #avalanche{margin-top:14px;padding:18px 18px 16px}
 /* The snowflake's sheet: a front page and a page behind each of its three ways in. Headings are the app's own
-   section headings (accent, with a rule to the edge); what can be pressed is round-ended, what cannot is squared. */
+   section headings (accent, with a rule to the edge); what can be pressed is round-ended, what cannot is squared.
+   The three ways in are true pills, half-circle ends however tall the row, with the words set in clear of the curve. */
 .gpage[hidden]{display:none}
 .ghead{display:flex;align-items:center;gap:12px;margin:24px 0 10px;font-size:15.5px;font-weight:650;letter-spacing:-.005em;color:var(--accent)}
 .ghead::after{content:"";flex:1;height:1px;background:var(--border)}
@@ -994,10 +995,10 @@ dialog.sheet .grab .gback{margin:0 10px 0 -8px}
 dialog.sheet .grab .gback[hidden]{display:none}
 dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gnav{display:grid;gap:8px}
-.gnav button{position:relative;display:block;width:100%;text-align:left;padding:11px 40px 12px 18px;border:0;border-radius:22px;background:var(--wash);font:inherit;color:var(--mark);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gnav button{position:relative;display:block;width:100%;text-align:left;padding:11px 46px 12px 26px;border:0;border-radius:999px;background:var(--wash);font:inherit;color:var(--mark);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .gnav button b{display:block;font-size:14.5px;font-weight:650}
 .gnav button span{display:block;margin-top:1px;font-size:12.5px;line-height:1.35;color:var(--mark-dull)}
-.gnav button::after{content:"";position:absolute;right:18px;top:50%;width:7px;height:7px;margin-top:-4px;border-right:2px solid var(--mark-dull);border-bottom:2px solid var(--mark-dull);transform:rotate(-45deg)}
+.gnav button::after{content:"";position:absolute;right:24px;top:50%;width:7px;height:7px;margin-top:-4px;border-right:2px solid var(--mark-dull);border-bottom:2px solid var(--mark-dull);transform:rotate(-45deg)}
 .gfoot{margin:12px 2px 2px;font-size:12px;line-height:1.5;color:var(--mark-dull)}
 .gpage p,.gpage li{font-size:13.5px;line-height:1.5;color:var(--ink2)}
 .gpage p{margin:0 0 10px}
@@ -1374,9 +1375,9 @@ if (HOSTED) {
   </div>
   <h4 class="ghead">The forecast</h4>
   <div class="gnav">
-    <button data-page-to="quality"><b>Sensor corrections</b><span id="qualitySum">Which mountains are corrected against a snow sensor</span></button>
-    <button data-page-to="score"><b>How it is tested</b><span>Scored against winters and stations it never saw</span></button>
-    <button data-page-to="how"><b>How the forecast is made</b><span>The models, snow ratio, wind, and the powder score</span></button>
+    <button data-page-to="quality"><b>Sensor corrections</b><span id="qualitySum">Which mountains have a snow sensor</span></button>
+    <button data-page-to="score"><b>How it is tested</b><span>Scored on winters it never saw</span></button>
+    <button data-page-to="how"><b>How the forecast is made</b><span>Models, snow ratio, wind, powder score</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
     <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org.</p>
@@ -3553,7 +3554,7 @@ function renderQuality() {
   $("qualityBody").innerHTML = `<p>Where a mountain has a snow sensor nearby, its forecast is corrected against years of that sensor's readings. This page says which sensor each mountain uses. It does not grade the forecast: what the correction is worth, measured, is under How it is tested.</p>
     <div class="qkey">${KEY.map(([cls, word, text]) => `<div><span class="q ${cls}">${word}</span><b>${count(cls)}</b><span>${text}</span></div>`).join("")}</div>
     ${regions.map((key) => `<h4 class="ghead">${esc(REGIONS[key].name)}</h4><div class="qlist">${data.resorts.filter((r) => regionOf(r) === key).map(row).join("")}</div>`).join("")}`;
-  $("qualitySum").textContent = `${count("good")} corrected, ${count("rough")} against a low sensor, ${count("none")} uncorrected`;
+  $("qualitySum").textContent = `${count("good")} corrected, ${count("rough")} low sensor, ${count("none")} not`;
 }
 function renderScore(card) {
   if (!card || !card.sections) { $("scoreBody").innerHTML = "<p>No scores yet.</p>"; return; }
