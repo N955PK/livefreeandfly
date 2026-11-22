@@ -608,8 +608,7 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .duopills.solo ~ .duobody{border-radius:0 0 11px 11px}
 .duobody[hidden]{display:none}
 .rby{font-size:12.5px;color:var(--mark-dull)}
-.rby a{color:var(--accent);text-decoration:none;white-space:nowrap}
-.rfacts{margin-top:10px}
+.rby + .rfacts{margin-top:10px}
 .ralert{margin:12px 0 0;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--w1) 22%,var(--surface));font-size:13px;line-height:1.4;color:var(--mark-mid)}
 .rwords{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 .rwords p{margin:0 0 9px;font-size:13.5px;line-height:1.45;color:var(--mark-mid);text-align:justify;hyphens:auto;-webkit-hyphens:auto}
@@ -2510,8 +2509,8 @@ function resortReport(resort) {
   const alert = said(report.Alert) ? new DOMParser().parseFromString(report.Alert, "text/html").body.textContent.replace(/\s+/g, " ").trim() : "";
   const when = new Date(report.LastUpdate), old = Date.now() - when > 36 * 3600e3;
   const stamp = `${when.toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", ...(old ? {month: "short", day: "numeric"} : {})})} ${localClock(when)}`;
-  const page_ = STATUS_PAGES[resort.key];
-  return `<div class="rby">${esc(feed.data.Name || resort.name)}, ${stamp}${old ? " (not today's)" : ""}${page_ ? ` · <a href="${page_}" target="_blank" rel="noopener">Their page ↗</a>` : ""}</div>
+  // The status box above already names the resort's page and links to it; only an old report says when it is from.
+  return `${old ? `<div class="rby">Not today's report: ${stamp}</div>` : ""}
     ${rows.length ? `<div class="ilevels rfacts">${rows.map(([name, value]) => `<div><b>${name}</b></div><div><span>${value}</span></div>`).join("")}</div>` : ""}
     ${alert ? `<p class="ralert">${esc(alert)}</p>` : ""}
     ${paragraphs.length ? `<div class="rwords">${paragraphs.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}`;
