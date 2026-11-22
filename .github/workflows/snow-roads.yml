@@ -3,8 +3,7 @@ name: Snow roads
 # Nevada road status for the snow page. Nevada's feed needs a key (the NV511_KEY secret), so it is read here and
 # published to its own branch for the page to pick up; California's feed is open and the page reads it directly.
 on:
-  schedule:
-    - cron: "*/15 * * * *"
+  # The Snow collect workflow now does this every five minutes; this one is kept to run by hand.
   workflow_dispatch:
 
 permissions:

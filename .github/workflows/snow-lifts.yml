@@ -5,8 +5,7 @@ name: Snow lifts
 # page to pick up. A source that fails keeps its last file, and the page stops showing a file once it is old.
 # To add a source: a step that writes "$RUNNER_TEMP/lifts/<name>.json", and a reader for it on the page.
 on:
-  schedule:
-    - cron: "*/5 * * * *"
+  # The Snow collect workflow now does this every five minutes; this one is kept to run by hand.
   workflow_dispatch:
 
 permissions:

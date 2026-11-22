@@ -50,57 +50,7 @@ jobs:
           echo "run=$run" >> "$GITHUB_OUTPUT"
           echo "Forecast last published ${published:-never} (${minutes} minutes ago); run=$run" | tee -a "$GITHUB_STEP_SUMMARY"
 
-  # Every firing during lift hours notes which lifts the resorts have on hold, beside the wind the forecast has for
-  # that hour, on a branch of its own. The outlook's wind thresholds are set from this record.
-  holds:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: snow/tahoe_snow
-
-      - name: Record lift holds
-        run: |
-          out="$(mktemp -d)"
-          if git fetch --depth=1 origin snow-holds 2>/dev/null; then git show FETCH_HEAD:holds.jsonl > "$out/holds.jsonl" || true; fi
-          before="$(wc -l < "$out/holds.jsonl" 2>/dev/null || echo 0)"
-          (cd snow && python3 -m tahoe_snow.holds "$out/holds.jsonl") || echo "::warning::Lift holds could not be read"
-          [ -s "$out/holds.jsonl" ] && [ "$(wc -l < "$out/holds.jsonl")" -gt "$before" ] || exit 0
-          cd "$out"
-          git init -q -b snow-holds
-          git config user.name "snow-holds"
-          git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git commit -q -m "Lift holds $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-holds
-
-  # Every firing looks for a new snow report from the resorts (one a morning, usually) and notes what the resort
-  # measured and reported beside what the forecast had for that day, on a branch of its own. A report already in the
-  # record is not recorded twice, so most firings change nothing.
-  reports:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: snow/tahoe_snow
-
-      - name: Record resort snow reports
-        run: |
-          out="$(mktemp -d)"
-          if git fetch --depth=1 origin snow-reports 2>/dev/null; then git show FETCH_HEAD:reports.jsonl > "$out/reports.jsonl" || true; fi
-          before="$(wc -l < "$out/reports.jsonl" 2>/dev/null || echo 0)"
-          (cd snow && python3 -m tahoe_snow.reports "$out/reports.jsonl") || echo "::warning::The resorts' snow reports could not be read"
-          [ -s "$out/reports.jsonl" ] && [ "$(wc -l < "$out/reports.jsonl")" -gt "$before" ] || exit 0
-          cd "$out"
-          git init -q -b snow-reports
-          git config user.name "snow-reports"
-          git config user.email "actions@users.noreply.github.com"
-          git add -A
-          git commit -q -m "Resort reports $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" snow-reports
-
+  # The lift-hold and resort-report records are kept by the Snow collect workflow, which runs all day.
   forecast:
     needs: due
     if: needs.due.outputs.run == 'true'
