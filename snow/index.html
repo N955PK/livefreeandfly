@@ -740,6 +740,8 @@ h3 small{font-size:12px;font-weight:400;color:var(--muted);margin-left:6px}
 .roads ul{list-style:none;margin:4px 0 8px 23px;padding:0}
 .roads li{font-size:13px;line-height:1.45;margin-bottom:3px;color:var(--ink2)}
 details.roads{margin-top:0;padding:0}
+details.roads.none > summary{pointer-events:none;cursor:default}
+details.roads.none > summary::after{content:none}
 details.roads summary{font-size:13px;line-height:1.4;font-weight:400;padding:3px 0;color:var(--ink2);gap:8px;align-items:center}
 details.roads summary .sw{flex:none;display:inline-flex;align-items:center;gap:5px;line-height:1.4}
 details.roads summary .sw b{font-size:13px;line-height:1.4}
@@ -2747,8 +2749,9 @@ async function loadRoads() {
     const when = localClock(new Date());
     const fresh = closures.filter((c) => c.recent), older = closures.filter((c) => !c.recent);
     const dot = (color) => `<i style="background:${color}"></i>`;
-    // Closed and Chains share one layout: a summary line with a + on the right that opens the detail.
-    const section = (color, label, summary, body, open) => `<details class="roads"${open ? " open" : ""}><summary><span class="sw">${dot(color)}<b>${label}</b></span><span class="sum">${summary}</span></summary>${body}</details>`;
+    // Closed and Chains share one layout: a summary line with a + on the right that opens the detail. With nothing
+    // to report ("none") there is no detail, so the line has no + and does not open.
+    const section = (color, label, summary, body, open) => `<details class="roads${summary === "none" ? " none" : ""}"${open ? " open" : ""}><summary><span class="sw">${dot(color)}<b>${label}</b></span><span class="sum">${summary}</span></summary>${body}</details>`;
     const olderList = older.length ? `<details class="roads older"><summary><span class="sum">${older.length} older: ${[...new Set(older.map((c) => c.route))].join(", ")}</span></summary><ul>${older.map((c) => c.html).join("")}</ul></details>` : "";
     // The pill on the map says the worst of it in a few words; the sheet it opens has the detail.
     const shutRoutes = new Set(closures.map((c) => c.route)).size, chainCount = new Set(chainRoutes).size;
