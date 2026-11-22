@@ -45,14 +45,18 @@
   background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .2s ease,visibility .2s}
 /* The mark sits at the optical center, a little above the measured one, where a lone mark reads as centered. */
 #splash img{width:min(38vw,170px);height:auto;transform:translateY(-4vh)}
+/* Inside ski/lease the page is in a frame, and a phone lets a framed page slide both ways at once, where the page on
+   its own slides one way per drag. So there the summary table is told to take only up-and-down drags from the
+   phone, and its sideways slide is done by the page (see "hosted table"): each drag is one way or the other. */
+html.hosted #heat{touch-action:pan-y}
 /* Opened from ski/lease, the opening screen wears that app's accent color in place of Snow's blue. */
 .hosted #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 #splash.done{opacity:0;visibility:hidden}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
 main{max-width:1040px;margin:0 auto;padding:calc(12px + var(--sat)) 16px calc(48px + var(--sab))}
-/* Saved to an iPhone's home screen, iOS softens whatever sits just under its status bar. The header starts a little lower there, clear of it. */
-@media (display-mode:standalone){main{padding-top:calc(24px + var(--sat))}}
+/* The header starts 12px under the status strip, the same in a browser tab, from the home screen, and inside ski/lease
+   (whose own header sits there too). */
 a{color:inherit}
 .brand{display:flex;align-items:center;gap:10px}
 /* The header is one short row: the snowflake opens the settings, the name sits in the middle, the region is picked at the right. */
@@ -2866,6 +2870,46 @@ const markHeader = () => { const b = document.querySelector(".brand"); if (b && 
 markHeader();
 window.addEventListener("resize", markHeader);
 $("setBtn").addEventListener("click", () => { markHeader(); $("settingsSheet").showModal(); placeSegs(true); });
+// Hosted table: inside ski/lease's frame the summary table's sideways slide is the page's doing (the CSS leaves the
+// phone only the up-and-down drags), so that a drag moves the table one way or the other and never both. A drag that
+// starts sideways slides the table with the finger and coasts to a stop when it lifts; one that starts up or down
+// is the phone's own scroll.
+if (HOSTED) {
+  let pan = null, coast = 0;
+  const limit = () => Math.max(0, document.documentElement.scrollWidth - window.innerWidth);
+  $("heat").addEventListener("touchstart", (e) => {
+    cancelAnimationFrame(coast);
+    pan = e.touches.length === 1 ? {x: e.touches[0].clientX, y: e.touches[0].clientY, from: window.scrollX, on: null, v: 0, at: e.timeStamp, last: e.touches[0].clientX} : null;
+  }, {passive: true});
+  $("heat").addEventListener("touchmove", (e) => {
+    if (!pan || pan.on === false) return;
+    const t = e.touches[0], dx = t.clientX - pan.x, dy = t.clientY - pan.y;
+    if (pan.on === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      pan.on = Math.abs(dx) > Math.abs(dy);
+      if (!pan.on) return;
+    }
+    if (e.cancelable) e.preventDefault();
+    window.scrollTo(Math.max(0, Math.min(limit(), pan.from - dx)), window.scrollY);
+    const dt = Math.max(1, e.timeStamp - pan.at);
+    pan.v = 0.7 * ((pan.last - t.clientX) / dt) + 0.3 * pan.v; pan.at = e.timeStamp; pan.last = t.clientX;
+  }, {passive: false});
+  const lift = (e) => {
+    if (!pan || !pan.on) { pan = null; return; }
+    let v = e.timeStamp - pan.at > 80 ? 0 : pan.v, then = performance.now(), x = window.scrollX;
+    pan = null;
+    const step = (now) => {
+      const dt = Math.min(40, now - then); then = now;
+      x += v * dt; v *= Math.pow(0.95, dt / 16);
+      const to = Math.max(0, Math.min(limit(), x));
+      window.scrollTo(to, window.scrollY);
+      if (Math.abs(v) > 0.02 && to === x) coast = requestAnimationFrame(step);
+    };
+    if (Math.abs(v) > 0.05) coast = requestAnimationFrame(step);
+  };
+  $("heat").addEventListener("touchend", lift, {passive: true});
+  $("heat").addEventListener("touchcancel", lift, {passive: true});
+}
 // Hosted in ski/lease, the skier at the top left hands the screen back to it.
 $("hostBack").addEventListener("click", () => { try { parent.postMessage({snow: "back"}, location.origin); } catch (error) { /* no host to go back to */ } });
 // The roads pill opens the sheet; Done, the pill again, or a touch on the map puts it away.
