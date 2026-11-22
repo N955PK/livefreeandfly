@@ -3383,6 +3383,19 @@ function reveal() {
   if (revealed) return;
   revealed = true;
   $("splash").classList.add("done");
+  // An iPhone decides how to treat the edge under its status bar from what it finds at the top of the page, and it
+  // looked while the opening screen was over everything. Once that screen has faded it is taken away altogether and
+  // the phone is given cause to look again (the top strip is put back afresh, and the page is nudged a pixel and back),
+  // as scrolling the header off and on does by hand.
+  setTimeout(() => {
+    $("splash").style.display = "none";
+    const tint = $("topTint");
+    tint.style.display = "none"; void tint.offsetHeight; tint.style.display = "";
+    markTop.done = false; markTop();
+    const x = window.scrollX, y = window.scrollY;
+    window.scrollTo(x, y + 1);
+    requestAnimationFrame(() => window.scrollTo(x, y));
+  }, 320);
 }
 setTimeout(reveal, 8000);
 liveForecast().then(async (d) => {
