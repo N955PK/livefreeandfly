@@ -332,15 +332,14 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
   background:var(--bg);color:var(--ink);transition:opacity .2s ease,visibility .2s}
 #splash.done{opacity:0;visibility:hidden}
-#splash .skier{display:block;width:120px;height:75px;background:url(skier-mark.png) center/contain no-repeat}
+/* As in Turbo Snow: the logo alone, no name under it, sitting a little above the middle of the screen. */
+#splash .skier{display:block;width:min(38vw,170px);aspect-ratio:120/75;transform:translateY(-4vh);background:url(skier-mark.png) center/contain no-repeat}
 :root[data-accent]:not([data-accent="chairlift"]) #splash .skier{background:var(--logo-color,var(--accent));-webkit-mask:url(skier-mark.png) center/contain no-repeat;mask:url(skier-mark.png) center/contain no-repeat}
-#splash b{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:.08em}
-#splash b span{color:var(--accent-ink);font-weight:700}
 @media (min-width:700px){ .day{aspect-ratio:1/.9;padding:8px} .day .cnt{top:8px;right:9px} .chip.sm{width:18px;height:18px;font-size:10px} .day .dots{gap:2px;max-height:38px} .day .more{width:18px;height:18px;font-size:10px} }
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><span class="skier"></span><b>ski<span>/</span>lease</b></div>
+<div id="splash" aria-hidden="true"><span class="skier"></span></div>
 <header class="top">
   <span class="brand"><span class="mark" aria-hidden="true"></span><span>ski<span class="slash">/</span>lease</span></span>
   <button class="who" id="who" data-act="me-edit" aria-label="Change your name and details" hidden></button>
@@ -350,8 +349,8 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 <nav class="tabs" id="tabs" aria-label="Sections" hidden><div>
   <button data-act="tab" data-view="nights">Calendar</button>
   <button data-act="tab" data-view="money">Money</button>
+  <button data-act="tab" data-view="house">House</button>
   <button data-act="tab" data-view="snow">Snow</button>
-  <button data-act="tab" data-view="house">House Info</button>
 </div></nav>
 <dialog id="sheet" tabindex="-1"></dialog>
 <dialog id="confirm" tabindex="-1"></dialog>
@@ -928,7 +927,7 @@ function viewGate(){
     ${S.errText ? `<p class="demo" style="margin-top:14px;overflow-wrap:anywhere">${esc(S.errText)}</p>` : ''}
     <div class="actions"><button class="btn primary" data-act="retry">Try again</button></div></div>`;
   if (S.gate === 'notmember') return `<div class="gate"><h1>You’re not on the lease list</h1>
-    <p class="sub">${esc(sessionEmail)} isn’t a member yet. Ask someone in the house to add this email under House Info, then reload.</p>
+    <p class="sub">${esc(sessionEmail)} isn’t a member yet. Ask someone in the house to add this email under House, then reload.</p>
     <div class="actions"><button class="btn quiet" data-act="signout">Sign out</button></div></div>`;
   return `<div class="gate"><h1>Sign in</h1>
     <p class="sub">Use the Google account the house has on file.</p>
