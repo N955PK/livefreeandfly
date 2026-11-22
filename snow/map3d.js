@@ -325,6 +325,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   terrain.setIndex(new THREE.BufferAttribute(index, 1));
   terrain.computeVertexNormals();
   const ground = new THREE.Mesh(terrain, new THREE.MeshStandardMaterial({vertexColors: true, roughness: 0.92, metalness: 0, ...(globe ? {alphaTest: 0.5} : {transparent: true})}));
+  // The same land with no light on it (every slope the same tone), for when the radar is showing.
+  const litMaterial = ground.material, flatMaterial = new THREE.MeshBasicMaterial({vertexColors: true, ...(globe ? {alphaTest: 0.5} : {transparent: true})});
   ground.renderOrder = 1;
   scene.add(ground);
 
@@ -554,7 +556,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   // every five minutes). The tiles over the map are drawn onto one canvas and read back once, and each terrain vertex
   // takes the color of the radar pixel over it; where there is no echo it keeps the land's own color. The mountains
   // block the beam from the valley radars, so echoes over the high Sierra are patchy: an absence is not a clear sky.
-  const RADAR_ZOOM = 8, RADAR_TILES = "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913", RADAR_TINT = 0.8;
+  // While the radar shows, the land gives up its own colors, its snow and its shading for one flat pale gray, so that
+  // the echoes are the only color and the only tone on the map.
+  const RADAR_ZOOM = 8, RADAR_TILES = "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913", RADAR_TINT = 0.9, RADAR_LAND = [0.9, 0.91, 0.92];
   const radarOf = new Uint8Array(count * 4);
   let radarOn = false;
   async function loadRadar() {
@@ -655,7 +659,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       const tint = dangerOn && zoneOf[v] ? dangerColors[zoneOf[v] - 1] : null;
       const echo = radarOn ? radarOf[4 * v + 3] / 255 * RADAR_TINT : 0;
       for (let k = 0; k < 3; k++) {
-        const land = base[3 * v + k] + s * (SNOW[k] - base[3 * v + k]);
+        const land = radarOn ? RADAR_LAND[k] : base[3 * v + k] + s * (SNOW[k] - base[3 * v + k]);
         const shown = tint ? land + DANGER_TINT * (tint[k] - land) : land;
         colors[4 * v + k] = echo ? shown + echo * (radarOf[4 * v + k] / 255 - shown) : shown;
       }
@@ -823,7 +827,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     setAvalanche,
     showAvalanche(on) { dangerOn = on; paintedAt = -1; },
     // Turns the radar on (fetching the latest picture first; rejects if none could be had) or off.
-    async showRadar(on) { if (on) await loadRadar(); radarOn = on; paintedAt = -1; },
+    async showRadar(on) { if (on) await loadRadar(); radarOn = on; ground.material = on ? flatMaterial : litMaterial; paintedAt = -1; },
     northUp() { glideTo({turn: 0}); },
     // Flat is the view from straight above, north up; leaving it tilts back to the opening angle.
     setFlat(on) { flat = on; glideTo(on ? {polar: FLAT_POLAR, turn: 0} : {polar: HOME_POLAR}); },

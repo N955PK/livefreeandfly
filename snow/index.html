@@ -363,6 +363,7 @@ html.tabs #map3d .map-toggle{top:auto;right:10px;left:auto;width:44px;height:44p
 html.tabs .flatbtn{left:10px;right:auto;bottom:var(--rail);width:44px;height:44px;font-size:14px;color:var(--mark);background:color-mix(in srgb,var(--surface) 84%,transparent)}
 html.tabs #map3d #avyToggle{bottom:var(--rail);height:48px;border-radius:0 0 22px 22px;border-top:1px solid var(--border)}
 html.tabs #map3d #roadPill{bottom:calc(var(--rail) + 48px);height:48px;border-radius:0;border-top:1px solid var(--border)}
+#map3d.nolabels .map-label,#map3d.noshields .map-shield{display:none!important}
 /* Radar is the top button of the same block. Pressed, it wears the app's blue. */
 html.tabs #map3d #radarToggle{bottom:calc(var(--rail) + 96px);height:48px;border-radius:22px 22px 0 0}
 html.tabs #map3d #radarToggle::before{display:none}
@@ -1388,6 +1389,8 @@ if (HOSTED) {
     <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
     <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
     <div class="setrow"><span>Map controls</span><div class="seg" role="group" aria-label="Map controls"><button data-pref="finger" data-value="spin">Default</button><button data-pref="finger" data-value="pan">Pan</button></div></div>
+    <div class="setrow"><span>Mountain labels</span><div class="seg" role="group" aria-label="Mountain labels"><button data-pref="labels" data-value="on">Show</button><button data-pref="labels" data-value="off">Hide</button></div></div>
+    <div class="setrow"><span>Highway shields</span><div class="seg" role="group" aria-label="Highway shields"><button data-pref="shields" data-value="on">Show</button><button data-pref="shields" data-value="off">Hide</button></div></div>
   </div>
   <h4 class="ghead">The forecast</h4>
   <div class="gnav">
@@ -1466,7 +1469,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "189";
+const BUILD = "192";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1501,7 +1504,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 // The reader's choices, kept on their device. The forecast is worked out in inches, °F, mph, and feet; these turn
 // each number into the chosen units at the moment it is written.
 const PREFS_KEY = "turbo-snow.prefs";
-const prefs = {units: "us", clock: "12", finger: "spin", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
+const prefs = {units: "us", clock: "12", finger: "spin", labels: "on", shields: "on", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
 const metric = () => prefs.units === "metric";
 const LEN = () => metric() ? "cm" : "in", DEG = () => metric() ? "°C" : "°F", SPEED = () => metric() ? "km/h" : "mph";
 const asLen = (inchesDeep) => inchesDeep == null ? null : metric() ? inchesDeep * 2.54 : inchesDeep;
@@ -2926,7 +2929,13 @@ const dragEnd = () => {
 document.addEventListener("touchend", dragEnd, {passive: true});
 document.addEventListener("touchcancel", dragEnd, {passive: true});
 applyLayout("map");
-function showPrefs() { for (const b of document.querySelectorAll("[data-pref]")) b.setAttribute("aria-pressed", prefs[b.dataset.pref] === b.dataset.value); placeSegs(); }
+function showPrefs() {
+  for (const b of document.querySelectorAll("[data-pref]")) b.setAttribute("aria-pressed", prefs[b.dataset.pref] === b.dataset.value);
+  // The map's name tags and highway shields can each be put away.
+  $("map3d").classList.toggle("nolabels", prefs.labels === "off");
+  $("map3d").classList.toggle("noshields", prefs.shields === "off");
+  placeSegs();
+}
 showPrefs();
 document.addEventListener("click", (event) => {
   const b = event.target.closest && event.target.closest("[data-pref]");
