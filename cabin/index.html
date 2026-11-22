@@ -48,7 +48,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 button{background:none;border:0;cursor:pointer}
 html,body,button,a,label,input,select,textarea{touch-action:manipulation}
 button,a.btn,label.btn,.chip,.tabs,.dow{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-button:active,a.btn:active,label.btn:active{opacity:.6}
+/* The look shared with Turbo Snow. What can be tapped is round-ended (a pill or a circle) and what cannot is squared
+   off (6px for a tag, 11px for a card). Nothing flashes or fades when pressed: it dips for as long as the finger is
+   down (.pressed, put on at the touch) and springs back when it lifts (.sprung), which is when the tap counts. A
+   bar of choices, and anything wide, dips only a little (.aspill). */
+.pressed:not(#_){transform:scale(.92);transition:transform .12s ease-out}
+.pressed.aspill:not(#_){transform:scale(.965)}
+.sprung:not(#_){transition:transform .32s cubic-bezier(.3,1.6,.5,1)}
+@media (prefers-reduced-motion:reduce){.pressed:not(#_){transform:none}}
 a{color:var(--accent-ink)}
 :focus-visible{outline:2px solid var(--accent-ink);outline-offset:2px;border-radius:8px}
 
@@ -67,18 +74,32 @@ main{max-width:620px;margin:0 auto;padding:6px 18px 110px}
 .snowframe{position:fixed;left:0;right:0;top:var(--frame-top,60px);bottom:var(--frame-bottom,52px);z-index:4;background:var(--bg)}
 .snowframe[hidden]{display:none}
 .snowframe iframe{display:block;width:100%;height:100%;border:0}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);
-  padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabs div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
-.tabs button{font-family:var(--mono);font-size:13px;letter-spacing:.05em;padding:16px 4px 15px;color:var(--dim);
-  border-top:2px solid transparent;margin-top:-1px}
-.tabs button[aria-current="page"]{color:var(--ink);border-top-color:var(--accent)}
+/* The tabs are a floating pill of frosted glass, as in Turbo Snow: the page runs under it, and a capsule slides to
+   the open tab. The glass is a layer of its own (::before) so the capsule moving over it never redoes the blur. */
+.tabs{position:fixed;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;margin:0 auto;
+  width:min(calc(100vw - 20px),440px);box-sizing:border-box;padding:6px;border-radius:999px}
+.tabs::before{content:"";position:absolute;inset:0;border-radius:999px;border:1px solid color-mix(in srgb,var(--sheet) 55%,transparent);
+  background:linear-gradient(color-mix(in srgb,var(--sheet) 50%,transparent),color-mix(in srgb,var(--sheet) 38%,transparent));
+  -webkit-backdrop-filter:blur(16px) saturate(1.9);backdrop-filter:blur(16px) saturate(1.9);
+  box-shadow:0 8px 28px rgba(5,8,11,.18),0 1px 3px rgba(5,8,11,.1),inset 0 1px 0 color-mix(in srgb,#fff 55%,transparent),inset 0 -1px 0 color-mix(in srgb,#fff 12%,transparent)}
+.tabs div{position:relative;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs div::before{content:"";position:absolute;top:0;left:0;width:25%;height:46px;border-radius:999px;
+  background:color-mix(in srgb,var(--ink) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 9%,transparent);
+  transition:transform .34s cubic-bezier(.3,1.25,.4,1)}
+.tabs div:not(:has([aria-current]))::before{opacity:0}
+.tabs div:has(button:nth-child(2)[aria-current])::before{transform:translateX(100%)}
+.tabs div:has(button:nth-child(3)[aria-current])::before{transform:translateX(200%)}
+.tabs div:has(button:nth-child(4)[aria-current])::before{transform:translateX(300%)}
+.tabs button{position:relative;z-index:1;height:46px;padding:0 4px;border-radius:999px;font-family:var(--mono);font-size:13px;letter-spacing:.03em;color:var(--dim);white-space:nowrap}
+.tabs button[aria-current="page"]{color:var(--ink)}
+@media (max-width:380px){.tabs button{font-size:12px;letter-spacing:0}}
+@media (prefers-reduced-motion:reduce){.tabs div::before{transition:none}}
 
 /* ---- type ---- */
 h1{font-family:var(--mono);font-size:var(--t-title);font-weight:600;letter-spacing:.01em;line-height:1.2;margin-top:10px}
 h2{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spacing:.08em;margin:30px 0 10px;text-transform:uppercase;color:var(--dim)}
 .sub{color:var(--dim);font-size:var(--t-sub);margin-top:4px}
-.demo{font-size:var(--t-cap);color:var(--dim);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px}
+.demo{font-size:var(--t-cap);color:var(--dim);border:1px dashed var(--line);border-radius:6px;padding:8px 12px;margin-bottom:8px}
 
 /* ---- member chip ---- */
 .chip{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;border-radius:50%;
@@ -106,7 +127,7 @@ h2{font-family:var(--mono);font-size:var(--t-label);font-weight:600;letter-spaci
 .ava .btns{display:flex;flex-wrap:wrap;gap:8px}
 .ava label{margin:0}
 .emo-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:12px}
-.emo-row button{display:flex;align-items:center;justify-content:center;width:100%;height:auto;aspect-ratio:1/1;padding:0;line-height:1;font-size:clamp(18px,6vw,24px);border:1px solid var(--line);border-radius:10px}
+.emo-row button{display:flex;align-items:center;justify-content:center;width:100%;height:auto;aspect-ratio:1/1;padding:0;line-height:1;font-size:clamp(18px,6vw,24px);border:1px solid var(--line);border-radius:50%}
 .emo-row:not(.open) .xtra{display:none}
 .emo-row button.more-btn{font-size:12px;line-height:1.1;padding:0 2px;color:var(--dim)}
 .emoji-catcher{position:absolute;left:0;width:1px;height:1px;margin:0;padding:0;border:0;overflow:hidden;opacity:0;pointer-events:none;font-size:16px;line-height:1;white-space:nowrap;-webkit-user-select:text;user-select:text;caret-color:transparent;outline:none}
@@ -127,18 +148,15 @@ a.btn{text-decoration:none}
 
 /* ---- month ---- */
 .mnav{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
-.mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.mnav button{font-family:var(--mono);font-size:18px;width:44px;height:40px;border:1px solid var(--line);border-radius:999px;color:var(--ink)}
 .mnav button:disabled{opacity:.25;cursor:default}
 .mnav h2{margin:0;font-size:var(--t-widget);text-transform:none;letter-spacing:.04em;color:var(--ink)}
 .dow,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .pager{position:relative;overflow:hidden;margin:-2px -4px;padding:2px 4px;touch-action:pan-y pinch-zoom;-webkit-user-select:none;user-select:none}
 .track{position:relative}
 .mpage.side{position:absolute;top:0;width:100%}
-.pager.swiping .day:active{opacity:1}
-.pager.swiping .day.past:active{opacity:.5}
-.pager.swiping .day.out:active{opacity:.45}
 .dow span{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;padding-bottom:4px}
-.day{position:relative;aspect-ratio:1/1.12;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+.day{position:relative;aspect-ratio:1/1.12;border:1px solid var(--line);border-radius:14px;background:var(--panel);
   padding:5px 5px 4px;display:flex;flex-direction:column;align-items:flex-start;min-width:0;text-align:left}
 .day .num{font-family:var(--mono);font-size:12.5px;font-weight:600;line-height:1}
 .day .cnt{position:absolute;top:5px;right:6px;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1}
@@ -173,12 +191,15 @@ a.btn{text-decoration:none}
 .sw{display:inline-block;flex:0 0 auto;width:16px;height:16px;border-radius:5px;border:1px solid var(--line);vertical-align:-3px;margin-right:6px;background-image:repeating-linear-gradient(135deg,rgba(214,153,46,.6) 0 3px,transparent 3px 6px)}
 
 /* ---- looks: each person picks light or dark and an accent color ---- */
-.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:6px}
-.seg button{min-height:44px;font-size:var(--t-btn);font-weight:600;color:var(--dim);background:transparent}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.seg{position:relative;display:grid;grid-template-columns:repeat(3,1fr);padding:3px;border-radius:999px;background:color-mix(in srgb,var(--ink) 8%,transparent);margin-top:6px}
+.seg::before{content:"";position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);border-radius:999px;background:var(--field);box-shadow:0 1px 2px rgba(0,0,0,.14);transition:transform .3s cubic-bezier(.3,1.2,.4,1)}
+.seg:not(:has([aria-pressed="true"]))::before{opacity:0}
+.seg:has(button:nth-child(2)[aria-pressed="true"])::before{transform:translateX(100%)}
+.seg:has(button:nth-child(3)[aria-pressed="true"])::before{transform:translateX(200%)}
+.seg button{position:relative;z-index:1;min-height:40px;border-radius:999px;font-size:var(--t-btn);font-weight:600;color:var(--dim);background:transparent}
+.seg button[aria-pressed="true"]{color:var(--ink)}
 .accents{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-top:6px}
-.accents button{display:flex;align-items:center;gap:6px;min-width:0;padding:10px 6px 10px 8px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:var(--t-cap);color:var(--ink);text-align:left}
+.accents button{display:flex;align-items:center;gap:6px;min-width:0;padding:10px 8px 10px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:var(--t-cap);color:var(--ink);text-align:left}
 .accents button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .accents .dot{flex:0 0 auto;width:16px;height:16px;border-radius:50%}
 .accents .dot.disco{background:conic-gradient(#ff5c39,#ffd23f,#39d0a4,#3aa8ff,#d95ce8,#ff5c39)}
@@ -214,27 +235,27 @@ a.btn{text-decoration:none}
 .empty{color:var(--dim);font-size:var(--t-sub);padding:14px 2px}
 
 /* ---- money ---- */
-.bal{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px}
+.bal{margin-top:16px;border:1px solid var(--line);border-radius:11px;background:var(--panel);padding:16px}
 .bal .l{font-size:var(--t-sub);color:var(--dim)}
 .bal .v{font-family:var(--sans);font-size:36px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.15}
 
 /* ---- buttons ---- */
-.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:12px;
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:999px;
   border:1px solid var(--line);font-size:var(--t-btn);font-weight:600;color:var(--ink);background:var(--panel)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.btn.small{min-height:36px;padding:0 12px;font-size:var(--t-btn-sm);border-radius:10px}
+.btn.small{min-height:36px;padding:0 14px;font-size:var(--t-btn-sm)}
 .btn:disabled{opacity:.4;cursor:default}
 .rowi.tight{gap:8px}
 .rowi.tight .amt{min-width:72px;text-align:right}
-.rowi .amt.veil{min-height:34px;padding:2px 12px;border:1px dashed var(--line);border-radius:8px;background:none;color:var(--dim);font:inherit;font-weight:600;letter-spacing:2px;cursor:pointer}
+.rowi .amt.veil{min-height:34px;padding:2px 12px;border:1px dashed var(--line);border-radius:999px;background:none;color:var(--dim);font:inherit;font-weight:600;letter-spacing:2px;cursor:pointer}
 .priv .rowi.item .amt,.priv .rowi.item .amt.veil{font-weight:400}     /* the two sources of the refund sit lighter than the totals they make up */
 .priv[data-on] .amt.veil{border-style:solid;color:var(--ink);letter-spacing:0}
 .list li.final{border-top:2px solid var(--dim)}
 @media (max-width:340px){.rowi.tight .amt{min-width:0}}
 .list.soft .t,.list.soft .amt:not(.pos):not(.neg){color:var(--ink2)}
-.qrbox{background:#fff;border-radius:16px;padding:6px;width:min(78vw,300px);margin:16px auto 6px}
+.qrbox{background:#fff;border-radius:11px;padding:6px;width:min(78vw,300px);margin:16px auto 6px}
 .qrbox svg{display:block;width:100%;height:auto}
-.rowi .vbtn{flex:0 0 auto;min-height:32px;padding:0 6px;font-size:var(--t-btn-sm);font-weight:500;color:var(--dim)}
+.rowi .vbtn{flex:0 0 auto;min-height:32px;padding:0 8px;border-radius:999px;font-size:var(--t-btn-sm);font-weight:500;color:var(--dim)}
 .money .sechead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:30px 0 10px}
 .money .sechead h2{margin:0}
 .key{display:inline-flex;align-items:center;gap:12px;font-size:var(--t-cap);color:var(--dim);white-space:nowrap}
@@ -261,7 +282,7 @@ dd{overflow-wrap:anywhere;white-space:pre-line}
 
 /* ---- sheet ---- */
 dialog{border:0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));background:var(--sheet);color:var(--ink);
-  width:100%;max-width:620px;margin:auto auto 0;border-radius:20px 20px 0 0;max-height:90%;overflow:auto;
+  width:100%;max-width:620px;margin:auto auto 0;border-radius:26px 26px 0 0;max-height:90%;overflow:auto;
   border-top:1px solid var(--line)}
 dialog{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}
 dialog input,dialog select,dialog textarea{min-width:0;max-width:100%}
@@ -273,7 +294,7 @@ dialog[open]{animation:up .14s ease-out}
 @keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){dialog[open]{animation:none}}
 dialog:focus,dialog:focus-visible{outline:none}
-#confirm{margin:auto;width:calc(100% - 36px);max-width:380px;border-radius:18px;border:1px solid var(--line);padding:20px 18px;max-height:80%}
+#confirm{margin:auto;width:calc(100% - 36px);max-width:380px;border-radius:26px;border:1px solid var(--line);padding:20px 18px;max-height:80%}
 dialog h2{margin:26px 0 8px;}
 dialog h2:first-child{margin:0 0 4px;font-size:var(--t-panel);letter-spacing:.04em;text-transform:none;color:var(--ink)}   /* a panel's own title */
 label[hidden]{display:none}
@@ -298,11 +319,11 @@ input[type="checkbox"]{display:inline-block;width:24px;height:24px;min-height:24
 .err{color:var(--neg)}
 .err:empty{display:none}
 .step{display:flex;align-items:center;gap:14px;margin-top:6px}
-.step button{width:46px;height:46px;border:1px solid var(--line);border-radius:12px;font-size:20px;font-family:var(--mono)}
+.step button{width:46px;height:46px;border:1px solid var(--line);border-radius:50%;font-size:20px;font-family:var(--mono)}
 .step output{font-family:var(--mono);font-size:20px;min-width:24px;text-align:center}
 
 #toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;
-  background:var(--ink);color:var(--bg);font-size:var(--t-sub);padding:10px 16px;border-radius:999px;max-width:88%;
+  background:var(--ink);color:var(--bg);font-size:var(--t-sub);padding:10px 16px;border-radius:11px;max-width:88%;
   opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 
@@ -931,7 +952,7 @@ function showSnow(on){
   box.hidden = !on;
   if (!on) return;
   document.documentElement.style.setProperty('--frame-top', $('.top').getBoundingClientRect().bottom + 'px');
-  document.documentElement.style.setProperty('--frame-bottom', $('#tabs').getBoundingClientRect().height + 'px');
+  document.documentElement.style.setProperty('--frame-bottom', Math.max(0, window.innerHeight - $('#tabs').getBoundingClientRect().top) + 'px');
   if (!frame.getAttribute('src')) frame.src = SNOW_URL;
 }
 
@@ -2165,6 +2186,27 @@ $('#photo').addEventListener('click', () => $('#photo').close());
 // Taps and clicks shouldn't leave a focus ring behind; keyboard users keep theirs.
 document.addEventListener('keydown', e => { if (e.key === 'Tab') document.documentElement.classList.add('usingkb'); }, true);
 document.addEventListener('pointerdown', () => document.documentElement.classList.remove('usingkb'), true);
+// The dip under a press (see the CSS): a button dips and stays down until the finger lifts or wanders off into a
+// scroll or a swipe. A choice in the tab bar or a picker dips the whole bar; anything wide dips only a little.
+let held = null;
+function letGo(){
+  if (!held) return;
+  const el = held.el; held = null;
+  el.classList.remove('pressed'); el.classList.add('sprung');
+  setTimeout(() => { if (!el.classList.contains('pressed')) el.classList.remove('sprung'); }, 340);
+}
+document.addEventListener('pointerdown', e => {
+  let el = e.target.closest && e.target.closest('button, a.btn, label.btn');
+  if (!el || el.disabled || el.closest('.grid.picking, #wheelWrap')) return;
+  const bar = el.closest('.tabs, .seg');
+  if (bar) el = bar;
+  letGo();
+  held = { el, x: e.clientX, y: e.clientY };
+  el.classList.toggle('aspill', !!bar || el.offsetWidth > 180);
+  el.classList.remove('sprung'); el.classList.add('pressed');
+}, { passive: true });
+document.addEventListener('pointermove', e => { if (held && Math.hypot(e.clientX - held.x, e.clientY - held.y) > 10) letGo(); }, { passive: true });
+['pointerup', 'pointercancel', 'blur'].forEach(kind => window.addEventListener(kind, letGo, { passive: true }));
 $('#photo').addEventListener('close', () => {
   const el = S.photoFrom; S.photoFrom = null;
   if (!el || document.documentElement.classList.contains('usingkb')) return;
