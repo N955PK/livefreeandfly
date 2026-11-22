@@ -171,8 +171,11 @@ button,summary,label.mtnpick,label.regionpick{-webkit-touch-callout:none}
 }
 /* The strip takes touches like any other element (it covers only the status strip, where there is nothing to press):
    an iPhone looks for a solid bar at the top edge by touching it, and one that lets touches through is not found,
-   so the phone blurs the edge itself. ski/lease's strip is built this way and is not blurred. */
-html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(var(--sat),4px);z-index:7;background:var(--page)}
+   so the phone blurs the edge itself. ski/lease's strip is built this way and is not blurred.
+   The strip also reaches 5px below the status strip: the phone looks just under that line for something held in
+   place, and in ski/lease finds the header (which never scrolls away); here the header does scroll, so the strip
+   itself has to be what it finds. Those 5px are the header's own empty margin, in the same color. */
+html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:calc(var(--sat) + 5px);z-index:7;background:var(--page)}
 html.tabs.stuck #topTint{background:var(--surface)}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
    right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
@@ -3383,18 +3386,11 @@ function reveal() {
   if (revealed) return;
   revealed = true;
   $("splash").classList.add("done");
-  // An iPhone decides how to treat the edge under its status bar from what it finds at the top of the page, and it
-  // looked while the opening screen was over everything. Once that screen has faded it is taken away altogether and
-  // the phone is given cause to look again (the top strip is put back afresh, and the page is nudged a pixel and back),
-  // as scrolling the header off and on does by hand.
+  // Once it has faded the opening screen is taken out of the page altogether, so it is never what a phone finds
+  // when it looks at the top edge to decide how to treat the strip under its status bar.
   setTimeout(() => {
     $("splash").style.display = "none";
-    const tint = $("topTint");
-    tint.style.display = "none"; void tint.offsetHeight; tint.style.display = "";
     markTop.done = false; markTop();
-    const x = window.scrollX, y = window.scrollY;
-    window.scrollTo(x, y + 1);
-    requestAnimationFrame(() => window.scrollTo(x, y));
   }, 320);
 }
 setTimeout(reveal, 8000);
