@@ -362,8 +362,18 @@ html.tabs #map3d .map-toggle{top:auto;right:10px;left:auto;width:44px;height:44p
 .flatbtn[hidden]{display:none}
 html.tabs .flatbtn{left:10px;right:auto;bottom:var(--rail);width:44px;height:44px;font-size:14px;color:var(--mark);background:color-mix(in srgb,var(--surface) 84%,transparent)}
 html.tabs #map3d #avyToggle{bottom:var(--rail);height:48px;border-radius:0 0 22px 22px;border-top:1px solid var(--border)}
-html.tabs #map3d #roadPill{bottom:calc(var(--rail) + 48px);height:48px;border-radius:22px 22px 0 0}
-html.tabs #roadPill:has(+ #avyToggle[hidden]){border-radius:22px}
+html.tabs #map3d #roadPill{bottom:calc(var(--rail) + 48px);height:48px;border-radius:0;border-top:1px solid var(--border)}
+/* Radar is the top button of the same block. Pressed, it wears the app's blue. */
+html.tabs #map3d #radarToggle{bottom:calc(var(--rail) + 96px);height:48px;border-radius:22px 22px 0 0}
+html.tabs #map3d #radarToggle::before{display:none}
+#radarToggle svg{width:22px;height:22px;fill:none;stroke:var(--mark);stroke-width:2;stroke-linecap:round}
+#radarToggle svg circle{fill:var(--mark);stroke:none}
+html.tabs #radarToggle[aria-pressed=true]{background:var(--accent)}
+#radarToggle[aria-pressed=true] svg{stroke:#fff}
+#radarToggle[aria-pressed=true] svg circle{fill:#fff}
+#radarToggle.busy svg{opacity:.45}
+html.tabs #map3d #radarToggle:has(+ #roadPill[hidden]):has(~ #avyToggle[hidden]){border-radius:22px}
+html.tabs #map3d #roadPill:has(+ #avyToggle[hidden]){border-radius:0 0 22px 22px}
 html.tabs #avyToggle[aria-pressed=true]{background:var(--ink)}
 html.tabs .roadpill svg{stroke:var(--mark)}
 html.tabs #roadPill::before{border-color:var(--surface)}
@@ -1336,7 +1346,7 @@ if (HOSTED) {
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
   <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
-    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="flatbtn" id="flatToggle" aria-label="Switch to the flat view from above" hidden>2D</button><button class="map-toggle roadpill" id="roadPill" hidden>Roads</button><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button><div class="map-key" id="avyKey" hidden></div></div>
+    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="flatbtn" id="flatToggle" aria-label="Switch to the flat view from above" hidden>2D</button><button class="map-toggle" id="radarToggle" aria-pressed="false" aria-label="Weather radar" title="Weather radar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.800 16.200a6 6 0 0 1 0-8.400M16.200 7.800a6 6 0 0 1 0 8.400M4.600 19.400a10.500 10.500 0 0 1 0-14.800M19.400 4.600a10.500 10.500 0 0 1 0 14.800"/></svg></button><button class="map-toggle roadpill" id="roadPill" hidden>Roads</button><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button><div class="map-key" id="avyKey" hidden></div></div>
     <div class="mapbar">
       <button id="play" aria-label="Play the storm"></button>
       <div class="ticks"><input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Storm time"><button id="toNow" aria-label="Back to now">now</button></div>
@@ -1456,7 +1466,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "188";
+const BUILD = "189";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -3130,10 +3140,15 @@ async function startMap() {
       $("play").addEventListener("click", () => togglePlay(!playing));
       for (const id of ["toNow", "backNow"]) $(id).addEventListener("click", () => { togglePlay(false); setTime(map.nowStep); });
       $("avyToggle").addEventListener("click", () => { avyOn = !avyOn; mapAvalanche(); });
+      $("radarToggle").addEventListener("click", () => { radarOn = !radarOn; mapRadar(); });
+      // The radar is redrawn every five minutes at its source; while it is showing, so is this.
+      setInterval(() => { if (radarOn && document.documentElement.dataset.view === "map") mapRadar(); }, 5 * 60 * 1000);
       setInterval(loadRoads, 5 * 60 * 1000);
     }
     setTime(map.nowStep);
     mapAvalanche();
+    $("radarToggle").hidden = false;
+    if (radarOn) mapRadar();
     loadRoads();
   } catch (error) { $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
 }
@@ -3381,6 +3396,17 @@ document.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-goto]");
   if (b) goTo($(b.dataset.goto));
 });
+// The weather radar on the map: fetched when it is switched on, and switched back off if it cannot be had.
+let radarOn = false;
+async function mapRadar() {
+  const button = $("radarToggle"), asked = map;
+  button.setAttribute("aria-pressed", radarOn);
+  if (!map) return;
+  button.classList.toggle("busy", radarOn);
+  try { await map.showRadar(radarOn); }
+  catch (error) { if (map === asked) { radarOn = false; button.setAttribute("aria-pressed", "false"); button.title = navigator.onLine ? "The radar could not be loaded right now" : "The radar needs a signal"; map.showRadar(false); } }
+  button.classList.remove("busy");
+}
 function mapAvalanche() {
   const zones = zonesHere();
   $("avyToggle").hidden = !map || !zones.length;

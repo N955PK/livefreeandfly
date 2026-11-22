@@ -549,6 +549,41 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     paintedAt = -1;
   }
 
+  // ---------- weather radar, laid on the land ----------
+  // The national radar mosaic (NEXRAD base reflectivity, from the Iowa Environmental Mesonet's tile cache, redrawn
+  // every five minutes). The tiles over the map are drawn onto one canvas and read back once, and each terrain vertex
+  // takes the color of the radar pixel over it; where there is no echo it keeps the land's own color. The mountains
+  // block the beam from the valley radars, so echoes over the high Sierra are patchy: an absence is not a clear sky.
+  const RADAR_ZOOM = 8, RADAR_TILES = "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913", RADAR_TINT = 0.8;
+  const radarOf = new Uint8Array(count * 4);
+  let radarOn = false;
+  async function loadRadar() {
+    const n = 2 ** RADAR_ZOOM, tileX = (lon) => (lon + 180) / 360 * n;
+    const tileY = (lat) => { const r = lat * Math.PI / 180; return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n; };
+    const x0 = Math.floor(tileX(meta.lon_w)), x1 = Math.floor(tileX(meta.lon_e)), y0 = Math.floor(tileY(meta.lat_n)), y1 = Math.floor(tileY(meta.lat_s));
+    const sheet = document.createElement("canvas");
+    sheet.width = (x1 - x0 + 1) * 256; sheet.height = (y1 - y0 + 1) * 256;
+    const pen = sheet.getContext("2d", {willReadFrequently: true}), stamp = Math.floor(Date.now() / 300000);
+    const jobs = [];
+    for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) jobs.push(new Promise((done) => {
+      const tile = new Image();
+      tile.crossOrigin = "anonymous";
+      tile.onload = () => { pen.drawImage(tile, (x - x0) * 256, (y - y0) * 256); done(true); };
+      tile.onerror = () => done(false);
+      tile.src = `${RADAR_TILES}/${RADAR_ZOOM}/${x}/${y}.png?t=${stamp}`;
+    }));
+    const got = await Promise.all(jobs);
+    if (!got.some(Boolean)) throw new Error("no radar tiles");
+    const pixels = pen.getImageData(0, 0, sheet.width, sheet.height).data;
+    for (let v = 0; v < count; v++) {
+      const lon = meta.lon_w + (positions[3 * v] / W + 0.5) * (meta.lon_e - meta.lon_w), lat = meta.lat_s + (positions[3 * v + 1] / H + 0.5) * (meta.lat_n - meta.lat_s);
+      const px = Math.min(sheet.width - 1, Math.max(0, Math.floor((tileX(lon) - x0) * 256))), py = Math.min(sheet.height - 1, Math.max(0, Math.floor((tileY(lat) - y0) * 256)));
+      const at = 4 * (py * sheet.width + px);
+      radarOf[4 * v] = pixels[at]; radarOf[4 * v + 1] = pixels[at + 1]; radarOf[4 * v + 2] = pixels[at + 2]; radarOf[4 * v + 3] = pixels[at + 3];
+    }
+    paintedAt = -1;
+  }
+
   // ---------- falling snow (fills the whole view, from well above the peaks) ----------
   const flakePositions = new Float32Array(FLAKES * 3), flakeSpeed = new Float32Array(FLAKES);
   const flakeSize = new Float32Array(FLAKES), flakeSeed = new Float32Array(FLAKES);
@@ -618,9 +653,11 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       const amount = fell + lying * WHITEN_AT_IN / PACK_WHITE_IN;
       const w = Math.min(1, amount / WHITEN_AT_IN), s = w * w * (3 - 2 * w);
       const tint = dangerOn && zoneOf[v] ? dangerColors[zoneOf[v] - 1] : null;
+      const echo = radarOn ? radarOf[4 * v + 3] / 255 * RADAR_TINT : 0;
       for (let k = 0; k < 3; k++) {
         const land = base[3 * v + k] + s * (SNOW[k] - base[3 * v + k]);
-        colors[4 * v + k] = tint ? land + DANGER_TINT * (tint[k] - land) : land;
+        const shown = tint ? land + DANGER_TINT * (tint[k] - land) : land;
+        colors[4 * v + k] = echo ? shown + echo * (radarOf[4 * v + k] / 255 - shown) : shown;
       }
     }
     terrain.attributes.color.needsUpdate = true;
@@ -785,6 +822,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     // zones: [{rings: [[[lon, lat], ...], ...], color: "#rrggbb", ink, label, title}], one per avalanche forecast zone.
     setAvalanche,
     showAvalanche(on) { dangerOn = on; paintedAt = -1; },
+    // Turns the radar on (fetching the latest picture first; rejects if none could be had) or off.
+    async showRadar(on) { if (on) await loadRadar(); radarOn = on; paintedAt = -1; },
     northUp() { glideTo({turn: 0}); },
     // Flat is the view from straight above, north up; leaving it tilts back to the opening angle.
     setFlat(on) { flat = on; glideTo(on ? {polar: FLAT_POLAR, turn: 0} : {polar: HOME_POLAR}); },
