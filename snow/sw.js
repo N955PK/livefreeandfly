@@ -11,6 +11,12 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icon
   'data/terrain-mammoth.json?v=3', 'data/terrain-mammoth.bin?v=3', 'data/roads-mammoth.json?v=3'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
+// The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale
+// signs, and the drawing for each kind of avalanche problem. They never change, so the saved copy is always used.
+const SIGNS = 'https://nac-web-platforms.s3.us-west-1.amazonaws.com/assets/danger-icons/';
+const PROBLEMS = 'https://api.avalanche.org/img/avalanche_problems/';
+const ARTWORK = [...[0, 1, 2, 3, 4, 5].map((level) => `${SIGNS}${level}.png`),
+  ...['DryLoose', 'StormSlab', 'WindSlab', 'PersistentSlab', 'DeepPersistentSlab', 'WetLoose', 'WetSlab', 'Cornice', 'Glide'].map((name) => `${PROBLEMS}${name}.png`)];
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
@@ -18,6 +24,8 @@ self.addEventListener('install', (e) => {
     // One missing file must not stop the rest from being saved.
     await Promise.all([...SHELL, ...MODULES.map((url) => new Request(url, { mode: 'cors' }))]
       .map((item) => c.add(item).catch(() => {})));
+    // Another site's pictures can be saved but not read, so they are stored as they come (c.add would refuse them).
+    await Promise.all(ARTWORK.map((url) => fetch(new Request(url, { mode: 'no-cors' })).then((res) => c.put(url, res)).catch(() => {})));
     await self.skipWaiting();
   })());
 });
@@ -55,6 +63,16 @@ async function savedFirst(req) {
   }
 }
 
+// A picture that never changes: the saved copy if there is one, otherwise fetched and saved for next time.
+async function keptPicture(req) {
+  const c = await caches.open(VERSION);
+  const saved = await c.match(req.url);
+  if (saved) return saved;
+  const res = await fetch(req);
+  if (res.ok || res.type === 'opaque') c.put(req.url, res.clone());
+  return res;
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
@@ -65,6 +83,7 @@ self.addEventListener('fetch', (e) => {
   }
   // The local forecast file is only used when developing; the published one comes from another site.
   if (url.origin === location.origin && url.pathname === scope.pathname + 'data/forecast.json') return;
+  if (url.href.startsWith(SIGNS) || url.href.startsWith(PROBLEMS)) return e.respondWith(keptPicture(req));
   if ((url.origin === location.origin && url.pathname.startsWith(scope.pathname)) || url.href.startsWith(THREE)) {
     return e.respondWith(savedFirst(req));
   }
