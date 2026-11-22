@@ -161,7 +161,6 @@ button,summary,label.mtnpick,label.regionpick{-webkit-touch-callout:none}
 /* The strip at the very top of a phone's screen (clock, battery) takes its color from what the page puts there. A thin
    fixed band holds that color: the page's gray while the header shows, the pane's own color once a frozen bar is
    pinned under it (html.stuck). The page's theme color is kept in step with it. */
-#topTint{display:none}
 /* On a phone in tabs the page itself is the panes' color, so the header, a pinned bar and the screen's top strip are
    all one color whatever the phone takes the strip's color from. */
 @media (max-width:720px){
@@ -175,8 +174,11 @@ button,summary,label.mtnpick,label.regionpick{-webkit-touch-callout:none}
    The strip also reaches 5px below the status strip: the phone looks just under that line for something held in
    place, and in ski/lease finds the header (which never scrolls away); here the header does scroll, so the strip
    itself has to be what it finds. Those 5px are the header's own empty margin, in the same color. */
-html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:calc(var(--sat) + 5px);z-index:7;background:var(--page)}
-html.tabs.stuck #topTint{background:var(--surface)}
+/* It is there from the first frame and above everything, the opening screen included. A phone settles on the color
+   and treatment of its status strip from what it finds here when the page first shows, and does not look again until
+   the page is next scrolled: were the opening screen on top, its blue would stay in the strip after it had gone. */
+#topTint{position:fixed;top:0;left:0;right:0;height:calc(var(--sat) + 5px);z-index:2147483001;background:var(--surface)}
+@media (min-width:721px){#topTint{background:var(--page)}html.tabs.stuck #topTint{background:var(--surface)}}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
    right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
 html.tabs .dtop{position:sticky;top:var(--sat);z-index:6;box-sizing:border-box;height:129px;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
