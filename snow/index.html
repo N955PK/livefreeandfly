@@ -894,6 +894,10 @@ html.tabs .map-label{border-radius:17px;padding-left:11px;padding-right:11px}
 /* The name column stays put while the days slide under it, so its cells are square and opaque: nothing sliding by
    shows at a corner. The chosen mountain's round-ended highlight is drawn on top of that. */
 html.tabs .heat td.name{border-radius:0}
+/* The frozen name column is frozen where it already stands (4px in from the table's edge), not at the edge itself,
+   so it does not slide those 4px left as a sideways pan begins. A strip of the page's color fills the gap beside it. */
+html.tabs .heat td.name,html.tabs .heat tr.head th.corner{left:4px}
+html.tabs .heat td.name::after,html.tabs .heat th.corner::after{content:"";position:absolute;top:-2px;bottom:-2px;right:100%;width:5px;background:var(--surface)}
 html.tabs .heat tr.on td.name{background:var(--surface);border-radius:0;box-shadow:none}
 html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 0 0;z-index:-1;border-radius:26px 0 0 26px;background:var(--pick)}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
