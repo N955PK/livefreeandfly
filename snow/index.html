@@ -298,8 +298,10 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
   html.tabs table.heat{border-spacing:2px;padding:4px 2px 8px}
   html.tabs .cell{min-width:29px;height:40px;border-radius:6px;font-size:13px}
   html.tabs .heat td.name{padding:4px 4px 4px 10px}
-  html.tabs .heat td.name b{font-size:13.5px}
-  html.tabs .heat td.name span{font-size:11px}
+  /* The name and its elevation sit close, as one label; the row keeps the height it had. */
+  html.tabs .heat td.name{height:51px;box-sizing:border-box}
+  html.tabs .heat td.name b{font-size:13.5px;line-height:1.15}
+  html.tabs .heat td.name span{display:block;font-size:11px;line-height:1.2;margin-top:2px}
   html.tabs .heat td.total{padding:0 5px 0 2px;font-size:14px}
   html.tabs .heat th.day b{font-size:12.5px}
   /* Each pass heads its mountains with its name in the accent blue (the mountains are navy) and a thin rule running to the right edge. */
