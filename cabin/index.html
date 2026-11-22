@@ -827,6 +827,7 @@ function seasonIncludes(sc){
   return `Includes ${esc((labels.length ? labels : ['rent', 'fixed utilities', 'security deposit', 'booking fee']).join(', '))}`;
 }
 function seasonRows(){
+  if (S.me && S.me.part_time) return [];                                         // a part-timer pays a lease, not a share of the season: the section isn't theirs
   const sc = seasonCosts(), me = S.me, myS = me && sc.people.find(x => x.m.id === me.id), pt = pot(), rows = [];
   const full = !!(me && fullTimers().some(m => m.id === me.id)), n = fullTimers().length || 1;
   const cut = pt.heads ? Math.ceil(pt.withheld / pt.heads) : 0, depBack = Math.max(0, pt.each - cut), share = Math.floor((pt.guests + pt.leases) / n);
