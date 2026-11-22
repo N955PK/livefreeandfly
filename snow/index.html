@@ -2334,11 +2334,15 @@ function insightFacts(resort, date, level) {
   // No source says how many days powder keeps, so nothing is claimed past two.
   let dump = null, warmSince = false;
   for (let n = 1; n <= 2 && !dump; n++) { const d = back(n); if (!d) break; if (snowOf(d) >= 4) dump = {ago: n, snow: snowOf(d)}; else if ((tempOf(d) ?? 0) >= 35 || ((d.powder || {}).rain_share || 0) >= 0.3) warmSince = true; }
+  // Snow from a storm stays packed powder for days if it stays cold (resorts go on reporting it so): what fell in the
+  // five days before this one, and whether any of them thawed it or rained on it.
+  let lately = 0, spoiled = false;
+  for (let n = 1; n <= 5; n++) { const d = back(n); if (!d) break; lately += snowOf(d); if ((tempOf(d) ?? 0) >= 35 || ((d.powder || {}).rain_share || 0) >= 0.3) spoiled = true; }
   // The coldest hour of the night before (6 pm to 8 am): whether the snow froze.
   const hours = resort.hours_utc || [], temps = resort.elevations[level].hourly.temp_f || [], from = pacific(dayBefore(date), 18), to = pacific(date, 8);
   let low = null;
   if (from && to) for (let h = 0; h < hours.length; h++) { const t = new Date(hours[h]).getTime(); if (t >= from.getTime() && t <= to.getTime() && temps[h] != null) low = low == null ? temps[h] : Math.min(low, temps[h]); }
-  return {level, ft: resort.elevations[level].elevation_ft, fresh, recent, slr: p.slr, slrChange: p.slr_change || 0, rain: p.rain_share || 0, liquid: day.liquid_in || 0, temp: p.temp_f, prevTemp: tempOf(back(1)), low,
+  return {level, ft: resort.elevations[level].elevation_ft, fresh, recent, slr: p.slr, slrChange: p.slr_change || 0, rain: p.rain_share || 0, liquid: day.liquid_in || 0, temp: p.temp_f, prevTemp: tempOf(back(1)), low, lately, spoiled,
     wind: p.wind_mph || 0, gust: p.gust_mph || 0, from: p.wind_from_deg, sky: p.sky_pct, snowing: p.snowing_hours || 0, night: p.night_in || 0, daytime: p.day_in || 0, dump, warmSince, month: +date.slice(5, 7)};
 }
 // One elevation's surface. The type is the word a resort's own report would use (the ski industry's surface terms:
@@ -2348,12 +2352,12 @@ function insightFacts(resort, date, level) {
 function surface(f) {
   const heavy = f.slr != null && f.slr < 10, light = f.slr != null && f.slr >= 15, windy = f.wind >= 25 || f.gust >= 40;
   const froze = f.low != null ? f.low <= 31 : (f.temp ?? 99) <= 30, thawed = (f.prevTemp ?? 0) >= 35, warm = (f.temp ?? 0) >= 36, sunny = (f.sky ?? 100) <= 60;
-  const soft = f.recent >= 6, kind = heavy ? "dense " : light ? "light, dry " : "";
+  const soft = f.recent >= 6 || (f.lately >= 8 && !f.spoiled), kind = heavy ? "dense " : light ? "light, dry " : "";
   let type, text, q;
   if (f.rain >= 0.5 && f.liquid >= 0.1) [type, text, q] = f.fresh >= 1 ? ["Wet snow", "Rain on the new snow", 0.5] : soft ? ["Wet packed snow", "Rain on packed snow", 0.5] : ["Wet granular", "Rain on old snow", 0.5];
   else if (f.rain >= 0.2 && f.fresh >= 1) [type, text, q] = ["Wet snow", `${inches(f.fresh)} ${LEN()} of wet, heavy new snow`, 3];
   else if (f.fresh >= 3) [type, text, q] = ["Powder", `${inches(f.fresh)} ${LEN()} of ${kind}new snow`, f.fresh >= 12 ? (heavy ? 8 : 10) : f.fresh >= 6 ? (heavy ? 7 : 9) : f.fresh >= 4.5 ? (heavy ? 6 : 8) : (heavy ? 5.5 : 7)];
-  else if (f.fresh >= 1) [type, text, q] = soft ? ["Packed powder", `${inches(f.fresh)} ${LEN()} of new snow on soft snow`, 6] : ["Machine groomed", `${inches(f.fresh)} ${LEN()} of new snow on a firm base`, 4];
+  else if (f.fresh >= 1) [type, text, q] = soft ? ["Packed powder", `${inches(f.fresh)} ${LEN()} of new snow on packed snow`, 6] : ["Machine groomed", `${inches(f.fresh)} ${LEN()} of new snow on a firm base`, 4];
   else if (soft && !warm) [type, text, q] = ["Packed powder", "Packed snow from the last storm", 5.5];
   else if (soft) [type, text, q] = ["Wet packed snow", "Snow from the last storm, going soft", 4];
   else if (warm && froze && sunny) [type, text, q] = ["Corn", "Firm early, soft by late morning", 5];
@@ -2409,7 +2413,7 @@ function insights(resort) {
   if (low.rain >= 0.3 && top.rain < 0.15) notes.push(["Rain line", `It is raining at the base and snowing up top. Stay above ${mid.rain >= 0.3 ? "the upper mountain" : "mid-mountain"}.`]);
   // Wind moves snow from about 10 mph and loads lee slopes most at 15 to 25; stronger than that it strips the ridges
   // and drops the snow lower, in gullies and trees. Lee is simply the side facing away from the wind.
-  if (top.from != null && top.wind >= 15 && (top.fresh >= 2 || top.recent >= 4) && top.rain < 0.3) {
+  if (top.from != null && top.wind >= 15 && (top.fresh >= 2 || top.recent >= 4 || (top.lately >= 8 && !top.spoiled)) && top.rain < 0.3) {
     const windward = compass(top.from), lee = compass((top.from + 180) % 360);
     const caution = wild ? " Check the avalanche forecast before skiing wind-loaded slopes." : "";
     const blowing = `The wind is from the ${windward} at ${speed(top.wind)} ${SPEED()} up top.`;
@@ -2421,7 +2425,7 @@ function insights(resort) {
   const stake = stakeDepth(resort.key, "mid"), ground = stake ?? (resort.observed && resort.observed.depth_in);
   if (ground != null && ground < 40) notes.push(["Cover", `Cover is thin, with ${inches(ground)} ${LEN()} on the ground. Watch for rocks and stumps off the groomed runs.`]);
   if ((mid.sky ?? 100) <= 45 && (mid.temp ?? 0) >= 30 && !/^(Corn|Spring)/.test(best.type)) notes.push(["Sun", mid.month >= 3 && mid.month <= 6 ? "East-facing slopes soften first, then south-facing, then west-facing. North-facing slopes keep the driest snow." : "Only south-facing slopes soften in the sun. Everything else stays cold."]);
-  if ((mid.sky ?? 0) >= 85 && mid.snowing >= 3) notes.push(["Light", "The light is flat while it snows. Ski next to the trees, where you can see the surface."]);
+  if ((mid.sky ?? 0) >= 90) notes.push(["Light", `The light is flat under ${mid.snowing >= 3 ? "the falling snow" : "thick cloud"}. Ski next to the trees, where you can see the surface.`]);
   return `<details class="insight" data-fold="insight"${foldOpen.insight ? " open" : ""}><summary><b>Insights</b></summary>
     <div class="ibody"><div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
     <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 2).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul></div></details>`;
