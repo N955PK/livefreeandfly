@@ -51,7 +51,9 @@
 html.hosted #heat{touch-action:pan-y}
 /* Opened from ski/lease, the opening screen wears that app's accent color in place of Snow's blue. */
 .hosted #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
-#splash.done{opacity:0;visibility:hidden}
+/* From the moment it starts to fade it lets touches through, so a phone that colors its status strip from what it
+   finds at the top of the page turns to the page's color as the fade begins, not a beat after it has ended. */
+#splash.done{opacity:0;visibility:hidden;pointer-events:none}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
 main{max-width:1040px;margin:0 auto;padding:calc(12px + var(--sat)) 16px calc(48px + var(--sab))}
