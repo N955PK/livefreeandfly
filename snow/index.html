@@ -361,21 +361,23 @@ html.tabs #map3d .map-toggle{top:auto;right:10px;left:auto;width:44px;height:44p
   color:#0d366b;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 4px rgba(15,23,32,.2);cursor:pointer}
 .flatbtn[hidden]{display:none}
 html.tabs .flatbtn{left:10px;right:auto;bottom:var(--rail);width:44px;height:44px;font-size:14px;color:var(--mark);background:color-mix(in srgb,var(--surface) 84%,transparent)}
-html.tabs #map3d #avyToggle{bottom:var(--rail);height:48px;border-radius:0 0 22px 22px;border-top:1px solid var(--border)}
-html.tabs #map3d #roadPill{bottom:calc(var(--rail) + 48px);height:48px;border-radius:0;border-top:1px solid var(--border)}
+/* The map's buttons are one block on the right, top to bottom: what is marked on the map (names, highway shields, road
+   conditions), then what is laid over it (radar, avalanche danger). A button that is not showing leaves no gap. */
+html.tabs #map3d .maprail{position:absolute;z-index:400000;right:10px;bottom:var(--rail);width:44px;display:flex;flex-direction:column}
+html.tabs #map3d .maprail .map-toggle{position:relative;inset:auto;flex:none;height:48px;border-radius:0;border-top:1px solid var(--border)}
+html.tabs #map3d .maprail #labelsToggle{border-radius:22px 22px 0 0;border-top:0}
+html.tabs #map3d .maprail #avyToggle,html.tabs #map3d .maprail #radarToggle:has(+ #avyToggle[hidden]),
+html.tabs #map3d .maprail #roadPill:has(+ #radarToggle[hidden]):has(~ #avyToggle[hidden]),
+html.tabs #map3d .maprail #shieldsToggle:has(+ #roadPill[hidden]):has(~ #radarToggle[hidden]):has(~ #avyToggle[hidden]){border-radius:0 0 22px 22px}
 #map3d.nolabels .map-label,#map3d.noshields .map-shield{display:none!important}
-/* Name tags and highway shields each have a button on the map, a block of two above the compass. Put away, the button's mark is faint and struck through. */
-html.tabs #map3d .map-toggle.show{left:10px;right:auto;height:48px}
+/* Name tags and highway shields each have a button. Put away, the button's mark is faint and struck through. */
 html.tabs #map3d .map-toggle.show::before{display:none}
-html.tabs #map3d #labelsToggle{bottom:calc(var(--rail) + 152px);border-radius:22px 22px 0 0}
-html.tabs #map3d #shieldsToggle{bottom:calc(var(--rail) + 104px);border-radius:0 0 22px 22px;border-top:1px solid var(--border)}
 .map-toggle.show svg{width:22px;height:22px;fill:none;stroke:var(--mark);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .map-toggle.show svg circle{fill:var(--mark);stroke:none}
 html.tabs #map3d .map-toggle.show[aria-pressed=false]{color:inherit;background:color-mix(in srgb,var(--surface) 84%,transparent)}
 .map-toggle.show[aria-pressed=false] svg{opacity:.32}
 .map-toggle.show[aria-pressed=false]::after{content:"";position:absolute;left:50%;top:50%;width:26px;height:2px;border-radius:1px;background:var(--mark-dull);transform:translate(-50%,-50%) rotate(-45deg)}
-/* Radar is the top button of the same block. Pressed, it wears the app's blue. */
-html.tabs #map3d #radarToggle{bottom:calc(var(--rail) + 96px);height:48px;border-radius:22px 22px 0 0}
+/* Radar, pressed, wears the app's blue. */
 html.tabs #map3d #radarToggle::before{display:none}
 #radarToggle svg{width:22px;height:22px;fill:none;stroke:var(--mark);stroke-width:2;stroke-linecap:round}
 #radarToggle svg circle{fill:var(--mark);stroke:none}
@@ -383,8 +385,6 @@ html.tabs #radarToggle[aria-pressed=true]{background:var(--accent)}
 #radarToggle[aria-pressed=true] svg{stroke:#fff}
 #radarToggle[aria-pressed=true] svg circle{fill:#fff}
 #radarToggle.busy svg{opacity:.45}
-html.tabs #map3d #radarToggle:has(+ #roadPill[hidden]):has(~ #avyToggle[hidden]){border-radius:22px}
-html.tabs #map3d #roadPill:has(+ #avyToggle[hidden]){border-radius:0 0 22px 22px}
 html.tabs #avyToggle[aria-pressed=true]{background:var(--ink)}
 html.tabs .roadpill svg{stroke:var(--mark)}
 html.tabs #roadPill::before{border-color:var(--surface)}
@@ -1370,7 +1370,7 @@ if (HOSTED) {
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
   <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
-    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="flatbtn" id="flatToggle" aria-label="Switch to the flat view from above" hidden>2D</button><button class="map-toggle show" id="labelsToggle" aria-pressed="true" aria-label="Mountain labels" title="Mountain labels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.500 12.600V4.500a1 1 0 0 1 1-1h8.100a1 1 0 0 1 .700.300l7.400 7.400a1 1 0 0 1 0 1.400l-8.100 8.100a1 1 0 0 1-1.400 0l-7.400-7.400a1 1 0 0 1-.300-.700z"/><circle cx="8" cy="8" r="1.400"/></svg></button><button class="map-toggle show" id="shieldsToggle" aria-pressed="true" aria-label="Highway shields" title="Highway shields"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.200c2.300 1.300 4.700 1.900 7.200 1.900.500 6.700-1.900 12-7.200 15.700C6.700 17.100 4.300 11.800 4.800 5.100c2.500 0 4.900-.600 7.200-1.900z"/></svg></button><button class="map-toggle" id="radarToggle" aria-pressed="false" aria-label="Weather radar" title="Weather radar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.800 16.200a6 6 0 0 1 0-8.400M16.200 7.800a6 6 0 0 1 0 8.400M4.600 19.400a10.500 10.500 0 0 1 0-14.800M19.400 4.600a10.500 10.500 0 0 1 0 14.800"/></svg></button><button class="map-toggle roadpill" id="roadPill" hidden>Roads</button><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button><div class="map-key" id="avyKey" hidden></div></div>
+    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="flatbtn" id="flatToggle" aria-label="Switch to the flat view from above" hidden>2D</button><div class="maprail"><button class="map-toggle show" id="labelsToggle" aria-pressed="true" aria-label="Mountain labels" title="Mountain labels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.500 12.600V4.500a1 1 0 0 1 1-1h8.100a1 1 0 0 1 .700.300l7.400 7.400a1 1 0 0 1 0 1.400l-8.100 8.100a1 1 0 0 1-1.400 0l-7.400-7.400a1 1 0 0 1-.300-.700z"/><circle cx="8" cy="8" r="1.400"/></svg></button><button class="map-toggle show" id="shieldsToggle" aria-pressed="true" aria-label="Highway shields" title="Highway shields"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.200c2.300 1.300 4.700 1.900 7.200 1.900.500 6.700-1.900 12-7.200 15.700C6.700 17.100 4.300 11.800 4.800 5.100c2.500 0 4.900-.600 7.200-1.900z"/></svg></button><button class="map-toggle roadpill" id="roadPill" hidden>Roads</button><button class="map-toggle" id="radarToggle" aria-pressed="false" aria-label="Weather radar" title="Weather radar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.800 16.200a6 6 0 0 1 0-8.400M16.200 7.800a6 6 0 0 1 0 8.400M4.600 19.400a10.500 10.500 0 0 1 0-14.800M19.400 4.600a10.500 10.500 0 0 1 0 14.800"/></svg></button><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button></div><div class="map-key" id="avyKey" hidden></div></div>
     <div class="mapbar">
       <button id="play" aria-label="Play the storm"></button>
       <div class="ticks"><input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Storm time"><button id="toNow" aria-label="Back to now">now</button></div>
