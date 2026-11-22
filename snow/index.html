@@ -1445,7 +1445,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
@@ -2249,7 +2249,8 @@ function outlookImpacts(resort, date, measured) {
       : `${inches(night)} ${LEN()} overnight up high means avalanche control first`);
   if (wild && (top.snow_in || 0) >= 6) add("warn", "new snow load", `${inches(top.snow_in)} ${LEN()} up high`);
   if ((b.rain_share || 0) >= 0.5 && (low.liquid_in || 0) >= 0.1) add("bad", "rain", `about ${Math.round(b.rain_share * 100)}% of what falls down low is rain`);
-  if (s.sky_pct >= 85 && s.snowing_hours >= 3) add("warn", "low visibility", `snowing ${s.snowing_hours} of 8 lift hours`);
+  // Flat light under cloud or falling snow is not listed: it makes the skiing harder, but no resort holds a lift
+  // for it. It is said in Insights instead.
   const chill = windChill(s.temp_f, wind);
   // Ordinary winter cold is not an impact; only the kind that brings frostbite warnings is flagged.
   if (chill != null && chill <= EXTREME_CHILL_F) add("warn", "extreme cold", `${deg(s.temp_f)}${DEG()} at the summit, feels like ${deg(chill)}${DEG()}`);
