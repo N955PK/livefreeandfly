@@ -10,6 +10,8 @@ const STAKE_RADIUS = 0.7;
 const FLAKES = 9000;
 const WHITEN_AT_IN = 5;
 const BIN_M = 50;
+// The snow already lying whitens the land too, but more slowly than fresh snow does: this much of it is full white.
+const PACK_WHITE_IN = 12;
 const FLOOR_M = 1150;
 const LOWLAND_M = 400;
 const EDGE_FADE_KM = 16;
@@ -376,6 +378,26 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       fresh[i][b] = fresh[i - 1][b] + rate[h] * above;
     }
   }
+  // The snow already on the ground, by elevation band, read off the region's depth sensors: nothing below a snow line,
+  // then deeper with height in a straight line through the sensors' average. The snow line is the highest sensor
+  // reading bare ground, or, when even the lowest has snow, a way below it (further the deeper its snow, 1,500 ft at most).
+  const pack = new Float32Array(bins);
+  {
+    const seen = new Map();
+    for (const r of data.resorts) {
+      const o = r.observed;
+      if (o && o.depth_in != null && o.elevation_ft != null) seen.set(o.station, [o.elevation_ft, o.depth_in]);
+    }
+    const all = [...seen.values()], snowy = all.filter(([, d]) => d >= 1), bare = all.filter(([, d]) => d < 1);
+    if (snowy.length) {
+      const mean = (k) => snowy.reduce((sum, p) => sum + p[k], 0) / snowy.length;
+      const low = snowy.reduce((a, p) => p[0] < a[0] ? p : a);
+      const under = bare.filter(([ft]) => ft < low[0]).map(([ft]) => ft);
+      const line = under.length ? Math.max(...under) : low[0] - Math.min(1500, low[1] * 50);
+      const ft = Math.max(mean(0), line + 500), deep = mean(1);
+      for (let b = 0; b < bins; b++) pack[b] = Math.min(2 * deep, Math.max(0, deep * (b * BIN_M / 0.3048 - line) / (ft - line)));
+    }
+  }
 
   // ---------- roads ----------
   const overlay = document.createElement("div");
@@ -486,7 +508,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     label.className = "map-label";
     label.addEventListener("click", () => onSelect && onSelect(r.key));
     overlay.appendChild(label);
-    return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", x, y, z, ghost, fill, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
+    // The snow on the ground now, where the mountain's sensor measures it; null where none does.
+    const ground = r.observed && r.observed.depth_in != null ? r.observed.depth_in : null;
+    return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", ground, x, y, z, ghost, fill, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
   });
   const lake = document.createElement("div");
   lake.className = "map-lake"; lake.textContent = region.lake.name;
@@ -572,10 +596,14 @@ export async function createMap(container, data, {region, onSelect, elevation = 
 
   function paint() {
     const i = Math.min(steps - 1, Math.floor(time)), j = Math.min(steps - 1, i + 1), f = time - i;
+    const nowAt = Math.max(0, Math.min(steps - 1, Math.round(nowStep)));
     for (let v = 0; v < count; v++) {
       if (shore[v]) continue;
       const b = Math.min(bins - 1, Math.floor(heights[v] / BIN_M));
-      const amount = fresh[i][b] + f * (fresh[j][b] - fresh[i][b]);
+      const fell = fresh[i][b] + f * (fresh[j][b] - fresh[i][b]);
+      // Looking back into the storm, the snow lying then is today's less what has fallen since.
+      const lying = Math.max(0, pack[b] - Math.max(0, fresh[nowAt][b] - fell));
+      const amount = fell + lying * WHITEN_AT_IN / PACK_WHITE_IN;
       const w = Math.min(1, amount / WHITEN_AT_IN), s = w * w * (3 - 2 * w);
       const tint = dangerOn && zoneOf[v] ? dangerColors[zoneOf[v] - 1] : null;
       for (let k = 0; k < 3; k++) {
@@ -593,11 +621,17 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       item.ghost.scale.z = Math.max(0.02, (all - value) * STAKE_KM_PER_IN);
       item.fill.material = item.key === picked ? pickMaterial : fillMaterial;
       const more = all - value;
-      item.label.innerHTML = `<b>${item.name}</b><span>${show(value * depth.per)} ${depth.unit}</span>${more >= 0.5 ? `<em>+${show(more * depth.per)} to come</em>` : ""}`;
+      // The number is the snow on the ground now, where a sensor measures it; under it the storm plays: what has
+      // fallen by the time shown and what is still to come. With no depth measured the storm's snow is the number.
+      const d = depth.per, fell = value >= 0.05, coming = more >= 0.5;
+      const head = item.ground == null ? `${show(value * d)} ${depth.unit} new` : `${show(item.ground * d)} ${depth.unit}`;
+      const under = item.ground == null ? (coming ? `+${show(more * d)} to come` : "")
+        : fell && coming ? `${show(value * d)} new · +${show(more * d)} to come` : fell ? `${show(value * d)} ${depth.unit} new` : coming ? `+${show(more * d)} to come` : "";
+      item.label.innerHTML = `<b>${item.name}</b><span>${head}</span>${under ? `<em>${under}</em>` : ""}`;
       item.label.classList.toggle("on", item.key === picked);
       item.label.title = item.name;
-      item.width = 16 + Math.max(item.name.length * 6.6, more >= 0.5 ? 78 : 44);
-      item.tall = more >= 0.5 ? 54 : 40;
+      item.width = 16 + Math.max(item.name.length * 6.6, under.length * 5.6, item.ground == null ? 66 : 44);
+      item.tall = under ? 54 : 40;
     }
     // Flakes fall only at a rate the caption also calls snow; under it, both say it is not snowing.
     const falling = interp(rate, time, storm.start);
