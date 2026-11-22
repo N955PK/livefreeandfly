@@ -3216,7 +3216,7 @@ async function loadRoads() {
 }
 const ROAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 5 21M15 3l4 18M12 4v3M12 10.500v3M12 17v3"/></svg>';
 // One map at a time: switching regions throws the old one away and builds the new one.
-let mapBuild = 0, mapWired = false;
+let mapBuild = 0, mapWired = false, staleMap = null;
 const mapDepth = () => ({per: metric() ? 2.54 : 1, unit: LEN()});
 async function startMap() {
   const list = here(), build = ++mapBuild;
@@ -3224,13 +3224,16 @@ async function startMap() {
   try {
     const {createMap} = await import(`./map3d.js?v=${BUILD}`);
     togglePlay(false);
-    if (map) { map.dispose(); map = null; }
+    // The map being replaced stays on screen until the new one is built, so a change of region is one cut from one
+    // map to the next and not a blank sky in between. It is no longer the map as far as anything else is concerned.
+    if (map) { if (staleMap) staleMap.dispose(); staleMap = map; map = null; }
     // The Roads button stays where it is while the new region's roads load; only the last region's count is dropped.
     $("roadNote").textContent = ""; delete $("roadPill").dataset.count; $("roadSheet").classList.remove("open");
     $("mapPanel").style.display = "block";
     const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[region], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
-      onSelect: (key) => { selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
+      onSelect: (key) => { if (!map) return; selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
     if (build !== mapBuild) { made.dispose(); return; }
+    if (staleMap) { staleMap.dispose(); staleMap = null; }
     map = made;
     stakeDepths();
     $("flatToggle").hidden = false; $("flatToggle").textContent = "2D";
@@ -3252,7 +3255,7 @@ async function startMap() {
     $("radarToggle").hidden = false;
     if (radarOn) mapRadar();
     loadRoads();
-  } catch (error) { $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
+  } catch (error) { if (staleMap) { staleMap.dispose(); staleMap = null; } $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
 }
 
 // ---------- regions ----------
@@ -3511,13 +3514,18 @@ async function mapRadar() {
 }
 function mapAvalanche() {
   const zones = zonesHere();
-  $("avyToggle").hidden = !map || !zones.length;
+  // Until a newly chosen region's zones have arrived the button is left as it was, so the block of buttons does not
+  // lose its last one and jump for a moment.
+  const known = !!(avy[region] && avy[region].loaded);
   $("avyToggle").setAttribute("aria-pressed", avyOn);
   // One rating across the map goes in the button itself; several get a small key under it, worst first.
   const levels = [...new Set(zones.map((zone) => zone.level))].sort((a, b) => b - a), one = levels.length === 1;
-  $("avyToggle").innerHTML = `${levels.length ? `<img src="${dangerIcon(levels[0])}" alt="" onerror="this.parentNode.classList.remove('sign'); this.remove()">` : ""}${one ? `Avalanche: ${danger(levels[0])[0]}` : "Avalanche danger"}`;
-  $("avyToggle").classList.toggle("sign", levels.length > 0);
-  $("avyToggle").style.setProperty("--light", danger(levels[0])[1]);
+  if (known) {
+    $("avyToggle").hidden = !map || !zones.length;
+    $("avyToggle").innerHTML = `${levels.length ? `<img src="${dangerIcon(levels[0])}" alt="" onerror="this.parentNode.classList.remove('sign'); this.remove()">` : ""}${one ? `Avalanche: ${danger(levels[0])[0]}` : "Avalanche danger"}`;
+    $("avyToggle").classList.toggle("sign", levels.length > 0);
+    $("avyToggle").style.setProperty("--light", danger(levels[0])[1]);
+  }
   $("avyKey").hidden = !map || !avyOn || levels.length < 2;
   $("avyKey").innerHTML = levels.map((level) => `<span><i style="--light:${danger(level)[1]}"></i>${dangerText(level)}</span>`).join("");
   if (!map) return;
