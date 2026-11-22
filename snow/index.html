@@ -1004,7 +1004,9 @@ dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden
 .gpage h5{margin:18px 0 6px;font-size:14px;font-weight:650;color:var(--mark)}
 .gpage p b{color:var(--ink)}
 .gpage a{color:var(--accent)}
-#how p > b.lead{display:block;margin-bottom:1px;font-size:12px;font-weight:650;color:var(--accent)}
+/* Every paragraph of "How the forecast is made" opens the same way: its subject on a line of its own, in the accent,
+   at the size of the text under it. */
+#how p > b:first-child{display:block;margin-bottom:2px;font-size:13.5px;font-weight:650;color:var(--accent)}
 #how p{margin-bottom:13px}
 figure.plot{margin:10px 0 14px;padding:10px;border-radius:11px;background:#fff;border:1px solid var(--border)}
 figure.plot img{display:block;width:100%;height:auto}
@@ -1426,18 +1428,19 @@ Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, f
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
   </div>
   <div class="gpage" id="how" data-page="how" data-title="How the forecast is made" hidden>
-    <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
-    <p><b>Snow.</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
-    <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
-    <p><b>One water amount per resort.</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
-    <p><b>Wet, medium, dry</b> are the standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
-    <p><b>Temperature</b> is the free air at that elevation, averaged over the lift hours for a day. <b>Feels like</b> is the standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
-    <p><b>Wind</b> is the free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken near crest height (about 10,000 ft) for every elevation; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
-    <p><b>Storm totals</b> add up snowfall until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
+    <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
+    <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
+    <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
+    <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
+    <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
+    <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
+    <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
+    <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken near crest height (about 10,000 ft) for every elevation; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up; that estimate tracks five winters of measured gusts at the Palisades snow sensor, but no free ridge-top station exists to check its size.</p>
+    <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
-    <p><b>A ski day</b> runs from 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
-    <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
+    <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
+    <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
 </div></dialog>
@@ -3148,12 +3151,6 @@ function guidePage(name) {
 $("setBtn").addEventListener("click", () => { markHeader(); guidePage("root"); $("settingsSheet").showModal(); placeSegs(true); });
 $("guideBack").addEventListener("click", () => guidePage("root"));
 $("settingsSheet").addEventListener("click", (e) => { const to = e.target.closest("[data-page-to]"); if (to) guidePage(to.dataset.pageTo); });
-// In "How the forecast is made" a paragraph that opens on its subject as a lead-in ("Water." "Status:") has it set
-// above as a label, without the stop; one whose opening words run on into the sentence keeps them in line.
-for (const b of document.querySelectorAll("#how p > b:first-child")) {
-  if (!/[.:]$/.test(b.textContent)) continue;
-  b.textContent = b.textContent.replace(/[.:]$/, ""); b.classList.add("lead");
-}
 // Hosted table: inside ski/lease's frame the summary table's sideways slide is the page's doing (the CSS leaves the
 // phone only the up-and-down drags), so that a drag moves the table one way or the other and never both. A drag that
 // starts sideways slides the table with the finger and coasts to a stop when it lifts; one that starts up or down
@@ -3514,7 +3511,7 @@ function renderNotes() {
     (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor nearby and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
   const use = data.usage;
-  $("usageNote").textContent = use ? `Data budget: about ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (${use.measured ? "as Open-Meteo counts them" : "our own count, rounded up"}).` : "";
+  $("usageNote").innerHTML = use ? `<b>Data budget</b> About ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (${use.measured ? "as Open-Meteo counts them" : "our own count, rounded up"}).` : "";
   renderQuality();
   $("formula").innerHTML = (data.powder_formula || []).map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join("");
 }
