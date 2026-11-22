@@ -544,7 +544,7 @@ html.tabs .gridfresh{display:block}
 .orow .dot.warn{background:var(--w1)}.orow .dot.bad{background:var(--w2)}
 .orow .meter{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--wash);margin-top:5px}
 .orow .meter span{display:block}
-.s-open{background:#3fa34d}.s-hold{background:var(--w1)}.s-soon{background:#6da7ec}.s-closed{background:var(--axis)}
+.s-open{background:#3fa34d}.s-groomed{background:#1b6e33}.s-hold{background:var(--w1)}.s-soon{background:#6da7ec}.s-closed{background:var(--axis)}
 .orow .held{color:var(--ink);font-weight:650}
 .orow small{font-size:11px;color:var(--muted);margin-left:4px}
 .orow small.live{color:#2f8a3c;font-weight:650}
@@ -615,7 +615,6 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .all .lift em{display:inline-block;width:20px;font-style:normal;font-size:10px;color:var(--ink)}
 .all .lift em.ci{color:#3fa34d}.all .lift em.sq{color:#2a78d6}
 /* A groomed run says so before its status: a small squared tag, since it is not something to press. */
-.all .lift b.grm{padding:0 5px;border-radius:5px;font-size:10.5px;font-weight:650;line-height:16px;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
 .outlook .hhead{margin-bottom:0}
 .outlook .src{display:block;font-size:12.5px;line-height:1.4;color:var(--muted);margin:1px 0 6px}
 .outlook a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
@@ -2581,7 +2580,9 @@ function liftsHtml(resort) {
   const grade = (trail) => { const d = (trail.Difficulty || "").toLowerCase(); return /extreme|expert|double/.test(d) ? ["◆◆", ""] : /very|black/.test(d) ? ["◆", ""] : /eas|begin|green/.test(d) ? ["●", "ci"] : /difficult|inter|blue/.test(d) ? ["■", "sq"] : ["", ""]; };
   // Grooming, where the resort says which runs its cats have been over ("Yes" or "No" on each trail).
   const groomed = (t) => /^y/i.test(t.Grooming || ""), saysGrooming = trails.some((t) => t.Grooming != null), groomedOpen = trails.filter((t) => groomed(t) && /^open/.test(t.StatusEnglish || "")).length;
-  const trailRow = (t) => `<div class="lift"><span><em class="${grade(t)[1]}">${grade(t)[0]}</em>${esc(t.Name)}</span><span>${groomed(t) ? '<b class="grm">Groomed</b>' : ""}<i class="s-${liftGroup(t.StatusEnglish || "")}"></i>${esc(t.Status || "")}</span></div>`;
+  // An open run the cats have been over reads "Groomed" in place of "Open": a status of its own, with its own dot.
+  const fresh = (t) => groomed(t) && /^open/.test(t.StatusEnglish || "");
+  const trailRow = (t) => `<div class="lift"><span><em class="${grade(t)[1]}">${grade(t)[0]}</em>${esc(t.Name)}</span><span><i class="s-${fresh(t) ? "groomed" : liftGroup(t.StatusEnglish || "")}"></i>${fresh(t) ? "Groomed" : esc(t.Status || "")}</span></div>`;
   const trailList = areas.filter((a) => (a.Trails || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Trails.map(trailRow).join("")}`).join("");
   const fold = (kind, label, line, bar, items) => `<details class="all" data-fold="${kind}"${foldOpen[kind] ? " open" : ""}><summary class="orow"><span class="k">${label}</span><div><span>${line}</span>${bar}</div></summary><div class="list">${items}</div></details>`;
   // In tabs, lifts and trails are one block: both counts on a line, their two meters side by side, and one list.
@@ -2589,7 +2590,7 @@ function liftsHtml(resort) {
     const extra = [holds, ...Object.entries(due).map(([word, count]) => `${count} ${esc(word.toLowerCase())}`)].filter(Boolean).join(" · ");
     // Two columns: the lifts' count, meter and holds on the left, the trails' count and meter on the right.
     const liftCol = `<div><span>${season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> of ${lifts.length} lifts`}</span>${meter(Object.entries(tally), lifts.length)}${extra ? `<span class="extra">${extra}</span>` : ""}</div>`;
-    const trailCol = trails.length ? `<div><span><b>${openTrails}</b> of ${trails.length} trails</span>${meter([["open", openTrails]], trails.length)}${saysGrooming ? `<span class="extra">${groomedOpen} groomed</span>` : ""}</div>` : "";
+    const trailCol = trails.length ? `<div><span><b>${openTrails}</b> of ${trails.length} trails</span>${meter([["groomed", groomedOpen], ["open", openTrails - groomedOpen]], trails.length)}${saysGrooming ? `<span class="extra">${groomedOpen} groomed</span>` : ""}</div>` : "";
     return `<details class="all both" data-fold="lifts"${foldOpen.lifts ? " open" : ""}><summary class="orow"><div class="pair">${liftCol}${trailCol}</div></summary>
       <div class="list"><div class="area head">Lifts</div>${list}${trails.length ? `<div class="area head">Trails</div>${trailList}` : ""}</div></details>`;
   }
