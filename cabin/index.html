@@ -10,7 +10,6 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="ski/lease">
-<script>try{var l=JSON.parse(localStorage.getItem('shredule-look')||'{}');if(l.mode==='light'||l.mode==='dark')document.documentElement.dataset.theme=l.mode;}catch(e){}</script>
 <style>
 :root{
   /* The page, card, and line colors are Turbo Snow's own (its surface, wash, and border), so the two apps read as one
@@ -1215,13 +1214,13 @@ function customColors(hex){
   return { a: hex, on, inkL: toward(LIGHT_PAGE, [0, 0, 0]), inkD: toward(DARK_PAGE, [255, 255, 255]) };
 }
 function paintToolbar(){                                                                       // the color the browser paints behind its own toolbars
-  const dark = appLook.mode === 'dark' || (appLook.mode !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  const dark = !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);       // light or dark is the device's choice, never the app's
   const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#161a1f' : '#ffffff');
 }
 function applyLook(){
   const root = document.documentElement; let acc = ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0];
   if (acc.custom) acc = { ...acc, ...customColors(/^#[0-9a-f]{6}$/i.test(appLook.custom || '') ? appLook.custom : DEFAULT_CUSTOM) };
-  if (appLook.mode === 'light' || appLook.mode === 'dark') root.dataset.theme = appLook.mode; else delete root.dataset.theme;
+  delete root.dataset.theme;
   root.dataset.accent = acc.id;
   ['--accent', '--on-accent', '--accent-ink-l', '--accent-ink-d'].forEach(v => root.style.removeProperty(v));
   if (!acc.disco && acc.id !== 'chairlift'){                                                    // the original and Disco are defined in the stylesheet
@@ -1230,11 +1229,9 @@ function applyLook(){
   paintToolbar();
 }
 function lookInner(){                                                                          // the look controls, drawn inside the profile modal
-  const mode = appLook.mode || 'auto', acc = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id, custom = /^#[0-9a-f]{6}$/i.test(appLook.custom || '') ? appLook.custom : DEFAULT_CUSTOM;
+  const acc = (ACCENTS.find(a => a.id === appLook.accent) || ACCENTS[0]).id, custom = /^#[0-9a-f]{6}$/i.test(appLook.custom || '') ? appLook.custom : DEFAULT_CUSTOM;
   const dot = a => a.disco ? '<i class="dot disco"></i>' : a.custom ? `<i class="dot${acc === 'custom' ? '' : ' wheeldot'}"${acc === 'custom' ? ` style="background:${custom}"` : ''}></i>` : `<i class="dot" style="background:${a.a}"></i>`;
-  return `<fieldset><legend>Light or dark</legend>
-      <div class="seg" role="group" aria-label="Light or dark">${[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']].map(([v, t]) => `<button type="button" data-act="look-mode" data-v="${v}" aria-pressed="${mode === v}">${t}</button>`).join('')}</div></fieldset>
-    <fieldset><legend>Accent color</legend>
+  return `<fieldset><legend>Accent color</legend>
       <div class="accents">${ACCENTS.map(a => `<button type="button" data-act="look-accent" data-v="${a.id}" aria-pressed="${acc === a.id}">${dot(a)}<span>${a.name}</span></button>`).join('')}</div>
       ${acc === 'custom' ? `<div class="wheelbox"><div class="wheelwrap" id="wheelWrap" role="img" aria-label="Color wheel. Drag to pick a color."><div class="wheel"></div><i class="knob" id="wheelKnob"></i></div>
         <div class="wheelrow"><label>Brightness<input type="range" id="wheelV" min="35" max="100" step="1"></label><label>Hex<input id="wheelHex" maxlength="7" autocomplete="off" autocapitalize="none" spellcheck="false"></label></div></div>` : ''}</fieldset>`;
@@ -1268,7 +1265,7 @@ document.addEventListener('change', e => {
 function refreshLook(){ const box = $('#lookBox'); if (box){ box.innerHTML = lookInner(); paintWheel(); } }     // only this box, so anything typed above is left alone
 // ---------- the theme belongs to the account, so it looks the same on every device ----------
 // The account's copy (a `theme` column on the member) wins whenever you sign in. This device keeps a copy only so the page can be themed before sign-in.
-const themeFields = l => { const t = {}; if (l.mode === 'light' || l.mode === 'dark') t.mode = l.mode; if (l.accent) t.accent = l.accent; if (l.custom) t.custom = l.custom; return t; };
+const themeFields = l => { const t = {}; if (l.accent) t.accent = l.accent; if (l.custom) t.custom = l.custom; return t; };
 const sameTheme = (a, b) => JSON.stringify(themeFields(a || {})) === JSON.stringify(themeFields(b || {}));
 const themeStored = () => !LIVE || (S.members.length > 0 && 'theme' in S.members[0]);              // does the database have somewhere to keep it yet?
 let themeDirty = false, pushT = 0, pushing = false, themeVer = 0;                           // a change that hasn't reached the account yet
@@ -1673,7 +1670,6 @@ const actions = {
     const n = B.nights.length; S.pick = null; S.bulk = null; closeSheet(); render(); toast(`Added to ${n} night${n === 1 ? '' : 's'}`);
   },
   'venmo-qr'(){ const c = collector(); if (!c || !c.venmo) return; loadQr().then(() => openSheet(sheetQr(), { type:'qr' })).catch(() => toast('Couldn’t load the QR code. Check your connection.')); },
-  'look-mode'(el){ appLook.mode = el.dataset.v === 'auto' ? undefined : el.dataset.v; commitLook(); applyLook(); refreshLook(); },
   'look-accent'(el){
     const id = el.dataset.v;
     if (id === 'custom' && !/^#[0-9a-f]{6}$/i.test(appLook.custom || '')){                       // start from the color in use, so the wheel picks up where you are
