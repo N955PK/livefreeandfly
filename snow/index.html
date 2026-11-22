@@ -2412,9 +2412,10 @@ function insights(resort) {
   if (top.from != null && top.wind >= 15 && (top.fresh >= 2 || top.recent >= 4) && top.rain < 0.3) {
     const windward = compass(top.from), lee = compass((top.from + 180) % 360);
     const caution = wild ? " Check the avalanche forecast before skiing wind-loaded slopes." : "";
-    notes.push(["Powder pockets", top.wind >= 25
-      ? `The wind has blown the snow off the ridges and into gullies and trees on ${lee}-facing slopes. ${windward}-facing slopes are scraped firm.${caution}`
-      : `The wind has piled snow on ${lee}-facing slopes, just below the ridges. ${windward}-facing slopes are scraped firm.${caution}`]);
+    const blowing = `The wind is from the ${windward} at ${speed(top.wind)} ${SPEED()} up top.`;
+    notes.push(["Wind", top.wind >= 25
+      ? `${blowing} It has blown the snow off the ridges into gullies and trees on ${lee}-facing slopes, and scraped ${windward}-facing slopes firm.${caution}`
+      : `${blowing} It has piled snow on ${lee}-facing slopes just below the ridges, and scraped ${windward}-facing slopes firm.${caution}`]);
   }
   // Thin cover: under about 40 in on the ground the mountain is still in early-season shape.
   const stake = stakeDepth(resort.key, "mid"), ground = stake ?? (resort.observed && resort.observed.depth_in);
