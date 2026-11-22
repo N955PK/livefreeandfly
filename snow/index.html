@@ -597,7 +597,11 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .duopill{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:10px 16px;border:0;border-radius:999px;background:var(--wash);font:inherit;font-size:14px;font-weight:650;line-height:1.3;color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .duopill::after{content:"+";flex:none;width:12px;text-align:center;font-size:18px;line-height:1;font-weight:400;color:var(--mark-dull)}
 /* Open, a pill and its card are one shape: the pill keeps its rounded top, runs straight down into the card, and the card's corner under it is square. */
-.duopill[aria-expanded="true"]{margin-bottom:-8px;padding-bottom:18px;border-radius:20px 20px 0 0}
+.duopill[aria-expanded="true"]{margin-bottom:-8px;padding-bottom:18px;border-radius:20px 20px 0 0;position:relative}
+/* The inside corner, where the pill's side meets the card's top, is rounded too. */
+.duopills:not(.solo) .duopill[aria-expanded="true"]::before{content:"";position:absolute;bottom:0;width:10px;height:10px}
+.duopill[data-duo="insight"][aria-expanded="true"]::before{left:-10px;background:radial-gradient(circle at 0 0,transparent 9.5px,var(--wash) 10px)}
+.duopill[data-duo="report"][aria-expanded="true"]::before{right:-10px;background:radial-gradient(circle at 100% 0,transparent 9.5px,var(--wash) 10px)}
 .duopill[aria-expanded="true"]::after{content:"–"}
 .duobody{margin-top:8px;padding:14px 16px;border-radius:0 11px 11px 11px;background:var(--wash)}
 .duobody[data-duo-body="insight"]{border-radius:11px 0 11px 11px}
