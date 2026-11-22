@@ -1445,7 +1445,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
@@ -2213,12 +2213,16 @@ const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBo
   boreal: publishedFeed("boreal.json", "boreal")};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
-// avalanche control before upper terrain opens. The tiers are a judgment call until the record of real holds
-// (tahoe_snow/holds.py) has enough storms in it to set them from.
+// avalanche control before upper terrain opens. The exposed tier is Palisades' own account of its ridgetop gusts,
+// read pessimistically (5 mph taken off each): the resort says 30 to 40 mph is workable, 50 to 60 and over affects
+// the upper lifts, and 80 and over shuts the lifts for the day, so holds are possible from 45, likely from 55, and
+// closures from 75. The steady-wind figure beside each gust is two thirds of it. Average mountains are 5 mph later
+// and sheltered ones 15, which is a judgment call until the record of real holds (tahoe_snow/holds.py and
+// holdfit.py) has enough windy days in it to set each mountain's own.
 const HOLD_TIERS = {
-  exposed: {possible: [30, 20], likely: [45, 30], shut: [60, 40]},
-  average: {possible: [35, 25], likely: [50, 35], shut: [70, 45]},
-  sheltered: {possible: [45, 30], likely: [60, 40], shut: [80, 50]},
+  exposed: {possible: [45, 30], likely: [55, 37], shut: [75, 50]},
+  average: {possible: [50, 33], likely: [60, 40], shut: [80, 53]},
+  sheltered: {possible: [60, 40], likely: [70, 47], shut: [90, 60]},
 };
 const WIND_TIER = {kirkwood: "exposed", mtrose: "exposed", palisades: "exposed", alpine: "exposed", sugarbowl: "exposed", mammoth: "exposed",
   northstar: "sheltered", homewood: "sheltered"};
