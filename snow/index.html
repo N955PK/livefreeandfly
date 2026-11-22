@@ -593,6 +593,12 @@ html.tabs .dhead .who > .dfresh{margin-top:6.5px}
 /* In tabs the star says what it is, and the mountain's pass follows it. */
 .dhead .mine i,.dhead .setmine i{font-style:normal;font-size:13px;font-weight:600;margin-left:5px;vertical-align:1px}
 html.tabs .dhead .who > span{white-space:nowrap}
+/* The three lines of a pane's header are the same on every tab: a title that never wraps, then two lines of small
+   dull text, each level with a row of the elevation picker beside them. */
+html.tabs .dhead h2,html.tabs .ahead h2,html.tabs .sumhead h2{white-space:nowrap}
+html.tabs .dhead .who > span:not(.dfresh){font-size:12.5px;line-height:18px;margin-top:3.5px;color:var(--mark-dull)}
+html.tabs .dhead .mine,html.tabs .dhead .setmine{font-size:14px;line-height:18px;vertical-align:top}
+html.tabs .dhead .mine i,html.tabs .dhead .setmine i{font-size:12.5px;vertical-align:0}
 .tag{white-space:nowrap;font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
 .tile{background:var(--wash);border-radius:12px;padding:12px 14px}
@@ -934,7 +940,7 @@ html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 
 #moreSlot details p,#moreSlot details li{font-size:13.5px}
 /* One last set of house sizes in tabs: captions at 12.5px, running text at 13.5px, content cards with an 11px corner,
    and the settings card's pickers round-ended like every other thing that can be pressed. */
-html.tabs .panel.summary .gridcap{font-size:12.5px;padding-top:8.500px}
+html.tabs .panel.summary .gridcap{font-size:12.5px;padding-top:3.6px}
 /* The forecast time sits the same distance under the title here as on the Mountain tab. */
 html.tabs .panel.summary .gridfresh{padding-top:6.500px}
 html.tabs .panel.summary .legend{font-size:12.5px}
@@ -2298,9 +2304,9 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(resort.name)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
+  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
-      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${resort.key === HOME ? `<span class="mine" title="My mountain">★${tabbed() ? "<i>Home</i>" : ""}</span>` : `<button class="setmine" data-home="${resort.key}" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆${tabbed() ? "<i>Set home</i>" : ""}</button>`}${tabbed() ? ` · ${esc(passOf(resort))}` : ""}</span></div>
+      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${resort.key === HOME ? `<span class="mine" title="My mountain">★${tabbed() ? "<i>Home</i>" : ""}</span>` : `<button class="setmine" data-home="${resort.key}" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆${tabbed() ? "<i>Set home</i>" : ""}</button>`}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     <nav class="jump" id="jump" aria-label="Sections"></nav></div>
     ${outlook(resort)}
@@ -2388,6 +2394,10 @@ function placeTabInd(jump) {
 // pair wherever the finger has them, settle() runs them on to the new pane or back, and close() tidies up, making
 // the new pane the open one if the slide went through.
 const TAB_ORDER = ["map", "forecast", "mountain", "avalanche"];
+// A pane's title has one line beside the elevation picker, so the long names are cut to what people call the place
+// (the chooser that opens from it still lists every name in full), and a long pass name is abbreviated.
+const HEAD_SHORT = {"Mammoth Mountain": "Mammoth", "June Mountain": "June", "Matterhorn Peak": "Matterhorn", "Sherwin Ridge": "Sherwins", "Mountain Collective": "Mtn Collective"};
+const headName = (name) => HEAD_SHORT[name] || name;
 const PANES = {map: () => $("mapPanel"), forecast: () => document.querySelector(".panel.summary"), mountain: () => $("detail"), avalanche: () => $("avalanche")};
 let pager = null;
 const paneTop = {};
