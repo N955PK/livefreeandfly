@@ -1124,6 +1124,11 @@ html.tabs #avalanche .dsizes{margin-top:30px}
 html.tabs #avalanche .dsizes h4{font-size:15.5px;margin-bottom:6px}
 /* The center's running text (bottom line, discussion, weather, each problem's words) is set flush on both sides, hyphenated so the gaps stay small. */
 html.tabs #avalanche .abottom p,html.tabs #avalanche .pmore p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+/* Running text is justified wherever it runs to several lines: the pages behind the snowflake, the notes in
+   Insights, and the sources. Labels, captions, table cells, one-line rows and narrow columns (where justifying
+   opens gaps between the words) are left as they are. */
+.gpage > p,.gpage > #qualityBody > p,.gpage > #scoreBody > p,.ilist li,details.gcredit p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+details.gcredit p{text-align-last:center}
 html.tabs #avalanche .ahead .by .late{color:#c62828}
 @media (prefers-color-scheme:dark){html.tabs #avalanche .ahead .by .late{color:#ff6b6b}}
 .abanner{display:flex;align-items:center;gap:12px;margin-top:10px;padding:11px 14px 11px 10px;border-radius:11px;background:color-mix(in srgb,var(--d) 20%,var(--surface));border:1px solid color-mix(in srgb,var(--d) 45%,var(--surface))}
