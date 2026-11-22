@@ -2465,14 +2465,17 @@ function insights(resort) {
   return `<div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
     <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 3).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul>`;
 }
-// Either pill opens or closes its own card; the two are independent.
+// A pill opens its card, or closes it if it is open. Only one card shows at a time: opening one puts the other away.
 document.addEventListener("click", (e) => {
   const pill = e.target.closest && e.target.closest(".duopill");
   if (!pill) return;
-  const key = pill.dataset.duo, body = pill.closest(".duo").querySelector(`[data-duo-body="${key}"]`);
-  foldOpen[key] = !foldOpen[key];
-  pill.setAttribute("aria-expanded", foldOpen[key]);
-  if (body) body.hidden = !foldOpen[key];
+  const duo = pill.closest(".duo"), open = !foldOpen[pill.dataset.duo];
+  for (const other of duo.querySelectorAll(".duopill")) {
+    const key = other.dataset.duo, body = duo.querySelector(`[data-duo-body="${key}"]`);
+    foldOpen[key] = open && other === pill;
+    other.setAttribute("aria-expanded", foldOpen[key]);
+    if (body) body.hidden = !foldOpen[key];
+  }
 });
 // ---------- the resort's own report ----------
 // Four resorts publish their morning report in the feed their lift status comes from: how they describe the surface,
