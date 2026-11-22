@@ -578,13 +578,25 @@ html.tabs details.both .pair{display:grid;grid-template-columns:repeat(auto-fit,
 html.tabs details.both .extra{display:block;margin-top:5px;font-size:12.5px;color:var(--mark-dull)}
 html.tabs details.both .list{padding:4px 0 6px}
 html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacing:0;text-transform:none;color:var(--accent)}
-/* Insights: one round-ended card (it can be pressed) that simply grows when opened: the heading stays where it is
-   and what the snow should be like at each elevation, and where it should ski best, opens out under it. */
-.outlook details.insight{margin:12px 0 0;padding:0;border:0;border-radius:22px;background:var(--wash);overflow:hidden}
-.outlook details.insight > summary{display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:14px;font-weight:650;line-height:1.3;color:var(--accent)}
-.outlook details.insight > summary b{flex:1;font-weight:650}
-.outlook details.insight > summary::after{flex:none;width:12px;margin:0;text-align:center;font-size:18px;line-height:1;font-weight:400;color:var(--mark-dull)}
-.ibody{padding:4px 16px 14px}
+/* Insights and the resort's report: two half-width pills side by side (they can be pressed, so they are round-ended),
+   each opening a squared card the full width of the page beneath the pair. A pill that is open is marked by its
+   minus and a firmer fill. */
+.duo{margin:12px 0 0}
+.duopills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.duopills.solo{grid-template-columns:1fr}
+.duopill{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:10px 16px;border:0;border-radius:999px;background:var(--wash);font:inherit;font-size:14px;font-weight:650;line-height:1.3;color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.duopill::after{content:"+";flex:none;width:12px;text-align:center;font-size:18px;line-height:1;font-weight:400;color:var(--mark-dull)}
+.duopill[aria-expanded="true"]{background:color-mix(in srgb,var(--accent) 12%,var(--wash))}
+.duopill[aria-expanded="true"]::after{content:"–"}
+.duobody{margin-top:8px;padding:14px 16px;border-radius:11px;background:var(--wash)}
+.duobody[hidden]{display:none}
+.rby{font-size:12.5px;color:var(--mark-dull)}
+.rby a{color:var(--accent);text-decoration:none;white-space:nowrap}
+.rfacts{margin-top:10px}
+.ralert{margin:12px 0 0;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--w1) 22%,var(--surface));font-size:13px;line-height:1.4;color:var(--mark-mid)}
+.rwords{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.rwords p{margin:0 0 9px;font-size:13.5px;line-height:1.45;color:var(--mark-mid);text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.rwords p:last-child{margin-bottom:0}
 .ilevels{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-size:13.5px;line-height:1.35;color:var(--mark-mid)}
 .ilevels b{display:block;font-weight:650;color:var(--mark)}
 .ilevels span{display:block;color:var(--mark-mid)}
@@ -602,6 +614,8 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .all .lift i{width:8px;height:8px;border-radius:50%}
 .all .lift em{display:inline-block;width:20px;font-style:normal;font-size:10px;color:var(--ink)}
 .all .lift em.ci{color:#3fa34d}.all .lift em.sq{color:#2a78d6}
+/* A groomed run says so before its status: a small squared tag, since it is not something to press. */
+.all .lift b.grm{padding:0 5px;border-radius:5px;font-size:10.5px;font-weight:650;line-height:16px;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
 .outlook .hhead{margin-bottom:0}
 .outlook .src{display:block;font-size:12.5px;line-height:1.4;color:var(--muted);margin:1px 0 6px}
 .outlook a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
@@ -2441,9 +2455,56 @@ function insights(resort) {
   // Thin cover: under about 40 in on the ground the mountain is still in early-season shape.
   const stake = stakeDepth(resort.key, "mid"), ground = stake ?? (resort.observed && resort.observed.depth_in);
   if (ground != null && ground < 40) notes.push(["Cover", `Cover is thin, with ${inches(ground)} ${LEN()} on the ground. Watch for rocks and stumps off the groomed runs.`]);
-  return `<details class="insight" data-fold="insight"${foldOpen.insight ? " open" : ""}><summary><b>Insights</b></summary>
-    <div class="ibody"><div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
-    <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 3).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul></div></details>`;
+  return `<div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
+    <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 3).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul>`;
+}
+// Either pill opens or closes its own card; the two are independent.
+document.addEventListener("click", (e) => {
+  const pill = e.target.closest && e.target.closest(".duopill");
+  if (!pill) return;
+  const key = pill.dataset.duo, body = pill.closest(".duo").querySelector(`[data-duo-body="${key}"]`);
+  foldOpen[key] = !foldOpen[key];
+  pill.setAttribute("aria-expanded", foldOpen[key]);
+  if (body) body.hidden = !foldOpen[key];
+});
+// ---------- the resort's own report ----------
+// Four resorts publish their morning report in the feed their lift status comes from: how they describe the surface,
+// what their stakes measured, how many runs they groomed, and a few paragraphs in their own words. It is shown as
+// they wrote it, under their name and the time they posted it, beside our own reading of the day.
+function resortReport(resort) {
+  const spec = STAKES[resort.key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
+  if (!report || !report.LastUpdate) return "";
+  const said = (value) => value != null && value !== "" && value !== "--" && value !== "N/A";
+  const stakes = ["Summit", "Mid", "Base"].map((name, n) => [name, report[spec[1][2 - n]] || {}]);
+  const reading = (field) => stakes.filter(([, at]) => said(at[field])).map(([name, at]) => `${name} ${inches(+at[field])} ${LEN()}`).join(" · ");
+  // Groomed runs are counted on this mountain's own trails: Palisades and Alpine share one report, whose total is both.
+  const mine = (LIFT_FEEDS[resort.key] || [])[1], own = mine ? (feed.data.MountainAreas || []).filter((area) => mine(area.Name)).flatMap((area) => area.Trails || []) : [];
+  const ownOpen = own.filter((t) => /^open/.test(t.StatusEnglish || "")), marked = own.some((t) => t.Grooming != null);
+  const groomedSaid = marked && ownOpen.length ? `${ownOpen.filter((t) => /^y/i.test(t.Grooming || "")).length} of ${ownOpen.length} open runs`
+    : !marked && said(report.GroomedTrails) && +report.TotalOpenTrails ? `${+report.GroomedTrails} of ${+report.TotalOpenTrails} open runs` : "";
+  const rows = [["Surface", said(report.BaseConditions) ? esc(report.BaseConditions) : ""], ["New, 24 h", reading("Last24HoursIn")], ["Base depth", reading("BaseIn")],
+    ["Groomed", groomedSaid]].filter(([, value]) => value);
+  // The report's own paragraphs, as plain text: the lists of links under them are left out.
+  const page = new DOMParser().parseFromString(report.Report || "", "text/html");
+  for (const list of page.querySelectorAll("ul, ol, script, style")) list.remove();
+  for (const br of page.querySelectorAll("br")) br.replaceWith("\n");
+  const words = [...page.body.children].length ? [...page.body.children].flatMap((el) => el.textContent.split(/\n{2,}|\n/)) : (page.body.textContent || "").split(/\n+/);
+  const paragraphs = words.map((text) => text.replace(/\s+/g, " ").trim()).filter((text) => text.length > 1).slice(0, 8);
+  const alert = said(report.Alert) ? new DOMParser().parseFromString(report.Alert, "text/html").body.textContent.replace(/\s+/g, " ").trim() : "";
+  const when = new Date(report.LastUpdate), old = Date.now() - when > 36 * 3600e3;
+  const stamp = `${when.toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", ...(old ? {month: "short", day: "numeric"} : {})})} ${localClock(when)}`;
+  const page_ = STATUS_PAGES[resort.key];
+  return `<div class="rby">${esc(feed.data.Name || resort.name)}, ${stamp}${old ? " (not today's)" : ""}${page_ ? ` · <a href="${page_}" target="_blank" rel="noopener">Their page ↗</a>` : ""}</div>
+    ${rows.length ? `<div class="ilevels rfacts">${rows.map(([name, value]) => `<div><b>${name}</b></div><div><span>${value}</span></div>`).join("")}</div>` : ""}
+    ${alert ? `<p class="ralert">${esc(alert)}</p>` : ""}
+    ${paragraphs.length ? `<div class="rwords">${paragraphs.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}`;
+}
+// Insights and the resort's report sit side by side as two half-width pills; each opens a card the full width of the
+// page under the pair. With no report to show, Insights has the row to itself.
+function duoHtml(resort) {
+  const parts = [["insight", "Insights", insights(resort)], ["report", "Resort report", resort.kind === "backcountry" ? "" : resortReport(resort)]].filter(([, , body]) => body);
+  return `<div class="duopills${parts.length < 2 ? " solo" : ""}">${parts.map(([key, name]) => `<button class="duopill" data-duo="${key}" aria-expanded="${!!foldOpen[key]}">${name}</button>`).join("")}</div>
+    ${parts.map(([key, , body]) => `<div class="duobody${key === "report" ? " rbody" : ""}" data-duo-body="${key}"${foldOpen[key] ? "" : " hidden"}>${body}</div>`).join("")}`;
 }
 function outlook(resort) {
   const {days, shift, day} = statusDay(resort);
@@ -2456,7 +2517,7 @@ function outlook(resort) {
     ${tabbed() ? "" : `<span class="src" id="statusSrc">${statusSource(resort)}</span>`}
     <div id="wx">${weatherRows(resort)}</div>
     ${wild ? "" : `<div id="lifts">${liftsHtml(resort)}</div>`}
-    ${insights(resort)}</div>`;
+    <div class="duo" id="duo">${duoHtml(resort)}</div></div>`;
 }
 // ---------- the resorts' own snow stakes ----------
 // Four resorts publish the depth at their own stakes at the base, mid-mountain and summit. That is the snow on the
@@ -2518,7 +2579,9 @@ function liftsHtml(resort) {
   const liftLine = season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> open${holds ? ` · ${holds}` : ""}${Object.entries(due).map(([word, count]) => ` · ${count} ${esc(word.toLowerCase())}`).join("")} · ${tally.closed} closed`;
   // The resorts name difficulty differently (Easiest / Easy / Green Circle, Difficult / Intermediate / Blue Square, and so on).
   const grade = (trail) => { const d = (trail.Difficulty || "").toLowerCase(); return /extreme|expert|double/.test(d) ? ["◆◆", ""] : /very|black/.test(d) ? ["◆", ""] : /eas|begin|green/.test(d) ? ["●", "ci"] : /difficult|inter|blue/.test(d) ? ["■", "sq"] : ["", ""]; };
-  const trailRow = (t) => `<div class="lift"><span><em class="${grade(t)[1]}">${grade(t)[0]}</em>${esc(t.Name)}</span><span><i class="s-${liftGroup(t.StatusEnglish || "")}"></i>${esc(t.Status || "")}</span></div>`;
+  // Grooming, where the resort says which runs its cats have been over ("Yes" or "No" on each trail).
+  const groomed = (t) => /^y/i.test(t.Grooming || ""), saysGrooming = trails.some((t) => t.Grooming != null), groomedOpen = trails.filter((t) => groomed(t) && /^open/.test(t.StatusEnglish || "")).length;
+  const trailRow = (t) => `<div class="lift"><span><em class="${grade(t)[1]}">${grade(t)[0]}</em>${esc(t.Name)}</span><span>${groomed(t) ? '<b class="grm">Groomed</b>' : ""}<i class="s-${liftGroup(t.StatusEnglish || "")}"></i>${esc(t.Status || "")}</span></div>`;
   const trailList = areas.filter((a) => (a.Trails || []).length).map((a) => `<div class="area">${esc(a.Name)}</div>${a.Trails.map(trailRow).join("")}`).join("");
   const fold = (kind, label, line, bar, items) => `<details class="all" data-fold="${kind}"${foldOpen[kind] ? " open" : ""}><summary class="orow"><span class="k">${label}</span><div><span>${line}</span>${bar}</div></summary><div class="list">${items}</div></details>`;
   // In tabs, lifts and trails are one block: both counts on a line, their two meters side by side, and one list.
@@ -2526,7 +2589,7 @@ function liftsHtml(resort) {
     const extra = [holds, ...Object.entries(due).map(([word, count]) => `${count} ${esc(word.toLowerCase())}`)].filter(Boolean).join(" · ");
     // Two columns: the lifts' count, meter and holds on the left, the trails' count and meter on the right.
     const liftCol = `<div><span>${season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> of ${lifts.length} lifts`}</span>${meter(Object.entries(tally), lifts.length)}${extra ? `<span class="extra">${extra}</span>` : ""}</div>`;
-    const trailCol = trails.length ? `<div><span><b>${openTrails}</b> of ${trails.length} trails</span>${meter([["open", openTrails]], trails.length)}</div>` : "";
+    const trailCol = trails.length ? `<div><span><b>${openTrails}</b> of ${trails.length} trails</span>${meter([["open", openTrails]], trails.length)}${saysGrooming ? `<span class="extra">${groomedOpen} groomed</span>` : ""}</div>` : "";
     return `<details class="all both" data-fold="lifts"${foldOpen.lifts ? " open" : ""}><summary class="orow"><div class="pair">${liftCol}${trailCol}</div></summary>
       <div class="list"><div class="area head">Lifts</div>${list}${trails.length ? `<div class="area head">Trails</div>${trailList}` : ""}</div></details>`;
   }
@@ -2534,7 +2597,7 @@ function liftsHtml(resort) {
     ${trails.length ? fold("trails", "Trails", `<b>${openTrails}</b> open · ${trails.length - openTrails} closed`, meter([["open", openTrails]], trails.length), trailList)
       : `<div class="orow"><span class="k">Trails</span><span>Not listed by the resort</span><span></span></div>`}`;
 }
-const foldOpen = {lifts: false, trails: false, insight: false};
+const foldOpen = {lifts: false, trails: false, insight: false, report: false};
 async function loadLifts(resort) {
   const spec = LIFT_FEEDS[resort.key];
   if (!spec || !navigator.onLine) return;
@@ -2547,6 +2610,7 @@ async function loadLifts(resort) {
   $("lifts").innerHTML = liftsHtml(resort);
   if ($("wx")) $("wx").innerHTML = weatherRows(resort);
   if ($("statusSrc")) $("statusSrc").innerHTML = statusSource(resort);
+  if ($("duo")) $("duo").innerHTML = duoHtml(resort);
   for (const fold of $("lifts").querySelectorAll("details.all")) fold.addEventListener("toggle", () => { foldOpen[fold.dataset.fold] = fold.open; });
 }
 // One look at the weather near each mountain: a Caltrans highway camera within about 10 km (district, camera name,
@@ -2680,7 +2744,6 @@ function renderDetail() {
     ${tabbed() ? `<div class="key" style="column-gap:14px"><span class="sw"><i style="background:var(--snow);height:3px"></i>storm total</span><span class="sw"><i style="background:none;border-top:1.5px dashed var(--ink2);height:0"></i>measured at the sensor</span></div>
       <div class="key" style="column-gap:14px"><span class="sw"><i style="height:11px;border-radius:2px;border:.75px solid var(--mark-dull);background:repeating-linear-gradient(45deg,var(--mark-dull) 0 1.4px,transparent 1.4px 4px)"></i>rain at this height, snow higher up</span><span>wind strip shows gusts</span></div></details>` : ""}
     ${measured(resort)}${webcams(resort)}`;
-  for (const fold of $("detail").querySelectorAll("details.insight")) fold.addEventListener("toggle", () => { foldOpen.insight = fold.open; });
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
   fillJump("jump", $("detail"));
   loadLifts(resort);

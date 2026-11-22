@@ -43,9 +43,14 @@ def lift_row(lift: dict) -> dict:
 
 
 def trail_row(trail: dict) -> dict:
+    """A trail in the page's shape. Grooming is given (as the Ikon feed gives it, "Yes" or "No") only when the resort
+    says one way or the other; before the season and on some days the feed leaves it unsaid."""
     status = "Open" if trail["IsOpen"] else "Closed"
-    return {"Name": trail["Name"], "Status": status, "StatusEnglish": status.lower(),
-            "Difficulty": DIFFICULTY.get(trail["Difficulty"], "")}
+    row = {"Name": trail["Name"], "Status": status, "StatusEnglish": status.lower(),
+           "Difficulty": DIFFICULTY.get(trail["Difficulty"], "")}
+    if isinstance(trail.get("IsGroomed"), bool):
+        row["Grooming"] = "Yes" if trail["IsGroomed"] else "No"
+    return row
 
 
 def recast(name: str, feed: dict, now: datetime) -> dict:

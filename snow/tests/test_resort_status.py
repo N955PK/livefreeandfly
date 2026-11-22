@@ -31,3 +31,10 @@ def test_trails_alone_are_enough_to_publish():
 def test_an_unsuccessful_feed_is_refused():
     with pytest.raises(ValueError, match="error"):
         resort_status.feed_of(page({"IsSuccessful": False, "ErrorDetails": "down"}))
+
+
+def test_a_trail_carries_its_grooming_only_when_the_resort_says():
+    said = resort_status.trail_row({"Name": "Run", "IsOpen": True, "Difficulty": 2, "IsGroomed": True})
+    unsaid = resort_status.trail_row({"Name": "Run", "IsOpen": True, "Difficulty": 2, "IsGroomed": None})
+    assert said["Grooming"] == "Yes" and "Grooming" not in unsaid
+    assert resort_status.trail_row({"Name": "Run", "IsOpen": False, "Difficulty": 2, "IsGroomed": False})["Grooming"] == "No"
