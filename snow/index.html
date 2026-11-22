@@ -3220,8 +3220,10 @@ const ROAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 5 2
 let mapBuild = 0, mapWired = false, staleMap = null;
 // The block of map buttons first shows once the map, the roads and the avalanche zones have all arrived, so it appears
 // whole instead of growing a button at a time. If one of them is slow, it shows without it after a few seconds.
+let railShown;
+const railWhole = new Promise((resolve) => { railShown = resolve; });
 function railReady(anyway) {
-  if (anyway || (!$("radarToggle").hidden && !$("roadPill").hidden && avy[region] && avy[region].loaded)) document.querySelector(".maprail").classList.add("ready");
+  if (anyway || (!$("radarToggle").hidden && !$("roadPill").hidden && avy[region] && avy[region].loaded)) { document.querySelector(".maprail").classList.add("ready"); railShown(); }
 }
 const mapDepth = () => ({per: metric() ? 2.54 : 1, unit: LEN()});
 async function startMap() {
@@ -3852,7 +3854,9 @@ async function liveForecast() {
 }
 window.addEventListener("online", () => { if (offlineCopy) location.reload(); });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
-// The opening screen goes as soon as the page and the map are ready (or 8 seconds pass).
+// The opening screen stays until the page, the map and everything drawn on the map (roads, avalanche zones, and so the
+// whole block of buttons) are ready, so nothing arrives after it lifts. A slow source holds it up 3 seconds at most
+// once the map is built, and the screen goes after 8 seconds whatever happens.
 let revealed = false;
 function reveal() {
   if (revealed) return;
@@ -3870,6 +3874,7 @@ liveForecast().then(async (d) => {
   loadAvalanche(); setInterval(loadAvalanche, 30 * 60 * 1000);
   setInterval(renderHeadline, 5 * 60 * 1000);
   try { await startMap(); } catch (error) { console.error(error); }
+  await Promise.race([railWhole, new Promise((resolve) => setTimeout(resolve, 3000))]);
   reveal();
 }).catch(() => { $("headline").textContent = "The forecast could not be loaded"; reveal(); });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
