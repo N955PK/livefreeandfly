@@ -878,12 +878,6 @@ function viewMoney(){
   const guestRow = (t, sub, c) => `<li><div class="rowi"><span class="grow"><span class="t">${t}</span>${sub ? `<span class="s">${sub}</span>` : ''}</span><span class="amt">${money(c)}</span></div></li>`;
   const guestHtml = `<ul class="list soft">${guestRow('Received', '', gl.paid)}${guestRow('Owed or expected', '', gl.owed + gl.coming)}</ul>
     <div class="actions"><button class="btn" data-act="guests-open">Open ledger</button>${col && col.venmo ? `<button class="btn" data-act="venmo-qr">Venmo QR</button>` : ''}</div>`;
-  const myLease = S.me && S.me.part_time && leaseOf(S.me) ? `<h2>Your part-time lease</h2>
-    <ul class="list"><li><div class="rowi"><span class="grow"><span class="t">${leasePaid(S.me) ? 'Paid' : 'Due'}</span>
-      <span class="s">${col ? `Pay ${esc(col.name)} directly. It’s separate from your house balance.` : 'The admin hasn’t set who collects it yet.'}</span>
-      ${myDates(S.me) ? `<span class="s">Your dates: ${myDates(S.me)}</span>` : ''}</span>
-      <span class="amt${leasePaid(S.me) ? ' pos' : ' neg'}">${money(leaseOf(S.me))}</span></div>
-      ${!leasePaid(S.me) && col && col.venmo ? `<div class="pay-btns"><a class="btn small primary" href="${esc(venmoUrl(col, 'pay', leaseOf(S.me), 'Part-time lease: ' + S.me.name))}" target="_blank" rel="noopener">Pay ${esc(first(col))} on Venmo</a></div>` : ''}</li></ul>` : '';
   const trow = r => `<li${r.rule ? ' class="final"' : ''}><div class="rowi${r.indent ? ' item' : ''}"><span class="grow"><span class="t">${r.t}</span>${r.sub ? `<span class="s">${r.sub}</span>` : ''}${r.pv ? `<span class="s" data-pv="${r.k}" hidden></span>` : ''}</span>${r.plain ? `<span class="amt">${r.plain}</span>` : `<button type="button" class="amt veil" data-act="reveal" data-k="${r.k}" aria-label="Show amounts">••••••</button>`}</div></li>`;
   const trows = seasonRows(), totalsHtml = trows.length ? `<h2>Season totals</h2><ul class="list soft priv">${trows.map(trow).join('')}</ul>` : '';     // the numbers stay hidden until one is tapped, and hide again whenever the page redraws
   // The same small button for everyone who has shared a Venmo; on your own row, a prompt to add yours.
@@ -900,7 +894,6 @@ function viewMoney(){
       ${mine < 0 ? `<div class="actions"><button class="btn primary wide" data-act="settle-open">Settle up</button></div>`
         : mine > 0 ? `<div class="actions"><button class="btn wide" data-act="settle-open">See who owes you</button></div>` : ''}</div>
     <div class="actions three"><button class="btn${mine < 0 ? '' : ' primary'}" data-act="exp-new">Add expense</button><button class="btn" data-act="pay-blank">Add payment</button><button class="btn" data-act="history-open">History</button></div>
-    ${myLease}
     <div class="sechead"><h2>Balances</h2><span class="key" aria-hidden="true"><span><i class="kp"></i>owed</span><span><i class="kn"></i>owes</span></span></div><ul class="list" data-list="balances">${balHtml}</ul>
     <h2>Guest ledger</h2>${guestHtml}
     ${totalsHtml}</div>`;
