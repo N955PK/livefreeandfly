@@ -2492,7 +2492,8 @@ function resortReport(resort) {
   if (!report || !report.LastUpdate) return "";
   const said = (value) => value != null && value !== "" && value !== "--" && value !== "N/A";
   const stakes = ["Summit", "Mid", "Base"].map((name, n) => [name, report[spec[1][2 - n]] || {}]);
-  const reading = (field) => stakes.filter(([, at]) => said(at[field])).map(([name, at]) => `${name} ${inches(+at[field])} ${LEN()}`).join(" · ");
+  // A base depth of 0 is a stake nobody has read yet, not bare ground.
+  const reading = (field) => stakes.filter(([, at]) => said(at[field]) && (field !== "BaseIn" || +at[field] > 0)).map(([name, at]) => `${name} ${inches(+at[field])} ${LEN()}`).join(" · ");
   // Groomed runs are counted on this mountain's own trails: Palisades and Alpine share one report, whose total is both.
   const mine = (LIFT_FEEDS[resort.key] || [])[1], own = mine ? (feed.data.MountainAreas || []).filter((area) => mine(area.Name)).flatMap((area) => area.Trails || []) : [];
   const ownOpen = own.filter((t) => /^open/.test(t.StatusEnglish || "")), marked = own.some((t) => t.Grooming != null);
@@ -2505,8 +2506,9 @@ function resortReport(resort) {
   for (const list of page.querySelectorAll("ul, ol, script, style")) list.remove();
   for (const br of page.querySelectorAll("br")) br.replaceWith("\n");
   const words = [...page.body.children].length ? [...page.body.children].flatMap((el) => el.textContent.split(/\n{2,}|\n/)) : (page.body.textContent || "").split(/\n+/);
-  const paragraphs = words.map((text) => text.replace(/\s+/g, " ").trim()).filter((text) => text.length > 1).slice(0, 8);
   const alert = said(report.Alert) ? new DOMParser().parseFromString(report.Alert, "text/html").body.textContent.replace(/\s+/g, " ").trim() : "";
+  // A resort that is shut often writes the same line as its report and its alert ("Opening day is..."): it is said once.
+  const paragraphs = words.map((text) => text.replace(/\s+/g, " ").trim()).filter((text) => text.length > 1 && !(alert && alert.startsWith(text.slice(0, 24)))).slice(0, 8);
   const when = new Date(report.LastUpdate), old = Date.now() - when > 36 * 3600e3;
   const stamp = `${when.toLocaleDateString("en-US", {timeZone: TZ, weekday: "short", ...(old ? {month: "short", day: "numeric"} : {})})} ${localClock(when)}`;
   // The status box above already names the resort's page and links to it; only an old report says when it is from.
@@ -2606,8 +2608,10 @@ function liftsHtml(resort) {
   if (tabbed()) {
     const extra = [holds, ...Object.entries(due).map(([word, count]) => `${count} ${esc(word.toLowerCase())}`)].filter(Boolean).join(" · ");
     // Two columns: the lifts' count, meter and holds on the left, the trails' count and meter on the right.
-    const liftCol = `<div><span>${season ? "<b>Not open for the season yet</b>" : `<b>${tally.open}</b> of ${lifts.length} lifts`}</span>${meter(Object.entries(tally), lifts.length)}${extra ? `<span class="extra">${extra}</span>` : ""}</div>`;
-    const trailCol = trails.length ? `<div><span><b>${openTrails}</b> of ${trails.length} trails</span>${meter([["groomed", groomedOpen], ["open", openTrails - groomedOpen]], trails.length)}${saysGrooming ? `<span class="extra">${groomedOpen} groomed</span>` : ""}</div>` : "";
+    // Before opening day there is nothing to count: one line across the full width, no meters and no trails column.
+    const liftCol = season ? `<div><span><b>Not open for the season yet</b></span></div>`
+      : `<div><span><b>${tally.open}</b> of ${lifts.length} lifts</span>${meter(Object.entries(tally), lifts.length)}${extra ? `<span class="extra">${extra}</span>` : ""}</div>`;
+    const trailCol = trails.length && !season ? `<div><span><b>${openTrails}</b> of ${trails.length} trails</span>${meter([["groomed", groomedOpen], ["open", openTrails - groomedOpen]], trails.length)}${saysGrooming && openTrails ? `<span class="extra">${groomedOpen} groomed</span>` : ""}</div>` : "";
     return `<details class="all both" data-fold="lifts"${foldOpen.lifts ? " open" : ""}><summary class="orow"><div class="pair">${liftCol}${trailCol}</div></summary>
       <div class="list"><div class="area head">Lifts</div>${list}${trails.length ? `<div class="area head">Trails</div>${trailList}` : ""}</div></details>`;
   }
