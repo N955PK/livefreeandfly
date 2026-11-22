@@ -42,7 +42,7 @@
 [hidden]{display:none !important}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
 #splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-  background:linear-gradient(#2a78d6,#0d366b);color:#fff;transition:opacity .45s ease,visibility .45s}
+  background:linear-gradient(var(--surface) 0,var(--surface) calc(var(--sat) + 10px),#2a78d6 42%,#0d366b);color:#fff;transition:opacity .2s ease,visibility .2s}
 /* The mark sits at the optical center, a little above the measured one, where a lone mark reads as centered. */
 #splash img{width:min(38vw,170px);height:auto;transform:translateY(-4vh)}
 /* Inside ski/lease the page is in a frame, and a phone lets a framed page slide both ways at once, where the page on
@@ -51,10 +51,9 @@
 html.hosted #heat{touch-action:pan-y}
 /* Opened from ski/lease, the opening screen wears that app's accent color in place of Snow's blue. */
 .hosted #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
-/* From the moment it starts to fade it lets touches through, so a phone that colors its status strip from what it
-   finds at the top of the page turns to the page's color as the fade begins, not a beat after it has ended. The
-   phone still takes about a quarter of a second to change the strip, so the fade is long enough (.45s) for that
-   change to fall inside it rather than after it. */
+/* A phone colors its status strip from the top of whatever is showing, and changes it a quarter of a second late.
+   So the opening screen is the page's own color at the very top and runs into its blue below: the strip is the
+   page's color from the first frame and has nothing to change to when the opening screen goes. */
 #splash.done{opacity:0;visibility:hidden;pointer-events:none}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
