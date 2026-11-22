@@ -2118,9 +2118,10 @@ function outlookImpacts(resort, date, measured) {
   const top = dayAt("summit"), low = dayAt("base"), s = top.powder, b = low.powder, wild = resort.kind === "backcountry";
   const found = [], add = (tone, name, detail) => found.push({tone, name, detail});
   const HOLD = HOLD_TIERS[WIND_TIER[resort.key] || "average"];
-  // Today, the wind the resort is measuring at its summit counts when it is stronger than the forecast.
+  // Today, the wind the resort is measuring at its summit counts when it is stronger than the forecast (see liftWind
+  // for what "measuring" means before the lifts open).
   const wind = Math.max(s.wind_mph || 0, measured ? measured.wind : 0), gust = Math.max(wind, s.gust_mph || 0, measured ? measured.gust : 0), over = (level) => gust >= HOLD[level][0] || wind >= HOLD[level][1];
-  const blowing = `${speed(wind)} ${SPEED()}, gusts to ${speed(gust)}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit${measured && measured.wind >= (s.wind_mph || 0) ? ", measured" : ""}`;
+  const blowing = `${speed(wind)} ${SPEED()}, gusts to ${speed(gust)}${s.wind_from_deg == null ? "" : ` from the ${compass(s.wind_from_deg)}`} at the summit${measured && measured.wind > (s.wind_mph || 0) ? (measured.note || ", measured") : ""}`;
   if (over("likely")) add("bad", wild ? "strong wind" : over("shut") ? "wind closures" : "wind holds", blowing);
   else if (over("possible")) add("warn", wild ? "gusty" : "wind holds", blowing);
   const night = s.night_in || 0;
@@ -2139,13 +2140,28 @@ function statusDay(resort) {
   const days = resort.elevations.summit.days.filter((d) => !d.past), shift = Math.min(days.length - 1, outlookShift ?? (localHour() >= 16 ? 1 : 0));
   return {days, shift, day: days[shift]};
 }
+// The summit wind to judge the day's lifts by, given what the resort's station reads now. While the lifts are running
+// or about to (from 7 am), that is the reading itself. Earlier, in the night, what blows now is not what will blow
+// at opening: the day is judged on the forecast for its lift hours, raised by however much the station is reading
+// over the forecast for this very hour (a forecast running low now is taken to run as low later). So a wild night
+// the forecast has calming by morning reads as calm, and a night wilder than forecast still counts against the day.
+const LIFTS_NEAR_HOUR = 7;
+function liftWind(resort, day, crest) {
+  const now = {wind: +crest.WindStrengthMph, gust: +crest.WindGustsMph || 0};
+  if (localHour() >= LIFTS_NEAR_HOUR) return now;
+  const hourly = resort.elevations.summit.hourly, at = (resort.hours_utc || []).findIndex((t) => new Date(t).getTime() > Date.now()) - 1;
+  const lifts = day.powder || {};
+  if (at < 0 || !hourly.wind_mph || hourly.wind_mph[at] == null) return {wind: lifts.wind_mph || 0, gust: lifts.gust_mph || 0};
+  const over = Math.max(0, now.wind - hourly.wind_mph[at]), overGust = Math.max(0, now.gust - (hourly.gust_mph[at] ?? hourly.wind_mph[at]));
+  return {wind: (lifts.wind_mph || 0) + over, gust: (lifts.gust_mph || 0) + overGust, note: `, forecast for lift hours raised ${speed(over)} ${SPEED()} because it is blowing harder than forecast now`};
+}
 // Temperature and wind for the status: the resort's station reading right now when today is showing and it has
 // one at this elevation, otherwise the forecast for the day's lift hours.
 function weatherRows(resort) {
   const {shift, day} = statusDay(resort), spec = LIFT_FEEDS[resort.key], feed = spec && liftFeeds[spec[0]];
   const station = (level) => { const now = shift === 0 && feed && !feed.failed && (feed.data.CurrentConditions || {})[(STATIONS[resort.key] || STATION_NAMES)[level]]; return now && isFinite(+now.TemperatureF) && isFinite(+now.WindStrengthMph) ? now : null; };
   const live = station(elevation), crest = station("summit");
-  const impacts = outlookImpacts(resort, day.date, crest && {wind: +crest.WindStrengthMph, gust: +crest.WindGustsMph || 0});
+  const impacts = outlookImpacts(resort, day.date, crest && liftWind(resort, day, crest));
   const worst = impacts.some((x) => x.tone === "bad") ? "bad" : impacts.length ? "warn" : "";
   const causes = impacts.map((x) => `<span title="${esc(x.detail)}">${x.name}</span>`).join(", ");
   // A backcountry peak has no lifts to hold, so the status box gives the avalanche danger instead of the weather's
