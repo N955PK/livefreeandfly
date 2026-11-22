@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
 <meta property="og:description" content="A free, verified snow forecast for Sierra ski resorts.">
@@ -130,10 +130,11 @@ html.tabs .panel.summary{--ink:var(--mark);--ink2:var(--mark-dull);--muted:var(-
 html.dragging,html.dragging body{overflow-x:clip}
 html.tabs .dragout:not(#_){will-change:transform}
 html.tabs .dragin:not(#_){display:block!important;position:fixed!important;z-index:5;top:var(--gtop,0px);left:0;right:0;bottom:0;width:auto;height:auto;min-height:0;margin:0!important;overflow:hidden;box-sizing:border-box;will-change:transform}
-html.tabs .panel.summary.dragin:not(#_){display:flex!important}
+/* The Region pane held like this shows its table from the left edge, cut off at the screen's width. */
+html.tabs .dragin .heat tr.head th{top:94px}
 /* Held like that the pane is its own scroller, so its pinned bar would pin against the pane's top edge and sit a
    status strip's height too low until the slide ended. While sliding, the bar just sits at the pane's top. */
-html.tabs .dragin .dtop{position:relative;top:0}
+html.tabs .dragin .dtop,html.tabs .dragin .sumhead{position:relative;top:0}
 /* The capsules are never kept on a layer of their own: that puts the chosen word over them on another layer, which a
    phone makes a beat late whenever the layers are rebuilt (a pane shown, a slide ending), so the word blinks. */
 html.dragging .segind{transition:none}
@@ -165,19 +166,22 @@ html.tabs.stuck #topTint{background:var(--surface)}
    right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
 html.tabs .dtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;box-sizing:border-box;height:129px;margin:-16px -14px 0;padding:14px 14px 0;background:var(--surface);border-bottom:1px solid var(--border)}
 html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:var(--surface)}
-/* On a phone the Region tab is one still screen, like the map: the title block at the top, and under it the table in
-   a box of its own that scrolls both ways. The table's heading row is simply its first row, held at the top of that
-   box as the names are held at its left, so the phone moves both with the table itself: no copy, nothing to keep in
-   step, and a pull past either end takes the headings with it. Title block and heading row together are the 129px
+/* On a phone the Region tab scrolls as the other tabs do: the page itself moves, the app's header goes off the top,
+   and the title block stays (the same frozen bar, with the table's heading row held under it). The table is wider
+   than the screen, so on this tab the page scrolls sideways as well; everything that is not the table (the header,
+   the title block, the notes under the table) is held at the left so only the table moves. All of it is the phone's
+   own scrolling: nothing is copied or kept in step by script. Title block and heading row together are the 129px
    of the other tabs' frozen bars. */
 @media (max-width:720px){
-  html.tabs[data-view="forecast"],html.tabs[data-view="forecast"] body{height:100%;overflow:hidden;overscroll-behavior:none}
-  html.tabs[data-view="forecast"] main{height:100dvh;min-height:0;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:0}
-  html.tabs:not(.one) .panel.summary{flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
-  html.tabs .sumhead{flex:none;height:94px}
-  html.tabs:not(.one) .gridwrap{flex:1 1 0;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none contain;padding-bottom:calc(28px + var(--tabbar))}
+  html.tabs[data-view="forecast"],html.tabs[data-view="forecast"] body{overscroll-behavior-x:none}
+  html.tabs[data-view="forecast"] main{width:max-content;min-width:100%;max-width:none;margin:0;padding-right:0;box-sizing:border-box}
+  html.tabs[data-view="forecast"] .panel.summary{margin-right:0}
+  html.tabs[data-view="forecast"] .brand{position:sticky;left:16px;width:calc(100vw - 32px);touch-action:pan-y}
+  html.tabs .sumhead{position:sticky;top:env(safe-area-inset-top,0px);left:0;width:100vw;height:94px;touch-action:pan-y}
+  html.tabs:not(.one) .gridwrap{overflow:visible}
+  html.tabs:not(.one) .gridwrap > .gridnote,html.tabs:not(.one) .gridwrap > .legend{left:16px;width:calc(100vw - 32px);max-width:none;box-sizing:border-box;touch-action:pan-y}
   html.tabs .panel.summary table.heat{padding-top:0}
-  html.tabs .heat tr.head th{position:sticky;top:0;z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
+  html.tabs .heat tr.head th{position:sticky;top:calc(env(safe-area-inset-top,0px) + 94px);z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
   html.tabs .heat tr.head th b{line-height:1.15}
   html.tabs .heat tr.head th.corner{left:0;z-index:5}
   /* The days past the fifth are grayed by their ink, not by being see-through: a see-through heading would show the
@@ -403,8 +407,8 @@ html.tabs .tabbar{left:0;right:0;bottom:var(--tabgap);margin:0 auto;width:min(ca
 /* The glass is a layer of its own behind the tabs, so the capsule sliding over it never makes the blur be worked out again. */
 .tabglass{display:none}
 html.tabs .tabglass{display:block;position:absolute;inset:0;border-radius:999px;border:1px solid color-mix(in srgb,var(--surface) 55%,transparent);
-  background:color-mix(in srgb,var(--surface) 66%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);
-  box-shadow:0 8px 28px rgba(15,23,32,.2),0 1px 3px rgba(15,23,32,.12),inset 0 1px 0 color-mix(in srgb,#fff 45%,transparent)}
+  background:linear-gradient(color-mix(in srgb,var(--surface) 50%,transparent),color-mix(in srgb,var(--surface) 38%,transparent));-webkit-backdrop-filter:blur(16px) saturate(1.9);backdrop-filter:blur(16px) saturate(1.9);
+  box-shadow:0 8px 28px rgba(15,23,32,.18),0 1px 3px rgba(15,23,32,.1),inset 0 1px 0 color-mix(in srgb,#fff 55%,transparent),inset 0 -1px 0 color-mix(in srgb,#fff 12%,transparent)}
 /* The small pickers (today or tomorrow, depth or snowfall or water, units, clock) work the same way: one capsule that
    slides to the choice, drawn behind the words, and no flash on a press. */
 html.tabs .seg:not(.tri){position:relative}
@@ -2412,7 +2416,7 @@ function pagerOpen(to, byTap) {
   if (pager || to === from || !PANES[to] || !PANES[from]) return false;
   const out = PANES[from](), inn = PANES[to](), sign = TAB_ORDER.indexOf(to) > TAB_ORDER.indexOf(from) ? 1 : -1;
   // The new pane starts where the old one does on screen; under a pinned bar that is where the bar is pinned.
-  const bar = out.querySelector(".dtop"), pin = bar ? parseFloat(getComputedStyle(bar).top) || 0 : 0;
+  const bar = out.querySelector(".dtop, .sumhead"), pin = bar ? parseFloat(getComputedStyle(bar).top) || 0 : 0;
   const outTop = out.getBoundingClientRect().top, pinned = !!bar && window.scrollY > 0 && outTop <= pin;
   // Unscrolled, it starts exactly where it sat the last time it was open (panes do not all start at the same height).
   // A pane not opened yet is opened for an instant, unseen (nothing is painted in between), to learn where it sits.
@@ -2424,7 +2428,7 @@ function pagerOpen(to, byTap) {
   document.documentElement.classList.add("dragging");
   out.classList.add("dragout"); inn.classList.add("dragin");
   // Under a pinned bar it is the new pane's own bar, not its edge, that has to land on the pin.
-  const innBar = inn.querySelector(".dtop");
+  const innBar = inn.querySelector(".dtop, .sumhead");
   if (pinned && innBar) { top -= innBar.getBoundingClientRect().top - pin; document.documentElement.style.setProperty("--gtop", `${top}px`); }
   pager = {from, to, sign, out, inn, w: window.innerWidth, byTap, pinned, pin, sy: window.scrollY, busy: false};
   if (to === "mountain" && data && Math.abs(inn.clientWidth - fitted) > 40) renderDetail();
@@ -2470,8 +2474,8 @@ function pagerClose(go) {
   if (!go) { placeTabInd(); return; }
   showView(to);
   // Coming from a page scrolled under its pinned bar, a pane that scrolls opens with its own bar pinned the same way.
-  const bar = inn.querySelector(".dtop");
-  if (!bar || (to !== "mountain" && to !== "avalanche")) return;
+  const bar = inn.querySelector(".dtop, .sumhead");
+  if (!bar || to === "map") return;
   if (pinned) window.scrollTo(0, Math.ceil(bar.getBoundingClientRect().top + window.scrollY - pin));
   // Scrolled only a little (the header part way off), it opens scrolled just as far, so nothing jumps.
   else if (sy > 0) window.scrollTo(0, sy);
@@ -2538,7 +2542,8 @@ for (const kind of ["pointerup", "pointercancel", "blur"]) window.addEventListen
 // right). Things that take a sideways drag for themselves are left alone: the map, a slider, a card, and anything
 // that scrolls sideways (the summary table, the hourly chart and its days, the season chart's readout).
 const takesDrag = (el) => {
-  if (el.closest("#map3d, .mapbar, #seasonChart, dialog, input, select, .roadsheet")) return true;
+  // The Region table slides sideways with the page itself, so a sideways drag on it is the table's, not a change of tab.
+  if (el.closest("#map3d, .mapbar, #seasonChart, dialog, input, select, .roadsheet, #heat")) return true;
   for (let node = el; node && node !== document.body; node = node.parentElement) {
     if (node.scrollWidth > node.clientWidth + 1 && /auto|scroll|hidden/.test(getComputedStyle(node).overflowX)) return true;
   }
@@ -3208,7 +3213,7 @@ document.addEventListener("click", (e) => {
   for (const x of document.querySelectorAll(".seg button[data-el]")) x.setAttribute("aria-pressed", x.dataset.el === elevation);
   renderAll();
 });
-$("heat").parentElement.addEventListener("scroll", (e) => { e.currentTarget.classList.toggle("scrolled", e.currentTarget.scrollLeft > 2); }, {passive: true});
+window.addEventListener("scroll", () => { $("heat").parentElement.classList.toggle("scrolled", window.scrollX > 2); }, {passive: true});
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { markTop.done = false; markTop(); });
 // The jump bars: a chip for each part of a tab's pane, in the frozen bar at its top. A tap goes to the part; the chip
 // of the part being read is filled. Long names take a short form on the chip.
