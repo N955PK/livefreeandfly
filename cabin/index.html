@@ -91,8 +91,9 @@ main.sliding{will-change:transform}
 .tabs div.dragging::before{transform:translateX(var(--dragx,0%))!important;transition:none!important}
 .snowframe iframe{display:block;width:100%;height:100%;border:0}
 /* The tabs are a floating pill of frosted glass, as in Turbo Snow: the page runs under it, and a capsule slides to
-   the open tab. The glass is a layer of its own (::before) so the capsule moving over it never redoes the blur. */
-.tabs{position:fixed;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;margin:0 auto;
+   the open tab. The glass is a layer of its own (::before) so the capsule moving over it never redoes the blur.
+   It sits exactly where Snow's does: 10px up, or on a phone with a home bar, 10px inside that bar's margin. */
+.tabs{position:fixed;left:0;right:0;bottom:max(10px,calc(env(safe-area-inset-bottom,0px) - 10px));z-index:6;margin:0 auto;
   width:min(calc(100vw - 20px),440px);box-sizing:border-box;padding:6px;border-radius:999px}
 .tabs::before{content:"";position:absolute;inset:0;border-radius:999px;border:1px solid color-mix(in srgb,var(--sheet) 55%,transparent);
   background:linear-gradient(color-mix(in srgb,var(--sheet) 50%,transparent),color-mix(in srgb,var(--sheet) 38%,transparent));
