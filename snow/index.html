@@ -169,7 +169,10 @@ button,summary,label.mtnpick,label.regionpick{-webkit-touch-callout:none}
   /* With the header and the panes one color there is no line between them: the header runs straight into the pane. */
   html.tabs .panel.summary,html.tabs #detail,html.tabs #avalanche,html.tabs #mapPanel{border-top-color:transparent}
 }
-html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(var(--sat),4px);z-index:7;pointer-events:none;background:var(--page)}
+/* The strip takes touches like any other element (it covers only the status strip, where there is nothing to press):
+   an iPhone looks for a solid bar at the top edge by touching it, and one that lets touches through is not found,
+   so the phone blurs the edge itself. ski/lease's strip is built this way and is not blurred. */
+html.tabs #topTint{display:block;position:fixed;top:0;left:0;right:0;height:max(var(--sat),4px);z-index:7;background:var(--page)}
 html.tabs.stuck #topTint{background:var(--surface)}
 /* Each tab's pane opens with the same frozen bar: a title with two lines under it and a picture or picker at the
    right, then a row of chips that jump to the pane's parts. It is 129px tall on every tab and stays at the top. */
