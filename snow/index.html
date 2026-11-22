@@ -984,10 +984,34 @@ html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 
 .map-key span{display:flex;align-items:center;gap:6px}
 .map-key i{width:9px;height:9px;border-radius:50%;border:1.5px solid;box-sizing:border-box}
 #avalanche{margin-top:14px;padding:18px 18px 16px}
-#moreSlot:not(:empty){margin-top:14px}
-#moreSlot details.panel{display:block!important;margin:0;padding:0;border:0;border-top:1px solid var(--border);border-radius:0;background:none}
-#moreSlot details summary{font-size:14.5px;font-weight:600;padding:12px 0}
-#moreSlot details p,#moreSlot details li{font-size:13.5px}
+/* The snowflake's sheet: a front page and a page behind each of its three ways in. Headings are the app's own
+   section headings (accent, with a rule to the edge); what can be pressed is round-ended, what cannot is squared. */
+.gpage[hidden]{display:none}
+.ghead{display:flex;align-items:center;gap:12px;margin:24px 0 10px;font-size:15.5px;font-weight:650;letter-spacing:-.005em;color:var(--accent)}
+.ghead::after{content:"";flex:1;height:1px;background:var(--border)}
+.gpage > .ghead:first-child,.gpage > #qualityBody > .ghead:first-child{margin-top:6px}
+dialog.sheet .grab .gback{margin:0 10px 0 -8px}
+dialog.sheet .grab .gback[hidden]{display:none}
+dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gnav{display:grid;gap:8px}
+.gnav button{position:relative;display:block;width:100%;text-align:left;padding:11px 40px 12px 18px;border:0;border-radius:22px;background:var(--wash);font:inherit;color:var(--mark);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gnav button b{display:block;font-size:14.5px;font-weight:650}
+.gnav button span{display:block;margin-top:1px;font-size:12.5px;line-height:1.35;color:var(--mark-dull)}
+.gnav button::after{content:"";position:absolute;right:18px;top:50%;width:7px;height:7px;margin-top:-4px;border-right:2px solid var(--mark-dull);border-bottom:2px solid var(--mark-dull);transform:rotate(-45deg)}
+.gfoot{margin:26px 0 2px;font-size:12px;line-height:1.5;color:var(--mark-dull)}
+.gpage p,.gpage li{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.gpage p{margin:0 0 10px}
+.gpage ul{margin:0 0 10px;padding-left:18px}
+.gpage h5{margin:18px 0 6px;font-size:14px;font-weight:650;color:var(--mark)}
+.gpage p b{color:var(--ink)}
+.gpage a{color:var(--accent)}
+#how p > b.lead{display:block;margin-bottom:1px;font-size:12px;font-weight:650;color:var(--accent)}
+#how p{margin-bottom:13px}
+figure.plot{margin:10px 0 14px;padding:10px;border-radius:11px;background:#fff;border:1px solid var(--border)}
+figure.plot img{display:block;width:100%;height:auto}
+figure.plot figcaption{margin-top:8px;font-size:12px;line-height:1.4;color:#6b7480}
+.gpage .gridwrap{margin:6px -18px 14px;padding:0 18px;overflow-x:auto}
+.gpage table.plain{font-size:12.5px}
 /* One last set of house sizes in tabs: captions at 12.5px, running text at 13.5px, content cards with an 11px corner,
    and the settings card's pickers round-ended like every other thing that can be pressed. */
 html.tabs .panel.summary .gridcap{font-size:12.5px;padding-top:3.6px}
@@ -998,17 +1022,19 @@ html.tabs #detail .cams .what{font-size:13.5px}
 html.tabs #detail .tile,html.tabs #detail .stats > *,html.tabs #detail .orow.verdict{border-radius:11px}
 dialog.sheet .seg,dialog.sheet .seg button{border-radius:999px}
 /* The forecast-quality list: a mountain, its grade, and the sensor it is checked against. The grades are not pressed, so they are squared off. */
-.qkey{display:grid;gap:6px;margin:2px 0 12px;font-size:13px;line-height:1.4;color:var(--ink2)}
-.qkey > div{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;align-items:start}
-.q{justify-self:start;box-sizing:border-box;min-width:86px;text-align:center;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:700;white-space:nowrap;border:1px solid}
+.qkey{display:grid;gap:8px;margin:12px 0 4px;padding:12px 14px;border-radius:11px;background:var(--wash);font-size:12.5px;line-height:1.4;color:var(--ink2)}
+.qkey > div{display:grid;grid-template-columns:92px 20px minmax(0,1fr);gap:10px;align-items:start}
+.qkey b{font-size:14px;font-weight:700;color:var(--mark);text-align:right;font-variant-numeric:tabular-nums}
+.q{justify-self:start;flex:none;box-sizing:border-box;min-width:92px;text-align:center;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:700;white-space:nowrap;border:1px solid}
 .q.good{color:#1f7a3d;background:rgba(31,122,61,.1);border-color:rgba(31,122,61,.3)}
 .q.rough{color:#b3541e;background:rgba(179,84,30,.1);border-color:rgba(179,84,30,.35)}
 .q.none{color:var(--mark-dull);background:var(--wash);border-color:var(--border)}
 @media (prefers-color-scheme:dark){.q.good{color:#6fd08c}.q.rough{color:#f0a070}}
-.qrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--border)}
-.qrow b{font-size:14px;font-weight:650;color:var(--ink)}
-.qrow small{grid-column:1/-1;font-size:12.5px;color:var(--mark-dull)}
-#quality .pickgroup{margin:14px 0 4px}
+.qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--border)}
+.qlist > .qrow:first-child{border-top:0;padding-top:2px}
+.qrow > div{min-width:0}
+.qrow b{display:block;font-size:14px;font-weight:650;line-height:1.3;color:var(--ink)}
+.qrow small{display:block;margin-top:1px;font-size:12.5px;line-height:1.3;color:var(--mark-dull)}
 /* Every popup is one card, in the map's roads-card style: frosted, round-cornered, floating just above the tab bar,
    with its name at the top left and a round close button at the top right. A touch outside it puts it away. The
    mountain, zone and region choosers open in it too, in place of the phone's own picker. */
@@ -1324,9 +1350,72 @@ if (HOSTED) {
 
   <div class="panel" id="avalanche" data-tab="avalanche"></div>
 
-  <details class="panel" id="quality" data-tab="more"><summary>How good is each mountain's forecast?</summary><div class="inner"><div id="qualityBody"></div></div></details>
-  <details class="panel" id="score" data-tab="more"><summary>How accurate is this?</summary><div class="inner"><div id="scoreBody"></div><p><a href="report/">How we tested it, with the plots</a></p></div></details>
-  <details class="panel" id="how" data-tab="more"><summary>How the forecast is made</summary><div class="inner">
+
+</main>
+<nav class="tabbar" id="tabbar" aria-label="Sections"><span class="tabglass" aria-hidden="true"></span><div><i class="tabind" id="tabInd" aria-hidden="true"></i>
+  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
+</div></nav>
+<dialog id="settingsSheet" class="sheet top guide"><div class="grab"><button id="guideBack" class="gback" aria-label="Back" hidden><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.500 2 3.500 6l4 4"/></svg></button><b id="guideTitle" tabindex="-1" autofocus>About Turbo Snow</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody" id="guideBody">
+  <div class="gpage" data-page="root" data-title="About Turbo Snow">
+  <h4 class="ghead">Preferences</h4>
+  <div id="settings">
+    <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
+    <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
+  </div>
+  <h4 class="ghead">The forecast</h4>
+  <div class="gnav">
+    <button data-page-to="quality"><b>Forecast quality</b><span id="qualitySum">How well each mountain's forecast is corrected</span></button>
+    <button data-page-to="score"><b>How it is tested</b><span>Scored against winters and stations it never saw</span></button>
+    <button data-page-to="how"><b>How the forecast is made</b><span>The models, snow ratio, wind, and the powder score</span></button>
+  </div>
+  <p class="gfoot">Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
+  </div>
+  <div class="gpage" id="quality" data-page="quality" data-title="Forecast quality" hidden><div id="qualityBody"></div></div>
+  <div class="gpage" id="score" data-page="score" data-title="How it is tested" hidden>
+    <p>Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
+    <h4 class="ghead">The scorecard</h4>
+    <div id="scoreBody"></div>
+    
+<h4 class="ghead">How fluffy the snow is</h4>
+<p>The snow ratio is inches of snow per inch of water. It is the hardest part to predict and the part most forecasts guess at.
+The raw material is 13,124 days of snowfall measured by hand at Sierra stations since 1979. Colder storms make lighter snow, but with a lot of scatter.</p>
+<figure class="plot"><img loading="lazy" src="report/ratio_vs_temperature.png" alt="Median snow ratio falls from about 14 to 7 as temperature rises from −12 to +3 °C"><figcaption>The line is the middle day at each temperature; the band holds the middle half of days.</figcaption></figure>
+<p>The model in use is fitted on 1,197 hand-measured snow days at 44 stations from the five winters that have detailed upper-air data, using temperature, wind, and humidity aloft plus the amount of water.
+Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, against 2.02 in for Kuchera (the common free method) and 2.07 in for a flat 10:1.</p>
+<figure class="plot"><img loading="lazy" src="report/ratio_predicted_vs_measured.png" alt="Predicted against measured snow ratio for Kuchera and for this site's model"><figcaption>Each dot is one station-day, predicted by a model fitted without that winter. A perfect forecast would sit on the line. Neither does: the ratio is noisy, and the model explains only about 15% of its day-to-day variation.</figcaption></figure>
+<figure class="plot"><img loading="lazy" src="report/ratio_error_by_temperature.png" alt="Average snowfall error by temperature band for three methods"><figcaption>Kuchera does worst in cold storms, where it calls for very light snow that the Sierra rarely delivers.</figcaption></figure>
+<div class="gridwrap"><table class="plain"><tr><th>Winter held out</th><th>Snow days</th><th>Kuchera error (in)</th><th>This site (in)</th></tr><tr><td>2021–22</td><td>231</td><td>2.40</td><td>2.06</td></tr><tr><td>2022–23</td><td>487</td><td>1.93</td><td>1.46</td></tr><tr><td>2023–24</td><td>207</td><td>1.92</td><td>1.61</td></tr><tr><td>2024–25</td><td>131</td><td>1.36</td><td>1.42</td></tr><tr><td>2025–26</td><td>141</td><td>2.47</td><td>1.97</td></tr></table></div>
+<p><b>What did not work:</b> training on the full 45-year record. Its upper-air data is coarse and does not line up with the forecast models, so it made the forecasts slightly worse, and it is not used.</p>
+
+<h4 class="ghead">Rain or snow</h4>
+<p>At 5,405 wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
+<figure class="plot"><img loading="lazy" src="report/rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about 1.25 °C.</figcaption></figure>
+<p>Three methods were tried and came out tied: about 2.4 mm of water miscalled per wet day, half the 4.9 mm you get by calling everything snow.</p>
+<p><b>A mistake we caught:</b> an earlier version of this test read the sensors' daily records one day off, which made every method look much worse and one winter look broken. Lining the dates up fixed both.</p>
+
+<h4 class="ghead">How much water</h4>
+<p>Weather models are consistently too dry or too wet at particular spots in the mountains. Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,206 model-days).</p>
+<figure class="plot"><img loading="lazy" src="report/water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
+<p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
+<p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. (One model delivers 13% of the measured water at Mt Rose; uncapped, its correction once turned 43 mm into 247.)</p>
+
+<h5>Around Mammoth</h5>
+<p>Mammoth gets its own correction, fitted to 10 snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
+<p><b>Mammoth Mountain and Sherwin Ridge</b> use the Mammoth Pass sensor, 2 km south of the summit. The models' shares of its measured water: GEM 69%, ECMWF 88%, ICON 101%, GFS 133%. Those misses offset, so at this one sensor the corrected blend only ties the raw one; the correction is kept because it makes each model right on its own.</p>
+<p><b>Matterhorn Peak and Dana Plateau</b> use the sensors nearest them: Slide Canyon, 4 km west across the crest, and Dana Meadows, 5 km southwest.</p>
+<p><b>June Mountain, Carson Peak, and Mt. Whitney</b> have no working sensor nearby and are left uncorrected. The record of a sensor that has since gone quiet (Gem Pass) says a correction borrowed from Mammoth Pass would make them worse.</p>
+<p><b>The sensors:</b> most are state snow pillows that are not quality-controlled the way SNOTEL is. Adding up their daily rises counts sensor jitter as snow (about 20% too much over a week), so readings are smoothed and small dips ignored before any of this is fitted or scored.</p>
+
+<h4 class="ghead">Wind gusts</h4>
+<p>The weather models' own gust field runs low in the mountains, so above the base this site estimates gusts from the faster air 500 m higher up, which is where gusts come from.
+Against 29,068 hours of measured gusts at the Palisades snow sensor (8,010 ft, five winters), the wind 500 m up tracks the measured gusts better than the wind at the sensor's own height: correlation 0.79 against 0.73, and an average miss of 5.7 mph against 6.7.</p>
+<p><b>The limit:</b> that sensor sits in a sheltered spot and averages only 7 mph, and the one other free sensor is more sheltered still. So the method's shape is tested, but how strong gusts get on an exposed ridge is not. Treat ridge gusts as estimates.</p>
+
+<h4 class="ghead">What is not tested yet</h4>
+<p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
+<p>Sources: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p>
+  </div>
+  <div class="gpage" id="how" data-page="how" data-title="How the forecast is made" hidden>
     <p><b>Water.</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
     <p><b>Snow.</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
     <p><b>The ±</b> is one standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
@@ -1340,16 +1429,8 @@ if (HOSTED) {
     <p><b>Status</b>: the weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: possible from gusts of 35 mph and expected from 50 on an average mountain, 5 mph sooner on exposed ones (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) and 10 mph later on sheltered ones (Northstar and Homewood). It also flags late openings after 6 in of overnight snow up high, rain down low, low visibility, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> (0–10) rates each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
-    <p>Data: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org. Not for avalanche or travel decisions.</p>
-  </div></details>
-</main>
-<nav class="tabbar" id="tabbar" aria-label="Sections"><span class="tabglass" aria-hidden="true"></span><div><i class="tabind" id="tabInd" aria-hidden="true"></i>
-  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
-</div></nav>
-<dialog id="settingsSheet" class="sheet top"><div class="grab"><b tabindex="-1" autofocus>Settings</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody"><div id="settings">
-    <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
-    <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
-  </div><div id="moreSlot"></div></div></dialog>
+  </div>
+</div></dialog>
 <script>
 const TZ = "America/Los_Angeles";
 const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seamless: "ICON", gem_seamless: "GEM"};
@@ -2701,15 +2782,13 @@ function showView(view) {
 }
 function applyLayout(view) {
   document.documentElement.classList.add("tabs");
-  // The explainers live in the settings sheet.
-  for (const id of ["quality", "score", "how"]) $("moreSlot").appendChild($(id));
   showView(view === "more" ? "map" : view);
 }
 // Brings a block into view, opening its tab first when the page is in tabs.
 function goTo(el) {
   const block = el.closest("[data-tab]");
   // The explainers sit in the settings sheet in tabs, so a link to one opens the sheet.
-  if (el.closest("#settingsSheet")) { if (!$("settingsSheet").open) $("settingsSheet").showModal(); if (el.tagName === "DETAILS") el.open = true; el.scrollIntoView({block: "start"}); return; }
+  if (el.closest("#settingsSheet")) { const page = el.closest(".gpage"); guidePage(page ? page.dataset.page : "root"); if (!$("settingsSheet").open) $("settingsSheet").showModal(); if (page !== el) el.scrollIntoView({block: "start"}); return; }
   if (tabbed() && block && !block.dataset.tab.split(" ").includes(document.documentElement.dataset.view)) showView(block.dataset.tab.split(" ")[0]);
   el.scrollIntoView({behavior: "smooth", block: "start"});
 }
@@ -3054,7 +3133,25 @@ $("sumPick").addEventListener("change", (e) => setRegion(e.target.value));
 const markHeader = () => { const b = document.querySelector(".brand"); if (b && b.offsetHeight) document.documentElement.style.setProperty("--headb", `${b.offsetTop + b.offsetHeight + 10}px`); };
 markHeader();
 window.addEventListener("resize", markHeader);
-$("setBtn").addEventListener("click", () => { markHeader(); $("settingsSheet").showModal(); placeSegs(true); });
+// The snowflake's sheet has a front page (preferences, and the ways into what is behind the forecast) and a page for
+// each of those; the heading names the page showing, and the arrow beside it goes back to the front.
+function guidePage(name) {
+  let title = "";
+  for (const page of document.querySelectorAll("#settingsSheet .gpage")) { page.hidden = page.dataset.page !== name; if (!page.hidden) title = page.dataset.title; }
+  $("guideTitle").textContent = title;
+  $("guideBack").hidden = name === "root";
+  $("guideBody").scrollTop = 0;
+  placeSegs(true);
+}
+$("setBtn").addEventListener("click", () => { markHeader(); guidePage("root"); $("settingsSheet").showModal(); placeSegs(true); });
+$("guideBack").addEventListener("click", () => guidePage("root"));
+$("settingsSheet").addEventListener("click", (e) => { const to = e.target.closest("[data-page-to]"); if (to) guidePage(to.dataset.pageTo); });
+// In "How the forecast is made" a paragraph that opens on its subject as a lead-in ("Water." "Status:") has it set
+// above as a label, without the stop; one whose opening words run on into the sentence keeps them in line.
+for (const b of document.querySelectorAll("#how p > b:first-child")) {
+  if (!/[.:]$/.test(b.textContent)) continue;
+  b.textContent = b.textContent.replace(/[.:]$/, ""); b.classList.add("lead");
+}
 // Hosted table: inside ski/lease's frame the summary table's sideways slide is the page's doing (the CSS leaves the
 // phone only the up-and-down drags), so that a drag moves the table one way or the other and never both. A drag that
 // starts sideways slides the table with the finger and coasts to a stop when it lifts; one that starts up or down
@@ -3425,13 +3522,15 @@ function renderNotes() {
 // all where no sensor works nearby.
 function renderQuality() {
   const grade = (r) => r.station === null || r.station === undefined ? ["none", "Uncorrected"] : r.weak_station_match ? ["rough", "Rough"] : ["good", "Good"];
-  const row = (r) => { const [cls, word] = grade(r), o = r.observed; return `<div class="qrow"><b>${esc(r.name)}</b><span class="q ${cls}">${word}</span><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}` : "No working sensor nearby"}</small></div>`; };
-  const regions = Object.keys(REGIONS).filter((key) => data.resorts.some((r) => regionOf(r) === key));
+  const row = (r) => { const [cls, word] = grade(r), o = r.observed; return `<div class="qrow"><div><b>${esc(r.name)}</b><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}` : "No working sensor nearby"}</small></div><span class="q ${cls}">${word}</span></div>`; };
+  const regions = Object.keys(REGIONS).filter((key) => data.resorts.some((r) => regionOf(r) === key)).sort((a, b) => (b === region) - (a === region));
+  const count = (cls) => data.resorts.filter((r) => grade(r)[0] === cls).length;
+  const KEY = [["good", "Good", "The sensor stands near the mountain's own height."], ["rough", "Rough", "The sensor sits well below the mountain, so the correction is a looser fit."], ["none", "Uncorrected", "No working sensor nearby: the models are used as they are, and there is no measured snow."]];
   $("qualityBody").innerHTML = `<p>Each mountain's forecast is corrected against years of readings from its nearest snow sensor. How well that works depends on the sensor.</p>
-    <div class="qkey"><div><span class="q good">Good</span>The sensor stands near the mountain's own height.</div><div><span class="q rough">Rough</span>The sensor sits well below the mountain, so the correction is a looser fit.</div><div><span class="q none">Uncorrected</span>No working sensor nearby: the models are used as they are, and there is no measured snow.</div></div>
-    ${regions.map((key) => `${regions.length > 1 ? `<div class="pickgroup">${esc(REGIONS[key].name)}</div>` : ""}${data.resorts.filter((r) => regionOf(r) === key).map(row).join("")}`).join("")}`;
+    <div class="qkey">${KEY.map(([cls, word, text]) => `<div><span class="q ${cls}">${word}</span><b>${count(cls)}</b><span>${text}</span></div>`).join("")}</div>
+    ${regions.map((key) => `<h4 class="ghead">${esc(REGIONS[key].name)}</h4><div class="qlist">${data.resorts.filter((r) => regionOf(r) === key).map(row).join("")}</div>`).join("")}`;
+  $("qualitySum").textContent = `${count("good")} good, ${count("rough")} rough, ${count("none")} uncorrected`;
 }
-
 function renderScore(card) {
   if (!card || !card.sections) { $("scoreBody").innerHTML = "<p>No scores yet.</p>"; return; }
   $("scoreBody").innerHTML = card.sections.map((s) => `<p><b>${esc(s.title)}</b> ${esc(s.note || "")}</p>
