@@ -2061,12 +2061,17 @@ async function sugarBowlFeed() {
 }
 // These mountains' pages cannot be read from a browser on another site, so a scheduled job reads them and publishes
 // each result as a file; anything older than STATUS_FRESH_MIN is treated as missing rather than shown out of date.
-const STATUS_FRESH_MIN = 30;
+// GitHub runs the scheduled job when it can, which on a busy day is hours apart rather than every five minutes, so a
+// file past the live window is still shown, plainly marked "As of <time>", up to STATUS_OLDEST_MIN old.
+const STATUS_FRESH_MIN = 30, STATUS_OLDEST_MIN = 12 * 60;
 const publishedFeed = (file, key) => async () => {
   const url = location.hostname === "localhost" ? `data/${file}` : `https://raw.githubusercontent.com/${REPO}/snow-lifts/${file}`;
   const status = await getJsonLive(url);
-  if (!status.resorts[key] || Date.now() - new Date(status.updated) > STATUS_FRESH_MIN * 6e4) throw new Error("No recent status");
-  return status.resorts[key];
+  const age = Date.now() - new Date(status.updated);
+  if (age > STATUS_OLDEST_MIN * 6e4) throw new Error("No recent status");
+  // A fresh file with nothing for this mountain is a resort that has posted no lifts yet (before its season), not a failure.
+  if (!status.resorts[key]) throw Object.assign(new Error("Not posted"), {notPosted: true});
+  return {...status.resorts[key], aged: age > STATUS_FRESH_MIN * 6e4};
 };
 const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed, heavenly: publishedFeed("resort_status.json", "heavenly"), northstar: publishedFeed("resort_status.json", "northstar"),
   kirkwood: publishedFeed("resort_status.json", "kirkwood"), homewood: publishedFeed("homewood.json", "homewood"),
@@ -2152,7 +2157,7 @@ const liftGroup = (status) => (/^open/.test(status) ? "open" : /hold|delay/.test
 // Under the heading: when the resort's figures were read, and its own page.
 function statusSource(resort) {
   const page = STATUS_PAGES[resort.key], spec = LIFT_FEEDS[resort.key], feed = spec && liftFeeds[spec[0]];
-  const words = feed && !feed.failed ? `Live at ${localClock(new Date(feed.data.LastUpdate))}` : spec ? "Resort report" : "Lift and trail status";
+  const words = feed && !feed.failed ? `${feed.data.aged ? "As of" : "Live at"} ${localClock(new Date(feed.data.LastUpdate))}` : spec ? "Resort report" : "Lift and trail status";
   return page ? `<a href="${page}" target="_blank" rel="noopener" title="Open the resort's own report">${words} ↗</a>` : "";
 }
 function liftsHtml(resort) {
@@ -2160,7 +2165,7 @@ function liftsHtml(resort) {
   if (!LIFT_FEEDS[resort.key]) return blank("Not published live");
   if (!navigator.onLine) return blank("Needs a signal");
   const [id, mine] = LIFT_FEEDS[resort.key], feed = liftFeeds[id];
-  if (!feed || feed.failed) return blank(feed ? "Could not be loaded right now" : "Loading…");
+  if (!feed || feed.failed) return blank(feed ? (feed.notPosted ? "Not posted by the resort yet" : "Could not be loaded right now") : "Loading…");
   const areas = (feed.data.MountainAreas || []).filter((a) => mine(a.Name)), lifts = areas.flatMap((a) => a.Lifts || []), trails = areas.flatMap((a) => a.Trails || []);
   const tally = {open: 0, hold: 0, soon: 0, closed: 0}, held = {}, due = {};
   for (const lift of lifts) {
@@ -2202,7 +2207,7 @@ async function loadLifts(resort) {
   const [id] = spec, held = liftFeeds[id];
   if (!held || Date.now() - held.at > 5 * 60 * 1000) {
     try { liftFeeds[id] = {at: Date.now(), data: await (FEED_LOADERS[id] ? FEED_LOADERS[id]() : getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`))}; }
-    catch (error) { liftFeeds[id] = {at: Date.now(), failed: true}; }
+    catch (error) { liftFeeds[id] = {at: Date.now(), failed: true, notPosted: !!error.notPosted}; }
   }
   if (!$("lifts") || selected !== resort.key) return;
   $("lifts").innerHTML = liftsHtml(resort);
