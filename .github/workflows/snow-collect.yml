@@ -9,7 +9,8 @@ name: Snow collect
 # Each pass:
 #   1. reads the resorts' lift pages and Nevada's roads and publishes them for the page (snow-lifts, snow-roads);
 #   2. appends everything live the page reads and shows to the history branch (see tahoe_snow/collect.py);
-#   3. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports).
+#   3. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports), and gathers every
+#      avalanche zone's forecast into one file for the page to keep for when there is no signal (snow-avy).
 on:
   schedule:
     - cron: "7 * * * *"
@@ -43,7 +44,7 @@ jobs:
           set -u +e   # a pass that fails in one place carries on to the next; nothing here should end the job
           echo "COLLECT_BEGAN=$(date +%s)" >> "$GITHUB_ENV"
           code="$PWD/snow" work="$RUNNER_TEMP/collect"
-          mkdir -p "$work/lifts" "$work/roads" "$work/logs"
+          mkdir -p "$work/lifts" "$work/roads" "$work/logs" "$work/avy"
           git config --global user.name "snow-collect"
           git config --global user.email "actions@users.noreply.github.com"
 
@@ -53,6 +54,7 @@ jobs:
           fi
           # Start from what is published, so a source that fails keeps its last file.
           if git fetch -q --depth=1 origin snow-lifts 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$work/lifts"; fi
+          if git fetch -q --depth=1 origin snow-avy 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$work/avy"; fi
 
           # One file as the only commit of a branch, as the page reads it.
           publish() {  # branch, folder, message
@@ -89,6 +91,10 @@ jobs:
             if [ $((pass % 3)) -eq 1 ]; then
               record snow-holds holds.jsonl tahoe_snow.holds
               record snow-reports reports.jsonl tahoe_snow.reports
+              # The avalanche file is rewritten only when a forecast has changed, and published only then.
+              was="$(cksum "$work/avy/bundle.json" 2>/dev/null || true)"
+              (cd "$code" && python3 -m tahoe_snow.avybundle "$work/avy") || echo "::warning::The avalanche forecasts could not be gathered"
+              if [ -s "$work/avy/bundle.json" ] && [ "$(cksum "$work/avy/bundle.json")" != "$was" ]; then publish snow-avy "$work/avy" "Avalanche forecasts $(date -u +%Y-%m-%dT%H:%MZ)" || true; fi
             fi
 
             # Every five minutes from 5 am to 7 pm Pacific, when lifts and roads change; every fifteen overnight.

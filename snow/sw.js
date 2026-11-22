@@ -15,6 +15,9 @@ const PAGE_TIMEOUT_MS = 4000;
 // signs, and the drawing for each kind of avalanche problem. They never change, so the saved copy is always used.
 const SIGNS = 'https://nac-web-platforms.s3.us-west-1.amazonaws.com/assets/danger-icons/';
 const PROBLEMS = 'https://api.avalanche.org/img/avalanche_problems/';
+// The forecasters' photographs. The page saves the ones it shows (in its own store, which it empties whenever it
+// takes a new set of forecasts); here they are only served from that store when it has them.
+const PHOTOS = 'https://avalanche-org-media.s3.us-west-2.amazonaws.com/', PHOTO_STORE = 'sierra-snow-avy';
 const ARTWORK = [...[0, 1, 2, 3, 4, 5].map((level) => `${SIGNS}${level}.png`),
   ...['DryLoose', 'StormSlab', 'WindSlab', 'PersistentSlab', 'DeepPersistentSlab', 'WetLoose', 'WetSlab', 'Cornice', 'Glide'].map((name) => `${PROBLEMS}${name}.png`)];
 
@@ -73,6 +76,11 @@ async function keptPicture(req) {
   return res;
 }
 
+async function savedPhoto(req) {
+  const saved = await (await caches.open(PHOTO_STORE)).match(req.url);
+  return saved || fetch(req);
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
@@ -84,6 +92,7 @@ self.addEventListener('fetch', (e) => {
   // The local forecast file is only used when developing; the published one comes from another site.
   if (url.origin === location.origin && url.pathname === scope.pathname + 'data/forecast.json') return;
   if (url.href.startsWith(SIGNS) || url.href.startsWith(PROBLEMS)) return e.respondWith(keptPicture(req));
+  if (url.href.startsWith(PHOTOS)) return e.respondWith(savedPhoto(req));
   if ((url.origin === location.origin && url.pathname.startsWith(scope.pathname)) || url.href.startsWith(THREE)) {
     return e.respondWith(savedFirst(req));
   }

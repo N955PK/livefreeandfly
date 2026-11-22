@@ -1196,6 +1196,14 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .pmore h4{margin:0 0 3px;font-size:12px;font-weight:650;color:var(--accent)}
 .pmore p{margin:0 0 8px;font-size:13.5px;line-height:1.45;color:var(--ink2);max-width:none}
 .pmore p:last-child{margin-bottom:0}
+/* The forecasters' photographs. One with a problem fills its card's width; the forecast's own sit two to a row. */
+.aphoto{margin:0}
+.aphoto img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:var(--wash)}
+.aphoto figcaption{margin-top:5px;font-size:12px;line-height:1.35;color:var(--mark-dull)}
+.pmore .aphoto{margin-top:10px}
+.pmore .aphoto img{aspect-ratio:auto;max-height:260px}
+.aphotos{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}
+.aphotos figcaption{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .ddefs{margin-top:12px}
 /* Each level folds to its sign and name; the level in force today starts open. */
 .ddefs > details{padding:8px 14px;border-radius:26px;margin-top:6px;border:1px solid var(--border)}
@@ -2484,6 +2492,23 @@ document.addEventListener("click", (e) => {
     if (body) body.hidden = !foldOpen[key];
   }
 });
+// Every zone's forecast is gathered into one file through the day (tahoe_snow/avybundle.py). When the page opens with
+// a signal and that file is newer than the one it last took, everything saved before is dropped and the new file's
+// answers and photographs are saved in its place, so every zone can be read with no signal and nothing piles up.
+const AVY_BUNDLE_KEY = "turbo-snow.avybundle";
+async function saveAvyBundle() {
+  if (!window.caches || !navigator.onLine) return;
+  try {
+    const bundle = await getJson(`https://raw.githubusercontent.com/${REPO}/snow-avy/bundle.json`);
+    if (!bundle.built || remembered(AVY_BUNDLE_KEY) === bundle.built) return;
+    const store = await caches.open(AVY_SAVED);
+    for (const old of await store.keys()) await store.delete(old);
+    for (const [url, answer] of Object.entries(bundle.entries || {})) await store.put(url, new Response(JSON.stringify(answer), {headers: {"Content-Type": "application/json"}}));
+    // Another site's pictures can be saved but not read, so each is stored as it comes; one that fails is skipped.
+    for (const url of bundle.photos || []) await fetch(url, {mode: "no-cors"}).then((picture) => store.put(url, picture)).catch(() => {});
+    try { localStorage.setItem(AVY_BUNDLE_KEY, bundle.built); } catch (error) { /* private browsing: it is fetched again next time */ }
+  } catch (error) { /* no file yet, or no signal after all: what is saved stays */ }
+}
 // ---------- the resort's own report ----------
 // Four resorts publish their morning report in the feed their lift status comes from: how they describe the surface,
 // what their stakes measured, how many runs they groomed, and a few paragraphs in their own words. It is shown as
@@ -3436,6 +3461,7 @@ const getJson = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok
 // The avalanche centers' answers are kept on the phone as they arrive, so with no signal the last forecast read is
 // still there. It says when it was issued and when it expires, and the pane says plainly that it is a saved copy.
 const AVY_SAVED = "sierra-snow-avy";
+const AVY_GALLERY = 8;   // how many of a forecast's own photographs are shown and saved; keep in step with GALLERY in avybundle.py
 let avySavedCopy = false;
 async function avyJson(url) {
   try {
@@ -3686,6 +3712,10 @@ function drawAvalanche() {
         ${BANDS.map(([band, label]) => `<span>${label}</span>${days.map((d) => chip(d[band])).join("")}${days.length < 2 ? "<span></span>" : ""}`).join("")}</div>`;
     }
     const problems = [...(product.forecast_avalanche_problems || [])].sort((a, b) => a.rank - b.rank);
+    // The forecasters' photographs: one with each problem, and the forecast's own under the write-ups. A caption is
+    // the center's words, without its markup; a tap opens the full-size picture.
+    const shot = (media) => media && media.type === "image" && media.url && media.url.thumbnail ? media : null;
+    const figure = (media) => `<figure class="aphoto"><a href="${esc(media.url.large || media.url.original || media.url.thumbnail)}" target="_blank" rel="noopener"><img src="${esc(media.url.thumbnail)}" alt="" loading="lazy" onerror="this.closest('figure').remove()"></a>${media.caption ? `<figcaption>${esc(paragraphs(media.caption).join(" "))}</figcaption>` : ""}</figure>`;
     if (problems.length) {
       trouble = `<div class="aproblems"><h3 data-sec="Problems">${tabbed() ? "Problems" : "Avalanche problems"}</h3><ol class="probs">${problems.map((x, n) => {
         const size = (x.size || []).filter(Boolean), facts = [x.likelihood, size.length ? `size D${size[0]}${size[1] && size[1] !== size[0] ? ` to D${size[1]}` : ""}` : "", problemWhere(x.location)];
@@ -3694,14 +3724,16 @@ function drawAvalanche() {
         // In tabs a problem opens to the center's own words: what this kind of avalanche is, and what it is doing today.
         const what = paragraphs(x.problem_description), today = paragraphs(x.discussion);
         if (!tabbed() || (!what.length && !today.length)) return `<li>${row}</li>`;
-        return `<li><details class="prob"><summary>${row}</summary><div class="pmore"><h4>Likelihood</h4>${likelyScale(x.likelihood)}${what.length ? `<h4>What it is</h4>${what.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}${today.length ? `<h4>Today</h4>${today.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}</div></details></li>`;
+        return `<li><details class="prob"><summary>${row}</summary><div class="pmore"><h4>Likelihood</h4>${likelyScale(x.likelihood)}${what.length ? `<h4>What it is</h4>${what.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}${today.length ? `<h4>Today</h4>${today.map((line) => `<p>${esc(line)}</p>`).join("")}` : ""}${shot(x.media) ? figure(x.media) : ""}</div></details></li>`;
       }).join("")}</ol></div>`;
     }
     // The center's longer write-ups, where it posts them: the forecast discussion and the mountain weather.
     const told = (title, html, by = "") => { const text = paragraphs(html); return text.length ? `<h3 data-sec="${title === "Forecast discussion" ? "Discussion" : title}">${title}</h3><div class="abottom">${text.map((line) => `<p>${esc(line)}</p>`).join("")}</div>${by ? `<p class="aby">${by}</p>` : ""}` : ""; };
     const more = told("Forecast discussion", product.hazard_discussion) + told("Weather", product.weather_discussion || (weather && weather.weather_discussion), weather && weather.published_time ? `${weather.author ? `${esc(weather.author)}<br>` : ""}Issued ${clock(weather.published_time)}` : "");
+    const shots = (product.media || []).filter(shot), shown = shots.slice(0, AVY_GALLERY);
+    const gallery = shown.length ? `<h3 data-sec="Photos">Photos</h3><div class="aphotos">${shown.map(figure).join("")}</div>${shots.length > shown.length ? `<p class="aby">${shots.length - shown.length} more in the full forecast.</p>` : ""}` : "";
     const lines = paragraphs(product.bottom_line);
-    words = `<div class="awords">${lines.length ? `<h3 data-sec="Bottom line">Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more : ""}</div>`;
+    words = `<div class="awords">${lines.length ? `<h3 data-sec="Bottom line">Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more + gallery : ""}</div>`;
   }
   body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${tabbed() ? '<h3 data-sec="Definitions">Definitions</h3>' : ""}${scale}${tabbed() ? `<div class="ddefs">${DANGER_MEANS.map(([advice, likely, size], n) => `<details class="${zone.level === n + 1 ? "on" : ""}"${zone.level === n + 1 ? " open" : ""}><summary class="dhd"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()">${chip(n + 1)}</summary><p><b>${advice}</b></p><p><i>Likelihood of avalanches</i>${likely}</p><p><i>Avalanche size and distribution</i>${size}</p></details>`).join("")}<p class="aby">North American Public Avalanche Danger Scale.</p></div>
     <div class="dsizes"><h4>Likelihood</h4>${likelyScale("")}<p class="aby">How likely a problem is to produce an avalanche, least to most.</p></div>
@@ -3896,6 +3928,7 @@ liveForecast().then(async (d) => {
   const drawn = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   await Promise.race([Promise.all([railWhole, stakesIn]).then(drawn), new Promise((resolve) => setTimeout(resolve, 4000))]);
   reveal();
+  saveAvyBundle();
 }).catch(() => { $("headline").textContent = "The forecast could not be loaded"; reveal(); });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
