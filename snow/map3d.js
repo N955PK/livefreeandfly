@@ -122,7 +122,7 @@ export function stormWindow(rate, nowIndex) {
 // ``data.resorts`` holds only that region's locations.
 // Below this many inches an hour, averaged over the region, it is not snowing: no flakes on the map, and the page says so.
 const QUIET_RATE = 0.02;
-export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false}) {
+export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false, finger = () => "pan"}) {
   const RADIUS = globe ? GLOBE_KM : region.discKm || DISC_KM, TARGET_Z = globe ? 7 : 1;
   // A region whose files were rebuilt carries a rev, so a phone never pairs the new page with its saved old files.
   const rev = region.rev || "";
@@ -204,7 +204,19 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   canvas.addEventListener("touchmove", (e) => {
     if (e.touches.length === 1 && single) {
       e.preventDefault();
-      // One finger slides the ground under it, the same as the two-finger drag.
+      // One finger either slides the ground under it, the same as the two-finger drag, or (when the reader has chosen
+      // "spin") turns the map about the point it is looking at: sideways turns it, up and down tilts it.
+      if (finger() === "spin") {
+        const now = oneFinger(e), offset = camera.position.clone().sub(controls.target);
+        offset.applyAxisAngle(UP, -(now.x - single.x) * 2 * Math.PI / canvas.clientWidth * 0.6);
+        const length = offset.length(), flatReach = Math.hypot(offset.x, offset.y), heading = Math.atan2(offset.y, offset.x);
+        const polar = Math.min(controls.maxPolarAngle, Math.max(controls.minPolarAngle, Math.atan2(flatReach, offset.z) - (now.y - single.y) * Math.PI / canvas.clientHeight * 0.5));
+        offset.set(Math.sin(polar) * Math.cos(heading) * length, Math.sin(polar) * Math.sin(heading) * length, Math.cos(polar) * length);
+        camera.position.copy(controls.target).add(offset);
+        single = now; lastTouch = performance.now();
+        controls.dispatchEvent({type: "change"});
+        return;
+      }
       const at = oneFinger(e), reach = camera.position.distanceTo(controls.target);
       const scale = 2 * reach * Math.tan(camera.fov * Math.PI / 360) / canvas.clientHeight;
       const across = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0).setZ(0).normalize();
