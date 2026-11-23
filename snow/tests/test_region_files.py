@@ -73,6 +73,7 @@ def test_a_region_where_every_mountain_fails_keeps_its_last_file(tmp_path, stubb
     with pytest.raises(SystemExit):
         pipeline.run("mammoth", NOW)
     assert (tmp_path / "forecast/mammoth.json").read_text() == before
+    assert [row["region"] for row in json.loads((tmp_path / "archive/usage.json").read_text())] == ["mammoth"] * 2
 
 
 def test_the_season_refresh_rewrites_each_region_file_and_the_merged_one(tmp_path, stubbed, monkeypatch):
@@ -103,3 +104,12 @@ def test_a_run_is_budgeted_by_the_region_about_to_run():
     ledger = [{"utc": (now - timedelta(hours=1)).strftime(usage.STAMP), "calls": 300.0, "rate_limited": 0,
                "region": "tahoe"}]
     assert usage.estimate(ledger, "tahoe") == 300.0
+
+
+def test_a_damaged_region_file_counts_as_not_built(tmp_path, stubbed):
+    for key in config.REGIONS:
+        pipeline.run(key, NOW)
+    path = tmp_path / "forecast/mammoth.json"
+    path.write_text(path.read_text()[:50])
+    assert pipeline.due(NOW) == "mammoth"
+    assert pipeline.write_index()["regions"]["mammoth"]["published_utc"] is None

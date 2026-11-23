@@ -1,6 +1,7 @@
 """One forecast run: fetch, correct, convert to snow, blend, and write the site's JSON."""
 import functools
 import json
+import os
 from datetime import datetime, timezone
 
 import numpy as np
@@ -438,10 +439,23 @@ def add_season(resorts: list, now: pd.Timestamp) -> dict:
             for triplet, normal in normals.items() if normal}
 
 
+def write_whole(path, document: dict) -> None:
+    """Write a JSON file so a reader never sees half of it: to a temporary file beside it, then into place."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(json.dumps(document, separators=(",", ":")))
+    os.replace(temporary, path)
+
+
 def read_region(key: str) -> dict | None:
-    """A region's published forecast, or None when it has not been built."""
+    """A region's published forecast, or None when it has not been built or its file cannot be read (it then
+    counts as never built and is rebuilt)."""
     path = DATA / "forecast" / f"{key}.json"
-    return json.loads(path.read_text()) if path.exists() else None
+    try:
+        return json.loads(path.read_text()) if path.exists() else None
+    except (ValueError, OSError) as error:
+        print(f"{path.name}: unreadable, treated as not built ({error})", flush=True)
+        return None
 
 
 def write_index() -> dict:
@@ -456,8 +470,7 @@ def write_index() -> dict:
                 "station": ALL_STATIONS[r.station].name if r.station else None, "weak_station_match": r.weak_match}
                for r in RESORTS.values()]
     index = {"regions": regions, "resorts": resorts}
-    DATA.mkdir(parents=True, exist_ok=True)
-    (DATA / "index.json").write_text(json.dumps(index, separators=(",", ":")))
+    write_whole(DATA / "index.json", index)
     return index
 
 
@@ -473,7 +486,7 @@ def write_home_forecast() -> dict | None:
                 "failed_resorts": [key for p in parts for key in p["failed_resorts"]],
                 "resorts": [r for p in parts for r in p["resorts"]],
                 "season_curves": {name: curve for p in parts for name, curve in p["season_curves"].items()}}
-    (DATA / "forecast.json").write_text(json.dumps(forecast, separators=(",", ":")))
+    write_whole(DATA / "forecast.json", forecast)
     return forecast
 
 
@@ -501,7 +514,7 @@ def refresh_season(now: datetime | None = None) -> dict | None:
         forecast = read_region(key)
         if forecast:
             forecast["season_curves"] = add_season(forecast["resorts"], now)
-            (DATA / "forecast" / f"{key}.json").write_text(json.dumps(forecast, separators=(",", ":")))
+            write_whole(DATA / "forecast" / f"{key}.json", forecast)
     return write_home_forecast()
 
 
@@ -523,11 +536,13 @@ def run(region: str, now: datetime | None = None) -> dict:
         except RuntimeError as error:
             failed.append(resort.key)
             print(f"{resort.name}: FAILED {error}", flush=True)
-    if not resorts:
-        raise SystemExit(f"no resort forecast could be produced for {region}")
-    season_curves = add_season(resorts, now)
     stamp = now.to_pydatetime()
     ran = {**usage.of_run(cache.REQUESTS[first_request:]), "region": region}
+    ledger_path = DATA / "archive" / "usage.json"
+    if not resorts:
+        usage.record(ran, stamp, ledger_path)      # what it asked for still counts against the allowance
+        raise SystemExit(f"no resort forecast could be produced for {region}")
+    season_curves = add_season(resorts, now)
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
                 "published_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "snow_ratio_model": ratio_name,
@@ -535,9 +550,8 @@ def run(region: str, now: datetime | None = None) -> dict:
                 "bias_corrected": "tahoe" in corrections, "deterministic_days": DETERMINISTIC_DAYS,
                 "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts,
                 "season_curves": season_curves,
-                "usage": usage.summary(usage.record(ran, stamp, DATA / "archive" / "usage.json"), stamp)}
-    (DATA / "forecast").mkdir(parents=True, exist_ok=True)
-    (DATA / "forecast" / f"{region}.json").write_text(json.dumps(forecast, separators=(",", ":")))
+                "usage": usage.summary(usage.record(ran, stamp, ledger_path), stamp)}
+    write_whole(DATA / "forecast" / f"{region}.json", forecast)
     write_index()
     write_home_forecast()
     folder = DATA / "archive" / now.strftime("%Y/%m")
