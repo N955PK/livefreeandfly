@@ -2,6 +2,7 @@
 import functools
 import json
 import os
+import time
 from datetime import datetime, timezone
 
 import numpy as np
@@ -613,6 +614,43 @@ def refresh_season(now: datetime | None = None) -> dict | None:
             forecast["season_curves"] = add_season(forecast["resorts"], now, forecast)
             write_whole(DATA / "forecast" / f"{key}.json", forecast)
     return write_home_forecast()
+
+
+# A sensor read that takes this long and comes back empty means its network is not answering.
+SLOW_READ_S = 20
+
+
+def mend(now: datetime | None = None) -> list[str]:
+    """Fill in the sensor readings a published forecast went out without, because its sensor network could not be
+    reached when it was built: the map draws the snow on the ground from them. Only mountains with a station and no
+    readings are asked for, the forecast itself is left alone, and once a network is slow to say nothing its other
+    sensors wait for the next try. Returns the regions whose files were rewritten."""
+    now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
+    mended, down = [], set()
+    for key in REGIONS:
+        forecast = read_region(key)
+        found = False
+        for payload in (forecast or {}).get("resorts", []):
+            resort = RESORTS.get(payload["key"])
+            if resort is None or resort.station is None or payload.get("observed") is not None or not payload.get("hours_utc"):
+                continue
+            source = ALL_STATIONS[resort.station].source
+            if source in down:
+                continue
+            began = time.monotonic()
+            hours = pd.DatetimeIndex(pd.to_datetime(payload["hours_utc"])).tz_convert("UTC").tz_localize(None)
+            payload["observed"] = observed(resort, now, hours)
+            if payload["observed"] is not None:
+                found = True
+            elif time.monotonic() - began > SLOW_READ_S:
+                down.add(source)
+        if found:
+            forecast["season_curves"] = add_season(forecast["resorts"], now, forecast)
+            write_whole(DATA / "forecast" / f"{key}.json", forecast)
+            mended.append(key)
+    if mended:
+        write_home_forecast()
+    return mended
 
 
 def run(region: str, now: datetime | None = None) -> dict:

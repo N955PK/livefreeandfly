@@ -126,3 +126,28 @@ def test_a_region_is_due_when_a_mountain_has_been_added_since_its_forecast(tmp_p
     forecast["failed_resorts"] = [dropped]            # tried and failed: it waits for the next run
     path.write_text(json.dumps(forecast))
     assert pipeline.due(NOW) is None
+
+
+def test_a_forecast_published_without_sensor_readings_is_mended_when_the_sensors_answer(tmp_path, stubbed, monkeypatch):
+    for key in config.REGIONS:
+        pipeline.run(key, NOW)
+    path = tmp_path / "forecast/tahoe.json"
+    forecast = json.loads(path.read_text())
+    for payload in forecast["resorts"]:
+        payload["hours_utc"] = ["2026-12-01T10:00:00Z", "2026-12-01T11:00:00Z"]
+    path.write_text(json.dumps(forecast))
+    asked = []
+
+    def reading(resort, now, hours):
+        asked.append(resort.key)
+        return {"station": "Sensor", "depth_in": 30.0}
+
+    monkeypatch.setattr(pipeline, "observed", reading)
+    assert pipeline.mend(NOW) == ["tahoe"]
+    after = json.loads(path.read_text())
+    with_station = [r.key for r in config.resorts_in("tahoe") if r.station]
+    assert sorted(asked) == sorted(with_station)
+    assert all(p["observed"]["depth_in"] == 30.0 for p in after["resorts"] if p["key"] in with_station)
+    assert after["generated_utc"] == forecast["generated_utc"] and after["published_utc"] == forecast["published_utc"]
+    asked.clear()
+    assert pipeline.mend(NOW) == [] and asked == []        # nothing is missing now, so nothing is asked

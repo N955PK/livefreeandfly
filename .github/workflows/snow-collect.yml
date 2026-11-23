@@ -86,7 +86,7 @@ jobs:
           # the day's Open-Meteo allowance; a try that works sets no wait, so regions with no file yet are built on
           # consecutive passes. The data branch holds one commit: every region's latest forecast, the index of
           # mountains, and the last three weeks of archive, which carries the ledger of what past runs asked Open-Meteo for.
-          tried=-1800
+          tried=-1800 mended=-1800
           forecast() {
             local published="" region out
             if [ $((SECONDS - tried)) -lt 1800 ]; then return 0; fi
@@ -101,10 +101,20 @@ jobs:
             mkdir -p "$code/data/archive"
             if [ -n "$published" ]; then git archive FETCH_HEAD | tar -x -C "$code/data" || true; fi
             region="$(cd "$code" && python3 -m tahoe_snow due)"
-            if [ -z "$region" ]; then return 0; fi
-            echo "Forecast due for $region"
-            (cd "$code" && python3 -m tahoe_snow budget "$region") || { echo "::warning::Forecast skipped for $region: no room in the Open-Meteo allowance"; tried=$SECONDS; return 0; }
-            (cd "$code" && python3 -m tahoe_snow run "$region" && python3 -m tahoe_snow prune) || { echo "::error::The forecast run failed for $region"; tried=$SECONDS; return 0; }
+            if [ -z "$region" ]; then
+              # Nothing to build. A forecast that went out while its snow sensors could not be reached has no snow
+              # depths for the map to draw; ask for just those readings, no more than every half hour, and publish
+              # only if some came.
+              if [ $((SECONDS - mended)) -lt 1800 ]; then return 0; fi
+              mended=$SECONDS
+              region="$(cd "$code" && python3 -m tahoe_snow mend | tail -n 1)"
+              if [ -z "$region" ]; then return 0; fi
+              echo "Sensor readings filled in for $region"
+            else
+              echo "Forecast due for $region"
+              (cd "$code" && python3 -m tahoe_snow budget "$region") || { echo "::warning::Forecast skipped for $region: no room in the Open-Meteo allowance"; tried=$SECONDS; return 0; }
+              (cd "$code" && python3 -m tahoe_snow run "$region" && python3 -m tahoe_snow prune) || { echo "::error::The forecast run failed for $region"; tried=$SECONDS; return 0; }
+            fi
             out="$(mktemp -d)"
             cp "$code/data/index.json" "$out/" && cp -r "$code/data/forecast" "$out/forecast" && cp -r "$code/data/archive" "$out/archive" \
               && for f in forecast.json scorecard.json; do if [ -f "$code/data/$f" ]; then cp "$code/data/$f" "$out/"; fi; done \

@@ -33,6 +33,7 @@ def main() -> int:
     sub.add_parser("prune", help="delete archived forecasts that are no longer needed").add_argument(
         "--days", type=int, default=ARCHIVE_DAYS)
     sub.add_parser("season", help="refresh the season figures from the snow sensors, leaving the forecast alone")
+    sub.add_parser("mend", help="fill in sensor readings a forecast was published without; prints the regions mended")
     sub.add_parser("usage", help="report the Open-Meteo allowance used; exit 1 near the limit").add_argument(
         "--fail-over", type=float, default=0.9)
     budget = sub.add_parser("budget", help="exit 1 if another forecast run does not fit the allowance")
@@ -54,6 +55,8 @@ def main() -> int:
             print(due)
     elif args.command == "season":
         pipeline.refresh_season()
+    elif args.command == "mend":
+        print(" ".join(pipeline.mend()))
     elif args.command == "usage":
         return usage.check(args.fail_over)
     elif args.command == "budget":
