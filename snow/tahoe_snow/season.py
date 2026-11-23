@@ -2,14 +2,16 @@
 
 Three measures of a winter, each against the median over the sensor's own daily record: the snow depth on the
 ground, the snow that has fallen so far, and the water the snowpack holds. The sensors weigh water and gauge
-depth; snowfall is an estimate from the water gained on days cold enough to snow. Each measure also gives the
-curves the page draws: the usual year, this year so far, and the ten winters before it, by day of the water year.
+depth; snowfall is an estimate from the water gained on days cold enough to snow. A weather station's daily climate
+record measures snowfall and depth itself and has no water; it runs days behind, so its figures are as of its latest
+day and say which day that is. Each measure also gives the curves the page draws: the usual year, this year so far,
+and the ten winters before it, by day of the water year.
 """
 import numpy as np
 import pandas as pd
 
 from tahoe_snow.config import ALL_STATIONS, MM_PER_IN, REGIONS, RESORTS
-from tahoe_snow.sources import cdec, snotel
+from tahoe_snow.sources import acis, cdec, snotel
 
 HISTORY_START = "1980-10-01"
 MIN_YEARS = 10
@@ -100,6 +102,8 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
 
 def history(station, day: pd.Timestamp) -> pd.DataFrame:
     end, start = day.strftime("%Y-%m-%d"), station.season_from or HISTORY_START
+    if station.source == "acis":
+        return acis.daily(station.triplet.split(":")[0], start, end, max_age_h=24.0, timeout=60)
     if station.source == "cdec":
         name = station.triplet.split(":")[0]
         frame = cdec.daily(name, start, end, max_age_h=24.0)
@@ -123,12 +127,35 @@ def snowfall_in(frame: pd.DataFrame) -> pd.Series:
     return new.groupby(water_year(new.index)).cumsum()
 
 
+def measured_snowfall_in(frame: pd.DataFrame) -> pd.Series:
+    """Snow fallen so far each winter, in inches, from a record that measures each day's snowfall."""
+    daily = frame["snowfall_cm"] / CM_PER_IN
+    return daily.groupby(water_year(daily.index)).cumsum()
+
+
 def station_normal(station, day: pd.Timestamp) -> dict:
-    """A sensor's usual year by each measure it can give. A sensor with no usable depth gauge has no depth."""
+    """A sensor's usual year by each measure it can give. A sensor with no usable depth gauge has no depth, and a
+    record with no snow pillow has no water. A daily climate record is read as of its own latest day, which each of
+    its measures names (``as_of_date``), with that day's reading as the latest."""
     frame = history(station, day)
     series = {"depth": frame["depth_cm"] / CM_PER_IN if station.depth and "depth_cm" in frame else None,
-              "snowfall": snowfall_in(frame), "water": frame["swe_mm"] / MM_PER_IN}
-    found = {measure: from_history(daily, day) for measure, daily in series.items() if daily is not None}
+              "snowfall": measured_snowfall_in(frame) if "snowfall_cm" in frame else snowfall_in(frame),
+              "water": frame["swe_mm"] / MM_PER_IN if "swe_mm" in frame else None}
+    found = {}
+    for measure, daily in series.items():
+        if daily is None:
+            continue
+        if station.source != "acis":
+            found[measure] = from_history(daily, day)
+            continue
+        read = daily.dropna()
+        read = read[read.index <= day]
+        if read.empty:
+            continue
+        normal = from_history(daily, read.index[-1])
+        if normal:
+            normal.update(latest_in=round(float(read.iloc[-1]), 1), as_of_date=read.index[-1].strftime("%Y-%m-%d"))
+        found[measure] = normal
     found = {measure: normal for measure, normal in found.items() if normal}
     for measure, normal in found.items():
         record = normal["curve"]["record"]
@@ -180,10 +207,12 @@ def _normal_or_none(station, day: pd.Timestamp) -> dict:
 
 
 def summary(observed: dict | None, normal: dict | None) -> dict | None:
-    """Where the sensor stands against its usual year, by measure. Depth and water are its latest readings."""
+    """Where the sensor stands against its usual year, by measure. Depth and water are its latest readings; a daily
+    record's are its latest day's, and carry that day."""
     out = {}
     for measure, usual in (normal or {}).items():
-        now_in = usual["latest_in"] if measure == "snowfall" else (observed or {}).get(f"{measure}_in")
+        dated = usual.get("as_of_date")
+        now_in = usual["latest_in"] if measure == "snowfall" or dated else (observed or {}).get(f"{measure}_in")
         if now_in is None or not usual["peak_in"] or pd.isna(usual["normal_in"]):
             continue
         out[measure] = {"now_in": now_in, "normal_in": round(usual["normal_in"], 1),
@@ -191,4 +220,6 @@ def summary(observed: dict | None, normal: dict | None) -> dict | None:
                                        if usual["normal_in"] >= MIN_NORMAL_IN[measure] else None),
                         "peak_in": round(usual["peak_in"], 1), "pct_peak": round(100 * now_in / usual["peak_in"]),
                         "peak_date": usual["peak_date"]}
+        if dated:
+            out[measure]["as_of_date"] = dated
     return out or None

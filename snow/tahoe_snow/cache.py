@@ -15,19 +15,23 @@ _SESSION.headers["User-Agent"] = USER_AGENT
 REQUESTS: list = []
 
 
-def _path(kind: str, url: str, params: dict | None, suffix: str) -> Path:
-    key = hashlib.sha1((url + json.dumps(params or {}, sort_keys=True)).encode()).hexdigest()[:20]
+def _path(kind: str, url: str, params: dict | None, suffix: str, json_body: dict | None = None) -> Path:
+    asked = url + json.dumps(params or {}, sort_keys=True)
+    if json_body is not None:
+        asked += json.dumps(json_body, sort_keys=True)
+    key = hashlib.sha1(asked.encode()).hexdigest()[:20]
     return RAW / kind / f"{key}{suffix}"
 
 
 def get_text(kind: str, url: str, params: dict | None = None, max_age_h: float | None = None,
-             timeout: float = 120, retries: int = 4, suffix: str = ".txt") -> str:
+             timeout: float = 120, retries: int = 4, suffix: str = ".txt", *, json_body: dict | None = None) -> str:
     """Return the response body, from cache when present and fresh.
 
     ``max_age_h=None`` means a cached copy never expires (archived data).
     When the fetch fails and a stale copy exists, the stale copy is returned.
+    With ``json_body`` the request is a POST of that body, and the body is part of what the copy is kept under.
     """
-    path = _path(kind, url, params, suffix)
+    path = _path(kind, url, params, suffix, json_body)
     if path.exists():
         age_h = (time.time() - path.stat().st_mtime) / 3600
         if max_age_h is None or age_h <= max_age_h:
@@ -35,7 +39,8 @@ def get_text(kind: str, url: str, params: dict | None = None, max_age_h: float |
     error = None
     for attempt in range(retries):
         try:
-            resp = _SESSION.get(url, params=params, timeout=timeout)
+            resp = (_SESSION.get(url, params=params, timeout=timeout) if json_body is None
+                    else _SESSION.post(url, params=params, json=json_body, timeout=timeout))
             if resp.status_code == 429:
                 REQUESTS.append((url, params, "limited", None))
             if resp.status_code == 429 or resp.status_code >= 500:
@@ -62,6 +67,6 @@ def get_json(kind: str, url: str, params: dict | None = None, max_age_h: float |
         try:
             return json.loads(text)
         except ValueError:
-            _path(kind, url, params, ".json").unlink(missing_ok=True)
+            _path(kind, url, params, ".json", kw.get("json_body")).unlink(missing_ok=True)
             if attempt == 2:
                 raise

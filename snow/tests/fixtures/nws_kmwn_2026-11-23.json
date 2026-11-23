@@ -1,0 +1,113 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "timestamp": "2026-11-23T19:54:00+00:00",
+    "rawMessage": "KMWN 231954Z 27047G60KT 0SM FG VV000 01/01 RMK RAE35",
+    "temperature": {
+     "unitCode": "wmoUnit:degC",
+     "value": 1,
+     "qualityControl": "V"
+    },
+    "windDirection": {
+     "unitCode": "wmoUnit:degree_(angle)",
+     "value": 270,
+     "qualityControl": "V"
+    },
+    "windSpeed": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": 87.12,
+     "qualityControl": "V"
+    },
+    "windGust": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": 111.24,
+     "qualityControl": "S"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "timestamp": "2026-11-23T18:51:00+00:00",
+    "rawMessage": "KMWN 231851Z 28053G57KT 0SM -RA FG VV000 01/01 RMK SHRAE00RAB00",
+    "temperature": {
+     "unitCode": "wmoUnit:degC",
+     "value": 1,
+     "qualityControl": "V"
+    },
+    "windDirection": {
+     "unitCode": "wmoUnit:degree_(angle)",
+     "value": null,
+     "qualityControl": "Z"
+    },
+    "windSpeed": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": null,
+     "qualityControl": "Z"
+    },
+    "windGust": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": 105.48,
+     "qualityControl": "C"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "timestamp": "2026-11-23T17:49:00+00:00",
+    "rawMessage": "KMWN 231749Z 27047KT 0SM -SHRA FG VV000 02/02 RMK SHRAB04E21B40 60001 4/002 10026 20012",
+    "temperature": {
+     "unitCode": "wmoUnit:degC",
+     "value": 2,
+     "qualityControl": "V"
+    },
+    "windDirection": {
+     "unitCode": "wmoUnit:degree_(angle)",
+     "value": 270,
+     "qualityControl": "V"
+    },
+    "windSpeed": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": 87.12,
+     "qualityControl": "V"
+    },
+    "windGust": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": null,
+     "qualityControl": "Z"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "timestamp": "2026-11-23T16:51:00+00:00",
+    "rawMessage": "KMWN 231651Z 28047G51KT 0SM FG VV000 02/02 RMK",
+    "temperature": {
+     "unitCode": "wmoUnit:degC",
+     "value": 2,
+     "qualityControl": "V"
+    },
+    "windDirection": {
+     "unitCode": "wmoUnit:degree_(angle)",
+     "value": null,
+     "qualityControl": "Z"
+    },
+    "windSpeed": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": null,
+     "qualityControl": "Z"
+    },
+    "windGust": {
+     "unitCode": "wmoUnit:km_h-1",
+     "value": 94.68,
+     "qualityControl": "S"
+    }
+   }
+  }
+ ]
+}

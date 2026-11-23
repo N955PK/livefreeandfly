@@ -11,7 +11,7 @@ from tahoe_snow import biascorrect, blend, cache, config, powder, season, usage
 from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, REGIONS, RESORTS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
-from tahoe_snow.sources import cdec, openmeteo, snotel
+from tahoe_snow.sources import acis, cdec, nws, openmeteo, snotel
 
 # Two weeks. Past day 10 only the models that run that far are in the blend (ICON stops near 7 days, GEM at 10).
 DAYS = 14
@@ -24,6 +24,10 @@ DEFAULT_PHASE = ("wet-bulb logistic", {"center_c": 0.5, "width_c": 0.4})
 CM_PER_IN = MM_PER_IN / 10
 MPH_PER_MS = 2.23694
 WINDOWS = {"next24": (0, 24), "next72": (0, 72), "days4to5": (72, 120), "days6to10": (120, 240)}
+# A station's hourly temperature older than this is not a current reading.
+CURRENT_TEMP_H = 3
+# Days of a daily climate record read for the latest day it has (it runs some days behind).
+DAILY_RECORD_DAYS = 10
 # The regions the single forecast.json still covers.
 HOME_REGIONS = ("tahoe", "mammoth")
 ENSEMBLE_VARS = ["precipitation", "temperature_2m"]
@@ -83,6 +87,13 @@ def local_days(index: pd.DatetimeIndex, tz: str) -> pd.DatetimeIndex:
     return index.tz_localize("UTC").tz_convert(tz).tz_localize(None).normalize()
 
 
+def correcting_station(resort) -> str | None:
+    """The station the mountain's forecast is corrected against: its paired station, unless that one is only shown."""
+    if resort.station is None or not ALL_STATIONS[resort.station].corrects:
+        return None
+    return resort.station
+
+
 def corrected_liquid(precip: pd.Series, model: str, station: str | None, today: pd.Timestamp,
                      correction: biascorrect.Correction | None, tz: str) -> pd.Series:
     """Hourly liquid scaled so each local day's total equals the bias-corrected total.
@@ -108,7 +119,7 @@ def model_snow(frame: pd.DataFrame, model: str, resort, snow_model: SnowModel, t
     profile = fill_profile(frame)
     if profile[[c for c in profile.columns if c.startswith("temperature_") and c.endswith("hPa")]].isna().all().all():
         return {}
-    liquid = corrected_liquid(profile["precipitation"], model, resort.station, today, correction,
+    liquid = corrected_liquid(profile["precipitation"], model, correcting_station(resort), today, correction,
                               REGIONS[resort.region].tz)
     out = {}
     for label, elev_m in resort.elevations().items():
@@ -263,6 +274,8 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
     if resort.station is None:
         return None
     station = ALL_STATIONS[resort.station]
+    if station.source == "acis":
+        return observed_daily(resort, station, now)
     start = (hours[0] - pd.Timedelta(hours=24 + snotel_offset_h(resort))).strftime("%Y-%m-%d")
     end = (now + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
     try:
@@ -309,12 +322,72 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
             "depth_in_hourly": _round(frame["depth_cm"][~frame.index.duplicated()].reindex(hours) / 2.54, 0)}
 
 
+def observed_daily(resort, station, now: pd.Timestamp) -> dict | None:
+    """What a weather station's daily climate record and hourly observations say, for a mountain shown its readings.
+
+    The record runs days behind, so its figures sit apart under ``daily`` with the day they are for, and the fields
+    the page reads as current (depth, water, gains, hourly depth) stay empty. The temperature is the latest hourly
+    one, with its own time. ``above_top_ft`` is how far the station stands above the top of the mountain, when it
+    does. Either feed failing leaves only its own figures out; with neither, None."""
+    today = (now - pd.Timedelta(hours=snotel_offset_h(resort))).normalize()
+    daily = None
+    try:
+        frame = acis.daily(station.triplet.split(":")[0],
+                           (today - pd.Timedelta(days=DAILY_RECORD_DAYS)).strftime("%Y-%m-%d"),
+                           today.strftime("%Y-%m-%d"), max_age_h=3.0)
+        daily = latest_daily(frame)
+    except (RuntimeError, OSError, ValueError, KeyError, IndexError) as error:
+        print(f"{station.name}: daily record FAILED {str(error)[:200]}", flush=True)
+    temp_f = temp_at = None
+    if station.nws:
+        try:
+            temps = nws.observations(station.nws)["temp_c"].dropna()
+            temps = temps[(temps.index <= now + pd.Timedelta(hours=1)) &
+                          (temps.index >= now - pd.Timedelta(hours=CURRENT_TEMP_H))]
+            if not temps.empty:
+                temp_f, temp_at = round(float(temps.iloc[-1]) * 1.8 + 32), temps.index[-1]
+        except (RuntimeError, OSError, ValueError, KeyError) as error:
+            print(f"{station.name}: hourly observations FAILED {str(error)[:200]}", flush=True)
+    if daily is None and temp_f is None:
+        return None
+    above_ft = (station.elev_m - resort.summit_m) / M_PER_FT
+    return {"station": station.name, "elevation_ft": int(round(station.elev_m / M_PER_FT, -1)),
+            "above_top_ft": int(round(above_ft, -2)) if above_ft > 0 else None,
+            "as_of_utc": temp_at.strftime("%Y-%m-%dT%H:%M:00Z") if temp_at is not None else None,
+            "depth_in": None, "water_in": None, "depth_gain_24h_in": None, "depth_gain_72h_in": None,
+            "water_gain_24h_in": None, "water_gain_72h_in": None, "temp_f": temp_f, "depth_in_hourly": None,
+            "daily": daily}
+
+
+def latest_daily(frame: pd.DataFrame) -> dict | None:
+    """The latest day of a daily climate record, and the three days to it: snowfall, snow on the ground, and the
+    water that fell (inches). A three-day total needs all three days."""
+    day = acis.latest_day(frame)
+    if day is None:
+        return None
+    days = frame.reindex(pd.date_range(day - pd.Timedelta(days=2), day, freq="D"))
+
+    def one(column: str, digits: int):
+        value = days[column].iloc[-1]
+        per = CM_PER_IN if column.endswith("_cm") else MM_PER_IN
+        return None if pd.isna(value) else round(float(value) / per, digits)
+
+    def three(column: str, digits: int):
+        per = CM_PER_IN if column.endswith("_cm") else MM_PER_IN
+        return None if days[column].isna().any() else round(float(days[column].sum()) / per, digits)
+
+    return {"date": day.strftime("%Y-%m-%d"), "depth_in": one("depth_cm", 0), "snowfall_in": one("snowfall_cm", 1),
+            "snowfall_3d_in": three("snowfall_cm", 1), "water_in": one("prec_mm", 2),
+            "water_3d_in": three("prec_mm", 2)}
+
+
 def water_correction(resort, correction) -> str | None:
     """Which liquid correction the resort gets: its station's own curve, the one pooled over its region's
     stations, or none."""
-    if correction is None or resort.station is None:
+    station = correcting_station(resort)
+    if correction is None or station is None:
         return None
-    return "station" if correction.fitted(resort.station) else "pooled"
+    return "station" if correction.fitted(station) else "pooled"
 
 
 def snotel_offset_h(resort) -> int:
@@ -358,7 +431,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
                "region": resort.region, "tz": tz, "kind": resort.kind, "pass": resort.pass_group,
                "station": ALL_STATIONS[resort.station].name if resort.station else None,
-               "weak_station_match": resort.weak_match, "water_correction": water_correction(resort, correction),
+               "weak_station_match": resort.weak_match, "station_corrects": correcting_station(resort) is not None,
+               "water_correction": water_correction(resort, correction),
                "observed": observed(resort, now, hours), "elevations": {},
                "models": list(models)}
     archive = []
@@ -486,7 +560,8 @@ def write_index() -> dict:
                         "published_utc": forecast["published_utc"] if forecast else None}
     resorts = [{"key": r.key, "name": r.name, "region": r.region, "kind": r.kind, "pass": r.pass_group,
                 "lat": r.lat, "lon": r.lon, "tz": REGIONS[r.region].tz,
-                "station": ALL_STATIONS[r.station].name if r.station else None, "weak_station_match": r.weak_match}
+                "station": ALL_STATIONS[r.station].name if r.station else None, "weak_station_match": r.weak_match,
+                "station_corrects": correcting_station(r) is not None}
                for r in RESORTS.values()]
     index = {"regions": regions, "resorts": resorts}
     write_whole(DATA / "index.json", index)

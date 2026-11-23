@@ -54,7 +54,9 @@ def test_the_new_england_mountains_are_where_they_should_be():
     for r in found:
         assert r.base_m < r.summit_m, r.key
         assert 42.7 < r.lat < 45.3 and -73.3 < r.lon < -69.9, r.key
-        assert r.station is None, r.key
+        # Tuckerman Ravine is shown the Mt. Washington summit's readings, which correct nothing.
+        assert pipeline.correcting_station(r) is None, r.key
+        assert r.station is None or r.key == "tuckerman", r.key
 
 
 def test_the_last_season_figures_stand_in_while_the_sensors_cannot_be_reached(monkeypatch):

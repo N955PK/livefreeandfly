@@ -28,6 +28,11 @@ class Station:
     depth: bool = True
     # The first day of the record a season is compared against, where the earlier record is not comparable.
     season_from: str | None = None
+    # Whether the forecast is corrected against this station. One that is not is shown on the page and never
+    # changes a forecast number.
+    corrects: bool = True
+    # The station's id in the National Weather Service's hourly observations, where it reports there.
+    nws: str | None = None
 
 
 @dataclass(frozen=True)
@@ -122,7 +127,19 @@ MAMMOTH_STATIONS = {
         Station("846:CA:SNTL", "Virginia Lakes Ridge", 38.0730, -119.2343, _ft(9400)),
     ]
 }
-ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS}
+# The Mount Washington Observatory's summit record, as the Regional Climate Centers publish it (ACIS, keyed
+# "<id>:ACIS"; position and elevation from its metadata, 2026-11-23), with the summit's hourly weather from the
+# National Weather Service. It reports snowfall, snow on the ground and the water that fell, each day, some three days
+# behind; it has no snow pillow. The summit is 1,100 ft above the top of Tuckerman Ravine and scoured by wind, so its
+# readings are shown for the ravine but nothing is corrected against them.
+NEWENGLAND_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("USW00014755:ACIS", "Mt. Washington summit", 44.27018, -71.30336, _ft(6272), source="acis",
+                corrects=False, nws="KMWN"),
+    ]
+}
+ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -167,7 +184,7 @@ RESORTS = {
                region="mammoth", kind="backcountry"),
         Resort("whitney", "Mt. Whitney", 36.5786, -118.2922, 2548, 4421, None, "Backcountry",
                region="mammoth", kind="backcountry"),
-        # New England has no snow sensors, so none of these has a station. Elevations are from each resort's own
+        # New England has no snow sensors, so none of these has a station (Tuckerman's, below, is shown only). Elevations are from each resort's own
         # mountain-stats page where it could be read, and otherwise from the secondary source the research names
         # (Sunday River, Stratton's base and Crotched). Each point is the midpoint of the mountain's main lift in
         # OpenStreetMap, checked against the USGS elevation service (looked up 2026-11-23). Three rulings: Sugarbush
@@ -206,7 +223,8 @@ RESORTS = {
         # point is the ravine (OpenStreetMap), the top is the lip of the headwall, where a profile of the ground
         # toward the summit eases from 45 degrees, and the base is the Pinkham Notch trailhead; heights are read
         # from the Terrain Tiles elevation model (2026-11-23). It sits inside the Presidential Range avalanche zone.
-        Resort("tuckerman", "Tuckerman Ravine", 44.2619, -71.2961, 619, 1580, None, "Backcountry",
+        # It shows the summit's measured snow, which is not used to correct its forecast.
+        Resort("tuckerman", "Tuckerman Ravine", 44.2619, -71.2961, 619, 1580, "USW00014755:ACIS", "Backcountry",
                region="newengland", kind="backcountry"),
     ]
 }
