@@ -108,7 +108,9 @@ h1{font-size:clamp(26px,4vw,34px);line-height:1.1;font-weight:700;letter-spacing
 .pm{font-size:.62em;font-weight:500;color:var(--ink2);letter-spacing:0;white-space:nowrap}
 .lede .pm,.amt .pm{font-size:.85em}
 .meta{font-size:13px;color:var(--muted);margin-top:4px}
-.meta .warn{color:#b3541e}
+.meta .warn,.anotice .warn{color:#b3541e}
+/* The Avalanche tab's "Offline." is the same word as the Summary's and the Mountain tab's: same color, weight and size. */
+.anotice .warn{font-weight:400;font-size:12.5px}
 .meta .late{color:#9a6b00;font-weight:600}
 .meta .stale{color:#c8161d;font-weight:600}
 @media (prefers-color-scheme:dark){.meta .late{color:#e3b341}.meta .stale{color:#ff6b6b}}
@@ -1505,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "201";
+const BUILD = "202";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3933,7 +3935,7 @@ function drawAvalanche() {
   if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. No forecast has been saved on this phone yet."}</p>${foot(center.url)}`; return; }
   // Last season's forecast: the zone and its center, and one sentence in place of the forecast.
   if (zone.stale) { $("avalanche").innerHTML = `${head}<p class="anotice">${esc(notYet(zone))}</p>${foot(zone.link || center.url, false)}`; return; }
-  let body = avySavedCopy ? `<p class="anotice"><b>${navigator.onLine ? "Could not reach the center." : "Offline."}</b> This is the last forecast saved on your phone. The center may have posted a newer one.</p>` : "";
+  let body = avySavedCopy ? `<p class="anotice">${navigator.onLine ? "<b>Could not reach the center.</b>" : '<span class="warn">Offline.</span>'} This is the last forecast saved on your phone. The center may have posted a newer one.</p>` : "";
   if (zone.warning) body += `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>`;
   let expired = false;
   if (zone.offSeason) body += `<p class="anotice">Off season: the center is not issuing daily forecasts.</p>`;
