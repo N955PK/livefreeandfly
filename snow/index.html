@@ -1389,7 +1389,7 @@ if (HOSTED) {
   <div class="panel summary" data-tab="forecast">
     <div class="sumhead">
     <div class="bar">
-      <h2><label class="mtnpick sumpick" id="sumPickWrap">Regional Summary<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="sumPick" aria-label="Region"></select></label></h2>
+      <h2><label class="mtnpick sumpick" id="sumPickWrap"><span id="sumTitle">Regional Summary</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="sumPick" aria-label="Region"></select></label></h2>
       <div class="seg tri" id="seg" role="group" aria-label="Elevation">
         <button data-el="summit" aria-pressed="true">Summit</button><button data-el="mid" aria-pressed="false">Mid</button><button data-el="base" aria-pressed="false">Base</button>
       </div>
@@ -3401,6 +3401,8 @@ function renderRegion() {
   // The summary's title is a second way to the same choice, as the Mountain and Avalanche titles choose theirs.
   $("sumPick").innerHTML = $("regionPick").innerHTML;
   $("sumPickWrap").classList.toggle("solo", keys.length < 2);
+  // On Favorites the list is not a region's summary, so its title says what it is.
+  $("sumTitle").textContent = region === FAVORITES ? "Favorites" : "Regional Summary";
   // The title names the region the pin last chose; a long name takes its short form.
   $("regionName").textContent = keys.length < 2 ? "" : region === FAVORITES ? "Favorites" : REGIONS[region].short || REGIONS[region].name;
   $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${key !== FAVORITES && REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : choiceName(key)}</button>`).join("<i>/</i>");
