@@ -1504,7 +1504,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "192";
+const BUILD = "193";
 // Each visitor can pick their own mountain; the choice is kept in their browser on that device.
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
@@ -1518,6 +1518,9 @@ let index = null, data = null, elevation = "summit", selected = location.hash.sl
 // What differs between regions: the map's data files and framing (see createMap), the Caltrans districts whose
 // chain-control feeds cover it (and closureFeeds, their lane-closure feeds, where the passes shut for the winter:
 // the chain-control feed does not report those), and its avalanche centers (the first is the one the pane at the bottom reports).
+// Each needs name, terrain, roads, center, waterM, pick and avalanche (which may be empty: no center forecasts there).
+// The rest may be left out: lake (no lake is named on the map), chainFeeds and closureFeeds (no Roads button),
+// short, look, discKm, zoom, turnDeg, land and rev.
 const CALTRANS_CLOSURES = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/lcs/lcsStatusD${String(district).padStart(2, "0")}.json`;
 const CALTRANS = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/cc/ccStatusD${String(district).padStart(2, "0")}.json`;
 const REGIONS = {
@@ -1539,8 +1542,9 @@ const here = () => data.resorts.filter((r) => regionOf(r) === region);
 // (data published before it existed) the forecast's own.
 const everyMountain = () => index ? index.resorts : data.resorts;
 const mountain = (key) => (data && data.resorts.find((r) => r.key === key)) || (index && index.resorts.find((r) => r.key === key));
-// The regions this page can draw that the data has: the index's, or with no index the forecast's own.
-const regionKeys = () => Object.keys(REGIONS).filter((key) => index ? index.regions[key] : data.resorts.some((r) => regionOf(r) === key));
+// The regions this page can draw that the data has: the index's that have been published at least once (one not
+// built yet has nothing to show), or with no index the forecast's own.
+const regionKeys = () => Object.keys(REGIONS).filter((key) => index ? index.regions[key] && index.regions[key].published_utc : data.resorts.some((r) => regionOf(r) === key));
 // Everything about the weather is told in the time at the mountain; data published before mountains carried their
 // time zone is all Pacific.
 const tzOf = (resort) => (resort && resort.tz) || "America/Los_Angeles";
@@ -1670,7 +1674,7 @@ function renderHeadline() {
   const missed = age <= every + 1 ? 0 : age <= 2 * every + 1 ? 1 : 2;
   const stamp = `<span class="${["", "late", "stale"][missed]}" title="${missed ? `${Math.round(age)} hours old; a new forecast is due every ${every} hours` : `A new forecast is due every ${every} hours`}">${when}</span>`;
   // A region that could not be opened (see setRegion) is said under the time, until another region opens.
-  const miss = regionMiss ? `<br><span class="warn">${esc(REGIONS[regionMiss].name)} needs a signal. Its forecast has not been saved on this phone yet.</span>` : "";
+  const miss = !regionMiss ? "" : `<br><span class="warn">${navigator.onLine ? `The ${esc(REGIONS[regionMiss].name)} forecast could not be loaded just now.` : `${esc(REGIONS[regionMiss].name)} needs a signal. Its forecast has not been saved on this phone yet.`}</span>`;
   freshNote = (offlineCopy ? `<span class="warn">Offline.</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
   $("gridFresh").innerHTML = freshNote;
   if ($("detailFresh")) $("detailFresh").innerHTML = freshNote;
@@ -3149,6 +3153,8 @@ async function nevadaRoads() {
   } catch (error) { return null; }
 }
 async function loadRoads() {
+  // A region with no road feeds has no Roads button (see startMap).
+  if (!REGIONS[region].chainFeeds) return;
   const asked = region, {chainFeeds, closureFeeds = []} = REGIONS[region], center = REGIONS[region].look || REGIONS[region].center, kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180), tz = tzOf(mountain(selected));
   try {
     const [nevada, shut, ...feeds] = await Promise.all([nevadaRoads(),
@@ -3256,12 +3262,14 @@ async function loadRoads() {
 const ROAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 5 21M15 3l4 18M12 4v3M12 10.500v3M12 17v3"/></svg>';
 // One map at a time: switching regions throws the old one away and builds the new one.
 let mapBuild = 0, mapWired = false, staleMap = null;
-// The block of map buttons first shows once the map, the roads and the avalanche zones have all arrived, so it appears
-// whole instead of growing a button at a time. If one of them is slow, it shows without it after a few seconds.
+// The block of map buttons first shows once the map, the roads (where the region has road feeds) and the avalanche
+// zones have all arrived, so it appears whole instead of growing a button at a time. If one of them is slow, it shows
+// without it after a few seconds.
 let railShown, stakesIn = Promise.resolve();   // stakesIn: the resorts' own snow depths reaching the map's labels
 const railWhole = new Promise((resolve) => { railShown = resolve; });
 function railReady(anyway) {
-  if (anyway || (!$("radarToggle").hidden && !$("roadPill").hidden && avy[region] && avy[region].loaded)) { document.querySelector(".maprail").classList.add("ready"); railShown(); }
+  const roads = !REGIONS[region].chainFeeds || !$("roadPill").hidden;
+  if (anyway || (!$("radarToggle").hidden && roads && avy[region] && avy[region].loaded)) { document.querySelector(".maprail").classList.add("ready"); railShown(); }
 }
 const mapDepth = () => ({per: metric() ? 2.54 : 1, unit: LEN()});
 async function startMap() {
@@ -3274,7 +3282,11 @@ async function startMap() {
     // map to the next and not a blank sky in between. It is no longer the map as far as anything else is concerned.
     if (map) { if (staleMap) staleMap.dispose(); staleMap = map; map = null; }
     // The Roads button stays where it is while the new region's roads load; only the last region's count is dropped.
+    // A region with no road feeds has neither the button nor its note.
     $("roadNote").textContent = ""; delete $("roadPill").dataset.count; $("roadSheet").classList.remove("open");
+    const roadFeeds = !!REGIONS[region].chainFeeds;
+    $("roadSheet").hidden = !roadFeeds;
+    if (!roadFeeds) $("roadPill").hidden = true;
     $("mapPanel").style.display = "block";
     const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[region], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
       onSelect: (key) => { if (!map) return; selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
@@ -3317,7 +3329,8 @@ function pickRegion() {
 }
 function renderRegion() {
   const keys = regionKeys();
-  $("regionBar").hidden = keys.length < 2;
+  // The row of names is for two or three regions; with more, the menu the phone uses serves every width (D7).
+  $("regionBar").hidden = keys.length < 2 || keys.length > 3;
   $("regionPickWrap").hidden = keys.length < 2;
   $("regionPick").innerHTML = keys.map((key) => `<option value="${key}"${key === region ? " selected" : ""}>${REGIONS[key].name}</option>`).join("");
   // The summary's title is a second way to the same choice, as the Mountain and Avalanche titles choose theirs.
@@ -3350,7 +3363,8 @@ async function setRegion(key) {
   HOME = homeOf(key);
   selected = opener().key;
   history.replaceState(null, "", "#" + selected);
-  for (const step of [renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
+  // The notes and the sensor list put the region on screen first, and take its figures.
+  for (const step of [renderNotes, renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
   }
   loadAvalanche();
@@ -3644,6 +3658,9 @@ const SIERRA_TOWNS = [["Tahoe", -120.04, 39.09, false], ["Bridgeport", -119.23, 
 // and the forecast zone in its danger color.
 function locator(zone, all) {
   const xy = ([lon, lat]) => [(lon + 124.6) * 7.93, (42.15 - lat) * 10], at = (spot) => xy(spot).map((v) => v.toFixed(1)).join(" ");
+  // A zone outside the Sierra has no place on this map, so it gets none (the danger sign stands there instead).
+  const points = zone.rings.flat(), [midX, midY] = xy([0, 1].map((k) => points.reduce((sum, c) => sum + c[k], 0) / points.length));
+  if (!(midX > 27 && midX < 70 && midY > 23.5 && midY < 51)) return "";
   const shape = (z) => z.rings.map((ring) => `M${ring.filter((_, k) => k % 3 === 0).map(at).join("L")}Z`).join("");
   const lakes = SIERRA_LAKES.map(([lon, lat, rx, ry]) => { const [x, y] = xy([lon, lat]); return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${ry}"/>`; }).join("");
   const towns = SIERRA_TOWNS.map(([name, lon, lat, dot]) => { const [x, y] = xy([lon, lat]); return `${dot ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/>` : ""}<text x="${(x + (dot ? 1.6 : 2)).toFixed(1)}" y="${(y + 1.1).toFixed(1)}">${name}</text>`; }).join("");
@@ -3668,6 +3685,12 @@ function paragraphs(html) {
 function renderAvalanche() { drawAvalanche(); fillJump("avyJump", $("avalanche")); }
 function drawAvalanche() {
   const state = avy[region], home = REGIONS[region].avalanche[0];
+  if (!home) {
+    const top = '<div class="ahead"><div><h2>Avalanche danger</h2></div></div>';
+    $("avalanche").innerHTML = `${tabbed() ? `<div class="dtop">${top}</div>` : top}<p class="anotice">No avalanche center forecasts this area.</p>`;
+    avyShown = selected;
+    return;
+  }
   const main = state && state.zones.find((z) => z.center === home);
   // Every zone the app's regions cover, this region's first, without repeats where two regions share a center.
   const seen = new Set(), all = [region, ...Object.keys(REGIONS).filter((key) => key !== region)]
@@ -3711,7 +3734,8 @@ function drawAvalanche() {
   const by = tabbed() ? (zone && issue ? `<span class="by">Issued <b>${issue}</b></span>${ends ? `<span class="by">${over ? "Expired" : "Expires"} <b${over ? ' class="late"' : ""}>${ends}</b></span>` : ""}` : `<span class="by">${esc(center.name)}</span>`)
     : `<span class="by">${zone ? "Avalanche danger · " : ""}${esc(center.name)}</span>`;
   // In tabs the map sits beside the title, and the danger sign moves into the banner under it with the level and advice.
-  const top = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) : zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : ""}</div>`;
+  const sign = zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : "";
+  const top = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) || sign : sign}</div>`;
   const head = tabbed() ? `<div class="dtop">${top}<nav class="jump" id="avyJump" aria-label="Sections"></nav></div>` : top;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
   const foot = (link, withScale = true) => `${withScale ? scale : ""}<div class="afoot"><a class="abtn" href="${esc(link)}" target="_blank" rel="noopener">Read the full forecast</a>
@@ -3916,7 +3940,10 @@ let commitAsk = null, commitAskedAt = 0;
 function dataCommit() {
   if (!commitAsk || Date.now() - commitAskedAt > COMMIT_KEEP_MS) {
     commitAskedAt = Date.now();
-    commitAsk = loadForecast(`https://api.github.com/repos/${REPO}/branches/${DATA_BRANCH}`).then((branch) => branch.commit.sha);
+    // A failed ask is forgotten, so the next file asks again rather than failing for ten minutes.
+    const ask = loadForecast(`https://api.github.com/repos/${REPO}/branches/${DATA_BRANCH}`).then((branch) => branch.commit.sha)
+      .catch((error) => { if (commitAsk === ask) commitAsk = null; throw error; });
+    commitAsk = ask;
   }
   return commitAsk;
 }
@@ -3977,20 +4004,19 @@ function mergeRegions() {
 function loadRegion(key) {
   // With no index the whole forecast came in one file, and a region is there or not.
   if (!index) return Promise.resolve(!!data && data.resorts.some((r) => regionOf(r) === key));
+  // A file that arrives malformed counts as one that did not arrive: the saved copy is tried instead.
   regionLoads[key] ||= (async () => {
-    let file;
+    let file = null;
     try {
-      file = await published(`forecast/${key}.json`);
+      file = fixTimes(await published(`forecast/${key}.json`));
       saveCopy(`forecast/${key}`, file);
     } catch (error) {
-      file = await savedCopy(`forecast/${key}`);
-      if (!file) return false;
-      offlineCopy = true;
+      try { file = fixTimes(await savedCopy(`forecast/${key}`)); offlineCopy = true; } catch (error) { return false; }
     }
-    regionFiles[key] = fixTimes(file);
+    regionFiles[key] = file;
     mergeRegions();
     return true;
-  })().then((loaded) => { if (!loaded) delete regionLoads[key]; return loaded; });
+  })().catch((error) => { console.error(error); return false; }).then((loaded) => { if (!loaded) delete regionLoads[key]; return loaded; });
   return regionLoads[key];
 }
 window.addEventListener("online", () => { if (offlineCopy) location.reload(); else { if (avySavedCopy) loadAvalanche(); if (regionMiss) setRegion(regionMiss); } });
@@ -4015,8 +4041,11 @@ async function openForecast() {
   // The region chosen can't be loaded: the first one that can opens instead.
   for (const key of regionKeys()) {
     if (key !== region && await loadRegion(key)) {
-      region = key; HOME = homeOf(key); selected = HOME;
+      region = key; HOME = homeOf(key);
       mergeRegions();
+      // A link to a mountain of the region that failed now names the one shown instead.
+      selected = opener().key;
+      if (location.hash) history.replaceState(null, "", "#" + selected);
       return;
     }
   }

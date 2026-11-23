@@ -116,9 +116,9 @@ export function stormWindow(rate, nowIndex) {
 }
 
 // ``region`` says where the map is: {terrain, roads} data files, the disc's center [lat, lon], waterM (the level
-// heights are drawn from), lake: {name, lat, lon}, and optionally land (its own colors by elevation), zoom
-// (how close the view opens; 1 when absent), discKm (the disc's radius), and look ([lat, lon] the view opens on
-// when that is not the disc's center).
+// heights are drawn from), and optionally lake: {name, lat, lon} (the water named on the map; no name when absent),
+// land (its own colors by elevation), zoom (how close the view opens; 1 when absent), discKm (the disc's radius),
+// and look ([lat, lon] the view opens on when that is not the disc's center).
 // ``data.resorts`` holds only that region's locations.
 // Below this many inches an hour, averaged over the region, it is not snowing: no flakes on the map, and the page says so.
 const QUIET_RATE = 0.02;
@@ -526,10 +526,10 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     const ground = r.observed && r.observed.depth_in != null ? r.observed.depth_in : null;
     return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", ground, x, y, z, ghost, fill, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
   });
-  const lake = document.createElement("div");
-  lake.className = "map-lake"; lake.textContent = region.lake.name;
-  overlay.appendChild(lake);
-  const lakeAt = new THREE.Vector3(xOf(region.lake.lon), yOf(region.lake.lat), zOf(heightAt(region.lake.lat, region.lake.lon)) + 0.1);
+  // A region with no lake to name has no lake label.
+  const lake = region.lake ? document.createElement("div") : null;
+  if (lake) { lake.className = "map-lake"; lake.textContent = region.lake.name; overlay.appendChild(lake); }
+  const lakeAt = lake && new THREE.Vector3(xOf(region.lake.lon), yOf(region.lake.lat), zOf(heightAt(region.lake.lat, region.lake.lon)) + 0.1);
 
   // ---------- avalanche danger: each zone's rating tints the terrain inside its outline ----------
   // zoneOf holds, per terrain vertex, the zone it falls in (1-based; 0 for none), worked out once per set of zones.
@@ -726,7 +726,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       element.style.display = p.shown && allowed ? "" : "none";
       element.style.transform = `translate3d(${p.x.toFixed(2)}px, ${p.y.toFixed(2)}px, 0) translate(-50%, -50%)`;
     };
-    put(lake, lakeAt);
+    if (lake) put(lake, lakeAt);
     // A shield gives way to anything more important: a resort label, or a stake standing in front of it.
     const stakeLines = items.map((item) => [project(new THREE.Vector3(item.x, item.y, item.z)), project(item.top)]);
     for (const shield of shields) {
