@@ -18,7 +18,7 @@ def test_the_home_regions_cost_what_the_ledger_measured():
 
 
 def test_avalanche_centers_come_from_the_regions_without_repeats():
-    assert config.avalanche_centers() == ("SAC", "ESAC", "BAC", "MWAC")
+    assert config.avalanche_centers() == ("SAC", "ESAC", "BAC", "MWAC", "NWAC")
 
 
 def test_a_day_is_the_mountains_own_day():
@@ -57,6 +57,21 @@ def test_the_new_england_mountains_are_where_they_should_be():
         # Tuckerman Ravine is shown the Mt. Washington summit's readings, which correct nothing.
         assert pipeline.correcting_station(r) is None, r.key
         assert r.station is None or r.key == "tuckerman", r.key
+
+
+def test_the_seattle_mountains_are_where_they_should_be():
+    found = config.resorts_in("seattle")
+    assert len(found) == 13
+    for r in found:
+        assert r.base_m < r.summit_m, r.key
+        # From Mt. Baker in the north to Mt. Adams and Mt. St. Helens in the south, Hurricane Ridge in the west.
+        assert 46.1 < r.lat < 48.9 and -123.6 < r.lon < -120.3, r.key
+        assert r.station is None or r.station in config.ALL_STATIONS, r.key
+    volcanoes = {"rainier", "mtbaker", "glacierpeak", "adams", "sthelens"}
+    assert {r.key for r in found if r.kind == "backcountry"} == volcanoes
+    assert all(r.pass_group == "Backcountry" for r in found if r.kind == "backcountry")
+    # Mid on Mt. Rainier is about Camp Muir, 10,188 ft, the top of the Muir Snowfield.
+    assert abs(config.RESORTS["rainier"].mid_m - 3105) < 100
 
 
 def test_the_last_season_figures_stand_in_while_the_sensors_cannot_be_reached(monkeypatch):

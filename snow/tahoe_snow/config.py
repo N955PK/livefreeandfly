@@ -139,7 +139,25 @@ NEWENGLAND_STATIONS = {
                 corrects=False, nws="KMWN"),
     ]
 }
-ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS}
+# SNOTEL stations paired with the Seattle region's mountains (NRCS AWDB, active 2026-11-23). Their daily values are
+# stamped at midnight Pacific standard time, as California's are: at Paradise the value dated 21 November matched
+# the hourly reading at midnight starting the 22nd, not the one an hour before.
+SEATTLE_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("642:WA:SNTL", "Morse Lake", 46.90585, -121.4827, _ft(5400)),
+        Station("791:WA:SNTL", "Stevens Pass", 47.74607, -121.09288, _ft(3940)),
+        Station("672:WA:SNTL", "Olallie Meadows", 47.37406, -121.44213, _ft(4010)),
+        Station("909:WA:SNTL", "Wells Creek", 48.8661, -121.78976, _ft(4040)),
+        Station("692:WA:SNTL", "Pigtail Peak", 46.62153, -121.38643, _ft(5800)),
+        Station("507:WA:SNTL", "Grouse Camp", 47.28107, -120.48771, _ft(5390)),
+        Station("974:WA:SNTL", "Waterhole", 47.94485, -123.42594, _ft(5010)),
+        Station("679:WA:SNTL", "Paradise", 46.78266, -121.74767, _ft(5150)),
+        Station("999:WA:SNTL", "Marten Ridge", 48.76292, -121.69823, _ft(3520)),
+        Station("1012:WA:SNTL", "Swift Creek", 46.1638, -122.18402, _ft(4440)),
+    ]
+}
+ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -226,6 +244,58 @@ RESORTS = {
         # It shows the summit's measured snow, which is not used to correct its forecast.
         Resort("tuckerman", "Tuckerman Ravine", 44.2619, -71.2961, 619, 1580, "USW00014755:ACIS", "Backcountry",
                region="newengland", kind="backcountry"),
+        # Seattle: the Washington Cascades and Olympics resorts a Seattle skier drives to, and the Washington
+        # volcanoes skied from their summits (looked up 2026-11-23). Elevations are from each resort's own page where
+        # it could be read (Stevens Pass, Mt. Baker, Crystal's stats page as search engines show it, Alpental's
+        # vertical) and otherwise from the secondary sources the research names. Each resort's point is the midpoint
+        # of its main lift in OpenStreetMap, checked against the Terrain Tiles elevation model to sit between base and
+        # summit. Alpental is its own entry: the Summit at Snoqualmie gives it its own page, report and vertical, and
+        # it is a separate base area with twice the vertical. The Summit at Snoqualmie covers West, Central and East,
+        # from East's base to Central's top, with its point on the Central Express. Crystal's summit is Silver King,
+        # the top the resort publishes. Hurricane Ridge is the Olympics' one entry: a small area on the national
+        # park's road, open weekends and Monday holidays. Left out: Loup Loup (over four hours away), Leavenworth,
+        # Echo Valley and Badger Mountain (rope tows and a poma), the Spokane-area hills (eastern Washington) and
+        # Mt. Hood (Oregon, Portland's).
+        # Sensors are paired by the guide's rule: the nearest SNOTEL station within 10 km and 300 m of the mountain's
+        # middle, or a low one within 10 km as a weak match. Stevens Pass's station sits below the base, 309 m under
+        # the middle, so it is a weak match.
+        Resort("crystal", "Crystal Mountain", 46.93563, -121.48776, _ft(4400), _ft(7012), "642:WA:SNTL", "Ikon",
+               region="seattle"),
+        Resort("stevens", "Stevens Pass", 47.73921, -121.1, _ft(4061), _ft(5845), "791:WA:SNTL", "Epic",
+               region="seattle", weak_match=True),
+        Resort("snoqualmie", "Summit at Snoqualmie", 47.40482, -121.41854, _ft(2610), _ft(3865), "672:WA:SNTL",
+               "Ikon", region="seattle"),
+        Resort("alpental", "Alpental", 47.44024, -121.43034, _ft(3140), _ft(5420), "672:WA:SNTL", "Ikon",
+               region="seattle"),
+        Resort("bakerskiarea", "Mt. Baker Ski Area", 48.85002, -121.65696, _ft(3500), _ft(5089), "909:WA:SNTL",
+               "Independent", region="seattle"),
+        Resort("whitepass", "White Pass", 46.63099, -121.38899, _ft(4500), _ft(6500), "692:WA:SNTL", "Indy",
+               region="seattle"),
+        Resort("missionridge", "Mission Ridge", 47.27984, -120.41786, _ft(4570), _ft(6820), "507:WA:SNTL",
+               "Independent", region="seattle"),
+        Resort("hurricaneridge", "Hurricane Ridge", 47.9729, -123.49516, _ft(4800), _ft(5500), "974:WA:SNTL", "Indy",
+               region="seattle"),
+        # The volcanoes: one entry each from the usual spring trailhead to the true summit, so Mid falls on the
+        # route's middle. Each point is on the route at about that middle, on the side the route climbs; bases are
+        # read from the Terrain Tiles at the trailhead and summits are the published heights (the tiles read a few
+        # feet low on a sharp top). Mt. Rainier runs from Paradise to Columbia Crest, 14,410 ft; its Mid is about
+        # Camp Muir, the top of the Muir Snowfield, where its point is. Mt. Baker is the volcano by the Easton
+        # Glacier from Schriebers Meadow (the Park Butte trailhead), the side most often skied; the ski area is the
+        # entry above. Glacier Peak is a multi-day trip from the North Fork Sauk trailhead, its point in the White
+        # Chuck basin. Mt. Adams is the South Climb from Cold Springs, its point below the Lunch Counter. Mt. St.
+        # Helens is the Worm Flows from Marble Mountain Sno-Park to the crater rim. The Paradise, Marten Ridge and
+        # Swift Creek stations sit far below their volcano's middle, so they are weak matches; nothing reports within
+        # 10 km of Glacier Peak or Mt. Adams.
+        Resort("rainier", "Mt. Rainier", 46.834, -121.7329, 1653, _ft(14410), "679:WA:SNTL", "Backcountry",
+               region="seattle", kind="backcountry", weak_match=True),
+        Resort("mtbaker", "Mt. Baker", 48.7494, -121.8137, 1024, _ft(10781), "999:WA:SNTL", "Backcountry",
+               region="seattle", kind="backcountry", weak_match=True),
+        Resort("glacierpeak", "Glacier Peak", 48.082, -121.128, 630, _ft(10541), None, "Backcountry",
+               region="seattle", kind="backcountry"),
+        Resort("adams", "Mt. Adams", 46.179, -121.4928, 1689, _ft(12276), None, "Backcountry",
+               region="seattle", kind="backcountry"),
+        Resort("sthelens", "Mt. St. Helens", 46.1725, -122.188, 814, _ft(8363), "1012:WA:SNTL", "Backcountry",
+               region="seattle", kind="backcountry", weak_match=True),
     ]
 }
 
@@ -235,6 +305,7 @@ REGIONS = {
         Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",)),
         Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC")),
         Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",)),
+        Region("seattle", "Seattle", "America/Los_Angeles", 8, 12, ("NWAC",)),
     ]
 }
 
