@@ -9,7 +9,8 @@ name: Snow collect
 # Each pass:
 #   1. reads the resorts' lift pages and Nevada's roads and publishes them for the page (snow-lifts, snow-roads);
 #   2. appends everything live the page reads and shows to the history branch (see tahoe_snow/collect.py);
-#   3. runs the forecast and publishes it (snow-data) if the published one is six hours old or more;
+#   3. builds the forecast a region at a time, the most overdue first, each on its own interval, and publishes every
+#      region's file together (snow-data);
 #   4. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports), and gathers every
 #      avalanche zone's forecast into one file for the page to keep for when there is no signal (snow-avy).
 # This is the only workflow: nothing else here runs on a schedule or by hand.
@@ -80,22 +81,34 @@ jobs:
             rm -rf "$out"
           }
 
-          # The forecast, when the published one is old enough. A try that fails is not repeated for half an hour, so
-          # a fault cannot spend the day's Open-Meteo allowance. The data branch holds one commit: the latest forecast
-          # and the last three weeks of archive, which carries the ledger of what past runs asked Open-Meteo for.
+          # The forecast, one region a pass: the one most overdue on its own interval, if any is. After a try that fails
+          # (no room in the allowance, or the run fails) nothing is tried again for half an hour, so a fault cannot spend
+          # the day's Open-Meteo allowance; a try that works sets no wait, so regions with no file yet are built on
+          # consecutive passes. The data branch holds one commit: every region's latest forecast, the index of
+          # mountains, and the last three weeks of archive, which carries the ledger of what past runs asked Open-Meteo for.
           tried=-1800
           forecast() {
-            local published="" out
-            if git fetch -q --depth=1 origin snow-data 2>/dev/null; then published="$(git log -1 --format=%ct FETCH_HEAD)"; fi
-            if [ $(( ( $(date +%s) - ${published:-0} ) / 60 )) -lt 360 ] || [ $((SECONDS - tried)) -lt 1800 ]; then return 0; fi
-            tried=$SECONDS
+            local published="" region out
+            if [ $((SECONDS - tried)) -lt 1800 ]; then return 0; fi
+            if git fetch -q --depth=1 origin snow-data 2>/dev/null; then published=1
+            elif [ "$(git ls-remote --exit-code origin snow-data >/dev/null 2>&1; echo $?)" != 2 ]; then
+              # The branch could not be read, so publishing one region would drop the others. Try again next pass.
+              echo "::warning::The published forecast could not be read"; return 0
+            fi
+            # Start from exactly what is published, so no file from an earlier pass is left behind. The page's own
+            # files under data (terrain, roads) are not touched.
+            rm -rf "$code/data/forecast" "$code/data/index.json" "$code/data/forecast.json" "$code/data/scorecard.json" "$code/data/archive"
             mkdir -p "$code/data/archive"
-            if [ -n "$published" ]; then git archive FETCH_HEAD archive 2>/dev/null | tar -x -C "$code/data" || true; fi
-            (cd "$code" && python3 -m tahoe_snow budget) || { echo "::warning::Forecast skipped: no room in the Open-Meteo allowance"; return 0; }
-            (cd "$code" && python3 -m tahoe_snow run && python3 -m tahoe_snow prune) || { echo "::error::The forecast run failed"; return 0; }
+            if [ -n "$published" ]; then git archive FETCH_HEAD | tar -x -C "$code/data" || true; fi
+            region="$(cd "$code" && python3 -m tahoe_snow due)"
+            if [ -z "$region" ]; then return 0; fi
+            echo "Forecast due for $region"
+            (cd "$code" && python3 -m tahoe_snow budget "$region") || { echo "::warning::Forecast skipped for $region: no room in the Open-Meteo allowance"; tried=$SECONDS; return 0; }
+            (cd "$code" && python3 -m tahoe_snow run "$region" && python3 -m tahoe_snow prune) || { echo "::error::The forecast run failed for $region"; tried=$SECONDS; return 0; }
             out="$(mktemp -d)"
-            cp "$code/data/forecast.json" "$code/data/scorecard.json" "$out/" && cp -r "$code/data/archive" "$out/archive" \
-              && publish snow-data "$out" "Forecast data $(date -u +%Y-%m-%dT%H:%MZ)" || echo "::error::The forecast was not published"
+            cp "$code/data/index.json" "$out/" && cp -r "$code/data/forecast" "$out/forecast" && cp -r "$code/data/archive" "$out/archive" \
+              && for f in forecast.json scorecard.json; do if [ -f "$code/data/$f" ]; then cp "$code/data/$f" "$out/"; fi; done \
+              && publish snow-data "$out" "Forecast data $(date -u +%Y-%m-%dT%H:%MZ)" || { echo "::error::The forecast was not published"; tried=$SECONDS; }
             rm -rf "$out"
             (cd "$code" && python3 -m tahoe_snow usage --fail-over 0.9) || echo "::warning::The forecast is using most of the day's Open-Meteo allowance"
           }
