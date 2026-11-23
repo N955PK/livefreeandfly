@@ -35,6 +35,23 @@ def test_a_part_that_reads_the_same_is_written_once(tmp_path, monkeypatch):
     assert len((day / "runs.jsonl").read_text().splitlines()) == 2
 
 
+def test_the_new_england_lift_files_are_kept_like_the_others(tmp_path, monkeypatch):
+    lifts = tmp_path / "lifts"
+    lifts.mkdir()
+    feed = lambda lift, trail: {"MountainAreas": [{"Name": "Main", "Lifts": [{"Name": lift, "Status": "Closed"}],
+                                                   "Trails": [{"Name": trail, "Status": "Open", "Grooming": "Yes"}]}]}
+    (lifts / "boyne.json").write_text(json.dumps({"updated": "2026-11-22T19:00:00Z", "resorts": {"loon": feed("Gondola", "Bucksaw")}}))
+    (lifts / "killington.json").write_text(json.dumps({"updated": "2026-11-22T19:00:00Z", "resorts": {"pico": feed("Summit Express", "49er")}}))
+    monkeypatch.setattr(collect, "fetch", lambda url: (_ for _ in ()).throw(OSError("offline")))
+    history = tmp_path / "history"
+    run = collect.collect(str(history), str(lifts), None, NOW)
+    assert {"loon.lifts", "loon.trails", "pico.lifts", "pico.trails"} <= set(run["changed"])
+    assert "boyne" not in run["failed"] and "killington" not in run["failed"]
+    day = history / "2026-11-22"
+    assert json.loads((day / "loon.lifts.jsonl").read_text())["data"] == {"Main": {"Gondola": "Closed"}}
+    assert json.loads((day / "pico.trails.jsonl").read_text())["data"] == {"Main": {"49er": "Open *"}}
+
+
 def test_a_new_forecast_is_kept_once_cut_to_the_hours_around_now(tmp_path, monkeypatch):
     hours = [f"2026-11-{day:02d}T{hour:02d}:00:00Z" for day in range(15, 30) for hour in range(24)]
     forecast = {"published_utc": "2026-11-22T17:52:11Z", "season_curves": {"big": 1},
