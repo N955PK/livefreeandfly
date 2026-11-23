@@ -43,7 +43,8 @@ const CA_SPADE = "M0.5 262C0.5 139.3 81.2 35.4 192.5 0.5C303.8 35.4 384.5 139.3 
   + "C288.4 395.7 241 400.5 192.5 400.5S96.6 395.7 50.1 386.4C21.8 380.7 0.5 355.7 0.5 325.7z";
 const NEVADA = "M100 50H500V478L470 499L481 543L498 569L100 318z";
 
-function shieldSVG(route) {
+// ``plainState`` draws an "SR" route with the plain marker: Washington writes its state routes "SR" too.
+function shieldSVG(route, plainState = false) {
   const [kind, number] = route.split("-"), long = number.length > 2;
   const text = (fill, x, y, size) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" font-weight="700" font-family="${SHIELD_FONT}" fill="${fill}">${number}</text>`;
   const wrap = (box, inner) => `<svg viewBox="${box}" width="26" height="26" aria-hidden="true">${inner}</svg>`;
@@ -57,7 +58,7 @@ function shieldSVG(route) {
     return wrap("-12 -12 624 624", `<path d="${US_ROUTE}" fill="#fff" stroke="#111" stroke-width="30" stroke-linejoin="round"/>
       ${text("#111", 300, long ? 380 : 405, long ? 222 : 300)}`);
   }
-  if (kind === "SR") {
+  if (kind === "SR" && !plainState) {
     return wrap("-12 -4 409 409", `<path d="${CA_SPADE}" fill="#fff"/>
       <path d="${CA_SPADE}" fill="#006b54" transform="translate(192.5 215) scale(.92) translate(-192.5 -215)"/>
       ${text("#fff", 192.5, long ? 330 : 340, long ? 155 : 200)}`);
@@ -124,7 +125,8 @@ export function stormWindow(rate, nowIndex) {
 // heights are drawn from), and optionally lake: {name, lat, lon} (the water named on the map; no name when absent),
 // land (its own colors by elevation), zoom (how close the view opens; 1 when absent), discKm (the disc's radius),
 // look ([lat, lon] the view opens on when that is not the disc's center), floorM (ground below this height is drawn at
-// it; FLOOR_M when absent) and lowlandM (level ground below this height is not taken for a lake; LOWLAND_M when absent).
+// it; FLOOR_M when absent), lowlandM (level ground below this height is not taken for a lake; LOWLAND_M when absent)
+// and plainStateRoutes (its "SR" routes are not California's, so they get the plain marker, not the spade).
 // A missing road file means no road lines.
 // ``data.resorts`` holds only that region's locations.
 // Below this many inches an hour, averaged over the region, it is not snowing: no flakes on the map, and the page says so.
@@ -196,7 +198,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     if (x !== t.x || y !== t.y || t.z !== TARGET_Z) { camera.position.x += x - t.x; camera.position.y += y - t.y; t.set(x, y, TARGET_Z); }
   });
   controls.minDistance = 40;
-  controls.maxDistance = globe ? 260 : 190 * RADIUS / DISC_KM;
+  // A region whose mountains spread wider than its disc lets the view open further out (Seattle's); it can still be
+  // zoomed out to where it opened.
+  controls.maxDistance = globe ? 260 : Math.max(190 * RADIUS / DISC_KM, camera.position.distanceTo(controls.target));
   controls.zoomSpeed = 0.6;
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -504,7 +508,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
         if (placedShields.some((q) => Math.hypot(q.x - x, q.y - y) < (q.route === route ? 18 * sizeUp : short ? 3.5 : 5))) continue;
         if (data.resorts.some((r) => Math.hypot(xOf(r.lon) - x, yOf(r.lat) - y) < 2.2)) continue;
         const tag = document.createElement("div");
-        tag.className = "map-shield"; tag.innerHTML = shieldSVG(route); tag.title = route;
+        tag.className = "map-shield"; tag.innerHTML = shieldSVG(route, region.plainStateRoutes); tag.title = route;
         overlay.appendChild(tag);
         placedShields.push({route, x, y});
         placedHere++;

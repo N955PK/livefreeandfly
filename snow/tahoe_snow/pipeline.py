@@ -555,6 +555,7 @@ def read_legacy() -> dict | None:
 def write_index() -> dict:
     """Every region and every mountain, and when each region's forecast was last published, in ``index.json``."""
     regions = {}
+    fitted = set(load_corrections())
     for key, region in REGIONS.items():
         forecast = read_region(key)
         regions[key] = {"name": region.name, "tz": region.tz, "every_h": region.every_h,
@@ -562,7 +563,9 @@ def write_index() -> dict:
     resorts = [{"key": r.key, "name": r.name, "region": r.region, "kind": r.kind, "pass": r.pass_group,
                 "lat": r.lat, "lon": r.lon, "tz": REGIONS[r.region].tz,
                 "station": ALL_STATIONS[r.station].name if r.station else None, "weak_station_match": r.weak_match,
-                "station_corrects": correcting_station(r) is not None}
+                "station_corrects": correcting_station(r) is not None,
+                # Corrected only where its region has a fitted correction (Seattle's sensors have none yet).
+                "water_corrected": correcting_station(r) is not None and r.region in fitted}
                for r in RESORTS.values()]
     index = {"regions": regions, "resorts": resorts}
     write_whole(DATA / "index.json", index)

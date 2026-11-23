@@ -188,6 +188,14 @@ def test_the_index_says_which_station_corrects(tmp_path, monkeypatch):
     assert resorts["palisades"]["station_corrects"] and not resorts["june"]["station_corrects"]
 
 
+def test_the_index_says_a_sensor_with_no_fitted_correction_corrects_nothing(tmp_path, monkeypatch):
+    monkeypatch.setattr(pipeline, "DATA", tmp_path)
+    resorts = {r["key"]: r for r in pipeline.write_index()["resorts"]}
+    assert resorts["palisades"]["water_corrected"] and resorts["mammoth"]["water_corrected"]
+    assert resorts["crystal"]["station_corrects"] and not resorts["crystal"]["water_corrected"]
+    assert not resorts["june"]["water_corrected"] and not resorts["tuckerman"]["water_corrected"]
+
+
 def test_a_posted_body_is_part_of_what_the_copy_is_kept_under():
     url = "https://data.rcc-acis.org/StnData"
     one = cache._path("acis", url, None, ".json", {"sid": "a", "edate": "2026-11-22"})

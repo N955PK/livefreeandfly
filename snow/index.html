@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
-<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra and New England.">
+<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, New England, and around Seattle.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1447,7 +1447,7 @@ if (HOSTED) {
     <button data-page-to="score"><b>How it is tested</b><span>Scored on winters it never saw</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
-    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, the resorts' own lift, trail and snow reports, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, and Mount Washington avalanche centers through avalanche.org.</p>
+    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, the resorts' own lift, trail and snow reports, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, Mount Washington, and Northwest avalanche centers through avalanche.org.</p>
     <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
   </div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
@@ -1496,18 +1496,18 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
   </div>
   <div class="gpage" id="how" data-page="how" data-title="How the forecast is made" hidden>
     <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
-    <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> This model, which turns water into inches of snow, was trained on Sierra snow and has not been checked against New England's. The weights that blend the four weather models were also fitted in the Sierra.</p>
+    <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> This model, which turns water into inches of snow, was trained on Sierra snow and has not been checked anywhere else. The weights that blend the four weather models were also fitted in the Sierra.</p>
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon in the Sierra.</p>
     <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
     <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
-    <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken at about 10,000 ft for every elevation, which is near the crest in the Sierra and well above the summits in New England; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
-    <p><b>The map</b> The land is drawn white where snow is lying, read from the snow sensors in the Sierra and, in New England, where there are none, from the depths the resorts report, which are mostly snow they made on their trails.</p>
+    <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken at about 10,000 ft for every elevation, which is near the crest in the Sierra and above the resorts' tops elsewhere; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
+    <p><b>The map</b> The land is drawn white where snow is lying, read from the snow sensors in the Sierra and around Seattle and, in New England, where there are none, from the depths the resorts report, which are mostly snow they made on their trails.</p>
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is Sugarloaf, Sunday River, Loon, Killington, Pico, Sugarbush, Stowe, Okemo, Mount Snow, and Wildcat, and Attitash, Mount Sunapee, and Crotched once they post their lifts for the season. Stratton's status cannot be read from outside its own site, so it has none here.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's and Seattle's included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is Sugarloaf, Sunday River, Loon, Killington, Pico, Sugarbush, Stowe, Okemo, Mount Snow, and Wildcat, and Attitash, Mount Sunapee, and Crotched once they post their lifts for the season. Stratton's status cannot be read from outside its own site, so it has none here.</p>
     <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "225";
+const BUILD = "226";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1559,6 +1559,19 @@ const REGIONS = {
       [1450, [0.55, 0.53, 0.48]], [1800, [0.70, 0.68, 0.65]]],
     lake: {name: "Lake Winnipesaukee", lat: 43.60307, lon: -71.32397},
     avalanche: [{id: "MWAC", name: "Mount Washington Avalanche Center", url: "https://www.mountwashingtonavalanchecenter.org/"}]},
+  seattle: {name: "Seattle", terrain: "data/terrain-seattle", roads: "data/roads-seattle.json", center: [47.5113, -121.9565], waterM: 0, pick: "crystal",
+    // Mt. Baker to Mt. Adams and Hurricane Ridge to Mission Ridge: the disc is 176 km in radius, the terrain the
+    // square that holds it. The view opens far out, from the south-southeast, where the mountains spread least
+    // across the screen, so Hurricane Ridge, Mission Ridge and Mt. St. Helens all fit across a phone.
+    // The land reaches the sea, so no ground is raised to a floor, and level ground at any height is water.
+    // Washington writes its state routes "SR" as California does, but its marker is the plain one.
+    discKm: 176, zoom: 5, turnDeg: 22, look: [47.45, -121.95], floorM: 0, lowlandM: 0, plainStateRoutes: true,
+    // Lowland and rainforest green, forest to about 1,500 m, then meadow and rock, and the volcanoes' glaciers
+    // above about 2,400 m pale grey-white whether or not snow is lying.
+    land: [[0, [0.42, 0.50, 0.32]], [300, [0.26, 0.42, 0.28]], [1000, [0.20, 0.36, 0.25]], [1500, [0.27, 0.40, 0.30]],
+      [1850, [0.52, 0.51, 0.46]], [2300, [0.68, 0.68, 0.67]], [2700, [0.86, 0.88, 0.91]]],
+    lake: {name: "Puget Sound", lat: 47.60, lon: -122.45},
+    avalanche: [{id: "NWAC", name: "Northwest Avalanche Center", url: "https://nwac.us/"}]},
 };
 // Data published before regions existed has no region field; all of it is Tahoe.
 const regionOf = (r) => r.region || "tahoe";
@@ -1707,11 +1720,12 @@ function lastThreeDays(resort, el) {
 // group leads and the home mountain leads it; the rest follow by what fell in the last three days, and where that is
 // even, in the region's own order. Favorites is one list in the reader's own order (see holdToMove), with no groups.
 // The pass comes with the data; PASSES covers data published before it did.
-const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Independent", "Backcountry"];
+const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Indy", "Independent", "Backcountry"];
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
   ["Mountain Collective", ["sugarbowl"]], ["Independent", ["homewood", "boreal", "mtrose"]]];
 const passOf = (r) => r.pass || (PASSES.find(([, keys]) => keys.includes(r.key)) || ["Independent"])[0];
-const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June", sunapee: "Sunapee"};
+const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June", sunapee: "Sunapee",
+  snoqualmie: "Snoqualmie", bakerskiarea: "Baker Ski Area"};
 function byPass() {
   if (region === FAVORITES) return [["", sorted()]];
   const rows = sorted(), names = [...new Set([...PASS_ORDER, ...rows.map(passOf)])];
@@ -4118,12 +4132,15 @@ document.addEventListener("change", (e) => { if (e.target.id === "avyPick") { av
 
 function renderNotes() {
   // A region where no mountain has a sensor is named as one, not mountain by mountain.
-  const unsensed = !data.bias_corrected ? [] : regionKeys().flatMap((key) => {
+  // A region whose sensors have no correction fitted to them yet is said apart: its mountains do have sensors.
+  const unfitted = regionKeys().filter((key) => { const all = everyMountain().filter((r) => regionOf(r) === key); return all.some((r) => r.station && r.station_corrects !== false) && !all.some(waterCorrected); });
+  const unsensed = !data.bias_corrected ? [] : regionKeys().filter((key) => !unfitted.includes(key)).flatMap((key) => {
     const all = everyMountain().filter((r) => regionOf(r) === key), none = all.filter((r) => r.station === null || r.station_corrects === false);
     return none.length > 2 && none.length === all.length ? [`the ${REGIONS[key].name} mountains`] : none.map((r) => r.name);
   });
   $("biasNote").textContent = (data.bias_corrected ? "Each is corrected against years of readings from the nearest snow sensor, then they are averaged." : "They are averaged; correction against the nearest snow sensor is not applied yet.") +
-    (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor near ${unsensed.length > 1 ? "their" : "its"} height and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "");
+    (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor near ${unsensed.length > 1 ? "their" : "its"} height and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "") +
+    (data.bias_corrected && unfitted.length ? ` ${unfitted.map((key, n) => `${n ? "the" : "The"} ${REGIONS[key].name} mountains`).join(" and ")} have sensors, but no correction has been fitted to them yet, so their forecasts are uncorrected and the sensors' readings are only shown.` : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
   const use = data.usage;
   $("usageNote").innerHTML = use ? `<b>Data budget</b> About ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (${use.measured ? "as Open-Meteo counts them" : "our own count, rounded up"}).` : "";
@@ -4131,6 +4148,15 @@ function renderNotes() {
   $("formula").innerHTML = (data.powder_formula || []).map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join("");
 }
 
+// Whether a mountain's water is corrected against its sensor: what its forecast says (water_correction), or with its
+// region not loaded, what the index says. A region with sensors but no correction fitted to them yet (Seattle) is
+// uncorrected, its sensors' readings only shown. Data published before either field falls back to the pairing.
+function waterCorrected(r) {
+  const own = mountain(r.key);
+  if (own && "water_correction" in own) return own.water_correction != null;
+  if ("water_corrected" in r) return r.water_corrected;
+  return r.station != null && r.station_corrects !== false;
+}
 // How far to trust each mountain's numbers: the weather models' water is corrected against the nearest snow sensor,
 // which fits well where the sensor stands near the mountain's height, loosely where it sits well below, and not at
 // all where no sensor works nearby.
@@ -4138,16 +4164,16 @@ function renderQuality() {
   // What is known about a mountain is which sensor its forecast is corrected against, if any, and whether that sensor
   // sits near the mountain's height. That is a fact about the method, not a measure of how right the forecast is.
   // A sensor that is only shown (one above the mountain, say) corrects nothing, so its mountain is uncorrected.
-  const grade = (r) => r.station === null || r.station === undefined || r.station_corrects === false ? ["none", "Uncorrected"] : r.weak_station_match ? ["rough", "Low sensor"] : ["good", "Corrected"];
+  const grade = (r) => !waterCorrected(r) ? ["none", "Uncorrected"] : r.weak_station_match ? ["rough", "Low sensor"] : ["good", "Corrected"];
   // Every region's mountains are listed from the index, loaded or not; a sensor's height is known once its
   // region's forecast is.
   const shownOnly = (o) => `${o && o.above_top_ft ? `, about ${height(o.above_top_ft)} above the top of the skiing` : ""}. Its readings are shown, not used to correct the forecast.`;
-  const row = (r) => { const [cls, word] = grade(r), o = (mountain(r.key) || {}).observed; return `<div class="qrow"><div><b>${esc(r.name)}</b><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}${r.station_corrects === false ? shownOnly(o) : ""}` : "No working sensor nearby"}</small></div><span class="q ${cls}">${word}</span></div>`; };
+  const row = (r) => { const [cls, word] = grade(r), o = (mountain(r.key) || {}).observed; return `<div class="qrow"><div><b>${esc(r.name)}</b><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}${!waterCorrected(r) ? shownOnly(o) : ""}` : "No working sensor nearby"}</small></div><span class="q ${cls}">${word}</span></div>`; };
   // The regions in the region menu's order, whichever is on screen.
   const regions = regionKeys();
   const listed = everyMountain().filter((r) => regions.includes(regionOf(r)));
   const count = (cls) => listed.filter((r) => grade(r)[0] === cls).length;
-  const KEY = [["good", "Corrected", "Corrected against a sensor near the mountain's own height."], ["rough", "Low sensor", "Corrected against a sensor well below the mountain, so the fit is looser."], ["none", "Uncorrected", "No working sensor near the mountain's height: the models are used as they are."]];
+  const KEY = [["good", "Corrected", "Corrected against a sensor near the mountain's own height."], ["rough", "Low sensor", "Corrected against a sensor well below the mountain, so the fit is looser."], ["none", "Uncorrected", "Not corrected against a sensor: the models are used as they are."]];
   $("qualityBody").innerHTML = `<p>Where a mountain has a snow sensor nearby, its forecast is corrected against years of that sensor's readings. This page says which sensor each mountain uses. It does not grade the forecast: what the correction is worth, measured, is under How it is tested.</p>
     <div class="qkey">${KEY.map(([cls, word, text]) => `<div><span class="q ${cls}">${word}</span><b>${count(cls)}</b><span>${text}</span></div>`).join("")}</div>
     ${regions.map((key) => `<h4 class="ghead">${esc(REGIONS[key].name)}</h4><div class="qlist">${listed.filter((r) => regionOf(r) === key).map(row).join("")}</div>`).join("")}`;
