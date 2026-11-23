@@ -202,7 +202,7 @@ html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:
   html.tabs[data-view="forecast"] .brand{position:sticky;left:16px;width:calc(100vw - 32px);touch-action:pan-y}
   html.tabs .sumhead{position:sticky;top:var(--sat);left:0;width:100vw;height:94px;touch-action:pan-y}
   html.tabs .gridwrap{overflow:visible}
-  html.tabs .gridwrap > .gridnote,html.tabs .gridwrap > .legend,html.tabs .gridwrap > .reorderbar{left:16px;width:calc(100vw - 32px);max-width:none;box-sizing:border-box;touch-action:pan-y}
+  html.tabs .gridwrap > .gridnote,html.tabs .gridwrap > .legend{left:16px;width:calc(100vw - 32px);max-width:none;box-sizing:border-box;touch-action:pan-y}
   html.tabs .panel.summary table.heat{padding-top:0}
   html.tabs .heat tr.head th{position:sticky;top:calc(var(--sat) + 94px);z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
   html.tabs .heat tr.head th b{line-height:1.15}
@@ -221,7 +221,7 @@ html.tabs .jump button{position:relative;z-index:1;padding:5px 4px;background:no
 html.tabs .jump.many button{padding:5px 6px}
 html.tabs .jump button[aria-current=true]{background:none;color:var(--mark)}
 /* The note and the key under the table stay put when the table is slid sideways. */
-.gridwrap > .gridnote,.gridwrap > .legend,.gridwrap > .reorderbar{position:sticky;left:0}
+.gridwrap > .gridnote,.gridwrap > .legend{position:sticky;left:0}
 html.tabs .jump{display:flex;gap:6px;margin:10px 0 0;padding:0 0 9px;overflow-x:auto;scrollbar-width:none}
 html.tabs .jump::-webkit-scrollbar{display:none}
 .jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
@@ -608,17 +608,16 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .duobody[data-duo-body="insight"]{border-radius:11px 0 11px 11px}
 .duopills.solo ~ .duobody{border-radius:0 0 11px 11px}
 .duobody[hidden]{display:none}
-/* Favorites in their own order: under the list, a pill that puts it in reorder mode, where each row has an up and a
-   down pill in place of its days. The end rows' outward pills are there but quiet, since they cannot move. */
-.reorderbar{display:flex;justify-content:center;padding:12px 16px 6px}
-.reorderbar[hidden]{display:none}
-.reorderbar .duopill{justify-content:center;padding:9px 30px}
-.reorderbar .duopill::after{content:none}
-.heat td.moves{padding:0 6px 0 10px;white-space:nowrap;text-align:left}
-.heat .mv{display:inline-grid;place-items:center;width:44px;height:34px;margin-right:8px;padding:0;border:0;border-radius:999px;background:var(--wash);color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.heat .mv svg{width:13px;height:9px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.heat .mv[data-move="-1"] svg{transform:rotate(180deg)}
-.heat .mv:disabled{opacity:.3;cursor:default}
+/* Favorites in their own order: a mountain held for a moment lifts from the list and follows the finger up or down,
+   the others making room, and settles where it is let go. Held rows neither select their text nor call up the
+   phone's menu. While one is lifted every row is its own layer, so the lifted one passes over the rest (and under
+   the sticky day headings). */
+.heat.mine tr[data-key]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.heat.lifting tr[data-key]{transform:translate3d(0,0,0);transition:transform .15s ease-out}
+.heat.lifting tr.lifted{position:relative;z-index:2;transition:none;filter:drop-shadow(0 6px 10px rgba(15,23,32,.22))}
+.heat.lifting tr.lifted:not(.on) td{background:var(--surface)}
+.heat.lifting tr.lifted.settle{transition:transform .15s ease-out}
+@media (prefers-reduced-motion:reduce){.heat.lifting tr[data-key]{transition:none}}
 .rby{font-size:12.5px;color:var(--mark-dull)}
 .rby + .rfacts{margin-top:10px}
 .ralert{margin:12px 0 0;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--w1) 22%,var(--surface));font-size:13px;line-height:1.4;color:var(--mark-mid)}
@@ -1409,7 +1408,6 @@ if (HOSTED) {
     <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span id="gridHint">Tap a mountain for details</span></div>
     </div>
     <div class="gridwrap"><table class="heat" id="heat"></table>
-    <div class="reorderbar" id="reorderBar" hidden><button class="duopill" id="reorderPill">Reorder</button></div>
     <div class="gridnote" id="unratedNote" hidden>* No avalanche forecast covers this peak</div>
     <div class="legend" id="legend"></div></div>
   </div>
@@ -1507,7 +1505,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "196";
+const BUILD = "197";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1695,7 +1693,7 @@ function lastThreeDays(resort, el) {
 
 // Resorts sit under the pass that covers them, and backcountry peaks in a group of their own. The home mountain's
 // group leads and the home mountain leads it; the rest follow by what fell in the last three days, and where that is
-// even, in the region's own order. Favorites is one list in the reader's own order (see reorder mode), with no groups.
+// even, in the region's own order. Favorites is one list in the reader's own order (see holdToMove), with no groups.
 // The pass comes with the data; PASSES covers data published before it did.
 const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Independent", "Backcountry"];
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
@@ -1743,14 +1741,16 @@ function renderHeadline() {
   $("meta").innerHTML = (offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
 }
 
-// Reorder mode, on Favorites only: it ends on leaving Favorites, with fewer than two to order, and on a reload.
-let reordering = false;
-const MOVE_ARROW = '<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg>';
+// Favorites with two or more to order can be put in order by holding a mountain and dragging it (see holdToMove).
+const canReorder = () => region === FAVORITES && here().length > 1;
+let hold = null;   // the row under a finger that may be, or has been, lifted
 function renderHeat() {
-  if (region !== FAVORITES || here().length < 2) reordering = false;
-  $("reorderBar").hidden = region !== FAVORITES || here().length < 2;
-  $("reorderPill").textContent = reordering ? "Done" : "Reorder";
-  $("gridHint").textContent = reordering ? "Use the arrows to move a mountain up or down." : "Tap a mountain for details";
+  // A list drawn again under a finger (a forecast arriving, say) drops the mountain it was holding where it was.
+  dropHold();
+  const mine = canReorder();
+  $("heat").classList.toggle("mine", mine);
+  // Each sentence on a line of its own, so neither breaks in the middle on a phone.
+  $("gridHint").innerHTML = mine ? "Tap a mountain for details.<br>Hold one to drag it to a new place." : "Tap a mountain for details";
   $("gridCap").textContent = `Snow in ${metric() ? "cm" : "inches"}, from ${hourName(16)} previous day`;
   // The days are headed from the selected mountain (on Favorites, rows of another region read their own forecast
   // for each of those dates).
@@ -1759,10 +1759,9 @@ function renderHeat() {
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = "";
   const dayHead = (d) => `<th class="day${d.lead_day > data.deterministic_days ? " far" : ""}">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
-  const headRow = reordering ? `<th class="corner"></th><th class="day">Last<b>3 days</b></th><th></th>` : `<th class="corner"></th><th class="day">Last<b>3 days</b></th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}`;
+  const headRow = `<th class="corner"></th><th class="day">Last<b>3 days</b></th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}`;
   html += `<tr class="head">${headRow}</tr>`;
   const columns = 2 + near.length + (far.length ? 1 + far.length : 0);
-  const order = here().map((r) => r.key);
   for (const [pass, list] of byPass()) {
    if (pass) html += `<tr class="pass" data-sec="${esc(pass)}"><td colspan="${columns}"><span>${pass}${pass === "Backcountry" ? '<span data-avy-group></span>' : ""}</span></td></tr>`;
    for (const r of list) {
@@ -1770,11 +1769,6 @@ function renderHeat() {
     const total = lastThreeDays(r, el);
     html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}</b><span>${height(el.elevation_ft)}${region === FAVORITES ? ` · ${esc(REGIONS[regionOf(r)].short || REGIONS[regionOf(r)].name)}` : ""}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
       <td class="total">${inches(total)} ${LEN()}</td>`;
-    if (reordering) {
-      const at = order.indexOf(r.key), name = esc(r.name);
-      html += `<td class="moves"><button class="mv" data-move="-1" data-move-key="${r.key}" aria-label="Move ${name} up."${at === 0 ? " disabled" : ""}>${MOVE_ARROW}</button><button class="mv" data-move="1" data-move-key="${r.key}" aria-label="Move ${name} down."${at === order.length - 1 ? " disabled" : ""}>${MOVE_ARROW}</button></td></tr>`;
-      continue;
-    }
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
     const cell = (d, dim) => {
@@ -3563,7 +3557,7 @@ if (HOSTED) {
     pan = e.touches.length === 1 ? {x: e.touches[0].clientX, y: e.touches[0].clientY, from: window.scrollX, on: null, v: 0, at: e.timeStamp, last: e.touches[0].clientX} : null;
   }, {passive: true});
   $("heat").addEventListener("touchmove", (e) => {
-    if (!pan || pan.on === false) return;
+    if (!pan || pan.on === false || (hold && hold.lifted)) return;
     const t = e.touches[0], dx = t.clientX - pan.x, dy = t.clientY - pan.y;
     if (pan.on === null) {
       if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
@@ -4110,30 +4104,144 @@ $("detail").addEventListener("change", (e) => {
   renderHeat(); renderDetail();
   if (map && !moved) map.select(selected);
 });
-// One step up or down among the favorites shown. A favorite the page cannot show (a region not built or not loaded)
-// keeps its place in the saved list: the two shown mountains trade places there, and nothing else moves.
-function moveFavorite(key, step) {
-  const shown = here().map((r) => r.key), at = shown.indexOf(key), other = shown[at + step];
-  if (at < 0 || !other) return;
-  const list = [...favorites()], a = list.indexOf(key), b = list.indexOf(other);
-  [list[a], list[b]] = [list[b], list[a]];
+// Favorites are put in order the way a phone's lists are: hold a mountain for a moment and it lifts, follows the finger
+// up or down while the others make room, and settles where it is let go. A finger that moves before the hold is up is
+// a scroll, and is left to the page; one let go early is a tap. Touch and the mouse take the same steps.
+const HOLD_MS = 400, HOLD_SLOP = 8, EDGE = 56;
+let swallowClick = 0;   // the click a lifted row's release would otherwise make, until when it is ignored
+// What the list scrolls in: the page on a phone; on a wide screen whatever box holds it, if one scrolls.
+function scrollerOf(el) {
+  for (let node = el.parentElement; node && node !== document.body; node = node.parentElement) {
+    if (node.scrollHeight > node.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(node).overflowY)) return node;
+  }
+  return null;
+}
+const scrolledBy = (box) => box ? box.scrollTop : window.scrollY;
+function holdStart(row, x, y) {
+  if (hold || !canReorder()) return;
+  hold = {row, x, y, lastY: y, lifted: false, timer: setTimeout(liftHeld, HOLD_MS)};
+}
+function liftHeld() {
+  if (!hold || hold.lifted) return;
+  const rows = [...$("heat").querySelectorAll("tr[data-key]")], at = rows.indexOf(hold.row);
+  if (at < 0) { hold = null; return; }
+  const boxes = rows.map((r) => r.getBoundingClientRect()), gap = rows.length > 1 ? boxes[1].top - boxes[0].bottom : 0;
+  const scroller = scrollerOf($("heat"));
+  Object.assign(hold, {lifted: true, rows, at, to: at, tops: boxes.map((b) => b.top), bottoms: boxes.map((b) => b.bottom),
+    pitch: boxes[at].height + gap, scroller, scroll0: scrolledBy(scroller), dy: 0});
+  // The row grows about the finger, so what is under it stays under it.
+  hold.row.style.transformOrigin = `${Math.round(hold.x - boxes[at].left)}px 50%`;
+  $("heat").classList.add("lifting");
+  hold.row.classList.add("lifted");
+  placeHeld();
+  hold.frame = requestAnimationFrame(edgeScroll);
+}
+// The lifted row sits under the finger (kept within the list), and the rows it has passed step aside by its height.
+function placeHeld() {
+  const h = hold, n = h.rows.length;
+  h.dy = Math.max(h.tops[0] - h.tops[h.at], Math.min(h.bottoms[n - 1] - h.bottoms[h.at], h.lastY - h.y + scrolledBy(h.scroller) - h.scroll0));
+  const mid = (i) => (h.tops[i] + h.bottoms[i]) / 2, centre = mid(h.at) + h.dy;
+  let to = h.at;
+  for (let i = h.at + 1; i < n; i++) if (centre >= mid(i)) to = i;
+  if (to === h.at) for (let i = h.at - 1; i >= 0; i--) if (centre <= mid(i)) to = i;
+  h.to = to;
+  h.rows.forEach((row, i) => {
+    if (i === h.at) { row.style.transform = `translate3d(0,${h.dy}px,0) scale(1.025)`; return; }
+    const shift = i > h.at && i <= to ? -h.pitch : i < h.at && i >= to ? h.pitch : 0;
+    row.style.transform = shift ? `translate3d(0,${shift}px,0)` : "";
+  });
+}
+// Near the top (under the day headings) or the bottom (above the tab bar) of what shows, the list scrolls to follow,
+// until its own end is in view.
+function edgeScroll() {
+  if (!hold || !hold.lifted || hold.done) return;
+  const box = hold.scroller && hold.scroller.getBoundingClientRect();
+  const head = $("heat").querySelector("tr.head"), pin = tabbed() && document.querySelector(".sumhead"), bar = tabbed() && $("tabbar");
+  const top = Math.max(box ? box.top : 0, head ? head.getBoundingClientRect().bottom : 0, pin ? pin.getBoundingClientRect().bottom : 0);
+  const bottom = Math.min(box ? box.bottom : window.innerHeight, bar && bar.offsetHeight ? bar.getBoundingClientRect().top : window.innerHeight);
+  const moved = scrolledBy(hold.scroller) - hold.scroll0, first = hold.tops[0] - moved, last = hold.bottoms[hold.bottoms.length - 1] - moved;
+  const step = hold.lastY < top + EDGE && first < top ? -Math.ceil(Math.min(12 * Math.min(1, (top + EDGE - hold.lastY) / EDGE), top - first))
+    : hold.lastY > bottom - EDGE && last > bottom ? Math.ceil(Math.min(12 * Math.min(1, (hold.lastY - bottom + EDGE) / EDGE), last - bottom)) : 0;
+  if (step) { if (hold.scroller) hold.scroller.scrollTop += step; else window.scrollBy(0, step); placeHeld(); }
+  hold.frame = requestAnimationFrame(edgeScroll);
+}
+function holdMove(x, y, event) {
+  if (!hold || hold.done) return;
+  if (!hold.lifted) { if (Math.hypot(x - hold.x, y - hold.y) > HOLD_SLOP) dropHold(); return; }
+  // Once lifted the finger moves the row and not the page. A page already scrolling cannot be stopped, so then the
+  // row is put back and the scroll goes on.
+  if (event.type === "touchmove" && !event.cancelable) { holdEnd(false); return; }
+  if (event.cancelable) event.preventDefault();
+  hold.lastY = y;
+  placeHeld();
+}
+// Let go: the row settles into its gap and the new order is saved. put: false (a cancelled touch, the page put away,
+// a second finger) puts everything back where it was.
+function holdEnd(put) {
+  if (!hold || hold.done) return;
+  if (!hold.lifted) { dropHold(); return; }
+  const h = hold;
+  h.done = true;
+  cancelAnimationFrame(h.frame);
+  swallowClick = Date.now() + 800;
+  const to = put ? h.to : h.at;
+  h.row.classList.add("settle");
+  h.row.style.transform = `translate3d(0,${to > h.at ? h.bottoms[to] - h.bottoms[h.at] : h.tops[to] - h.tops[h.at]}px,0)`;
+  if (!put) for (const row of h.rows) if (row !== h.row) row.style.transform = "";
+  setTimeout(() => {
+    if (hold !== h) return;
+    if (to === h.at) { dropHold(); return; }
+    const keys = h.rows.map((row) => row.dataset.key);
+    keys.splice(to, 0, keys.splice(h.at, 1)[0]);
+    dropHold();
+    putInOrder(keys);
+  }, 160);
+}
+function dropHold() {
+  if (!hold) return;
+  const h = hold; hold = null;
+  clearTimeout(h.timer); cancelAnimationFrame(h.frame);
+  if (!h.lifted) return;
+  $("heat").classList.remove("lifting");
+  for (const row of h.rows) { row.classList.remove("lifted", "settle"); row.style.transform = ""; row.style.transformOrigin = ""; }
+}
+// The favorites shown, in their new order. A favorite the page cannot show (a region not built or not loaded) keeps
+// its place in the saved list: the shown ones are put in order among the places the shown ones held.
+function putInOrder(keys) {
+  const list = [...favorites()], places = list.map((key, n) => keys.includes(key) ? n : -1).filter((n) => n >= 0);
+  places.forEach((n, i) => { list[n] = keys[i]; });
   prefs.favorites = list;
   savePrefs();
   HOME = here()[0].key;
   for (const draw of [renderHeadline, renderHeat, renderDetail]) {
     try { draw(); } catch (error) { console.error(error); }
   }
-  // The finger (or the keyboard) stays with the mountain it is moving, on the same arrow while it can still go that way.
-  const again = $("heat").querySelector(`button[data-move-key="${key}"][data-move="${step}"]:not(:disabled)`) || $("heat").querySelector(`button[data-move-key="${key}"]:not(:disabled)`);
-  if (again) again.focus({preventScroll: true});
 }
-$("reorderPill").addEventListener("click", () => { reordering = !reordering; renderHeat(); });
+// A finger: touch events, so that once a row is lifted its moves can be kept from scrolling the page (the page's
+// touch-action cannot change in the middle of a touch). A second finger puts the row back.
+$("heat").addEventListener("touchstart", (e) => {
+  if (e.touches.length !== 1) { holdEnd(false); return; }
+  const row = e.target.closest("tr[data-key]");
+  if (row) holdStart(row, e.touches[0].clientX, e.touches[0].clientY);
+}, {passive: true});
+$("heat").addEventListener("touchmove", (e) => holdMove(e.touches[0].clientX, e.touches[0].clientY, e), {passive: false});
+$("heat").addEventListener("touchend", (e) => { if (hold && hold.lifted && e.cancelable) e.preventDefault(); holdEnd(true); });
+$("heat").addEventListener("touchcancel", () => holdEnd(false), {passive: true});
+// The mouse: the same hold, then drag.
+$("heat").addEventListener("pointerdown", (e) => {
+  if (e.pointerType !== "mouse" || e.button !== 0) return;
+  const row = e.target.closest("tr[data-key]");
+  if (row) holdStart(row, e.clientX, e.clientY);
+});
+document.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") holdMove(e.clientX, e.clientY, e); });
+window.addEventListener("pointerup", (e) => { if (e.pointerType === "mouse") holdEnd(true); });
+// No menu under a held row, and nothing left lifted when the page is put away.
+$("heat").addEventListener("contextmenu", (e) => { if (hold) e.preventDefault(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) holdEnd(false); });
+window.addEventListener("blur", () => holdEnd(false));
 $("heat").addEventListener("click", (e) => {
-  if (reordering) {
-    const move = e.target.closest("button[data-move]");
-    if (move && !move.disabled) moveFavorite(move.dataset.moveKey, +move.dataset.move);
-    return;
-  }
+  // The release that ends a drag is not a tap on the row.
+  if (Date.now() < swallowClick) { swallowClick = 0; return; }
   const row = e.target.closest("tr[data-key]"); if (!row) return;
   selected = row.dataset.key;
   history.replaceState(null, "", "#" + selected);
