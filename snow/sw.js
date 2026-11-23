@@ -1,7 +1,7 @@
 // Turbo Snow offline support. Keeps the page, the map code, and both terrain sets on the phone so the page still
 // opens with no signal. The page is fetched fresh whenever there's signal (falling back to the saved copy after a
-// few seconds on a weak one). The forecast itself isn't cached here: the page keeps its own copy of the last one
-// it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
+// few seconds on a weak one). The forecast itself isn't cached here: the page keeps its own copy of the index and of
+// each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
 const VERSION = 'sierra-snow-v4';
@@ -89,8 +89,9 @@ self.addEventListener('fetch', (e) => {
       && (url.pathname === scope.pathname || url.pathname === scope.pathname + 'index.html')) {
     return e.respondWith(pageFirst(req));
   }
-  // The local forecast file is only used when developing; the published one comes from another site.
-  if (url.origin === location.origin && url.pathname === scope.pathname + 'data/forecast.json') return;
+  // The local forecast files are only used when developing; the published ones come from another site.
+  if (url.origin === location.origin && (url.pathname === scope.pathname + 'data/forecast.json'
+      || url.pathname === scope.pathname + 'data/index.json' || url.pathname.startsWith(scope.pathname + 'data/forecast/'))) return;
   if (url.href.startsWith(SIGNS) || url.href.startsWith(PROBLEMS)) return e.respondWith(keptPicture(req));
   if (url.href.startsWith(PHOTOS)) return e.respondWith(savedPhoto(req));
   if ((url.origin === location.origin && url.pathname.startsWith(scope.pathname)) || url.href.startsWith(THREE)) {
