@@ -21,7 +21,9 @@ ZOOM = 10
 # Box (south, north, west, east), a ceiling just above the highest real peak inside it, and the grid's width
 # (about 0.39 km a cell in both). Mammoth's box runs from Matterhorn Peak to Mt. Whitney.
 REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "columns": 420},
-           "mammoth": {"box": (36.22, 38.46, -120.24, -117.44), "max_m": 4450, "columns": 640}}
+           "mammoth": {"box": (36.22, 38.46, -120.24, -117.44), "max_m": 4450, "columns": 640},
+           # Taller than the 2.24 degrees the guide advises: Sugarloaf to Mount Snow. Mount Washington is 1,917 m.
+           "newengland": {"box": (42.73, 45.28, -73.25, -69.98), "max_m": 1950, "columns": 640}}
 
 
 def stem(region: str) -> str:
@@ -43,7 +45,7 @@ def main(region: str = "tahoe") -> None:
     tx0, ty0, tx1, ty1 = int(x0), int(y0), int(x1), int(y1)
     mosaic = np.zeros(((ty1 - ty0 + 1) * 256, (tx1 - tx0 + 1) * 256), dtype=np.float32)
     session = requests.Session()
-    session.headers["User-Agent"] = "tahoe-snow/0.1"
+    session.headers["User-Agent"] = "terrain-builder/0.1"
     for ty in range(ty0, ty1 + 1):
         for tx in range(tx0, tx1 + 1):
             response = session.get(TILES.format(z=ZOOM, x=tx, y=ty), timeout=60)

@@ -21,6 +21,10 @@ ROUTES = {
               "NV 207": "NV-207", "NV 28": "NV-28", "US 395": "US-395", "I 580": "I-580"},
     "mammoth": {"US 395": "US-395", "CA 203": "SR-203", "CA 158": "SR-158", "CA 120": "SR-120", "CA 108": "SR-108",
                 "CA 167": "SR-167", "CA 168": "SR-168", "CA 182": "SR-182", "CA 270": "SR-270", "US 6": "US-6"},
+    # OSM tags concurrent routes as "I 93;US 3"; the query and the split on ";" in main() already match each.
+    "newengland": {"I 93": "I-93", "I 89": "I-89", "I 91": "I-91", "I 95": "I-95", "US 2": "US-2", "US 4": "US-4",
+                   "US 302": "US-302", "VT 100": "VT-100", "VT 108": "VT-108", "NH 16": "NH-16", "NH 112": "NH-112",
+                   "ME 26": "ME-26", "ME 27": "ME-27"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the
@@ -93,7 +97,7 @@ out geom;"""
     response = None
     for server in SERVERS:
         try:
-            response = requests.post(server, data={"data": query}, headers={"User-Agent": "tahoe-snow/0.1"}, timeout=180)
+            response = requests.post(server, data={"data": query}, headers={"User-Agent": "roads-builder/0.1"}, timeout=180)
             response.raise_for_status()
             break
         except requests.RequestException as error:
