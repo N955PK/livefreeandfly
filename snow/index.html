@@ -1426,7 +1426,7 @@ if (HOSTED) {
     <button data-page-to="score"><b>How it is tested</b><span>Scored on winters it never saw</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
-    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, and Mount Washington avalanche centers through avalanche.org.</p>
+    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, and Mount Washington avalanche centers through avalanche.org.</p>
     <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
   </div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
@@ -2091,6 +2091,7 @@ function skiDay(d) {
 
 function measured(resort) {
   const o = resort.observed;
+  if (o && o.daily !== undefined) return measuredDaily(resort, o);
   if (!o || (o.depth_in == null && o.water_in == null)) return "";
   const signed = (v) => v == null ? "–" : (v > 0 ? "+" : "") + Math.round(asLen(v));
   const when = new Date(withSeconds(o.as_of_utc)).toLocaleString("en-US", clockOpts({timeZone: tzOf(resort), weekday: "short", hour: "numeric"}));
@@ -2106,6 +2107,24 @@ function measured(resort) {
     ${cell(row ? "3-day water" : "Water, 3 days", `${inches(o.water_gain_72h_in)} <small>${LEN()}</small>`, `${inches(o.water_gain_24h_in)} ${LEN()} in 24 h`)}
     ${cell(row ? "Sensor temp" : "Temp at sensor", o.temp_f == null ? "–" : `${deg(o.temp_f)}${DEG()}`, "&nbsp;")}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
 }
+// A weather station's daily record (snowfall, snow on the ground and the water that fell, a day at a time) runs days
+// behind, so its figures are named by the day they are for and none of them is shown as now; only its temperature is
+// current, with its own time. A station above the mountain says how far above, and that its depth runs less.
+const dayName = (date, opts = {weekday: "short", month: "short", day: "numeric"}) => new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {timeZone: "UTC", ...opts});
+function measuredDaily(resort, o) {
+  const d = o.daily, row = tabbed(), on = d ? dayName(d.date, {month: "short", day: "numeric"}) : "";
+  const cell = (k, v, r) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div><div class="r">${r}</div></div>`;
+  const at = o.as_of_utc ? new Date(withSeconds(o.as_of_utc)).toLocaleString("en-US", clockOpts({timeZone: tzOf(resort), hour: "numeric", minute: "2-digit"})) : "&nbsp;";
+  const where = `${esc(o.station)} sensor, ${height(o.elevation_ft)}${o.above_top_ft ? `, about ${height(o.above_top_ft)} above the top of ${esc(resort.name)}` : ""}.`;
+  const lag = d ? ` The figures are for ${dayName(d.date)}: its daily record runs a few days behind.` : " Its daily record could not be read.";
+  const scoured = d && o.above_top_ft ? " Wind scours the station, so it holds less snow on the ground than the slopes below." : "";
+  const tiles = d ? cell(row ? "Depth" : "On the ground", `${inches(d.depth_in)} <small>${LEN()}</small>`, `on ${on}`)
+    + cell(row ? "3-day snow" : "Snowfall, 3 days", `${inches(d.snowfall_3d_in)} <small>${LEN()}</small>`, `${inches(d.snowfall_in)} ${LEN()} on ${on}`)
+    + cell(row ? "3-day water" : "Water, 3 days", `${tenths(d.water_3d_in)} <small>${LEN()}</small>`, `${tenths(d.water_in)} ${LEN()} on ${on}`) : "";
+  return `<h3 data-sec="Measured">Measured</h3><div class="sub">${where}${lag}${scoured}</div>
+    <div class="tiles${row ? " four" : ""}">${tiles}
+    ${cell(row ? "Sensor temp" : "Temp at sensor", o.temp_f == null ? "–" : `${deg(o.temp_f)}${DEG()}`, o.temp_f == null ? "&nbsp;" : at)}</div><div id="seasonBox">${seasonSoFar(resort)}</div>`;
+}
 // The winter at the mountain's sensor, three ways: snow on the ground, snow fallen so far, and the water the
 // snowpack holds. Each is this winter's line over the usual year and the ten winters before it, October to July.
 // Depth shows first; a sensor with no depth gauge starts on snowfall.
@@ -2113,6 +2132,10 @@ const SEASON_VIEWS = {
   depth: {tab: "Depth", now: (v) => `${v} ${LEN()} of snow on the ground`, total: "peak", short: "Settled depth at the sensor", what: "Settled snow on the ground at the sensor, so it rises less than the snow that fell."},
   snowfall: {tab: "Snowfall", now: (v) => `about ${v} ${LEN()} of snow has fallen`, total: "season total", short: "Estimated from the sensor's water gain on cold days", what: "An estimate: the water the sensor gained on days cold enough to snow, times a snow ratio for the day's temperature. Resorts measure higher on the mountain."},
   water: {tab: "Water", now: (v) => `${v} ${LEN()} of water in the snowpack`, total: "peak", short: "Water held in the snowpack", what: "How deep the water would be if the snow on the ground melted. It does not shrink as snow settles."}};
+// What a weather station's daily record says instead, where it measures each day's snowfall and depth itself.
+const SEASON_DAILY = {
+  depth: {now: (v) => `${v} ${LEN()} of snow on the ground`, short: (at) => `Depth at the ${at}`, what: (at) => `Snow on the ground at the ${at}, measured once a day.`},
+  snowfall: {now: (v) => `${v} ${LEN()} of snow has fallen`, short: (at) => `Measured at the ${at}`, what: (at) => `Snow measured at the ${at} each day, added up from October 1.`}};
 let seasonMeasure = "depth";
 // The season runs from October 1 through July 7 (day 279, which the every-three-days history lands on).
 const SEASON_DAYS = 282, MONTHS = [["Oct", 0], ["Nov", 31], ["Dec", 61], ["Jan", 92], ["Feb", 123], ["Mar", 151], ["Apr", 182], ["May", 212], ["Jun", 243], ["Jul", 273]];
@@ -2123,13 +2146,16 @@ function seasonSoFar(resort) {
   if (!has.length) return "";
   const measure = has.includes(seasonMeasure) ? seasonMeasure : has[0], view = SEASON_VIEWS[measure];
   const s = all[measure], curve = ((data.season_curves || {})[resort.station] || {})[measure];
-  const [month, day] = s.peak_date.split("-").map(Number), today = new Date().toLocaleDateString("en-US", {timeZone: tzOf(resort), month: "short", day: "numeric"});
+  // A daily record is as of its latest day, which is named in place of today.
+  const seen = resort.observed || {}, spot = `${resort.station}${seen.elevation_ft ? `, ${height(seen.elevation_ft)}` : ""}`;
+  const say = (key) => SEASON_DAILY[key] && all[key].as_of_date ? {...SEASON_VIEWS[key], now: SEASON_DAILY[key].now, short: SEASON_DAILY[key].short(spot), what: SEASON_DAILY[key].what(spot)} : SEASON_VIEWS[key];
+  const [month, day] = s.peak_date.split("-").map(Number), today = s.as_of_date ? dayName(s.as_of_date, {month: "short", day: "numeric"}) : new Date().toLocaleDateString("en-US", {timeZone: tzOf(resort), month: "short", day: "numeric"});
   const around = `${day <= 10 ? "early" : day <= 20 ? "mid" : "late"} ${new Date(2001, month - 1, 1).toLocaleDateString("en-US", {month: "long"})}`;
   const normal = s.pct_normal == null ? `A typical ${today} has under ${metric() ? "3 cm" : "1 in"}` : `<b>${s.pct_normal}%</b> of normal for ${today} (${inches(s.normal_in)} ${LEN()})`;
   const note = `<div>${normal}</div><div><b>${s.pct_peak}%</b> of a typical ${view.total} (${inches(s.peak_in)} ${LEN()}${measure === "snowfall" ? "" : `, ${around}`})</div>`;
   const tabs = has.length < 2 ? "" : `<div class="seg" role="group" aria-label="Measure">${has.map((key) => `<button data-season="${key}" aria-pressed="${key === measure}">${SEASON_VIEWS[key].tab}</button>`).join("")}</div>`;
-  const head = `<div class="shead"><div><b>Season totals</b>${tabbed() ? "" : `<span>${view.now(inches(s.now_in))}</span>`}</div>${tabs}</div>
-    <div class="swhat">${has.map((key) => `<span${key === measure ? "" : ' class="ghost" aria-hidden="true"'}>${tabbed() ? SEASON_VIEWS[key].short : SEASON_VIEWS[key].what}</span>`).join("")}</div>`;
+  const head = `<div class="shead"><div><b>Season totals</b>${tabbed() ? "" : `<span>${say(measure).now(inches(s.now_in))}${s.as_of_date ? ` ${measure === "snowfall" ? "by" : "on"} ${today}` : ""}</span>`}</div>${tabs}</div>
+    <div class="swhat">${has.map((key) => `<span${key === measure ? "" : ' class="ghost" aria-hidden="true"'}>${esc(tabbed() ? say(key).short : say(key).what)}</span>`).join("")}</div>`;
   if (!curve || !curve.years) return `<div class="season">${head}<div class="snote">${note}</div></div>`;
   const W = Math.max(280, $("detail").clientWidth - 36), H = W > 700 ? 260 : 200, L = 8, R = 8, T = 16, B = 22;
   const count = Math.round(SEASON_DAYS / curve.step_days), winters = Object.keys(curve.years).sort(), past = winters.slice(0, -1);
@@ -2192,7 +2218,7 @@ function seasonSoFar(resort) {
     if (survey) body += `<circle class="surveyed" cx="${surveyX().toFixed(1)}" cy="${y(survey.value).toFixed(1)}" r="3.5"/>`;
   }
   // The line ends at the sensor's latest reading, which the every-few-days history can trail during a storm.
-  const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = new Date().toLocaleDateString("en-CA", {timeZone: tzOf(resort)}).split("-").map(Number);
+  const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = (s.as_of_date || new Date().toLocaleDateString("en-CA", {timeZone: tzOf(resort)})).split("-").map(Number);
   const sinceOct = Math.round((Date.UTC(yearNow, monthNow - 1, dayNow) - Date.UTC(monthNow >= 10 ? yearNow : yearNow - 1, 9, 1)) / 864e5);
   if (sinceOct < SEASON_DAYS) mine[Math.min(count - 1, Math.round(sinceOct / curve.step_days))] = nowDeep;
   const last = mine.reduce((found, v, k) => v == null ? found : k, 0), first = mine.findIndex((v) => v != null), endX = x(last), endY = y(mine[last] || 0);
@@ -2860,7 +2886,7 @@ function renderDetail() {
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>${speed(50)}+</b></span>${SPEED()}</span></div>
     <div class="key" style="column-gap:8px"><span class="blocks">Temp<span class="ramp" style="background:linear-gradient(90deg,var(--snow),var(--grid) 64%,var(--w1))"><b>${deg(0)}°</b><b class="dark">${deg(50)}${DEG()}</b></span></span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span></div>
-    ${tabbed() ? `<div class="key" style="column-gap:14px"><span class="sw"><i style="background:var(--snow);height:3px"></i>storm total</span>${resort.observed ? `<span class="sw"><i style="background:none;border-top:1.5px dashed var(--ink2);height:0"></i>measured at the sensor</span>` : ""}</div>
+    ${tabbed() ? `<div class="key" style="column-gap:14px"><span class="sw"><i style="background:var(--snow);height:3px"></i>storm total</span>${resort.observed && resort.observed.depth_in_hourly ? `<span class="sw"><i style="background:none;border-top:1.5px dashed var(--ink2);height:0"></i>measured at the sensor</span>` : ""}</div>
       <div class="key" style="column-gap:14px"><span class="sw"><i style="height:11px;border-radius:2px;border:.75px solid var(--mark-dull);background:repeating-linear-gradient(45deg,var(--mark-dull) 0 1.4px,transparent 1.4px 4px)"></i>rain at this height, snow higher up</span><span>wind strip shows gusts</span></div></details>` : ""}
     ${measured(resort)}${webcams(resort)}`;
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
@@ -3448,7 +3474,7 @@ async function setRegion(key) {
   selected = opener().key;
   mergeRegions();
   history.replaceState(null, "", "#" + selected);
-  // The notes and the sensor list put the region on screen first, and take its figures.
+  // The notes and the sensor list take the figures of the region on screen.
   for (const step of [renderNotes, renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
   }
@@ -3792,10 +3818,12 @@ function drawAvalanche() {
     return;
   }
   const main = state && state.zones.find((z) => z.center === home);
-  // Every zone the app's regions cover, this region's first, without repeats where two regions share a center.
-  const seen = new Set(), all = [at, ...Object.keys(REGIONS).filter((key) => key !== at)]
-    .flatMap((key) => (avy[key] && avy[key].zones.length ? avy[key].zones : avyElsewhere[key]) || [])
-    .filter((z) => !seen.has(zoneKey(z)) && seen.add(zoneKey(z)));
+  // Every zone the app's regions cover, region by region in the region menu's order, without repeats where two
+  // regions share a center.
+  const seen = new Set(), byRegion = [...new Set([...regionKeys(), ...Object.keys(REGIONS)])]
+    .map((key) => ((avy[key] && avy[key].zones.length ? avy[key].zones : avyElsewhere[key]) || [])
+      .filter((z) => !seen.has(zoneKey(z)) && seen.add(zoneKey(z))));
+  const all = byRegion.flat();
   if (state && state.loaded && !avyAsked.has("elsewhere")) {
     avyAsked.add("elsewhere");
     Promise.all(Object.keys(REGIONS).filter((key) => key !== at && !(avy[key] && avy[key].zones.length)).map(async (key) => { avyElsewhere[key] = await zonesFrom(REGIONS[key].avalanche); })).then(renderAvalanche);
@@ -3820,9 +3848,10 @@ function drawAvalanche() {
     avyJson(`${AVY_API}/product/${weatherId}`).catch(() => null).then((found) => { avyProducts[`w${weatherId}`] = found; if (found) renderAvalanche(); });
   }
   const weather = weatherId ? avyProducts[`w${weatherId}`] : null;
-  // The picker lists the zones alone, north to south by the middle of each.
+  // The picker lists the zones alone, a region at a time in the menu's order, each region's north to south by the
+  // middle of each zone.
   const midLat = (z) => { const points = z.rings.flat(); return points.reduce((sum, c) => sum + c[1], 0) / points.length; };
-  const listed = [...all].sort((a, b) => midLat(b) - midLat(a));
+  const listed = byRegion.flatMap((zones) => [...zones].sort((a, b) => midLat(b) - midLat(a)));
   // A center with one zone names it after itself; the title drops the repeat ("Bridgeport").
   const zoneName = (z) => z.name === z.center.name ? z.name.replace(/ Avalanche Center$/, "") : z.name;
   const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${listed.map((z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`).join("")}</select></label>`;
@@ -3902,11 +3931,11 @@ document.addEventListener("change", (e) => { if (e.target.id === "avyPick") { av
 function renderNotes() {
   // A region where no mountain has a sensor is named as one, not mountain by mountain.
   const unsensed = !data.bias_corrected ? [] : regionKeys().flatMap((key) => {
-    const all = everyMountain().filter((r) => regionOf(r) === key), none = all.filter((r) => r.station === null);
+    const all = everyMountain().filter((r) => regionOf(r) === key), none = all.filter((r) => r.station === null || r.station_corrects === false);
     return none.length > 2 && none.length === all.length ? [`the ${REGIONS[key].name} mountains`] : none.map((r) => r.name);
   });
   $("biasNote").textContent = (data.bias_corrected ? "Each is corrected against years of readings from the nearest snow sensor, then they are averaged." : "They are averaged; correction against the nearest snow sensor is not applied yet.") +
-    (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor nearby and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "");
+    (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor near ${unsensed.length > 1 ? "their" : "its"} height and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
   const use = data.usage;
   $("usageNote").innerHTML = use ? `<b>Data budget</b> About ${use.calls_24h.toLocaleString()} of Open-Meteo's ${use.daily_limit.toLocaleString()} free calls in the last 24 hours, and ${use.calls_30d.toLocaleString()} of ${use.monthly_limit.toLocaleString()} in the last 30 days (${use.measured ? "as Open-Meteo counts them" : "our own count, rounded up"}).` : "";
@@ -3920,14 +3949,17 @@ function renderNotes() {
 function renderQuality() {
   // What is known about a mountain is which sensor its forecast is corrected against, if any, and whether that sensor
   // sits near the mountain's height. That is a fact about the method, not a measure of how right the forecast is.
-  const grade = (r) => r.station === null || r.station === undefined ? ["none", "Uncorrected"] : r.weak_station_match ? ["rough", "Low sensor"] : ["good", "Corrected"];
+  // A sensor that is only shown (one above the mountain, say) corrects nothing, so its mountain is uncorrected.
+  const grade = (r) => r.station === null || r.station === undefined || r.station_corrects === false ? ["none", "Uncorrected"] : r.weak_station_match ? ["rough", "Low sensor"] : ["good", "Corrected"];
   // Every region's mountains are listed from the index, loaded or not; a sensor's height is known once its
   // region's forecast is.
-  const row = (r) => { const [cls, word] = grade(r), o = (mountain(r.key) || {}).observed; return `<div class="qrow"><div><b>${esc(r.name)}</b><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}` : "No working sensor nearby"}</small></div><span class="q ${cls}">${word}</span></div>`; };
-  const regions = regionKeys().sort((a, b) => (b === place()) - (a === place()));
+  const shownOnly = (o) => `${o && o.above_top_ft ? `, about ${height(o.above_top_ft)} above the top of the skiing` : ""}. Its readings are shown, not used to correct the forecast.`;
+  const row = (r) => { const [cls, word] = grade(r), o = (mountain(r.key) || {}).observed; return `<div class="qrow"><div><b>${esc(r.name)}</b><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}${r.station_corrects === false ? shownOnly(o) : ""}` : "No working sensor nearby"}</small></div><span class="q ${cls}">${word}</span></div>`; };
+  // The regions in the region menu's order, whichever is on screen.
+  const regions = regionKeys();
   const listed = everyMountain().filter((r) => regions.includes(regionOf(r)));
   const count = (cls) => listed.filter((r) => grade(r)[0] === cls).length;
-  const KEY = [["good", "Corrected", "Corrected against a sensor near the mountain's own height."], ["rough", "Low sensor", "Corrected against a sensor well below the mountain, so the fit is looser."], ["none", "Uncorrected", "No working sensor nearby: the models are used as they are, and there is no measured snow."]];
+  const KEY = [["good", "Corrected", "Corrected against a sensor near the mountain's own height."], ["rough", "Low sensor", "Corrected against a sensor well below the mountain, so the fit is looser."], ["none", "Uncorrected", "No working sensor near the mountain's height: the models are used as they are."]];
   $("qualityBody").innerHTML = `<p>Where a mountain has a snow sensor nearby, its forecast is corrected against years of that sensor's readings. This page says which sensor each mountain uses. It does not grade the forecast: what the correction is worth, measured, is under How it is tested.</p>
     <div class="qkey">${KEY.map(([cls, word, text]) => `<div><span class="q ${cls}">${word}</span><b>${count(cls)}</b><span>${text}</span></div>`).join("")}</div>
     ${regions.map((key) => `<h4 class="ghead">${esc(REGIONS[key].name)}</h4><div class="qlist">${listed.filter((r) => regionOf(r) === key).map(row).join("")}</div>`).join("")}`;
