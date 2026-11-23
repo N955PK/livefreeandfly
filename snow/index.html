@@ -1505,7 +1505,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "200";
+const BUILD = "201";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3654,6 +3654,13 @@ const BANDS = [["upper", "Above treeline"], ["middle", "Near treeline"], ["lower
 const ASPECTS = [["north", "N"], ["northeast", "NE"], ["east", "E"], ["southeast", "SE"], ["south", "S"], ["southwest", "SW"], ["west", "W"], ["northwest", "NW"]];
 const avy = {};
 let avyOn = false;
+// A forecast issued before this snow season began (October 1) is last season's. It is not shown: its zone counts as
+// having no forecast yet, with no rating, advice or warning from the spring. Applied where forecasts are read, so a
+// copy saved on the phone (or from the day's bundle) is held to it too.
+const seasonStart = () => { const now = new Date(); return Date.UTC(now.getUTCFullYear() - (now.getUTCMonth() < 9 ? 1 : 0), 9, 1); };
+const lastSeason = (iso) => !!iso && new Date(iso).getTime() < seasonStart();
+const notYet = (zone) => `The ${zone.center.name} has not issued a forecast yet this season.`;
+function leftOver(zone) { Object.assign(zone, {stale: true, level: -1, advice: null, warning: null, offSeason: false}); }
 const getJson = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
 // The avalanche centers' answers are kept on the phone as they arrive, so with no signal the last forecast read is
 // still there. It says when it was issued and when it expires, and the pane says plainly that it is a saved copy.
@@ -3678,7 +3685,9 @@ async function avyJson(url) {
 let avyPick = null, avyShown = null;
 const avyElsewhere = {}, avyProducts = {}, avyAsked = new Set();
 const zoneKey = (zone) => `${zone.center.id}/${zone.id}`;
-const zoneProduct = (zone) => avyJson(`${AVY_API}/product?type=forecast&center_id=${zone.center.id}&zone_id=${zone.id}`).catch(() => null);
+// A forecast is dated by when it was issued (or, lacking that, when it starts); last season's comes back as {stale}.
+const zoneProduct = (zone) => avyJson(`${AVY_API}/product?type=forecast&center_id=${zone.center.id}&zone_id=${zone.id}`)
+  .then((product) => product && lastSeason(product.published_time || product.start_date) ? {stale: true} : product).catch(() => null);
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
@@ -3688,6 +3697,7 @@ async function zonesFrom(centers) {
       zones.push({id: feature.id, center: centers[n], name: p.name, level: p.danger_level, link: p.link, advice: p.travel_advice,
         offSeason: p.off_season, warning: p.warning && p.warning.product,
         rings: (g.type === "MultiPolygon" ? g.coordinates : [g.coordinates]).flat()});
+      if (lastSeason(p.start_date)) leftOver(zones[zones.length - 1]);
     }
   });
   return zones;
@@ -3698,6 +3708,14 @@ async function loadAvalanche(asked = place()) {
   const zones = await zonesFrom(centers);
   const main = zones.find((zone) => zone.center === centers[0]);
   const product = main ? await zoneProduct(main) : null;
+  if (product && product.stale) leftOver(main);
+  // Another center's zone with no rating may be showing last season's forecast too: its forecast is read now, so the
+  // peaks and the map count it as having none yet (and the pane has it ready when the zone is picked).
+  await Promise.all(zones.filter((zone) => zone !== main && !(zone.level > 0)).map(async (zone) => {
+    const found = await zoneProduct(zone);
+    if (found && found.stale) leftOver(zone);
+    avyProducts[zoneKey(zone)] = found; avyAsked.add(zoneKey(zone));
+  }));
   Object.assign(state, {zones, product, loaded: true});
   if (asked !== place()) { badges(); return; }
   renderAvalanche(); badges(); mapAvalanche(); railReady();
@@ -3729,7 +3747,7 @@ function badges() {
   const zonesOf = (spot) => (avy[regionOf(spot)] || {}).zones || [];
   const zoneOf = (key) => { const spot = spotOf(key); return spot && zonesOf(spot).find((z) => inRings(z.rings, spot.lon, spot.lat)); };
   const uncovered = (key) => { const spot = spotOf(key); return !!spot && zonesOf(spot).length > 0 && !zoneOf(key); };
-  const icon = (zone, extra = "", by = zone.center.name) => { const name = danger(zone.level)[0]; return `<img class="avyicon${extra}" src="${dangerIcon(zone.level)}" alt="Avalanche danger: ${name}" title="Avalanche danger: ${name}, ${esc(by)}" onerror="this.remove()">`; };
+  const icon = (zone, extra = "", by = zone.center.name) => { const said = zone.stale ? notYet(zone) : `Avalanche danger: ${danger(zone.level)[0]}, ${by}`; return `<img class="avyicon${extra}" src="${dangerIcon(zone.level)}" alt="${esc(said)}" title="${esc(said)}" onerror="this.remove()">`; };
   // The peaks in the grid share one icon beside the group's name when every forecast that covers them gives the same
   // rating; otherwise each peak carries its own. A peak no forecast covers is starred.
   const rated = [...document.querySelectorAll('[data-form="mini"]')].map((slot) => zoneOf(slot.dataset.avy)).filter(Boolean);
@@ -3746,15 +3764,15 @@ function badges() {
     const zone = zoneOf(slot.dataset.avy);
     if (slot.dataset.form === "verdict") {
       // The status box itself: "Avalanche danger: Considerable" on a wash of the danger's color.
-      const text = zone ? `<b>Avalanche danger: ${danger(zone.level)[0]}</b>` : uncovered(slot.dataset.avy) ? "<b>No avalanche forecast covers this peak</b>" : "";
+      const text = zone ? `<b>${zone.stale ? "No avalanche forecast yet this season" : `Avalanche danger: ${danger(zone.level)[0]}`}</b>` : uncovered(slot.dataset.avy) ? "<b>No avalanche forecast covers this peak</b>" : "";
       slot.hidden = !text;
-      slot.style.background = zone ? `color-mix(in srgb, ${danger(zone.level)[1]} 26%, var(--surface))` : "";
+      slot.style.background = zone && !zone.stale ? `color-mix(in srgb, ${danger(zone.level)[1]} 26%, var(--surface))` : "";
       slot.innerHTML = text;
       continue;
     }
     if (!zone) { slot.innerHTML = slot.dataset.form === "plain" && uncovered(slot.dataset.avy) ? "No forecast covers this peak" : ""; continue; }
     const [, color, ink] = danger(zone.level);
-    slot.innerHTML = slot.dataset.form === "plain" ? `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${dangerText(zone.level)}</button>`
+    slot.innerHTML = slot.dataset.form === "plain" ? `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${zone.stale ? "No forecast yet" : dangerText(zone.level)}</button>`
       : slot.dataset.form === "icon" ? icon(zone) : shared ? "" : icon(zone, " mini");
   }
   for (const slot of document.querySelectorAll("[data-avy-group]")) slot.innerHTML = shared ? icon(shared, " group", centers) : "";
@@ -3877,6 +3895,7 @@ function drawAvalanche() {
   const zone = picked || mine || main, center = zone ? zone.center : home;
   // A picked zone's forecast is fetched once; until it answers, product is undefined and the pane says it is loading.
   const product = !zone || zone === main ? state && state.product : avyProducts[zoneKey(zone)];
+  if (zone && product && product.stale) leftOver(zone);
   if (zone && zone !== main && !avyAsked.has(zoneKey(zone))) {
     avyAsked.add(zoneKey(zone));
     zoneProduct(zone).then((found) => { avyProducts[zoneKey(zone)] = found; renderAvalanche(); });
@@ -3901,10 +3920,10 @@ function drawAvalanche() {
   const brief = (iso) => iso ? new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", ...(Math.abs(new Date(iso) - Date.now()) > 6 * 864e5 ? {month: "short", day: "numeric"} : {}), hour: "numeric", minute: "2-digit"})) : "";
   const issue = brief(product && product.published_time), ends = brief(product && product.expires_time), over = ends && new Date(product.expires_time) < Date.now();
   // Under the title in tabs: when it was issued, then when it runs out (the center is named with the bottom line).
-  const by = tabbed() ? (zone && issue ? `<span class="by">Issued <b>${issue}</b></span>${ends ? `<span class="by">${over ? "Expired" : "Expires"} <b${over ? ' class="late"' : ""}>${ends}</b></span>` : ""}` : `<span class="by">${esc(center.name)}</span>`)
+  const by = zone && zone.stale ? `<span class="by">${esc(center.name)}</span>` : tabbed() ? (zone && issue ? `<span class="by">Issued <b>${issue}</b></span>${ends ? `<span class="by">${over ? "Expired" : "Expires"} <b${over ? ' class="late"' : ""}>${ends}</b></span>` : ""}` : `<span class="by">${esc(center.name)}</span>`)
     : `<span class="by">${zone ? "Avalanche danger · " : ""}${esc(center.name)}</span>`;
   // In tabs the map sits beside the title, and the danger sign moves into the banner under it with the level and advice.
-  const sign = zone ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : "";
+  const sign = zone && !zone.stale ? `<img class="dicon" src="${dangerIcon(zone.level)}" alt="${dangerText(zone.level)}" title="${dangerText(zone.level)}" onerror="this.remove()">` : "";
   const top = `<div class="ahead"><div><h2>${title}</h2>${by}</div>${zone && tabbed() ? locator(zone, all) || sign : sign}</div>`;
   const head = tabbed() ? `<div class="dtop">${top}<nav class="jump" id="avyJump" aria-label="Sections"></nav></div>` : top;
   const scale = `<div class="dscale" role="img" aria-label="Avalanche danger scale: 1 low, 2 moderate, 3 considerable, 4 high, 5 extreme">${DANGER.slice(1).map(([name, fill, ink], n) => `<div class="${zone && DANGER[zone.level] && zone.level !== n + 1 ? "dim" : ""}"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()"><span style="background:${fill};color:${ink}"><b>${n + 1}</b>${name}</span></div>`).join("")}</div>`;
@@ -3912,6 +3931,8 @@ function drawAvalanche() {
     <p class="anote"><span>A pointer to the center's forecast, not a substitute.</span> <span>Read the full forecast before entering avalanche terrain.</span></p></div>`;
   if (!state || !state.loaded) { $("avalanche").innerHTML = `${head}<p class="anotice">Loading the avalanche forecast…</p>`; return; }
   if (!zone) { $("avalanche").innerHTML = `${head}<p class="anotice">${navigator.onLine ? "The avalanche forecast could not be loaded right now." : "Avalanche danger needs a signal. No forecast has been saved on this phone yet."}</p>${foot(center.url)}`; return; }
+  // Last season's forecast: the zone and its center, and one sentence in place of the forecast.
+  if (zone.stale) { $("avalanche").innerHTML = `${head}<p class="anotice">${esc(notYet(zone))}</p>${foot(zone.link || center.url, false)}`; return; }
   let body = avySavedCopy ? `<p class="anotice"><b>${navigator.onLine ? "Could not reach the center." : "Offline."}</b> This is the last forecast saved on your phone. The center may have posted a newer one.</p>` : "";
   if (zone.warning) body += `<div class="awarn">Avalanche ${esc(zone.warning)} in effect</div>`;
   let expired = false;
