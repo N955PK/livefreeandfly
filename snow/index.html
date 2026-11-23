@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "205";
+const BUILD = "206";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -2894,12 +2894,19 @@ window.addEventListener("resize", () => {
 let freshNote = "";
 // The star in the mountain's header: filled for a favorite. A tap adds the mountain to the favorites or takes it off.
 const star = (key) => { const on = isFavorite(key); return `<button class="setmine" data-home="${key}" aria-pressed="${on}" title="${on ? "Take this mountain off your favorites." : "Add this mountain to your favorites."}" aria-label="Favorite">${on ? "★" : "☆"}${tabbed() ? "<i>Favorite</i>" : ""}</button>`; };
+// While the Mountain tab is closed it is not drawn: it would find no width there and be drawn again on opening, and
+// drawing it is the slowest thing a change of region or mountain does. It is drawn when it opens (see showView and
+// pagerOpen); its resort's lifts are still fetched now, so they are ready by then.
+let detailDue = false;
+const detailShowing = () => !tabbed() || document.documentElement.dataset.view === "mountain" || (pager && pager.to === "mountain");
 function renderDetail() {
-  fitted = $("detail").clientWidth;
   // On Favorites a mountain picked on the map that is not a favorite is still the one shown.
   const resort = here().find((r) => r.key === selected) || inPlace().find((r) => r.key === selected) || opener();
   selected = resort.key;
   if (avyShown !== selected && avy[place()] && avy[place()].loaded) renderAvalanche();
+  if (!detailShowing()) { detailDue = true; loadLifts(resort); return; }
+  detailDue = false;
+  fitted = $("detail").clientWidth;
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   // The forecast summary: four across, even on a phone. The ± sits under the number so each stays narrow.
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
@@ -3022,7 +3029,7 @@ function pagerOpen(to, byTap) {
   const innBar = inn.querySelector(".dtop, .sumhead");
   if (pinned && innBar) { top -= innBar.getBoundingClientRect().top - pin; document.documentElement.style.setProperty("--gtop", `${top}px`); }
   pager = {from, to, sign, out, inn, w: window.innerWidth, byTap, pinned, pin, sy: window.scrollY, busy: false};
-  if (to === "mountain" && data && Math.abs(inn.clientWidth - fitted) > 40) renderDetail();
+  if (to === "mountain" && data && (detailDue || Math.abs(inn.clientWidth - fitted) > 40)) renderDetail();
   // The pane comes in at its top, so its first chip is lit from the start rather than once the slide is over.
   const chips = inn.querySelector(".dtop > .jump"), first = chips && chips.querySelector("button");
   if (first) {
@@ -3089,7 +3096,7 @@ function showView(view) {
   markJump();
   placeSegs(true);
   // The hourly chart is drawn to the width it finds, and it found none while its tab was closed.
-  if (view === "mountain" && data && Math.abs($("detail").clientWidth - fitted) > 40) renderDetail();
+  if (view === "mountain" && data && (detailDue || Math.abs($("detail").clientWidth - fitted) > 40)) renderDetail();
 }
 function applyLayout(view) {
   document.documentElement.classList.add("tabs");
