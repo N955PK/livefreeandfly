@@ -58,3 +58,26 @@ def test_one_resort_that_fails_costs_none_of_the_others(tmp_path, monkeypatch):
     out = tmp_path / "killington.json"
     assert killington.main(str(out)) == 0
     assert set(json.loads(out.read_text())["resorts"]) == {"killington"}
+
+
+def test_the_snowfall_on_the_same_page_is_carried_with_the_time_it_was_posted_in_eastern_time():
+    # The figures every page of the site carried on 2026-11-23, posted on the 15th at 10:44 AM Eastern.
+    for name in ("killington", "pico"):
+        snow = killington.parse(name.title(), page(name), NOW)["SnowReport"]
+        assert snow == {"LastUpdate": "2026-11-15T15:44:00Z", "Resortwide": True, "SeasonTotalIn": 5,
+                        "BaseArea": {"Name": "Mountain", "Last24HoursIn": 0, "Last48HoursIn": 0, "Last7DaysIn": 0}}
+        # The site gives no base depth: there is none, not a zero.
+        assert "BaseIn" not in snow["BaseArea"]
+
+
+def test_a_page_without_a_snow_report_still_gives_its_lifts():
+    bare = page("killington").replace('class="dor-snow-report"', 'class="something-else"')
+    feed = killington.parse("Killington", bare, NOW)
+    assert "SnowReport" not in feed and feed["MountainAreas"]
+
+
+def test_a_snow_report_that_cannot_be_read_costs_only_the_snow_report(capsys):
+    broken = page("killington").replace("Updated November 15, 2026 10:44 AM", "Updated sometime")
+    feed = killington.parse("Killington", broken, NOW)
+    assert "SnowReport" not in feed and feed["MountainAreas"]
+    assert "snow report" in capsys.readouterr().out

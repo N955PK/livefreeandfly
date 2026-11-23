@@ -1,0 +1,812 @@
+{
+ "name": "Sugarloaf",
+ "units": "USC",
+ "updated": "2026-11-19T15:48:00Z",
+ "liftsUpdated": "2026-11-19T15:12:57Z",
+ "commentsUpdated": "2026-11-19T15:48:00Z",
+ "currentConditions": {
+  "resortwide": {
+   "totalTrailArea": {
+    "acres": 1360,
+    "hectares": 551
+   },
+   "totalTrailLength": null,
+   "areaOpen": {
+    "acres": 0,
+    "hectares": 0
+   },
+   "lengthOpen": {
+    "miles": 0,
+    "kilometers": 0
+   },
+   "numTrailsTotal": 176,
+   "numTrailsOpen": 0,
+   "numTrailsGroomed": 0,
+   "numTrailsSnowMaking": 0,
+   "numLiftsTotal": 15,
+   "numLiftsOpen": 0,
+   "numLiftsOnHold": 0,
+   "numLiftsClosed": 15,
+   "numParksTotal": 7,
+   "numParksOpen": 0,
+   "numPipesTotal": null,
+   "numPipesOpen": null,
+   "numParkFeaturesOpen": 0,
+   "numSummerTrailsTotal": 22,
+   "numSummerTrailsOpen": 0,
+   "numSummerLiftsTotal": 1,
+   "numSummerLiftsOpen": 0
+  },
+  "resortLocations": {
+   "location": [
+    {
+     "name": "Sugarloaf",
+     "elevation": null,
+     "primarySurface": "Spring Conditions",
+     "secondarySurface": "Machine Groomed",
+     "snow24Hours": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow48Hours": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow72Hours": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow7Days": {
+      "inches": "7",
+      "centimeters": "18"
+     },
+     "snowSeasonTotal": {
+      "inches": "145",
+      "centimeters": "368"
+     },
+     "base": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "baseLabel": "Base Depth",
+     "baseMin": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "baseMax": {
+      "inches": "0",
+      "centimeters": "0"
+     }
+    }
+   ]
+  }
+ },
+ "comments": {
+  "comment": [
+   {
+    "name": "Comment",
+    "title": "",
+    "background": "",
+    "text": "<p>Thursday, 11/19<br /><br />The good news? Winter is coming. The bad news? It's taking its sweet time. The other good news? There's still plenty of time to get ready for ski season!<br /><br />Based on the current extended forecast and increasingly limited weather windows for snowmaking, we're now targeting an opening during the week of Thanksgiving, rather than this Friday, November 20. Our snowmaking team will continue taking advantage of every opportunity to make snow, and we'll keep evaluating conditions and our progress. We expect to make an official announcement early next week.<br /><br />In the meantime, there's plenty happening around the mountain this Thanksgiving weekend. Whethe"
+   }
+  ]
+ },
+ "facilities": {
+  "areas": {
+   "area": [
+    {
+     "name": "Base Area",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Moose-calator",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Magic Carpet",
+        "capacity": 0,
+        "liftIcon": "magic-carpet",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Sawduster",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Snubber",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 3,
+        "liftIcon": "chairlift-3",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Skidway",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Snowbrook",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 5.3,
+        "length": 0.66
+       },
+       {
+        "name": "The Landing",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 9.3,
+        "length": 0.19
+       }
+      ]
+     }
+    },
+    {
+     "name": "Double Runner",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Double Runner East",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Double Runner West",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Boardwalk",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 12,
+        "length": 0.59
+       },
+       {
+        "name": "Lower Narrow Gauge",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": " ",
+        "difficulty": "Novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 10.5,
+        "length": 0.72
+       }
+      ]
+     }
+    },
+    {
+     "name": "SuperQuad",
+     "lifts": {
+      "lift": [
+       {
+        "name": "SuperQuad",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Scenic lift rides for homecoming",
+        "openTime": "21:00",
+        "closeTime": "14:00",
+        "nightStatus": null,
+        "type": "Detachable Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": [
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "CVA/Colby T-Bar",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "T-Bar",
+        "capacity": 1,
+        "liftIcon": "poma",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Branding Ax Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Advanced",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 11.2,
+        "length": 0.14
+       },
+       {
+        "name": "Bridle Chain",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 3.7,
+        "length": 0.21
+       }
+      ]
+     }
+    },
+    {
+     "name": "Skyline",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Skyline",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "#3 T-Bar/Bateau",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "T-Bar",
+        "capacity": 1,
+        "liftIcon": "poma",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Blade Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Expert",
+        "difficultyIcon": "expert",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 0.559,
+        "length": 0.08
+       },
+       {
+        "name": "Cant Hook Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Expert",
+        "difficultyIcon": "expert",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 0.65,
+        "length": 0.28
+       }
+      ]
+     }
+    },
+    {
+     "name": "Whiffletree",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Whiffletree SuperQuad",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Scheduled",
+        "openTime": "10:00",
+        "closeTime": "16:00",
+        "nightStatus": null,
+        "type": "Detachable Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": [
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Blueberry's Grove Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 1,
+        "length": 0.19
+       },
+       {
+        "name": "Broccoli Garden Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Advanced",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 29.962,
+        "length": 0.57
+       }
+      ]
+     }
+    },
+    {
+     "name": "King Pine",
+     "lifts": {
+      "lift": [
+       {
+        "name": "King Pine",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Boomer Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Advanced",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 1.085,
+        "length": 0.08
+       },
+       {
+        "name": "Choker",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Advanced",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 5,
+        "length": 0.42
+       }
+      ]
+     }
+    },
+    {
+     "name": "Snowfields\u2122 Summit",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Adrenaline Rush",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Expert",
+        "difficultyIcon": "expert",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 1.3,
+        "length": 0.06
+       },
+       {
+        "name": "Awesome",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Expert",
+        "difficultyIcon": "expert",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 1.3,
+        "length": 0.07
+       }
+      ]
+     }
+    },
+    {
+     "name": "Timberline",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Timberline",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Barber Chair Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 3,
+        "length": 3
+       },
+       {
+        "name": "Binder Ext",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Advanced",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 1.2,
+        "length": 0.27
+       }
+      ]
+     }
+    },
+    {
+     "name": "West Mountain",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Bucksaw Express",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Detachable Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": [
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "West Mountain",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Closed for the season",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Lower Beaver Tail",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 4.5,
+        "length": 0.3
+       },
+       {
+        "name": "Upper Beaver Tail",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 4.5,
+        "length": 0.3
+       }
+      ]
+     }
+    },
+    {
+     "name": "Brackett Basin",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Androscoggin Glade",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Expert",
+        "difficultyIcon": "expert",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 69,
+        "length": 0.67
+       },
+       {
+        "name": "Birler Glade One",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "",
+        "difficulty": "Expert",
+        "difficultyIcon": "expert",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 2,
+        "length": 0.25
+       }
+      ]
+     }
+    },
+    {
+     "name": "Activities",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": []
+     }
+    },
+    {
+     "name": "Terrain Parks",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": []
+     }
+    }
+   ]
+  }
+ }
+}

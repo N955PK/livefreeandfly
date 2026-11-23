@@ -1,8 +1,10 @@
 {
  "name": "Loon Mountain",
+ "units": "USC",
  "updated": "2026-11-23T17:48:15Z",
  "liftsUpdated": "2026-11-21T16:34:01Z",
  "trailsUpdated": "2026-11-23T17:48:15Z",
+ "commentsUpdated": "2026-11-23T17:48:15Z",
  "operations": {
   "resortStatus": "Open",
   "openTime": null,
@@ -47,7 +49,75 @@
    "numSummerTrailsOpen": 8,
    "numSummerLiftsTotal": 2,
    "numSummerLiftsOpen": 0
+  },
+  "resortLocations": {
+   "location": [
+    {
+     "name": "Mountain",
+     "elevation": null,
+     "primarySurface": "",
+     "secondarySurface": "",
+     "snow24Hours": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow48Hours": null,
+     "snow72Hours": null,
+     "snow7Days": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snowSeasonTotal": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "base": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "baseLabel": "Base Depth",
+     "baseMin": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "baseMax": {
+      "inches": "0",
+      "centimeters": "0"
+     }
+    },
+    {
+     "name": "Nordic",
+     "elevation": null,
+     "primarySurface": "",
+     "secondarySurface": "",
+     "snow24Hours": null,
+     "snow48Hours": null,
+     "snow72Hours": null,
+     "snow7Days": null,
+     "snowSeasonTotal": null,
+     "base": null,
+     "baseLabel": "Base Depth",
+     "baseMin": null,
+     "baseMax": null
+    }
+   ]
   }
+ },
+ "comments": {
+  "comment": [
+   {
+    "name": "Comment",
+    "title": "Cold Temps and More Snowmaking",
+    "background": "",
+    "text": "<p>Colder temperatures are making a return, giving our Snowmaking team an opportunity to get back on the mountain in full force tonight. <br /><br />More than 300 snow guns are projected to fire up after dinnertime hours, kicking off top-to-bottom snowmaking across 2,100 vertical feet of terrain. The operation will span North Peak, Loon Peak, and into West Basin, blowing snow on runs like Seven Brothers, Upper and Lower Walking Boss, Flying Fox, Rampasture, and many more.<br /><br />Cold temperatures are expected to stick around, giving snowmakers a strong window to continue building coverage across the mountain. However, Loon will not open for skiing or riding before or on Thanksgiving.<br /><br />Keep an eye out for an Opening Day announcement coming soon. And continue to think cold. </p>\n"
+   },
+   {
+    "name": "commentAlert",
+    "title": "",
+    "background": "Primary",
+    "text": ""
+   }
+  ]
  },
  "facilities": {
   "areas": {
