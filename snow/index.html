@@ -616,7 +616,9 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
    the others making room, and settles where it is let go. Held rows neither select their text nor call up the
    phone's menu. While one is lifted every row is its own layer, so the lifted one passes over the rest (and under
    the sticky day headings). */
-.heat.mine tr[data-key]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.heat tr[data-key]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* A favorite in a region's own list carries a small star after its name. */
+.heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
 .heat.lifting tr[data-key]{transform:translate3d(0,0,0);transition:transform .15s ease-out}
 .heat.lifting tr.lifted{position:relative;z-index:2;transition:none;filter:drop-shadow(0 6px 10px rgba(15,23,32,.22))}
 .heat.lifting tr.lifted:not(.on) td{background:var(--surface)}
@@ -1383,6 +1385,7 @@ if (HOSTED) {
 }
 </script>
 <dialog id="pickSheet" class="sheet top"><div class="grab"><b id="pickTitle" tabindex="-1" autofocus></b><button id="pickClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist" id="pickList"></div></dialog>
+<dialog id="favSheet" class="sheet"><div class="grab"><b id="favTitle" tabindex="-1" autofocus></b><button id="favClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist"><button class="pickopt" id="favGo"></button></div></dialog>
 <div id="topTint" aria-hidden="true"></div>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"></div>
 <main>
@@ -1509,7 +1512,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "218";
+const BUILD = "219";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1772,7 +1775,7 @@ function renderHeat() {
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
-    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}</b><span>${height(el.elevation_ft)}${region === FAVORITES ? ` · ${esc(REGIONS[regionOf(r)].short || REGIONS[regionOf(r)].name)}` : ""}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
+    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}${region !== FAVORITES && isFavorite(r.key) ? '<em role="img" aria-label="Favorite">★</em>' : ""}</b><span>${height(el.elevation_ft)}${region === FAVORITES ? ` · ${esc(REGIONS[regionOf(r)].short || REGIONS[regionOf(r)].name)}` : ""}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
       <td class="total">${inches(total)} ${LEN()}</td>`;
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
@@ -4231,9 +4234,30 @@ function scrollerOf(el) {
 }
 const scrolledBy = (box) => box ? box.scrollTop : window.scrollY;
 function holdStart(row, x, y) {
-  if (hold || !canReorder()) return;
-  hold = {row, x, y, lastY: y, lifted: false, timer: setTimeout(liftHeld, HOLD_MS)};
+  if (hold) return;
+  // Where the list cannot be put in order (a region's own list, or a single favorite), a held mountain is asked about.
+  hold = {row, x, y, lastY: y, lifted: false, timer: setTimeout(canReorder() ? liftHeld : askFavorite, HOLD_MS)};
 }
+// A mountain held in a region's list: a sheet comes up from the bottom offering to add it to Favorites (or to take
+// it off). The finger is still down when it opens, so its release is not a tap on the row or on the sheet.
+let favFor = null, favOpened = 0;
+function askFavorite() {
+  if (!hold) return;
+  const spot = mountain(hold.row.dataset.key);
+  dropHold();
+  if (!spot) return;
+  swallowClick = Date.now() + 800;
+  favFor = spot.key; favOpened = Date.now();
+  $("favTitle").textContent = spot.name;
+  $("favGo").textContent = isFavorite(spot.key) ? "Remove from Favorites" : "Add to Favorites";
+  $("favSheet").showModal();
+}
+$("favSheet").addEventListener("click", (e) => {
+  if (Date.now() - favOpened < 500) return;
+  if (e.target.closest("#favGo") && favFor) { $("favSheet").close(); toggleFavorite(favFor); }
+  else if (e.target === $("favSheet") || e.target.closest("#favClose")) $("favSheet").close();
+});
+$("favSheet").addEventListener("close", () => { favFor = null; });
 function liftHeld() {
   if (!hold || hold.lifted) return;
   const rows = [...$("heat").querySelectorAll("tr[data-key]")], at = rows.indexOf(hold.row);
