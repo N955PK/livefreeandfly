@@ -1568,10 +1568,12 @@ const isFavorite = (key) => favorites().includes(key);
 // the first favorites, once; the old keys then go.
 (() => {
   try {
-    const old = [HOME_KEY, ...Object.keys(localStorage).filter((key) => key.startsWith(`${HOME_KEY}.`)).sort()]
-      .filter((key) => localStorage.getItem(key) !== null);
+    // Tahoe's own key is newer than the bare one, so where both are saved it is the one kept.
+    const get = (key) => localStorage.getItem(key), tahoe = `${HOME_KEY}.tahoe`;
+    const others = Object.keys(localStorage).filter((key) => key.startsWith(`${HOME_KEY}.`) && key !== tahoe).sort();
+    const old = [HOME_KEY, tahoe, ...others].filter((key) => get(key) !== null);
     if (!old.length) return;
-    prefs.favorites = [...new Set([...favorites(), ...old.map((key) => localStorage.getItem(key)).filter(Boolean)])];
+    prefs.favorites = [...new Set([...favorites(), ...[get(tahoe) ?? get(HOME_KEY), ...others.map(get)].filter(Boolean)])];
     savePrefs();
     for (const key of old) localStorage.removeItem(key);
   } catch (error) { /* private browsing: nothing was saved before */ }
@@ -1658,7 +1660,8 @@ function futureDays(el) { return el.days.filter((d) => !d.past).slice(0, 14); }
 // Snow over the last three days: the hourly estimate summed over the 72 hours up to now.
 const RECENT_HOURS = 72;
 function lastThreeDays(resort, el) {
-  const now = new Date(data.generated_utc).getTime(), hours = resort.hours_utc;
+  // Now is the hour the mountain's own region's forecast was worked out for (on Favorites, regions differ).
+  const now = new Date((regionFiles[regionOf(resort)] || data).generated_utc).getTime(), hours = resort.hours_utc;
   const end = Math.max(0, hours.findIndex((t) => new Date(t).getTime() >= now));
   let total = 0;
   for (let i = Math.max(0, end - RECENT_HOURS); i < end; i++) total += el.hourly.snow_in[i] || 0;
@@ -1716,7 +1719,10 @@ function renderHeadline() {
 
 function renderHeat() {
   $("gridCap").textContent = `Snow in ${metric() ? "cm" : "inches"}, from ${hourName(16)} previous day`;
-  const days = futureDays(here()[0].elevations[elevation]);
+  // The days are headed from the selected mountain (on Favorites, rows of another region read their own forecast
+  // for each of those dates).
+  const head = here().find((r) => r.key === selected) || inPlace().find((r) => r.key === selected) || here()[0];
+  const days = futureDays(head.elevations[elevation]);
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = "";
   const dayHead = (d) => `<th class="day${d.lead_day > data.deterministic_days ? " far" : ""}">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
@@ -2808,7 +2814,7 @@ window.addEventListener("resize", () => {
 // The line saying how old the forecast is, as last written by the headline; the Region and Mountain tabs both show it.
 let freshNote = "";
 // The star in the mountain's header: filled for a favorite. A tap adds the mountain to the favorites or takes it off.
-const star = (key) => { const on = isFavorite(key); return `<button class="setmine" data-home="${key}" aria-pressed="${on}" title="${on ? "Take this mountain off your favorites" : "Add this mountain to your favorites"}" aria-label="Favorite">${on ? "★" : "☆"}${tabbed() ? "<i>Favorite</i>" : ""}</button>`; };
+const star = (key) => { const on = isFavorite(key); return `<button class="setmine" data-home="${key}" aria-pressed="${on}" title="${on ? "Take this mountain off your favorites." : "Add this mountain to your favorites."}" aria-label="Favorite">${on ? "★" : "☆"}${tabbed() ? "<i>Favorite</i>" : ""}</button>`; };
 function renderDetail() {
   fitted = $("detail").clientWidth;
   // On Favorites a mountain picked on the map that is not a favorite is still the one shown.
@@ -2820,7 +2826,7 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
+  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
       <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
@@ -3429,8 +3435,8 @@ async function setRegion(key) {
     try { step(); } catch (error) { console.error(error); }
   }
   // Favorites and the region of its first favorite are one place: the map stays and only the selection moves.
-  if (place() === mapPlace) { if (map) map.select(selected); return; }
-  loadAvalanche();
+  if (place() === mapPlace) { if (map) map.select(selected); loadAvalanches(false); return; }
+  loadAvalanches();
   startMap();
 }
 document.addEventListener("click", (e) => {
@@ -3602,14 +3608,22 @@ async function zonesFrom(centers) {
   });
   return zones;
 }
-async function loadAvalanche() {
-  const asked = place(), centers = REGIONS[asked].avalanche, state = avy[asked] ||= {zones: [], product: null, loaded: false};
+// The zones of a region (the place on screen unless another is asked for: on Favorites, a backcountry favorite's).
+async function loadAvalanche(asked = place()) {
+  const centers = REGIONS[asked].avalanche, state = avy[asked] ||= {zones: [], product: null, loaded: false};
   const zones = await zonesFrom(centers);
   const main = zones.find((zone) => zone.center === centers[0]);
   const product = main ? await zoneProduct(main) : null;
   Object.assign(state, {zones, product, loaded: true});
-  if (asked !== place()) return;
+  if (asked !== place()) { badges(); return; }
   renderAvalanche(); badges(); mapAvalanche(); railReady();
+}
+// The place's zones, and on Favorites those of every other region holding a backcountry favorite, so each peak in the
+// grid carries its own rating.
+function loadAvalanches(placeToo = true) {
+  if (placeToo) loadAvalanche();
+  if (region !== FAVORITES) return;
+  for (const key of new Set(shownFavorites().filter((r) => r.kind === "backcountry").map(regionOf))) if (key !== place()) loadAvalanche(key);
 }
 // Even-odd test against every ring of a zone at once.
 function inRings(rings, x, y) {
@@ -3625,7 +3639,12 @@ function inRings(rings, x, y) {
 const zonesHere = () => (avy[place()] || {}).zones || [];
 // Backcountry peaks carry their zone's rating: a dot in the grid, a chip in the header that jumps to the pane.
 function badges() {
-  const zoneOf = (key) => { const spot = data.resorts.find((r) => r.key === key); return spot && zonesHere().find((z) => inRings(z.rings, spot.lon, spot.lat)); };
+  // Each peak is read against its own region's zones (on Favorites, peaks of several regions share the grid). Only a
+  // region whose zones have arrived can say no forecast covers a peak; until then the peak carries no mark.
+  const spotOf = (key) => data.resorts.find((r) => r.key === key);
+  const zonesOf = (spot) => (avy[regionOf(spot)] || {}).zones || [];
+  const zoneOf = (key) => { const spot = spotOf(key); return spot && zonesOf(spot).find((z) => inRings(z.rings, spot.lon, spot.lat)); };
+  const uncovered = (key) => { const spot = spotOf(key); return !!spot && zonesOf(spot).length > 0 && !zoneOf(key); };
   const icon = (zone, extra = "", by = zone.center.name) => { const name = danger(zone.level)[0]; return `<img class="avyicon${extra}" src="${dangerIcon(zone.level)}" alt="Avalanche danger: ${name}" title="Avalanche danger: ${name}, ${esc(by)}" onerror="this.remove()">`; };
   // The peaks in the grid share one icon beside the group's name when every forecast that covers them gives the same
   // rating; otherwise each peak carries its own. A peak no forecast covers is starred.
@@ -3634,7 +3653,7 @@ function badges() {
   const centers = [...new Set(rated.map((zone) => zone.center.name))].join(" and ");
   let unrated = 0;
   for (const slot of document.querySelectorAll("[data-unrated]")) {
-    const star = zonesHere().length && !zoneOf(slot.dataset.unrated);
+    const star = uncovered(slot.dataset.unrated);
     slot.textContent = star ? "*" : "";
     unrated += star ? 1 : 0;
   }
@@ -3643,13 +3662,13 @@ function badges() {
     const zone = zoneOf(slot.dataset.avy);
     if (slot.dataset.form === "verdict") {
       // The status box itself: "Avalanche danger: Considerable" on a wash of the danger's color.
-      const text = zone ? `<b>Avalanche danger: ${danger(zone.level)[0]}</b>` : zonesHere().length ? "<b>No avalanche forecast covers this peak</b>" : "";
+      const text = zone ? `<b>Avalanche danger: ${danger(zone.level)[0]}</b>` : uncovered(slot.dataset.avy) ? "<b>No avalanche forecast covers this peak</b>" : "";
       slot.hidden = !text;
       slot.style.background = zone ? `color-mix(in srgb, ${danger(zone.level)[1]} 26%, var(--surface))` : "";
       slot.innerHTML = text;
       continue;
     }
-    if (!zone) { slot.innerHTML = slot.dataset.form === "plain" && zonesHere().length ? "No forecast covers this peak" : ""; continue; }
+    if (!zone) { slot.innerHTML = slot.dataset.form === "plain" && uncovered(slot.dataset.avy) ? "No forecast covers this peak" : ""; continue; }
     const [, color, ink] = danger(zone.level);
     slot.innerHTML = slot.dataset.form === "plain" ? `<button class="dchip" data-goto="avalanche" style="background:${color};color:${ink}">${dangerText(zone.level)}</button>`
       : slot.dataset.form === "icon" ? icon(zone) : shared ? "" : icon(zone, " mini");
@@ -3910,7 +3929,7 @@ function toggleFavorite(key) {
   prefs.favorites = isFavorite(key) ? favorites().filter((k) => k !== key) : [...favorites(), key];
   savePrefs();
   if (region === FAVORITES && !here().length) {
-    region = place();
+    region = place(); regionMiss = null;
     try { localStorage.setItem(REGION_KEY, region); } catch (error) { /* private browsing: the choice lasts for this visit */ }
     mergeRegions();
   }
@@ -4087,7 +4106,7 @@ function loadRegion(key) {
   })().catch((error) => { console.error(error); return false; }).then((loaded) => { if (!loaded) delete regionLoads[key]; return loaded; });
   return regionLoads[key];
 }
-window.addEventListener("online", () => { if (offlineCopy) location.reload(); else { if (avySavedCopy) loadAvalanche(); if (regionMiss) setRegion(regionMiss); } });
+window.addEventListener("online", () => { if (offlineCopy) location.reload(); else { if (avySavedCopy) loadAvalanches(); if (regionMiss) setRegion(regionMiss); } });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
 // The opening screen stays until the page, the map and everything drawn on the map (roads, avalanche zones and so the
 // whole block of buttons, and the resorts' own depths on the labels) are ready, so nothing arrives after it lifts. A slow source holds it up 4 seconds at most
@@ -4128,7 +4147,7 @@ openForecast().then(async () => {
   for (const step of [renderNotes, renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
   }
-  loadAvalanche(); setInterval(loadAvalanche, 30 * 60 * 1000);
+  loadAvalanches(); setInterval(loadAvalanches, 30 * 60 * 1000);
   setInterval(renderHeadline, 5 * 60 * 1000);
   try { await startMap(); } catch (error) { console.error(error); }
   // ...and then two frames, so the map has drawn its labels with those depths before the screen lifts.
