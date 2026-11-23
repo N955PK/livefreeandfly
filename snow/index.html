@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "209";
+const BUILD = "210";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4431,8 +4431,11 @@ function mergeRegions() {
     failed_resorts: [...new Set(files.flatMap((f) => f.failed_resorts || []))]};
 }
 // Loads one region's forecast, fresh or else the copy saved on this phone (which marks the page offline); true once
-// it is in data, false when there is neither.
-function loadRegion(key) {
+// it is in data, false when there is neither. Loaded ahead of need (see warmRegions), only a fresh copy will do,
+// unless the region has been asked for meanwhile.
+const regionWanted = new Set();
+function loadRegion(key, ahead = false) {
+  if (!ahead) regionWanted.add(key);
   // With no index the whole forecast came in one file, and a region is there or not.
   if (!index) return Promise.resolve(!!data && data.resorts.some((r) => regionOf(r) === key));
   // A file that arrives malformed counts as one that did not arrive: the saved copy is tried instead.
@@ -4442,6 +4445,7 @@ function loadRegion(key) {
       file = fixTimes(await published(`forecast/${key}.json`));
       saveCopy(`forecast/${key}`, file);
     } catch (error) {
+      if (ahead && !regionWanted.has(key)) return false;
       try { file = fixTimes(await savedCopy(`forecast/${key}`)); offlineCopy = true; } catch (error) { return false; }
     }
     regionFiles[key] = file;
@@ -4449,6 +4453,19 @@ function loadRegion(key) {
     return true;
   })().catch((error) => { console.error(error); return false; }).then((loaded) => { if (!loaded) delete regionLoads[key]; return loaded; });
   return regionLoads[key];
+}
+// Once the page has settled, the regions not opened yet are fetched quietly, one at a time, so that a first change of
+// region is instant (and each is saved on the phone for when there is no signal). Not with no signal, nor where the
+// phone asks for data to be saved.
+async function warmRegions() {
+  if (!index || !navigator.onLine || (navigator.connection && navigator.connection.saveData)) return;
+  const idle = () => new Promise((resolve) => (window.requestIdleCallback ? requestIdleCallback(() => resolve(), {timeout: 3000}) : setTimeout(resolve, 200)));
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  for (const key of regionKeys()) {
+    if (regionLoads[key] || !navigator.onLine) continue;
+    await idle();
+    await loadRegion(key, true);
+  }
 }
 window.addEventListener("online", () => { if (offlineCopy) location.reload(); else { if (avySavedCopy) loadAvalanches(); if (regionMiss) setRegion(regionMiss); } });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
@@ -4499,6 +4516,7 @@ openForecast().then(async () => {
   await Promise.race([Promise.all([railWhole, stakesIn]).then(drawn), new Promise((resolve) => setTimeout(resolve, 4000))]);
   reveal();
   saveAvyBundle();
+  warmRegions();
 }).catch(() => { $("headline").textContent = "The forecast could not be loaded"; reveal(); });
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
