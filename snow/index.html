@@ -673,17 +673,16 @@ html.tabs .dhead .seg.tri{margin-top:4px}
 html.tabs .dhead .who > span{margin-top:7px}
 html.tabs .dhead .who > .dfresh{margin-top:6.5px}
 .dhead .seg{margin-left:0;flex:none}
-.dhead .mine{color:var(--accent);font-size:16px;line-height:1}
 .dhead .setmine{border:0;background:none;padding:4px 8px;margin:-4px -8px;font:inherit;font-size:16px;line-height:1;color:var(--accent);cursor:pointer}
 /* In tabs the star says what it is, and the mountain's pass follows it. */
-.dhead .mine i,.dhead .setmine i{font-style:normal;font-size:13px;font-weight:600;margin-left:5px;vertical-align:1px}
+.dhead .setmine i{font-style:normal;font-size:13px;font-weight:600;margin-left:5px;vertical-align:1px}
 html.tabs .dhead .who > span{white-space:nowrap}
 /* The three lines of a pane's header are the same on every tab: a title that never wraps, then two lines of small
    dull text, each level with a row of the elevation picker beside them. */
 html.tabs .dhead h2,html.tabs .ahead h2,html.tabs .sumhead h2{white-space:nowrap}
 html.tabs .dhead .who > span:not(.dfresh){font-size:12.5px;line-height:18px;margin-top:3.5px;color:var(--mark-dull)}
-html.tabs .dhead .mine,html.tabs .dhead .setmine{font-size:14px;line-height:18px;vertical-align:top}
-html.tabs .dhead .mine i,html.tabs .dhead .setmine i{font-size:12.5px;vertical-align:0}
+html.tabs .dhead .setmine{font-size:14px;line-height:18px;vertical-align:top}
+html.tabs .dhead .setmine i{font-size:12.5px;vertical-align:0}
 .tag{white-space:nowrap;font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
 .tile{background:var(--wash);border-radius:12px;padding:12px 14px}
@@ -1110,11 +1109,6 @@ dialog.sheet button:focus-visible{outline:2px solid var(--accent);outline-offset
 dialog.sheet .grab button{flex:none;border:1px solid var(--border);width:44px;height:44px;border-radius:50%;background:var(--wash);color:var(--mark);display:grid;place-items:center;padding:0;cursor:pointer}
 dialog.sheet .grab button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavior:contain;min-height:0}
-#homeAsk p{font-size:14.5px;line-height:1.45;margin:4px 0 16px;color:var(--mark-mid)}
-#homeAsk p b{color:var(--mark)}
-#homeAsk .btns{display:flex;gap:8px}
-#homeAsk .btns button{flex:1;font:inherit;font-size:14.5px;font-weight:650;padding:11px 14px;border-radius:999px;border:1px solid var(--border);background:var(--wash);color:var(--mark);cursor:pointer}
-#homeAsk .btns button.yes{background:var(--mark);border-color:var(--mark);color:var(--surface)}
 .picklist{padding:0 8px 10px;overflow-y:auto;overscroll-behavior:contain;min-height:0}
 .pickgroup{display:flex;align-items:center;gap:10px;margin:10px 10px 2px;font-size:12.5px;font-weight:700;color:var(--accent)}
 .pickgroup::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
@@ -1374,9 +1368,6 @@ if (HOSTED) {
   follow(); setInterval(follow, 1500);
 }
 </script>
-<dialog id="homeAsk" class="sheet"><form method="dialog"><div class="grab"><b tabindex="-1" autofocus>Home mountain</b><button value="no" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div>
-  <div class="sheetbody"><p>Make <b id="homeName"></b> your home mountain? The page will open on it from now on.</p>
-  <div class="btns"><button value="no">Cancel</button><button value="yes" class="yes">Make it home</button></div></div></form></dialog>
 <dialog id="pickSheet" class="sheet top"><div class="grab"><b id="pickTitle" tabindex="-1" autofocus></b><button id="pickClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist" id="pickList"></div></dialog>
 <div id="topTint" aria-hidden="true"></div>
 <div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=2" alt="" width="170" height="170"></div>
@@ -1505,13 +1496,14 @@ const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
 const BUILD = "193";
-// Each visitor can pick their own mountain; the choice is kept in their browser on that device.
+// Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
+// HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
 const REGION_KEY = "tahoe-snow.region";
-const remembered = (key = HOME_KEY) => { try { return localStorage.getItem(key); } catch (error) { return null; } };
+const remembered = (key) => { try { return localStorage.getItem(key); } catch (error) { return null; } };
+// The mountain the page opens on and lists first: the first favorite of the region on screen, else its default.
 let HOME = "palisades";
-// Each region keeps its own favorite; the first one saved (before regions existed) is Tahoe's.
-const homeOf = (key) => remembered(`${HOME_KEY}.${key}`) || (key === "tahoe" ? remembered() : null) || REGIONS[key].pick;
+const homeOf = (key) => (knownFavorites().find((r) => regionOf(r) === key) || {key: REGIONS[key].pick}).key;
 // index is every region and every mountain in them (index.json); data holds the forecasts of the regions loaded so
 // far, with the times of the one on screen (see loadRegion).
 let index = null, data = null, elevation = "summit", selected = location.hash.slice(1) || HOME, region = "tahoe";
@@ -1537,7 +1529,19 @@ const REGIONS = {
 };
 // Data published before regions existed has no region field; all of it is Tahoe.
 const regionOf = (r) => r.region || "tahoe";
-const here = () => data.resorts.filter((r) => regionOf(r) === region);
+// region is a key of REGIONS, or FAVORITES: the starred mountains of every region, listed as one. Favorites is a list,
+// not a place: the map, the roads and the avalanche forecast follow the region of the selected mountain, place().
+const FAVORITES = "favorites";
+const place = () => {
+  if (region !== FAVORITES) return region;
+  const spot = mountain(selected) || here()[0];
+  return spot ? regionOf(spot) : "tahoe";
+};
+// The mountains the Region tab lists: the region's, or on Favorites the favorites whose region is loaded, in the
+// order they were starred.
+const here = () => region === FAVORITES ? shownFavorites() : data.resorts.filter((r) => regionOf(r) === region);
+// The mountains of the place on screen, which the map shows.
+const inPlace = () => data.resorts.filter((r) => regionOf(r) === place());
 // Every mountain the page can list, whether or not its region's forecast is loaded: the index's, or with no index
 // (data published before it existed) the forecast's own.
 const everyMountain = () => index ? index.resorts : data.resorts;
@@ -1555,6 +1559,32 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 // each number into the chosen units at the moment it is written.
 const PREFS_KEY = "turbo-snow.prefs";
 const prefs = {units: "us", clock: "12", finger: "spin", labels: "on", shields: "on", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
+const savePrefs = () => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (error) { /* private browsing: the choice lasts for this visit */ } };
+// ---------- favorites ----------
+// Any mountain can be starred: prefs.favorites holds their keys in the order they were starred.
+const favorites = () => Array.isArray(prefs.favorites) ? prefs.favorites : [];
+const isFavorite = (key) => favorites().includes(key);
+// The home mountains saved before favorites existed (one per region, and before regions one for Tahoe alone) become
+// the first favorites, once; the old keys then go.
+(() => {
+  try {
+    const old = [HOME_KEY, ...Object.keys(localStorage).filter((key) => key.startsWith(`${HOME_KEY}.`)).sort()]
+      .filter((key) => localStorage.getItem(key) !== null);
+    if (!old.length) return;
+    prefs.favorites = [...new Set([...favorites(), ...old.map((key) => localStorage.getItem(key)).filter(Boolean)])];
+    savePrefs();
+    for (const key of old) localStorage.removeItem(key);
+  } catch (error) { /* private browsing: nothing was saved before */ }
+})();
+// The favorites the page can show: mountains the index knows, in a region this page draws, in the order starred. One
+// it does not know (a region not built yet, or one this page predates) is left out here and kept in prefs.
+const knownFavorites = () => {
+  if (!index && !data) return [];
+  const keys = regionKeys(), every = everyMountain();
+  return favorites().map((key) => every.find((r) => r.key === key)).filter((r) => r && keys.includes(regionOf(r)));
+};
+// Of those, the ones whose region's forecast is loaded (a region whose file could not be loaded leaves its own out).
+const shownFavorites = () => data ? knownFavorites().map((r) => data.resorts.find((x) => x.key === r.key)).filter(Boolean) : [];
 const metric = () => prefs.units === "metric";
 const LEN = () => metric() ? "cm" : "in", DEG = () => metric() ? "°C" : "°F", SPEED = () => metric() ? "km/h" : "mph";
 const asLen = (inchesDeep) => inchesDeep == null ? null : metric() ? inchesDeep * 2.54 : inchesDeep;
@@ -1636,7 +1666,8 @@ function lastThreeDays(resort, el) {
 }
 
 // Resorts sit under the pass that covers them, and backcountry peaks in a group of their own. The home mountain's
-// group leads and the home mountain leads it; the rest follow by what fell in the last three days.
+// group leads and the home mountain leads it (on Favorites, the first favorite's); the rest follow by what fell in the
+// last three days, and where that is even, in the region's own order (on Favorites, the order they were starred).
 // The pass comes with the data; PASSES covers data published before it did.
 const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Independent", "Backcountry"];
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
@@ -1670,11 +1701,13 @@ function renderHeadline() {
   const when = `${dayOf(made) === dayOf(new Date()) ? "today" : made.toLocaleDateString("en-US", {weekday: "short"})} ${localClock(made)}`;
   // The time is grey while the forecast is on schedule, yellow once an update has been missed, and red after two.
   // Each step allows an hour on top of the region's update interval, for a late start and the run itself.
-  const every = (index && index.regions[region] && index.regions[region].every_h) || UPDATE_EVERY_H;
+  const every = (index && index.regions[place()] && index.regions[place()].every_h) || UPDATE_EVERY_H;
   const missed = age <= every + 1 ? 0 : age <= 2 * every + 1 ? 1 : 2;
   const stamp = `<span class="${["", "late", "stale"][missed]}" title="${missed ? `${Math.round(age)} hours old; a new forecast is due every ${every} hours` : `A new forecast is due every ${every} hours`}">${when}</span>`;
   // A region that could not be opened (see setRegion) is said under the time, until another region opens.
-  const miss = !regionMiss ? "" : `<br><span class="warn">${navigator.onLine ? `The ${esc(REGIONS[regionMiss].name)} forecast could not be loaded just now.` : `${esc(REGIONS[regionMiss].name)} needs a signal. Its forecast has not been saved on this phone yet.`}</span>`;
+  const miss = !regionMiss ? "" : `<br><span class="warn">${regionMiss === FAVORITES
+    ? navigator.onLine ? "The forecasts for your favorites could not be loaded just now." : "Your favorites need a signal. Their forecasts have not been saved on this phone yet."
+    : navigator.onLine ? `The ${esc(REGIONS[regionMiss].name)} forecast could not be loaded just now.` : `${esc(REGIONS[regionMiss].name)} needs a signal. Its forecast has not been saved on this phone yet.`}</span>`;
   freshNote = (offlineCopy ? `<span class="warn">Offline.</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
   $("gridFresh").innerHTML = freshNote;
   if ($("detailFresh")) $("detailFresh").innerHTML = freshNote;
@@ -1695,7 +1728,7 @@ function renderHeat() {
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
-    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}</b><span>${height(el.elevation_ft)}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
+    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}</b><span>${height(el.elevation_ft)}${region === FAVORITES ? ` · ${esc(REGIONS[regionOf(r)].short || REGIONS[regionOf(r)].name)}` : ""}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
       <td class="total">${inches(total)} ${LEN()}</td>`;
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
@@ -2196,7 +2229,7 @@ document.addEventListener("pointermove", seasonRead);
 document.addEventListener("pointercancel", seasonRead);
 document.addEventListener("pointerdown", seasonRead);
 
-const opener = () => here().find((r) => r.key === HOME) || here().find((r) => r.key === REGIONS[region].pick) || sorted()[0];
+const opener = () => here().find((r) => r.key === HOME) || here().find((r) => r.key === REGIONS[place()].pick) || sorted()[0];
 
 // ---------- outlook: what the weather is likely to do to a day on the mountain ----------
 // The resort's own lift and trail page for every resort, and for the Ikon resorts the status feed their sites
@@ -2596,7 +2629,7 @@ function stakeDepth(key, level) {
 }
 async function stakeDepths() {
   if (!map || !navigator.onLine) return;
-  const asked = map, keys = Object.keys(STAKES).filter((key) => data.resorts.some((r) => r.key === key && regionOf(r) === region));
+  const asked = map, keys = Object.keys(STAKES).filter((key) => data.resorts.some((r) => r.key === key && regionOf(r) === place()));
   await Promise.all([...new Set(keys.map((key) => STAKES[key][0]))].map(async (id) => {
     const held = liftFeeds[id];
     if (held && Date.now() - held.at < 5 * 60 * 1000) return;
@@ -2774,11 +2807,14 @@ window.addEventListener("resize", () => {
 });
 // The line saying how old the forecast is, as last written by the headline; the Region and Mountain tabs both show it.
 let freshNote = "";
+// The star in the mountain's header: filled for a favorite. A tap adds the mountain to the favorites or takes it off.
+const star = (key) => { const on = isFavorite(key); return `<button class="setmine" data-home="${key}" aria-pressed="${on}" title="${on ? "Take this mountain off your favorites" : "Add this mountain to your favorites"}" aria-label="Favorite">${on ? "★" : "☆"}${tabbed() ? "<i>Favorite</i>" : ""}</button>`; };
 function renderDetail() {
   fitted = $("detail").clientWidth;
-  const resort = here().find((r) => r.key === selected) || opener();
+  // On Favorites a mountain picked on the map that is not a favorite is still the one shown.
+  const resort = here().find((r) => r.key === selected) || inPlace().find((r) => r.key === selected) || opener();
   selected = resort.key;
-  if (avyShown !== selected && avy[region] && avy[region].loaded) renderAvalanche();
+  if (avyShown !== selected && avy[place()] && avy[place()].loaded) renderAvalanche();
   const el = resort.elevations[elevation], w = el.windows, days = el.days.filter((d) => !d.past).slice(0, 10);
   // The forecast summary: four across, even on a phone. The ± sits under the number so each stays narrow.
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
@@ -2786,7 +2822,7 @@ function renderDetail() {
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
-      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${resort.key === HOME ? `<span class="mine" title="My mountain">★${tabbed() ? "<i>Home</i>" : ""}</span>` : `<button class="setmine" data-home="${resort.key}" title="Open the page on this mountain from now on" aria-label="Set as my mountain">☆${tabbed() ? "<i>Set home</i>" : ""}</button>`}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}</span></div>
+      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     <nav class="jump" id="jump" aria-label="Sections"></nav></div>
     ${outlook(resort)}
@@ -3154,13 +3190,13 @@ async function nevadaRoads() {
 }
 async function loadRoads() {
   // A region with no road feeds has no Roads button (see startMap).
-  if (!REGIONS[region].chainFeeds) return;
-  const asked = region, {chainFeeds, closureFeeds = []} = REGIONS[region], center = REGIONS[region].look || REGIONS[region].center, kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180), tz = tzOf(mountain(selected));
+  if (!REGIONS[place()].chainFeeds) return;
+  const asked = place(), {chainFeeds, closureFeeds = []} = REGIONS[asked], center = REGIONS[asked].look || REGIONS[asked].center, kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180), tz = tzOf(mountain(selected));
   try {
     const [nevada, shut, ...feeds] = await Promise.all([nevadaRoads(),
       Promise.all(closureFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()).catch(() => null))).then((list) => list.flatMap(fullClosures)),
       ...chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()))]);
-    if (asked !== region || !map) return;
+    if (asked !== place() || !map) return;
     const points = [];
     for (const feed of feeds) for (const {cc} of feed.data) {
       const level = (cc.statusData.status || "").trim().toUpperCase(), status = CHAIN_LEVELS[level];
@@ -3257,7 +3293,7 @@ async function loadRoads() {
       section("#f0a80d", "Chains", chains.length ? [...new Set(chainRoutes)].sort((a, b) => a - b).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
       `<span class="src">Caltrans, ${when} · ${nevada ? `Nevada 511, ${localClock(new Date(nevada.updated))}` : "California roads only"}</span>`;
-  } catch (error) { if (asked === region) { $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", "Roads"); $("roadPill").style.removeProperty("--dot"); delete $("roadPill").dataset.count; $("roadPill").hidden = false; railReady(); } }
+  } catch (error) { if (asked === place()) { $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", "Roads"); $("roadPill").style.removeProperty("--dot"); delete $("roadPill").dataset.count; $("roadPill").hidden = false; railReady(); } }
 }
 const ROAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 5 21M15 3l4 18M12 4v3M12 10.500v3M12 17v3"/></svg>';
 // One map at a time: switching regions throws the old one away and builds the new one.
@@ -3268,12 +3304,15 @@ let mapBuild = 0, mapWired = false, staleMap = null;
 let railShown, stakesIn = Promise.resolve();   // stakesIn: the resorts' own snow depths reaching the map's labels
 const railWhole = new Promise((resolve) => { railShown = resolve; });
 function railReady(anyway) {
-  const roads = !REGIONS[region].chainFeeds || !$("roadPill").hidden;
-  if (anyway || (!$("radarToggle").hidden && roads && avy[region] && avy[region].loaded)) { document.querySelector(".maprail").classList.add("ready"); railShown(); }
+  const roads = !REGIONS[place()].chainFeeds || !$("roadPill").hidden;
+  if (anyway || (!$("radarToggle").hidden && roads && avy[place()] && avy[place()].loaded)) { document.querySelector(".maprail").classList.add("ready"); railShown(); }
 }
 const mapDepth = () => ({per: metric() ? 2.54 : 1, unit: LEN()});
+// The place the map was last built for (see followPlace).
+let mapPlace = null;
 async function startMap() {
-  const list = here(), build = ++mapBuild;
+  mapPlace = place();
+  const list = inPlace(), build = ++mapBuild;
   if (!list.length || !list[0].lat) return;
   try {
     const {createMap} = await import(`./map3d.js?v=${BUILD}`);
@@ -3284,11 +3323,11 @@ async function startMap() {
     // The Roads button stays where it is while the new region's roads load; only the last region's count is dropped.
     // A region with no road feeds has neither the button nor its note.
     $("roadNote").textContent = ""; delete $("roadPill").dataset.count; $("roadSheet").classList.remove("open");
-    const roadFeeds = !!REGIONS[region].chainFeeds;
+    const roadFeeds = !!REGIONS[mapPlace].chainFeeds;
     $("roadSheet").hidden = !roadFeeds;
     if (!roadFeeds) $("roadPill").hidden = true;
     $("mapPanel").style.display = "block";
-    const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[region], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
+    const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[mapPlace], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
       onSelect: (key) => { if (!map) return; selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
     if (build !== mapBuild) { made.dispose(); return; }
     if (staleMap) { staleMap.dispose(); staleMap = null; }
@@ -3318,35 +3357,57 @@ async function startMap() {
 }
 
 // ---------- regions ----------
-// The region to open on: a linked mountain's, else the one chosen last on this device, else Tahoe.
+// The region to open on: a linked mountain's (its own region, even when it is a favorite), else the one chosen last
+// on this device (Favorites while there is one to show), else Tahoe.
 function pickRegion() {
   const keys = regionKeys(), has = (key) => keys.includes(key);
   const linked = everyMountain().find((r) => r.key === location.hash.slice(1) && has(regionOf(r)));
   const saved = remembered(REGION_KEY);
-  region = linked ? regionOf(linked) : saved && has(saved) ? saved : has("tahoe") ? "tahoe" : keys[0];
-  HOME = homeOf(region);
+  region = linked ? regionOf(linked) : saved === FAVORITES && knownFavorites().length ? FAVORITES : saved && has(saved) ? saved : has("tahoe") ? "tahoe" : keys[0];
+  HOME = region === FAVORITES ? knownFavorites()[0].key : homeOf(region);
   if (!linked) selected = HOME;
 }
+// The choices of the region menu: Favorites first while there is one the index knows, then every region.
+const regionChoices = () => [...(knownFavorites().length ? [FAVORITES] : []), ...regionKeys()];
+const choiceName = (key) => key === FAVORITES ? "Favorites" : REGIONS[key].name;
 function renderRegion() {
-  const keys = regionKeys();
-  // The row of names is for two or three regions; with more, the menu the phone uses serves every width (D7).
+  const keys = regionChoices();
+  // The row of names is for two or three choices; with more, the menu the phone uses serves every width (D7).
   $("regionBar").hidden = keys.length < 2 || keys.length > 3;
   $("regionPickWrap").hidden = keys.length < 2;
-  $("regionPick").innerHTML = keys.map((key) => `<option value="${key}"${key === region ? " selected" : ""}>${REGIONS[key].name}</option>`).join("");
+  $("regionPick").innerHTML = keys.map((key) => `<option value="${key}"${key === region ? " selected" : ""}>${choiceName(key)}</option>`).join("");
   // The summary's title is a second way to the same choice, as the Mountain and Avalanche titles choose theirs.
   $("sumPick").innerHTML = $("regionPick").innerHTML;
   $("sumPickWrap").classList.toggle("solo", keys.length < 2);
   // The title names the region the pin last chose; a long name takes its short form.
-  $("regionName").textContent = keys.length < 2 ? "" : REGIONS[region].short || REGIONS[region].name;
-  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : REGIONS[key].name}</button>`).join("<i>/</i>");
+  $("regionName").textContent = keys.length < 2 ? "" : region === FAVORITES ? "Favorites" : REGIONS[region].short || REGIONS[region].name;
+  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${key !== FAVORITES && REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : choiceName(key)}</button>`).join("<i>/</i>");
+}
+// Favorites loads every region that holds a favorite the index knows; true when at least one of them is shown.
+async function loadFavorites() {
+  await Promise.all([...new Set(knownFavorites().map(regionOf))].map(loadRegion));
+  return shownFavorites().length > 0;
+}
+const loadChoice = (key) => key === FAVORITES ? loadFavorites() : loadRegion(key);
+// On Favorites, choosing a mountain of another region moves the page's place there: its forecast times, the map, the
+// roads and the avalanche forecast, as a change of region does. Within one region only the selection moves.
+function followPlace() {
+  if (place() === mapPlace) return false;
+  mergeRegions();
+  for (const step of [renderHeadline, renderAvalanche]) {
+    try { step(); } catch (error) { console.error(error); }
+  }
+  loadAvalanche();
+  startMap();
+  return true;
 }
 // A region's forecast is loaded the first time it is chosen. One that can't be (no signal, and none saved on this
 // phone) leaves the page where it was, with a line saying so (see renderHeadline).
 let regionMiss = null, regionAsked = null;
 async function setRegion(key) {
   regionAsked = key;
-  if (key === region || !REGIONS[key]) return;
-  const loaded = await loadRegion(key);
+  if (key === region || (key === FAVORITES ? !knownFavorites().length : !REGIONS[key])) return;
+  const loaded = await loadChoice(key);
   // A later choice made while this one loaded wins.
   if (regionAsked !== key) return;
   if (!loaded) {
@@ -3358,15 +3419,17 @@ async function setRegion(key) {
   }
   regionMiss = null;
   region = key;
-  mergeRegions();
   try { localStorage.setItem(REGION_KEY, key); } catch (error) { /* private browsing: the choice lasts for this visit */ }
-  HOME = homeOf(key);
+  HOME = key === FAVORITES ? here()[0].key : homeOf(key);
   selected = opener().key;
+  mergeRegions();
   history.replaceState(null, "", "#" + selected);
   // The notes and the sensor list put the region on screen first, and take its figures.
   for (const step of [renderNotes, renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
   }
+  // Favorites and the region of its first favorite are one place: the map stays and only the selection moves.
+  if (place() === mapPlace) { if (map) map.select(selected); return; }
   loadAvalanche();
   startMap();
 }
@@ -3540,12 +3603,12 @@ async function zonesFrom(centers) {
   return zones;
 }
 async function loadAvalanche() {
-  const asked = region, centers = REGIONS[asked].avalanche, state = avy[asked] ||= {zones: [], product: null, loaded: false};
+  const asked = place(), centers = REGIONS[asked].avalanche, state = avy[asked] ||= {zones: [], product: null, loaded: false};
   const zones = await zonesFrom(centers);
   const main = zones.find((zone) => zone.center === centers[0]);
   const product = main ? await zoneProduct(main) : null;
   Object.assign(state, {zones, product, loaded: true});
-  if (asked !== region) return;
+  if (asked !== place()) return;
   renderAvalanche(); badges(); mapAvalanche(); railReady();
 }
 // Even-odd test against every ring of a zone at once.
@@ -3559,7 +3622,7 @@ function inRings(rings, x, y) {
   }
   return inside;
 }
-const zonesHere = () => (avy[region] || {}).zones || [];
+const zonesHere = () => (avy[place()] || {}).zones || [];
 // Backcountry peaks carry their zone's rating: a dot in the grid, a chip in the header that jumps to the pane.
 function badges() {
   const zoneOf = (key) => { const spot = data.resorts.find((r) => r.key === key); return spot && zonesHere().find((z) => inRings(z.rings, spot.lon, spot.lat)); };
@@ -3612,7 +3675,7 @@ function mapAvalanche() {
   const zones = zonesHere();
   // Until a newly chosen region's zones have arrived the button is left as it was, so the block of buttons does not
   // lose its last one and jump for a moment.
-  const known = !!(avy[region] && avy[region].loaded);
+  const known = !!(avy[place()] && avy[place()].loaded);
   $("avyToggle").setAttribute("aria-pressed", avyOn);
   // One rating across the map goes in the button itself; several get a small key under it, worst first.
   const levels = [...new Set(zones.map((zone) => zone.level))].sort((a, b) => b - a), one = levels.length === 1;
@@ -3684,7 +3747,7 @@ function paragraphs(html) {
 }
 function renderAvalanche() { drawAvalanche(); fillJump("avyJump", $("avalanche")); }
 function drawAvalanche() {
-  const state = avy[region], home = REGIONS[region].avalanche[0];
+  const at = place(), state = avy[at], home = REGIONS[at].avalanche[0];
   if (!home) {
     const top = '<div class="ahead"><div><h2>Avalanche danger</h2></div></div>';
     $("avalanche").innerHTML = `${tabbed() ? `<div class="dtop">${top}</div>` : top}<p class="anotice">No avalanche center forecasts this area.</p>`;
@@ -3693,19 +3756,19 @@ function drawAvalanche() {
   }
   const main = state && state.zones.find((z) => z.center === home);
   // Every zone the app's regions cover, this region's first, without repeats where two regions share a center.
-  const seen = new Set(), all = [region, ...Object.keys(REGIONS).filter((key) => key !== region)]
+  const seen = new Set(), all = [at, ...Object.keys(REGIONS).filter((key) => key !== at)]
     .flatMap((key) => (avy[key] && avy[key].zones.length ? avy[key].zones : avyElsewhere[key]) || [])
     .filter((z) => !seen.has(zoneKey(z)) && seen.add(zoneKey(z)));
   if (state && state.loaded && !avyAsked.has("elsewhere")) {
     avyAsked.add("elsewhere");
-    Promise.all(Object.keys(REGIONS).filter((key) => key !== region && !(avy[key] && avy[key].zones.length)).map(async (key) => { avyElsewhere[key] = await zonesFrom(REGIONS[key].avalanche); })).then(renderAvalanche);
+    Promise.all(Object.keys(REGIONS).filter((key) => key !== at && !(avy[key] && avy[key].zones.length)).map(async (key) => { avyElsewhere[key] = await zonesFrom(REGIONS[key].avalanche); })).then(renderAvalanche);
   }
   // The pane opens on the zone the selected mountain stands in (the region's first where none covers it). A zone
   // picked from the title holds until another mountain or region is chosen.
   const spot = data && data.resorts.find((r) => r.key === selected), tz = tzOf(spot);
   const mine = spot && state ? state.zones.find((z) => inRings(z.rings, spot.lon, spot.lat)) : null;
   avyShown = selected;
-  const picked = avyPick && avyPick.region === region && avyPick.mountain === selected ? all.find((z) => zoneKey(z) === avyPick.key) : null;
+  const picked = avyPick && avyPick.region === at && avyPick.mountain === selected ? all.find((z) => zoneKey(z) === avyPick.key) : null;
   const zone = picked || mine || main, center = zone ? zone.center : home;
   // A picked zone's forecast is fetched once; until it answers, product is undefined and the pane says it is loading.
   const product = !zone || zone === main ? state && state.product : avyProducts[zoneKey(zone)];
@@ -3796,7 +3859,7 @@ function drawAvalanche() {
   $("avalanche").innerHTML = `<div class="${expired ? "expired" : ""}">${head}${body}</div>${foot(link, false)}`;
 }
 
-document.addEventListener("change", (e) => { if (e.target.id === "avyPick") { avyPick = {region, mountain: selected, key: e.target.value}; renderAvalanche(); } });
+document.addEventListener("change", (e) => { if (e.target.id === "avyPick") { avyPick = {region: place(), mountain: selected, key: e.target.value}; renderAvalanche(); } });
 
 function renderNotes() {
   const unsensed = data.bias_corrected ? everyMountain().filter((r) => regionKeys().includes(regionOf(r)) && r.station === null).map((r) => r.name) : [];
@@ -3819,7 +3882,7 @@ function renderQuality() {
   // Every region's mountains are listed from the index, loaded or not; a sensor's height is known once its
   // region's forecast is.
   const row = (r) => { const [cls, word] = grade(r), o = (mountain(r.key) || {}).observed; return `<div class="qrow"><div><b>${esc(r.name)}</b><small>${r.station ? `${esc(r.station)} sensor${o && o.elevation_ft ? `, ${height(o.elevation_ft)}` : ""}` : "No working sensor nearby"}</small></div><span class="q ${cls}">${word}</span></div>`; };
-  const regions = regionKeys().sort((a, b) => (b === region) - (a === region));
+  const regions = regionKeys().sort((a, b) => (b === place()) - (a === place()));
   const listed = everyMountain().filter((r) => regions.includes(regionOf(r)));
   const count = (cls) => listed.filter((r) => grade(r)[0] === cls).length;
   const KEY = [["good", "Corrected", "Corrected against a sensor near the mountain's own height."], ["rough", "Low sensor", "Corrected against a sensor well below the mountain, so the fit is looser."], ["none", "Uncorrected", "No working sensor nearby: the models are used as they are, and there is no measured snow."]];
@@ -3841,21 +3904,24 @@ function renderScore(card) {
   $("scoreBody").innerHTML = card.sections.map((s) => `<p><b>${esc(s.title)}</b> ${esc(s.note || "")}</p><div class="gridwrap">${table(s)}</div>`).join("");
 }
 
-// A star only asks; the home mountain changes when the question is answered yes.
+// A tap on the star adds the mountain to the favorites or takes it off, at once. Taking off the last one shown while
+// on Favorites leaves the page on the region on screen.
+function toggleFavorite(key) {
+  prefs.favorites = isFavorite(key) ? favorites().filter((k) => k !== key) : [...favorites(), key];
+  savePrefs();
+  if (region === FAVORITES && !here().length) {
+    region = place();
+    try { localStorage.setItem(REGION_KEY, region); } catch (error) { /* private browsing: the choice lasts for this visit */ }
+    mergeRegions();
+  }
+  HOME = region === FAVORITES ? here()[0].key : homeOf(region);
+  for (const step of [renderRegion, renderAll]) {
+    try { step(); } catch (error) { console.error(error); }
+  }
+}
 document.addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-home]"); if (!b) return;
-  const resort = mountain(b.dataset.home);
-  $("homeName").textContent = resort ? resort.name : b.dataset.home;
-  $("homeAsk").dataset.key = b.dataset.home;
-  $("homeAsk").returnValue = "";
-  $("homeAsk").showModal();
-});
-$("homeAsk").addEventListener("click", (e) => { if (e.target === $("homeAsk")) $("homeAsk").close(); });
-$("homeAsk").addEventListener("close", () => {
-  if ($("homeAsk").returnValue !== "yes") return;
-  HOME = $("homeAsk").dataset.key;
-  try { localStorage.setItem(`${HOME_KEY}.${region}`, HOME); } catch (error) { /* private browsing: the choice lasts for this visit */ }
-  renderAll();
+  const b = e.target.closest("button[data-home]");
+  if (b) toggleFavorite(b.dataset.home);
 });
 // Every elevation toggle on the page (above the grid and in the resort header) stays in step.
 document.addEventListener("click", (e) => {
@@ -3921,13 +3987,15 @@ $("detail").addEventListener("change", (e) => {
   if (e.target.id !== "mtnPick") return;
   selected = e.target.value;
   history.replaceState(null, "", "#" + selected);
+  const moved = followPlace();
   renderHeat(); renderDetail();
-  if (map) map.select(selected);
+  if (map && !moved) map.select(selected);
 });
 $("heat").addEventListener("click", (e) => {
   const row = e.target.closest("tr[data-key]"); if (!row) return;
   selected = row.dataset.key;
   history.replaceState(null, "", "#" + selected);
+  followPlace();
   renderHeat(); renderDetail();
   if (e.target.closest("td.name")) goTo($("detail"));
 });
@@ -3995,7 +4063,7 @@ const regionFiles = {}, regionLoads = {};
 function mergeRegions() {
   const files = Object.values(regionFiles);
   if (!files.length) return;
-  data = {...(regionFiles[region] || files[0]), resorts: files.flatMap((f) => f.resorts),
+  data = {...(regionFiles[place()] || files[0]), resorts: files.flatMap((f) => f.resorts),
     season_curves: Object.assign({}, ...files.map((f) => f.season_curves || {})),
     failed_resorts: [...new Set(files.flatMap((f) => f.failed_resorts || []))]};
 }
@@ -4037,7 +4105,11 @@ async function openForecast() {
   index = await liveIndex();
   if (!index) { data = fixTimes(await liveForecast()); pickRegion(); return; }
   pickRegion();
-  if (await loadRegion(region)) return;
+  if (await loadChoice(region)) {
+    // On Favorites the page opens on the first favorite shown (one whose region failed to load is left out).
+    if (region === FAVORITES) { HOME = here()[0].key; selected = HOME; mergeRegions(); }
+    return;
+  }
   // The region chosen can't be loaded: the first one that can opens instead.
   for (const key of regionKeys()) {
     if (key !== region && await loadRegion(key)) {
