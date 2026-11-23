@@ -9,7 +9,8 @@ const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icons/mark-white.png?v=2', 'icons/icon-192.png',
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
   'data/terrain-mammoth.json?v=3', 'data/terrain-mammoth.bin?v=3', 'data/roads-mammoth.json?v=3',
-  'data/terrain-newengland.json', 'data/terrain-newengland.bin', 'data/roads-newengland.json'];
+  'data/terrain-newengland.json?v=2', 'data/terrain-newengland.bin?v=2', 'data/roads-newengland.json?v=2',
+  'data/terrain-seattle.json', 'data/terrain-seattle.bin', 'data/roads-seattle.json'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale

@@ -25,6 +25,11 @@ ROUTES = {
     "newengland": {"I 93": "I-93", "I 89": "I-89", "I 91": "I-91", "I 95": "I-95", "US 2": "US-2", "US 4": "US-4",
                    "US 302": "US-302", "VT 100": "VT-100", "VT 108": "VT-108", "NH 16": "NH-16", "NH 112": "NH-112",
                    "ME 26": "ME-26", "ME 27": "ME-27"},
+    # OpenStreetMap writes Washington's state routes "SR 410", as Washington does; the map draws them with the plain
+    # white marker (REGIONS.seattle.plainStateRoutes in the page), not California's spade.
+    "seattle": {"I 5": "I-5", "I 90": "I-90", "I 405": "I-405", "US 2": "US-2", "US 12": "US-12", "US 97": "US-97",
+                "US 101": "US-101", "SR 410": "SR-410", "SR 542": "SR-542", "SR 20": "SR-20", "SR 530": "SR-530",
+                "SR 706": "SR-706", "SR 503": "SR-503", "SR 141": "SR-141"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the

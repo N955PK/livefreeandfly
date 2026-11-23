@@ -23,7 +23,10 @@ ZOOM = 10
 REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "columns": 420},
            "mammoth": {"box": (36.22, 38.46, -120.24, -117.44), "max_m": 4450, "columns": 640},
            # Taller than the 2.24 degrees the guide advises: Sugarloaf to Mount Snow. Mount Washington is 1,917 m.
-           "newengland": {"box": (42.28, 45.73, -74.015, -69.215), "max_m": 1950, "columns": 640}}
+           "newengland": {"box": (42.28, 45.73, -74.015, -69.215), "max_m": 1950, "columns": 640},
+           # A 355 km square around the circle holding Mt. Baker to Mt. Adams and Hurricane Ridge to Mission Ridge.
+           # Mt. Rainier is 4,392 m on the tiles; Puget Sound and the Strait are sea level, clipped to 0.
+           "seattle": {"box": (45.9172, 49.1053, -124.3165, -119.5965), "max_m": 4420, "columns": 640}}
 
 
 def stem(region: str) -> str:
