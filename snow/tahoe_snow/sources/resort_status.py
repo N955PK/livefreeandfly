@@ -1,23 +1,39 @@
-"""Lift and trail status from the resorts' own status pages (Heavenly, Northstar, Kirkwood).
+"""Lift and trail status from Vail's resorts' own status pages: Heavenly, Northstar, Kirkwood, and in New England
+Stowe, Okemo, Mount Snow, Wildcat, Attitash, Mount Sunapee and Crotched.
 
 Each resort's lift and terrain status page carries its feed as a JSON literal in the page source. The sites
 reject plain HTTP clients, so the page is read with curl_cffi, which presents a browser TLS fingerprint.
 Writes one small file the page reads, each mountain in the shape of the Ikon feed the rest of the page uses.
+The pages are read a few at a time, so a pass over all of them takes seconds, and one resort that fails or
+has posted nothing yet is left out of the file without costing the others.
 python -m tahoe_snow.sources.resort_status out.json
 """
 import json
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
 from curl_cffi import requests
 
+# The resorts name the page two ways; each is given the name its own site links to.
+TERRAIN_AND_LIFT, LIFT_AND_TERRAIN = "terrain-and-lift-status.aspx", "lift-and-terrain-status.aspx"
 RESORTS = {
-    "heavenly": ("Heavenly", "www.skiheavenly.com"),
-    "northstar": ("Northstar", "www.northstarcalifornia.com"),
-    "kirkwood": ("Kirkwood", "www.kirkwood.com"),
+    "heavenly": ("Heavenly", "www.skiheavenly.com", TERRAIN_AND_LIFT),
+    "northstar": ("Northstar", "www.northstarcalifornia.com", TERRAIN_AND_LIFT),
+    "kirkwood": ("Kirkwood", "www.kirkwood.com", TERRAIN_AND_LIFT),
+    "stowe": ("Stowe", "www.stowe.com", TERRAIN_AND_LIFT),
+    "okemo": ("Okemo", "www.okemo.com", LIFT_AND_TERRAIN),
+    "mountsnow": ("Mount Snow", "www.mountsnow.com", LIFT_AND_TERRAIN),
+    "wildcat": ("Wildcat", "www.skiwildcat.com", LIFT_AND_TERRAIN),
+    "attitash": ("Attitash", "www.attitash.com", LIFT_AND_TERRAIN),
+    "sunapee": ("Mount Sunapee", "www.mountsunapee.com", LIFT_AND_TERRAIN),
+    "crotched": ("Crotched", "www.crotchedmtn.com", LIFT_AND_TERRAIN),
 }
-URL = "https://{host}/the-mountain/mountain-conditions/terrain-and-lift-status.aspx"
+URL = "https://{host}/the-mountain/mountain-conditions/{page}"
+# Pages read at once, and how long one may take: the collector passes every five minutes, so a pass over all of
+# them, even with every site slow, stays well under a minute.
+WORKERS, TIMEOUT = 5, 20
 FEED = "FR.TerrainStatusFeed"
 LIFT_STATUS = {0: "Closed", 1: "Open", 2: "Hold", 3: "Scheduled"}
 DIFFICULTY = {1: "Green", 2: "Blue", 3: "Black", 4: "Double black"}
@@ -69,27 +85,41 @@ def recast(name: str, feed: dict, now: datetime) -> dict:
     return {"Name": name, "LastUpdate": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "MountainAreas": areas}
 
 
-def fetch(host: str) -> dict:
-    response = requests.get(URL.format(host=host), impersonate="chrome", timeout=30)
+def counts(feed: dict) -> str:
+    """A line for the log: the mountain's lifts and trails, and how many of each are open."""
+    lifts = [lift for area in feed["MountainAreas"] for lift in area["Lifts"]]
+    trails = [trail for area in feed["MountainAreas"] for trail in area["Trails"]]
+    open_ = lambda rows: sum(row["StatusEnglish"].startswith("open") for row in rows)
+    return f"{feed['Name']}: {len(lifts)} lifts ({open_(lifts)} open), {len(trails)} trails ({open_(trails)} open)"
+
+
+def fetch(host: str, page: str) -> dict:
+    response = requests.get(URL.format(host=host, page=page), impersonate="chrome", timeout=TIMEOUT)
     response.raise_for_status()
     return feed_of(response.text)
 
 
+def read(key: str, now: datetime) -> dict | None:
+    """One resort in the page's shape, or None when its page could not be read or it has posted nothing."""
+    name, host, page = RESORTS[key]
+    try:
+        return recast(name, fetch(host, page), now)
+    except Exception as error:
+        print(f"{name}: {error}")
+        return None
+
+
 def main(out_path: str) -> int:
     now = datetime.now(timezone.utc)
-    resorts = {}
-    for key, (name, host) in RESORTS.items():
-        try:
-            resorts[key] = recast(name, fetch(host), now)
-        except Exception as error:
-            print(f"{name}: {error}")
+    with ThreadPoolExecutor(WORKERS) as pool:
+        found = dict(zip(RESORTS, pool.map(lambda key: read(key, now), RESORTS)))
+    resorts = {key: feed for key, feed in found.items() if feed}
     if not resorts:
         return 1
     with open(out_path, "w") as handle:
         json.dump({"updated": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "resorts": resorts}, handle, separators=(",", ":"))
-    for key, feed in resorts.items():
-        lifts = sum(len(area["Lifts"]) for area in feed["MountainAreas"])
-        print(f"{feed['Name']}: {lifts} lifts")
+    for feed in resorts.values():
+        print(counts(feed))
     return 0
 
 

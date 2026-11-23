@@ -1,0 +1,548 @@
+{
+ "name": "Loon Mountain",
+ "updated": "2026-11-23T17:48:15Z",
+ "liftsUpdated": "2026-11-21T16:34:01Z",
+ "trailsUpdated": "2026-11-23T17:48:15Z",
+ "operations": {
+  "resortStatus": "Open",
+  "openTime": null,
+  "closeTime": null,
+  "nightOpenTime": null,
+  "nightCloseTime": null,
+  "uphillStatus": null,
+  "summerLiftStatus": null
+ },
+ "currentConditions": {
+  "resortwide": {
+   "totalTrailArea": {
+    "acres": 403,
+    "hectares": 163
+   },
+   "totalTrailLength": {
+    "miles": 30,
+    "kilometers": 48
+   },
+   "areaOpen": {
+    "acres": 0,
+    "hectares": 0
+   },
+   "lengthOpen": {
+    "miles": 0,
+    "kilometers": 0
+   },
+   "numTrailsTotal": 73,
+   "numTrailsOpen": 0,
+   "numTrailsGroomed": 0,
+   "numTrailsSnowMaking": 0,
+   "numLiftsTotal": 13,
+   "numLiftsOpen": 0,
+   "numLiftsOnHold": 0,
+   "numLiftsClosed": 13,
+   "numParksTotal": 6,
+   "numParksOpen": 0,
+   "numPipesTotal": 2,
+   "numPipesOpen": 0,
+   "numParkFeaturesOpen": 0,
+   "numSummerTrailsTotal": 32,
+   "numSummerTrailsOpen": 8,
+   "numSummerLiftsTotal": 2,
+   "numSummerLiftsOpen": 0
+  }
+ },
+ "facilities": {
+  "areas": {
+   "area": [
+    {
+     "name": "North Peak",
+     "lifts": {
+      "lift": [
+       {
+        "name": "North Peak Express Quad",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:40",
+        "nightStatus": null,
+        "type": "Detachable Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": [
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Bucksaw",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "advanced",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": "treeSkiing",
+        "featureIcons": [
+         "tree-skiing"
+        ],
+        "area": 2,
+        "length": 0.35
+       },
+       {
+        "name": "Haulback",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 2,
+        "length": 0.5
+       }
+      ]
+     }
+    },
+    {
+     "name": "South Peak",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Lincoln Express Quad",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:40",
+        "nightStatus": null,
+        "type": "Detachable Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": [
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "River's Edge Double",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:30",
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Timbertown Quad",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:40",
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Tote Road Connector",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:50",
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Chipper",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 6,
+        "length": 0.65
+       },
+       {
+        "name": "Escape Route",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 3,
+        "length": 0.34
+       }
+      ]
+     }
+    },
+    {
+     "name": "West Basin",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Children's Center Carpet",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": "Open to Children's Center Lessons only",
+        "openTime": null,
+        "closeTime": null,
+        "nightStatus": null,
+        "type": "Magic carpet",
+        "capacity": 0,
+        "liftIcon": "magic-carpet",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Kancamagus 8",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:55",
+        "nightStatus": null,
+        "type": "Detachable Chairlift",
+        "capacity": 8,
+        "liftIcon": "chairlift-8",
+        "featureIcons": [
+         "bubble",
+         "heated",
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Kissin' Cousin Double",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:55",
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Sarsaparilla Carpet",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:55",
+        "nightStatus": null,
+        "type": "Magic Carpet",
+        "capacity": 0,
+        "liftIcon": "magic-carpet",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Little Sass Carpet",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:55",
+        "nightStatus": null,
+        "type": "Magic Carpet",
+        "capacity": 0,
+        "liftIcon": "magic-carpet",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Blue Ox",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 10,
+        "length": 0.73
+       },
+       {
+        "name": "Coolidge Street",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 11,
+        "length": 0.46
+       }
+      ]
+     }
+    },
+    {
+     "name": "Loon Peak",
+     "lifts": {
+      "lift": [
+       {
+        "name": "East Basin Double",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:40",
+        "nightStatus": null,
+        "type": "Chairlift",
+        "capacity": 2,
+        "liftIcon": "chairlift-2",
+        "featureIcons": null,
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "White Mountain Express Gondola",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:40",
+        "nightStatus": null,
+        "type": "Gondola",
+        "capacity": 4,
+        "liftIcon": "gondola",
+        "featureIcons": [
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       },
+       {
+        "name": "Seven Brothers Express Quad",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "openTime": null,
+        "closeTime": "15:55",
+        "nightStatus": null,
+        "type": "Detachable Chairlift",
+        "capacity": 4,
+        "liftIcon": "chairlift-4",
+        "featureIcons": [
+         "highspeed"
+        ],
+        "skierWaitTime": null,
+        "scenicWaitTime": null
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Angel Street",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "advanced",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 6,
+        "length": 0.3
+       },
+       {
+        "name": "Basin Street",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": "intermediate",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": 5,
+        "length": 0.33
+       }
+      ]
+     }
+    },
+    {
+     "name": "Uphill Routes",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Loon Peak - Octagon",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": null,
+        "difficultyIcon": null,
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       },
+       {
+        "name": "Loon Peak - Governor Adams",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": null,
+        "difficultyIcon": null,
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": false,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       }
+      ]
+     }
+    },
+    {
+     "name": "Nordic",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Serendipity",
+        "id": null,
+        "status": "Open",
+        "statusIcon": "open",
+        "comment": "",
+        "difficulty": "novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": null,
+        "uphill": null,
+        "type": "cross country",
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       },
+       {
+        "name": "Black Mountain",
+        "id": null,
+        "status": "Open",
+        "statusIcon": "open",
+        "comment": "",
+        "difficulty": "novice",
+        "difficultyIcon": "beginner",
+        "groomed": false,
+        "nightStatus": null,
+        "snowMaking": null,
+        "uphill": null,
+        "type": "cross country",
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       }
+      ]
+     }
+    }
+   ]
+  }
+ }
+}
