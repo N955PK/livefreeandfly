@@ -327,6 +327,8 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
   html.tabs .heat td.name{height:51px;box-sizing:border-box}
   html.tabs .heat td.name b{font-size:13.5px;line-height:1.15}
   html.tabs .heat td.name span{display:block;font-size:11px;line-height:1.2;margin-top:2px}
+  /* The danger sign stays on the line with the height and the region, not on one of its own. */
+  html.tabs .heat td.name span [data-avy]{display:inline;margin-top:0}
   html.tabs .heat td.total{padding:0 5px 0 2px;font-size:14px}
   html.tabs .heat th.day b{font-size:12.5px}
   /* Each pass heads its mountains with its name in the accent blue (the mountains are navy) and a thin rule running to the right edge. */
@@ -1507,7 +1509,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "217";
+const BUILD = "218";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
