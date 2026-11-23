@@ -425,18 +425,28 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     return payload, archive
 
 
-def add_season(resorts: list, now: pd.Timestamp) -> dict:
+def add_season(resorts: list, now: pd.Timestamp, last: dict | None = None) -> dict:
     """Each mountain's snowpack against a usual year, and each sensor's curves by its name. A sensor network
-    that cannot be reached leaves both out."""
+    that cannot be reached leaves both out, unless ``last`` (the forecast published before this one) has them:
+    a sensor's usual year changes once a day, so the last figures stand in until the network answers again."""
     try:
         normals = season.normals(now, [payload["key"] for payload in resorts])
     except (RuntimeError, OSError, ValueError, KeyError) as error:
         print(f"season: FAILED {error}", flush=True)
         normals = {}
+    before = {payload["key"]: payload.get("season") for payload in (last or {}).get("resorts", [])}
+    curves = {ALL_STATIONS[triplet].name: {measure: usual["curve"] for measure, usual in normal.items()}
+              for triplet, normal in normals.items() if normal}
     for payload in resorts:
-        payload["season"] = season.summary(payload["observed"], normals.get(RESORTS[payload["key"]].station))
-    return {ALL_STATIONS[triplet].name: {measure: usual["curve"] for measure, usual in normal.items()}
-            for triplet, normal in normals.items() if normal}
+        station = RESORTS[payload["key"]].station
+        if station and not normals.get(station):
+            payload["season"] = before.get(payload["key"])
+            name = ALL_STATIONS[station].name
+            if name in (last or {}).get("season_curves", {}):
+                curves[name] = last["season_curves"][name]
+        else:
+            payload["season"] = season.summary(payload["observed"], normals.get(station))
+    return curves
 
 
 def write_whole(path, document: dict) -> None:
@@ -455,6 +465,15 @@ def read_region(key: str) -> dict | None:
         return json.loads(path.read_text()) if path.exists() else None
     except (ValueError, OSError) as error:
         print(f"{path.name}: unreadable, treated as not built ({error})", flush=True)
+        return None
+
+
+def read_legacy() -> dict | None:
+    """The single forecast file every region used to share, where it is still published and readable."""
+    path = DATA / "forecast.json"
+    try:
+        return json.loads(path.read_text()) if path.exists() else None
+    except (ValueError, OSError):
         return None
 
 
@@ -513,7 +532,7 @@ def refresh_season(now: datetime | None = None) -> dict | None:
     for key in REGIONS:
         forecast = read_region(key)
         if forecast:
-            forecast["season_curves"] = add_season(forecast["resorts"], now)
+            forecast["season_curves"] = add_season(forecast["resorts"], now, forecast)
             write_whole(DATA / "forecast" / f"{key}.json", forecast)
     return write_home_forecast()
 
@@ -542,7 +561,7 @@ def run(region: str, now: datetime | None = None) -> dict:
     if not resorts:
         usage.record(ran, stamp, ledger_path)      # what it asked for still counts against the allowance
         raise SystemExit(f"no resort forecast could be produced for {region}")
-    season_curves = add_season(resorts, now)
+    season_curves = add_season(resorts, now, read_region(region) or read_legacy())
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
                 "published_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "snow_ratio_model": ratio_name,

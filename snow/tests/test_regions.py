@@ -55,3 +55,15 @@ def test_the_new_england_mountains_are_where_they_should_be():
         assert r.base_m < r.summit_m, r.key
         assert 42.7 < r.lat < 45.3 and -73.3 < r.lon < -69.9, r.key
         assert r.station is None, r.key
+
+
+def test_the_last_season_figures_stand_in_while_the_sensors_cannot_be_reached(monkeypatch):
+    resort = next(r for r in config.resorts_in("tahoe") if r.station)
+    name = config.ALL_STATIONS[resort.station].name
+    monkeypatch.setattr(season, "normals", lambda now, keys: {resort.station: {}})
+    last = {"resorts": [{"key": resort.key, "season": {"water": {"pct": 80}}}], "season_curves": {name: {"water": [1, 2]}}}
+    payload = {"key": resort.key, "observed": None}
+    curves = pipeline.add_season([payload], pd.Timestamp("2026-11-21T16:00:00"), last)
+    assert payload["season"] == {"water": {"pct": 80}} and curves == {name: {"water": [1, 2]}}
+    fresh = {"key": resort.key, "observed": None}
+    assert pipeline.add_season([fresh], pd.Timestamp("2026-11-21T16:00:00")) == {} and fresh["season"] is None

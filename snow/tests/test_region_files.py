@@ -26,7 +26,7 @@ def stubbed(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "DATA", tmp_path)
     monkeypatch.setattr(pipeline, "DATA", tmp_path)
     monkeypatch.setattr(pipeline, "resort_forecast", forecast)
-    monkeypatch.setattr(pipeline, "add_season", lambda resorts, now: {})
+    monkeypatch.setattr(pipeline, "add_season", lambda resorts, now, last=None: {})
     return tmp_path
 
 
@@ -79,7 +79,7 @@ def test_a_region_where_every_mountain_fails_keeps_its_last_file(tmp_path, stubb
 def test_the_season_refresh_rewrites_each_region_file_and_the_merged_one(tmp_path, stubbed, monkeypatch):
     for key in ("tahoe", "mammoth"):
         pipeline.run(key, NOW)
-    monkeypatch.setattr(pipeline, "add_season", lambda resorts, now: {"Sensor": {"swe": [1]}})
+    monkeypatch.setattr(pipeline, "add_season", lambda resorts, now, last=None: {"Sensor": {"swe": [1]}})
     pipeline.refresh_season(NOW)
     assert json.loads((tmp_path / "forecast/tahoe.json").read_text())["season_curves"] == {"Sensor": {"swe": [1]}}
     assert json.loads((tmp_path / "forecast.json").read_text())["season_curves"] == {"Sensor": {"swe": [1]}}
