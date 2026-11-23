@@ -531,6 +531,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const fillMaterial = new THREE.MeshStandardMaterial({color: 0x2a78d6, roughness: 0.4, emissive: 0x0d366b, emissiveIntensity: 0.5});
   const pickMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.4, emissive: 0x2a78d6, emissiveIntensity: 0.9});
   const unit = new THREE.CylinderGeometry(STAKE_RADIUS * sizeUp, STAKE_RADIUS * sizeUp, 1, 20).rotateX(Math.PI / 2).translate(0, 0, 0.5);
+  // A label counts as chosen only on a clean tap: a press that wanders more than a few pixels before it lifts (a drag
+  // of the map begun on a label, a mouse dragged off and back) chooses nothing. The keyboard's Enter always chooses.
+  let pressAt = null;
   const items = data.resorts.map((r, n) => {
     const x = xOf(r.lon), y = yOf(r.lat), z = zOf(heightAt(r.lat, r.lon));
     const ghost = new THREE.Mesh(unit, ghostMaterial), fill = new THREE.Mesh(unit, fillMaterial);
@@ -538,7 +541,12 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     stakes.add(ghost, fill);
     const label = document.createElement("button");
     label.className = "map-label";
-    label.addEventListener("click", () => onSelect && onSelect(r.key));
+    label.addEventListener("pointerdown", (e) => { pressAt = {x: e.clientX, y: e.clientY}; });
+    label.addEventListener("click", (e) => {
+      const from = pressAt; pressAt = null;
+      if (from && e.detail && Math.hypot(e.clientX - from.x, e.clientY - from.y) > 8) return;
+      if (onSelect) onSelect(r.key);
+    });
     overlay.appendChild(label);
     // The snow on the ground now, where the mountain's sensor measures it; null where none does.
     const ground = r.observed && r.observed.depth_in != null ? r.observed.depth_in : null;

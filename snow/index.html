@@ -1505,7 +1505,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "197";
+const BUILD = "198";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3413,7 +3413,8 @@ async function startMap() {
     if (!roadFeeds) $("roadPill").hidden = true;
     $("mapPanel").style.display = "block";
     const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[mapPlace], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
-      onSelect: (key) => { if (!map) return; selected = key; history.replaceState(null, "", "#" + key); renderHeat(); renderDetail(); map.select(key); }});
+      // A tap on a mountain's label does what a tap on its row of the summary does: it opens the mountain's tab.
+      onSelect: (key) => { if (map) chooseMountain(key, true); }});
     if (build !== mapBuild) { made.dispose(); return; }
     if (staleMap) { staleMap.dispose(); staleMap = null; }
     map = made;
@@ -4243,12 +4244,18 @@ $("heat").addEventListener("click", (e) => {
   // The release that ends a drag is not a tap on the row.
   if (Date.now() < swallowClick) { swallowClick = 0; return; }
   const row = e.target.closest("tr[data-key]"); if (!row) return;
-  selected = row.dataset.key;
-  history.replaceState(null, "", "#" + selected);
-  followPlace();
-  renderHeat(); renderDetail();
-  if (e.target.closest("td.name")) goTo($("detail"));
+  chooseMountain(row.dataset.key, !!e.target.closest("td.name"));
 });
+// A mountain chosen by a tap, on the summary's list or on the map: it is selected (on the map too, so a label the
+// map keeps hidden until chosen shows there), and, asked to, its tab opens.
+function chooseMountain(key, open) {
+  selected = key;
+  history.replaceState(null, "", "#" + selected);
+  const moved = followPlace();
+  renderHeat(); renderDetail();
+  if (map && !moved) map.select(selected);
+  if (open) goTo($("detail"));
+}
 // The forecast is republished every few hours to its own branch. Asking for the branch's current commit first
 // and loading the files by that commit avoids GitHub's file cache, which can lag by many minutes. The commit is asked
 // for again after ten minutes, so a region opened later in a long visit is not read from an old one.
