@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "203";
+const BUILD = "204";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3471,8 +3471,8 @@ function renderRegion() {
   $("sumPickWrap").classList.toggle("solo", keys.length < 2);
   // On Favorites the list is not a region's summary, so its title says what it is.
   $("sumTitle").textContent = region === FAVORITES ? "Favorites" : "Regional Summary";
-  // The title names the region the pin last chose; a long name takes its short form.
-  $("regionName").textContent = keys.length < 2 ? "" : region === FAVORITES ? "Favorites" : REGIONS[region].short || REGIONS[region].name;
+  // The title names the region the pin last chose, in full.
+  $("regionName").textContent = keys.length < 2 ? "" : region === FAVORITES ? "Favorites" : REGIONS[region].name;
   $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${key !== FAVORITES && REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : choiceName(key)}</button>`).join("<i>/</i>");
 }
 // Favorites loads every region that holds a favorite the index knows; true when at least one of them is shown.
