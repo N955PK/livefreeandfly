@@ -154,3 +154,4 @@
 {"utc":"2026-11-23T23:17:16Z","data":{"Base":{"TemperatureF":"37","WindDirection":"S","WindStrengthMph":1,"WindGustsMph":2,"Humidity":49,"Skies":"Partly Cloudy"}}}
 {"utc":"2026-11-23T23:22:17Z","data":{"Base":{"TemperatureF":"35","WindDirection":"SE","WindStrengthMph":2,"WindGustsMph":2,"Humidity":51,"Skies":"Partly Cloudy"}}}
 {"utc":"2026-11-23T23:27:17Z","data":{"Base":{"TemperatureF":"35","WindDirection":"E","WindStrengthMph":1,"WindGustsMph":2,"Humidity":48,"Skies":"Partly Cloudy"}}}
+{"utc":"2026-11-23T23:36:37Z","data":{"Base":{"TemperatureF":"37","WindDirection":"NE","WindStrengthMph":0,"WindGustsMph":1,"Humidity":43,"Skies":"Partly Cloudy"}}}
