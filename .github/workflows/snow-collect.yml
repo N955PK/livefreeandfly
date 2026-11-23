@@ -9,7 +9,7 @@ name: Snow collect
 # Each pass:
 #   1. reads the resorts' lift pages and Nevada's roads and publishes them for the page (snow-lifts, snow-roads);
 #   2. appends everything live the page reads and shows to the history branch (see tahoe_snow/collect.py);
-#   3. runs the forecast and publishes it (snow-data) if the published one is more than two and a half hours old;
+#   3. runs the forecast and publishes it (snow-data) if the published one is six hours old or more;
 #   4. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports), and gathers every
 #      avalanche zone's forecast into one file for the page to keep for when there is no signal (snow-avy).
 # This is the only workflow: nothing else here runs on a schedule or by hand.
@@ -87,7 +87,7 @@ jobs:
           forecast() {
             local published="" out
             if git fetch -q --depth=1 origin snow-data 2>/dev/null; then published="$(git log -1 --format=%ct FETCH_HEAD)"; fi
-            if [ $(( ( $(date +%s) - ${published:-0} ) / 60 )) -lt 150 ] || [ $((SECONDS - tried)) -lt 1800 ]; then return 0; fi
+            if [ $(( ( $(date +%s) - ${published:-0} ) / 60 )) -lt 360 ] || [ $((SECONDS - tried)) -lt 1800 ]; then return 0; fi
             tried=$SECONDS
             mkdir -p "$code/data/archive"
             if [ -n "$published" ]; then git archive FETCH_HEAD archive 2>/dev/null | tar -x -C "$code/data" || true; fi

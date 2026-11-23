@@ -1640,7 +1640,7 @@ function sorted() { return here().sort((a, b) => (b.key === HOME) - (a.key === H
 
 function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(x.pm_in)}</span>`; }
 
-const UPDATE_EVERY_H = 3;
+const UPDATE_EVERY_H = 6;
 function renderHeadline() {
   const home = opener();
   const el = home.elevations[elevation], w = el.windows, where = elevation === "mid" ? "mid-mountain" : elevation;
