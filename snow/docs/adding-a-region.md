@@ -19,8 +19,8 @@ The day's ceiling is 8,500. The test in step 1 enforces it; do the sum first any
 calls a day = (Tahoe + Eastern Sierra mountains) x 4 x 51.9  +  (all other mountains) x 2 x 51.9
 ```
 
-Keep a region to 8 mountains or fewer: one region is built in one collector pass, and it should take under two
-minutes. A bigger area is two regions.
+One region is built in one collector pass. Eight mountains take about a minute and a half; New England's fourteen
+take about two and a half, which is the most a region should hold. A bigger area is two regions.
 
 ## 1. First push: the forecast
 
@@ -95,7 +95,9 @@ cd snow && python -m pytest -q
 home regions alone.
 
 Commit (`snow: the forecast covers Salt Lake: eight mountains, built twice a day`), push, and restart the collector
-(Global Constraints). Within one pass the collector sees the new region has no file and builds it. Confirm:
+(Global Constraints): a run in progress keeps the configuration it started with. Within one pass the collector sees
+the new region has no file and builds it. The page does not offer a region until its first forecast is published,
+so nothing shows early. Confirm:
 
 ```bash
 gh api "repos/N955PK/livefreeandfly/contents/forecast?ref=snow-data" -q '.[].name'
@@ -124,17 +126,20 @@ curl -s https://raw.githubusercontent.com/N955PK/livefreeandfly/snow-data/index.
 "saltlake": {"box": (<south>, <north>, <west>, <east>), "max_m": <just above the highest peak in the box>, "columns": <width>},
 ```
 
-- The box holds every mountain with about 25 km of margin, and is no taller or wider than the Eastern Sierra's
-  (2.24 degrees of latitude). `columns` keeps a cell near 0.39 km: `columns = box width in km / 0.39`, where a
-  degree of longitude is `111.32 x cos(latitude)` km. Tahoe is 420, the Eastern Sierra 640; stay at or under 640.
+- The box holds every mountain with about 25 km of margin. `columns` keeps a cell near 0.39 km:
+  `columns = box width in km / 0.39`, where a degree of longitude is `111.32 x cos(latitude)` km. Tahoe is 420, the
+  Eastern Sierra 640; stay at or under 640 and let the cell grow instead (New England's box is 262 x 284 km at
+  640 columns, a 0.41 km cell and an 880 KB file).
 - `max_m` clips bad pixels in the source tiles. Too low flattens real summits.
 
 ```bash
 cd snow && python tools/build_terrain.py <region>
 ```
 
-It needs `requests`, `Pillow`, `numpy` and `scipy` and reads public elevation tiles (no key, not Open-Meteo). It
-writes `data/terrain-<region>.bin` and `.json`. Commit both.
+It needs `requests`, `Pillow`, `numpy` and `scipy` and reads public elevation tiles (no key, not Open-Meteo). The
+forecast's own interpreter may lack Pillow; a throwaway virtual environment with those four is enough. It writes
+`data/terrain-<region>.bin` and `.json`. Commit both. Then read the heightmap back and print its height at each
+mountain's coordinates: every one should sit between that mountain's base and summit.
 
 ### 2b. Road lines
 
@@ -147,7 +152,13 @@ cd snow && python tools/build_roads.py <region>
 ```
 
 Writes `data/roads-<region>.json`; commit it. `CREST` is only for a map that should drop one side of a range; leave
-the region out of it.
+the region out of it. The tool asks the public Overpass servers, which are sometimes at capacity for hours: try
+again later. Until the file exists the map draws no road lines and hides the Shields button, so the page can ship
+without it. A road whose number has a prefix the map has not drawn before (a new state) gets a plain white
+marker; a drawn outline for it is an addition to the shield shapes in `map3d.js`.
+
+Add the terrain files and the roads file to `SHELL` in `snow/sw.js`, beside the other regions', so they are kept
+for use with no signal.
 
 ### 2c. The region's entry in `snow/index.html`
 
@@ -168,14 +179,15 @@ saltlake: {name: "Salt Lake", terrain: "data/terrain-saltlake", roads: "data/roa
 | `pick` | The mountain the region opens on when nothing is starred |
 | `avalanche` | The centers from 1c, with the center's name and site; the first is the one the tab opens on |
 | `lake` (optional) | `{name, lat, lon}`: one water label on the map (Great Salt Lake, Jackson Lake, Lake Champlain, Turnagain Arm) |
-| `look`, `discKm`, `zoom`, `turnDeg` (optional) | The opening view: where the camera looks if not at `center`, how far out the ground is drawn (default serves a Tahoe-sized box; 115 for one the Eastern Sierra's size), how far in the camera starts, and its turn in degrees |
-| `land` (optional) | The ground's colours by height, where forest-green is wrong (see the Eastern Sierra's) |
+| `look`, `discKm`, `zoom`, `turnDeg` (optional) | The opening view: where the camera looks if not at `center`, how far out the ground is drawn (default serves a Tahoe-sized box; 115 for one the Eastern Sierra's size; 190 for New England's), how far in the camera starts (it cannot start further out than about `1.5 x discKm / 72`), and its turn in degrees |
+| `land` (optional) | The ground's colours by height, where forest-green is wrong (see the Eastern Sierra's and New England's) |
+| `floorM`, `lowlandM` (optional) | The map raises all ground below 1,150 m to that height, and only counts level ground above 400 m as a lake: right for the Sierra, wrong anywhere low. A region with summits near or under 1,500 m, or one that reaches the sea, sets both to 0 |
 | `rev` (optional) | `"?v=2"`; bump it whenever the terrain or road files are rebuilt, so phones fetch the new ones |
 
 Leave out `chainFeeds` and `closureFeeds`: there is no road status outside California and Nevada.
 
 Also in `index.html`, only if wanted:
-- `SHORT`: a shorter name for a long one, for the map's labels.
+- `SHORT`: a shorter name for a long one, for the Region tab's rows.
 - The resort-report and webcam link tables: a mountain missing from them simply has no link.
 
 ### 2d. Check it in the preview
@@ -183,12 +195,17 @@ Also in `index.html`, only if wanted:
 `http://localhost:8765/snow/?v=<bump>` at 393x852, light and dark:
 
 - The region is in the menu; choosing it loads one file and no console errors.
-- **Map:** every mountain's label sits on its mountain, not beside it. The roads lie in the valleys. The opening
-  view shows all the mountains; tune `look`, `zoom`, `turnDeg`, `discKm` until it does. Water is where water is.
+- **Map:** every label that shows sits on its mountain, not beside it. The roads lie in the valleys. The opening
+  view takes in all the mountains; tune `look`, `zoom`, `turnDeg`, `discKm` until it does. Where mountains crowd,
+  the map hides some labels until one is selected; check that selecting each brings its label up. Water is where
+  water is, and low ground is not one flat colour.
 - **Region tab:** every mountain has a row with snow figures; the day columns start on the mountains' own today.
 - **Mountain tab:** the hourly chart's clock is the mountain's own time. A mountain with a sensor shows measured
   snow; one without reads Uncorrected. The lift section shows the same empty state a backcountry spot does.
-- **Avalanche tab:** the zone under the selected mountain opens, with its danger signs and photos.
+- **Avalanche tab:** the zone under the selected mountain opens, with its danger signs and photos. Where the
+  mountains sit outside every zone (New England: the one zone is the Presidential Range), the region's first zone
+  opens as general reading and no resort is marked as uncovered. Check a center that is out of season: no rating,
+  nothing broken.
 - Star one of the new mountains: it appears in Favorites next to mountains from other regions.
 
 ### 2e. Push
