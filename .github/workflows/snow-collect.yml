@@ -9,8 +9,10 @@ name: Snow collect
 # Each pass:
 #   1. reads the resorts' lift pages and Nevada's roads and publishes them for the page (snow-lifts, snow-roads);
 #   2. appends everything live the page reads and shows to the history branch (see tahoe_snow/collect.py);
-#   3. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports), and gathers every
+#   3. runs the forecast and publishes it (snow-data) if the published one is more than two and a half hours old;
+#   4. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports), and gathers every
 #      avalanche zone's forecast into one file for the page to keep for when there is no signal (snow-avy).
+# This is the only workflow: nothing else here runs on a schedule or by hand.
 on:
   schedule:
     - cron: "7 * * * *"
@@ -31,10 +33,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: snow/tahoe_snow
+          sparse-checkout: snow
 
-      - name: Install the readers
-        run: pip install curl_cffi==0.15.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: snow/requirements.txt
+
+      - name: Install the forecast and the readers
+        run: pip install -r snow/requirements.txt curl_cffi==0.15.0
 
       - name: Collect until the job is nearly out of time
         env:
@@ -72,6 +80,26 @@ jobs:
             rm -rf "$out"
           }
 
+          # The forecast, when the published one is old enough. A try that fails is not repeated for half an hour, so
+          # a fault cannot spend the day's Open-Meteo allowance. The data branch holds one commit: the latest forecast
+          # and the last three weeks of archive, which carries the ledger of what past runs asked Open-Meteo for.
+          tried=-1800
+          forecast() {
+            local published="" out
+            if git fetch -q --depth=1 origin snow-data 2>/dev/null; then published="$(git log -1 --format=%ct FETCH_HEAD)"; fi
+            if [ $(( ( $(date +%s) - ${published:-0} ) / 60 )) -lt 150 ] || [ $((SECONDS - tried)) -lt 1800 ]; then return 0; fi
+            tried=$SECONDS
+            mkdir -p "$code/data/archive"
+            if [ -n "$published" ]; then git archive FETCH_HEAD archive 2>/dev/null | tar -x -C "$code/data" || true; fi
+            (cd "$code" && python3 -m tahoe_snow budget) || { echo "::warning::Forecast skipped: no room in the Open-Meteo allowance"; return 0; }
+            (cd "$code" && python3 -m tahoe_snow run && python3 -m tahoe_snow prune) || { echo "::error::The forecast run failed"; return 0; }
+            out="$(mktemp -d)"
+            cp "$code/data/forecast.json" "$code/data/scorecard.json" "$out/" && cp -r "$code/data/archive" "$out/archive" \
+              && publish snow-data "$out" "Forecast data $(date -u +%Y-%m-%dT%H:%MZ)" || echo "::error::The forecast was not published"
+            rm -rf "$out"
+            (cd "$code" && python3 -m tahoe_snow usage --fail-over 0.9) || echo "::warning::The forecast is using most of the day's Open-Meteo allowance"
+          }
+
           stop=$((SECONDS + 330 * 60)) pass=0
           while [ "$SECONDS" -lt "$stop" ]; do
             began=$SECONDS pass=$((pass + 1))
@@ -87,6 +115,8 @@ jobs:
 
             (cd "$code" && python3 -m tahoe_snow.collect "$work/history" --lifts "$work/lifts" --nevada "$work/roads/nevada.json") || echo "::warning::The history pass failed"
             (cd "$work/history" && git add -A && git commit -q -m "History $(date -u +%Y-%m-%dT%H:%MZ)" && git push -q origin snow-history) || echo "::warning::The history was not pushed"
+
+            forecast
 
             if [ $((pass % 3)) -eq 1 ]; then
               record snow-holds holds.jsonl tahoe_snow.holds
