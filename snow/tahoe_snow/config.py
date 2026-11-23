@@ -167,6 +167,41 @@ RESORTS = {
                region="mammoth", kind="backcountry"),
         Resort("whitney", "Mt. Whitney", 36.5786, -118.2922, 2548, 4421, None, "Backcountry",
                region="mammoth", kind="backcountry"),
+        # New England has no snow sensors, so none of these has a station. Elevations are from each resort's own
+        # mountain-stats page where it could be read, and otherwise from the secondary source the research names
+        # (Sunday River, Stratton's base and Crotched). Each point is the midpoint of the mountain's main lift in
+        # OpenStreetMap, checked against the USGS elevation service (looked up 2026-11-23). Three rulings: Sugarbush
+        # uses Lincoln Peak's base and summit because the forecast point is on Lincoln Peak; Stowe's summit is its
+        # highest lift-served skiing, 3,625 ft, not Mt. Mansfield's 4,395 ft; and Sugarloaf's base is its summit
+        # minus its stated vertical, since the resort does not publish one.
+        Resort("sugarloaf", "Sugarloaf", 45.04554, -70.31476, _ft(1417), _ft(4237), None, "Ikon",
+               region="newengland"),
+        Resort("sundayriver", "Sunday River", 44.46334, -70.86467, _ft(800), _ft(3140), None, "Ikon",
+               region="newengland"),
+        Resort("loon", "Loon", 44.04715, -71.62851, _ft(860), _ft(3050), None, "Ikon",
+               region="newengland"),
+        Resort("killington", "Killington", 43.61127, -72.81108, _ft(1165), _ft(4241), None, "Ikon",
+               region="newengland"),
+        Resort("pico", "Pico", 43.64769, -72.83847, _ft(2000), _ft(3967), None, "Ikon",
+               region="newengland"),
+        Resort("sugarbush", "Sugarbush", 44.13197, -72.90544, _ft(1575), _ft(3975), None, "Ikon",
+               region="newengland"),
+        Resort("stratton", "Stratton", 43.10461, -72.91493, _ft(1872), _ft(3875), None, "Ikon",
+               region="newengland"),
+        Resort("stowe", "Stowe", 44.5344, -72.80087, _ft(1559), _ft(3625), None, "Epic",
+               region="newengland"),
+        Resort("okemo", "Okemo", 43.40547, -72.73386, _ft(1144), _ft(3344), None, "Epic",
+               region="newengland"),
+        Resort("mountsnow", "Mount Snow", 42.96339, -72.90724, _ft(1900), _ft(3600), None, "Epic",
+               region="newengland"),
+        Resort("wildcat", "Wildcat", 44.25667, -71.23137, _ft(1950), _ft(4062), None, "Epic",
+               region="newengland"),
+        Resort("attitash", "Attitash", 44.07554, -71.22543, _ft(600), _ft(2350), None, "Epic",
+               region="newengland"),
+        Resort("sunapee", "Mount Sunapee", 43.3222, -72.07727, _ft(1233), _ft(2743), None, "Epic",
+               region="newengland"),
+        Resort("crotched", "Crotched", 43.00708, -71.8781, _ft(1050), _ft(2066), None, "Epic",
+               region="newengland"),
     ]
 }
 
@@ -175,6 +210,7 @@ REGIONS = {
     for r in [
         Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",)),
         Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC")),
+        Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",)),
     ]
 }
 

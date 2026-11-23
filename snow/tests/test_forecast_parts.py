@@ -178,12 +178,13 @@ def test_observed_reports_water_when_the_sensor_has_no_depth(monkeypatch):
 
 
 def test_every_location_is_well_formed():
-    assert {r.region for r in RESORTS.values()} == {"tahoe", "mammoth"}
+    assert {r.region for r in RESORTS.values()} == {"tahoe", "mammoth", "newengland"}
     for resort in RESORTS.values():
         assert resort.kind in ("resort", "backcountry")
         assert (resort.pass_group == "Backcountry") == (resort.kind == "backcountry")
         assert resort.station is None or resort.station in ALL_STATIONS
-        assert 1500 < resort.base_m < resort.summit_m < 4500
+        floor = 0 if resort.region == "newengland" else 1500     # the Sierra's lowest base sits above 1,500 m
+        assert floor < resort.base_m < resort.summit_m < 4500
 
 
 def test_call_weight_follows_the_published_examples():

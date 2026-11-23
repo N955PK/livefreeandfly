@@ -18,7 +18,7 @@ def test_the_home_regions_cost_what_the_ledger_measured():
 
 
 def test_avalanche_centers_come_from_the_regions_without_repeats():
-    assert config.avalanche_centers() == ("SAC", "ESAC", "BAC")
+    assert config.avalanche_centers() == ("SAC", "ESAC", "BAC", "MWAC")
 
 
 def test_a_day_is_the_mountains_own_day():
@@ -46,3 +46,12 @@ def test_a_sensor_network_that_is_down_is_asked_once(monkeypatch):
     found = season.normals(pd.Timestamp("2026-11-21T16:00:00Z"), keys)
     assert len(asked) == len({config.ALL_STATIONS[r.station].source for r in config.resorts_in("tahoe") if r.station})
     assert found and not any(found.values())
+
+
+def test_the_new_england_mountains_are_where_they_should_be():
+    found = config.resorts_in("newengland")
+    assert len(found) == 14
+    for r in found:
+        assert r.base_m < r.summit_m, r.key
+        assert 42.7 < r.lat < 45.3 and -73.3 < r.lon < -69.9, r.key
+        assert r.station is None, r.key
