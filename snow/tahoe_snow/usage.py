@@ -89,16 +89,30 @@ def check(fail_over: float, path: Path = LEDGER) -> int:
     return int(over)
 
 
-def room(ledger: list, now: datetime, by_hand: bool) -> tuple:
+def estimate(ledger: list, region: str) -> float:
+    """What a run of ``region`` is expected to cost: the average of its last three runs in the ledger, or, with
+    none, its mountains at the measured cost of one."""
+    recent = [row["calls"] for row in ledger if row.get("region") == region][-3:]
+    if recent:
+        return sum(recent) / len(recent)
+    return round(sum(r.region == region for r in RESORTS.values()) * CALLS_PER_RESORT_RUN, 1)
+
+
+def largest_region() -> str:
+    """The region with the most mountains, which is the most a single run can cost."""
+    return max(REGIONS, key=lambda key: sum(r.region == key for r in RESORTS.values()))
+
+
+def room(ledger: list, now: datetime, by_hand: bool, region: str | None = None) -> tuple:
     """Whether another forecast run fits the day's allowance, and a line saying why.
 
     A scheduled run goes ahead until the service has actually refused requests; the ledger's rolling day is
     stricter than however the service counts, and a forecast is worth more than the margin. Once it has been
     refused, runs wait until the ledger shows a run's worth of room. A run started by hand always has to fit,
-    with room left over."""
+    with room left over. ``region`` is the one about to run; without it the last runs of any region are the guide."""
     use = summary(ledger, now)
     recent = [row["calls"] for row in ledger[-3:]]
-    next_run = sum(recent) / len(recent) if recent else TYPICAL_RUN_CALLS
+    next_run = estimate(ledger, region) if region else sum(recent) / len(recent) if recent else TYPICAL_RUN_CALLS
     limit = use["daily_limit"] * (BY_HAND_SHARE if by_hand else 1.0)
     fits = use["calls_24h"] + next_run <= limit
     told = (f"{use['calls_24h']:,} calls in the last 24 hours, about {next_run:,.0f} more for this run, "
@@ -110,10 +124,10 @@ def room(ledger: list, now: datetime, by_hand: bool) -> tuple:
     return False, f"No room for a run: {told}."
 
 
-def gate(by_hand: bool, path: Path = LEDGER) -> int:
-    """Print whether a run should go ahead and return 0 if so, 1 to skip it."""
+def gate(by_hand: bool, region: str | None = None, path: Path = LEDGER) -> int:
+    """Print whether a run of ``region`` (the largest, by default) should go ahead and return 0 if so, 1 to skip."""
     ledger = json.loads(path.read_text()) if path.exists() else []
-    go, why = room(ledger, datetime.now(timezone.utc), by_hand)
+    go, why = room(ledger, datetime.now(timezone.utc), by_hand, region or largest_region())
     print(why)
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as out:

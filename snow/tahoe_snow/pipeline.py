@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 
-from tahoe_snow import biascorrect, blend, cache, powder, season, usage
+from tahoe_snow import biascorrect, blend, cache, config, powder, season, usage
 from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, REGIONS, RESORTS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
@@ -23,6 +23,8 @@ DEFAULT_PHASE = ("wet-bulb logistic", {"center_c": 0.5, "width_c": 0.4})
 CM_PER_IN = MM_PER_IN / 10
 MPH_PER_MS = 2.23694
 WINDOWS = {"next24": (0, 24), "next72": (0, 72), "days4to5": (72, 120), "days6to10": (120, 240)}
+# The regions the single forecast.json still covers.
+HOME_REGIONS = ("tahoe", "mammoth")
 ENSEMBLE_VARS = ["precipitation", "temperature_2m"]
 
 
@@ -436,24 +438,83 @@ def add_season(resorts: list, now: pd.Timestamp) -> dict:
             for triplet, normal in normals.items() if normal}
 
 
-def refresh_season(now: datetime | None = None) -> dict:
-    """Bring the published forecast's season figures and curves up to date from the snow sensors alone. The
-    forecast itself, and the time it was made, are left as they are."""
-    now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
-    path = DATA / "forecast.json"
-    forecast = json.loads(path.read_text())
-    forecast["season_curves"] = add_season(forecast["resorts"], now)
-    path.write_text(json.dumps(forecast, separators=(",", ":")))
+def read_region(key: str) -> dict | None:
+    """A region's published forecast, or None when it has not been built."""
+    path = DATA / "forecast" / f"{key}.json"
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+def write_index() -> dict:
+    """Every region and every mountain, and when each region's forecast was last published, in ``index.json``."""
+    regions = {}
+    for key, region in REGIONS.items():
+        forecast = read_region(key)
+        regions[key] = {"name": region.name, "tz": region.tz, "every_h": region.every_h,
+                        "published_utc": forecast["published_utc"] if forecast else None}
+    resorts = [{"key": r.key, "name": r.name, "region": r.region, "kind": r.kind, "pass": r.pass_group,
+                "lat": r.lat, "lon": r.lon, "tz": REGIONS[r.region].tz,
+                "station": ALL_STATIONS[r.station].name if r.station else None, "weak_station_match": r.weak_match}
+               for r in RESORTS.values()]
+    index = {"regions": regions, "resorts": resorts}
+    DATA.mkdir(parents=True, exist_ok=True)
+    (DATA / "index.json").write_text(json.dumps(index, separators=(",", ":")))
+    return index
+
+
+def write_home_forecast() -> dict | None:
+    """The Tahoe and Eastern Sierra files as the single ``forecast.json`` the page and the reports still read, once
+    both exist. It is stamped with the older of the two, so a stale half shows as stale."""
+    parts = [read_region(key) for key in HOME_REGIONS]
+    if not all(parts):
+        return None
+    forecast = {**parts[0], "generated_utc": min(p["generated_utc"] for p in parts),
+                "published_utc": min(p["published_utc"] for p in parts),
+                "usage": max(parts, key=lambda p: p["published_utc"])["usage"],
+                "failed_resorts": [key for p in parts for key in p["failed_resorts"]],
+                "resorts": [r for p in parts for r in p["resorts"]],
+                "season_curves": {name: curve for p in parts for name, curve in p["season_curves"].items()}}
+    (DATA / "forecast.json").write_text(json.dumps(forecast, separators=(",", ":")))
     return forecast
 
 
-def run(now: datetime | None = None) -> dict:
+def due(now: datetime | None = None) -> str | None:
+    """The region most overdue for a new forecast, by the fraction of its interval since it was generated, among
+    those at or past their interval; a region never built is the most overdue. None when nothing is due."""
+    now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None)
+    late = {}
+    for key, region in REGIONS.items():
+        forecast = read_region(key)
+        if forecast is None:
+            late[key] = float("inf")
+            continue
+        age_h = (now - pd.Timestamp(forecast["generated_utc"]).tz_localize(None)) / pd.Timedelta(hours=1)
+        if age_h >= region.every_h:
+            late[key] = age_h / region.every_h
+    return max(late, key=late.get) if late else None
+
+
+def refresh_season(now: datetime | None = None) -> dict | None:
+    """Bring each published region's season figures and curves up to date from the snow sensors alone, then the
+    merged forecast. The forecasts themselves, and the time they were made, are left as they are."""
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
+    for key in REGIONS:
+        forecast = read_region(key)
+        if forecast:
+            forecast["season_curves"] = add_season(forecast["resorts"], now)
+            (DATA / "forecast" / f"{key}.json").write_text(json.dumps(forecast, separators=(",", ":")))
+    return write_home_forecast()
+
+
+def run(region: str, now: datetime | None = None) -> dict:
+    """Forecast one region's mountains and publish ``forecast/<region>.json``, the index, the merged forecast, and
+    the region's archive file. If no mountain succeeds nothing is written."""
+    now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
+    first_request = len(cache.REQUESTS)
     snow_model, ratio_name = load_snow_model()
     corrections = load_corrections()
     weights = load_weights()
     resorts, archive, failed = [], [], []
-    for resort in RESORTS.values():
+    for resort in config.resorts_in(region):
         try:
             payload, rows = resort_forecast(resort, snow_model, corrections.get(resort.region), now, weights=weights)
             resorts.append(payload)
@@ -463,9 +524,10 @@ def run(now: datetime | None = None) -> dict:
             failed.append(resort.key)
             print(f"{resort.name}: FAILED {error}", flush=True)
     if not resorts:
-        raise SystemExit("no resort forecast could be produced")
+        raise SystemExit(f"no resort forecast could be produced for {region}")
     season_curves = add_season(resorts, now)
     stamp = now.to_pydatetime()
+    ran = {**usage.of_run(cache.REQUESTS[first_request:]), "region": region}
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
                 "published_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "snow_ratio_model": ratio_name,
@@ -473,15 +535,17 @@ def run(now: datetime | None = None) -> dict:
                 "bias_corrected": "tahoe" in corrections, "deterministic_days": DETERMINISTIC_DAYS,
                 "failed_resorts": failed, "powder_formula": powder.FORMULA, "resorts": resorts,
                 "season_curves": season_curves,
-                "usage": usage.summary(usage.record(usage.of_run(cache.REQUESTS), stamp), stamp)}
-    DATA.mkdir(parents=True, exist_ok=True)
-    (DATA / "forecast.json").write_text(json.dumps(forecast, separators=(",", ":")))
+                "usage": usage.summary(usage.record(ran, stamp, DATA / "archive" / "usage.json"), stamp)}
+    (DATA / "forecast").mkdir(parents=True, exist_ok=True)
+    (DATA / "forecast" / f"{region}.json").write_text(json.dumps(forecast, separators=(",", ":")))
+    write_index()
+    write_home_forecast()
     folder = DATA / "archive" / now.strftime("%Y/%m")
     folder.mkdir(parents=True, exist_ok=True)
     # Compact archive for grading: forecasts for today onward, as columns and rows.
     upcoming = [row for row in archive if row["lead_day"] >= 0]
     columns = list(dict.fromkeys(key for row in upcoming for key in row))
-    (folder / f"{now.strftime('%d_%H')}z.json").write_text(json.dumps(
+    (folder / f"{now.strftime('%d_%H')}z_{region}.json").write_text(json.dumps(
         {"generated_utc": forecast["generated_utc"], "columns": columns,
          "rows": [[row.get(column) for column in columns] for row in upcoming]}, separators=(",", ":")))
     return forecast

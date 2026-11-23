@@ -4,3 +4,5 @@ __pycache__/
 .pytest_cache/
 data/forecast.json
 data/archive/
+data/forecast/
+data/index.json
