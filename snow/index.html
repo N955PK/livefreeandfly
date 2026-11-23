@@ -1512,7 +1512,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "219";
+const BUILD = "220";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1543,7 +1543,7 @@ const REGIONS = {
       [3200, [0.55, 0.53, 0.48]], [3800, [0.72, 0.70, 0.67]]],
     avalanche: [{id: "ESAC", name: "Eastern Sierra Avalanche Center", url: "https://www.esavalanche.org/"},
       {id: "BAC", name: "Bridgeport Avalanche Center", url: "https://bridgeportavalanchecenter.org/"}]},
-  newengland: {name: "New England", terrain: "data/terrain-newengland", roads: "data/roads-newengland.json", center: [44.005, -71.615], rev: "?v=2", waterM: 0, pick: "sugarloaf",
+  newengland: {name: "New England", short: "NE", terrain: "data/terrain-newengland", roads: "data/roads-newengland.json", center: [44.005, -71.615], rev: "?v=2", waterM: 0, pick: "sugarloaf",
     // The mountains run 300 km from Mount Snow to Sugarloaf: the disc is 190 km in radius, the terrain is a square
     // that just holds it, and the view opens far out, from the south-southwest, so Stowe and Crotched both fit
     // across a phone.
