@@ -16,8 +16,10 @@ import sys
 import urllib.request
 from datetime import datetime, timezone
 
+from tahoe_snow import config
+
 API = "https://api.avalanche.org/v2/public"
-CENTERS = ("SAC", "ESAC", "BAC")
+CENTERS = config.avalanche_centers()
 GALLERY = 8  # how many of a forecast's own photographs the page shows and saves; keep in step with AVY_GALLERY on the page
 
 

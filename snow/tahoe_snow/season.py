@@ -8,7 +8,7 @@ curves the page draws: the usual year, this year so far, and the ten winters bef
 import numpy as np
 import pandas as pd
 
-from tahoe_snow.config import ALL_STATIONS, MM_PER_IN, RESORTS
+from tahoe_snow.config import ALL_STATIONS, MM_PER_IN, REGIONS, RESORTS
 from tahoe_snow.sources import cdec, snotel
 
 HISTORY_START = "1980-10-01"
@@ -22,7 +22,6 @@ SNOW_BELOW_C = 1.0
 RATIO_BY_TEMP_C = ([-9.0, -1.0], [14.0, 8.0])
 RATIO_UNKNOWN_TEMP = 10.0
 CM_PER_IN = 2.54
-PST_OFFSET_H = 8
 STEP_DAYS = 3
 PAST_YEARS = 10
 RECORD_HOLD_DAYS = 15
@@ -143,9 +142,10 @@ def station_normal(station, day: pd.Timestamp) -> dict:
 
 def normals(now: pd.Timestamp) -> dict:
     """The usual year at every sensor a mountain is paired with, keyed by the sensor's id."""
-    day = (now - pd.Timedelta(hours=PST_OFFSET_H)).normalize()
-    used = {ALL_STATIONS[resort.station] for resort in RESORTS.values() if resort.station}
-    return {station.triplet: _normal_or_none(station, day) for station in used}
+    clock = {ALL_STATIONS[resort.station]: REGIONS[resort.region].std_offset_h
+             for resort in RESORTS.values() if resort.station}
+    return {station.triplet: _normal_or_none(station, (now - pd.Timedelta(hours=offset_h)).normalize())
+            for station, offset_h in clock.items()}
 
 
 def _normal_or_none(station, day: pd.Timestamp) -> dict:

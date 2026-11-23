@@ -52,6 +52,19 @@ class Resort:
         return {"base": self.base_m, "mid": self.mid_m, "summit": self.summit_m}
 
 
+@dataclass(frozen=True)
+class Region:
+    key: str
+    name: str
+    tz: str
+    # Hours behind UTC in standard time: SNOTEL reads its daily values at midnight on that clock all year.
+    std_offset_h: int
+    # Hours between forecast runs for the region's mountains.
+    every_h: int
+    # The avalanche centers whose forecasts cover the region.
+    avalanche: tuple[str, ...]
+
+
 def _ft(feet: float) -> float:
     return round(feet * M_PER_FT, 1)
 
@@ -156,6 +169,24 @@ RESORTS = {
                region="mammoth", kind="backcountry"),
     ]
 }
+
+REGIONS = {
+    r.key: r
+    for r in [
+        Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",)),
+        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC")),
+    ]
+}
+
+
+def resorts_in(region: str) -> list[Resort]:
+    return [r for r in RESORTS.values() if r.region == region]
+
+
+def avalanche_centers() -> tuple[str, ...]:
+    """Every region's avalanche centers, in region order, each once."""
+    return tuple(dict.fromkeys(center for region in REGIONS.values() for center in region.avalanche))
+
 
 # Open-Meteo model identifiers.
 DET_MODELS = ["gfs_seamless", "ecmwf_ifs025", "icon_seamless", "gem_seamless"]

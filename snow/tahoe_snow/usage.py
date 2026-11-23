@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from tahoe_snow.config import DATA
+from tahoe_snow.config import DATA, REGIONS, RESORTS
 from tahoe_snow.sources import openmeteo
 
 LEDGER = DATA / "archive" / "usage.json"
@@ -18,6 +18,16 @@ STAMP = "%Y-%m-%dT%H:%M:%SZ"
 TYPICAL_RUN_CALLS = 1000
 # A run started by hand has to leave this much of the day's allowance for the scheduled ones.
 BY_HAND_SHARE = 0.9
+# What one mountain's forecast costs the service, as the ledger measured it (1,089 calls a run for 21 mountains).
+CALLS_PER_RESORT_RUN = 51.9
+# The most calls a day the service's plan allows.
+PLAN_LIMIT = 8500
+
+
+def planned(regions: dict = REGIONS, resorts: dict = RESORTS) -> float:
+    """Calls a day the configured regions will spend: each mountain's cost for every run its region makes."""
+    return sum(sum(r.region == region.key for r in resorts.values()) * 24 / region.every_h * CALLS_PER_RESORT_RUN
+               for region in regions.values())
 
 
 def of_run(requests: list) -> dict:

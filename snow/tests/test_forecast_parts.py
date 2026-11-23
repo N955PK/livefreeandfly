@@ -123,8 +123,8 @@ def test_resort_without_a_station_is_left_uncorrected_and_has_no_observation():
     index = pd.date_range("2026-01-02 08:00", periods=48, freq="h")
     precip = pd.Series(1.0, index=index)
     today = pd.Timestamp("2026-01-02")
-    assert pipeline.corrected_liquid(precip, "gfs", None, today, correction).equals(precip)
-    assert not np.allclose(pipeline.corrected_liquid(precip, "gfs", "dry", today, correction), precip)
+    assert pipeline.corrected_liquid(precip, "gfs", None, today, correction, "America/Los_Angeles").equals(precip)
+    assert not np.allclose(pipeline.corrected_liquid(precip, "gfs", "dry", today, correction, "America/Los_Angeles"), precip)
     assert pipeline.observed(june, index[-1], index) is None
 
 

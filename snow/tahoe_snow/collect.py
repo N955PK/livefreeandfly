@@ -32,6 +32,8 @@ import re
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
+from tahoe_snow import config
+
 AGENT = {"User-Agent": "sierra-snow"}
 IKON = {61: "ikon61", 60: "ikon60", 59: "ikon59"}  # Palisades and Alpine, Mammoth, June
 IKON_FEED = "https://mtnpowder.com/feed?resortId={id}"
@@ -42,7 +44,7 @@ CHAINS = "https://cwwp2.dot.ca.gov/data/d{d}/cc/ccStatusD{d:02d}.json"
 CLOSURES = "https://cwwp2.dot.ca.gov/data/d{d}/lcs/lcsStatusD{d:02d}.json"
 CHAIN_DISTRICTS, CLOSURE_DISTRICTS = (3, 10, 9), (9,)
 AVALANCHE = "https://api.avalanche.org/v2/public"
-CENTERS = ("SAC", "ESAC", "BAC")
+CENTERS = config.avalanche_centers()
 FORECAST = "https://raw.githubusercontent.com/N955PK/livefreeandfly/snow-data/forecast.json"
 # What is kept of a weather station and of a snow stake in the Ikon feed.
 STATION = ("TemperatureF", "WindDirection", "WindStrengthMph", "WindGustsMph", "Humidity", "Skies")

@@ -1,4 +1,5 @@
 """One forecast run: fetch, correct, convert to snow, blend, and write the site's JSON."""
+import functools
 import json
 from datetime import datetime, timezone
 
@@ -6,12 +7,11 @@ import numpy as np
 import pandas as pd
 
 from tahoe_snow import biascorrect, blend, cache, powder, season, usage
-from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, RESORTS
+from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, REGIONS, RESORTS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
 from tahoe_snow.sources import cdec, openmeteo, snotel
 
-TZ = "America/Los_Angeles"
 # Two weeks. Past day 10 only the models that run that far are in the blend (ICON stops near 7 days, GEM at 10).
 DAYS = 14
 HISTORY_DAYS = 7
@@ -76,12 +76,12 @@ def shifted(hourly: pd.DataFrame, delta_c: float) -> pd.DataFrame:
     return out
 
 
-def local_days(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
-    return index.tz_localize("UTC").tz_convert(TZ).tz_localize(None).normalize()
+def local_days(index: pd.DatetimeIndex, tz: str) -> pd.DatetimeIndex:
+    return index.tz_localize("UTC").tz_convert(tz).tz_localize(None).normalize()
 
 
 def corrected_liquid(precip: pd.Series, model: str, station: str | None, today: pd.Timestamp,
-                     correction: biascorrect.Correction | None) -> pd.Series:
+                     correction: biascorrect.Correction | None, tz: str) -> pd.Series:
     """Hourly liquid scaled so each local day's total equals the bias-corrected total.
 
     A place with no station is left as the models have it: a map borrowed from other stations did no better
@@ -89,7 +89,7 @@ def corrected_liquid(precip: pd.Series, model: str, station: str | None, today: 
     """
     if correction is None or station is None:
         return precip
-    days = local_days(precip.index)
+    days = local_days(precip.index, tz)
     totals = precip.groupby(days).transform("sum")
     lead = np.clip((days - today).days, 0, None)
     factor = np.ones(len(precip))
@@ -105,7 +105,8 @@ def model_snow(frame: pd.DataFrame, model: str, resort, snow_model: SnowModel, t
     profile = fill_profile(frame)
     if profile[[c for c in profile.columns if c.startswith("temperature_") and c.endswith("hPa")]].isna().all().all():
         return {}
-    liquid = corrected_liquid(profile["precipitation"], model, resort.station, today, correction)
+    liquid = corrected_liquid(profile["precipitation"], model, resort.station, today, correction,
+                              REGIONS[resort.region].tz)
     out = {}
     for label, elev_m in resort.elevations().items():
         hourly = features.hourly_features(profile, elev_m)
@@ -168,12 +169,12 @@ SKI_DAY_START_H, SKI_DAY_END_H = 8, 16
 
 
 def day_part(hourly: pd.DataFrame, summit: pd.DataFrame, day: pd.Timestamp, members: pd.DataFrame | None = None,
-             recenter: bool = True, by_model: pd.DataFrame | None = None) -> dict:
+             recenter: bool = True, by_model: pd.DataFrame | None = None, *, tz: str) -> dict:
     """The ski day ``day``: snow from 4 pm the day before to 4 pm that day, split into overnight and daytime,
     with the powder score and the conditions during lift hours (8 am to 4 pm)."""
     def utc(hour: int, back_days: int = 0) -> pd.Timestamp:
         local = day - pd.Timedelta(days=back_days) + pd.Timedelta(hours=hour)
-        return local.tz_localize(TZ).tz_convert("UTC").tz_localize(None)
+        return local.tz_localize(tz).tz_convert("UTC").tz_localize(None)
 
     start, opening, end = utc(SKI_DAY_END_H, back_days=1), utc(SKI_DAY_START_H), utc(SKI_DAY_END_H)
     piece = hourly.loc[(hourly.index > start) & (hourly.index <= end)]
@@ -259,7 +260,7 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
     if resort.station is None:
         return None
     station = ALL_STATIONS[resort.station]
-    start = (hours[0] - pd.Timedelta(hours=24 + snotel_offset_h())).strftime("%Y-%m-%d")
+    start = (hours[0] - pd.Timedelta(hours=24 + snotel_offset_h(resort))).strftime("%Y-%m-%d")
     end = (now + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
     try:
         frame = cdec.hourly(station.triplet.split(":")[0], start, end, max_age_h=1.0) if station.source == "cdec" \
@@ -272,7 +273,7 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
     frame = frame.dropna(subset=["depth_cm", "swe_mm"], how="all")
     if frame.empty:
         return None
-    frame.index = frame.index + pd.Timedelta(hours=snotel_offset_h())   # station clock (PST) to UTC
+    frame.index = frame.index + pd.Timedelta(hours=snotel_offset_h(resort))   # station clock (standard time) to UTC
     frame = frame[frame.index <= now]
     last = frame.index[-1]
 
@@ -313,8 +314,9 @@ def water_correction(resort, correction) -> str | None:
     return "station" if correction.fitted(resort.station) else "pooled"
 
 
-def snotel_offset_h() -> int:
-    return 8
+def snotel_offset_h(resort) -> int:
+    """Hours the mountain's sensor clock runs behind UTC: its region's standard time."""
+    return REGIONS[resort.region].std_offset_h
 
 
 def _round(values, digits=1) -> list:
@@ -323,7 +325,8 @@ def _round(values, digits=1) -> list:
 
 def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp, weights: dict) -> tuple:
     """Site payload and archive rows for one resort."""
-    today = now.tz_localize("UTC").tz_convert(TZ).tz_localize(None).normalize()
+    tz = REGIONS[resort.region].tz
+    today = now.tz_localize("UTC").tz_convert(tz).tz_localize(None).normalize()
     variables = openmeteo.FORECAST_SURFACE_VARS + openmeteo.level_variables() + [openmeteo.WIND_DIRECTION]
     frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS, variables, days=DAYS,
                                 past_days=HISTORY_DAYS + 1)
@@ -345,12 +348,12 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                                                     days=DAYS), parent)
         except RuntimeError:
             continue
-    midnight = today.tz_localize(TZ).tz_convert("UTC").tz_localize(None)
+    midnight = today.tz_localize(tz).tz_convert("UTC").tz_localize(None)
     # A week back, so the page can show recent history and total the storm in progress.
     hours = pd.date_range(midnight - pd.Timedelta(hours=HISTORY_DAYS * 24), now + pd.Timedelta(hours=DAYS * 24 - 1),
                           freq="h")
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
-               "region": resort.region, "kind": resort.kind, "pass": resort.pass_group,
+               "region": resort.region, "tz": tz, "kind": resort.kind, "pass": resort.pass_group,
                "station": ALL_STATIONS[resort.station].name if resort.station else None,
                "weak_station_match": resort.weak_match, "water_correction": water_correction(resort, correction),
                "observed": observed(resort, now, hours), "elevations": {},
@@ -359,7 +362,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     summit_blend = None
     for label, elev_m in resort.elevations().items():
         snow = pd.DataFrame({m: r[label]["hourly"]["snow_cm"] for m, r in models.items()}).reindex(hours)
-        fields = {name: (blend.robust_mean if name in ("snow_cm", "liquid_mm") else blend.weighted_mean)(
+        fields = {name: (functools.partial(blend.robust_mean, tz=tz) if name in ("snow_cm", "liquid_mm")
+                         else blend.weighted_mean)(
             pd.DataFrame({m: r[label]["hourly"][name] for m, r in models.items()}).reindex(hours), weights)
             for name in ("snow_cm", "liquid_mm", "slr", "snow_fraction", "snow_level_m", "wind_ms", "temp_c",
                          "cloud_pct", "gust_ms")}
@@ -377,9 +381,9 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
             recenter = span[1] <= DETERMINISTIC_DAYS * 24
             windows[name] = {"snow_in": _round([total / CM_PER_IN])[0],
                              **spread(total, window_sum(members, now, span), recenter)}
-        daily = blend.local_day_totals(blended[["snow_cm", "liquid_mm"]])
-        by_model = blend.local_day_totals(snow)
-        member_days = blend.local_day_totals(members) if len(members.columns) else pd.DataFrame()
+        daily = blend.local_day_totals(blended[["snow_cm", "liquid_mm"]], tz)
+        by_model = blend.local_day_totals(snow, tz)
+        member_days = blend.local_day_totals(members, tz) if len(members.columns) else pd.DataFrame()
         days = []
         for day in daily.index:
             lead = int((day - today).days)
@@ -395,7 +399,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                      "by_model": {m: _round([by_model.loc[day, m] / CM_PER_IN])[0] for m in by_model.columns},
                      "past": bool(day < today),
                      "powder": day_part(blended, summit_blend if summit_blend is not None else blended, day,
-                                        members, recenter=lead <= DETERMINISTIC_DAYS, by_model=snow)}
+                                        members, recenter=lead <= DETERMINISTIC_DAYS, by_model=snow, tz=tz)}
             days.append(entry)
             for model in by_model.columns:
                 archive.append({"resort": resort.key, "elevation": label, "date": entry["date"], "lead_day": lead,
