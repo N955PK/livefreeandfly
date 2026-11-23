@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "206";
+const BUILD = "207";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -2897,7 +2897,7 @@ const star = (key) => { const on = isFavorite(key); return `<button class="setmi
 // While the Mountain tab is closed it is not drawn: it would find no width there and be drawn again on opening, and
 // drawing it is the slowest thing a change of region or mountain does. It is drawn when it opens (see showView and
 // pagerOpen); its resort's lifts are still fetched now, so they are ready by then.
-let detailDue = false;
+let detailDue = false, mapDue = false;   // mapDue: see startMap
 const detailShowing = () => !tabbed() || document.documentElement.dataset.view === "mountain" || (pager && pager.to === "mountain");
 function renderDetail() {
   // On Favorites a mountain picked on the map that is not a favorite is still the one shown.
@@ -3030,6 +3030,7 @@ function pagerOpen(to, byTap) {
   if (pinned && innBar) { top -= innBar.getBoundingClientRect().top - pin; document.documentElement.style.setProperty("--gtop", `${top}px`); }
   pager = {from, to, sign, out, inn, w: window.innerWidth, byTap, pinned, pin, sy: window.scrollY, busy: false};
   if (to === "mountain" && data && (detailDue || Math.abs(inn.clientWidth - fitted) > 40)) renderDetail();
+  if (to === "map" && mapDue) startMap();
   // The pane comes in at its top, so its first chip is lit from the start rather than once the slide is over.
   const chips = inn.querySelector(".dtop > .jump"), first = chips && chips.querySelector("button");
   if (first) {
@@ -3097,6 +3098,7 @@ function showView(view) {
   placeSegs(true);
   // The hourly chart is drawn to the width it finds, and it found none while its tab was closed.
   if (view === "mountain" && data && (detailDue || Math.abs($("detail").clientWidth - fitted) > 40)) renderDetail();
+  if (view === "map" && mapDue) startMap();
 }
 function applyLayout(view) {
   document.documentElement.classList.add("tabs");
@@ -3404,10 +3406,21 @@ function railReady(anyway) {
 const mapDepth = () => ({per: metric() ? 2.54 : 1, unit: LEN()});
 // The place the map was last built for (see followPlace).
 let mapPlace = null;
+// A change of place made while the Map tab is closed (a favorite of another region chosen from the summary, say)
+// does not build the new map there and then: the old one is put aside and the new one is built when the tab opens
+// (mapDue, declared with detailDue).
+const mapShowing = () => !tabbed() || document.documentElement.dataset.view === "map" || (pager && pager.to === "map");
 async function startMap() {
   mapPlace = place();
   const list = inPlace(), build = ++mapBuild;
   if (!list.length || !list[0].lat) return;
+  if ((map || mapDue) && !mapShowing()) {
+    togglePlay(false);
+    if (map) { if (staleMap) staleMap.dispose(); staleMap = map; map = null; }
+    mapDue = true;
+    return;
+  }
+  mapDue = false;
   try {
     const {createMap} = await import(`./map3d.js?v=${BUILD}`);
     togglePlay(false);
