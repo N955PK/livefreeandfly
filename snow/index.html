@@ -616,7 +616,11 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
    the others making room, and settles where it is let go. Held rows neither select their text nor call up the
    phone's menu. While one is lifted every row is its own layer, so the lifted one passes over the rest (and under
    the sticky day headings). */
-.heat tr[data-key]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.heat tr[data-key]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+/* On a phone a long press on text that cannot be selected selects the nearest text that can, and WebKit decides it
+   element by element, so the whole list is unselectable: its headings, every cell's text, and the lines just above
+   and below it that a resting finger can reach. Only the summary: the Mountain tab and the sheets stay selectable. */
+.heat,.heat tr,.heat td,.heat th,.heat b,.heat span,.heat i,.heat em,.heat small,.sumhead .bar h2,.gridfresh,.gridcap,.gridcap span,.gridnote,.legend,.legend *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* A favorite in a region's own list carries a small star after its name. */
 .heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
 .heat.lifting tr[data-key]{transform:translate3d(0,0,0);transition:transform .15s ease-out}
@@ -1512,7 +1516,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "220";
+const BUILD = "221";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4241,8 +4245,12 @@ function holdStart(row, x, y) {
 // A mountain held in a region's list: a sheet comes up from the bottom offering to add it to Favorites (or to take
 // it off). The finger is still down when it opens, so its release is not a tap on the row or on the sheet.
 let favFor = null, favOpened = 0;
+// A selection the phone began under a held finger is let go of as soon as the hold is up.
+const dropSelection = () => { try { window.getSelection().removeAllRanges(); } catch (error) { /* nothing selected */ } };
+$("heat").addEventListener("selectstart", (e) => e.preventDefault());
 function askFavorite() {
   if (!hold) return;
+  dropSelection();
   const spot = mountain(hold.row.dataset.key);
   dropHold();
   if (!spot) return;
@@ -4251,6 +4259,7 @@ function askFavorite() {
   $("favTitle").textContent = spot.name;
   $("favGo").textContent = isFavorite(spot.key) ? "Remove from Favorites" : "Add to Favorites";
   $("favSheet").showModal();
+  dropSelection();
 }
 $("favSheet").addEventListener("click", (e) => {
   if (Date.now() - favOpened < 500) return;
@@ -4260,6 +4269,7 @@ $("favSheet").addEventListener("click", (e) => {
 $("favSheet").addEventListener("close", () => { favFor = null; });
 function liftHeld() {
   if (!hold || hold.lifted) return;
+  dropSelection();
   const rows = [...$("heat").querySelectorAll("tr[data-key]")], at = rows.indexOf(hold.row);
   if (at < 0) { hold = null; return; }
   const boxes = rows.map((r) => r.getBoundingClientRect()), gap = rows.length > 1 ? boxes[1].top - boxes[0].bottom : 0;
