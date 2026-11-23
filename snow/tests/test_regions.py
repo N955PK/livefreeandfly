@@ -1,6 +1,6 @@
 import pandas as pd
 
-from tahoe_snow import config, pipeline, usage
+from tahoe_snow import config, pipeline, usage, season
 
 
 def test_every_resort_belongs_to_a_configured_region():
@@ -25,3 +25,10 @@ def test_a_day_is_the_mountains_own_day():
     hours = pd.date_range("2026-12-01 03:00", periods=4, freq="h")       # UTC
     assert list(pipeline.local_days(hours, "America/Los_Angeles").strftime("%Y-%m-%d")) == ["2026-11-30"] * 4
     assert list(pipeline.local_days(hours, "America/New_York").strftime("%Y-%m-%d")) == ["2026-11-30", "2026-11-30", "2026-12-01", "2026-12-01"]
+
+
+def test_a_regions_run_reads_only_its_own_sensors(monkeypatch):
+    monkeypatch.setattr(season, "station_normal", lambda station, day: {"water": {"curve": {}}})
+    own = {r.station for r in config.resorts_in("mammoth") if r.station}
+    found = season.normals(pd.Timestamp("2026-11-21T16:00:00Z"), [r.key for r in config.resorts_in("mammoth")])
+    assert set(found) == own and own

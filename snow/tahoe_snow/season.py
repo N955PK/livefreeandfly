@@ -140,10 +140,11 @@ def station_normal(station, day: pd.Timestamp) -> dict:
     return found
 
 
-def normals(now: pd.Timestamp) -> dict:
-    """The usual year at every sensor a mountain is paired with, keyed by the sensor's id."""
-    clock = {ALL_STATIONS[resort.station]: REGIONS[resort.region].std_offset_h
-             for resort in RESORTS.values() if resort.station}
+def normals(now: pd.Timestamp, keys=None) -> dict:
+    """The usual year at every sensor a mountain is paired with, keyed by the sensor's id. ``keys`` limits it to
+    those mountains' sensors, so a region's run reads only its own."""
+    resorts = RESORTS.values() if keys is None else [RESORTS[key] for key in keys]
+    clock = {ALL_STATIONS[resort.station]: REGIONS[resort.region].std_offset_h for resort in resorts if resort.station}
     return {station.triplet: _normal_or_none(station, (now - pd.Timedelta(hours=offset_h)).normalize())
             for station, offset_h in clock.items()}
 

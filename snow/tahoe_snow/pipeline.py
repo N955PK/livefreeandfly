@@ -429,7 +429,7 @@ def add_season(resorts: list, now: pd.Timestamp) -> dict:
     """Each mountain's snowpack against a usual year, and each sensor's curves by its name. A sensor network
     that cannot be reached leaves both out."""
     try:
-        normals = season.normals(now)
+        normals = season.normals(now, [payload["key"] for payload in resorts])
     except (RuntimeError, OSError, ValueError, KeyError) as error:
         print(f"season: FAILED {error}", flush=True)
         normals = {}
