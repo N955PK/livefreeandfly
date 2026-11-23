@@ -142,21 +142,39 @@ def station_normal(station, day: pd.Timestamp) -> dict:
 
 def normals(now: pd.Timestamp, keys=None) -> dict:
     """The usual year at every sensor a mountain is paired with, keyed by the sensor's id. ``keys`` limits it to
-    those mountains' sensors, so a region's run reads only its own."""
+    those mountains' sensors, so a region's run reads only its own. Once a sensor network has failed to answer at
+    all, its other sensors are left out without being asked: a network that is down would otherwise hold the
+    forecast up for minutes a sensor."""
     resorts = RESORTS.values() if keys is None else [RESORTS[key] for key in keys]
     clock = {ALL_STATIONS[resort.station]: REGIONS[resort.region].std_offset_h for resort in resorts if resort.station}
-    return {station.triplet: _normal_or_none(station, (now - pd.Timedelta(hours=offset_h)).normalize())
-            for station, offset_h in clock.items()}
+    found, down = {}, set()
+    for station, offset_h in clock.items():
+        if station.source in down:
+            found[station.triplet] = {}
+            continue
+        try:
+            found[station.triplet] = _normal_or_none(station, (now - pd.Timedelta(hours=offset_h)).normalize())
+        except Unreachable as error:
+            print(f"season: {station.source} cannot be reached, its sensors are left out ({error})", flush=True)
+            down.add(station.source)
+            found[station.triplet] = {}
+    return found
+
+
+class Unreachable(RuntimeError):
+    """A sensor network that did not answer at all, after the fetch's own retries."""
 
 
 def _normal_or_none(station, day: pd.Timestamp) -> dict:
-    """One sensor's usual year, or nothing where its network cannot be read. A sensor that answers with an error
-    page or half a reply is tried once more and then left out, so it costs only its own mountains their season
-    figures and not every mountain theirs."""
+    """One sensor's usual year, or nothing where it cannot be read. A sensor that answers with an error page or
+    half a reply is tried once more and then left out, so it costs only its own mountains their season figures
+    and not every mountain theirs. A fetch that failed outright has already been retried and is not tried again."""
     for attempt in (1, 2):
         try:
             return station_normal(station, day)
         except (RuntimeError, OSError, ValueError, KeyError) as error:
+            if isinstance(error, RuntimeError) and str(error).startswith("fetch failed"):
+                raise Unreachable(str(error)[:200]) from error
             print(f"season: {station.name} FAILED (try {attempt}) {error}", flush=True)
     return {}
 

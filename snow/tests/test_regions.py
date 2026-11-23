@@ -32,3 +32,17 @@ def test_a_regions_run_reads_only_its_own_sensors(monkeypatch):
     own = {r.station for r in config.resorts_in("mammoth") if r.station}
     found = season.normals(pd.Timestamp("2026-11-21T16:00:00Z"), [r.key for r in config.resorts_in("mammoth")])
     assert set(found) == own and own
+
+
+def test_a_sensor_network_that_is_down_is_asked_once(monkeypatch):
+    asked = []
+
+    def down(station, day):
+        asked.append(station.name)
+        raise RuntimeError("fetch failed: https://example.invalid None: timed out")
+
+    monkeypatch.setattr(season, "station_normal", down)
+    keys = [r.key for r in config.resorts_in("tahoe")]
+    found = season.normals(pd.Timestamp("2026-11-21T16:00:00Z"), keys)
+    assert len(asked) == len({config.ALL_STATIONS[r.station].source for r in config.resorts_in("tahoe") if r.station})
+    assert found and not any(found.values())
