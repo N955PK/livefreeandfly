@@ -202,10 +202,11 @@ RESORTS = {
                region="newengland"),
         Resort("crotched", "Crotched", 43.00708, -71.8781, _ft(1050), _ft(2066), None, "Epic",
                region="newengland"),
-        # Mt. Washington: the point is the summit (OpenStreetMap), the base is the Pinkham Notch trailhead, and both
-        # heights are read from the Terrain Tiles elevation model (2026-11-23). It sits inside the Presidential
-        # Range avalanche zone.
-        Resort("washington", "Mt. Washington", 44.2705, -71.3033, 619, 1916, None, "Backcountry",
+        # Tuckerman Ravine, on Mt. Washington: the skiing is in the ravine, not on the 6,288 ft summit above it. The
+        # point is the ravine (OpenStreetMap), the top is the lip of the headwall, where a profile of the ground
+        # toward the summit eases from 45 degrees, and the base is the Pinkham Notch trailhead; heights are read
+        # from the Terrain Tiles elevation model (2026-11-23). It sits inside the Presidential Range avalanche zone.
+        Resort("tuckerman", "Tuckerman Ravine", 44.2619, -71.2961, 619, 1580, None, "Backcountry",
                region="newengland", kind="backcountry"),
     ]
 }
