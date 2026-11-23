@@ -1419,7 +1419,7 @@ if (HOSTED) {
 
 </main>
 <nav class="tabbar" id="tabbar" aria-label="Sections"><span class="tabglass" aria-hidden="true"></span><div><i class="tabind" id="tabInd" aria-hidden="true"></i>
-  <button data-view="map">Map</button><button data-view="forecast">Region</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
+  <button data-view="map">Map</button><button data-view="forecast">Summary</button><button data-view="mountain">Mountain</button><button data-view="avalanche">Avalanche</button>
 </div></nav>
 <dialog id="settingsSheet" class="sheet top guide"><div class="grab"><button id="guideBack" class="gback" aria-label="Back" hidden><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.500 2 3.500 6l4 4"/></svg></button><b id="guideTitle" tabindex="-1" autofocus>About Turbo Snow</b><button id="setDone" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="sheetbody" id="guideBody">
   <div class="gpage" data-page="root" data-title="About Turbo Snow">
@@ -1505,7 +1505,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "199";
+const BUILD = "200";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
