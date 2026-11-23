@@ -414,15 +414,18 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   // resorts report, each at the elevation it is given for, once they arrive (setReportedGround). Only a sensor's
   // current depth (observed.depth_in) counts as a sensor reading: a dated daily record (observed.daily, the
   // Mt. Washington summit's) takes no part.
+  // A resort's depth is mostly snow it made and groomed on its trails, with the woods beside them often bare, so a
+  // reported depth counts for half a sensor's, and the snow line is put no lower than the lowest place reporting snow.
+  const REPORTED_COUNTS = 0.5;
   const pack = new Float32Array(bins);
-  function packFrom(all) {
+  function packFrom(all, reported = false) {
     pack.fill(0);
-    const snowy = all.filter(([, d]) => d >= 1), bare = all.filter(([, d]) => d < 1);
+    const snowy = all.filter(([, d]) => d >= 1).map(([ft, d]) => [ft, reported ? d * REPORTED_COUNTS : d]), bare = all.filter(([, d]) => d < 1);
     if (snowy.length) {
       const mean = (k) => snowy.reduce((sum, p) => sum + p[k], 0) / snowy.length;
       const low = snowy.reduce((a, p) => p[0] < a[0] ? p : a);
       const under = bare.filter(([ft]) => ft < low[0]).map(([ft]) => ft);
-      const line = under.length ? Math.max(...under) : low[0] - Math.min(1500, low[1] * 50);
+      const line = under.length ? Math.max(...under) : reported ? low[0] : low[0] - Math.min(1500, low[1] * 50);
       const ft = Math.max(mean(0), line + 500), deep = mean(1);
       for (let b = 0; b < bins; b++) pack[b] = Math.min(2 * deep, Math.max(0, deep * (b * BIN_M / 0.3048 - line) / (ft - line)));
     }
@@ -824,7 +827,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     setGround(byKey) { for (const item of items) if (byKey[item.key] != null) item.ground = byKey[item.key]; paintedAt = -1; },
     // The resorts' reported depths ([feet, inches], 0 for bare ground) as the snow on the ground, only where no sensor
     // reads one; where any does, the sensors' reckoning stands and this does nothing.
-    setReportedGround(points) { if (sensed.size) return; packFrom(points); paintedAt = -1; },
+    setReportedGround(points) { if (sensed.size) return; packFrom(points, true); paintedAt = -1; },
     select(key) { picked = key; paintedAt = -1; },
     // Depths are kept in inches; the labels show them times `per`, in `unit`.
     setDepthUnits(units) { depth = units; paintedAt = -1; },
