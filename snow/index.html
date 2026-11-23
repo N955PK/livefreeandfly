@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "224";
+const BUILD = "225";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -2579,22 +2579,22 @@ function skiingBest(levels, best, wild) {
       total > 0 && best.night >= 0.65 * total ? "Go early, because most of it falls overnight." : total > 0 && best.daytime >= 0.6 * total ? "It keeps snowing through the day, so the afternoon may be better than the morning." : "",
       best.recent < 3 && !best.dump && best.fresh < 8 ? "It sits on a firm base." : "",
     ].filter(Boolean).slice(0, 2);
-    return [`The best skiing is ${wild ? "on sheltered slopes" : "off the groomed runs"}${where}, in ${inches(best.fresh)} ${LEN()} of ${heavy ? "dense " : best.slr >= 15 ? "light, dry " : ""}new snow.`, ...more].join(" ");
+    return [`The best skiing is ${wild ? "on sheltered slopes" : "off the groomers"}${where}, in ${inches(best.fresh)} ${LEN()} of ${heavy ? "dense " : best.slr >= 15 ? "light, dry " : ""}new snow.`, ...more].join(" ");
   }
   if (kind === "Packed powder") {
     const left = best.dump && !best.warmSince ? " Leftover powder is in north-facing trees." : best.dump ? " Any leftover powder is in north-facing shade." : "";
     const wind = windy ? " The open ridges are wind-scoured." : "";
-    return `${wild ? `The snow${where} is settled and supportive.` : `The groomed runs${where} are skiing best.`}${left}${wind}`;
+    return `${wild ? `The snow${where} is settled and supportive.` : `The groomers${where} are skiing best.`}${left}${wind}`;
   }
-  if (kind === "Machine groomed") return wild ? "Nothing is skiing well. The new snow is too thin to cover the firm base." : `The groomed runs${where} are skiing best. Off them, the new snow is too thin to cover the firm base.`;
+  if (kind === "Machine groomed") return wild ? "Nothing is skiing well. The new snow is too thin to cover the firm base." : `The groomers${where} are skiing best. Off them, the new snow is too thin to cover the firm base.`;
   if (kind === "Corn") return spring ? "Follow the sun. East-facing slopes soften first, south-facing slopes by late morning, and west-facing slopes after lunch. It turns to slush by mid-afternoon."
     : "South-facing slopes are skiing best, from late morning. Shaded slopes stay firm all day.";
-  if (kind === "Spring conditions") return wild ? "Go early. It did not freeze overnight, so the snow is slushy by midday." : "The groomed runs are skiing best, early in the day. It did not freeze overnight, so everything is slushy by midday.";
-  if (kind === "Wet packed snow" || kind === "Wet granular") return wild ? `Go early${where}, before the snow turns to mush.` : `The groomed runs${where} are skiing best, early, before the snow softens.`;
-  if (kind === "Wet snow") return wild ? "Higher is better. The new snow is wet and heavy." : "The groomed runs up high are skiing best. The new snow is wet and heavy.";
+  if (kind === "Spring conditions") return wild ? "Go early. It did not freeze overnight, so the snow is slushy by midday." : "The groomers are skiing best, early in the day. It did not freeze overnight, so everything is slushy by midday.";
+  if (kind === "Wet packed snow" || kind === "Wet granular") return wild ? `Go early${where}, before the snow turns to mush.` : `The groomers${where} are skiing best, early, before the snow softens.`;
+  if (kind === "Wet snow") return wild ? "Higher is better. The new snow is wet and heavy." : "The groomers up high are skiing best. The new snow is wet and heavy.";
   // Hard pack and frozen granular.
   if (wild) return `Nothing is skiing well. The snow is firm and crusty.${sunny ? " South-facing slopes may soften by late morning." : ""}`;
-  return sunny ? "The groomed runs are skiing best. South-facing runs soften by late morning, and shaded ones stay hard." : "The groomed runs are skiing best. They stay firm and fast all day.";
+  return sunny ? "The groomers are skiing best. South-facing runs soften by late morning, and shaded ones stay hard." : "The groomers are skiing best. They stay firm and fast all day.";
 }
 function insights(resort) {
   const {day} = statusDay(resort);
@@ -2621,7 +2621,7 @@ function insights(resort) {
   if ((mid.sky ?? 0) >= 90) notes.push(["Light", `The light is flat under ${mid.snowing >= 3 ? "the falling snow" : "thick cloud"}. Ski next to the trees, where you can see the surface.`]);
   // Thin cover: under about 40 in on the ground the mountain is still in early-season shape.
   const stake = stakeDepth(resort.key, "mid"), ground = stake ?? (resort.observed && resort.observed.depth_in);
-  if (ground != null && ground < 40) notes.push(["Cover", `Cover is thin, with ${inches(ground)} ${LEN()} on the ground. Watch for rocks and stumps off the groomed runs.`]);
+  if (ground != null && ground < 40) notes.push(["Cover", `Cover is thin, with ${inches(ground)} ${LEN()} on the ground. Watch for rocks and stumps off the groomers.`]);
   return `<div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
     <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 3).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul>`;
 }
