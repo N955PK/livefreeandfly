@@ -77,7 +77,7 @@ a{color:inherit}
 .brand h1{font-size:19px;letter-spacing:-.01em;text-align:center}
 .regions{display:none}
 .setbtn{justify-self:start;display:flex;border:0;background:none;padding:6px;margin:-6px;border-radius:10px;cursor:pointer}
-.regionname{font-size:.78em;font-weight:600;color:var(--accent);margin-left:2px;white-space:nowrap}
+.regionname{font-size:.78em;font-weight:600;color:var(--accent);margin-left:2px;white-space:nowrap;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 /* The pin is the region picker: the phone's own menu opens from a select laid invisibly over it. */
 .regionpick{justify-self:end;position:relative;display:flex;padding:4px;margin:-4px;border-radius:10px;cursor:pointer}
 .regionpick[hidden]{display:none}
@@ -1509,7 +1509,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "215";
+const BUILD = "216";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3130,7 +3130,7 @@ function letGo() {
   setTimeout(() => { if (!el.classList.contains("pressed")) el.classList.remove("sprung"); }, 340);
 }
 document.addEventListener("pointerdown", (e) => {
-  let el = e.target.closest && e.target.closest("button, label.mtnpick, label.regionpick, a.abtn, summary");
+  let el = e.target.closest && e.target.closest("button, label.mtnpick, label.regionpick, #regionName, a.abtn, summary");
   if (!el || el.classList.contains("map-label") || el.disabled) return;
   const pill = el.closest("#tabbar, .seg:not(.tri), .jump");
   if (pill) el = pill;
@@ -3660,6 +3660,8 @@ function openPicker(select) {
   if (now) now.scrollIntoView({block: "center"});
 }
 document.addEventListener("click", (e) => {
+  // The region's name in the header opens the same menu as the pin beside it.
+  if (e.target.closest && e.target.closest("#regionName") && !$("regionPickWrap").hidden) { openPicker($("regionPick")); return; }
   const label = e.target.closest && e.target.closest("label.mtnpick, label.regionpick");
   if (!label) return;
   e.preventDefault();
