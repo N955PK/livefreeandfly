@@ -693,7 +693,7 @@ html.tabs .dhead .who > span{white-space:nowrap}
    dull text, each level with a row of the elevation picker beside them. */
 html.tabs .dhead h2,html.tabs .ahead h2,html.tabs .sumhead h2{white-space:nowrap}
 html.tabs .dhead .who > span:not(.dfresh){font-size:12.5px;line-height:18px;margin-top:3.5px;color:var(--mark-dull)}
-html.tabs .dhead .setmine{font-size:14px;line-height:18px;vertical-align:top}
+html.tabs .dhead .setmine{font-size:14px;line-height:18px;vertical-align:baseline}
 html.tabs .dhead .setmine i{font-size:12.5px;vertical-align:0}
 .tag{white-space:nowrap;font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "213";
+const BUILD = "214";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
