@@ -62,8 +62,13 @@ function shieldSVG(route) {
       <path d="${CA_SPADE}" fill="#006b54" transform="translate(192.5 215) scale(.92) translate(-192.5 -215)"/>
       ${text("#fff", 192.5, long ? 330 : 340, long ? 155 : 200)}`);
   }
-  return wrap("0 0 600 600", `<rect width="600" height="600" rx="70" fill="#111"/><path d="${NEVADA}" fill="#fff"/>
-    ${text("#111", 300, long ? 250 : 270, long ? 172 : 230)}`);
+  if (kind === "NV") {
+    return wrap("0 0 600 600", `<rect width="600" height="600" rx="70" fill="#111"/><path d="${NEVADA}" fill="#fff"/>
+      ${text("#111", 300, long ? 250 : 270, long ? 172 : 230)}`);
+  }
+  // Any other state's route: the plain black-on-white marker most states use.
+  return wrap("-12 -12 624 624", `<rect x="40" y="90" width="520" height="420" rx="40" fill="#fff" stroke="#111" stroke-width="30"/>
+    ${text("#111", 300, long ? 375 : 395, long ? 220 : 290)}`);
 }
 
 const LAND = [
@@ -118,7 +123,9 @@ export function stormWindow(rate, nowIndex) {
 // ``region`` says where the map is: {terrain, roads} data files, the disc's center [lat, lon], waterM (the level
 // heights are drawn from), and optionally lake: {name, lat, lon} (the water named on the map; no name when absent),
 // land (its own colors by elevation), zoom (how close the view opens; 1 when absent), discKm (the disc's radius),
-// and look ([lat, lon] the view opens on when that is not the disc's center).
+// look ([lat, lon] the view opens on when that is not the disc's center), floorM (ground below this height is drawn at
+// it; FLOOR_M when absent) and lowlandM (level ground below this height is not taken for a lake; LOWLAND_M when absent).
+// A missing road file means no road lines.
 // ``data.resorts`` holds only that region's locations.
 // Below this many inches an hour, averaged over the region, it is not snowing: no flakes on the map, and the page says so.
 const QUIET_RATE = 0.02;
@@ -133,7 +140,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   ]);
   const heights = new Uint16Array(buffer);
   const {rows, columns, width_km: W, height_km: H} = meta;
-  const zOf = (m) => (Math.max(m, FLOOR_M) - region.waterM) / 1000 * EXAGGERATION;
+  const floorM = region.floorM ?? FLOOR_M, lowlandM = region.lowlandM ?? LOWLAND_M;
+  const zOf = (m) => (Math.max(m, floorM) - region.waterM) / 1000 * EXAGGERATION;
   const xOf = (lon) => ((lon - meta.lon_w) / (meta.lon_e - meta.lon_w) - 0.5) * W;
   const yOf = (lat) => ((lat - meta.lat_s) / (meta.lat_n - meta.lat_s) - 0.5) * H;
   const heightAt = (lat, lon) => {
@@ -154,14 +162,21 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const lakeX = xOf(centerLon), lakeY = yOf(centerLat), lookX = xOf(look[1]), lookY = yOf(look[0]);
   const inGlobe = (x, y, margin = 0) => Math.hypot(x - lakeX, y - lakeY) < RADIUS - margin;
   // 1 well inside the disc, falling to 0 at its edge: a hard cut for the globe, a soft fade otherwise.
+  // A disc wider than the terrain also fades out at the terrain's own edges.
+  const spills = !globe && RADIUS > Math.min(W, H) / 2;
   const cover = (x, y) => {
     const inside = RADIUS - Math.hypot(x - lakeX, y - lakeY);
     if (globe) return inside > 0 ? 1 : 0;
-    const f = Math.min(1, Math.max(0, inside / DISC_FADE_KM));
-    return f * f * (3 - 2 * f);
+    const f = Math.min(1, Math.max(0, inside / DISC_FADE_KM)), disc = f * f * (3 - 2 * f);
+    if (!spills) return disc;
+    const e = Math.min(1, Math.max(0, Math.min(W / 2 - Math.abs(x), H / 2 - Math.abs(y)) / EDGE_FADE_KM));
+    return disc * e * e * (3 - 2 * e);
   };
   // A region whose mountains sit close together opens closer in (zoom under 1).
   const zoom = region.zoom || 1;
+  // A view that opens further out than Tahoe's draws roads, stakes and the spacing of shields that much larger, so
+  // they read the same.
+  const sizeUp = globe ? 1 : Math.max(1, zoom);
   if (globe) camera.position.set(lakeX - 8, lakeY - 150, 104); else {
     // The camera starts south of the target; a region can swing it around (45 looks from the southeast).
     const turn = (region.turnDeg || 0) * Math.PI / 180, dx = -6 * zoom, dy = -100 * zoom;
@@ -304,7 +319,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       colors[4 * i + 3] = cover(x, y);
       const flat = (j) => Math.abs(heights[j] - m) < 0.6;
       // Level ground is a lake in the mountains, but in the Central Valley it is only farmland.
-      water[i] = m >= LOWLAND_M && r > 0 && r < rows - 1 && c > 0 && c < columns - 1 && flat(i - 1) && flat(i + 1) && flat(i - columns) && flat(i + columns) ? 1 : 0;
+      water[i] = m >= lowlandM && r > 0 && r < rows - 1 && c > 0 && c < columns - 1 && flat(i - 1) && flat(i + 1) && flat(i - columns) && flat(i + columns) ? 1 : 0;
     }
   }
   const shore = water.slice();
@@ -331,7 +346,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   scene.add(ground);
 
   // ---------- the globe: a rim wall where the terrain is cut, a base, and a glass dome ----------
-  const floorZ = zOf(FLOOR_M) - 0.8, SEGMENTS = 360;
+  const floorZ = zOf(floorM) - 0.8, SEGMENTS = 360;
   if (globe) {
     const rim = new Float32Array((SEGMENTS + 1) * 6), rimIndex = [];
     for (let n = 0; n <= SEGMENTS; n++) {
@@ -430,7 +445,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const roadPositions = [], roadIndex = [];
   const shields = [], roadLines = [];
   for (const road of roads) {
-    const half = (MAJOR.has(road.route) ? 0.42 : 0.3);
+    const half = (MAJOR.has(road.route) || road.route.startsWith("I-") ? 0.42 : 0.3) * sizeUp;
     for (const line of road.lines) {
       // Resample so the ribbon follows the terrain.
       const pts = [];
@@ -462,9 +477,12 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const SHIELD_ORDER = ["SR-203", "SR-158", "SR-267", "NV-207", "NV-431", "SR-28", "NV-28", "SR-167", "SR-270", "SR-182", "I-80", "US-50", "SR-89", "SR-88",
     "US-395", "I-580", "SR-49", "SR-20", "SR-4", "SR-120", "SR-108", "SR-168", "US-6"];
   const placedShields = [];
-  for (const route of SHIELD_ORDER) {
+  // Routes not named in the order (another region's) follow it, the shortest first.
+  const routeLength = (route) => roadLines.filter((line) => line.route === route).reduce((sum, line) => sum + line.pts.length, 0);
+  const others = [...new Set(roadLines.map((line) => line.route))].filter((route) => !SHIELD_ORDER.includes(route)).sort((a, b) => routeLength(a) - routeLength(b));
+  for (const route of [...SHIELD_ORDER, ...others]) {
     for (const pts of roadLines.filter((line) => line.route === route).map((line) => line.pts).sort((a, b) => b.length - a.length)) {
-      const step = Math.round(SHIELD_EVERY_KM / 0.6);
+      const step = Math.round(SHIELD_EVERY_KM * sizeUp / 0.6);
       // A short road gets one shield, at the first spot that is free.
       const short = pts.length < step;
       const picks = short ? (pts.length > 8 ? [0.5, 0.35, 0.65, 0.2, 0.8].map((f) => Math.floor(pts.length * f)) : [])
@@ -474,7 +492,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
         if (short && placedHere) break;
         const [lon, lat] = pts[index], x = xOf(lon), y = yOf(lat);
         if (cover(x, y) < 0.95) continue;
-        if (placedShields.some((q) => Math.hypot(q.x - x, q.y - y) < (q.route === route ? 18 : short ? 3.5 : 5))) continue;
+        if (placedShields.some((q) => Math.hypot(q.x - x, q.y - y) < (q.route === route ? 18 * sizeUp : short ? 3.5 : 5))) continue;
         if (data.resorts.some((r) => Math.hypot(xOf(r.lon) - x, yOf(r.lat) - y) < 2.2)) continue;
         const tag = document.createElement("div");
         tag.className = "map-shield"; tag.innerHTML = shieldSVG(route); tag.title = route;
@@ -512,7 +530,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const ghostMaterial = new THREE.MeshBasicMaterial({color: 0x2a78d6, transparent: true, opacity: 0.25, depthWrite: false});
   const fillMaterial = new THREE.MeshStandardMaterial({color: 0x2a78d6, roughness: 0.4, emissive: 0x0d366b, emissiveIntensity: 0.5});
   const pickMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.4, emissive: 0x2a78d6, emissiveIntensity: 0.9});
-  const unit = new THREE.CylinderGeometry(STAKE_RADIUS, STAKE_RADIUS, 1, 20).rotateX(Math.PI / 2).translate(0, 0, 0.5);
+  const unit = new THREE.CylinderGeometry(STAKE_RADIUS * sizeUp, STAKE_RADIUS * sizeUp, 1, 20).rotateX(Math.PI / 2).translate(0, 0, 0.5);
   const items = data.resorts.map((r, n) => {
     const x = xOf(r.lon), y = yOf(r.lat), z = zOf(heightAt(r.lat, r.lon));
     const ghost = new THREE.Mesh(unit, ghostMaterial), fill = new THREE.Mesh(unit, fillMaterial);
@@ -780,6 +798,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
 
   return {
     steps, nowStep, stormActive: storm.active,
+    // False when the region's road file is missing or empty: there are no road lines and no shields to show.
+    hasRoads: roads.length > 0,
     timeAt: (i) => new Date(hoursUtc[storm.start + Math.min(steps - 1, Math.max(0, Math.round(i)))]),
     rateAt: (i) => interp(rate, i, storm.start),
     quietRate: QUIET_RATE,

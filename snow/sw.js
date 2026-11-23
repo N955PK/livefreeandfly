@@ -1,4 +1,4 @@
-// Turbo Snow offline support. Keeps the page, the map code, and both terrain sets on the phone so the page still
+// Turbo Snow offline support. Keeps the page, the map code, and every region's terrain on the phone so the page still
 // opens with no signal. The page is fetched fresh whenever there's signal (falling back to the saved copy after a
 // few seconds on a weak one). The forecast itself isn't cached here: the page keeps its own copy of the index and of
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
@@ -8,7 +8,8 @@ const VERSION = 'sierra-snow-v4';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icons/mark-white.png?v=2', 'icons/icon-192.png',
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
-  'data/terrain-mammoth.json?v=3', 'data/terrain-mammoth.bin?v=3', 'data/roads-mammoth.json?v=3'];
+  'data/terrain-mammoth.json?v=3', 'data/terrain-mammoth.bin?v=3', 'data/roads-mammoth.json?v=3',
+  'data/terrain-newengland.json', 'data/terrain-newengland.bin', 'data/roads-newengland.json'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale

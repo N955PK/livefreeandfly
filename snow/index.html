@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
-<meta property="og:description" content="A free, verified snow forecast for Sierra ski resorts.">
+<meta property="og:description" content="A free, verified snow forecast for ski resorts in the Sierra and New England.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1426,7 +1426,7 @@ if (HOSTED) {
     <button data-page-to="score"><b>How it is tested</b><span>Scored on winters it never saw</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
-    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, and Bridgeport avalanche centers through avalanche.org.</p>
+    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, Caltrans, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, and Mount Washington avalanche centers through avalanche.org.</p>
     <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
   </div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
@@ -1475,17 +1475,17 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
   </div>
   <div class="gpage" id="how" data-page="how" data-title="How the forecast is made" hidden>
     <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
-    <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
+    <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> This model, which turns water into inches of snow, was trained on Sierra snow and has not been checked against New England's. The weights that blend the four weather models were also fitted in the Sierra.</p>
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
-    <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon here.</p>
+    <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon in the Sierra.</p>
     <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
     <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
-    <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken near crest height (about 10,000 ft) for every elevation; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
+    <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken at about 10,000 ft for every elevation, which is near the crest in the Sierra and well above the summits in New England; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Lift and trail counts come live from the resort (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words.</p>
     <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
@@ -1495,7 +1495,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "193";
+const BUILD = "194";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1512,7 +1512,7 @@ let index = null, data = null, elevation = "summit", selected = location.hash.sl
 // the chain-control feed does not report those), and its avalanche centers (the first is the one the pane at the bottom reports).
 // Each needs name, terrain, roads, center, waterM, pick and avalanche (which may be empty: no center forecasts there).
 // The rest may be left out: lake (no lake is named on the map), chainFeeds and closureFeeds (no Roads button),
-// short, look, discKm, zoom, turnDeg, land and rev.
+// short, look, discKm, zoom, turnDeg, land, floorM, lowlandM and rev.
 const CALTRANS_CLOSURES = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/lcs/lcsStatusD${String(district).padStart(2, "0")}.json`;
 const CALTRANS = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/cc/ccStatusD${String(district).padStart(2, "0")}.json`;
 const REGIONS = {
@@ -1526,6 +1526,16 @@ const REGIONS = {
       [3200, [0.55, 0.53, 0.48]], [3800, [0.72, 0.70, 0.67]]],
     avalanche: [{id: "ESAC", name: "Eastern Sierra Avalanche Center", url: "https://www.esavalanche.org/"},
       {id: "BAC", name: "Bridgeport Avalanche Center", url: "https://bridgeportavalanchecenter.org/"}]},
+  newengland: {name: "New England", terrain: "data/terrain-newengland", roads: "data/roads-newengland.json", center: [44.005, -71.615], waterM: 0, pick: "sugarloaf",
+    // The mountains run 300 km from Mount Snow to Sugarloaf, mostly north and south: the whole box is drawn and the view
+    // opens far out, from the south-southwest, so Stowe and Crotched both fit across a phone.
+    // The land reaches the sea, so no ground is raised to a floor, and level ground at any height is water.
+    discKm: 190, zoom: 3.9, turnDeg: -30, look: [44.1, -71.94], floorM: 0, lowlandM: 0,
+    // Forest to about 1,300 m, then bare rock on the few summits above it.
+    land: [[0, [0.42, 0.50, 0.32]], [400, [0.30, 0.43, 0.28]], [900, [0.21, 0.37, 0.26]], [1250, [0.27, 0.40, 0.30]],
+      [1450, [0.55, 0.53, 0.48]], [1800, [0.70, 0.68, 0.65]]],
+    lake: {name: "Lake Winnipesaukee", lat: 43.60307, lon: -71.32397},
+    avalanche: [{id: "MWAC", name: "Mount Washington Avalanche Center", url: "https://www.mountwashingtonavalanchecenter.org/"}]},
 };
 // Data published before regions existed has no region field; all of it is Tahoe.
 const regionOf = (r) => r.region || "tahoe";
@@ -1676,7 +1686,7 @@ const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Independent", "Backc
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
   ["Mountain Collective", ["sugarbowl"]], ["Independent", ["homewood", "boreal", "mtrose"]]];
 const passOf = (r) => r.pass || (PASSES.find(([, keys]) => keys.includes(r.key)) || ["Independent"])[0];
-const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June"};
+const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June", sunapee: "Sunapee"};
 function byPass() {
   const rows = sorted(), names = [...new Set([...PASS_ORDER, ...rows.map(passOf)])];
   // Resorts are ordered by recent snow; backcountry peaks run north to south, as on the map.
@@ -1791,7 +1801,7 @@ function timeline(resort, el) {
   // Now is the present moment, not the hour the forecast was worked out for. nowAt() is where it falls among the
   // hours, to the minute (held at the first or last hour where the present is outside what the forecast holds);
   // nowIndex is the hour it is in, whose numbers are read out. The line is drawn at the exact spot and a ticker moves
-  // it on as time passes. It is read out in the mountains' own Pacific time, like every other time on the chart.
+  // it on as time passes. It is read out in the mountain's own time, like every other time on the chart.
   const h = el.hourly, hours = resort.hours_utc, t0 = new Date(hours[0]).getTime();
   const nowAt = () => Math.max(0, Math.min(hours.length - 1, (Date.now() - t0) / 36e5));
   const nowIndex = Math.floor(nowAt());
@@ -2370,14 +2380,15 @@ function statusDay(resort) {
 // The snow the mountain's sensor has measured in the night before the ski day `date`: its greatest depth since 4 pm
 // the day before (up to opening at 8 am, or now if that is sooner) over its depth at 4 pm. Depth settles, so this
 // is if anything less than what fell. Null with no depth sensor, or before that night has begun.
-// A wall-clock hour in Pacific time is one of two instants (standard or daylight); keep the one that reads back right.
-const pacific = (day, hour) => ["-08:00", "-07:00"].map((zone) => new Date(`${day}T${String(hour).padStart(2, "0")}:00:00${zone}`))
-  .find((d) => +d.toLocaleString("en-US", {timeZone: "America/Los_Angeles", hour: "numeric", hour12: false}) % 24 === hour);
+// A wall-clock hour at the mountain is one of the US offsets (standard or daylight, Hawaii to Atlantic); keep the
+// one that reads back as that hour in the mountain's own time zone.
+const wallClock = (day, hour, tz) => ["-10:00", "-09:00", "-08:00", "-07:00", "-06:00", "-05:00", "-04:00"].map((zone) => new Date(`${day}T${String(hour).padStart(2, "0")}:00:00${zone}`))
+  .find((d) => +d.toLocaleString("en-US", {timeZone: tz, hour: "numeric", hour12: false}) % 24 === hour);
 const dayBefore = (date) => new Date(new Date(`${date}T12:00:00Z`).getTime() - 864e5).toISOString().slice(0, 10);
 function nightSnow(resort, date) {
   const o = resort.observed, read = o && o.depth_in_hourly, hours = resort.hours_utc || [];
   if (!read || !hours.length) return null;
-  const from = pacific(dayBefore(date), 16), to = pacific(date, 8);
+  const from = wallClock(dayBefore(date), 16, tzOf(resort)), to = wallClock(date, 8, tzOf(resort));
   if (!from || !to || Date.now() <= from.getTime()) return null;
   const until = Math.min(to.getTime(), Date.now());
   let base = null, top = null;
@@ -2445,7 +2456,7 @@ function insightFacts(resort, date, level) {
   let lately = 0, spoiled = false;
   for (let n = 1; n <= 5; n++) { const d = back(n); if (!d) break; lately += snowOf(d); if ((tempOf(d) ?? 0) >= 35 || ((d.powder || {}).rain_share || 0) >= 0.3) spoiled = true; }
   // The coldest hour of the night before (6 pm to 8 am): whether the snow froze.
-  const hours = resort.hours_utc || [], temps = resort.elevations[level].hourly.temp_f || [], from = pacific(dayBefore(date), 18), to = pacific(date, 8);
+  const hours = resort.hours_utc || [], temps = resort.elevations[level].hourly.temp_f || [], from = wallClock(dayBefore(date), 18, tzOf(resort)), to = wallClock(date, 8, tzOf(resort));
   let low = null;
   if (from && to) for (let h = 0; h < hours.length; h++) { const t = new Date(hours[h]).getTime(); if (t >= from.getTime() && t <= to.getTime() && temps[h] != null) low = low == null ? temps[h] : Math.min(low, temps[h]); }
   return {level, ft: resort.elevations[level].elevation_ft, fresh, recent, slr: p.slr, slrChange: p.slr_change || 0, rain: p.rain_share || 0, liquid: day.liquid_in || 0, temp: p.temp_f, prevTemp: tempOf(back(1)), low, lately, spoiled,
@@ -2848,7 +2859,7 @@ function renderDetail() {
       <span class="blocks">Wind<span class="ramp" style="background:linear-gradient(90deg,var(--grid),var(--w1) 55%,var(--w2))"><b class="dark">0</b><b>${speed(50)}+</b></span>${SPEED()}</span></div>
     <div class="key" style="column-gap:8px"><span class="blocks">Temp<span class="ramp" style="background:linear-gradient(90deg,var(--snow),var(--grid) 64%,var(--w1))"><b>${deg(0)}°</b><b class="dark">${deg(50)}${DEG()}</b></span></span>
       <span class="sw"><i style="background:var(--level);height:3px"></i>snow level</span></div>
-    ${tabbed() ? `<div class="key" style="column-gap:14px"><span class="sw"><i style="background:var(--snow);height:3px"></i>storm total</span><span class="sw"><i style="background:none;border-top:1.5px dashed var(--ink2);height:0"></i>measured at the sensor</span></div>
+    ${tabbed() ? `<div class="key" style="column-gap:14px"><span class="sw"><i style="background:var(--snow);height:3px"></i>storm total</span>${resort.observed ? `<span class="sw"><i style="background:none;border-top:1.5px dashed var(--ink2);height:0"></i>measured at the sensor</span>` : ""}</div>
       <div class="key" style="column-gap:14px"><span class="sw"><i style="height:11px;border-radius:2px;border:.75px solid var(--mark-dull);background:repeating-linear-gradient(45deg,var(--mark-dull) 0 1.4px,transparent 1.4px 4px)"></i>rain at this height, snow higher up</span><span>wind strip shows gusts</span></div></details>` : ""}
     ${measured(resort)}${webcams(resort)}`;
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
@@ -3135,7 +3146,9 @@ function showTime(value) {
   $("mapWhen").textContent = atNow ? (offlineCopy ? "Saved" : "Live") : t.toLocaleString("en-US", clockOpts({timeZone: tzOf(mountain(selected)), weekday: "short", hour: "numeric"}));
   $("toNow").classList.toggle("away", !atNow); $("backNow").classList.toggle("away", !atNow);
   const falling = rate < map.quietRate ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}`;
-  $("mapWhat").textContent = `${falling} · ${level > 12000 ? "snow level above the peaks" : height(level)}`;
+  // A snow level well clear of the highest summit on the map (Tahoe's 10,380 ft gives 12,000) is above the peaks.
+  const peaks = Math.max(...inPlace().map((r) => r.elevations.summit.elevation_ft)) + 1620;
+  $("mapWhat").textContent = `${falling} · ${level > peaks ? "snow level above the peaks" : height(level)}`;
 }
 function setTime(value) {
   $("scrub").value = value; $("scrub").style.setProperty("--p", `${(100 * value / (map.steps - 1)).toFixed(2)}%`);
@@ -3340,6 +3353,8 @@ async function startMap() {
     map = made;
     stakesIn = stakeDepths();
     $("flatToggle").hidden = false; $("flatToggle").textContent = "2D";
+    // With no road file there are no shields to put away.
+    $("shieldsToggle").hidden = !map.hasRoads;
     $("scrub").max = map.steps - 1;
     $("toNow").style.left = `calc(${(100 * map.nowStep / (map.steps - 1)).toFixed(1)}% + ${(8 - 16 * map.nowStep / (map.steps - 1)).toFixed(1)}px)`;
     if (!mapWired) {
@@ -3810,7 +3825,8 @@ function drawAvalanche() {
   const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${listed.map((z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`).join("")}</select></label>`;
   const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
-  const brief = (iso) => iso ? new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", hour: "numeric", minute: "2-digit"})) : "";
+  // A time more than six days away (an off-season forecast from the spring) also gives its date, so it is not read as this week's.
+  const brief = (iso) => iso ? new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", ...(Math.abs(new Date(iso) - Date.now()) > 6 * 864e5 ? {month: "short", day: "numeric"} : {}), hour: "numeric", minute: "2-digit"})) : "";
   const issue = brief(product && product.published_time), ends = brief(product && product.expires_time), over = ends && new Date(product.expires_time) < Date.now();
   // Under the title in tabs: when it was issued, then when it runs out (the center is named with the bottom line).
   const by = tabbed() ? (zone && issue ? `<span class="by">Issued <b>${issue}</b></span>${ends ? `<span class="by">${over ? "Expired" : "Expires"} <b${over ? ' class="late"' : ""}>${ends}</b></span>` : ""}` : `<span class="by">${esc(center.name)}</span>`)
@@ -3869,7 +3885,7 @@ function drawAvalanche() {
     const shots = (product.media || []).filter(shot), shown = shots.slice(0, AVY_GALLERY);
     const gallery = shown.length ? `<h3 data-sec="Photos">Photos</h3><div class="aphotos">${shown.map(figure).join("")}</div>${shots.length > shown.length ? `<p class="aby">${shots.length - shown.length} more in the full forecast.</p>` : ""}` : "";
     const lines = paragraphs(product.bottom_line);
-    words = `<div class="awords">${lines.length ? `<h3 data-sec="Bottom line">Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more + gallery : ""}</div>`;
+    words = `<div class="awords">${lines.length ? `<h3 data-sec="Bottom line">Bottom line</h3><div class="abottom">${lines.map((text) => `<p>${esc(text)}</p>`).join("")}</div>` : ""}<p class="aby">${product.author && product.author !== center.name ? `${esc(product.author)}, ` : ""}${esc(center.name)}${tabbed() ? `<br>Issued ${clock(product.published_time)}${product.expires_time ? `<br>${over ? "Expired" : "Expires"} ${clock(product.expires_time)}` : ""}` : ` · issued ${clock(product.published_time)}${product.expires_time ? ` · ${over ? "expired" : "expires"} ${clock(product.expires_time)}` : ""}`}</p>${tabbed() ? more + gallery : ""}</div>`;
   }
   body += `<div class="acols"><div class="arating">${rating}</div>${trouble}${words}<div class="ascale">${tabbed() ? '<h3 data-sec="Definitions">Definitions</h3>' : ""}${scale}${tabbed() ? `<div class="ddefs">${DANGER_MEANS.map(([advice, likely, size], n) => `<details class="${zone.level === n + 1 ? "on" : ""}"${zone.level === n + 1 ? " open" : ""}><summary class="dhd"><img src="${dangerIcon(n + 1)}" alt="" onerror="this.remove()">${chip(n + 1)}</summary><p><b>${advice}</b></p><p><i>Likelihood of avalanches</i>${likely}</p><p><i>Avalanche size and distribution</i>${size}</p></details>`).join("")}<p class="aby">North American Public Avalanche Danger Scale.</p></div>
     <div class="dsizes"><h4>Likelihood</h4>${likelyScale("")}<p class="aby">How likely a problem is to produce an avalanche, least to most.</p></div>
@@ -3881,7 +3897,11 @@ function drawAvalanche() {
 document.addEventListener("change", (e) => { if (e.target.id === "avyPick") { avyPick = {region: place(), mountain: selected, key: e.target.value}; renderAvalanche(); } });
 
 function renderNotes() {
-  const unsensed = data.bias_corrected ? everyMountain().filter((r) => regionKeys().includes(regionOf(r)) && r.station === null).map((r) => r.name) : [];
+  // A region where no mountain has a sensor is named as one, not mountain by mountain.
+  const unsensed = !data.bias_corrected ? [] : regionKeys().flatMap((key) => {
+    const all = everyMountain().filter((r) => regionOf(r) === key), none = all.filter((r) => r.station === null);
+    return none.length > 2 && none.length === all.length ? [`the ${REGIONS[key].name} mountains`] : none.map((r) => r.name);
+  });
   $("biasNote").textContent = (data.bias_corrected ? "Each is corrected against years of readings from the nearest snow sensor, then they are averaged." : "They are averaged; correction against the nearest snow sensor is not applied yet.") +
     (unsensed.length ? ` ${unsensed.join(unsensed.length > 2 ? ", " : " and ").replace(/, ([^,]*)$/, ", and $1")} ${unsensed.length > 1 ? "have" : "has"} no working sensor nearby and ${unsensed.length > 1 ? "are" : "is"} left uncorrected.` : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
