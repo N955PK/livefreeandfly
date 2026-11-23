@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "202";
+const BUILD = "203";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3688,8 +3688,50 @@ let avyPick = null, avyShown = null;
 const avyElsewhere = {}, avyProducts = {}, avyAsked = new Set();
 const zoneKey = (zone) => `${zone.center.id}/${zone.id}`;
 // A forecast is dated by when it was issued (or, lacking that, when it starts); last season's comes back as {stale}.
+// Of a forecast's photographs only those taken the day it was issued are kept (see onTheDay).
 const zoneProduct = (zone) => avyJson(`${AVY_API}/product?type=forecast&center_id=${zone.center.id}&zone_id=${zone.id}`)
-  .then((product) => product && lastSeason(product.published_time || product.start_date) ? {stale: true} : product).catch(() => null);
+  .then((product) => product && lastSeason(product.published_time || product.start_date) ? {stale: true} : onTheDay(product, zone)).catch(() => null);
+// The date a photograph's caption gives, as YYYY-MM-DD. The centers write it first, in brackets: "(11/22/2026)". Other
+// usual forms are read as well ("11/22/26", "11/22", "Nov 22, 2026", "November 22", "22 Nov"); the first date in the
+// caption is the photo's. One with no year takes the year that puts it on or before the day the forecast was issued.
+const MONTH_KEYS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+const MONTH_RE = "(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\\.?";
+const DATE_FORMS = [
+  [/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{4}|\d{2}))?(?!\d)/, (m) => [m[3], +m[1], +m[2]]],
+  [new RegExp(`\\b${MONTH_RE}\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b(?:,?\\s+(\\d{4}))?`, "i"), (m) => [m[3], MONTH_KEYS.indexOf(m[1].slice(0, 3).toLowerCase()) + 1, +m[2]]],
+  [new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+${MONTH_RE}(?:,?\\s+(\\d{4}))?`, "i"), (m) => [m[3], MONTH_KEYS.indexOf(m[2].slice(0, 3).toLowerCase()) + 1, +m[1]]]];
+function captionDate(caption, issued) {
+  // All of the caption's words, the date's own markup included (it is often outside the caption's paragraphs).
+  const text = new DOMParser().parseFromString(caption || "", "text/html").body.textContent.replace(/\s+/g, " ");
+  let first = null;
+  for (const [form, read] of DATE_FORMS) { const m = text.match(form); if (m && (!first || m.index < first.index)) first = {index: m.index, parts: read(m)}; }
+  if (!first) return null;
+  let [year, month, day] = first.parts;
+  if (!(month >= 1 && month <= 12 && day >= 1 && day <= 31)) return null;
+  const [y, mo, d] = issued.split("-").map(Number);
+  year = year ? +year + (year.length === 2 ? 2000 : 0) : month > mo || (month === mo && day > d) ? y - 1 : y;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+// The time zone a center's forecasts are told in: its region's.
+function centerZone(center) {
+  const key = Object.keys(REGIONS).find((k) => (REGIONS[k].avalanche || []).some((c) => c.id === center.id));
+  return tzOf(key && everyMountain().find((r) => regionOf(r) === key));
+}
+
+// Centers leave older photographs on a forecast for days. A center dates a photograph by the day it was taken, and the
+// morning forecast is written from the day before in the field, so the photographs kept are those dated the day the
+// forecast was issued (in its own time zone) or the day before, with the forecast and with each problem; one with no
+// date is dropped.
+const PHOTO_DAYS = 1;
+function onTheDay(product, zone) {
+  if (!product || !product.published_time) return product;
+  const issued = new Date(product.published_time).toLocaleDateString("en-CA", {timeZone: centerZone(zone.center)});
+  const earliest = new Date(Date.parse(issued) - PHOTO_DAYS * 864e5).toISOString().slice(0, 10);
+  const keep = (media) => { if (!media || media.type !== "image") return true; const taken = captionDate(media.caption, issued); return !!taken && taken >= earliest && taken <= issued; };
+  product.media = (product.media || []).filter(keep);
+  for (const problem of product.forecast_avalanche_problems || []) if (!keep(problem.media)) problem.media = null;
+  return product;
+}
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
