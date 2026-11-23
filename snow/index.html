@@ -1503,6 +1503,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
     <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
     <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken at about 10,000 ft for every elevation, which is near the crest in the Sierra and well above the summits in New England; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
+    <p><b>The map</b> The land is drawn white where snow is lying, read from the snow sensors in the Sierra and, in New England, where there are none, from the depths the resorts report, which are mostly snow they made on their trails.</p>
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
@@ -1516,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "222";
+const BUILD = "223";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -2730,11 +2731,27 @@ function stakeDepth(key, level) {
   for (const i of order) { const inches = +((report[spec[1][i]] || {}).BaseIn); if (inches > 0) return inches; }
   return null;
 }
-// What the reports say reaches the map: the stake depths on the labels.
+// The depths every report in the region gives, each at the elevation it is given for, for the map's snow on the
+// ground where the region has no snow sensor: [feet, inches]. A depth the resort gives as empty or 0 is bare ground
+// there; a resort that gives no depth at all (Killington, Pico) gives nothing.
+function reportedGround() {
+  const points = [];
+  for (const resort of inPlace()) {
+    const spec = STAKES[resort.key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
+    if (!report) continue;
+    ["base", "mid", "summit"].forEach((level, i) => {
+      const at = report[spec[1][i]], ft = resort.elevations && resort.elevations[level] && resort.elevations[level].elevation_ft;
+      if (at && "BaseIn" in at && ft != null) points.push([ft, Math.max(0, +at.BaseIn || 0)]);
+    });
+  }
+  return points;
+}
+// What the reports say reaches the map: the stake depths on the labels, and the snow on the ground where no sensor is.
 function groundToMap() {
   if (!map) return;
   const keys = Object.keys(STAKES).filter((key) => inPlace().some((r) => r.key === key));
   map.setGround(Object.fromEntries(keys.map((key) => [key, stakeDepth(key, elevation)]).filter(([, inches]) => inches != null)));
+  map.setReportedGround(reportedGround());
 }
 async function stakeDepths() {
   if (!map || !navigator.onLine) return;

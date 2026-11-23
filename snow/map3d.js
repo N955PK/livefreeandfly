@@ -410,14 +410,14 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   // The snow already on the ground, by elevation band, read off the region's depth sensors: nothing below a snow line,
   // then deeper with height in a straight line through the sensors' average. The snow line is the highest sensor
   // reading bare ground, or, when even the lowest has snow, a way below it (further the deeper its snow, 1,500 ft at most).
+  // Where the region has no sensor reading at all (New England), the same reckoning is made from the depths the
+  // resorts report, each at the elevation it is given for, once they arrive (setReportedGround). Only a sensor's
+  // current depth (observed.depth_in) counts as a sensor reading: a dated daily record (observed.daily, the
+  // Mt. Washington summit's) takes no part.
   const pack = new Float32Array(bins);
-  {
-    const seen = new Map();
-    for (const r of data.resorts) {
-      const o = r.observed;
-      if (o && o.depth_in != null && o.elevation_ft != null) seen.set(o.station, [o.elevation_ft, o.depth_in]);
-    }
-    const all = [...seen.values()], snowy = all.filter(([, d]) => d >= 1), bare = all.filter(([, d]) => d < 1);
+  function packFrom(all) {
+    pack.fill(0);
+    const snowy = all.filter(([, d]) => d >= 1), bare = all.filter(([, d]) => d < 1);
     if (snowy.length) {
       const mean = (k) => snowy.reduce((sum, p) => sum + p[k], 0) / snowy.length;
       const low = snowy.reduce((a, p) => p[0] < a[0] ? p : a);
@@ -427,6 +427,12 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       for (let b = 0; b < bins; b++) pack[b] = Math.min(2 * deep, Math.max(0, deep * (b * BIN_M / 0.3048 - line) / (ft - line)));
     }
   }
+  const sensed = new Map();
+  for (const r of data.resorts) {
+    const o = r.observed;
+    if (o && o.depth_in != null && o.elevation_ft != null) sensed.set(o.station, [o.elevation_ft, o.depth_in]);
+  }
+  packFrom([...sensed.values()]);
 
   // ---------- roads ----------
   const overlay = document.createElement("div");
@@ -816,6 +822,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     setElevation(value) { level = value; cumulative = series(); paintedAt = -1; },
     // A better figure for the snow on the ground at some mountains (key: inches), in place of the sensor's.
     setGround(byKey) { for (const item of items) if (byKey[item.key] != null) item.ground = byKey[item.key]; paintedAt = -1; },
+    // The resorts' reported depths ([feet, inches], 0 for bare ground) as the snow on the ground, only where no sensor
+    // reads one; where any does, the sensors' reckoning stands and this does nothing.
+    setReportedGround(points) { if (sensed.size) return; packFrom(points); paintedAt = -1; },
     select(key) { picked = key; paintedAt = -1; },
     // Depths are kept in inches; the labels show them times `per`, in `unit`.
     setDepthUnits(units) { depth = units; paintedAt = -1; },
