@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "207";
+const BUILD = "208";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3873,7 +3873,11 @@ function mapAvalanche() {
   $("avyKey").hidden = !map || !avyOn || levels.length < 2;
   $("avyKey").innerHTML = levels.map((level) => `<span><i style="--light:${danger(level)[1]}"></i>${dangerText(level)}</span>`).join("");
   if (!map) return;
-  map.setAvalanche(zones.map((zone) => ({rings: zone.rings, color: danger(zone.level)[1]})));
+  // Laying the zones on the land is slow (every point of the terrain is tested against every zone), so the map is
+  // given them only when they differ from the ones it already has: the same zones arrive again once their region's
+  // forecast is read, right after the map is built.
+  const laid = zones.map((zone) => `${zoneKey(zone)}:${zone.level}:${zone.rings.length}:${zone.rings[0] ? zone.rings[0].length : 0}`).join("|");
+  if (map.zonesLaid !== laid) { map.setAvalanche(zones.map((zone) => ({rings: zone.rings, color: danger(zone.level)[1]}))); map.zonesLaid = laid; }
   map.showAvalanche(avyOn);
 }
 function problemWhere(location) {
