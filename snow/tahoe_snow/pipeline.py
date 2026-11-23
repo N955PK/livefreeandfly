@@ -511,12 +511,15 @@ def write_home_forecast() -> dict | None:
 
 def due(now: datetime | None = None) -> str | None:
     """The region most overdue for a new forecast, by the fraction of its interval since it was generated, among
-    those at or past their interval; a region never built is the most overdue. None when nothing is due."""
+    those at or past their interval; a region never built is the most overdue, and so is one whose forecast has
+    not tried a mountain added since (one that was tried and failed waits for the next run). None when nothing is
+    due."""
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None)
     late = {}
     for key, region in REGIONS.items():
         forecast = read_region(key)
-        if forecast is None:
+        tried = {payload["key"] for payload in (forecast or {}).get("resorts", [])} | set((forecast or {}).get("failed_resorts", []))
+        if forecast is None or not {resort.key for resort in config.resorts_in(key)} <= tried:
             late[key] = float("inf")
             continue
         age_h = (now - pd.Timestamp(forecast["generated_utc"]).tz_localize(None)) / pd.Timedelta(hours=1)

@@ -202,6 +202,11 @@ RESORTS = {
                region="newengland"),
         Resort("crotched", "Crotched", 43.00708, -71.8781, _ft(1050), _ft(2066), None, "Epic",
                region="newengland"),
+        # Mt. Washington: the point is the summit (OpenStreetMap), the base is the Pinkham Notch trailhead, and both
+        # heights are read from the Terrain Tiles elevation model (2026-11-23). It sits inside the Presidential
+        # Range avalanche zone.
+        Resort("washington", "Mt. Washington", 44.2705, -71.3033, 619, 1916, None, "Backcountry",
+               region="newengland", kind="backcountry"),
     ]
 }
 

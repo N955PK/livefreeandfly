@@ -50,7 +50,7 @@ def test_a_sensor_network_that_is_down_is_asked_once(monkeypatch):
 
 def test_the_new_england_mountains_are_where_they_should_be():
     found = config.resorts_in("newengland")
-    assert len(found) == 14
+    assert len(found) == 15
     for r in found:
         assert r.base_m < r.summit_m, r.key
         assert 42.7 < r.lat < 45.3 and -73.3 < r.lon < -69.9, r.key

@@ -113,3 +113,16 @@ def test_a_damaged_region_file_counts_as_not_built(tmp_path, stubbed):
     path.write_text(path.read_text()[:50])
     assert pipeline.due(NOW) == "mammoth"
     assert pipeline.write_index()["regions"]["mammoth"]["published_utc"] is None
+
+
+def test_a_region_is_due_when_a_mountain_has_been_added_since_its_forecast(tmp_path, stubbed):
+    for key in config.REGIONS:
+        pipeline.run(key, NOW)
+    path = tmp_path / "forecast/mammoth.json"
+    forecast = json.loads(path.read_text())
+    dropped = forecast["resorts"].pop()["key"]
+    path.write_text(json.dumps(forecast))
+    assert pipeline.due(NOW) == "mammoth"
+    forecast["failed_resorts"] = [dropped]            # tried and failed: it waits for the next run
+    path.write_text(json.dumps(forecast))
+    assert pipeline.due(NOW) is None
