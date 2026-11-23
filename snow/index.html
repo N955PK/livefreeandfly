@@ -1447,7 +1447,7 @@ if (HOSTED) {
     <button data-page-to="score"><b>How it is tested</b><span>Scored on winters it never saw</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
-    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, the resorts' own lift and trail reports, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, and Mount Washington avalanche centers through avalanche.org.</p>
+    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, the resorts' own lift, trail and snow reports, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, and Mount Washington avalanche centers through avalanche.org.</p>
     <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
   </div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
@@ -1516,7 +1516,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "221";
+const BUILD = "222";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -2654,16 +2654,21 @@ async function saveAvyBundle() {
   } catch (error) { /* no file yet, or no signal after all: what is saved stays */ }
 }
 // ---------- the resort's own report ----------
-// Five resorts publish their morning report in the feed their lift status comes from: how they describe the surface,
+// Some resorts publish their morning report in the feed their lift status comes from: how they describe the surface,
 // what their stakes measured, how many runs they groomed, and a few paragraphs in their own words. It is shown as
-// they wrote it, under their name and the time they posted it, beside our own reading of the day.
+// they wrote it, under their name and the time they posted it, beside our own reading of the day. In New England
+// Boyne's three and Killington's two report one figure for the whole mountain instead of one per stake (Resortwide).
 function resortReport(resort) {
   const spec = STAKES[resort.key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
   if (!report || !report.LastUpdate) return "";
   const said = (value) => value != null && value !== "" && value !== "--" && value !== "N/A";
   const stakes = ["Summit", "Mid", "Base"].map((name, n) => [name, report[spec[1][2 - n]] || {}]);
   // A base depth of 0 is a stake nobody has read yet, not bare ground.
-  const reading = (field) => stakes.filter(([, at]) => said(at[field]) && (field !== "BaseIn" || +at[field] > 0)).map(([name, at]) => `${name} ${inches(+at[field])} ${LEN()}`).join(" · ");
+  const reading = (field) => stakes.filter(([, at]) => said(at[field]) && (field !== "BaseIn" || +at[field] > 0)).map(([name, at]) => {
+    // A whole mountain's base depth is given as its range where the resort gives one ("8 to 14 in").
+    const low = +at.BaseMinIn, high = +at.BaseMaxIn, range = field === "BaseIn" && low > 0 && high > low;
+    return `${report.Resortwide ? "" : `${name} `}${range ? `${inches(low)} to ${inches(high)}` : inches(+at[field])} ${LEN()}`;
+  }).join(" · ");
   // Groomed runs are counted on this mountain's own trails: Palisades and Alpine share one report, whose total is both.
   const mine = (LIFT_FEEDS[resort.key] || [])[1], own = mine ? (feed.data.MountainAreas || []).filter((area) => mine(area.Name)).flatMap((area) => area.Trails || []) : [];
   const ownOpen = own.filter((t) => /^open/.test(t.StatusEnglish || "")), marked = own.some((t) => t.Grooming != null);
@@ -2679,7 +2684,8 @@ function resortReport(resort) {
   const alert = said(report.Alert) ? new DOMParser().parseFromString(report.Alert, "text/html").body.textContent.replace(/\s+/g, " ").trim() : "";
   // A resort that is shut often writes the same line as its report and its alert ("Opening day is..."): it is said once.
   const paragraphs = words.map((text) => text.replace(/\s+/g, " ").trim()).filter((text) => text.length > 1 && !(alert && alert.startsWith(text.slice(0, 24)))).slice(0, 8);
-  const when = new Date(report.LastUpdate), old = Date.now() - when > 36 * 3600e3;
+  // A report not posted today, by the mountain's own calendar, says when it is from.
+  const when = new Date(report.LastUpdate), day = (d) => d.toLocaleDateString("en-US", {timeZone: tzOf(resort)}), old = day(when) !== day(new Date());
   const stamp = `${when.toLocaleDateString("en-US", {timeZone: tzOf(resort), weekday: "short", ...(old ? {month: "short", day: "numeric"} : {})})} ${mountainClock(when, resort)}`;
   // The status box above already names the resort's page and links to it; only an old report says when it is from.
   return `${old ? `<div class="rby">Not today's report: ${stamp}</div>` : ""}
@@ -2708,13 +2714,15 @@ function outlook(resort) {
     <div class="duo" id="duo">${duoHtml(resort)}</div></div>`;
 }
 // ---------- the resorts' own snow stakes ----------
-// Five resorts publish the depth at their own stakes at the base, mid-mountain and summit. That is the snow on the
+// Some resorts publish the depth at their own stakes at the base, mid-mountain and summit (Boyne's three in New
+// England one depth for the whole mountain, Killington and Pico new snow only). That is the snow on the
 // mountain itself, at the elevation being looked at, so on the map it is used ahead of the nearest snow sensor (which
 // is one point, often off the mountain and lower). A stake reporting nothing, or zero before the season, is passed
 // over for the next nearest one, and a mountain with no stake reading keeps its sensor's.
 const STAKES = {palisades: [61, ["BaseArea", "MidMountainArea", "SummitArea"]], alpine: [61, ["Station4", "Station5", "Station6"]],
   mammoth: [60, ["BaseArea", "MidMountainArea", "SummitArea"]], june: [59, ["BaseArea", "MidMountainArea", "SummitArea"]],
-  sugarbush: [70, ["BaseArea", "MidMountainArea", "SummitArea"]]};
+  sugarbush: [70, ["BaseArea", "MidMountainArea", "SummitArea"]],
+  ...Object.fromEntries(["sugarloaf", "sundayriver", "loon", "killington", "pico"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]]))};
 function stakeDepth(key, level) {
   const spec = STAKES[key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
   if (!report) return null;
@@ -2722,18 +2730,23 @@ function stakeDepth(key, level) {
   for (const i of order) { const inches = +((report[spec[1][i]] || {}).BaseIn); if (inches > 0) return inches; }
   return null;
 }
+// What the reports say reaches the map: the stake depths on the labels.
+function groundToMap() {
+  if (!map) return;
+  const keys = Object.keys(STAKES).filter((key) => inPlace().some((r) => r.key === key));
+  map.setGround(Object.fromEntries(keys.map((key) => [key, stakeDepth(key, elevation)]).filter(([, inches]) => inches != null)));
+}
 async function stakeDepths() {
   if (!map || !navigator.onLine) return;
   const asked = map, keys = Object.keys(STAKES).filter((key) => data.resorts.some((r) => r.key === key && regionOf(r) === place()));
   await Promise.all([...new Set(keys.map((key) => STAKES[key][0]))].map(async (id) => {
     const held = liftFeeds[id];
     if (held && Date.now() - held.at < 5 * 60 * 1000) return;
-    try { liftFeeds[id] = {at: Date.now(), data: await getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`)}; }
-    catch (error) { if (!held) liftFeeds[id] = {at: Date.now(), failed: true}; }
+    try { liftFeeds[id] = {at: Date.now(), data: await (FEED_LOADERS[id] ? FEED_LOADERS[id]() : getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`))}; }
+    catch (error) { if (!held) liftFeeds[id] = {at: Date.now(), failed: true, notPosted: !!error.notPosted}; }
   }));
   if (map !== asked) return;
-  const found = Object.fromEntries(keys.map((key) => [key, stakeDepth(key, elevation)]).filter(([, inches]) => inches != null));
-  map.setGround(found);
+  groundToMap();
 }
 // ---------- live lifts and trails, where the resort publishes them ----------
 const liftFeeds = {};
@@ -2799,6 +2812,7 @@ async function loadLifts(resort) {
     try { liftFeeds[id] = {at: Date.now(), data: await (FEED_LOADERS[id] ? FEED_LOADERS[id]() : getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`))}; }
     catch (error) { liftFeeds[id] = {at: Date.now(), failed: true, notPosted: !!error.notPosted}; }
   }
+  if (STAKES[resort.key]) groundToMap();
   if (!$("lifts") || selected !== resort.key) return;
   $("lifts").innerHTML = liftsHtml(resort);
   if ($("wx")) $("wx").innerHTML = weatherRows(resort);
@@ -4550,6 +4564,8 @@ openForecast().then(async () => {
   }
   loadAvalanches(); setInterval(loadAvalanches, 30 * 60 * 1000);
   setInterval(renderHeadline, 5 * 60 * 1000);
+  // The resorts' reports are read again as their feeds refresh, and the map takes what they now say.
+  setInterval(() => { if (!document.hidden) stakeDepths(); }, 5 * 60 * 1000);
   try { await startMap(); } catch (error) { console.error(error); }
   // ...and then two frames, so the map has drawn its labels with those depths before the screen lifts.
   const drawn = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
