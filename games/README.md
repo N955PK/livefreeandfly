@@ -4,19 +4,35 @@ Games for two, played over a link. It lives at `livefreeandfly.org/games/`. Gin 
 
 ## How it works
 
-Each game is one self-contained `index.html`, no build step, same as the rest of the site. There are no accounts: you
-pick a name and an avatar (kept in your browser and shared by every game here), open a table, and send the link.
+There are no accounts. You pick a name and a face, open a table, and send the link (or list the table in the room so
+anyone there can sit down). A player is a browser: the first time it does anything, the room hands it a long random
+key, and that key goes with every call after. "Play on another device" hands the same key to a second phone or
+laptop by link or QR code, so both sit in your seat at every table.
 
-The card room runs on the same Supabase project as ski/lease. The deck, both hands, and the scoring live in the
-database, in a private `gin` schema the API doesn't expose. The page can only call the `gin_*` functions, and each one
-checks the caller's seat token, so a browser never receives a card it shouldn't see. Pages ask for changes every couple
-of seconds, and nudge each other over a Supabase realtime channel so moves show up right away.
+The room runs on the same Supabase project as ski/lease, in two layers:
+
+- **The room** (`sql/1_room.sql`, `room.js`, `room.css`) is everything games share: players, tables, who sits where,
+  the list of open tables, your tables and whose turn it is, sitting down, leaving, a record of finished games, live
+  nudges between two pages, and sound.
+- **A game** (`sql/2_gin.sql`, `gin/index.html`) keeps its own cards and rules in its own schema and hangs them off a
+  row in `room.tables`.
+
+The deck, both hands, and the scoring live in the database, in schemas the API doesn't expose. A page can only call
+the public `room_*` and `gin_*` functions, and each one checks the caller's seat, so a browser never receives a card
+it shouldn't see. Pages ask for changes every couple of seconds, and nudge each other over a Supabase realtime
+channel so moves show up right away.
+
+A table is swept out after 45 days without a move, and a player after 180 days without a visit.
 
 ## Setup
 
-Run `migrations/20261120_gin.sql` once in the Supabase project's SQL editor. It is safe to run again.
+Run `sql/1_room.sql`, then `sql/2_gin.sql`, in the Supabase project's SQL editor. Both are the whole current
+definition and are safe to run again at any time: they upgrade what's there in place and keep every table in play.
+Run them before publishing a page that needs something new from them; the calls an older page makes keep working.
 
-## Gin rummy house rules
+## Gin rummy
+
+House rules:
 
 - Ten cards each. One card is turned up: it starts the discard pile and sets the knock (a face card is 10, an ace 1).
 - The non-dealer may take the turned-up card or pass, then the dealer may. If both pass, the non-dealer draws from the deck.
@@ -29,12 +45,47 @@ Run `migrations/20261120_gin.sql` once in the Supabase project's SQL editor. It 
   and the rest in all three. A finished game takes no more points.
 - Two cards left in the deck and nobody down is a dead hand: no score, same dealer. Otherwise the loser deals next.
 
-The page picks each player's best melds and layoffs for them; the database checks them and does the scoring.
+At the table:
 
-## Tests
+- **Your hand is yours to arrange.** Drag a card anywhere along it and it stays there, through draws and throws and
+  a reload. A card you draw lands on the right end. The Sort buttons put the whole hand in order by meld, suit, or
+  rank whenever you want a fresh start.
+- Tap a card and then Throw it, or drag it onto the discard pile.
+- Melds are colored and deadwood counted for you; "Show my melds" in the table's settings turns that off.
+- The page picks each player's best melds and layoffs when someone goes down; the database checks them and scores.
+- The scoresheet also keeps the tally of every game the two of you have finished, across tables.
+- Leaving a table ends the game for both players, with the scores left as they stand.
 
-`tests/test_gin_sql.py` runs the migration on a throwaway local Postgres and has two bots play whole games through the
-same functions the page calls.
+## Adding a game
+
+1. `sql/3_<game>.sql`: a schema with the game's state keyed by `code references room.tables`, and public
+   `<game>_*` functions that take `p_token` and use `room.me`, `room.new_table`, `room.sit`, and `room.seat`. Keep
+   `room.tables.status`, `turn`, and `summary` current (gin does it with a trigger) so the lists can say whose turn
+   it is.
+2. `<game>/index.html`: load `../room.css` and `../room.js` and build the table. `Room.call` makes a call as the
+   player, `Room.live` is the nudge channel, and the profile, device, and table-list pieces are ready to use.
+3. Add the game to `GAMES` in `room.js` (its name, path, and how to describe a table) and a tile to `index.html`.
+4. Teach `dev/server.py` the new function prefix.
+
+## Next: ski/lease members
+
+Nothing here knows about ski/lease yet. The pieces left for that step:
+
+- `room.players.member_id` is reserved for the lease member a player is. Signing in to ski/lease would attach it
+  (and could fold a browser's existing key into the member with `room_adopt`, so tables carry over).
+- A listed table is visible to anyone who opens the room. Lease-only tables would add a column on `room.tables` for
+  who may see and join, checked in `room_lobby` and `room.sit`.
+- Names and faces could come from the member's lease profile instead of the picker.
+
+## Working on it
+
+`dev/server.py` is a local stand-in for Supabase: it serves the site and answers the calls from a throwaway Postgres
+loaded with `sql/`. The pages use it automatically on localhost.
 
     pip install pgserver psycopg2-binary pytest
+    python3 games/dev/server.py        # http://localhost:8766/games/ ; second player on http://127.0.0.1:8766/games/
     pytest games/tests
+
+`tests/test_gin_sql.py` has two bots play whole games through the same functions the page calls, checks the room
+(lists, leaving, a second device), and upgrades a copy of the first version of gin to make sure tables in play
+survive it.

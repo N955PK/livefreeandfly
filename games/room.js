@@ -1,0 +1,309 @@
+/* game/room: what every page in the room shares. Who you are, the calls to the card room, the lists of tables,
+   live nudges between two pages, and sound. A game's page loads this and adds its own table.
+
+   The room runs on the same Supabase project as ski/lease (games/sql). A player is this browser: the room hands it a
+   long random key the first time it does anything, and the key goes along with every call after that. The key is
+   the publishable one and is safe to ship. On localhost the pages talk to games/dev/server.py instead. */
+window.Room = (() => {
+'use strict';
+
+const CONFIG = {
+  supabaseUrl: 'https://lzbvkrqdrizgnwpbname.supabase.co',
+  supabaseAnonKey: 'sb_publishable_AfcKk4cO5zTDNSsZThrRHA_kLq8YzYa'
+};
+const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+// The browser refuses the file if its contents ever differ from this hash. Update both together when bumping the version.
+const SUPABASE_SRI = 'sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o';
+const DEV = ['localhost', '127.0.0.1'].includes(location.hostname);
+const API = DEV ? location.origin : CONFIG.supabaseUrl.replace(/\/$/, '');
+
+// Every game in the room. The lists use this to name a table and say how it's going; add a game here and it shows up.
+const GAMES = {
+  gin: {
+    name: 'gin/rummy', path: '/games/gin/',
+    options: (o) => (o.mode === 'hollywood' ? 'Hollywood to ' : 'Single game to ') + o.target,
+    score(t) {
+      const tot = t.summary && t.summary.totals;
+      if (!tot || t.status === 'waiting') return '';
+      const n = t.options.mode === 'hollywood' ? 3 : 1;
+      return tot.slice(0, n).map((g) => `${g[t.seat]}–${g[1 - t.seat]}`).join(' · ');
+    },
+    idle: (t) => (t.summary && t.summary.state === 'hand_over' ? 'DEAL' : 'THEIR TURN')
+  }
+};
+
+const FACES = ['🦊','🐻','🦉','🐙','🦄','🐸','🐼','🦁','🐯','🐶','🐱','🦖','🐳','🦅','🐝','🦩',
+               '🛩️','🚁','🪂','⛷️','🏔️','🎿','🤠','😎','🤖','👽','👻','🎩','🃏','🎲','🔥','🍀'];
+const COLORS = ['#a31f34','#39d0a4','#3aa8ff','#ffa32e','#d95ce8','#e8d34f','#8f9bff','#ff5c39','#5fd0e8','#b5e05a','#ff8fb1','#5b6b7a'];
+
+/* ---------- small helpers ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === 'class') el.className = v; else if (k === 'on') for (const [e, f] of Object.entries(v)) el.addEventListener(e, f);
+    else if (k === 'style') el.style.cssText = v; else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid);
+  return el;
+}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private window: carry on without it */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* nothing to remove */ } },
+  keys() { try { return Object.keys(localStorage); } catch (e) { return []; } }
+};
+let toastTimer;
+function toast(msg) {
+  let t = $('#toast');
+  if (!t) { t = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' }); document.body.append(t); }
+  const top = [...document.querySelectorAll('dialog[open]')].pop();     // an open dialog sits above the page
+  (top || document.body).append(t);
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 3200);
+}
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+/* ---------- talking to the card room ---------- */
+async function rpc(fn, args) {
+  let res;
+  try {
+    res = await fetch(`${API}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: CONFIG.supabaseAnonKey, Authorization: 'Bearer ' + CONFIG.supabaseAnonKey },
+      body: JSON.stringify(args || {})
+    });
+  } catch (e) { throw new Error('No connection. Trying again…'); }
+  const body = await res.json().catch(() => null);
+  if (res.ok) return body;
+  if (res.status === 404 || (body && body.code === 'PGRST202')) throw new Error('The game room is being set up. Try again in a little while.');
+  throw new Error((body && body.message) || 'Something went wrong');
+}
+
+/* ---------- who you are ---------- */
+const KEY = 'lff-games-key', PROFILE = 'lff-games-profile', SYNCED = 'lff-games-synced';
+const pickOne = (list) => list[Math.floor(Math.random() * list.length)];
+const profile = Object.assign({ name: '', avatar: pickOne(FACES), color: pickOne(COLORS) }, store.get(PROFILE, {}));
+let key = store.get(KEY, null);
+const saveProfile = () => store.set(PROFILE, profile);
+const signature = () => JSON.stringify([profile.name, profile.avatar, profile.color]);
+
+// This browser's key, making sure the room knows it and has the current name and face.
+let hello = null;
+function me() {
+  if (key && store.get(SYNCED) === signature()) return Promise.resolve(key);
+  hello = hello || (async () => {
+    try {
+      const sig = signature();
+      const r = await rpc('room_hello', { p_token: key, p_name: profile.name, p_avatar: profile.avatar, p_color: profile.color });
+      key = r.token; store.set(KEY, key); store.set(SYNCED, sig);
+      return key;
+    } finally { hello = null; }
+  })();
+  return hello;
+}
+// A call made as you. If the room has forgotten this browser (it sweeps out keys unused for months), it's
+// introduced again and the call is retried once.
+async function call(fn, args) {
+  try { return await rpc(fn, { p_token: await me(), ...args }); }
+  catch (e) {
+    if (!/doesn.t know this browser/.test(e.message)) throw e;
+    key = null; store.del(KEY); store.del(SYNCED);
+    return rpc(fn, { p_token: await me(), ...args });
+  }
+}
+function named() {
+  if (profile.name.trim()) return true;
+  toast('What should we call you?');
+  const box = [...document.querySelectorAll('.who input')].find((el) => el.offsetParent);
+  if (box) box.focus();
+  return false;
+}
+
+// Before any page does anything: take over a key handed across from another device (?me=...), and gather up seats
+// from the first version of gin, which kept a separate key per table.
+const ready = (async () => {
+  const url = new URL(location.href), incoming = url.searchParams.get('me');
+  if (incoming) {
+    url.searchParams.delete('me');
+    history.replaceState(null, '', url);
+    try {
+      const who = await rpc('room_who', { p_token: incoming });
+      if (key && key !== incoming) await rpc('room_adopt', { p_token: incoming, p_other: key }).catch(() => {});
+      key = incoming; store.set(KEY, key);
+      Object.assign(profile, { name: who.name, avatar: who.avatar, color: who.color }); saveProfile(); store.set(SYNCED, signature());
+      toast(`This device is now playing as ${who.name}.`);
+    } catch (e) { toast('That link didn’t work. Make a new one on your other device.'); }
+  }
+  const old = store.keys().filter((k) => k.startsWith('gin-seat-'));
+  if (old.length) {
+    try {
+      const mine = await me();
+      for (const k of old) {
+        const other = store.get(k, null);
+        if (typeof other === 'string' && other !== mine) await rpc('room_adopt', { p_token: mine, p_other: other });
+        store.del(k);
+      }
+    } catch (e) { /* the old keys stay put and this runs again next time */ }
+  }
+})();
+
+function avatarEl(face, cls) {
+  const el = h('div', { class: 'av' + (cls ? ' ' + cls : '') });
+  setAvatar(el, face);
+  return el;
+}
+function setAvatar(el, face) {
+  el.classList.toggle('empty', !face);
+  el.textContent = face ? face.avatar || '🃏' : '?';
+  el.style.setProperty('--c', (face && face.color) || '#a31f34');
+}
+// Name box, face grid, and color dots. Edits p in place and calls changed() after each one.
+function profileEditor(box, p, changed) {
+  const face = avatarEl(p, 'big');
+  const name = h('input', { type: 'text', maxlength: 20, placeholder: 'Your name', value: p.name, autocomplete: 'nickname', 'aria-label': 'Your name',
+    on: { input: () => { p.name = name.value; changed(); } } });
+  const faces = h('div', { class: 'faces', role: 'group', 'aria-label': 'Avatar' }, FACES.map((f) =>
+    h('button', { type: 'button', 'aria-pressed': String(f === p.avatar), on: { click: () => { p.avatar = f; sync(); } } }, f)));
+  const dots = h('div', { class: 'swatches', role: 'group', 'aria-label': 'Color' }, COLORS.map((c) => {
+    const b = h('button', { type: 'button', 'aria-label': c, 'aria-pressed': String(c === p.color), on: { click: () => { p.color = c; sync(); } } });
+    b.style.setProperty('--c', c); b.dataset.c = c; return b;
+  }));
+  function sync() {
+    setAvatar(face, p);
+    [...faces.children].forEach((b) => b.setAttribute('aria-pressed', String(b.textContent === p.avatar)));
+    [...dots.children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.c === p.color)));
+    changed();
+  }
+  box.replaceChildren(h('div', { class: 'who' }, face, name), faces, dots);
+}
+
+/* ---------- dialogs any page can open ---------- */
+function dialog(label, ...kids) {
+  const d = h('dialog', { 'aria-label': label }, kids);
+  d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  d.addEventListener('close', () => d.remove());
+  document.body.append(d); d.showModal();
+  return d;
+}
+// Change your name and face. saved() runs once the room has them.
+function profileDialog(saved) {
+  const draft = { ...profile }, box = h('div', {});
+  profileEditor(box, draft, () => {});
+  const d = dialog('Your name and avatar', h('h3', {}, 'You'), h('div', { style: 'margin-top:14px' }, box), h('div', { class: 'btns' },
+    h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel'),
+    h('button', { class: 'go', on: { click: async () => {
+      if (!draft.name.trim()) { toast('What should we call you?'); return; }
+      Object.assign(profile, draft); saveProfile(); d.close();
+      try { if (key) await me(); if (saved) saved(); } catch (e) { toast(e.message); }
+    } } }, 'Save')));
+}
+let qrLib = null;
+function qr(text) {
+  qrLib = qrLib || new Promise((ok, no) => {
+    if (window.qrcode) return ok();
+    const s = h('script', { src: '/cabin/qrcode.js' });
+    s.onload = () => ok(); s.onerror = () => { qrLib = null; no(new Error('qr')); };
+    document.head.append(s);
+  });
+  return qrLib.then(() => {
+    const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+    const box = h('div', { class: 'qr', role: 'img', 'aria-label': 'QR code' });
+    box.innerHTML = q.createSvgTag({ scalable: true, margin: 2 });     // the library's own markup, built from our link
+    return box;
+  });
+}
+// Carry your seat at every table to another phone or laptop.
+async function deviceDialog() {
+  let link;
+  try { link = `${location.origin}/games/?me=${await me()}`; } catch (e) { return toast(e.message); }
+  const spot = h('div', {});
+  dialog('Play on another device', h('h3', {}, 'Play on another device'),
+    h('p', { class: 'why' }, 'Scan this with your other phone, or open the link there. It will sit in your seat at every table, alongside this device.'),
+    spot, h('div', { class: 'link' }, link),
+    h('p', { class: 'why' }, 'Keep it to yourself: anyone with this link can play your cards.'),
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: async () => {
+      try { await navigator.clipboard.writeText(link); toast('Link copied'); } catch (e) { toast('Press and hold the link to copy it'); }
+    } } }, 'Copy the link')));
+  qr(link).then((el) => spot.append(el)).catch(() => {});
+}
+
+/* ---------- lists of tables ---------- */
+const mine = () => (key ? call('room_mine') : Promise.resolve([]));
+const lobby = () => rpc('room_lobby', { p_token: key });
+// One line in a list: a table you're at ('mine') or one you could sit down at ('open').
+function tableRow(t, kind) {
+  const g = GAMES[t.game] || { name: t.game, path: '/games/', options: () => '', score: () => '', idle: () => 'THEIR TURN' };
+  const who = kind === 'open' ? t.host : t.players.find((p, i) => i !== t.seat) || null;
+  const title = kind === 'open' ? who.name : who ? 'vs ' + who.name : 'Waiting for someone';
+  const sub = [g.name, g.options(t.options), kind === 'mine' && g.score(t)].filter(Boolean).join(' · ');
+  const badge = kind === 'open' ? (t.mine ? ['YOURS', ''] : ['SIT DOWN', ' sit'])
+    : t.status === 'waiting' ? ['OPEN', ''] : t.your_turn ? ['YOUR TURN', ' you'] : t.status === 'over' ? ['GAME OVER', ''] : [g.idle(t), ''];
+  return h('a', { class: 'trow', href: `${g.path}?t=${t.code}` }, avatarEl(who), h('div', { class: 't' }, h('b', {}, title), h('span', {}, sub)),
+    h('span', { class: 'badge' + badge[1] }, badge[0]));
+}
+function showTables(box, tables, kind, none) {
+  box.replaceChildren(tables.length ? h('div', { class: 'tables' }, tables.map((t) => tableRow(t, kind))) : h('p', { class: 'none' }, none));
+}
+
+/* ---------- live nudges: the other page hears about a move the moment it lands ---------- */
+// Returns { send(event, payload) }. Every page still polls, so if this never connects the game carries on.
+function live(name, handlers, status) {
+  const out = { channel: null, send(event, payload) { if (out.channel) out.channel.send({ type: 'broadcast', event, payload: payload || {} }).catch(() => {}); } };
+  if (DEV) return out;
+  const s = h('script', { src: SUPABASE_JS, integrity: SUPABASE_SRI, crossorigin: 'anonymous' });
+  s.onload = () => {
+    try {
+      const sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, { auth: { persistSession: false } });
+      let ch = sb.channel(name, { config: { broadcast: { self: false } } });
+      for (const [event, fn] of Object.entries(handlers)) ch = ch.on('broadcast', { event }, (m) => fn(m.payload || {}));
+      ch.subscribe((state) => { out.channel = state === 'SUBSCRIBED' ? ch : null; if (status) status(state === 'SUBSCRIBED'); });
+    } catch (e) { out.channel = null; }
+  };
+  document.head.append(s);
+  return out;
+}
+
+/* ---------- sound: a few synthesized blips, no files ---------- */
+const sound = (() => {
+  let ctx = null, on = store.get('lff-games-sound', true);
+  function ac() {
+    if (!on || !(navigator.userActivation && navigator.userActivation.hasBeenActive)) return null;
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    } catch (e) { return null; }
+  }
+  function tone(freq, at, dur, type, vol) {
+    const c = ac(); if (!c) return;
+    const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + at;
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol || 0.12, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.03);
+  }
+  function hiss(at, dur, freq, vol) {
+    const c = ac(); if (!c) return;
+    const n = Math.max(1, Math.floor(c.sampleRate * dur)), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.9; g.gain.value = vol || 0.2;
+    s.connect(f).connect(g).connect(c.destination); s.start(c.currentTime + at);
+  }
+  return {
+    get on() { return on; },
+    set(v) { on = !!v; store.set('lff-games-sound', on); },
+    draw() { hiss(0, 0.1, 3000, 0.16); },
+    place() { hiss(0, 0.07, 1500, 0.24); tone(130, 0, 0.07, 'sine', 0.1); },
+    deal() { for (let i = 0; i < 6; i++) hiss(i * 0.07, 0.06, 2600, 0.12); },
+    turn() { tone(660, 0, 0.14, 'sine', 0.09); tone(880, 0.1, 0.22, 'sine', 0.09); },
+    knock() { for (const at of [0, 0.17]) { tone(165, at, 0.1, 'triangle', 0.34); hiss(at, 0.04, 480, 0.3); } },
+    win() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.34, 'triangle', 0.13)); },
+    lose() { [392, 330, 262].forEach((f, i) => tone(f, i * 0.17, 0.36, 'sine', 0.09)); },
+    pop() { tone(540, 0, 0.09, 'sine', 0.08); }
+  };
+})();
+
+return { DEV, GAMES, $, h, store, toast, plural, rpc, call, me, ready, named, profile, saveProfile, key: () => key,
+         avatarEl, setAvatar, profileEditor, profileDialog, deviceDialog, dialog, qr, mine, lobby, showTables, live, sound };
+})();

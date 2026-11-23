@@ -1,4 +1,4 @@
-"""Plays gin rummy against the real SQL in games/migrations, on a throwaway local Postgres.
+"""Plays gin rummy against the real SQL in games/sql, on a throwaway local Postgres.
 
     pip install pgserver psycopg2-binary pytest
     pytest games/tests
@@ -16,7 +16,9 @@ import pgserver
 import psycopg2
 import pytest
 
-MIGRATION = Path(__file__).resolve().parents[1] / "migrations" / "20261120_gin.sql"
+HERE = Path(__file__).resolve().parent
+SQL = [HERE.parent / "sql" / "1_room.sql", HERE.parent / "sql" / "2_gin.sql"]
+V1 = HERE / "fixtures" / "gin_v1.sql"   # gin as it first went live, to check the upgrade keeps tables in play
 
 
 def val(c):
@@ -107,21 +109,38 @@ def best_answer(hand, knocker_melds, gin):
     return best
 
 
+ROLES = ("do $$ begin create role anon nologin; create role authenticated nologin; "
+         "exception when duplicate_object then null; end $$")
+
+
 @pytest.fixture(scope="module")
-def db():
+def server():
     with tempfile.TemporaryDirectory() as tmp:
-        server = pgserver.get_server(tmp)
-        conn = psycopg2.connect(server.get_uri())
-        conn.autocommit = True
-        cur = conn.cursor()
-        cur.execute("do $$ begin create role anon nologin; create role authenticated nologin; "
-                    "exception when duplicate_object then null; end $$")
-        sql = MIGRATION.read_text()
-        cur.execute(sql)
-        cur.execute(sql)  # safe to run twice
-        yield cur
-        conn.close()
-        server.cleanup()
+        srv = pgserver.get_server(tmp)
+        yield srv
+        srv.cleanup()
+
+
+def connect(server, dbname="postgres"):
+    conn = psycopg2.connect(server.get_uri().replace("/postgres?", f"/{dbname}?"))
+    conn.autocommit = True
+    return conn
+
+
+def install(cur):
+    for f in SQL:
+        cur.execute(f.read_text())
+
+
+@pytest.fixture(scope="module")
+def db(server):
+    conn = connect(server)
+    cur = conn.cursor()
+    cur.execute(ROLES)
+    install(cur)
+    install(cur)  # safe to run twice
+    yield cur
+    conn.close()
 
 
 def call(cur, fn, **args):
@@ -131,10 +150,15 @@ def call(cur, fn, **args):
     return cur.fetchone()[0]
 
 
-def new_table(cur, mode="single", target=150):
-    made = call(cur, "gin_create", p_name="Ann", p_avatar="🦊", p_color="#3aa8ff", p_mode=mode, p_target=target)
-    joined = call(cur, "gin_join", p_code=made["code"], p_name="Bob", p_avatar="🐻", p_color="#ffa32e")
-    return made["code"], [made["token"], joined["token"]]
+def hello(cur, name, avatar="🦊", color="#3aa8ff", token=None):
+    return call(cur, "room_hello", p_token=token, p_name=name, p_avatar=avatar, p_color=color)["token"]
+
+
+def new_table(cur, mode="single", target=150, players=None):
+    a, b = players or (hello(cur, "Ann"), hello(cur, "Bob", "🐻", "#ffa32e"))
+    made = call(cur, "gin_create", p_token=a, p_mode=mode, p_target=target)
+    call(cur, "gin_join", p_token=b, p_code=made["code"])
+    return made["code"], [a, b]
 
 
 def raw(cur, code):
@@ -275,17 +299,25 @@ def hand(text):
 
 
 def test_seats_and_turns(db):
-    made = call(db, "gin_create", p_name="  ", p_avatar="<b>", p_color="red", p_mode="single", p_target=150)
-    code, t0 = made["code"], made["token"]
-    assert made["state"]["names"][0] == "Player" and made["state"]["avatars"][0] == "🃏"
+    t0 = hello(db, "  ", "<b>", "red")
+    made = call(db, "gin_create", p_token=t0, p_mode="single", p_target=150)
+    code = made["code"]
+    assert made["state"]["names"] == ["Player", ""] and made["state"]["avatars"][0] == "🃏"
     assert made["state"]["status"] == "waiting" and made["state"]["hand"] == []
     assert call(db, "gin_peek", p_code=code.lower())["open"] is True
     assert call(db, "gin_peek", p_code="NOPE12") == {"found": False}
-    fails(db, "gin_state", "not sitting", p_code=code, p_token="")
-    fails(db, "gin_state", "not sitting", p_code=code, p_token="x" * 64)
-    fails(db, "gin_create", "between 10 and 1000", p_name="A", p_avatar="a", p_color="", p_mode="single", p_target=5)
-    t1 = call(db, "gin_join", p_code=code, p_name="Bob", p_avatar="🐻", p_color="#ffa32e")["token"]
-    fails(db, "gin_join", "taken", p_code=code, p_name="Eve", p_avatar="🐍", p_color="#000000")
+    fails(db, "gin_state", "doesn't know this browser", p_code=code, p_token="")
+    fails(db, "gin_state", "doesn't know this browser", p_code=code, p_token="x" * 64)
+    fails(db, "gin_create", "between 10 and 1000", p_token=t0, p_mode="single", p_target=5)
+    fails(db, "gin_create", "doesn't know this browser", p_token=None, p_mode="single", p_target=150)
+    assert call(db, "gin_join", p_token=t0, p_code=code)["state"]["status"] == "waiting"   # the host opening their own link
+    t1 = hello(db, "Bob", "🐻", "#ffa32e")
+    eve = hello(db, "Eve", "🐍", "#000000")
+    fails(db, "gin_state", "not sitting", p_code=code, p_token=t1)
+    assert call(db, "gin_join", p_token=t1, p_code=code)["state"]["status"] == "playing"
+    assert call(db, "gin_join", p_token=t1, p_code=code)["state"]["hand_no"] == 1          # sitting down twice deals once
+    fails(db, "gin_join", "taken", p_token=eve, p_code=code)
+    fails(db, "gin_state", "not sitting", p_code=code, p_token=eve)
     assert call(db, "gin_peek", p_code=code)["open"] is False
     tokens = [t0, t1]
     st = call(db, "gin_state", p_code=code, p_token=t0)
@@ -310,8 +342,120 @@ def test_seats_and_turns(db):
     assert took["drawn"] == me["hand"][0]
     fails(db, "gin_discard", "just picked up", p_code=code, p_token=dealer, p_card=took["drawn"])
     fails(db, "gin_knock", "just picked up", p_code=code, p_token=dealer, p_card=took["drawn"], p_melds=[])
-    named = call(db, "gin_profile", p_code=code, p_token=t1, p_name="Bobby", p_avatar="🦉", p_color="#39D0A4")
-    assert named["names"][1] == "Bobby" and named["colors"][1] == "#39d0a4"
+    # A new name shows up for the other player without a move being made.
+    v = call(db, "gin_state", p_code=code, p_token=t0)["v"]
+    assert hello(db, "Bobby", "🦉", "#39D0A4", token=t1) == t1
+    named = call(db, "gin_state", p_code=code, p_token=t0, p_since=v)
+    assert named["names"][1] == "Bobby" and named["colors"][1] == "#39d0a4" and named["v"] > v
+
+
+def test_the_room(db):
+    ann, bob, cy = hello(db, "Ann"), hello(db, "Bob"), hello(db, "Cy")
+    assert hello(db, "Ann", token="y" * 40) not in ("y" * 40, ann)       # a key the room doesn't know gets a fresh one
+    quiet = call(db, "gin_create", p_token=ann, p_mode="single", p_target=100)["code"]
+    listed = call(db, "gin_create", p_token=ann, p_mode="hollywood", p_target=200, p_listed=True)["code"]
+    lobby = {t["code"]: t for t in call(db, "room_lobby", p_token=bob)}
+    assert quiet not in lobby and lobby[listed]["host"]["name"] == "Ann" and not lobby[listed]["mine"]
+    assert lobby[listed]["options"] == {"mode": "hollywood", "target": 200} and lobby[listed]["game"] == "gin"
+    assert {t["code"]: t for t in call(db, "room_lobby", p_token=ann)}[listed]["mine"]
+    call(db, "gin_join", p_token=bob, p_code=listed)
+    assert listed not in {t["code"] for t in call(db, "room_lobby")}      # full tables drop off the list
+    st = call(db, "gin_state", p_code=listed, p_token=ann)
+    mine = {t["code"]: t for t in call(db, "room_mine", p_token=ann)}
+    assert set(mine) == {quiet, listed} and mine[quiet]["status"] == "waiting" and mine[quiet]["players"][1] is None
+    assert mine[listed]["status"] == "playing" and mine[listed]["your_turn"] == (st["turn"] == 0)
+    assert [p["name"] for p in mine[listed]["players"]] == ["Ann", "Bob"] and mine[listed]["summary"]["hand"] == 1
+    theirs = {t["code"]: t for t in call(db, "room_mine", p_token=bob)}
+    assert theirs[listed]["your_turn"] == (st["turn"] == 1) and theirs[listed]["seat"] == 1
+    assert call(db, "room_mine", p_token=cy) == []
+
+    # Taking down a table nobody joined removes it; getting up from one in play closes it for both.
+    fails(db, "room_leave", "not sitting", p_token=cy, p_code=quiet)
+    call(db, "room_leave", p_token=ann, p_code=quiet)
+    assert call(db, "gin_peek", p_code=quiet) == {"found": False}
+    v = call(db, "gin_state", p_code=listed, p_token=ann)["v"]
+    call(db, "room_leave", p_token=bob, p_code=listed)
+    st = call(db, "gin_state", p_code=listed, p_token=ann, p_since=v)
+    assert st["closed"] and st["left"] == 1 and st["v"] > v
+    fails(db, "gin_pass", "closed", p_code=listed, p_token=ann)
+    fails(db, "gin_draw", "closed", p_code=listed, p_token=bob, p_source="discard")
+    assert call(db, "room_mine", p_token=ann) == [] and call(db, "room_mine", p_token=bob) == []
+
+    # A second device: its own key's seats fold into the first. A table still waiting for someone comes along too.
+    phone = hello(db, "Ann's phone")
+    code, _ = new_table(db, players=(phone, bob))
+    waiting = call(db, "gin_create", p_token=phone, p_mode="single", p_target=150)["code"]
+    assert call(db, "room_who", p_token=phone)["name"] == "Ann's phone"
+    assert call(db, "room_adopt", p_token=ann, p_other=phone) == {"moved": 2}
+    assert call(db, "gin_state", p_code=code, p_token=ann)["names"] == ["Ann", "Bob"]
+    assert call(db, "gin_state", p_code=waiting, p_token=ann)["status"] == "waiting"
+    fails(db, "gin_state", "doesn't know this browser", p_code=code, p_token=phone)
+    assert call(db, "room_adopt", p_token=ann, p_other=phone) == {"moved": 0}
+    assert call(db, "room_adopt", p_token=ann, p_other=ann) == {"moved": 0}
+
+
+def test_record_between_two_players(db):
+    code, tokens = new_table(db, target=25)
+    rng = random.Random(7)
+    wins = [0, 0]
+    for _ in range(3):
+        while True:
+            play_hand(db, code, tokens, rng)
+            st = call(db, "gin_state", p_code=code, p_token=tokens[0])
+            if st["status"] == "game_over":
+                break
+            call(db, "gin_next", p_code=code, p_token=tokens[0], p_hand_no=st["hand_no"])
+        wins[st["winners"][0]] += 1
+        assert st["record"] == wins
+        assert call(db, "gin_state", p_code=code, p_token=tokens[1])["record"] == wins[::-1]
+        call(db, "gin_next", p_code=code, p_token=tokens[1], p_hand_no=st["hand_no"])
+    other, _ = new_table(db, players=(tokens[1], tokens[0]))            # a new table between the same two
+    assert call(db, "gin_state", p_code=other, p_token=tokens[0])["record"] == wins
+
+
+def test_upgrade_keeps_tables_in_play(server):
+    admin = connect(server)
+    admin.cursor().execute("create database upgrade")
+    admin.close()
+    conn = connect(server, "upgrade")
+    cur = conn.cursor()
+    cur.execute(ROLES)
+    cur.execute(V1.read_text())
+    # Two tables from before the room existed: one mid-hand, one still waiting for a second player.
+    made = call(cur, "gin_create", p_name="Ann", p_avatar="🦊", p_color="#3aa8ff", p_mode="hollywood", p_target=150)
+    code, ann = made["code"], made["token"]
+    bob = call(cur, "gin_join", p_code=code, p_name="Bob", p_avatar="🐻", p_color="#ffa32e")["token"]
+    rng = random.Random(3)
+    play_hand(cur, code, [ann, bob], rng)
+    st = call(cur, "gin_state", p_code=code, p_token=ann)
+    call(cur, "gin_next", p_code=code, p_token=ann, p_hand_no=st["hand_no"])
+    before = [call(cur, "gin_state", p_code=code, p_token=t) for t in (ann, bob)]
+    lonely = call(cur, "gin_create", p_name="Cy", p_avatar="🐸", p_color="#39d0a4", p_mode="single", p_target=100)
+
+    install(cur)
+    install(cur)
+    after = [call(cur, "gin_state", p_code=code, p_token=t) for t in (ann, bob)]
+    for b, a in zip(before, after):
+        for k in ("hand", "names", "avatars", "colors", "totals", "log", "turn", "phase", "top", "knock", "hand_no", "result"):
+            assert a[k] == b[k], k
+    assert not after[0]["closed"] and after[0]["record"] == [0, 0]
+    play_hand(cur, code, [ann, bob], rng)                                   # the old keys still play
+    mine = call(cur, "room_mine", p_token=ann)
+    assert [t["code"] for t in mine] == [code] and mine[0]["options"] == {"mode": "hollywood", "target": 150}
+    # The waiting table is still joinable, by a page from before the upgrade or after it.
+    assert call(cur, "gin_peek", p_code=lonely["code"])["host"]["name"] == "Cy"
+    dee = call(cur, "gin_join", p_code=lonely["code"], p_name="Dee", p_avatar="🐼", p_color="#d95ce8")
+    assert dee["state"]["status"] == "playing" and dee["state"]["names"] == ["Cy", "Dee"]
+    assert call(cur, "gin_state", p_code=lonely["code"], p_token=lonely["token"])["hand_no"] == 1
+    old_page = call(cur, "gin_create", p_name="Old", p_avatar="🎩", p_color="#5b6b7a", p_mode="single", p_target=150)
+    assert call(cur, "gin_state", p_code=old_page["code"], p_token=old_page["token"])["status"] == "waiting"
+    named = call(cur, "gin_profile", p_code=code, p_token=bob, p_name="Bobby", p_avatar="🦉", p_color="#39D0A4")
+    assert named["names"][1] == "Bobby"
+    # A browser holding several of the old per-table keys gathers them under one player.
+    me = hello(cur, "Ann")
+    assert call(cur, "room_adopt", p_token=me, p_other=ann) == {"moved": 1}
+    assert call(cur, "gin_state", p_code=code, p_token=me)["you"] == 0
+    conn.close()
 
 
 def test_knock_layoff_and_undercut(db):
@@ -399,6 +543,7 @@ def test_dead_hand(db):
 
 
 def test_only_the_api_is_reachable(db):
-    db.execute("select has_schema_privilege('anon', 'gin', 'usage'), "
-               "has_function_privilege('anon', 'public.gin_state(text, text, int)', 'execute')")
-    assert db.fetchone() == (False, True)
+    db.execute("select has_schema_privilege('anon', 'gin', 'usage'), has_schema_privilege('anon', 'room', 'usage'), "
+               "has_function_privilege('anon', 'public.gin_state(text, text, int)', 'execute'), "
+               "has_function_privilege('anon', 'public.room_hello(text, text, text, text)', 'execute')")
+    assert db.fetchone() == (False, False, True, True)
