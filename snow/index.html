@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
-<meta property="og:description" content="A free, verified snow forecast for ski resorts in the Sierra and New England.">
+<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra and New England.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -3147,7 +3147,7 @@ function showTime(value) {
   $("toNow").classList.toggle("away", !atNow); $("backNow").classList.toggle("away", !atNow);
   const falling = rate < map.quietRate ? "Not snowing" : `${rate < 0.15 ? "Light snow" : rate < 0.5 ? "Snowing" : "Dumping"}`;
   // A snow level well clear of the highest summit on the map (Tahoe's 10,380 ft gives 12,000) is above the peaks.
-  const peaks = Math.max(...inPlace().map((r) => r.elevations.summit.elevation_ft)) + 1620;
+  const peaks = Math.min(12000, Math.max(...inPlace().map((r) => r.elevations.summit.elevation_ft)) + 1620);
   $("mapWhat").textContent = `${falling} · ${level > peaks ? "snow level above the peaks" : height(level)}`;
 }
 function setTime(value) {
