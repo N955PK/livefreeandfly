@@ -202,7 +202,7 @@ html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:
   html.tabs[data-view="forecast"] .brand{position:sticky;left:16px;width:calc(100vw - 32px);touch-action:pan-y}
   html.tabs .sumhead{position:sticky;top:var(--sat);left:0;width:100vw;height:94px;touch-action:pan-y}
   html.tabs .gridwrap{overflow:visible}
-  html.tabs .gridwrap > .gridnote,html.tabs .gridwrap > .legend{left:16px;width:calc(100vw - 32px);max-width:none;box-sizing:border-box;touch-action:pan-y}
+  html.tabs .gridwrap > .gridnote,html.tabs .gridwrap > .legend,html.tabs .gridwrap > .reorderbar{left:16px;width:calc(100vw - 32px);max-width:none;box-sizing:border-box;touch-action:pan-y}
   html.tabs .panel.summary table.heat{padding-top:0}
   html.tabs .heat tr.head th{position:sticky;top:calc(var(--sat) + 94px);z-index:3;height:30px;box-sizing:border-box;padding:0 0 3px;line-height:1.15;vertical-align:bottom;background:var(--surface);box-shadow:0 0 0 2px var(--surface),0 3px 0 0 var(--border)}
   html.tabs .heat tr.head th b{line-height:1.15}
@@ -221,7 +221,7 @@ html.tabs .jump button{position:relative;z-index:1;padding:5px 4px;background:no
 html.tabs .jump.many button{padding:5px 6px}
 html.tabs .jump button[aria-current=true]{background:none;color:var(--mark)}
 /* The note and the key under the table stay put when the table is slid sideways. */
-.gridwrap > .gridnote,.gridwrap > .legend{position:sticky;left:0}
+.gridwrap > .gridnote,.gridwrap > .legend,.gridwrap > .reorderbar{position:sticky;left:0}
 html.tabs .jump{display:flex;gap:6px;margin:10px 0 0;padding:0 0 9px;overflow-x:auto;scrollbar-width:none}
 html.tabs .jump::-webkit-scrollbar{display:none}
 .jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
@@ -608,6 +608,17 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 .duobody[data-duo-body="insight"]{border-radius:11px 0 11px 11px}
 .duopills.solo ~ .duobody{border-radius:0 0 11px 11px}
 .duobody[hidden]{display:none}
+/* Favorites in their own order: under the list, a pill that puts it in reorder mode, where each row has an up and a
+   down pill in place of its days. The end rows' outward pills are there but quiet, since they cannot move. */
+.reorderbar{display:flex;justify-content:center;padding:12px 16px 6px}
+.reorderbar[hidden]{display:none}
+.reorderbar .duopill{justify-content:center;padding:9px 30px}
+.reorderbar .duopill::after{content:none}
+.heat td.moves{padding:0 6px 0 10px;white-space:nowrap;text-align:left}
+.heat .mv{display:inline-grid;place-items:center;width:44px;height:34px;margin-right:8px;padding:0;border:0;border-radius:999px;background:var(--wash);color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.heat .mv svg{width:13px;height:9px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.heat .mv[data-move="-1"] svg{transform:rotate(180deg)}
+.heat .mv:disabled{opacity:.3;cursor:default}
 .rby{font-size:12.5px;color:var(--mark-dull)}
 .rby + .rfacts{margin-top:10px}
 .ralert{margin:12px 0 0;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--w1) 22%,var(--surface));font-size:13px;line-height:1.4;color:var(--mark-mid)}
@@ -1395,9 +1406,10 @@ if (HOSTED) {
       </div>
     </div>
     <div class="gridfresh meta" id="gridFresh"></div>
-    <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span>Tap a mountain for details</span></div>
+    <div class="gridcap"><span id="gridCap">Snow in inches, from 4 pm previous day</span><br><span id="gridHint">Tap a mountain for details</span></div>
     </div>
     <div class="gridwrap"><table class="heat" id="heat"></table>
+    <div class="reorderbar" id="reorderBar" hidden><button class="duopill" id="reorderPill">Reorder</button></div>
     <div class="gridnote" id="unratedNote" hidden>* No avalanche forecast covers this peak</div>
     <div class="legend" id="legend"></div></div>
   </div>
@@ -1495,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "195";
+const BUILD = "196";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1572,7 +1584,7 @@ const PREFS_KEY = "turbo-snow.prefs";
 const prefs = {units: "us", clock: "12", finger: "spin", labels: "on", shields: "on", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
 const savePrefs = () => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (error) { /* private browsing: the choice lasts for this visit */ } };
 // ---------- favorites ----------
-// Any mountain can be starred: prefs.favorites holds their keys in the order they were starred.
+// Any mountain can be starred: prefs.favorites holds their keys in the reader's order (the order starred, until moved).
 const favorites = () => Array.isArray(prefs.favorites) ? prefs.favorites : [];
 const isFavorite = (key) => favorites().includes(key);
 // The home mountains saved before favorites existed (one per region, and before regions one for Tahoe alone) become
@@ -1589,7 +1601,7 @@ const isFavorite = (key) => favorites().includes(key);
     for (const key of old) localStorage.removeItem(key);
   } catch (error) { /* private browsing: nothing was saved before */ }
 })();
-// The favorites the page can show: mountains the index knows, in a region this page draws, in the order starred. One
+// The favorites the page can show: mountains the index knows, in a region this page draws, in the saved order. One
 // it does not know (a region not built yet, or one this page predates) is left out here and kept in prefs.
 const knownFavorites = () => {
   if (!index && !data) return [];
@@ -1682,8 +1694,8 @@ function lastThreeDays(resort, el) {
 }
 
 // Resorts sit under the pass that covers them, and backcountry peaks in a group of their own. The home mountain's
-// group leads and the home mountain leads it (on Favorites, the first favorite's); the rest follow by what fell in the
-// last three days, and where that is even, in the region's own order (on Favorites, the order they were starred).
+// group leads and the home mountain leads it; the rest follow by what fell in the last three days, and where that is
+// even, in the region's own order. Favorites is one list in the reader's own order (see reorder mode), with no groups.
 // The pass comes with the data; PASSES covers data published before it did.
 const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Independent", "Backcountry"];
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
@@ -1691,13 +1703,14 @@ const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northsta
 const passOf = (r) => r.pass || (PASSES.find(([, keys]) => keys.includes(r.key)) || ["Independent"])[0];
 const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June", sunapee: "Sunapee"};
 function byPass() {
+  if (region === FAVORITES) return [["", sorted()]];
   const rows = sorted(), names = [...new Set([...PASS_ORDER, ...rows.map(passOf)])];
   // Resorts are ordered by recent snow; backcountry peaks run north to south, as on the map.
   const inOrder = (name, list) => (name === "Backcountry" ? list.sort((a, b) => b.lat - a.lat) : list);
   return names.map((name) => [name, inOrder(name, rows.filter((r) => passOf(r) === name))]).filter(([, list]) => list.length)
     .sort((a, b) => b[1].some((r) => r.key === HOME) - a[1].some((r) => r.key === HOME));
 }
-function sorted() { return here().sort((a, b) => (b.key === HOME) - (a.key === HOME) || lastThreeDays(b, b.elevations[elevation]) - lastThreeDays(a, a.elevations[elevation])); }
+function sorted() { return region === FAVORITES ? here() : here().sort((a, b) => (b.key === HOME) - (a.key === HOME) || lastThreeDays(b, b.elevations[elevation]) - lastThreeDays(a, a.elevations[elevation])); }
 
 function pm(x) { return x.pm_in == null ? "" : ` <span class="pm">± ${inches(x.pm_in)}</span>`; }
 
@@ -1730,7 +1743,14 @@ function renderHeadline() {
   $("meta").innerHTML = (offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
 }
 
+// Reorder mode, on Favorites only: it ends on leaving Favorites, with fewer than two to order, and on a reload.
+let reordering = false;
+const MOVE_ARROW = '<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg>';
 function renderHeat() {
+  if (region !== FAVORITES || here().length < 2) reordering = false;
+  $("reorderBar").hidden = region !== FAVORITES || here().length < 2;
+  $("reorderPill").textContent = reordering ? "Done" : "Reorder";
+  $("gridHint").textContent = reordering ? "Use the arrows to move a mountain up or down." : "Tap a mountain for details";
   $("gridCap").textContent = `Snow in ${metric() ? "cm" : "inches"}, from ${hourName(16)} previous day`;
   // The days are headed from the selected mountain (on Favorites, rows of another region read their own forecast
   // for each of those dates).
@@ -1739,16 +1759,22 @@ function renderHeat() {
   const near = days.filter((d) => d.lead_day <= data.deterministic_days), far = days.filter((d) => d.lead_day > data.deterministic_days);
   let html = "";
   const dayHead = (d) => `<th class="day${d.lead_day > data.deterministic_days ? " far" : ""}">${weekday(d.date)}<b>${dayOfMonth(d.date)}</b></th>`;
-  const headRow = `<th class="corner"></th><th class="day">Last<b>3 days</b></th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}`;
+  const headRow = reordering ? `<th class="corner"></th><th class="day">Last<b>3 days</b></th><th></th>` : `<th class="corner"></th><th class="day">Last<b>3 days</b></th>${near.map(dayHead).join("")}${far.length ? '<th class="sep"></th>' : ""}${far.map(dayHead).join("")}`;
   html += `<tr class="head">${headRow}</tr>`;
   const columns = 2 + near.length + (far.length ? 1 + far.length : 0);
+  const order = here().map((r) => r.key);
   for (const [pass, list] of byPass()) {
-   html += `<tr class="pass" data-sec="${esc(pass)}"><td colspan="${columns}"><span>${pass}${pass === "Backcountry" ? '<span data-avy-group></span>' : ""}</span></td></tr>`;
+   if (pass) html += `<tr class="pass" data-sec="${esc(pass)}"><td colspan="${columns}"><span>${pass}${pass === "Backcountry" ? '<span data-avy-group></span>' : ""}</span></td></tr>`;
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
     html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${r.kind === "backcountry" ? `<i data-unrated="${r.key}"></i>` : ""}</b><span>${height(el.elevation_ft)}${region === FAVORITES ? ` · ${esc(REGIONS[regionOf(r)].short || REGIONS[regionOf(r)].name)}` : ""}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
       <td class="total">${inches(total)} ${LEN()}</td>`;
+    if (reordering) {
+      const at = order.indexOf(r.key), name = esc(r.name);
+      html += `<td class="moves"><button class="mv" data-move="-1" data-move-key="${r.key}" aria-label="Move ${name} up."${at === 0 ? " disabled" : ""}>${MOVE_ARROW}</button><button class="mv" data-move="1" data-move-key="${r.key}" aria-label="Move ${name} down."${at === order.length - 1 ? " disabled" : ""}>${MOVE_ARROW}</button></td></tr>`;
+      continue;
+    }
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
     const cell = (d, dim) => {
@@ -2883,7 +2909,7 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => `<optgroup label="${esc(pass)}">${list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join("")}</optgroup>`).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
+  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
       <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
@@ -4084,7 +4110,30 @@ $("detail").addEventListener("change", (e) => {
   renderHeat(); renderDetail();
   if (map && !moved) map.select(selected);
 });
+// One step up or down among the favorites shown. A favorite the page cannot show (a region not built or not loaded)
+// keeps its place in the saved list: the two shown mountains trade places there, and nothing else moves.
+function moveFavorite(key, step) {
+  const shown = here().map((r) => r.key), at = shown.indexOf(key), other = shown[at + step];
+  if (at < 0 || !other) return;
+  const list = [...favorites()], a = list.indexOf(key), b = list.indexOf(other);
+  [list[a], list[b]] = [list[b], list[a]];
+  prefs.favorites = list;
+  savePrefs();
+  HOME = here()[0].key;
+  for (const draw of [renderHeadline, renderHeat, renderDetail]) {
+    try { draw(); } catch (error) { console.error(error); }
+  }
+  // The finger (or the keyboard) stays with the mountain it is moving, on the same arrow while it can still go that way.
+  const again = $("heat").querySelector(`button[data-move-key="${key}"][data-move="${step}"]:not(:disabled)`) || $("heat").querySelector(`button[data-move-key="${key}"]:not(:disabled)`);
+  if (again) again.focus({preventScroll: true});
+}
+$("reorderPill").addEventListener("click", () => { reordering = !reordering; renderHeat(); });
 $("heat").addEventListener("click", (e) => {
+  if (reordering) {
+    const move = e.target.closest("button[data-move]");
+    if (move && !move.disabled) moveFavorite(move.dataset.moveKey, +move.dataset.move);
+    return;
+  }
   const row = e.target.closest("tr[data-key]"); if (!row) return;
   selected = row.dataset.key;
   history.replaceState(null, "", "#" + selected);
