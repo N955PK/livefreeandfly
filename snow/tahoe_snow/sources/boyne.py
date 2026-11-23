@@ -1,8 +1,10 @@
-"""Sugarloaf's, Sunday River's and Loon's lifts and trails, and their snow report, from the report their own
-mountain-report pages read.
+"""Sugarloaf's, Sunday River's, Loon's and the Summit at Snoqualmie's lifts and trails, and their snow report, from
+the report their own mountain-report pages read.
 
-The three are Boyne's, and each site's mountain-report page reads one report from its own site
-(/api/reportpal?resortName=<code>), the code being the one the page itself names (sl, sr, lm). The report answers a
+The four are Boyne's, and each site's mountain-report page reads one report from its own site
+(/api/reportpal?resortName=<code>), the code being the one the page itself names (sl, sr, lm, ss). The Summit's
+report also holds Alpental, which is a mountain of its own here: its area and its own snow stakes (Alpental, Alpental
+Mid, Alpental Top) are written under its own key, and the Summit keeps the rest. The report answers a
 plain request but does not let a browser on another site read it, so a scheduled job reads it and writes one small
 file the page reads, in the shape of the Ikon feed the rest of the page uses. Nordic and uphill routes are left
 out: the status is of the lift-served mountain. The report's own count of lifts is checked against what is read,
@@ -20,7 +22,13 @@ RESORTS = {
     "sugarloaf": ("Sugarloaf", "www.sugarloaf.com", "sl"),
     "sundayriver": ("Sunday River", "www.sundayriver.com", "sr"),
     "loon": ("Loon", "www.loonmtn.com", "lm"),
+    "snoqualmie": ("Summit at Snoqualmie", "www.summitatsnoqualmie.com", "ss"),
 }
+# A mountain inside another's report: its key, under the report's key, with its name and the name its area and its
+# snow stakes start with.
+PARTS = {"snoqualmie": {"alpental": ("Alpental", "Alpental")}}
+# Where a report gives a mountain several stakes, each is placed by the end of its name, as the Ikon feed names them.
+STAKE_AT = ((" top", "SummitArea"), (" mid", "MidMountainArea"))
 URL = "https://{host}/api/reportpal?resortName={code}&useReportPal=true"
 TIMEOUT = 20
 # The report's difficulty icons, in the words the page's difficulty symbols are keyed on.
@@ -52,31 +60,49 @@ def inches(figure) -> float | int | None:
     return int(value) if value.is_integer() else value
 
 
-def snow_report(report: dict) -> dict | None:
-    """The report's snow figures in the shape of the Ikon feed's SnowReport. Boyne gives one depth for the whole
-    lift-served mountain (with its least and most), not one per stake, so it is the only area and is marked as the
-    whole mountain's. The Nordic centre's figures are left out. None when the report has no location at all."""
+def stake(place: dict, name: str) -> dict:
+    area = {"Name": name, "BaseIn": inches(place.get("base")), "BaseMinIn": inches(place.get("baseMin")),
+            "BaseMaxIn": inches(place.get("baseMax"))}
+    area.update({ikon: inches(place.get(field)) for field, ikon in SNOWFALL.items()})
+    return area
+
+
+def snow_report(report: dict, mine=lambda name: True, part: str = "") -> dict | None:
+    """The report's snow figures in the shape of the Ikon feed's SnowReport. Most of Boyne's resorts give one depth
+    for the whole lift-served mountain (with its least and most), not one per stake, so it is the only area and is
+    marked as the whole mountain's. Where the mountain's own locations are several (Alpental's base, Mid and Top),
+    each is a stake, placed at the base, mid-mountain or summit by its name. ``mine`` picks the mountain's locations
+    from a report holding two, and ``part`` names the mountain inside another's report, whose words are its own
+    ("Alpental Comment", "commentAlertAlpental"). The Nordic centre's figures are left out. None when the report has
+    no location at all."""
     places = [place for place in report["currentConditions"].get("resortLocations", {}).get("location") or []
-              if "nordic" not in (place.get("name") or "").lower()]
+              if "nordic" not in (place.get("name") or "").lower() and mine(place.get("name") or "")]
     if not places:
         return None
     place = places[0]
-    area = {"Name": "Mountain", "BaseIn": inches(place.get("base")), "BaseMinIn": inches(place.get("baseMin")),
-            "BaseMaxIn": inches(place.get("baseMax"))}
-    area.update({ikon: inches(place.get(field)) for field, ikon in SNOWFALL.items()})
-    surface = ", ".join(word.strip() for word in (place.get("primarySurface"), place.get("secondarySurface"))
-                        if isinstance(word, str) and word.strip())
+    stakes = {"BaseArea": stake(place, "Mountain")}
+    if len(places) > 1:
+        stakes = {}
+        for each in places:
+            name = each.get("name") or ""
+            at = next((ikon for end, ikon in STAKE_AT if name.lower().endswith(end)), "BaseArea")
+            stakes.setdefault(at, stake(each, name))
+    surface = ", ".join(dict.fromkeys(word.strip() for word in (place.get("primarySurface"), place.get("secondarySurface"))
+                                      if isinstance(word, str) and word.strip()))
     said = {comment["name"]: comment.get("text") or "" for comment in (report.get("comments") or {}).get("comment") or []}
-    return {"LastUpdate": report["updated"], "Resortwide": True, "BaseConditions": surface or None,
-            "SeasonTotalIn": inches(place.get("snowSeasonTotal")), "BaseArea": area,
-            "Report": said.get("Comment") or None, "Alert": said.get("commentAlert") or None}
+    return {"LastUpdate": report["updated"], "Resortwide": len(places) == 1, "BaseConditions": surface or None,
+            "SeasonTotalIn": inches(place.get("snowSeasonTotal")), **stakes,
+            "Report": said.get(f"{part} Comment".strip()) or None, "Alert": said.get(f"commentAlert{part}") or None}
 
 
-def parse(name: str, report: dict, now: datetime) -> dict:
-    """The report in the page's shape: one mountain area per area of the report that has lifts or ski trails."""
+def parse(name: str, report: dict, now: datetime, mine=lambda name: True, part: str = "") -> dict:
+    """The report in the page's shape: one mountain area per area of the report that has lifts or ski trails.
+    ``mine`` picks the mountain's areas and snow stakes by name from a report holding two mountains; the report's
+    count of lifts is checked over all of them."""
     areas = []
     for area in report["facilities"]["areas"]["area"]:
-        if "uphill" in area["name"].lower():
+        # The Summit's report lists its Nordic centre as an area, with trails of no type.
+        if "uphill" in area["name"].lower() or "nordic" in area["name"].lower():
             continue
         lifts = [status_row(lift["name"], lift["status"], None) for lift in (area.get("lifts") or {}).get("lift") or []]
         trails = [trail_row(trail) for trail in (area.get("trails") or {}).get("trail") or []
@@ -90,8 +116,11 @@ def parse(name: str, report: dict, now: datetime) -> dict:
         raise ValueError("the report lists no lifts")
     if found != listed:
         raise ValueError(f"the report counts {listed} lifts but {found} were read")
+    areas = [area for area in areas if mine(area["Name"])]
+    if not areas:
+        raise ValueError(f"the report has no area for {name}")
     feed = {"Name": name, "LastUpdate": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "MountainAreas": areas}
-    snow = snow_report(report)
+    snow = snow_report(report, mine, part)
     if snow:
         feed["SnowReport"] = snow
     return feed
@@ -115,10 +144,19 @@ def main(out_path: str) -> int:
     now = datetime.now(timezone.utc)
     resorts = {}
     for key, (name, host, code) in RESORTS.items():
+        parts = PARTS.get(key, {})
+        starts = tuple(start for _, start in parts.values())
         try:
-            resorts[key] = parse(name, fetch(host, code), now)
+            report = fetch(host, code)
+            resorts[key] = parse(name, report, now, lambda label: not label.startswith(starts) if starts else True)
         except Exception as error:
             print(f"{name}: {error}")
+            continue
+        for part, (part_name, start) in parts.items():
+            try:
+                resorts[part] = parse(part_name, report, now, lambda label, start=start: label.startswith(start), start)
+            except Exception as error:
+                print(f"{part_name}: {error}")
     if not resorts:
         return 1
     with open(out_path, "w") as handle:

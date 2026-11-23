@@ -52,6 +52,17 @@ def test_the_new_england_lift_files_are_kept_like_the_others(tmp_path, monkeypat
     assert json.loads((day / "pico.trails.jsonl").read_text())["data"] == {"Main": {"49er": "Open *"}}
 
 
+def test_the_seattle_lift_files_are_kept_like_the_others(tmp_path, monkeypatch):
+    lifts = tmp_path / "lifts"
+    lifts.mkdir()
+    feed = lambda lift: {"MountainAreas": [{"Name": "Main", "Lifts": [{"Name": lift, "Status": "Closed"}], "Trails": []}]}
+    (lifts / "missionridge.json").write_text(json.dumps({"updated": "2026-11-22T19:00:00Z", "resorts": {"missionridge": feed("Chair 2")}}))
+    (lifts / "boyne.json").write_text(json.dumps({"updated": "2026-11-22T19:00:00Z", "resorts": {"alpental": feed("Armstrong Express")}}))
+    monkeypatch.setattr(collect, "fetch", lambda url: (_ for _ in ()).throw(OSError("offline")))
+    run = collect.collect(str(tmp_path / "history"), str(lifts), None, NOW)
+    assert {"missionridge.lifts", "alpental.lifts"} <= set(run["changed"]) and "missionridge" not in run["failed"]
+
+
 def test_a_new_forecast_is_kept_once_cut_to_the_hours_around_now(tmp_path, monkeypatch):
     hours = [f"2026-11-{day:02d}T{hour:02d}:00:00Z" for day in range(15, 30) for hour in range(24)]
     forecast = {"published_utc": "2026-11-22T17:52:11Z", "season_curves": {"big": 1},

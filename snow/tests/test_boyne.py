@@ -14,9 +14,10 @@ def loon() -> dict:
     return json.loads(LOON.read_text())
 
 
-def test_the_three_resorts_are_read_from_their_own_sites_by_the_code_each_page_names():
+def test_the_resorts_are_read_from_their_own_sites_by_the_code_each_page_names():
     assert {key: spec[1:] for key, spec in boyne.RESORTS.items()} == {
-        "sugarloaf": ("www.sugarloaf.com", "sl"), "sundayriver": ("www.sundayriver.com", "sr"), "loon": ("www.loonmtn.com", "lm")}
+        "sugarloaf": ("www.sugarloaf.com", "sl"), "sundayriver": ("www.sundayriver.com", "sr"), "loon": ("www.loonmtn.com", "lm"),
+        "snoqualmie": ("www.summitatsnoqualmie.com", "ss")}
 
 
 def test_a_closed_mountain_reads_as_every_lift_and_trail_closed_by_area():
@@ -107,3 +108,42 @@ def test_the_file_carries_the_snow_report_beside_the_lifts(tmp_path, monkeypatch
     resorts = json.loads(out.read_text())["resorts"]
     assert resorts["sugarloaf"]["SnowReport"]["LastUpdate"] == "2026-11-19T15:48:00Z"
     assert resorts["loon"]["SnowReport"]["BaseArea"]["BaseIn"] == 0
+
+
+SUMMIT = Path(__file__).parent / "fixtures" / "boyne_summit.json"
+
+
+def summit() -> dict:
+    return json.loads(SUMMIT.read_text())
+
+
+def test_the_summit_at_snoqualmie_is_read_by_the_code_its_own_page_names():
+    assert boyne.RESORTS["snoqualmie"] == ("Summit at Snoqualmie", "www.summitatsnoqualmie.com", "ss")
+    assert boyne.PARTS == {"snoqualmie": {"alpental": ("Alpental", "Alpental")}}
+
+
+def test_alpental_gets_its_own_area_and_stakes_and_the_summit_keeps_the_rest(tmp_path, monkeypatch):
+    # The Summit's report on 2026-11-23, before it opened: 25 lifts over four areas, 2 in at every stake.
+    monkeypatch.setattr(boyne, "fetch", lambda host, code: summit() if code == "ss" else loon())
+    out = tmp_path / "boyne.json"
+    assert boyne.main(str(out)) == 0
+    resorts = json.loads(out.read_text())["resorts"]
+    shape = lambda key: [(area["Name"], len(area["Lifts"])) for area in resorts[key]["MountainAreas"]]
+    assert shape("snoqualmie") == [("Summit West", 8), ("Summit Central", 8), ("Summit East", 3)]
+    assert shape("alpental") == [("Alpental", 6)]
+    summit_snow, alpental_snow = resorts["snoqualmie"]["SnowReport"], resorts["alpental"]["SnowReport"]
+    assert summit_snow["Resortwide"] and summit_snow["BaseArea"]["BaseIn"] == 2 and "SummitArea" not in summit_snow
+    assert not alpental_snow["Resortwide"]
+    assert [alpental_snow[at]["Name"] for at in ("BaseArea", "MidMountainArea", "SummitArea")] == ["Alpental", "Alpental Mid", "Alpental Top"]
+    assert alpental_snow["BaseConditions"] == "Variable Conditions"
+    assert alpental_snow["Report"].startswith("<p><b>Monday, November 23, 2026</b><br /><br />Fall is in full swing at Alpental")
+    assert "Tubing Center" in summit_snow["Report"]
+    assert alpental_snow["LastUpdate"] == summit_snow["LastUpdate"] == "2026-11-23T23:30:08Z"
+
+
+def test_the_summit_s_lifts_are_counted_over_both_mountains_and_its_nordic_area_is_left_out():
+    report = summit()
+    assert "Nordic" not in {area["Name"] for area in boyne.parse("Summit", report, NOW)["MountainAreas"]}
+    report["currentConditions"]["resortwide"]["numLiftsTotal"] = 19
+    with pytest.raises(ValueError, match="counts 19 lifts but 25"):
+        boyne.parse("Summit", report, NOW, lambda name: not name.startswith("Alpental"))

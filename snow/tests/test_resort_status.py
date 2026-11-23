@@ -56,6 +56,13 @@ def test_the_new_england_resorts_are_read_from_their_own_sites_under_their_mount
     assert resort_status.RESORTS["sunapee"][2] == "lift-and-terrain-status.aspx"
 
 
+def test_stevens_pass_is_read_from_its_own_site_and_is_left_out_until_it_posts_its_lifts():
+    # Stevens Pass names its page lift-and-terrain; on November 23 its seven areas were all still empty.
+    assert resort_status.RESORTS["stevens"] == ("Stevens Pass", "www.stevenspass.com", "lift-and-terrain-status.aspx")
+    with pytest.raises(ValueError, match="no lifts or trails"):
+        resort_status.feed_of((FIXTURES / "vail_stevens_preseason.html").read_text())
+
+
 def test_a_closed_mountain_that_lists_its_lifts_reads_as_every_lift_closed():
     # Stowe's page as it was the week before Thanksgiving: lifts and trails listed, nothing turning.
     feed = resort_status.recast("Stowe", fixture_feed("stowe"), NOW)

@@ -1,5 +1,5 @@
-"""Lift and trail status from Vail's resorts' own status pages: Heavenly, Northstar, Kirkwood, and in New England
-Stowe, Okemo, Mount Snow, Wildcat, Attitash, Mount Sunapee and Crotched.
+"""Lift and trail status from Vail's resorts' own status pages: Heavenly, Northstar, Kirkwood, in New England
+Stowe, Okemo, Mount Snow, Wildcat, Attitash, Mount Sunapee and Crotched, and Stevens Pass near Seattle.
 
 Each resort's lift and terrain status page carries its feed as a JSON literal in the page source. The sites
 reject plain HTTP clients, so the page is read with curl_cffi, which presents a browser TLS fingerprint.
@@ -29,6 +29,7 @@ RESORTS = {
     "attitash": ("Attitash", "www.attitash.com", LIFT_AND_TERRAIN),
     "sunapee": ("Mount Sunapee", "www.mountsunapee.com", LIFT_AND_TERRAIN),
     "crotched": ("Crotched", "www.crotchedmtn.com", LIFT_AND_TERRAIN),
+    "stevens": ("Stevens Pass", "www.stevenspass.com", LIFT_AND_TERRAIN),
 }
 URL = "https://{host}/the-mountain/mountain-conditions/{page}"
 # Pages read at once, and how long one may take: the collector passes every five minutes, so a pass over all of

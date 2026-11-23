@@ -224,7 +224,7 @@ def collect(history: str, lifts_dir: str | None, nevada_file: str | None, now: d
                **{f"caltrans{d}.chains": (lambda d=d: chains(d)) for d in CHAIN_DISTRICTS},
                **{f"caltrans{d}.closures": (lambda d=d: closures(d)) for d in CLOSURE_DISTRICTS},
                **{f"avalanche.{center}": (lambda center=center: avalanche(center)) for center in CENTERS}}
-    for name in ("resort_status", "homewood", "boreal", "boyne", "killington"):
+    for name in ("resort_status", "homewood", "boreal", "boyne", "killington", "missionridge"):
         path = os.path.join(lifts_dir or "", f"{name}.json")
         if lifts_dir and os.path.exists(path):
             readers[name] = lambda path=path: published(path)

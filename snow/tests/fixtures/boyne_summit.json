@@ -1,0 +1,1167 @@
+{
+ "name": "Snoqualmie",
+ "units": "USC",
+ "updated": "2026-11-23T23:30:08Z",
+ "liftsUpdated": "2026-11-17T20:24:03Z",
+ "trailsUpdated": "2026-11-23T22:41:30Z",
+ "commentsUpdated": "2026-11-23T23:30:08Z",
+ "currentConditions": {
+  "resortwide": {
+   "numLiftsTotal": 25
+  },
+  "resortLocations": {
+   "location": [
+    {
+     "name": "Alpental",
+     "elevation": null,
+     "primarySurface": "Variable Conditions",
+     "secondarySurface": "Variable Conditions",
+     "snowOverNight": null,
+     "snowOverNightLabel": "Snow Overnight",
+     "snowSince5am": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snowSince5amLabel": "Snow Since 5am",
+     "snow12Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow12HoursLabel": "Snow 12 Hrs.",
+     "snow24Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow24HoursLabel": "Snow 24 Hrs.",
+     "snow48Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow48HoursLabel": "Snow 48 Hrs.",
+     "snow72Hours": null,
+     "snow72HoursLabel": "Snow 72 Hrs.",
+     "snow7Days": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow7DaysLabel": "7 Day Snowfall",
+     "snowSeasonTotal": {
+      "inches": "4",
+      "centimeters": "10"
+     },
+     "snowSeasonTotalLabel": "Snow Season Total",
+     "base": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseLabel": "Base Depth",
+     "baseMin": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMinLabel": "Base Depth",
+     "baseMax": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMaxLabel": "Base Depth",
+     "tracksetOpen": null,
+     "tracksetOpenLabel": "Trackset Open",
+     "skateGroomed": null,
+     "skateGroomedLabel": "Skate Groomed",
+     "snowshoeGroomed": null,
+     "snowshoeGroomedLabel": "Snowshoe Groomed",
+     "fatTireOpen": null,
+     "fatTireOpenLabel": "Fat Tire Open"
+    },
+    {
+     "name": "Alpental Mid",
+     "elevation": null,
+     "primarySurface": null,
+     "secondarySurface": null,
+     "snowOverNight": null,
+     "snowOverNightLabel": "Snow Overnight",
+     "snowSince5am": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snowSince5amLabel": "Snow Since 5am",
+     "snow12Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow12HoursLabel": "Snow 12 Hrs.",
+     "snow24Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow24HoursLabel": "Snow 24 Hrs.",
+     "snow48Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow48HoursLabel": "Snow 48 Hrs.",
+     "snow72Hours": null,
+     "snow72HoursLabel": "Snow 72 Hrs.",
+     "snow7Days": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow7DaysLabel": "7 Day Snowfall",
+     "snowSeasonTotal": {
+      "inches": "5",
+      "centimeters": "13"
+     },
+     "snowSeasonTotalLabel": "Snow Season Total",
+     "base": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseLabel": "Base Depth",
+     "baseMin": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMinLabel": "Base Depth",
+     "baseMax": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMaxLabel": "Base Depth",
+     "tracksetOpen": null,
+     "tracksetOpenLabel": "Trackset Open",
+     "skateGroomed": null,
+     "skateGroomedLabel": "Skate Groomed",
+     "snowshoeGroomed": null,
+     "snowshoeGroomedLabel": "Snowshoe Groomed",
+     "fatTireOpen": null,
+     "fatTireOpenLabel": "Fat Tire Open"
+    },
+    {
+     "name": "Alpental Top",
+     "elevation": null,
+     "primarySurface": "Hard Pack",
+     "secondarySurface": "Variable Conditions",
+     "snowOverNight": null,
+     "snowOverNightLabel": "Snow Overnight",
+     "snowSince5am": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snowSince5amLabel": "Snow Since 5am",
+     "snow12Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow12HoursLabel": "Snow 12 Hrs.",
+     "snow24Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow24HoursLabel": "Snow 24 Hrs.",
+     "snow48Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow48HoursLabel": "Snow 48 Hrs.",
+     "snow72Hours": null,
+     "snow72HoursLabel": "Snow 72 Hrs.",
+     "snow7Days": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow7DaysLabel": "7 Day Snowfall",
+     "snowSeasonTotal": {
+      "inches": "7",
+      "centimeters": "18"
+     },
+     "snowSeasonTotalLabel": "Snow Season Total",
+     "base": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseLabel": "Base Depth",
+     "baseMin": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMinLabel": "Base Depth",
+     "baseMax": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMaxLabel": "Base Depth",
+     "tracksetOpen": null,
+     "tracksetOpenLabel": "Trackset Open",
+     "skateGroomed": null,
+     "skateGroomedLabel": "Skate Groomed",
+     "snowshoeGroomed": null,
+     "snowshoeGroomedLabel": "Snowshoe Groomed",
+     "fatTireOpen": null,
+     "fatTireOpenLabel": "Fat Tire Open"
+    },
+    {
+     "name": "Summit West",
+     "elevation": null,
+     "primarySurface": "Spring Conditions",
+     "secondarySurface": "Machine Groomed",
+     "snowOverNight": null,
+     "snowOverNightLabel": "Snow Overnight",
+     "snowSince5am": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snowSince5amLabel": "Snow Since 5am",
+     "snow12Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow12HoursLabel": "Snow 12 Hrs.",
+     "snow24Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow24HoursLabel": "Snow 24 Hrs.",
+     "snow48Hours": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "snow48HoursLabel": "Snow 48 Hrs.",
+     "snow72Hours": null,
+     "snow72HoursLabel": "Snow 72 Hrs.",
+     "snow7Days": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow7DaysLabel": "7 Day Snowfall",
+     "snowSeasonTotal": {
+      "inches": "5",
+      "centimeters": "13"
+     },
+     "snowSeasonTotalLabel": "Snow Season Total",
+     "base": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseLabel": "Base Depth",
+     "baseMin": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMinLabel": "Base Depth",
+     "baseMax": {
+      "inches": "2",
+      "centimeters": "5"
+     },
+     "baseMaxLabel": "Base Depth",
+     "tracksetOpen": null,
+     "tracksetOpenLabel": "Trackset Open",
+     "skateGroomed": null,
+     "skateGroomedLabel": "Skate Groomed",
+     "snowshoeGroomed": null,
+     "snowshoeGroomedLabel": "Snowshoe Groomed",
+     "fatTireOpen": null,
+     "fatTireOpenLabel": "Fat Tire Open"
+    },
+    {
+     "name": "Nordic",
+     "elevation": null,
+     "primarySurface": null,
+     "secondarySurface": null,
+     "snowOverNight": null,
+     "snowOverNightLabel": "Snow Overnight",
+     "snowSince5am": null,
+     "snowSince5amLabel": "Snow Since 5am",
+     "snow12Hours": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow12HoursLabel": "Snow 12 Hrs.",
+     "snow24Hours": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snow24HoursLabel": "Snow 24 Hrs.",
+     "snow48Hours": null,
+     "snow48HoursLabel": "Snow 48 Hrs.",
+     "snow72Hours": null,
+     "snow72HoursLabel": "Snow 72 Hrs.",
+     "snow7Days": null,
+     "snow7DaysLabel": "7 Day Snowfall",
+     "snowSeasonTotal": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "snowSeasonTotalLabel": "Snow Season Total",
+     "base": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "baseLabel": "Base Depth",
+     "baseMin": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "baseMinLabel": "Base Depth",
+     "baseMax": {
+      "inches": "0",
+      "centimeters": "0"
+     },
+     "baseMaxLabel": "Base Depth",
+     "tracksetOpen": null,
+     "tracksetOpenLabel": "Trackset Open",
+     "skateGroomed": null,
+     "skateGroomedLabel": "Skate Groomed",
+     "snowshoeGroomed": null,
+     "snowshoeGroomedLabel": "Snowshoe Groomed",
+     "fatTireOpen": null,
+     "fatTireOpenLabel": "Fat Tire Open"
+    }
+   ]
+  },
+  "roads": null
+ },
+ "comments": {
+  "comment": [
+   {
+    "name": "Comment",
+    "title": "",
+    "background": "",
+    "text": "<p><b>Monday, November 23, 2026</b><br /><br />\u2744 We've got exciting news from the mountain! The Tubing Center officially opens FRIDAY, SATURDAY &amp; SUNDAY! \u2744<br /><br />Thanks to our new All-Weather"
+   },
+   {
+    "name": "Nordic Report",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "Alpental Comment",
+    "title": "",
+    "background": "",
+    "text": "<p><b>Monday, November 23, 2026</b><br /><br />Fall is in full swing at Alpental! While winter snow is still waiting on the horizon, our team is hard at work getting everything ready for opening day a"
+   },
+   {
+    "name": "Alpental Sign",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "commentAlert",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "trailsAlert",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "liftsAlert",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "mtbAlert",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "nordicAlert",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "commentAlertAlpental",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "trailsAlertAlpental",
+    "title": "",
+    "background": "",
+    "text": ""
+   },
+   {
+    "name": "liftsAlertAlpental",
+    "title": "",
+    "background": "",
+    "text": ""
+   }
+  ]
+ },
+ "facilities": {
+  "areas": {
+   "area": [
+    {
+     "name": "Alpental",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Alpental Magic",
+        "status": "Closed"
+       },
+       {
+        "name": "Armstrong Express",
+        "status": "Closed"
+       },
+       {
+        "name": "Edelweiss Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Internationale Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Sessel Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "St. Bernard Chair",
+        "status": "Closed"
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Adrenaline",
+        "status": "Closed",
+        "difficultyIcon": "expert",
+        "groomed": false,
+        "type": null
+       },
+       {
+        "name": "Cascade Traverse",
+        "status": "Closed",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "type": null
+       }
+      ]
+     },
+     "freestyleTerrain": {
+      "parks": null,
+      "pipes": null
+     },
+     "specialTerrain": {
+      "terrain": null
+     },
+     "gates": {
+      "gate": [
+       {
+        "name": "Brownie Bowl Gate",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "difficulty": "Gate",
+        "difficultyIcon": "gate"
+       },
+       {
+        "name": "DGL Gate",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "difficulty": "Gate",
+        "difficultyIcon": "gate"
+       },
+       {
+        "name": "Elevator Gate",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "difficulty": "Gate",
+        "difficultyIcon": "gate"
+       },
+       {
+        "name": "Nash Gate",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "difficulty": "Gate",
+        "difficultyIcon": "gate"
+       }
+      ]
+     },
+     "nonDesignatedTrails": {
+      "trail": [
+       {
+        "name": "Breakover",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": null,
+        "difficultyIcon": null,
+        "groomed": null,
+        "nightStatus": null,
+        "snowMaking": null,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       },
+       {
+        "name": "Felsen",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": null,
+        "difficultyIcon": null,
+        "groomed": null,
+        "nightStatus": null,
+        "snowMaking": null,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       },
+       {
+        "name": "Powder Bowl",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": null,
+        "difficultyIcon": null,
+        "groomed": null,
+        "nightStatus": null,
+        "snowMaking": null,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       },
+       {
+        "name": "Shot Six Gate",
+        "id": null,
+        "status": "Closed",
+        "statusIcon": "closed",
+        "comment": null,
+        "difficulty": null,
+        "difficultyIcon": null,
+        "groomed": null,
+        "nightStatus": null,
+        "snowMaking": null,
+        "uphill": null,
+        "type": null,
+        "featureIcons": null,
+        "area": null,
+        "length": null
+       }
+      ]
+     }
+    },
+    {
+     "name": "Summit West",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Dodge Ridge Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Julie's Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Little Thunder Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Pacific Crest Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "West Lower Carpet",
+        "status": "Closed"
+       },
+       {
+        "name": "West Middle Carpet",
+        "status": "Closed"
+       },
+       {
+        "name": "West Upper Carpet",
+        "status": "Closed"
+       },
+       {
+        "name": "Wildside Chair",
+        "status": "Closed"
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "360 Bowl",
+        "status": "Closed",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "type": null
+       },
+       {
+        "name": "Beaver Lake",
+        "status": "Closed",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "type": null
+       }
+      ]
+     },
+     "freestyleTerrain": {
+      "parks": null,
+      "pipes": null
+     },
+     "specialTerrain": {
+      "terrain": null
+     },
+     "gates": null,
+     "nonDesignatedTrails": null
+    },
+    {
+     "name": "Summit Central",
+     "lifts": {
+      "lift": [
+       {
+        "name": "Central Express",
+        "status": "Closed"
+       },
+       {
+        "name": "Central Carpet",
+        "status": "Closed"
+       },
+       {
+        "name": "Easy Street Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Gallery Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Holiday Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Reggie's Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Silver Fir Express",
+        "status": "Closed"
+       },
+       {
+        "name": "Triple 60 Chair",
+        "status": "Closed"
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Alpine",
+        "status": "Closed",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "type": null
+       },
+       {
+        "name": "Bonanza Face",
+        "status": "Closed",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "type": null
+       }
+      ]
+     },
+     "freestyleTerrain": {
+      "parks": null,
+      "pipes": null
+     },
+     "specialTerrain": {
+      "terrain": [
+       {
+        "name": "Tubing",
+        "id": null,
+        "status": "Closed",
+        "nightStatus": null,
+        "lanesOpen": "",
+        "openTime": null,
+        "closeTime": null,
+        "groomed": null,
+        "snowMaking": null,
+        "snowFall": null,
+        "snowFallCaption": null,
+        "terrainOpen": null,
+        "tracksetOpen": null,
+        "skateGroomed": null,
+        "snowshoeOpen": null,
+        "fatTireOpen": null,
+        "snowDepthHigh": null,
+        "snowDepthLow": null,
+        "compactedBaseDepthHigh": null,
+        "compactedBaseDepthLow": null,
+        "icyPatches": null,
+        "thinCoverBareSpots": null,
+        "primarySurface": null,
+        "secondarySurface": null
+       }
+      ]
+     },
+     "gates": null,
+     "nonDesignatedTrails": null
+    },
+    {
+     "name": "Summit East",
+     "lifts": {
+      "lift": [
+       {
+        "name": "East Peak Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Hidden Valley Chair",
+        "status": "Closed"
+       },
+       {
+        "name": "Rampart Chair",
+        "status": "Closed"
+       }
+      ]
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Blowdown",
+        "status": "Closed",
+        "difficultyIcon": "advanced",
+        "groomed": false,
+        "type": null
+       },
+       {
+        "name": "Chikamin",
+        "status": "Closed",
+        "difficultyIcon": "intermediate",
+        "groomed": false,
+        "type": null
+       }
+      ]
+     },
+     "freestyleTerrain": {
+      "parks": null,
+      "pipes": null
+     },
+     "specialTerrain": {
+      "terrain": null
+     },
+     "gates": null,
+     "nonDesignatedTrails": null
+    },
+    {
+     "name": "Uphill Travel",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Summit East Route",
+        "status": "Closed",
+        "difficultyIcon": null,
+        "groomed": false,
+        "type": null
+       },
+       {
+        "name": "Hidden Valley Route",
+        "status": "Closed",
+        "difficultyIcon": null,
+        "groomed": false,
+        "type": null
+       }
+      ]
+     },
+     "freestyleTerrain": {
+      "parks": null,
+      "pipes": null
+     },
+     "specialTerrain": {
+      "terrain": null
+     },
+     "gates": null,
+     "nonDesignatedTrails": null
+    },
+    {
+     "name": "Nordic",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": [
+       {
+        "name": "Cold Creek",
+        "status": "Closed",
+        "difficultyIcon": "beginner",
+        "groomed": true,
+        "type": null
+       },
+       {
+        "name": "Creek Run",
+        "status": "Closed",
+        "difficultyIcon": "intermediate",
+        "groomed": true,
+        "type": null
+       }
+      ]
+     },
+     "freestyleTerrain": {
+      "parks": null,
+      "pipes": null
+     },
+     "specialTerrain": {
+      "terrain": null
+     },
+     "gates": null,
+     "nonDesignatedTrails": null
+    },
+    {
+     "name": "Terrain Parks",
+     "lifts": {
+      "lift": null
+     },
+     "trails": {
+      "trail": null
+     },
+     "freestyleTerrain": {
+      "parks": {
+       "park": [
+        {
+         "name": "Central Park",
+         "id": null,
+         "status": "Closed",
+         "statusIcon": "closed",
+         "comment": null,
+         "difficulty": null,
+         "difficultyIcon": "terrain-park",
+         "groomed": null,
+         "jibsOpen": null,
+         "jumpsOpen": null,
+         "snowFeaturesOpen": null,
+         "size": null,
+         "nightStatus": null,
+         "featureIcons": null
+        },
+        {
+         "name": "Greenhorn Acres",
+         "id": null,
+         "status": "Closed",
+         "statusIcon": "closed",
+         "comment": null,
+         "difficulty": null,
+         "difficultyIcon": "terrain-park",
+         "groomed": null,
+         "jibsOpen": null,
+         "jumpsOpen": null,
+         "snowFeaturesOpen": null,
+         "size": null,
+         "nightStatus": null,
+         "featureIcons": null
+        }
+       ]
+      },
+      "pipes": null
+     },
+     "specialTerrain": {
+      "terrain": null
+     },
+     "gates": null,
+     "nonDesignatedTrails": null
+    }
+   ]
+  },
+  "parkingLots": {
+   "parking": [
+    {
+     "name": "Alpental Lot A1",
+     "status": "Open",
+     "percentFull": null,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Alpental Lot A2",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Alpental Lot A3",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Alpental Lot A4",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Alpental Lot A5",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Alpental Lot A6",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Alpental Lot A7",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit West Lot W1",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit West Lot W2",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit West Lot W3",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit West Lot W4",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit West Lot W5",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit West Lot W6",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit Central Lot C1",
+     "status": "Open",
+     "percentFull": null,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit Central Lot C2",
+     "status": "Open",
+     "percentFull": null,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit Central Lot C3",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit Central Lot C4",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit Central Lot C5",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit Central Lot C6",
+     "status": "Open",
+     "percentFull": 0,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit East Lot E1",
+     "status": "Open",
+     "percentFull": null,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit East Lot E2",
+     "status": "Open",
+     "percentFull": null,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    },
+    {
+     "name": "Summit East Lot E3",
+     "status": "Open",
+     "percentFull": null,
+     "openTime": null,
+     "closeTime": null,
+     "price": "",
+     "totalCapacity": null,
+     "comment": "",
+     "alert": "",
+     "reservationsRequired": null
+    }
+   ]
+  },
+  "shuttles": null,
+  "lodges": null,
+  "retail": null,
+  "skiChecks": null,
+  "winterActivities": null
+ }
+}
