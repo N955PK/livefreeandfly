@@ -1507,7 +1507,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "208";
+const BUILD = "209";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1737,10 +1737,13 @@ function renderHeadline() {
   const miss = !regionMiss ? "" : `<br><span class="warn">${regionMiss === FAVORITES
     ? navigator.onLine ? "The forecasts for your favorites could not be loaded just now." : "Your favorites need a signal. Their forecasts have not been saved on this phone yet."
     : navigator.onLine ? `The ${esc(REGIONS[regionMiss].name)} forecast could not be loaded just now.` : `${esc(REGIONS[regionMiss].name)} needs a signal. Its forecast has not been saved on this phone yet.`}</span>`;
-  freshNote = (offlineCopy ? `<span class="warn">Offline.</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
+  // While a region chosen is loading, the line says so in place of the time, so the list left showing until it
+  // arrives is not taken for it (and nothing under the line moves).
+  const wait = !regionPending ? "" : regionPending === FAVORITES ? "Loading the forecasts for your favorites…" : `Loading the ${esc(REGIONS[regionPending].name)} forecast…`;
+  freshNote = wait || (offlineCopy ? `<span class="warn">Offline.</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
   $("gridFresh").innerHTML = freshNote;
   if ($("detailFresh")) $("detailFresh").innerHTML = freshNote;
-  $("meta").innerHTML = (offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
+  $("meta").innerHTML = wait || (offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
 }
 
 // Favorites with two or more to order can be put in order by holding a mountain and dragging it (see holdToMove).
@@ -3481,19 +3484,20 @@ function pickRegion() {
 const regionChoices = () => [...(knownFavorites().length ? [FAVORITES] : []), ...regionKeys()];
 const choiceName = (key) => key === FAVORITES ? "Favorites" : REGIONS[key].name;
 function renderRegion() {
-  const keys = regionChoices();
+  // A choice still loading is already the one the menus and titles name (see setRegion).
+  const shown = regionPending || region, keys = regionChoices();
   // The row of names is for two or three choices; with more, the menu the phone uses serves every width (D7).
   $("regionBar").hidden = keys.length < 2 || keys.length > 3;
   $("regionPickWrap").hidden = keys.length < 2;
-  $("regionPick").innerHTML = keys.map((key) => `<option value="${key}"${key === region ? " selected" : ""}>${choiceName(key)}</option>`).join("");
+  $("regionPick").innerHTML = keys.map((key) => `<option value="${key}"${key === shown ? " selected" : ""}>${choiceName(key)}</option>`).join("");
   // The summary's title is a second way to the same choice, as the Mountain and Avalanche titles choose theirs.
   $("sumPick").innerHTML = $("regionPick").innerHTML;
   $("sumPickWrap").classList.toggle("solo", keys.length < 2);
   // The title names what the list is: the region, by its full name, or Favorites.
-  $("sumTitle").textContent = region === FAVORITES ? "Favorites" : REGIONS[region].name;
+  $("sumTitle").textContent = shown === FAVORITES ? "Favorites" : REGIONS[shown].name;
   // The title names the region the pin last chose, in full.
-  $("regionName").textContent = keys.length < 2 ? "" : region === FAVORITES ? "Favorites" : REGIONS[region].name;
-  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === region}">${key !== FAVORITES && REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : choiceName(key)}</button>`).join("<i>/</i>");
+  $("regionName").textContent = keys.length < 2 ? "" : shown === FAVORITES ? "Favorites" : REGIONS[shown].name;
+  $("regionSeg").innerHTML = keys.map((key) => `<button data-region="${key}" aria-pressed="${key === shown}">${key !== FAVORITES && REGIONS[key].short ? `<span class="full">${REGIONS[key].name}</span><span class="short" aria-label="${REGIONS[key].name}">${REGIONS[key].short}</span>` : choiceName(key)}</button>`).join("<i>/</i>");
 }
 // Favorites loads every region that holds a favorite the index knows; true when at least one of them is shown.
 async function loadFavorites() {
@@ -3515,13 +3519,26 @@ function followPlace() {
 }
 // A region's forecast is loaded the first time it is chosen. One that can't be (no signal, and none saved on this
 // phone) leaves the page where it was, with a line saying so (see renderHeadline).
-let regionMiss = null, regionAsked = null;
+// A choice whose forecast has to come over the network is named at once in the menus and titles, and the forecast
+// line says it is loading (regionPending), until it arrives or cannot be had.
+let regionMiss = null, regionAsked = null, regionPending = null;
+const showPending = (key) => {
+  if (regionPending === key) return;
+  regionPending = key;
+  for (const step of [renderRegion, renderHeadline]) {
+    try { step(); } catch (error) { console.error(error); }
+  }
+};
 async function setRegion(key) {
   regionAsked = key;
-  if (key === region || (key === FAVORITES ? !knownFavorites().length : !REGIONS[key])) return;
+  if (key === region) { showPending(null); return; }
+  if (key === FAVORITES ? !knownFavorites().length : !REGIONS[key]) return;
+  const needed = index ? (key === FAVORITES ? [...new Set(knownFavorites().map(regionOf))] : [key]) : [];
+  if (needed.some((r) => !regionFiles[r])) showPending(key);
   const loaded = await loadChoice(key);
   // A later choice made while this one loaded wins.
   if (regionAsked !== key) return;
+  regionPending = null;
   if (!loaded) {
     regionMiss = key;
     for (const step of [renderRegion, renderHeadline]) {
