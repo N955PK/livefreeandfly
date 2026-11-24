@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "230";
+const BUILD = "231";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -2229,7 +2229,8 @@ function seasonSoFar(resort) {
       if (run.length) {
         d += `M${run[0][0].toFixed(1)} ${run[0][1].toFixed(1)}`;
         for (let n = 1; n < run.length - 1; n++) d += `Q${run[n][0].toFixed(1)} ${run[n][1].toFixed(1)} ${((run[n][0] + run[n + 1][0]) / 2).toFixed(1)} ${((run[n][1] + run[n + 1][1]) / 2).toFixed(1)}`;
-        if (run.length > 1) d += `L${run[run.length - 1][0].toFixed(1)} ${run[run.length - 1][1].toFixed(1)}`;
+        // A reading alone between gaps is still drawn: a line of no length, which a round end shows as a dot.
+        d += `L${run[run.length - 1][0].toFixed(1)} ${run[run.length - 1][1].toFixed(1)}`;
       }
       run = [];
     };

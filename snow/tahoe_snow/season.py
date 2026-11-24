@@ -133,12 +133,32 @@ def measured_snowfall_in(frame: pd.DataFrame) -> pd.Series:
     return daily.groupby(water_year(daily.index)).cumsum()
 
 
+def bare_through_dry_days(depth_cm: pd.Series, snowfall_cm: pd.Series) -> pd.Series:
+    """A daily climate record often leaves the depth blank on days with no snow on the ground. A blank depth is read
+    as bare ground when the ground was last seen bare and no snow has fallen since (the day's snowfall is recorded,
+    and is nothing); a blank after a day of snow, or on a day whose snowfall is not recorded either, stays blank."""
+    out = depth_cm.copy()
+    fell = snowfall_cm.reindex(depth_cm.index)
+    bare = False
+    for day, value in depth_cm.items():
+        if not pd.isna(value):
+            bare = value == 0
+        elif bare and fell[day] == 0:
+            out[day] = 0.0
+        else:
+            bare = False
+    return out
+
+
 def station_normal(station, day: pd.Timestamp) -> dict:
     """A sensor's usual year by each measure it can give. A sensor with no usable depth gauge has no depth, and a
     record with no snow pillow has no water. A daily climate record is read as of its own latest day, which each of
     its measures names (``as_of_date``), with that day's reading as the latest."""
     frame = history(station, day)
-    series = {"depth": frame["depth_cm"] / CM_PER_IN if station.depth and "depth_cm" in frame else None,
+    depth_cm = frame["depth_cm"] if station.depth and "depth_cm" in frame else None
+    if depth_cm is not None and "snowfall_cm" in frame:
+        depth_cm = bare_through_dry_days(depth_cm, frame["snowfall_cm"])
+    series = {"depth": depth_cm / CM_PER_IN if depth_cm is not None else None,
               "snowfall": measured_snowfall_in(frame) if "snowfall_cm" in frame else snowfall_in(frame),
               "water": frame["swe_mm"] / MM_PER_IN if "swe_mm" in frame else None}
     found = {}

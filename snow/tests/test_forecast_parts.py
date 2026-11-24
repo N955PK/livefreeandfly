@@ -297,3 +297,14 @@ def test_one_unreadable_sensor_does_not_cost_the_others_their_season(monkeypatch
     assert all(normal for triplet, normal in found.items() if triplet != season.ALL_STATIONS[bad].triplet)
     assert len(found) > 1
 
+
+
+def test_blank_depth_on_dry_days_after_bare_ground_is_bare():
+    # Mt. Washington's record leaves the depth blank on most bare days: after a bare reading, a blank on a day with
+    # no snowfall is bare ground; a blank after snow fell, or with the snowfall unrecorded too, stays a gap.
+    days = pd.date_range("2026-10-28", periods=9, freq="D")
+    depth = pd.Series([0.0, np.nan, np.nan, np.nan, np.nan, 2.5, np.nan, np.nan, np.nan], index=days)
+    snowfall = pd.Series([0.0, 0.0, 0.0, np.nan, 0.0, 2.5, 0.0, 0.0, 0.0], index=days)
+    filled = season.bare_through_dry_days(depth, snowfall)
+    assert filled.tolist()[:3] == [0.0, 0.0, 0.0]
+    assert filled.iloc[3:5].isna().all() and filled.iloc[5] == 2.5 and filled.iloc[6:].isna().all()
