@@ -200,6 +200,9 @@ records how each was done for the Cascades and what it cost; the Tetons, the Was
    on each of the last three winters, and `fit_and_save` (`models/bias_<region>.json`). Keep it only if corrected
    beats raw on the held-out winters. A station whose own curve overshoots its held-out winter goes in
    `calibrate.POOLED_ONLY`. A peak whose sensor sits far below it is left uncorrected (`Resort.corrected=False`).
+   State pillows (CDEC) measure snow alone, with no gauge beside them. Where they sit low enough to be rained on,
+   the models look wet against them and no correction can be fitted: check the models against the pillows on
+   all-snow days and on days above freezing before believing a fit (Shasta: 1.1 times and 2.7 times; nothing kept).
 2. **Blend weights.** `calibrate.save_weights` from the same held-out table (`models/weights_<region>.json`).
 3. **Rain or snow.** `train.fit_region_phase` (`models/snow_phase_<region>.json`).
 4. **Snow ratio.** `train.check_region_ratio` first, against snowfall measured by hand near the region. Refit

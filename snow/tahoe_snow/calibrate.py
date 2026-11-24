@@ -10,7 +10,7 @@ import pandas as pd
 
 from tahoe_snow import biascorrect, blend
 from tahoe_snow.config import (COLORADO_BBOX, COLORADO_STATIONS, MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW,
-                               SEATTLE_BBOX, SEATTLE_STATIONS, STATIONS,
+                               SEATTLE_BBOX, SEATTLE_STATIONS, SHASTA_BBOX, SHASTA_STATIONS, STATIONS,
                                TABLES, TAHOE_BBOX, TETONS_BBOX, TETONS_STATIONS, WASATCH_BBOX, WASATCH_STATIONS)
 from tahoe_snow.snow import dataset, phase
 
@@ -27,7 +27,12 @@ REGIONS = {"tahoe": (STATIONS, TAHOE_BBOX, "snotel_daily"),
            "seattle": (SEATTLE_STATIONS, SEATTLE_BBOX, "seattle_daily"),
            "tetons": (TETONS_STATIONS, TETONS_BBOX, "tetons_daily"),
            "wasatch": (WASATCH_STATIONS, WASATCH_BBOX, "wasatch_daily"),
-           "colorado": (COLORADO_STATIONS, COLORADO_BBOX, "colorado_daily")}
+           "colorado": (COLORADO_STATIONS, COLORADO_BBOX, "colorado_daily"),
+           "shasta": (SHASTA_STATIONS, SHASTA_BBOX, "shasta_daily")}
+# Shasta is here so its test can be run again, not because it has a correction: its pillows are low and measure
+# snow alone, so on the days it rained at them the models look wet (2.7 times the pillows' water on days above
+# freezing, 1.1 times on all-snow days, 2024 to 2026). A curve fitted to them would take the rain out of the water
+# before the rain-or-snow split takes it out again, so none is saved.
 # A pillow reading this much water on a day when no model had any, that day or the days beside it, is a sensor
 # fault (a step in the reading), not a storm.
 PHANTOM_MM, DRY_MM = 25.0, 2.0
@@ -107,6 +112,9 @@ def observed_daily(table: str = "snotel_daily") -> pd.DataFrame:
     """Daily observed liquid at each station: the larger of the gauge and pillow gains (the pillow alone at the
     CDEC sites, whose gauges do not track their pillows)."""
     snotel = pd.read_parquet(TABLES / f"{table}.parquet")
+    if "prec_gain_mm" not in snotel:
+        # A region of CDEC pillows alone has no gauges.
+        snotel["prec_gain_mm"] = np.nan
     liquid = np.maximum(snotel["prec_gain_mm"].fillna(-1), snotel["swe_gain_mm"].fillna(-1))
     both_missing = snotel["prec_gain_mm"].isna() & snotel["swe_gain_mm"].isna()
     return pd.DataFrame({"station": snotel["station"], "date": snotel["date"],

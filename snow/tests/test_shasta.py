@@ -1,6 +1,9 @@
 """Shasta: the Ski Park and Mt. Ashland, and Mt. Shasta, Castle Lake and Lassen Peak, built twice a day."""
-from tahoe_snow import config, pipeline, usage
-from tahoe_snow.config import RESORTS
+import pandas as pd
+
+from tahoe_snow import calibrate, config, pipeline, usage
+from tahoe_snow.config import MODELS, RESORTS
+from tahoe_snow.snow import phase, ratio
 
 
 def test_the_shasta_mountains_are_where_they_should_be():
@@ -31,3 +34,21 @@ def test_all_five_ask_for_weather_twice_a_day():
     assert round(usage.planned({"shasta": region})) == round(5 * 2 * usage.CALLS_PER_RESORT_RUN)
     assert usage.planned() <= usage.PLAN_LIMIT < 10000
     assert region.avalanche == ("MSAC",) and pipeline.snotel_offset_h(RESORTS["lassen"]) == 8
+
+
+def test_shasta_has_no_models_of_its_own_and_uses_the_sierras():
+    # Its water test can be run again, but nothing came of it: the pillows there miss the rain.
+    assert calibrate.REGIONS["shasta"] == (config.SHASTA_STATIONS, config.SHASTA_BBOX, "shasta_daily")
+    assert not list(MODELS.glob("*shasta*"))
+    assert "shasta" not in pipeline.load_corrections()
+    assert pipeline.load_weights("shasta") == pipeline.load_weights("tahoe")
+    assert phase.load("shasta") == phase.load() and ratio.model_files("shasta")[0] == MODELS / "snow_ratio.joblib"
+
+
+def test_a_region_of_pillows_alone_is_read_without_gauges(tmp_path, monkeypatch):
+    monkeypatch.setattr(calibrate, "TABLES", tmp_path)
+    days = pd.DataFrame({"station": "SDF:CDEC", "date": pd.to_datetime(["2026-01-01", "2026-01-02", "2026-01-03"]),
+                         "swe_gain_mm": [12.0, -3.0, None]})
+    days.to_parquet(tmp_path / "pillows.parquet")
+    observed = calibrate.observed_daily("pillows")["observed_mm"]
+    assert observed.iloc[:2].tolist() == [12.0, 0.0] and pd.isna(observed.iloc[2])
