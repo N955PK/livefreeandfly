@@ -59,10 +59,33 @@ def load_corrections() -> dict:
     return out
 
 
-def load_weights() -> dict:
-    """Blend weights per model from held-out water error; equal weights when the file is absent."""
-    path = MODELS / "weights.json"
+def load_weights(region: str | None = None) -> dict:
+    """Blend weights per model from held-out water error: the region's own where they were fitted
+    (weights_<region>.json), else the Sierra's; equal weights when neither file is there."""
+    own = MODELS / f"weights_{region}.json"
+    path = own if region and own.exists() else MODELS / "weights.json"
     return json.loads(path.read_text()) if path.exists() else {}
+
+
+def forecast_variables(region: str) -> list:
+    """What a mountain's forecast asks each model for: the surface fields and the region's pressure levels."""
+    return (openmeteo.FORECAST_SURFACE_VARS + openmeteo.level_variables(config.levels_for(region))
+            + [openmeteo.WIND_DIRECTION])
+
+
+def usable_levels(profile: pd.DataFrame, region: str) -> pd.DataFrame:
+    """The profile without any of the region's low levels that a model reports for only part of the forecast.
+
+    A level with holes would leave holes in the column wherever it is the nearest one, so a low level is used
+    only where it is there for every hour the 850 hPa level is; otherwise the column is held from 850 hPa down,
+    as it is everywhere the low levels are not read."""
+    there = profile["temperature_850hPa"].notna() if "temperature_850hPa" in profile else None
+    drop = []
+    for level in REGIONS[region].low_levels:
+        columns = [f"{name}_{level}hPa" for name in openmeteo.LEVEL_VARS]
+        if there is None or not all(c in profile and profile.loc[there, c].notna().all() for c in columns):
+            drop += [c for c in columns if c in profile]
+    return profile.drop(columns=drop) if drop else profile
 
 
 def fill_profile(frame: pd.DataFrame) -> pd.DataFrame:
@@ -121,6 +144,7 @@ def model_snow(frame: pd.DataFrame, model: str, resort, snow_model: SnowModel, t
     profile = fill_profile(frame)
     if profile[[c for c in profile.columns if c.startswith("temperature_") and c.endswith("hPa")]].isna().all().all():
         return {}
+    profile = usable_levels(profile, resort.region)
     liquid = corrected_liquid(profile["precipitation"], model, correcting_station(resort), today, correction,
                               REGIONS[resort.region].tz)
     out = {}
@@ -405,8 +429,8 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     """Site payload and archive rows for one resort."""
     tz = REGIONS[resort.region].tz
     today = now.tz_localize("UTC").tz_convert(tz).tz_localize(None).normalize()
-    variables = openmeteo.FORECAST_SURFACE_VARS + openmeteo.level_variables() + [openmeteo.WIND_DIRECTION]
-    frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS, variables, days=DAYS,
+    frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS,
+                                forecast_variables(resort.region), days=DAYS,
                                 past_days=HISTORY_DAYS + 1)
     models = {}
     for model, frame in frames.items():
@@ -671,7 +695,7 @@ def run(region: str, now: datetime | None = None) -> dict:
     first_request = len(cache.REQUESTS)
     snow_model, ratio_name = load_snow_model()
     corrections = load_corrections()
-    weights = load_weights()
+    weights = load_weights(region)
     resorts, archive, failed = [], [], []
     for resort in config.resorts_in(region):
         try:

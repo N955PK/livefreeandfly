@@ -44,9 +44,16 @@ Sean said to fit it. `models/bias_seattle.json` is in use; the Sierra files are 
   cautious half of decision 4 below; correcting their bases by height is still open.
 - **Blend weights are not worth a file.** Seattle's held-out errors give 0.256 / 0.242 / 0.253 / 0.249, which is
   equal weights. The Sierra's stay in use.
-- **Not done:** the 850 hPa floor, the rain/snow split and the density check, all as planned below. The correction
-  adds about 40 % more water, so until the floor is fixed the low bases get more of it called snow than they should.
-  The testing page's scorecard has no Seattle section yet.
+- **Seattle's weights are saved anyway** (`models/weights_seattle.json`, at Sean's request, so the region's blend is
+  on record as fitted there). `calibrate.save_weights` now writes such a file from the held-out table, and run on
+  the Sierra's table it reproduces `weights.json` exactly. `pipeline.load_weights` reads a region's own file where
+  there is one.
+- **The 850 hPa floor is fixed for Seattle** (`Region.low_levels`): its forecast asks for 950, 925 and 900 hPa as
+  well. A low level a model reports for only part of the forecast is left out for that model, so nothing gets
+  holes. Planned calls go from 7,266 to 7,462 a day of 8,500. The Sierra and New England requests are unchanged.
+  Not yet seen live: it takes effect on the collector's next Seattle pass.
+- **Not done:** the rain/snow split and the density check, as planned below. The testing page's scorecard has no
+  Seattle section yet. New England's mountains are below 850 hPa too and still held at it.
 
 ## 1. How the Sierra models were fitted, and what a Cascades version needs
 

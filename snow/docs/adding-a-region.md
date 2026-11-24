@@ -19,6 +19,11 @@ The day's ceiling is 8,500. The test in step 1 enforces it; do the sum first any
 calls a day = (Tahoe + Eastern Sierra mountains) x 4 x 51.9  +  (all other mountains) x 2 x 51.9
 ```
 
+A region whose mountains reach below about 1,450 m needs pressure levels under 850 hPa, or every height below that
+is given the 850 hPa temperature and rain is called snow. Give its `Region` `low_levels=(950, 925, 900)` as Seattle
+has (900 hPa is near 990 m, 925 near 760 m, 950 near 540 m; take only the ones the lowest base needs). Each extra
+level costs 2.51 calls a mountain a run, and `usage.planned()` counts it.
+
 One region is built in one collector pass. Eight mountains take about a minute and a half; New England's fourteen
 take about two and a half, which is the most a region should hold. A bigger area is two regions.
 

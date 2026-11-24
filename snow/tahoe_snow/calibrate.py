@@ -8,7 +8,7 @@ import numpy as np
 import omfiles
 import pandas as pd
 
-from tahoe_snow import biascorrect
+from tahoe_snow import biascorrect, blend
 from tahoe_snow.config import (MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW, SEATTLE_BBOX, SEATTLE_STATIONS, STATIONS,
                                TABLES, TAHOE_BBOX)
 from tahoe_snow.snow import dataset, phase
@@ -178,6 +178,16 @@ def fit_and_save(table: pd.DataFrame, region: str = "tahoe") -> biascorrect.Corr
     correction = fit(table, region)
     (MODELS / f"bias{suffix(region)}.json").write_text(json.dumps(biascorrect.to_json(correction)))
     return correction
+
+
+def save_weights(tests: pd.DataFrame, region: str, seasons: tuple = (2025, 2026)) -> dict:
+    """Blend weights for a region from its held-out tests (``held_out_test`` for each season, with a ``season``
+    column): each model weighted by the inverse of its corrected daily error, averaged over ``seasons``."""
+    rows = tests[(tests["water"] == "corrected") & tests["season"].isin(seasons) & (tests["model"].isin(ARCHIVES))]
+    errors = rows.groupby("model")["error (in)"].mean().to_dict()
+    weights = {model: round(weight, 3) for model, weight in blend.inverse_error_weights(errors).items()}
+    (MODELS / f"weights{suffix(region)}.json").write_text(json.dumps(weights))
+    return weights
 
 
 def storm_test(table: pd.DataFrame, seasons: tuple = (2025, 2026), region: str = "tahoe") -> pd.DataFrame:

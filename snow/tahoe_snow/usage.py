@@ -20,14 +20,22 @@ TYPICAL_RUN_CALLS = 1000
 BY_HAND_SHARE = 0.9
 # What one mountain's forecast costs the service, as the ledger measured it (1,089 calls a run for 21 mountains).
 CALLS_PER_RESORT_RUN = 51.9
+# What each pressure level a region reads below the usual ones adds to that, by the service's rule: four fields from
+# four models over the 22 days a forecast request spans (16 variables / 10, times 22 days / 14).
+EXTRA_LEVEL_CALLS = 2.51
 # The most calls a day the service's plan allows.
 PLAN_LIMIT = 8500
 
 
+def resort_run_calls(region: str) -> float:
+    """What one mountain's forecast costs in ``region``, with the levels it reads below the usual ones."""
+    return CALLS_PER_RESORT_RUN + EXTRA_LEVEL_CALLS * len(REGIONS[region].low_levels)
+
+
 def planned(regions: dict = REGIONS, resorts: dict = RESORTS) -> float:
     """Calls a day the configured regions will spend: each mountain's cost for every run its region makes."""
-    return sum(sum(r.region == region.key for r in resorts.values()) * 24 / region.every_h * CALLS_PER_RESORT_RUN
-               for region in regions.values())
+    return sum(sum(r.region == region.key for r in resorts.values()) * 24 / region.every_h
+               * resort_run_calls(region.key) for region in regions.values())
 
 
 def of_run(requests: list) -> dict:
@@ -95,7 +103,7 @@ def estimate(ledger: list, region: str) -> float:
     recent = [row["calls"] for row in ledger if row.get("region") == region][-3:]
     if recent:
         return sum(recent) / len(recent)
-    return round(sum(r.region == region for r in RESORTS.values()) * CALLS_PER_RESORT_RUN, 1)
+    return round(sum(r.region == region for r in RESORTS.values()) * resort_run_calls(region), 1)
 
 
 def largest_region() -> str:

@@ -70,6 +70,8 @@ class Region:
     every_h: int
     # The avalanche centers whose forecasts cover the region.
     avalanche: tuple[str, ...]
+    # Pressure levels (hPa) read below the usual lowest one, where the region's mountains reach under it.
+    low_levels: tuple[int, ...] = ()
 
 
 def _ft(feet: float) -> float:
@@ -309,7 +311,9 @@ REGIONS = {
         Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",)),
         Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC")),
         Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",)),
-        Region("seattle", "Seattle", "America/Los_Angeles", 8, 12, ("NWAC",)),
+        # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
+        # trailhead at 630 m, which 950 hPa (near 540 m) covers.
+        Region("seattle", "Seattle", "America/Los_Angeles", 8, 12, ("NWAC",), low_levels=(950, 925, 900)),
     ]
 }
 
@@ -329,6 +333,12 @@ ENS_MODELS = {"gfs025": "gfs_seamless", "ecmwf_ifs025": "ecmwf_ifs025",
               "icon_seamless": "icon_seamless", "gem_global": "gem_seamless"}
 
 PRESSURE_LEVELS = [850, 800, 750, 700, 650, 600, 550, 500]
+
+
+def levels_for(region: str) -> list[int]:
+    """The pressure levels a region's forecast reads, lowest in the air first."""
+    return sorted(REGIONS[region].low_levels, reverse=True) + PRESSURE_LEVELS
+
 
 # Sierra box used to gather hand-measured snowfall for snow-ratio training.
 SIERRA_BBOX = (36.0, 40.5, -121.5, -118.0)
