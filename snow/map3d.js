@@ -11,6 +11,9 @@ const STAKE_RADIUS = 0.7;
 // within its reach, so its tip marks the spot without sinking into the slope.
 const STAKE_TIP_RADII = 2.2;
 const STAKE_GAP_KM = 0.3;
+// The closest a part of a region is framed, in km from the camera to the point it looks at, when it takes a view
+// closer than Tahoe's opening to show every mountain's name: closer than this the terrain's cells show as facets.
+const CLOSEST_KM = 50;
 const FLAKES = 9000;
 const WHITEN_AT_IN = 5;
 const BIN_M = 50;
@@ -139,6 +142,55 @@ export function stormWindow(rate, nowIndex) {
   }
   if (!seen) end = Math.min(limit, nowIndex + 48);
   return {start, end: Math.max(end, nowIndex + 1), active};
+}
+
+// ---------- where the names sit ----------
+// A name sits over its stake, centred, or to one side ("e": it runs east of the stake from its pointer, "w": west),
+// with its pointer TAIL_IN px in from that end, so it still plainly marks its own stake; and it is full, or shrunk to
+// its number. ``list`` is [{item: {key, width, tall}, x, y}] in the order they claim room (the selected first, then
+// the nearest), x and y the point the pointer touches. Each takes the first spot clear of those before it: centred,
+// then the side toward the middle of the screen, then the other, then the same shrunk. One that finds none may move
+// an earlier neighbour to its far side to make room, so two close names stand back to back. One that still finds none
+// is hidden. ``was`` (key to the spot it had) keeps a name on its side until centred is clear by a margin, so it does
+// not flip back and forth as the view moves. Returns [{item, spot: [side, mini], box}] for the names that show.
+const TAIL_IN = 22, SETTLE_PX = 10;
+function layoutLabels(list, width, was = null) {
+  const placed = [];
+  const boxOf = (p, [side, mini], grow = 0) => {
+    const wide = mini ? 46 : p.item.width, tall = mini ? 24 : p.item.tall, inset = Math.min(TAIL_IN, wide / 2);
+    const x0 = side === "c" ? p.x - wide / 2 : side === "e" ? p.x - inset : p.x + inset - wide;
+    return {x0: x0 - 2 - grow, x1: x0 + wide + 2 + grow, y0: p.y - tall - 6 - grow, y1: p.y + grow};
+  };
+  const clear = (box, skip) => !placed.some((q) => q !== skip && box.x0 < q.box.x1 && box.x1 > q.box.x0 && box.y0 < q.box.y1 && box.y1 > q.box.y0);
+  // A name moved to a side must stay on the screen.
+  const fits = (p, spot, grow) => { const box = boxOf(p, spot, grow); return clear(box) && (spot[0] === "c" || (box.x0 >= 0 && box.x1 <= width)); };
+  const spotsFor = (p) => {
+    const [near, far] = p.x > width / 2 ? ["w", "e"] : ["e", "w"];
+    return [["c", false], [near, false], [far, false], ["c", true], [near, true], [far, true]];
+  };
+  for (const p of list) {
+    let spots = spotsFor(p);
+    const prev = was && was.get(p.item.key);
+    if (prev && prev[0] !== "c") {
+      const centred = [["c", prev[1]]].filter((s) => fits(p, s, SETTLE_PX));
+      spots = [...centred, prev, ...spots.filter((s) => s[0] !== prev[0] || s[1] !== prev[1])];
+    }
+    let spot = spots.find((s) => fits(p, s));
+    if (!spot) {
+      // Make room: a neighbour this name runs into steps to its far side, if that leaves it clear too.
+      const mine = boxOf(p, ["c", false]);
+      for (const q of placed.filter((q) => q.spot[0] === "c" && mine.x0 < q.box.x1 && mine.x1 > q.box.x0 && mine.y0 < q.box.y1 && mine.y1 > q.box.y0)) {
+        const away = [p.x > q.p.x ? "w" : "e", q.spot[1]], moved = boxOf(q.p, away), keep = q.box;
+        if (!clear(moved, q) || moved.x0 < 0 || moved.x1 > width) continue;
+        q.box = moved;
+        spot = spots.filter((s) => s[0] !== "c").find((s) => fits(p, s));
+        if (spot) { q.spot = away; break; }
+        q.box = keep;
+      }
+    }
+    if (spot) placed.push({item: p.item, p, spot, box: boxOf(p, spot)});
+  }
+  return placed;
 }
 
 // ``region`` says where the map is: {terrain, roads} data files, the disc's center [lat, lon], waterM (the level
@@ -813,7 +865,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
         const bx = (seen.x + 1) / 2 * w, by = (1 - seen.y) / 2 * h;
         seen.set(item.x, item.y, z + Math.max(item.fill.scale.z, 0.02) + 0.7).project(fitCamera);
         const lx = (seen.x + 1) / 2 * w, ly = (1 - seen.y) / 2 * h;
-        const tag = {x0: Math.min(bx, lx - item.width / 2 - 2), x1: Math.max(bx, lx + item.width / 2 + 2), y0: ly - item.tall - 12, y1: Math.max(by, ly), item, lx, ly, depth: seen.z};
+        const tag = {x0: Math.min(bx, lx - item.width / 2 - 2), x1: Math.max(bx, lx + item.width / 2 + 2), y0: ly - item.tall - 12, y1: Math.max(by, ly), item, lx, ly, bx, by, depth: seen.z};
         box.tags.push(tag);
         box.x0 = Math.min(box.x0, tag.x0); box.x1 = Math.max(box.x1, tag.x1); box.y0 = Math.min(box.y0, tag.y0); box.y1 = Math.max(box.y1, tag.y1);
       }
@@ -839,19 +891,16 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       const clear = box.tags.every((tag) => !(pad.avoid || []).some((b) => tag.x0 < b.x1 && tag.x1 > b.x0 && tag.y0 < b.y1 && tag.y1 > b.y0));
       // How many labels show, placed as placeLabels places them (the selected first, then the nearest; one that
       // would cover another shrinks to its number, and one that still would is left out).
-      const placed = [], hits = (q) => placed.some((p) => q.x0 < p.x1 && q.x1 > p.x0 && q.y0 < p.y1 && q.y1 > p.y0);
-      let shown = 0;
-      for (const tag of [...box.tags].sort((a, b) => (b.item.key === picked) - (a.item.key === picked) || a.item.backcountry - b.item.backcountry || a.depth - b.depth)) {
-        const at = (width, height) => ({x0: tag.lx - width / 2 - 2, x1: tag.lx + width / 2 + 2, y0: tag.ly - height - 6, y1: tag.ly});
-        let q = at(tag.item.width, tag.item.tall);
-        if (hits(q)) q = at(46, 24);
-        if (hits(q)) continue;
-        placed.push(q); shown++;
-      }
-      return {tx, ty, shown, fits: clear && box.x0 >= room.x0 && box.x1 <= room.x1 && box.y0 >= room.y0 && box.y1 <= room.y1};
+      // A name in full counts one; one shrunk to its number counts a half. The names are laid out as placeLabels lays
+      // them out, and every name that shows and every stake must be inside the room.
+      const names = layoutLabels([...box.tags].sort((a, b) => (b.item.key === picked) - (a.item.key === picked) || a.item.backcountry - b.item.backcountry || a.depth - b.depth)
+        .map((tag) => ({item: tag.item, x: tag.lx, y: tag.ly})), w);
+      const shown = names.reduce((sum, name) => sum + (name.spot[1] ? 0.5 : 1), 0);
+      const inside = (b) => b.x0 >= room.x0 && b.x1 <= room.x1 && b.y0 >= room.y0 && b.y1 <= room.y1;
+      return {tx, ty, shown, fits: clear && names.every((name) => inside(name.box)) && box.tags.every((tag) => inside({x0: tag.bx, x1: tag.bx, y0: tag.by, y1: tag.by}))};
     };
-    // Up a ladder of distances from the nearest: the nearest view that fits and shows the most labels (all of them
-    // where any view does).
+    // Up a ladder of distances from Tahoe's opening distance: the nearest view that fits and shows the most labels
+    // (all of them where any view does).
     const lo = openR / sizeUp, hi = controls.maxDistance, STEPS = 48;
     let best = null, r = hi;
     for (let n = 0; n <= STEPS && !(best && best.shown === list.length); n++) {
@@ -859,6 +908,18 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       for (const high of [false, true]) {
         const tried = settleAt(at, high);
         if (tried.fits && (!best || tried.shown > best.shown)) { best = tried; r = at; }
+      }
+    }
+    // Two mountains a few km apart can need a closer view than Tahoe's for both names to show: then the view comes in
+    // no further than it takes (down the ladder from Tahoe's distance to CLOSEST_KM), as long as the part still fits.
+    // A part whose names cannot all show at any such view keeps the view that shows the most.
+    if (best && best.shown < list.length) {
+      for (let n = 1; n <= STEPS / 2 && best.shown < list.length; n++) {
+        const at = lo * (CLOSEST_KM / lo) ** (n / (STEPS / 2));
+        for (const high of [false, true]) {
+          const tried = settleAt(at, high);
+          if (tried.fits && tried.shown > best.shown) { best = tried; r = at; }
+        }
       }
     }
     if (!best) best = settleAt(hi, false);
@@ -880,9 +941,10 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     const list = items.filter((item) => !item.off), own = fitPart(list, polar, turn);
     if (own.shown === list.length || flat || part.turnDeg != null) return own;
     let best = own;
-    for (const step of [20, -20, 40, -40, 60, -60, 90, -90]) {
+    for (const step of [20, -20, 40, -40, 60, -60, 90, -90, 120, -120, 150, -150, 180]) {
       const tried = fitPart(list, polar, turn + step * Math.PI / 180);
-      if (tried.shown > best.shown) best = tried;
+      // Another direction wins if it shows more names, or as many from much closer in.
+      if (tried.shown > best.shown || (tried.shown === best.shown && tried.r < best.r * 0.75)) best = tried;
       if (best.shown === list.length) break;
     }
     return best;
@@ -959,13 +1021,16 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     paintedAt = time;
   }
 
+  // The side each shown name sat on last frame (see layoutLabels).
+  const spotOf = new Map();
   function placeLabels() {
     const w = container.clientWidth, h = container.clientHeight;
     const project = (point) => {
       const p = point.clone().project(camera);
       return {x: (p.x + 1) / 2 * w, y: (1 - p.y) / 2 * h, depth: p.z, shown: p.z < 1 && Math.abs(p.x) < 1.02 && Math.abs(p.y) < 1.02};
     };
-    // The selected and nearest labels are placed first; one that would cover another shrinks to its number, then steps up.
+    // The selected and nearest labels are placed first; one that would cover another moves to one side of its stake,
+    // or shrinks to its number (see layoutLabels).
     const placed = [];
     const hits = (r) => placed.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0);
     // A mountain outside the part of the region on screen has no label, no tap target, and no room kept for it.
@@ -974,18 +1039,24 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       item.top.set(item.x, item.y, item.z + Math.max(item.fill.scale.z, 0.02) + 0.7);
       return {item, p: project(item.top)};
     }).sort((a, b) => (b.item.key === picked) - (a.item.key === picked) || a.item.backcountry - b.item.backcountry || a.p.depth - b.p.depth);
-    for (const {item, p} of order) {
-      const label = item.label;
-      label.style.display = p.shown ? "" : "none";
-      if (!p.shown) continue;
-      const box = (width, height, lift) => ({x0: p.x - width / 2 - 2, x1: p.x + width / 2 + 2, y0: p.y - height - 6 - lift, y1: p.y - lift});
-      let mini = false, rect = box(item.width, item.tall, 0);
-      if (hits(rect)) { mini = true; rect = box(46, 24, 0); }
-      // A label that still collides is hidden rather than floated away from its stake.
-      if (hits(rect)) { label.style.display = "none"; continue; }
-      placed.push(rect);
+    const onScreen = order.filter(({p}) => p.shown);
+    for (const {item, p} of order) if (!p.shown) item.label.style.display = "none";
+    // A label that finds no room is hidden rather than floated away from its stake.
+    const names = layoutLabels(onScreen.map(({item, p}) => ({item, x: p.x, y: p.y, depth: p.depth})), w, spotOf);
+    const named = new Map(names.map((name) => [name.item.key, name]));
+    spotOf.clear();
+    for (const {item, p} of onScreen) {
+      const label = item.label, name = named.get(item.key);
+      if (!name) { label.style.display = "none"; continue; }
+      label.style.display = "";
+      placed.push(name.box);
+      spotOf.set(item.key, name.spot);
+      const [side, mini] = name.spot;
       label.classList.toggle("mini", mini);
-      label.style.transform = `translate3d(${p.x.toFixed(2)}px, ${(p.y - 6).toFixed(2)}px, 0) translate(-50%, -100%)`;
+      label.classList.toggle("east", side === "e");
+      label.classList.toggle("west", side === "w");
+      const across = side === "c" ? "-50%" : side === "e" ? `-${Math.min(TAIL_IN, (mini ? 46 : item.width) / 2)}px` : `calc(-100% + ${Math.min(TAIL_IN, (mini ? 46 : item.width) / 2)}px)`;
+      label.style.transform = `translate3d(${p.x.toFixed(2)}px, ${(p.y - 6).toFixed(2)}px, 0) translate(${across}, -100%)`;
       label.style.zIndex = String(100000 + Math.round((1 - p.depth) * 100000));
     }
     // Each tag is its own compositor layer (see the page's will-change rule), so it is drawn once and then
@@ -1105,6 +1176,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     showAvalanche(on) { dangerOn = on; paintedAt = -1; },
     // Turns the radar on (fetching the latest picture first; rejects if none could be had) or off.
     async showRadar(on) { if (on) await loadRadar(); radarOn = on; ground.material = on ? flatMaterial : litMaterial; paintedAt = -1; },
+    // How far the camera is from the point it looks at, in km (for checks).
+    cameraDistance: () => camera.position.distanceTo(controls.target),
     northUp() { glideTo({turn: 0}); },
     // Flat is the view from straight above, north up; leaving it tilts back to the opening angle.
     // In a part of the region the view also frames the part again, from above or tilted.

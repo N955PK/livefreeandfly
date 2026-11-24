@@ -1038,6 +1038,9 @@ html.tabs .heat tr.on td.name{background:var(--surface);border-radius:0;box-shad
 html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 0 0;z-index:-1;border-radius:26px 0 0 26px;background:var(--pick)}
 .map-label::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:rgba(255,255,255,.92)}
 .map-label.on::after{border-top-color:#0f1720}
+/* A name moved to one side of its stake (where two would collide) keeps its pointer near that end, over the stake. */
+.map-label.east::after{left:22px}
+.map-label.west::after{left:auto;right:22px;margin-left:0;margin-right:-5px}
 .map-lake{position:absolute;left:0;top:0;font-size:12px;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
 .map-hint{position:absolute;z-index:400000;left:12px;bottom:10px;font-size:11.5px;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:3px 10px;pointer-events:none}
 .map-compass{position:absolute;z-index:400000;right:12px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.82);box-shadow:0 1px 4px rgba(15,23,32,.2);display:grid;place-items:center;pointer-events:none}
@@ -1558,7 +1561,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "239";
+const BUILD = "240";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
