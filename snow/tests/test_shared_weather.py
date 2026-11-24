@@ -7,7 +7,9 @@ from tahoe_snow import config, pipeline, usage
 from tahoe_snow.config import RESORTS
 from tahoe_snow.sources import openmeteo
 
-SHARED = {"pico": "killington", "tuckerman": "wildcat", "mountsnow": "stratton"}
+SHARED = {"pico": "killington", "tuckerman": "wildcat", "mountsnow": "stratton",
+          "alpine": "palisades", "boreal": "sugarbowl", "castle": "sugarbowl", "roundtop": "kirkwood",
+          "jakes": "tallac", "carsonpeak": "june", "sherwins": "mammoth", "alpental": "snoqualmie"}
 
 
 def km(a, b) -> float:
@@ -15,7 +17,7 @@ def km(a, b) -> float:
     return 6371 * math.hypot(east, math.radians(b.lat - a.lat))
 
 
-def test_the_three_close_pairs_share_and_nobody_else_does():
+def test_the_close_neighbours_share_and_nobody_else_does():
     assert {r.key: r.weather_from for r in RESORTS.values() if r.weather_from} == SHARED
 
 
@@ -92,4 +94,4 @@ def test_a_shared_mountain_costs_no_calls():
     assert usage.pulls("newengland") == len(config.resorts_in("newengland")) - 3 == 12
     assert round(usage.planned(newengland)) == round(12 * 2 * usage.resort_run_calls("newengland"))
     assert usage.estimate([], "newengland") == round(12 * usage.resort_run_calls("newengland"), 1)
-    assert usage.pulls("tahoe") == len(config.resorts_in("tahoe"))
+    assert (usage.pulls("tahoe"), usage.pulls("mammoth"), usage.pulls("seattle")) == (9, 5, 12)

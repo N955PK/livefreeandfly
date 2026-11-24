@@ -69,10 +69,12 @@ def test_the_most_overdue_region_is_due_first(tmp_path, stubbed):
     assert pipeline.due(NOW + timedelta(hours=1, minutes=1)) in ("tahoe", "mammoth", "seattle")
     for key in ("tahoe", "mammoth", "seattle"):
         pipeline.run(key, NOW + timedelta(hours=1, minutes=1))
-    assert pipeline.due(NOW + timedelta(hours=8)) is None                       # noon Pacific: nothing until 1 pm
-    assert pipeline.due(NOW + timedelta(hours=9, minutes=1)) in config.REGIONS  # 1 pm Pacific and 4 pm Eastern
-    pipeline.run("newengland", NOW + timedelta(hours=9, minutes=1))
-    assert pipeline.due(NOW + timedelta(hours=9, minutes=2)) in ("tahoe", "mammoth", "seattle")
+    assert pipeline.due(NOW + timedelta(hours=6)) is None                       # 10 am Pacific: nothing until 11
+    assert pipeline.due(NOW + timedelta(hours=7, minutes=1)) in ("tahoe", "mammoth", "seattle")
+    for key in ("tahoe", "mammoth", "seattle"):
+        pipeline.run(key, NOW + timedelta(hours=7, minutes=1))
+    assert pipeline.due(NOW + timedelta(hours=8, minutes=59)) is None           # New England's 4 pm is a minute off
+    assert pipeline.due(NOW + timedelta(hours=9, minutes=1)) == "newengland"
 
 
 def test_a_region_where_every_mountain_fails_keeps_its_last_file(tmp_path, stubbed, monkeypatch):

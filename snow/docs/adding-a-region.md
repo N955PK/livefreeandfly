@@ -13,8 +13,10 @@ Throughout, `<region>` is the key: lower case, no spaces (`saltlake`).
 ## 0. Check it fits
 
 Each mountain costs 51.9 Open-Meteo calls a run (more where the region reads extra low pressure levels). A region is
-built at fixed hours on its own clock (`Region.at`; `every_h` is 24 over their number): the western regions three
-times a day, New England twice. At twice a day that is **103.7 calls a mountain a day**.
+built at fixed hours on its own clock (`Region.at`; `every_h` is 24 over their number): the western regions four
+times a day, New England twice. At twice a day that is **103.7 calls a mountain a day**. A mountain within about
+8 km of another can take its neighbour's weather instead of asking for its own (`Resort.weather_from`), and then
+costs nothing.
 The day's ceiling is 8,500. The test in step 1 enforces it; do the sum first anyway:
 
 ```

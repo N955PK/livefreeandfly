@@ -182,30 +182,32 @@ RESORTS = {
     r.key: r
     for r in [
         Resort("palisades", "Palisades Tahoe", 39.197, -120.245, 1890, 2665, "784:CA:SNTL", "Ikon"),
-        Resort("alpine", "Alpine Meadows", 39.165, -120.238, 2085, 2588, "848:CA:SNTL", "Ikon", weak_match=True),
+        Resort("alpine", "Alpine Meadows", 39.165, -120.238, 2085, 2588, "848:CA:SNTL", "Ikon", weak_match=True,
+               weather_from="palisades"),
         Resort("homewood", "Homewood", 39.080, -120.172, 1903, 2402, "848:CA:SNTL", "Independent"),
         Resort("sugarbowl", "Sugar Bowl", 39.300, -120.335, 2108, 2550, "428:CA:SNTL", "Mountain Collective"),
-        Resort("boreal", "Boreal", 39.333, -120.348, 2186, 2347, "428:CA:SNTL", "Independent"),
+        Resort("boreal", "Boreal", 39.333, -120.348, 2186, 2347, "428:CA:SNTL", "Independent",
+               weather_from="sugarbowl"),
         Resort("northstar", "Northstar", 39.265, -120.133, 1921, 2625, "834:CA:SNTL", "Epic", weak_match=True),
         Resort("mtrose", "Mt. Rose", 39.320, -119.885, 2310, 2916, "652:NV:SNTL", "Independent"),
         Resort("heavenly", "Heavenly", 38.930, -119.920, 2025, 3037, "518:CA:SNTL", "Epic"),
         Resort("sierra", "Sierra-at-Tahoe", 38.795, -120.085, 2030, 2693, "463:CA:SNTL", "Ikon"),
         Resort("kirkwood", "Kirkwood", 38.680, -120.070, 2382, 2884, "1067:CA:SNTL", "Epic"),
         Resort("castle", "Castle Peak", 39.3654, -120.3494, 2200, 2774, "428:CA:SNTL", "Backcountry",
-               kind="backcountry"),
+               kind="backcountry", weather_from="sugarbowl"),
         Resort("jakes", "Jakes Peak", 38.9753, -120.1243, 2067, 2800, "724:CA:SNTL", "Backcountry",
-               kind="backcountry"),
+               kind="backcountry", weather_from="tallac"),
         Resort("tallac", "Mt. Tallac", 38.9059, -120.0988, 1920, 2967, "463:CA:SNTL", "Backcountry",
                kind="backcountry"),
         Resort("roundtop", "Round Top", 38.6636, -120.0015, 2613, 3164, "1067:CA:SNTL", "Backcountry",
-               kind="backcountry"),
+               kind="backcountry", weather_from="kirkwood"),
         Resort("mammoth", "Mammoth Mountain", 37.635, -119.030, _ft(7953), _ft(11053), "MHP:CDEC", "Ikon",
                region="mammoth"),
         Resort("june", "June Mountain", 37.755, -119.080, _ft(7545), _ft(10090), None, "Ikon", region="mammoth"),
         Resort("sherwins", "Sherwin Ridge", 37.6043, -118.9794, 2399, 3130, "MHP:CDEC", "Backcountry",
-               region="mammoth", kind="backcountry"),
+               region="mammoth", kind="backcountry", weather_from="mammoth"),
         Resort("carsonpeak", "Carson Peak", 37.7476, -119.1242, 2204, 3324, None, "Backcountry",
-               region="mammoth", kind="backcountry"),
+               region="mammoth", kind="backcountry", weather_from="june"),
         Resort("matterhorn", "Matterhorn Peak", 38.0932, -119.3817, 2165, 3734, "SLI:CDEC", "Backcountry",
                region="mammoth", kind="backcountry", weak_match=True),
         Resort("danaplateau", "Dana Plateau", 37.9200, -119.2150, 2907, 3494, "DAN:CDEC", "Backcountry",
@@ -276,7 +278,7 @@ RESORTS = {
         Resort("snoqualmie", "Summit at Snoqualmie", 47.40482, -121.41854, _ft(2610), _ft(3865), "672:WA:SNTL",
                "Ikon", region="seattle"),
         Resort("alpental", "Alpental", 47.44024, -121.43034, _ft(3140), _ft(5420), "672:WA:SNTL", "Ikon",
-               region="seattle"),
+               region="seattle", weather_from="snoqualmie"),
         Resort("bakerskiarea", "Mt. Baker Ski Area", 48.85002, -121.65696, _ft(3500), _ft(5089), "909:WA:SNTL",
                "Independent", region="seattle"),
         Resort("whitepass", "White Pass", 46.63099, -121.38899, _ft(4500), _ft(6500), "692:WA:SNTL", "Indy",
@@ -314,17 +316,18 @@ RESORTS = {
 REGIONS = {
     r.key: r
     for r in [
-        # The three western regions are built together at 5 am, 1 pm and 9 pm Pacific: before the ski day, at midday and
-        # in the evening. New England is built at 4 am and 4 pm Eastern; the afternoon one falls with the West's 1 pm.
-        Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 8, ("SAC",), at=(5, 13, 21)),
-        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 8, ("ESAC", "BAC"), at=(5, 13, 21)),
+        # The three western regions are built together every six hours, at 5 am, 11 am, 5 pm and 11 pm Pacific: the
+        # first is before the ski day. New England is built at 4 am and 4 pm Eastern.
+        Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",), at=(5, 11, 17, 23)),
+        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC"), at=(5, 11, 17, 23)),
         # Every lift-served foot of New England is below 850 hPa (near 1,450 m): the highest summit is Killington's
         # 1,293 m and the lowest base Attitash's 183 m, which 1000 hPa (near 110 m) covers.
         Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",),
                low_levels=(1000, 975, 950, 925, 900), at=(4, 16)),
         # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
         # trailhead at 630 m, which 950 hPa (near 540 m) covers.
-        Region("seattle", "Seattle", "America/Los_Angeles", 8, 8, ("NWAC",), low_levels=(950, 925, 900), at=(5, 13, 21)),
+        Region("seattle", "Seattle", "America/Los_Angeles", 8, 6, ("NWAC",), low_levels=(950, 925, 900),
+               at=(5, 11, 17, 23)),
     ]
 }
 
