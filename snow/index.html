@@ -1561,7 +1561,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "244";
+const BUILD = "245";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4058,8 +4058,8 @@ function onTheDay(product, zone) {
 }
 // The states the avalanche zones lie in, by the two letters the centers' map layers give.
 // The part of the country a zone is listed under, by its state, in the order the picker shows them.
-const AVY_AREAS = ["CA", "New England", "Pacific Northwest"];
-const AVY_AREA = {CA: "CA", NH: "New England", VT: "New England", ME: "New England", WA: "Pacific Northwest", OR: "Pacific Northwest"};
+const AVY_AREAS = ["California", "New England", "Pacific Northwest"];
+const AVY_AREA = {CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Pacific Northwest", OR: "Pacific Northwest"};
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
