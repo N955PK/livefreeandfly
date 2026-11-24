@@ -1627,7 +1627,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "276";
+const BUILD = "277";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -5210,26 +5210,31 @@ function chooseMountain(key, open) {
 // and loading the files by that commit avoids GitHub's file cache, which can lag by many minutes. The commit is asked
 // for again after ten minutes, so a region opened later in a long visit is not read from an old one.
 const REPO = "N955PK/livefreeandfly", DATA_BRANCH = "snow-data", COMMIT_KEEP_MS = 10 * 60 * 1000;
+// Each collector publishes its regions on a branch of its own, with its own index. The first collector's is
+// DATA_BRANCH; the others are named here with the folder their files sit in when developing (data/<folder>/).
+const MORE_BRANCHES = {"snow-data-canada": "canada"};
+// The branch each region's forecast is on, where that is not DATA_BRANCH: filled in as the indexes are read.
+const branchOf = {};
 const loadForecast = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-let commitAsk = null, commitAskedAt = 0;
-function dataCommit() {
-  if (!commitAsk || Date.now() - commitAskedAt > COMMIT_KEEP_MS) {
-    commitAskedAt = Date.now();
+const commitAsk = {}, commitAskedAt = {};
+function dataCommit(branch = DATA_BRANCH) {
+  if (!commitAsk[branch] || Date.now() - commitAskedAt[branch] > COMMIT_KEEP_MS) {
+    commitAskedAt[branch] = Date.now();
     // A failed ask is forgotten, so the next file asks again rather than failing for ten minutes.
-    const ask = loadForecast(`https://api.github.com/repos/${REPO}/branches/${DATA_BRANCH}`).then((branch) => branch.commit.sha)
-      .catch((error) => { if (commitAsk === ask) commitAsk = null; throw error; });
-    commitAsk = ask;
+    const ask = loadForecast(`https://api.github.com/repos/${REPO}/branches/${branch}`).then((found) => found.commit.sha)
+      .catch((error) => { if (commitAsk[branch] === ask) commitAsk[branch] = null; throw error; });
+    commitAsk[branch] = ask;
   }
-  return commitAsk;
+  return commitAsk[branch];
 }
 // One published file: index.json, forecast/<region>.json, or (data published before regions had files of their
 // own) forecast.json.
-async function published(path) {
-  if (location.hostname === "localhost") return loadForecast(`data/${path}`);
+async function published(path, branch = DATA_BRANCH) {
+  if (location.hostname === "localhost") return loadForecast(`data/${branch === DATA_BRANCH ? "" : `${MORE_BRANCHES[branch]}/`}${path}`);
   try {
-    return await loadForecast(`https://raw.githubusercontent.com/${REPO}/${await dataCommit()}/${path}`);
+    return await loadForecast(`https://raw.githubusercontent.com/${REPO}/${await dataCommit(branch)}/${path}`);
   } catch (error) {
-    return loadForecast(`https://raw.githubusercontent.com/${REPO}/${DATA_BRANCH}/${path}`);
+    return loadForecast(`https://raw.githubusercontent.com/${REPO}/${branch}/${path}`);
   }
 }
 // The last copy of each file this device loaded is kept on it, so the page still has something to show with no signal.
@@ -5244,11 +5249,27 @@ async function savedCopy(name) {
 }
 // The index, fresh or saved; null when there is neither (an old data branch, or a first visit with no signal).
 async function liveIndex() {
-  try {
-    const fresh = await published("index.json");
-    saveCopy("index", fresh);
-    return fresh;
-  } catch (error) { return savedCopy("index"); }
+  const one = async (branch) => {
+    const name = branch === DATA_BRANCH ? "index" : `index:${branch}`;
+    try {
+      const fresh = await published("index.json", branch);
+      saveCopy(name, fresh);
+      return fresh;
+    } catch (error) { return savedCopy(name); }
+  };
+  // The other collectors' indexes are read alongside the first and joined to it: their regions and mountains are
+  // added, and each of their regions is remembered as living on its branch. One that cannot be read (a collector
+  // that has published nothing yet, or no signal and no saved copy) adds nothing.
+  const [main, ...more] = await Promise.all([one(DATA_BRANCH), ...Object.keys(MORE_BRANCHES).map((branch) => one(branch).catch(() => null))]);
+  if (!main) return null;
+  Object.keys(MORE_BRANCHES).forEach((branch, n) => {
+    const extra = more[n];
+    if (!extra || !extra.regions || !Array.isArray(extra.resorts)) return;
+    for (const key of Object.keys(extra.regions)) branchOf[key] = branch;
+    Object.assign(main.regions, extra.regions);
+    main.resorts.push(...extra.resorts.filter((r) => !main.resorts.some((have) => have.key === r.key)));
+  });
+  return main;
 }
 // The whole forecast in one file, as published before the index existed.
 async function liveForecast() {
@@ -5286,7 +5307,7 @@ function loadRegion(key, {ahead = false} = {}) {
   regionLoads[key] ||= (async () => {
     let file = null;
     try {
-      file = fixTimes(await published(`forecast/${key}.json`));
+      file = fixTimes(await published(`forecast/${key}.json`, branchOf[key] || DATA_BRANCH));
       saveCopy(`forecast/${key}`, file);
     } catch (error) {
       if (ahead && !regionWanted.has(key)) return false;

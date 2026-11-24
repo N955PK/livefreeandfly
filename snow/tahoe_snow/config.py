@@ -1,4 +1,5 @@
 """Resorts, stations, model names, and paths."""
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -78,6 +79,10 @@ class Region:
     # The hours of the day, on the region's own clock, at which its forecast is built. Regions that share a clock
     # share their hours, so their forecasts change together.
     at: tuple[int, ...] = ()
+    # The collector that builds and publishes the region (see COLLECTOR below), and the country the region menu
+    # lists it under.
+    collector: str = "main"
+    country: str = "USA"
 
 
 def _ft(feet: float) -> float:
@@ -265,7 +270,7 @@ ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE
 # (the rim above the chutes; base at Ellery Lake on the Tioga Road) with Dana Meadows, 5 km southwest.
 # Mt. Whitney (base at Whitney Portal; published elevations) is far south of every sensor the Mammoth correction
 # was fitted to, so it has no station either.
-RESORTS = {
+ALL_RESORTS = {
     r.key: r
     for r in [
         Resort("palisades", "Palisades Tahoe", 39.197, -120.245, 1890, 2665, "784:CA:SNTL", "Ikon"),
@@ -565,7 +570,7 @@ RESORTS = {
     ]
 }
 
-REGIONS = {
+ALL_REGIONS = {
     r.key: r
     for r in [
         # The three western regions are built together at 5 am, 1 pm and 9 pm Pacific: before the ski day, at midday and
@@ -595,6 +600,14 @@ REGIONS = {
         Region("shasta", "Shasta", "America/Los_Angeles", 8, 12, ("MSAC",), at=(5, 17)),
     ]
 }
+
+# Which collector this process is. Each collector is a workflow of its own (snow-collect.yml is "main",
+# snow-collect-canada.yml is "canada"): it builds only its own regions, publishes them on a data branch of its own
+# with its own index, and keeps its own ledger of calls. Everything that walks REGIONS or RESORTS therefore sees one
+# collector's share; ALL_REGIONS and ALL_RESORTS are every region and mountain there is.
+COLLECTOR = os.environ.get("SNOW_COLLECTOR", "main")
+REGIONS = {key: region for key, region in ALL_REGIONS.items() if region.collector == COLLECTOR}
+RESORTS = {key: resort for key, resort in ALL_RESORTS.items() if resort.region in REGIONS}
 
 
 def resorts_in(region: str) -> list[Resort]:

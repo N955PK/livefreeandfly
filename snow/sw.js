@@ -97,7 +97,8 @@ self.addEventListener('fetch', (e) => {
   }
   // The local forecast files are only used when developing; the published ones come from another site.
   if (url.origin === location.origin && (url.pathname === scope.pathname + 'data/forecast.json'
-      || url.pathname === scope.pathname + 'data/index.json' || url.pathname.startsWith(scope.pathname + 'data/forecast/'))) return;
+      || url.pathname === scope.pathname + 'data/index.json' || url.pathname.startsWith(scope.pathname + 'data/forecast/')
+      || url.pathname.startsWith(scope.pathname + 'data/canada/'))) return;
   if (url.href.startsWith(SIGNS) || url.href.startsWith(PROBLEMS)) return e.respondWith(keptPicture(req));
   if (url.href.startsWith(PHOTOS)) return e.respondWith(savedPhoto(req));
   if ((url.origin === location.origin && url.pathname.startsWith(scope.pathname)) || url.href.startsWith(THREE)) {
