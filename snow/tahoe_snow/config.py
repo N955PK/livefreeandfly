@@ -48,6 +48,8 @@ class Resort:
     region: str = "tahoe"
     kind: str = "resort"
     weak_match: bool = False
+    # Whether the mountain's forecast is corrected against its station. Where it is not, the station is only shown.
+    corrected: bool = True
 
     @property
     def mid_m(self) -> float:
@@ -285,17 +287,19 @@ RESORTS = {
         # Chuck basin. Mt. Adams is the South Climb from Cold Springs, its point below the Lunch Counter. Mt. St.
         # Helens is the Worm Flows from Marble Mountain Sno-Park to the crater rim. The Paradise, Marten Ridge and
         # Swift Creek stations sit far below their volcano's middle, so they are weak matches; nothing reports within
-        # 10 km of Glacier Peak or Mt. Adams.
+        # 10 km of Glacier Peak or Mt. Adams. A correction learned at a sensor near the trailhead says nothing about a
+        # summit one to three kilometres above it, and one water series feeds every height, so these three are shown
+        # their sensor and not corrected against it.
         Resort("rainier", "Mt. Rainier", 46.834, -121.7329, 1653, _ft(14410), "679:WA:SNTL", "Backcountry",
-               region="seattle", kind="backcountry", weak_match=True),
+               region="seattle", kind="backcountry", weak_match=True, corrected=False),
         Resort("mtbaker", "Mt. Baker", 48.7494, -121.8137, 1024, _ft(10781), "999:WA:SNTL", "Backcountry",
-               region="seattle", kind="backcountry", weak_match=True),
+               region="seattle", kind="backcountry", weak_match=True, corrected=False),
         Resort("glacierpeak", "Glacier Peak", 48.082, -121.128, 630, _ft(10541), None, "Backcountry",
                region="seattle", kind="backcountry"),
         Resort("adams", "Mt. Adams", 46.179, -121.4928, 1689, _ft(12276), None, "Backcountry",
                region="seattle", kind="backcountry"),
         Resort("sthelens", "Mt. St. Helens", 46.1725, -122.188, 814, _ft(8363), "1012:WA:SNTL", "Backcountry",
-               region="seattle", kind="backcountry", weak_match=True),
+               region="seattle", kind="backcountry", weak_match=True, corrected=False),
     ]
 }
 
@@ -330,3 +334,5 @@ PRESSURE_LEVELS = [850, 800, 750, 700, 650, 600, 550, 500]
 SIERRA_BBOX = (36.0, 40.5, -121.5, -118.0)
 TAHOE_BBOX = (38.4, 39.7, -120.8, -119.6)
 MAMMOTH_BBOX = (37.0, 38.3, -119.7, -118.4)
+# Around the Seattle region's ten snow sensors, Swift Creek in the south to Wells Creek in the north.
+SEATTLE_BBOX = (46.0, 49.0, -123.6, -120.3)

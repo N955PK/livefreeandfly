@@ -9,7 +9,8 @@ import omfiles
 import pandas as pd
 
 from tahoe_snow import biascorrect
-from tahoe_snow.config import MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW, STATIONS, TABLES, TAHOE_BBOX
+from tahoe_snow.config import (MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW, SEATTLE_BBOX, SEATTLE_STATIONS, STATIONS,
+                               TABLES, TAHOE_BBOX)
 from tahoe_snow.snow import dataset, phase
 
 BUCKET = "openmeteo/data"
@@ -21,10 +22,16 @@ WINTER_MONTHS = (11, 12, 1, 2, 3, 4)
 # Per region: the stations, the box of archive to read around them, and the table of their daily gains.
 # Tahoe keeps the file names it had before there were regions.
 REGIONS = {"tahoe": (STATIONS, TAHOE_BBOX, "snotel_daily"),
-           "mammoth": (MAMMOTH_STATIONS, MAMMOTH_BBOX, "mammoth_daily")}
+           "mammoth": (MAMMOTH_STATIONS, MAMMOTH_BBOX, "mammoth_daily"),
+           "seattle": (SEATTLE_STATIONS, SEATTLE_BBOX, "seattle_daily")}
 # A pillow reading this much water on a day when no model had any, that day or the days beside it, is a sensor
 # fault (a step in the reading), not a storm.
 PHANTOM_MM, DRY_MM = 25.0, 2.0
+# Stations whose own curve did worse on held-out winters than the curve pooled over their region, so they get the
+# pooled one. Morse Lake and Pigtail Peak, east of the crest: the models were half as wet as these two in the 2024
+# and 2025 winters and nearly as wet in 2026, so a curve from two winters overshot the third (3-day error on storms
+# of 2 in or more: 1.43 and 1.13 in with their own curves, 1.04 and 1.00 with the pooled one, 1.16 and 1.02 raw).
+POOLED_ONLY = {"seattle": ("642:WA:SNTL", "692:WA:SNTL")}
 
 
 def suffix(region: str) -> str:
@@ -127,6 +134,15 @@ def pairs(region: str = "tahoe") -> pd.DataFrame:
     return table
 
 
+def fit(table: pd.DataFrame, region: str = "tahoe") -> biascorrect.Correction:
+    """The region's correction: a curve per station, less the stations that are given the pooled curve."""
+    correction = biascorrect.fit(table)
+    for by_station in correction.maps.values():
+        for station in POOLED_ONLY.get(region, ()):
+            by_station.pop(station, None)
+    return correction
+
+
 def score(frame: pd.DataFrame, column: str) -> dict:
     """Error on wet days, where a day is wet if the station or the raw model had at least 1 mm."""
     wet = frame[np.maximum(frame["forecast_mm"], frame["observed_mm"]) >= phase.MIN_PRECIP_MM / 5]
@@ -137,10 +153,10 @@ def score(frame: pd.DataFrame, column: str) -> dict:
             "error on 1 in+ days (in)": float(error[big].abs().mean() / 25.4)}
 
 
-def held_out_test(table: pd.DataFrame, season: int) -> pd.DataFrame:
+def held_out_test(table: pd.DataFrame, season: int, region: str = "tahoe") -> pd.DataFrame:
     """Fit on every other season, score on ``season``: raw against corrected, per model and blended."""
     train, test = table[table["season"] != season], table[table["season"] == season].copy()
-    correction = biascorrect.fit(train)
+    correction = fit(train, region)
     test["corrected_mm"] = np.nan
     for (model, station), rows in test.groupby(["model", "station"]):
         test.loc[rows.index, "corrected_mm"] = correction.apply(model, station, 0, rows["forecast_mm"].to_numpy())
@@ -159,7 +175,7 @@ def held_out_test(table: pd.DataFrame, season: int) -> pd.DataFrame:
 
 def fit_and_save(table: pd.DataFrame, region: str = "tahoe") -> biascorrect.Correction:
     """Each region has its own file, so its stations are pooled only with each other."""
-    correction = biascorrect.fit(table)
+    correction = fit(table, region)
     (MODELS / f"bias{suffix(region)}.json").write_text(json.dumps(biascorrect.to_json(correction)))
     return correction
 
@@ -172,7 +188,7 @@ def storm_test(table: pd.DataFrame, seasons: tuple = (2025, 2026), region: str =
     wide["raw"] = wide[models].mean(axis=1)
     rows = []
     for season in seasons:
-        correction = biascorrect.fit(table[table["season"] != season])
+        correction = fit(table[table["season"] != season], region)
         test = wide[wide["season"] == season].copy()
         test["corrected"] = np.mean([[correction.apply(m, station, 0, np.array([value]))[0]
                                       for station, value in zip(test["station"], test[m])] for m in models], axis=0)

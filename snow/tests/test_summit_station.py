@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from tahoe_snow import biascorrect, cache, config, pipeline, season
+from tahoe_snow import biascorrect, cache, calibrate, config, pipeline, season
 from tahoe_snow.config import ALL_STATIONS, MODELS, RESORTS
 from tahoe_snow.sources import acis, nws
 
@@ -170,7 +170,7 @@ def test_the_summit_never_corrects_tuckermans_forecast(monkeypatch):
 
 def test_every_other_mountain_is_corrected_as_before(monkeypatch):
     for resort in RESORTS.values():
-        if resort.key == "tuckerman":
+        if resort.key == "tuckerman" or not resort.corrected:
             continue
         assert pipeline.correcting_station(resort) == resort.station, resort.key
         if resort.region == "newengland":
@@ -192,8 +192,46 @@ def test_the_index_says_a_sensor_with_no_fitted_correction_corrects_nothing(tmp_
     monkeypatch.setattr(pipeline, "DATA", tmp_path)
     resorts = {r["key"]: r for r in pipeline.write_index()["resorts"]}
     assert resorts["palisades"]["water_corrected"] and resorts["mammoth"]["water_corrected"]
-    assert resorts["crystal"]["station_corrects"] and not resorts["crystal"]["water_corrected"]
+    assert resorts["crystal"]["station_corrects"] and resorts["crystal"]["water_corrected"]
     assert not resorts["june"]["water_corrected"] and not resorts["tuckerman"]["water_corrected"]
+
+
+def test_a_volcano_is_shown_its_sensor_and_not_corrected_against_it(tmp_path, monkeypatch):
+    volcanoes = [RESORTS[key] for key in ("rainier", "mtbaker", "sthelens")]
+    assert [r.key for r in RESORTS.values() if not r.corrected] == [r.key for r in volcanoes]
+    correction = pipeline.load_corrections()["seattle"]
+    for volcano in volcanoes:
+        assert volcano.station and pipeline.correcting_station(volcano) is None
+        assert _liquid_station(volcano, monkeypatch) is None
+        assert pipeline.water_correction(volcano, correction) is None
+    monkeypatch.setattr(pipeline, "DATA", tmp_path)
+    resorts = {r["key"]: r for r in pipeline.write_index()["resorts"]}
+    assert resorts["rainier"]["station"] == "Paradise"
+    assert not resorts["rainier"]["station_corrects"] and not resorts["rainier"]["water_corrected"]
+
+
+def test_seattle_is_corrected_with_a_station_curve_or_the_pooled_one():
+    correction = pipeline.load_corrections()["seattle"]
+    assert pipeline.water_correction(RESORTS["stevens"], correction) == "station"
+    assert pipeline.water_correction(RESORTS["snoqualmie"], correction) == "station"
+    for key in ("crystal", "whitepass"):
+        assert RESORTS[key].station in calibrate.POOLED_ONLY["seattle"]
+        assert pipeline.water_correction(RESORTS[key], correction) == "pooled"
+    raw = np.array([10.0, 30.0, 60.0])
+    for model in ("gfs_seamless", "ecmwf_ifs025", "icon_seamless", "gem_seamless"):
+        assert (correction.apply(model, RESORTS["stevens"].station, 0, raw) > raw).all(), model
+
+
+def test_a_region_with_no_pooled_only_stations_is_fitted_as_before():
+    rng = np.random.default_rng(0)
+    rows = [{"model": "gfs_seamless", "station": station, "lead_day": 0, "forecast_mm": f, "observed_mm": 1.3 * f}
+            for station in ("642:WA:SNTL", "791:WA:SNTL") for f in rng.gamma(2.0, 8.0, 80)]
+    table = pd.DataFrame(rows)
+    plain = biascorrect.to_json(biascorrect.fit(table))
+    assert biascorrect.to_json(calibrate.fit(table, "tahoe")) == plain
+    assert biascorrect.to_json(calibrate.fit(table, "mammoth")) == plain
+    seattle = calibrate.fit(table, "seattle")
+    assert seattle.fitted("791:WA:SNTL") and not seattle.fitted("642:WA:SNTL")
 
 
 def test_a_posted_body_is_part_of_what_the_copy_is_kept_under():

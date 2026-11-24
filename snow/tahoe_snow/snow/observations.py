@@ -1,7 +1,7 @@
 """Bulk station tables used to train and test the snow model."""
 import pandas as pd
 
-from tahoe_snow.config import MAMMOTH_STATIONS, SIERRA_BBOX, STATIONS, TABLES
+from tahoe_snow.config import MAMMOTH_STATIONS, SEATTLE_STATIONS, SIERRA_BBOX, STATIONS, TABLES
 from tahoe_snow.sources import cdec, ghcn, snotel
 
 MANUAL_START = "1979-01-01"
@@ -29,10 +29,10 @@ def pull_manual(end: str) -> tuple:
     return stations, table
 
 
-def pull_mammoth(end: str, start: str = "2020-10-01") -> pd.DataFrame:
-    """Daily gains at the snow sensors around Mammoth: pillow water at the CDEC sites, the usual set at SNOTEL."""
+def pull_region(stations: dict, table: str, end: str, start: str = "2020-10-01") -> pd.DataFrame:
+    """Daily gains at a region's snow sensors: pillow water at the CDEC sites, the usual set at SNOTEL."""
     frames = []
-    for station in MAMMOTH_STATIONS.values():
+    for station in stations.values():
         if station.source == "cdec":
             raw = cdec.daily(station.triplet.split(":")[0], start, end)
             gains = cdec.pillow_gains(raw["swe_mm"]).rename_axis("date").reset_index()
@@ -41,10 +41,20 @@ def pull_mammoth(end: str, start: str = "2020-10-01") -> pd.DataFrame:
         gains.insert(0, "station", station.triplet)
         frames.append(gains)
         print(f"{station.triplet} {station.name}: {len(gains)} days", flush=True)
-    table = pd.concat(frames, ignore_index=True)
+    out = pd.concat(frames, ignore_index=True)
     TABLES.mkdir(parents=True, exist_ok=True)
-    table.to_parquet(TABLES / "mammoth_daily.parquet")
-    return table
+    out.to_parquet(TABLES / f"{table}.parquet")
+    return out
+
+
+def pull_mammoth(end: str, start: str = "2020-10-01") -> pd.DataFrame:
+    """Daily gains at the snow sensors around Mammoth."""
+    return pull_region(MAMMOTH_STATIONS, "mammoth_daily", end, start)
+
+
+def pull_seattle(end: str, start: str = "2020-10-01") -> pd.DataFrame:
+    """Daily gains at the SNOTEL stations paired with the Seattle region's mountains."""
+    return pull_region(SEATTLE_STATIONS, "seattle_daily", end, start)
 
 
 def pull_snotel(end: str) -> pd.DataFrame:

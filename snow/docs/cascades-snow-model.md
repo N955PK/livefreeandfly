@@ -18,6 +18,36 @@ requests to NRCS, and tables already on this machine. No Open-Meteo API was call
   biggest maritime gain), and last the snow-density model, which should be checked before it is retrained because
   the Cascades have almost no hand-measured snowfall to train it on.
 
+## Done since: the liquid correction (2026-11-23)
+
+Sean said to fit it. `models/bias_seattle.json` is in use; the Sierra files are untouched (checksums compared).
+
+- **What it cost.** Ten NRCS requests (about 2,240 days a station) and 381 archive files read in 3 minutes, 275 MB
+  of cache. No Open-Meteo API call.
+- **What the data showed.** Every model is dry against the sensors: ECMWF carried 66 % of the measured water, ICON
+  and GEM 76 %, GFS 82 %. Tahoe's map applied here leaves the blend at 88 % and barely moves the error, so a local
+  fit was needed.
+- **Held-out test**, each of the 2024, 2025 and 2026 winters scored by a fit that never saw it, four-model average,
+  ten stations:
+
+  | | Total vs measured | Daily error (in) | 3-day error (in) | 3-day error, 2 in+ storms (in) |
+  |---|---|---|---|---|
+  | Raw | 72 % | 0.24 | 0.55 | 1.33 |
+  | Corrected | 101 % | 0.20 | 0.40 | 0.78 |
+
+  Corrected beat raw on every one of those measures in each of the three winters.
+- **Two stations get the pooled curve.** Morse Lake (Crystal) and Pigtail Peak (White Pass), east of the crest: the
+  models were half as wet as these two in 2024 and 2025 and nearly as wet in 2026, so their own curves overshot the
+  held-out winter. The pooled curve beat both their own curve and raw (`calibrate.POOLED_ONLY`).
+- **The three volcanoes with sensors are left uncorrected** (`Resort.corrected=False` on Mt. Rainier, Mt. Baker and
+  Mt. St. Helens): the page shows their sensor and the models are used as they are at every height. This is the
+  cautious half of decision 4 below; correcting their bases by height is still open.
+- **Blend weights are not worth a file.** Seattle's held-out errors give 0.256 / 0.242 / 0.253 / 0.249, which is
+  equal weights. The Sierra's stay in use.
+- **Not done:** the 850 hPa floor, the rain/snow split and the density check, all as planned below. The correction
+  adds about 40 % more water, so until the floor is fixed the low bases get more of it called snow than they should.
+  The testing page's scorecard has no Seattle section yet.
+
 ## 1. How the Sierra models were fitted, and what a Cascades version needs
 
 ### Liquid bias correction (`calibrate.py`, `biascorrect.py`)

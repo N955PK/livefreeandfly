@@ -89,8 +89,9 @@ def local_days(index: pd.DatetimeIndex, tz: str) -> pd.DatetimeIndex:
 
 
 def correcting_station(resort) -> str | None:
-    """The station the mountain's forecast is corrected against: its paired station, unless that one is only shown."""
-    if resort.station is None or not ALL_STATIONS[resort.station].corrects:
+    """The station the mountain's forecast is corrected against: its paired station, unless that one is only shown
+    or the mountain is left as the models have it."""
+    if resort.station is None or not resort.corrected or not ALL_STATIONS[resort.station].corrects:
         return None
     return resort.station
 
