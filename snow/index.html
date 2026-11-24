@@ -1250,7 +1250,7 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .amap .water{fill:var(--accent);opacity:.3;pointer-events:none}
 .amap ellipse.water,.amap path.water[fill-rule]{opacity:.9}
 .amap text{font-size:10px;font-weight:600;fill:var(--mark);paint-order:stroke;stroke:var(--surface);stroke-width:2.6px;stroke-linejoin:round;pointer-events:none}
-.amap text.pk{font-size:9px;font-weight:500}
+.amap text.pk{font-size:9px;font-weight:600;fill:var(--accent)}
 .amap text.tn{font-size:9px;font-weight:500;fill:var(--mark-mid)}
 .amap path.pk{fill:var(--mark);stroke:var(--surface);stroke-width:.8;pointer-events:none}
 .amap circle{fill:var(--mark-mid);pointer-events:none}
@@ -1608,7 +1608,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "257";
+const BUILD = "258";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4473,6 +4473,11 @@ function bigLocator(zone, all) {
   }
   for (const [text, lon, lat, dot] of (frame && frame.towns) || []) if (dot && inside(lon, lat) && !zoneSays.has(said(text))) marks.push({words: text, at: xy([lon, lat])});
   for (const m of marks) placed.push([m.at[0] - 4.5, m.at[1] - 4.5, m.at[0] + 4.5, m.at[1] + 4.5]);
+  // Nothing is written on a lake either: the middle of each (a sea is too big to keep off) counts as taken.
+  for (const rings of (frame && frame.shapes) || []) {
+    const ring = rings[0].map(xy), xs = ring.map((c) => c[0]), ys = ring.map((c) => c[1]), w = Math.max(...xs) - Math.min(...xs), h = Math.max(...ys) - Math.min(...ys);
+    if (w * h < wide * tall * 0.1) placed.push([Math.min(...xs) + w * 0.15, Math.min(...ys) + h * 0.15, Math.max(...xs) - w * 0.15, Math.max(...ys) - h * 0.15]);
+  }
   // A zone's name goes inside it, as far from its edges as there is room clear of the marks and the names before it;
   // the smallest zones are named first, having the fewest places to go. A long name is set on two lines. One with
   // no clear place anywhere in its zone is left to the list under the map.
