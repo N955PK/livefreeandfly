@@ -38,3 +38,25 @@ def test_canadas_mountains_are_no_part_of_the_first_collectors_plan():
     canada = {key for key, region in ALL_REGIONS.items() if region.collector == "canada"}
     assert {"okanagan", "bccoast", "quebec"} <= canada and not canada & set(config.REGIONS)
     assert usage.planned() == usage.planned(config.REGIONS, config.RESORTS)
+
+
+def test_the_powder_highway_is_two_regions_because_it_keeps_two_clocks():
+    west, east = ALL_REGIONS["powderhighway"], ALL_REGIONS["eastkootenays"]
+    assert (west.tz, east.tz) == ("America/Vancouver", "America/Edmonton")
+    assert all(region.collector == "canada" and region.country == "Canada" for region in (west, east))
+    assert [r.key for r in mountains("powderhighway")] == ["revelstoke", "redmountain", "whitewater", "rogerspass", "kootenaypass"]
+    assert [r.key for r in mountains("eastkootenays")] == ["kickinghorse", "panorama", "kimberley", "fernie"]
+    for r in mountains("powderhighway") + mountains("eastkootenays"):
+        assert r.base_m < r.summit_m and r.station is None and r.weather_from is None, r.key
+    # Revelstoke's base is under the 950 hPa level, so the west reads down to 975; the east's lowest is Fernie's.
+    assert west.low_levels == (975, 950, 925, 900) and min(r.base_m for r in mountains("powderhighway")) > 320
+    assert east.low_levels == (900,) and min(r.base_m for r in mountains("eastkootenays")) > 990
+
+
+def test_the_rockies_are_seven_mountains_on_albertas_clock_with_no_low_levels():
+    region, found = ALL_REGIONS["rockies"], mountains("rockies")
+    assert (region.tz, region.std_offset_h, region.collector, region.country) == ("America/Edmonton", 7, "canada", "Canada")
+    assert [r.key for r in found] == ["lakelouise", "sunshine", "norquay", "nakiska", "marmot", "bowsummit", "parkerridge"]
+    assert all(r.base_m < r.summit_m and r.station is None and r.weather_from is None for r in found)
+    assert region.low_levels == () and min(r.base_m for r in found) > 1450
+    assert usage.pulls("rockies", ALL_RESORTS) == 7

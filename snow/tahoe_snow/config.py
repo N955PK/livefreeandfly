@@ -628,6 +628,54 @@ ALL_RESORTS = {
         Resort("montsainteanne", "Mont-Sainte-Anne", 47.08071, -70.92012, 175, 800, None, "Independent",
                region="quebec"),
         Resort("lemassif", "Le Massif", 47.28086, -70.5914, 36, 806, None, "Ikon", region="quebec"),
+        # Interior British Columbia's Powder Highway (looked up 2026-11-24), as two regions, because its east keeps
+        # Alberta's clock and its west the coast's: the Powder Highway proper (Revelstoke, Rogers Pass, RED,
+        # Whitewater, Kootenay Pass) and the East Kootenays (Kicking Horse, Panorama, Kimberley, Fernie). Each
+        # resort's point is the midpoint of a main lift in OpenStreetMap, its height checked against SRTM and
+        # Canada's own elevation model. A base or top is read at a lift's end where the published figure is not
+        # where the lifts are: Kicking Horse's base (its three base lifts start 80 m above the published 1,190 m)
+        # and top (the Stairway to Heaven chair's, not the ridge above), Panorama's top (the Summit Quad's),
+        # Kimberley's top (the Easter chair's, 80 m under the published one), RED's top (the Grey Mountain chair's)
+        # and Whitewater's base (the Glory Ridge chair's, 240 m under the lodge) and top (the Raven chair's).
+        # Nobody shares weather: the nearest two are 35 km apart. Revelstoke and Panorama are also on the Mountain
+        # Collective and are counted as Ikon; Kicking Horse, Fernie and Kimberley give Epic holders seven days
+        # between them and are counted as Epic.
+        Resort("revelstoke", "Revelstoke", 50.95989, -118.14335, 512, 2225, None, "Ikon", region="powderhighway"),
+        Resort("redmountain", "RED Mountain", 49.10237, -117.84281, 1185, 2037, None, "Ikon",
+               region="powderhighway"),
+        Resort("whitewater", "Whitewater", 49.43994, -117.15131, 1389, 2063, None, "Independent",
+               region="powderhighway"),
+        # Rogers Pass is Ursus Minor up Connaught Creek from the Discovery Centre; Kootenay Pass is Cornice Ridge
+        # from the lot at Bridal Lake, its point on the ridge's ski trail.
+        Resort("rogerspass", "Rogers Pass", 51.30095, -117.56427, 1318, 2738, None, "Backcountry",
+               region="powderhighway", kind="backcountry"),
+        Resort("kootenaypass", "Kootenay Pass", 49.06455, -117.0482, 1775, 2111, None, "Backcountry",
+               region="powderhighway", kind="backcountry"),
+        Resort("kickinghorse", "Kicking Horse", 51.28638, -117.06322, 1266, 2415, None, "Epic",
+               region="eastkootenays"),
+        Resort("panorama", "Panorama", 50.45075, -116.23403, 1150, 2365, None, "Ikon", region="eastkootenays"),
+        Resort("kimberley", "Kimberley", 49.68391, -116.01971, 1230, 1905, None, "Epic", region="eastkootenays"),
+        Resort("fernie", "Fernie", 49.45083, -115.09335, 1052, 2134, None, "Epic", region="eastkootenays"),
+        # The Canadian Rockies in Alberta (looked up 2026-11-24): Banff's three hills, Nakiska in Kananaskis, Marmot
+        # Basin at Jasper, and two tours off the Icefields Parkway. Each resort's point is the midpoint of a main
+        # lift in OpenStreetMap; Sunshine's is the Super Angel chair's, up in the village where the skiing is, not
+        # the gondola's in the valley below it. Bases and tops are the published ones, but Norquay's are the pair
+        # that agree with its own vertical (1,630 and 2,133 m) and Marmot's top is the Knob chair's, not the peak
+        # above it that is reached on foot. Nobody shares weather: Sunshine and Norquay, the nearest two, are 19 km
+        # apart across the Bow Valley. Castle Mountain is left out: it is 190 km south of Nakiska and would double
+        # the map. Banff's three are on Ikon; Nakiska gives Epic holders days, like the East Kootenays' three;
+        # Marmot is on the Mountain Collective alone.
+        Resort("lakelouise", "Lake Louise", 51.44796, -116.14336, 1646, 2637, None, "Ikon", region="rockies"),
+        Resort("sunshine", "Sunshine Village", 51.07645, -115.77166, 1658, 2730, None, "Ikon", region="rockies"),
+        Resort("norquay", "Norquay", 51.20909, -115.60912, 1630, 2133, None, "Ikon", region="rockies"),
+        Resort("nakiska", "Nakiska", 50.9484, -115.16551, 1525, 2260, None, "Epic", region="rockies"),
+        Resort("marmot", "Marmot Basin", 52.7997, -118.09919, 1698, 2498, None, "Independent", region="rockies"),
+        # Bow Summit is the slopes west of the highway, from the Peyto Lake lot up the old fire road to the
+        # lookout; Parker Ridge is the ridge above its trailhead on the Parkway.
+        Resort("bowsummit", "Bow Summit", 51.71076, -116.50407, 2088, 2362, None, "Backcountry",
+               region="rockies", kind="backcountry"),
+        Resort("parkerridge", "Parker Ridge", 52.186, -117.10894, 2020, 2350, None, "Backcountry",
+               region="rockies", kind="backcountry"),
     ]
 }
 
@@ -670,6 +718,15 @@ ALL_REGIONS = {
         # Like New England, every lift-served metre is below 850 hPa (Le Massif's gondola starts at 36 m), and it is
         # built at New England's hours on the same clock.
         Region("quebec", "Quebec", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
+               collector="canada", country="Canada"),
+        # Revelstoke's base is at 512 m, just under the 950 hPa level, so 975 hPa (near 320 m) is read too.
+        Region("powderhighway", "Powder Highway", "America/Vancouver", 8, 8, (), low_levels=(975, 950, 925, 900),
+               at=(5, 13, 21), collector="canada", country="Canada"),
+        # Golden, Invermere, Kimberley and Fernie keep Alberta's clock. Fernie's base, the lowest, is at 1,052 m.
+        Region("eastkootenays", "East Kootenays", "America/Edmonton", 7, 8, (), low_levels=(900,), at=(5, 13, 21),
+               collector="canada", country="Canada"),
+        # Nakiska's base, the lowest, is at 1,525 m, above the lowest level every pull already reads.
+        Region("rockies", "Canadian Rockies", "America/Edmonton", 7, 8, (), at=(5, 13, 21),
                collector="canada", country="Canada"),
     ]
 }

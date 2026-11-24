@@ -65,7 +65,27 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # Peaks in the north and Apex in the south (each 84 km from its middle) with 25 km to spare. The
            # Monashees at the box's east edge reach about 2,900 m. Okanagan Lake lies along the valley floor, the
            # lowest ground there is, so it is drawn as level ground and no mask is built.
-           "okanagan": {"box": (49.153, 51.123, -121.431, -118.377), "max_m": 3100, "columns": 559}}
+           "okanagan": {"box": (49.153, 51.123, -121.431, -118.377), "max_m": 3100, "columns": 559},
+           # A 264 km square around the circle, 132 km in radius about 50.06 N 123.88 W, that holds Mt. Washington
+           # on Vancouver Island and the Duffey (each 107 km from its middle) with 25 km to spare. Wedge Mountain is
+           # 2,892 m. The Strait of Georgia and Howe Sound are sea level, clipped to 0 and drawn as level ground.
+           "bccoast": {"box": (48.866, 51.254, -125.729, -122.031), "max_m": 3000, "columns": 640},
+           # A 380 km square around the circle, 190 km in radius about 46.54 N 72.47 W, that holds Tremblant in the
+           # west and Le Massif in the east (each 165 km from its middle) with 25 km to spare: New England's size.
+           # Nothing in it passes 1,200 m. The St. Lawrence is tidal below Québec and near sea level above it.
+           "quebec": {"box": (44.822, 48.258, -74.95, -69.99), "max_m": 1350, "columns": 640},
+           # A 302 km square around the circle, 151 km in radius about 50.181 N 117.321 W, that holds Rogers Pass in
+           # the north and Kootenay Pass in the south (each about 126 km from its middle) with 25 km to spare. Mt.
+           # Dawson is 3,377 m.
+           "powderhighway": {"box": (48.815, 51.547, -119.439, -115.203), "max_m": 3500, "columns": 640},
+           # A 298 km square around the circle, 149 km in radius about 50.369 N 116.078 W, that holds Kicking Horse
+           # in the north and Fernie in the south (each about 124 km from its middle) with 25 km to spare. Mt.
+           # Assiniboine is 3,618 m.
+           "eastkootenays": {"box": (49.021, 51.717, -118.177, -113.979), "max_m": 3700, "columns": 640},
+           # A 340 km square around the circle, 170 km in radius about 51.874 N 116.632 W, that holds Marmot Basin
+           # in the north-west and Nakiska in the south-east (each about 145 km from its middle) with 25 km to
+           # spare. Mt. Columbia is 3,747 m.
+           "rockies": {"box": (50.345, 53.403, -119.105, -114.159), "max_m": 4000, "columns": 640}}
 
 
 def stem(region: str) -> str:

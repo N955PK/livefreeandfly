@@ -58,6 +58,27 @@ ROUTES = {
     # and Apex (3A), Vernon's Highway 6, and the Yellowhead and Trans-Canada through Kamloops toward Sun Peaks.
     "okanagan": {"BC 97": "BC-97", "BC 97C": "BC-97C", "BC 33": "BC-33", "BC 3A": "BC-3A", "BC 6": "BC-6",
                  "BC 97A": "BC-97A", "BC 3": "BC-3", "YH 5": "BC-5", "BC 5": "BC-5", "TCH 1": "TCH-1"},
+    # The Sea-to-Sky and the Duffey Lake road (both BC 99), the Trans-Canada along the North Shore, and Vancouver
+    # Island's highways to Mt. Washington, which OpenStreetMap writes both as "BC 19" and as "19".
+    "bccoast": {"BC 99": "BC-99", "TCH 1": "TCH-1", "BC 19": "BC-19", "19": "BC-19", "BC 19A": "BC-19A",
+                "BC 7": "BC-7", "BC 12": "BC-12"},
+    # Quebec's autoroutes and routes, which OpenStreetMap writes as bare numbers: the Laurentian autoroute (15) and
+    # Route 117 to Tremblant, the Townships' autoroute (10), the 40 and the 20 along the St. Lawrence, the 73 and
+    # 175 to Stoneham, and the 138 to Mont-Sainte-Anne and Le Massif.
+    "quebec": {"15": "A-15", "117": "R-117", "10": "A-10", "40": "A-40", "20": "A-20", "73": "A-73",
+               "175": "R-175", "138": "R-138", "55": "A-55"},
+    # The Trans-Canada over Rogers Pass, the Crowsnest ("CN 3") over Kootenay Pass, the Arrow Lakes road to
+    # Revelstoke (23), Rossland's 3B, and the 6 and 3A through Nelson to Whitewater.
+    "powderhighway": {"TCH 1": "TCH-1", "CN 3": "BC-3", "BC 23": "BC-23", "BC 3B": "BC-3B", "BC 6": "BC-6",
+                      "BC 3A": "BC-3A", "BC 31": "BC-31"},
+    # The Trans-Canada through Golden, the Columbia Valley road (95, with 93 from Radium), Kimberley's 95A and the
+    # Crowsnest through Cranbrook and Fernie.
+    "eastkootenays": {"TCH 1": "TCH-1", "BC 95": "BC-95", "BC 93": "BC-93", "BC 95A": "BC-95A", "CN 3": "BC-3"},
+    # Alberta writes its highways as bare numbers: the Trans-Canada (1), the Icefields Parkway (93) and its old
+    # road to Marmot (93A), the Bow Valley Parkway (1A), the Yellowhead at Jasper (16), the Kananaskis Trail to
+    # Nakiska (40) and the David Thompson (11). British Columbia's side of the map writes "TCH 1" and "BC 93".
+    "rockies": {"1": "TCH-1", "TCH 1": "TCH-1", "93": "AB-93", "BC 93": "BC-93", "93A": "AB-93A", "1A": "AB-1A",
+                "16": "AB-16", "40": "AB-40", "11": "AB-11"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the
