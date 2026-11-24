@@ -66,7 +66,24 @@ Sean said to fit it. `models/bias_seattle.json` is in use; the Sierra files are 
   - On 1,318 days the snow depth fell while the pillow said mostly snow (rain soaking into the pack, or settling).
     Leaving them out does not change which curve wins.
   - `pipeline.load_snow_model` and `phase.load` take a region and use its own file where there is one.
-- **Not done:** the density check, as planned below. The testing page's scorecard has no
+- **The snow-density model was checked and is kept as it is** (`train.check_seattle_ratio`, record in
+  `models/snow_ratio_check_seattle.json`). There was more hand-measured snowfall than the inventory suggested: 248
+  all-snow days at 9 stations over three winters, 120 of them at Paradise.
+  - Given the measured water, the Sierra model misses the snowfall by **1.51 in a day with no lean (-0.08 in)**.
+    That is better than it did on held-out Sierra winters (1.66 in), and better here than Kuchera (2.08 in) or a
+    flat 10:1 (1.72 in).
+  - It is not uniform. West of the crest and at it (Paradise, Hyak, Longmire, Tolt) it runs a little fluffy,
+    +0.53 in a day, +0.83 at Paradise (it says 11.0:1 where 10.0:1 fell). East of the crest (Holden, Mazama,
+    Twisp, Winthrop, Selah) it runs dense, -1.29 in a day (10.3:1 against 13.7:1). The two cancel in the total.
+  - Pooling the Cascade days into the fit does not earn its place. Holding out a winter it gains 0.05 in (1.46);
+    holding out a station, which is the honest test for a mountain with no observer, it gains nothing (1.50) and
+    Paradise gets worse (1.73 against 1.57). With region as a feature it is worse again when a station is held
+    out (1.92).
+  - SNOTEL depth gain cannot judge this: it reads low against the model by 2 in a day here and by 3.9 in the
+    Sierra over the same winters, because new snow settles before the midnight reading. A fit on those 5,059
+    sensor days alone runs 1.5 in a day too dense on the hand-measured ones.
+  - So no Seattle density file is in use, and the record says why. What would change that is a resort or
+    avalanche-center snow-stake record west of the crest (decision 5). The testing page's scorecard has no
   Seattle section yet. New England's mountains are below 850 hPa too and still held at it.
 
 ## 1. How the Sierra models were fitted, and what a Cascades version needs

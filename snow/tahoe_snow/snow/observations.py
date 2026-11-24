@@ -71,7 +71,27 @@ def box_stations(state: str, bbox: tuple) -> dict:
 def pull_cascades(end: str, start: str = "2023-10-01") -> pd.DataFrame:
     """Daily gains at every SNOTEL station in the Seattle box, for the winters the upper-air archive covers: what
     the region's rain/snow split is fitted to."""
-    return pull_region(box_stations("WA", SEATTLE_BBOX), "cascades_daily", end, start)
+    stations = box_stations("WA", SEATTLE_BBOX)
+    pd.DataFrame([{"station": s.triplet, "name": s.name, "lat": s.lat, "lon": s.lon, "elev_m": s.elev_m}
+                  for s in stations.values()]).to_parquet(TABLES / "cascades_stations.parquet")
+    return pull_region(stations, "cascades_daily", end, start)
+
+
+def pull_cascades_manual(end: str, start: str = "2023-11-01", min_elev_m: float = 600.0) -> tuple:
+    """Hand-measured daily snowfall and liquid in the Seattle box, for the winters the upper-air archive covers."""
+    stations = ghcn.find_stations(SEATTLE_BBOX, min_elev_m, last_year_at_least=int(start[:4]))
+    frames = []
+    for row in stations.itertuples():
+        frame = ghcn.daily(row.station, start, end)
+        if frame.empty or "snow_mm" not in frame or "prcp_mm" not in frame:
+            continue
+        frame = frame.reset_index()
+        frame.insert(0, "station", row.station)
+        frames.append(frame)
+    table = pd.concat(frames, ignore_index=True)
+    stations.to_parquet(TABLES / "cascades_manual_stations.parquet")
+    table.to_parquet(TABLES / "cascades_manual_daily.parquet")
+    return stations, table
 
 
 def pull_snotel(end: str) -> pd.DataFrame:

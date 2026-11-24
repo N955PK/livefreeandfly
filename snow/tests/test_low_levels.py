@@ -6,7 +6,7 @@ import pandas as pd
 
 from tahoe_snow import config, pipeline, usage
 from tahoe_snow.config import MODELS, PRESSURE_LEVELS, REGIONS, RESORTS
-from tahoe_snow.snow import features, phase, train
+from tahoe_snow.snow import dataset, features, phase, train
 from tahoe_snow.sources import omfiles_s3, openmeteo
 
 HEIGHTS = {950: 540.0, 925: 760.0, 900: 990.0, 850: 1450.0, 800: 1950.0, 750: 2450.0, 700: 3000.0, 650: 3600.0,
@@ -132,3 +132,24 @@ def test_a_sensor_gets_the_profile_of_the_node_nearest_it():
     assert elev_m == station.elev_m and hourly["t0"].iloc[0] < 5
     assert list(observed.index) == [days[0], days[2]] and list(observed["fraction"]) == [0.5, 0.0]
     assert observed["end_utc"].iloc[0] == pd.Timestamp("2026-12-02 08:00")
+
+
+def test_a_sensor_outside_tahoe_makes_snow_days_at_its_own_height():
+    station = config.SEATTLE_STATIONS["791:WA:SNTL"]
+    hourly = features.hourly_features(profile(config.levels_for("seattle"), hours=96), station.elev_m)
+    windows = features.window_features(hourly)
+    days = pd.date_range("2026-12-01", periods=3)
+    gains = pd.DataFrame({"swe_gain_mm": [10.0, 0.0, 5.0], "depth_gain_cm": [12.0, 0.0, 4.0],
+                          "prec_gain_mm": [11.0, 0.0, 5.0]}, index=days)
+    events = dataset.snotel_events(gains, station.triplet, windows, station.elev_m)
+    assert list(events["elev_m"]) == [station.elev_m] * 3 and list(events["slr"].round(1))[::2] == [12.0, 8.0]
+    assert events["source"].eq("snotel").all() and events["t0"].notna().all()
+
+
+def test_the_density_check_on_record_keeps_the_sierra_model():
+    record = json.loads((MODELS / "snow_ratio_check_seattle.json").read_text())
+    assert record["in_use"].endswith("trained in the Sierra") and record["checked_on"]["days"] >= 200
+    ours = record["sierra_model"]["snow_error_in"]
+    assert ours < record["kuchera"]["snow_error_in"] and ours < record["flat_10_to_1"]["snow_error_in"]
+    assert record["pooled_refit_each_station_held_out"]["snow_error_in"] > ours - 0.05
+    assert not (MODELS / "snow_ratio_seattle.joblib").exists()

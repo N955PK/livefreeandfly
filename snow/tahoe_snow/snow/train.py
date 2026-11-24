@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import clone
 
-from tahoe_snow.config import MM_PER_IN, REPORTS, SEATTLE_BBOX, STATIONS, TABLES, levels_for
+from tahoe_snow.config import MM_PER_IN, MODELS, REPORTS, SEATTLE_BBOX, STATIONS, TABLES, levels_for
 from tahoe_snow.snow import dataset, features, observations, phase, ratio
 from tahoe_snow.snow.model import SnowModel
 from tahoe_snow.sources import omfiles_s3
@@ -133,6 +133,45 @@ def fit_seattle_phase(end: str, kind: str = "wet-bulb logistic") -> pd.DataFrame
     phase.save(kind, best[kind], {"held_out_error_mm": float(table.loc[kind, "held-out error (mm water)"]),
                                   "stations": len(stations), "days": int(table.loc[kind, "days"])}, region="seattle")
     return table
+
+
+def check_seattle_ratio(end: str) -> dict:
+    """Score the Sierra-trained ratio model on the Seattle box's hand-measured snow days, against the simple
+    methods and against refits that pool those days in, and keep the result beside the models. Nothing is refitted
+    for use: the record says whether one should be."""
+    profiles = omfiles_s3.block_profiles(dataset.RAW_ARCHIVE_START, end, omfiles_s3.CASCADES_BLOCK,
+                                         levels_for("seattle"))
+    events = dataset.ratio_filter(dataset.build_cascades(end, profiles))
+    sierra = dataset.ratio_filter(load_events())
+    sierra = sierra[sierra["source"] == "manual"]
+    days = events[events["source"] == "manual"].reset_index(drop=True)
+    model, spec = ratio.load(), ratio.candidates()["ridge (all)"]
+
+    def brief(predicted) -> dict:
+        scored = ratio.score(days, predicted)
+        return {"snow_error_in": round(scored["snow_mae_in"], 2), "snow_bias_in": round(scored["snow_bias_in"], 2),
+                "ratio_bias": round(scored["slr_bias"], 2)}
+
+    def pooled(by: str) -> dict:
+        predicted = np.full(len(days), np.nan)
+        for group in pd.unique(days[by]):
+            test = (days[by] == group).to_numpy()
+            train = pd.concat([sierra, days[~test]])
+            fitted = clone(spec).fit(train, train["slr"].to_numpy(),
+                                     sample_weight=np.sqrt(train["liquid_mm"].to_numpy()))
+            predicted[test] = fitted.predict(days[test])
+        return brief(predicted)
+
+    record = {"in_use": json.loads((MODELS / "snow_ratio.json").read_text())["model"] + ", trained in the Sierra",
+              "checked_on": {"days": int(len(days)), "stations": int(days["station"].nunique()),
+                             "first_date": str(days["date"].min().date()), "last_date": str(days["date"].max().date()),
+                             "sensor_days_not_used": int((events["source"] == "snotel").sum())},
+              "sierra_model": brief(model.predict(days)), "kuchera": brief(ratio.Kuchera().predict(days)),
+              "flat_10_to_1": brief(np.full(len(days), 10.0)),
+              "pooled_refit_each_winter_held_out": pooled("season"),
+              "pooled_refit_each_station_held_out": pooled("station")}
+    (MODELS / "snow_ratio_check_seattle.json").write_text(json.dumps(record, indent=2))
+    return record
 
 
 def end_to_end(events: pd.DataFrame, stations: dict, ratio_name: str, phase_kind: str,

@@ -96,13 +96,16 @@ def manual_events(daily: pd.DataFrame, station: pd.Series, windows: pd.DataFrame
     return _finish(out, station["station"], "manual", daily.index)
 
 
-def snotel_events(gains: pd.DataFrame, triplet: str, windows: pd.DataFrame) -> pd.DataFrame:
-    """Events at one SNOTEL station; liquid is the SWE gain, snow is the depth gain."""
+def snotel_events(gains: pd.DataFrame, triplet: str, windows: pd.DataFrame,
+                  elev_m: float | None = None) -> pd.DataFrame:
+    """Events at one SNOTEL station; liquid is the SWE gain, snow is the depth gain. ``elev_m`` is the station's
+    height where it is not one of the Tahoe stations."""
     gains = gains[gains.index >= PROFILE_START]
     end_utc = gains.index + pd.Timedelta(days=1, hours=PST_OFFSET_H)   # day D runs midnight to midnight PST
     rows = windows.reindex(end_utc)
     rows.index = gains.index
-    out = features.add_static(rows, gains["swe_gain_mm"], STATIONS[triplet].elev_m, gains.index.day_of_year)
+    elev_m = STATIONS[triplet].elev_m if elev_m is None else elev_m
+    out = features.add_static(rows, gains["swe_gain_mm"], elev_m, gains.index.day_of_year)
     out["snow_mm"] = gains["depth_gain_cm"] * 10.0
     out["prec_gain_mm"] = gains["prec_gain_mm"]
     out["trace"] = False
@@ -178,6 +181,33 @@ def build(end: str, early_cells: list | None = None, profiles: Profiles | None =
         frames.append(snotel_events(snotel[snotel["station"] == station.triplet], station.triplet, windows))
     table = pd.concat(frames, ignore_index=True)
     table.to_parquet(TABLES / f"{name}.parquet")
+    return table
+
+
+def build_cascades(end: str, profiles: dict) -> pd.DataFrame:
+    """The event table for the Seattle box: its hand-measured stations and every SNOTEL station in it, with
+    predictors from ``profiles`` (``omfiles_s3.block_profiles`` over the Cascades). Reads the tables that
+    ``observations.pull_cascades`` and ``pull_cascades_manual`` leave."""
+    def windows(lat: float, lon: float, elev_m: float) -> pd.DataFrame:
+        node = (round(round(lat / 0.25) * 0.25, 3), round(round(lon / 0.25) * 0.25, 3))
+        return features.window_features(features.hourly_features(profiles[node], elev_m))
+
+    stations = pd.read_parquet(TABLES / "cascades_manual_stations.parquet")
+    manual = pd.read_parquet(TABLES / "cascades_manual_daily.parquet").set_index("date")
+    gains = pd.read_parquet(TABLES / "cascades_daily.parquet").set_index("date")
+    sensors = pd.read_parquet(TABLES / "cascades_stations.parquet")
+    frames = []
+    for _, row in stations.iterrows():
+        daily = manual[(manual["station"] == row["station"]) & (manual.index <= end)]
+        events = manual_events(daily, row, windows(row["lat"], row["lon"], row["elev_m"]), start=RAW_ARCHIVE_START)
+        if not events.empty:
+            frames.append(events.assign(name=row["name"]))
+    for row in sensors.itertuples():
+        days = gains[(gains["station"] == row.station) & (gains.index > RAW_ARCHIVE_START) & (gains.index <= end)]
+        frames.append(snotel_events(days, row.station, windows(row.lat, row.lon, row.elev_m), row.elev_m)
+                      .assign(name=row.name))
+    table = pd.concat(frames, ignore_index=True)
+    table.to_parquet(TABLES / "events_cascades.parquet")
     return table
 
 
