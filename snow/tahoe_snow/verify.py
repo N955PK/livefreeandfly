@@ -76,6 +76,49 @@ def seattle_sections() -> list:
     return [("Water, Cascades.", water), ("Rain or snow, Cascades.", split), ("Snow ratio, Cascades.", ratio)]
 
 
+def tetons_sections() -> list:
+    """The Tetons' three tests, each None where its table is not on hand: water against ten sensors, the rain/snow
+    split against the Sierra's on the same days, and the snow ratio on Teton snow days."""
+    water = water_section(
+        "Water, Tetons.",
+        "The same test against 10 snow sensors from the Snake River's headwaters to the Gros Ventre, on the 2024, "
+        "2025, and 2026 winters held out in turn. Grand Targhee and Togwotee Pass use their own sensor and Jackson "
+        "Hole and Teton Pass the Phillips Bench one; Snow King has none within reach and is left uncorrected.",
+        "bias_methods_tetons.csv", "Corrected to the snow sensors (in use where a sensor is near)")
+    split = ratio = None
+    if (TABLES / "phase_table_tetons.csv").exists():
+        table = pd.read_csv(TABLES / "phase_table_tetons.csv", index_col=0)
+        kind, params = phase.load("tetons")
+        row = table.loc[kind]
+        split = {"title": "Rain or snow, Tetons.",
+                 "note": f"The same test at {int(row['stations'])} snow sensors around the Tetons over "
+                         f"{int(row['days']):,} held-out days, {int(row['mixed days']):,} of them mixed. Nearly all "
+                         f"of it is snow there: calling everything snow would miss by only "
+                         f"{float(row['all_snow_error']):.1f} mm. The curve fitted there is centered at "
+                         f"{params['center_c']:g} C of wet-bulb and does no better than the Sierra's.",
+                 "columns": ["Method", "Error (mm of water)", "On mixed days (mm)"],
+                 "rows": [["The Sierra's wet-bulb curve", f"{row['sierra_error']:.2f}",
+                           f"{row['sierra_mixed_error']:.2f}"],
+                          ["The Tetons' wet-bulb curve (in use)", f"{row['held-out error (mm water)']:.2f}",
+                           f"{row['error on mixed days (mm water)']:.2f}"]]}
+    check = MODELS / "snow_ratio_check_tetons.json"
+    if check.exists():
+        record = json.loads(check.read_text())
+        on = record["checked_on"]
+        rows = {"flat_10_to_1": RATIO_ROWS["fixed 10:1"], "kuchera": RATIO_ROWS["Kuchera"],
+                "sierra_model": "This site's ratio, trained in the Sierra",
+                "pooled_refit_each_station_held_out": "Trained on Sierra and Teton days together (in use)"}
+        ratio = {"title": "Snow ratio, Tetons.",
+                 "note": f"{on['days']:,} hand-measured snow days at {on['stations']} stations around Jackson, "
+                         f"{on['first_date'][:4]} to {on['last_date'][:4]}, where the snow averages 14 to 1. The "
+                         "Sierra-trained ratio already reads that from the cold, so adding the Teton days changes "
+                         "little; the one in use is scored here at stations it never saw.",
+                 "columns": ["Method", "Snowfall error (in)", "Average miss (in)"],
+                 "rows": [[label, f"{record[key]['snow_error_in']:.2f}", f"{record[key]['snow_bias_in']:+.2f}"]
+                          for key, label in rows.items()]}
+    return [("Water, Tetons.", water), ("Rain or snow, Tetons.", split), ("Snow ratio, Tetons.", ratio)]
+
+
 def scorecard() -> dict:
     """The scorecard, rebuilt from the tests on hand. A section whose test is not on this machine is carried over
     from the scorecard already published, so rebuilding one region's tests does not drop another's."""
@@ -108,7 +151,7 @@ def scorecard() -> dict:
         "Matterhorn Peak the Slide Canyon one, and Dana Plateau the Dana Meadows one; June Mountain, "
         "Carson Peak, and Mt. Whitney have no working sensor nearby and are left uncorrected.",
         "bias_methods_mammoth.csv", "Corrected to the snow sensors (in use where a sensor is near)"))]
-    regional += seattle_sections()
+    regional += seattle_sections() + tetons_sections()
     sections += [built or kept[title] for title, built in regional if built or title in kept]
     sections += [
         {"title": "Live forecasts.",
