@@ -134,6 +134,7 @@ jobs:
             python3 -m tahoe_snow.sources.boyne "$work/lifts/boyne.json" || echo "::warning::The Boyne resorts' lift and trail reports could not be read"
             python3 -m tahoe_snow.sources.killington "$work/lifts/killington.json" || echo "::warning::Killington's and Pico's lift and trail pages could not be read"
             python3 -m tahoe_snow.sources.missionridge "$work/lifts/missionridge.json" || echo "::warning::Mission Ridge's mountain report could not be read"
+            python3 -m tahoe_snow.sources.independents "$work/lifts/independents.json" || echo "::warning::The independent New England mountains' reports could not be read"
             python3 -m tahoe_snow.sources.nv511 "$work/roads/nevada.json" || echo "::warning::Nevada 511 could not be read"
             cd ..
             publish snow-lifts "$work/lifts" "Lift status $(date -u +%Y-%m-%dT%H:%MZ)" || echo "::warning::Lift status was not published"
