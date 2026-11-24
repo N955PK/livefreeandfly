@@ -34,10 +34,11 @@ HOME_REGIONS = ("tahoe", "mammoth")
 ENSEMBLE_VARS = ["precipitation", "temperature_2m"]
 
 
-def load_snow_model() -> tuple:
-    """The trained snow model when its files exist, else Kuchera with a default rain/snow split."""
+def load_snow_model(region: str | None = None) -> tuple:
+    """The trained snow model when its files exist, else Kuchera with a default rain/snow split. The rain/snow
+    split is the region's own where one was fitted."""
     try:
-        kind, params = phase.load()
+        kind, params = phase.load(region)
     except FileNotFoundError:
         kind, params = DEFAULT_PHASE
     try:
@@ -700,7 +701,7 @@ def run(region: str, now: datetime | None = None) -> dict:
     the region's archive file. If no mountain succeeds nothing is written."""
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None).floor("h")
     first_request = len(cache.REQUESTS)
-    snow_model, ratio_name = load_snow_model()
+    snow_model, ratio_name = load_snow_model(region)
     corrections = load_corrections()
     weights = load_weights(region)
     resorts, archive, failed = [], [], []

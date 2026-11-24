@@ -18,6 +18,9 @@ CHUNK_HOURS = 481
 FIRST_PRESSURE_CHUNK = 982
 # Sierra block on the 0.25-degree grid.
 LAT0, LAT1, LON0, LON1 = 36.25, 40.25, -121.5, -118.0
+SIERRA_BLOCK = (LAT0, LAT1, LON0, LON1)
+# The Washington Cascades and Olympics, around the Seattle region's sensors.
+CASCADES_BLOCK = (46.0, 49.0, -123.75, -120.25)
 LEVEL_VARIABLES = ["temperature", "relative_humidity", "wind_u_component", "wind_v_component", "geopotential_height"]
 PRECIP_SHAPE = (1536, 3072)
 GRID_WIDTH = {"ncep_gfs025": 1440, "ncep_gfs013": 3072}
@@ -31,11 +34,12 @@ def chunk_of(when) -> int:
     return int(pd.Timestamp(when).value // 3_600_000_000_000 // CHUNK_HOURS)
 
 
-def grid_025() -> tuple:
-    lats = np.arange(LAT0, LAT1 + 1e-9, 0.25)
-    lons = np.arange(LON0, LON1 + 1e-9, 0.25)
-    iy = slice(int(round((LAT0 + 90) / 0.25)), int(round((LAT1 + 90) / 0.25)) + 1)
-    ix = slice(int(round((LON0 + 180) / 0.25)), int(round((LON1 + 180) / 0.25)) + 1)
+def grid_025(block: tuple = SIERRA_BLOCK) -> tuple:
+    lat0, lat1, lon0, lon1 = block
+    lats = np.arange(lat0, lat1 + 1e-9, 0.25)
+    lons = np.arange(lon0, lon1 + 1e-9, 0.25)
+    iy = slice(int(round((lat0 + 90) / 0.25)), int(round((lat1 + 90) / 0.25)) + 1)
+    ix = slice(int(round((lon0 + 180) / 0.25)), int(round((lon1 + 180) / 0.25)) + 1)
     return lats, lons, iy, ix
 
 
@@ -71,12 +75,17 @@ def read_block(model: str, variable: str, chunk: int, iy: slice, ix: slice) -> n
 
 def sierra_profiles(start: str, end: str, workers: int = 16) -> dict:
     """Hourly profile frames keyed by (lat, lon) for every 0.25-degree node in the Sierra block."""
-    lats, lons, iy, ix = grid_025()
+    return block_profiles(start, end, SIERRA_BLOCK, PRESSURE_LEVELS, workers)
+
+
+def block_profiles(start: str, end: str, block: tuple, levels: list, workers: int = 16) -> dict:
+    """Hourly profile frames keyed by (lat, lon) for every 0.25-degree node in ``block``, on ``levels``."""
+    lats, lons, iy, ix = grid_025(block)
     chunks = list(range(max(chunk_of(start), FIRST_PRESSURE_CHUNK), chunk_of(end) + 1))
     piy, pix = precip_indices(lats, lons)
     precip_slice = (slice(int(piy.min()), int(piy.max()) + 1), slice(int(pix.min()), int(pix.max()) + 1))
     jobs = [("ncep_gfs025", f"{name}_{level}hPa", chunk, iy, ix)
-            for chunk in chunks for name in LEVEL_VARIABLES for level in PRESSURE_LEVELS]
+            for chunk in chunks for name in LEVEL_VARIABLES for level in levels]
     jobs += [("ncep_gfs013", "precipitation", chunk, *precip_slice) for chunk in chunks]
     with ThreadPoolExecutor(workers) as pool:
         blocks = dict(zip([(j[1], j[2]) for j in jobs], pool.map(lambda j: read_block(*j), jobs)))
@@ -86,7 +95,7 @@ def sierra_profiles(start: str, end: str, workers: int = 16) -> dict:
         return np.concatenate([blocks[(variable, chunk)] for chunk in chunks], axis=2)
 
     fields = {}
-    for level in PRESSURE_LEVELS:
+    for level in levels:
         fields[f"temperature_{level}hPa"] = series(f"temperature_{level}hPa")
         fields[f"relative_humidity_{level}hPa"] = series(f"relative_humidity_{level}hPa")
         fields[f"geopotential_height_{level}hPa"] = series(f"geopotential_height_{level}hPa")

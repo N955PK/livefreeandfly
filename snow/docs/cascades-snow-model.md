@@ -52,7 +52,21 @@ Sean said to fit it. `models/bias_seattle.json` is in use; the Sierra files are 
   well. A low level a model reports for only part of the forecast is left out for that model, so nothing gets
   holes. Planned calls go from 7,266 to 7,462 a day of 8,500. The Sierra and New England requests are unchanged.
   Not yet seen live: it takes effect on the collector's next Seattle pass.
-- **Not done:** the rain/snow split and the density check, as planned below. The testing page's scorecard has no
+- **The rain/snow split is refitted for Seattle** (`models/snow_phase_seattle.json`, `train.fit_seattle_phase`).
+  Fitted to all 64 SNOTEL stations in the box over the three winters the upper-air archive covers, October to May:
+  16,508 scored days, 4,691 of them mixed. The profiles took 15 minutes to read (2.3 GB of cache with the
+  Sierra's) and the sensors under 3; no Open-Meteo API call.
+  - Same form as the Sierra's, a wet-bulb curve, but centred at **0.75 C against Tahoe's 1.25 C**: half a degree
+    more of the storm is rain here. Every held-out winter chose the same centre.
+  - Held out, against Tahoe's curve on the same days: water wrongly called rain or snow per wet day 3.00 mm
+    against 3.27, on mixed days 5.73 against 6.16, and the lean toward snow cut from 1.78 mm a day to 0.66. It won
+    in each of 2024, 2025 and 2026, and at every elevation band below 1,600 m; above that Tahoe's is slightly
+    better (2.61 mm against 2.68), on a tenth of the days.
+  - The three forms are tied here as they were at Tahoe (3.00 to 3.04 mm), so the form in use was kept.
+  - On 1,318 days the snow depth fell while the pillow said mostly snow (rain soaking into the pack, or settling).
+    Leaving them out does not change which curve wins.
+  - `pipeline.load_snow_model` and `phase.load` take a region and use its own file where there is one.
+- **Not done:** the density check, as planned below. The testing page's scorecard has no
   Seattle section yet. New England's mountains are below 850 hPa too and still held at it.
 
 ## 1. How the Sierra models were fitted, and what a Cascades version needs

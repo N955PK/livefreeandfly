@@ -1,7 +1,9 @@
 """Bulk station tables used to train and test the snow model."""
 import pandas as pd
 
-from tahoe_snow.config import MAMMOTH_STATIONS, SEATTLE_STATIONS, SIERRA_BBOX, STATIONS, TABLES
+from tahoe_snow.cache import get_json
+from tahoe_snow.config import (M_PER_FT, MAMMOTH_STATIONS, SEATTLE_BBOX, SEATTLE_STATIONS, SIERRA_BBOX, STATIONS,
+                               TABLES, Station)
 from tahoe_snow.sources import cdec, ghcn, snotel
 
 MANUAL_START = "1979-01-01"
@@ -55,6 +57,21 @@ def pull_mammoth(end: str, start: str = "2020-10-01") -> pd.DataFrame:
 def pull_seattle(end: str, start: str = "2020-10-01") -> pd.DataFrame:
     """Daily gains at the SNOTEL stations paired with the Seattle region's mountains."""
     return pull_region(SEATTLE_STATIONS, "seattle_daily", end, start)
+
+
+def box_stations(state: str, bbox: tuple) -> dict:
+    """Every active SNOTEL station of ``state`` inside ``bbox`` (lat0, lat1, lon0, lon1), from the NRCS list."""
+    listed = get_json("snotel_meta", snotel.STATIONS_URL, {"stationTriplets": f"*:{state}:SNTL", "activeOnly": "true"})
+    lat0, lat1, lon0, lon1 = bbox
+    return {row["stationTriplet"]: Station(row["stationTriplet"], row["name"], row["latitude"], row["longitude"],
+                                           round(row["elevation"] * M_PER_FT, 1))
+            for row in listed if lat0 < row["latitude"] < lat1 and lon0 < row["longitude"] < lon1}
+
+
+def pull_cascades(end: str, start: str = "2023-10-01") -> pd.DataFrame:
+    """Daily gains at every SNOTEL station in the Seattle box, for the winters the upper-air archive covers: what
+    the region's rain/snow split is fitted to."""
+    return pull_region(box_stations("WA", SEATTLE_BBOX), "cascades_daily", end, start)
 
 
 def pull_snotel(end: str) -> pd.DataFrame:

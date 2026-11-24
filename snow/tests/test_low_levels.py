@@ -6,8 +6,8 @@ import pandas as pd
 
 from tahoe_snow import config, pipeline, usage
 from tahoe_snow.config import MODELS, PRESSURE_LEVELS, REGIONS, RESORTS
-from tahoe_snow.snow import features
-from tahoe_snow.sources import openmeteo
+from tahoe_snow.snow import features, phase, train
+from tahoe_snow.sources import omfiles_s3, openmeteo
 
 HEIGHTS = {950: 540.0, 925: 760.0, 900: 990.0, 850: 1450.0, 800: 1950.0, 750: 2450.0, 700: 3000.0, 650: 3600.0,
            600: 4200.0, 550: 4850.0, 500: 5550.0}
@@ -94,3 +94,41 @@ def test_seattle_blends_with_its_own_weights_and_the_rest_with_the_sierras():
     seattle = pipeline.load_weights("seattle")
     assert seattle == json.loads((MODELS / "weights_seattle.json").read_text())
     assert set(seattle) == set(config.DET_MODELS) and abs(sum(seattle.values()) - 1) < 0.005
+
+
+def test_seattle_splits_rain_from_snow_with_its_own_curve_and_the_rest_with_the_sierras():
+    sierra = phase.load()
+    assert sierra == ("wet-bulb logistic", {"center_c": 1.25, "width_c": 0.2})
+    for region in ("tahoe", "mammoth", "newengland"):
+        assert phase.load(region) == sierra, region
+        assert pipeline.load_snow_model(region)[0].phase_params == sierra[1], region
+    kind, params = phase.load("seattle")
+    assert kind == sierra[0] and params["center_c"] < sierra[1]["center_c"]
+    model = pipeline.load_snow_model("seattle")[0]
+    assert (model.phase_kind, model.phase_params) == (kind, params)
+    # At one degree of wet-bulb the Sierra's curve still calls most of it snow; Seattle's calls most of it rain.
+    hour = pd.DataFrame({"tw0": [1.0]})
+    assert phase.hourly_fraction(hour, 1000.0, *sierra)[0] > 0.7
+    assert phase.hourly_fraction(hour, 1000.0, kind, params)[0] < 0.3
+
+
+def test_the_sierra_block_is_read_as_it_was_and_the_cascades_have_their_own():
+    lats, lons, iy, ix = omfiles_s3.grid_025()
+    assert (lats[0], lats[-1], lons[0], lons[-1]) == (36.25, 40.25, -121.5, -118.0)
+    assert (iy, ix) == (slice(505, 522), slice(234, 249))
+    lats, lons, _, _ = omfiles_s3.grid_025(omfiles_s3.CASCADES_BLOCK)
+    for station in config.SEATTLE_STATIONS.values():
+        assert lats[0] <= station.lat <= lats[-1] and lons[0] <= station.lon <= lons[-1], station.name
+
+
+def test_a_sensor_gets_the_profile_of_the_node_nearest_it():
+    station = config.SEATTLE_STATIONS["791:WA:SNTL"]                     # Stevens Pass, 47.746 N 121.093 W
+    frames = {(47.75, -121.0): profile(config.levels_for("seattle"), hours=72, t700=-8.0),
+              (47.75, -121.25): profile(config.levels_for("seattle"), hours=72, t700=5.0)}
+    days = pd.date_range("2026-12-01", periods=3)
+    gains = pd.DataFrame({"station": station.triplet, "date": days, "swe_gain_mm": [10.0, 2.0, 0.0],
+                          "prec_gain_mm": [20.0, 2.0, 12.0], "depth_gain_cm": [5.0, 0.0, 0.0]})
+    hourly, observed, elev_m = train.sensor_hourly({station.triplet: station}, gains, frames)[station.triplet]
+    assert elev_m == station.elev_m and hourly["t0"].iloc[0] < 5
+    assert list(observed.index) == [days[0], days[2]] and list(observed["fraction"]) == [0.5, 0.0]
+    assert observed["end_utc"].iloc[0] == pd.Timestamp("2026-12-02 08:00")

@@ -5,9 +5,13 @@ import numpy as np
 import pandas as pd
 from sklearn.base import clone
 
-from tahoe_snow.config import MM_PER_IN, REPORTS, STATIONS, TABLES
-from tahoe_snow.snow import dataset, features, phase, ratio
+from tahoe_snow.config import MM_PER_IN, REPORTS, SEATTLE_BBOX, STATIONS, TABLES, levels_for
+from tahoe_snow.snow import dataset, features, observations, phase, ratio
 from tahoe_snow.snow.model import SnowModel
+from tahoe_snow.sources import omfiles_s3
+
+# The months a rain/snow split is fitted on outside the Sierra: summer rain says nothing about where the line sits.
+SPLIT_MONTHS = (10, 11, 12, 1, 2, 3, 4, 5)
 
 
 def load_events() -> pd.DataFrame:
@@ -64,6 +68,20 @@ def station_hourly(profiles: dataset.Profiles) -> dict:
     return out
 
 
+def sensor_hourly(stations: dict, gains: pd.DataFrame, profiles: dict) -> dict:
+    """Hourly features and observed snow fraction for each of ``stations``, from a table of their daily gains and
+    the block of 0.25-degree profiles around them (``omfiles_s3.block_profiles``)."""
+    out = {}
+    for station in stations.values():
+        node = (round(round(station.lat / 0.25) * 0.25, 3), round(round(station.lon / 0.25) * 0.25, 3))
+        hourly = features.hourly_features(profiles[node], station.elev_m).asfreq("h")
+        observed = phase.observed(gains[gains["station"] == station.triplet].set_index("date"))
+        observed["end_utc"] = observed.index + pd.Timedelta(days=1, hours=dataset.PST_OFFSET_H)
+        observed["season"] = dataset.season_of(observed.index)
+        out[station.triplet] = (hourly, observed, station.elev_m)
+    return out
+
+
 def phase_errors(stations: dict, kind: str, params: dict) -> pd.DataFrame:
     """Per-day snow-water error for one rain/snow form across stations."""
     frames = []
@@ -100,6 +118,21 @@ def fit_phase(stations: dict) -> tuple:
                      "mixed days": int(len(mixed)), "parameters": json.dumps(best[kind])})
     table = pd.DataFrame(rows).set_index("form")
     return table, best
+
+
+def fit_seattle_phase(end: str, kind: str = "wet-bulb logistic") -> pd.DataFrame:
+    """Fit the Seattle region's rain/snow split to every SNOTEL station in its box (``observations.pull_cascades``
+    first) and save it, in the form the Sierra uses unless told otherwise. Returns the table of held-out tests."""
+    profiles = omfiles_s3.block_profiles(dataset.RAW_ARCHIVE_START, end, omfiles_s3.CASCADES_BLOCK,
+                                         levels_for("seattle"))
+    gains = pd.read_parquet(TABLES / "cascades_daily.parquet")
+    gains = gains[gains["date"].dt.month.isin(SPLIT_MONTHS)]
+    stations = sensor_hourly(observations.box_stations("WA", SEATTLE_BBOX), gains, profiles)
+    table, best = fit_phase(stations)
+    table.to_csv(TABLES / "phase_table_seattle.csv")
+    phase.save(kind, best[kind], {"held_out_error_mm": float(table.loc[kind, "held-out error (mm water)"]),
+                                  "stations": len(stations), "days": int(table.loc[kind, "days"])}, region="seattle")
+    return table
 
 
 def end_to_end(events: pd.DataFrame, stations: dict, ratio_name: str, phase_kind: str,

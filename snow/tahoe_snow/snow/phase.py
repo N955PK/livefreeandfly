@@ -64,11 +64,18 @@ def grid(kind: str) -> list:
     return [dict(zip(names, (float(v) for v in values))) for values in product(*(GRIDS[kind][n] for n in names))]
 
 
-def save(kind: str, params: dict, extra: dict | None = None) -> None:
+def params_file(region: str | None = None):
+    """A region's own split where one was fitted (snow_phase_<region>.json), else the Sierra's."""
+    own = MODELS / f"snow_phase_{region}.json"
+    return own if region and own.exists() else MODELS / PARAMS_FILE
+
+
+def save(kind: str, params: dict, extra: dict | None = None, region: str | None = None) -> None:
     MODELS.mkdir(parents=True, exist_ok=True)
-    (MODELS / PARAMS_FILE).write_text(json.dumps({"kind": kind, "params": params, **(extra or {})}, indent=2))
+    path = MODELS / (f"snow_phase_{region}.json" if region else PARAMS_FILE)
+    path.write_text(json.dumps({"kind": kind, "params": params, **(extra or {})}, indent=2))
 
 
-def load() -> tuple:
-    spec = json.loads((MODELS / PARAMS_FILE).read_text())
+def load(region: str | None = None) -> tuple:
+    spec = json.loads(params_file(region).read_text())
     return spec["kind"], spec["params"]

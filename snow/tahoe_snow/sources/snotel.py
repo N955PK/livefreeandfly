@@ -11,6 +11,7 @@ from tahoe_snow.cache import get_json
 from tahoe_snow.config import MM_PER_IN
 
 URL = "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/data"
+STATIONS_URL = "https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/stations"
 ELEMENTS = {"WTEQ": "swe_mm", "SNWD": "depth_cm", "PREC": "prec_mm", "TAVG": "tavg_c", "TMAX": "tmax_c",
             "TMIN": "tmin_c", "TOBS": "tobs_c"}
 # AWDB quality flags that mark a value as suspect.
