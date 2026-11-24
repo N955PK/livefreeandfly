@@ -151,7 +151,7 @@ export function stormWindow(rate, nowIndex) {
 // ``data.resorts`` holds only that region's locations.
 // Below this many inches an hour, averaged over the region, it is not snowing: no flakes on the map, and the page says so.
 const QUIET_RATE = 0.02;
-export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false, finger = () => "spin"}) {
+export async function createMap(container, data, {region, onSelect, elevation = "summit", selected = null, globe = false, depth = {per: 1, unit: "in"}, freeTouch = () => false, finger = () => "spin", area = null, framePad = () => ({top: 12, right: 12, bottom: 12, left: 12})}) {
   const RADIUS = globe ? GLOBE_KM : region.discKm || DISC_KM, TARGET_Z = globe ? 7 : 1;
   // A region whose files were rebuilt carries a rev, so a phone never pairs the new page with its saved old files.
   const rev = region.rev || "";
@@ -209,6 +209,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   }
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(lookX, lookY - (globe ? 0 : 4), TARGET_Z);
+  // The opening view, which "All" of a region with parts returns to.
+  const openTarget = controls.target.clone(), openPosition = camera.position.clone(), openR = openPosition.distanceTo(openTarget);
   controls.enableDamping = true;
   controls.enablePan = true;
   controls.screenSpacePanning = false;
@@ -310,7 +312,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   };
   const setPose = ({r, polar, turn}) => camera.position.set(
     controls.target.x + r * Math.sin(polar) * Math.sin(turn), controls.target.y - r * Math.sin(polar) * Math.cos(turn), controls.target.z + r * Math.cos(polar));
-  const TILT_MIN = controls.minPolarAngle, TILT_MAX = controls.maxPolarAngle, HOME_POLAR = pose().polar, FLAT_POLAR = 0.02, GLIDE_MS = 450;
+  const TILT_MIN = controls.minPolarAngle, TILT_MAX = controls.maxPolarAngle, HOME_POLAR = pose().polar, HOME_TURN = pose().turn, FLAT_POLAR = 0.02, GLIDE_MS = 450;
   let flat = false, glide = null;
   const settle = () => { controls.minPolarAngle = flat ? 0 : TILT_MIN; controls.maxPolarAngle = flat ? FLAT_POLAR : TILT_MAX; lastInput = performance.now(); };
   // Eases the camera to a new tilt and turn, the short way round. The tilt limits open up while it moves.
@@ -323,11 +325,23 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     if (calm) { setPose(goal); settle(); return; }
     glide = {from, goal, began: performance.now()};
   };
+  // A flight also moves the point looked at and the distance (the distance by equal ratios, so a long zoom does not
+  // rush its last part), with the same easing and length as a glide. It ends exactly on its goal's position if it has one.
+  const flyTo = (to) => {
+    const from = {...pose(), target: controls.target.clone()};
+    let swing = to.turn - from.turn;
+    swing -= 2 * Math.PI * Math.round(swing / (2 * Math.PI));
+    const goal = {...to, turn: from.turn + swing};
+    controls.minPolarAngle = 0; controls.maxPolarAngle = TILT_MAX;
+    glide = {from, goal, began: performance.now(), fly: true};
+    if (calm) stepGlide(Infinity);
+  };
   const stepGlide = (t) => {
     if (!glide) return;
     const f = Math.min(1, (t - glide.began) / GLIDE_MS), e = f * f * (3 - 2 * f), {from, goal} = glide;
-    setPose({r: pose().r, polar: from.polar + (goal.polar - from.polar) * e, turn: from.turn + (goal.turn - from.turn) * e});
-    if (f >= 1) { glide = null; settle(); }
+    if (glide.fly) controls.target.lerpVectors(from.target, goal.target, e);
+    setPose({r: glide.fly ? from.r * (goal.r / from.r) ** e : pose().r, polar: from.polar + (goal.polar - from.polar) * e, turn: from.turn + (goal.turn - from.turn) * e});
+    if (f >= 1) { if (glide.fly && goal.position) camera.position.copy(goal.position); glide = null; settle(); }
   };
   scene.add(new THREE.HemisphereLight(0xe8f1fa, 0x6b6253, 1.15));
   const sun = new THREE.DirectionalLight(0xfff4e2, 2.1);
@@ -488,10 +502,10 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   container.appendChild(compass);
   const needle = compass.firstChild;
   const roadPoints = [];
-  const roadPositions = [], roadIndex = [];
-  const shields = [], roadLines = [];
+  const roadPositions = [], roadIndex = [], roadSides = [];
+  const roadLines = [];
   for (const road of roads) {
-    const half = (MAJOR.has(road.route) || road.route.startsWith("I-") ? 0.42 : 0.3) * sizeUp;
+    const half = (MAJOR.has(road.route) || road.route.startsWith("I-") ? 0.42 : 0.3) * sizeUp, halfBase = half / sizeUp;
     for (const line of road.lines) {
       // Resample so the ribbon follows the terrain.
       const pts = [];
@@ -512,6 +526,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
         let dx = xOf(nlon) - xOf(plon), dy = yOf(nlat) - yOf(plat);
         const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
         roadPositions.push(x - dy * half, y + dx * half, z, x + dy * half, y - dx * half, z);
+        if (sizeUp > 1) roadSides.push(-dy * halfBase, dx * halfBase, dy * halfBase, -dx * halfBase);
         roadPoints.push({route: road.route, lon, lat});
         if (i) { const a = startVertex + 2 * (i - 1); roadIndex.push(a, a + 1, a + 2, a + 2, a + 1, a + 3); }
       });
@@ -522,13 +537,17 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   // Short routes go first so they keep a spot.
   const SHIELD_ORDER = ["SR-203", "SR-158", "SR-267", "NV-207", "NV-431", "SR-28", "NV-28", "SR-167", "SR-270", "SR-182", "I-80", "US-50", "SR-89", "SR-88",
     "US-395", "I-580", "SR-49", "SR-20", "SR-4", "SR-120", "SR-108", "SR-168", "US-6"];
-  const placedShields = [];
   // Routes not named in the order (another region's) follow it, the shortest first.
   const routeLength = (route) => roadLines.filter((line) => line.route === route).reduce((sum, line) => sum + line.pts.length, 0);
   const others = [...new Set(roadLines.map((line) => line.route))].filter((route) => !SHIELD_ORDER.includes(route)).sort((a, b) => routeLength(a) - routeLength(b));
+  // The shields are spaced for a scale (``spread``, the size-up they are drawn at). A region that opens further out than
+  // Tahoe's gets one set per scale from Tahoe's to its own, and shows the set nearest the scale on screen, so closer in
+  // the shields come closer together, as they would on a map that opened there.
+  const placeShields = (spread) => {
+  const shields = [], placedShields = [];
   for (const route of [...SHIELD_ORDER, ...others]) {
     for (const pts of roadLines.filter((line) => line.route === route).map((line) => line.pts).sort((a, b) => b.length - a.length)) {
-      const step = Math.round(SHIELD_EVERY_KM * sizeUp / 0.6);
+      const step = Math.round(SHIELD_EVERY_KM * spread / 0.6);
       // A short road gets one shield, at the first spot that is free.
       const short = pts.length < step;
       const picks = short ? (pts.length > 8 ? [0.5, 0.35, 0.65, 0.2, 0.8].map((f) => Math.floor(pts.length * f)) : [])
@@ -538,7 +557,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
         if (short && placedHere) break;
         const [lon, lat] = pts[index], x = xOf(lon), y = yOf(lat);
         if (cover(x, y) < 0.95) continue;
-        if (placedShields.some((q) => Math.hypot(q.x - x, q.y - y) < (q.route === route ? 18 * sizeUp : short ? 3.5 : 5))) continue;
+        if (placedShields.some((q) => Math.hypot(q.x - x, q.y - y) < (q.route === route ? 18 * spread : short ? 3.5 : 5))) continue;
         if (data.resorts.some((r) => Math.hypot(xOf(r.lon) - x, yOf(r.lat) - y) < 2.2)) continue;
         const tag = document.createElement("div");
         tag.className = "map-shield"; tag.innerHTML = shieldSVG(route, region.plainStateRoutes); tag.title = route;
@@ -549,6 +568,12 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       }
     }
   }
+  return shields;
+  };
+  const shieldSpreads = sizeUp > 1 ? [1, Math.sqrt(sizeUp), sizeUp] : [sizeUp];
+  const shieldSets = shieldSpreads.map(placeShields);
+  let shields = shieldSets[shieldSets.length - 1];
+  for (const set of shieldSets) if (set !== shields) for (const shield of set) shield.tag.style.display = "none";
   const roadColors = new Float32Array(roadPoints.length * 2 * 4);
   const roadGeometry = new THREE.BufferGeometry();
   roadGeometry.setAttribute("position", new THREE.Float32BufferAttribute(roadPositions, 3));
@@ -566,6 +591,17 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   paintRoads(() => "open");
   // Drawn after the terrain from every angle, so the ribbons never vanish behind it.
   const ribbons = new THREE.Mesh(roadGeometry, new THREE.MeshBasicMaterial({vertexColors: true, side: THREE.DoubleSide, depthWrite: false, ...(globe ? {alphaTest: 0.5} : {transparent: true})}));
+  // A region drawn larger than Tahoe's narrows its ribbons as the view comes closer (see scaleTo): each edge moves
+  // along its own sideways step by roadWiden (0 at the opening scale, so the opening view is drawn as it was built).
+  const roadWiden = {value: 0};
+  if (sizeUp > 1) {
+    roadGeometry.setAttribute("side", new THREE.Float32BufferAttribute(roadSides, 2));
+    ribbons.material.onBeforeCompile = (shader) => {
+      shader.uniforms.roadWiden = roadWiden;
+      shader.vertexShader = shader.vertexShader.replace("#include <common>", "#include <common>\nattribute vec2 side;\nuniform float roadWiden;")
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\ntransformed.xy += side * roadWiden;");
+    };
+  }
   ribbons.renderOrder = 2;
   scene.add(ribbons);
   const closures = [];
@@ -580,8 +616,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const tipLength = STAKE_RADIUS * STAKE_TIP_RADII * sizeUp, gap = STAKE_GAP_KM * sizeUp;
   const tip = new THREE.ConeGeometry(STAKE_RADIUS * sizeUp, tipLength, 20).rotateX(-Math.PI / 2).translate(0, 0, -tipLength / 2);
   // The highest ground within a stake's reach of its spot (a summit on the coarse grid can stand off its cell).
-  const groundUnder = (x, y) => {
-    const reach = STAKE_RADIUS * sizeUp * 1.5, dc = W / (columns - 1), dr = H / (rows - 1);
+  const groundUnder = (x, y, size = sizeUp) => {
+    const reach = STAKE_RADIUS * size * 1.5, dc = W / (columns - 1), dr = H / (rows - 1);
     const c0 = Math.max(0, Math.floor((x - reach) / dc + (columns - 1) / 2)), c1 = Math.min(columns - 1, Math.ceil((x + reach) / dc + (columns - 1) / 2));
     const r0 = Math.max(0, Math.floor((rows - 1) / 2 - (y + reach) / dr)), r1 = Math.min(rows - 1, Math.ceil((rows - 1) / 2 - (y - reach) / dr));
     let top = -Infinity;
@@ -608,7 +644,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     overlay.appendChild(label);
     // The snow on the ground now, where the mountain's sensor measures it; null where none does.
     const ground = r.observed && r.observed.depth_in != null ? r.observed.depth_in : null;
-    return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", ground, x, y, z, ghost, fill, point, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
+    return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", ground, x, y, z, ghost, fill, point, label, n, top: new THREE.Vector3(), width: 80, tall: 40,
+      floor: zOf(heightAt(r.lat, r.lon)), off: false};
   });
   // A region with no lake to name has no lake label.
   const lake = region.lake ? document.createElement("div") : null;
@@ -729,6 +766,152 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   };
   const show = (v) => v < 0.05 ? "0" : v < 0.5 ? "<1" : String(Math.round(v));
 
+  // ---------- the size things are drawn at ----------
+  // A region that opens further out than Tahoe's draws its stakes, its road lines and its shields' spacing sizeUp times
+  // larger at its opening distance. Closer in they shrink with the distance, down to Tahoe's own size at Tahoe's
+  // opening distance, so each view draws them as a map that opened there would. Tahoe's and the Eastern Sierra's
+  // (sizeUp 1) never change.
+  const scaleAt = (r) => Math.min(sizeUp, Math.max(1, sizeUp * r / openR));
+  let drawnAt = sizeUp;
+  const standAt = (item, s) => Math.max(item.floor, groundUnder(item.x, item.y, s)) + (STAKE_GAP_KM + STAKE_RADIUS * STAKE_TIP_RADII) * s;
+  function scaleTo(s) {
+    drawnAt = s;
+    const k = s / sizeUp;
+    for (const item of items) {
+      item.z = standAt(item, s);
+      item.fill.scale.x = item.fill.scale.y = item.ghost.scale.x = item.ghost.scale.y = k;
+      item.point.scale.setScalar(k);
+      item.fill.position.z = item.point.position.z = item.z;
+      item.ghost.position.z = item.z + item.fill.scale.z;
+    }
+    roadWiden.value = s - sizeUp;
+    const near = shieldSpreads.reduce((a, b) => Math.abs(Math.log(b / s)) < Math.abs(Math.log(a / s)) ? b : a), set = shieldSets[shieldSpreads.indexOf(near)];
+    if (set !== shields) { for (const shield of shields) shield.tag.style.display = "none"; shields = set; }
+  }
+
+  // ---------- one part of the region at a time ----------
+  // A part ({mountains, look?, zoom?, turnDeg?}) shows only its own mountains (the rest have no stake, no label and no
+  // tap target) and frames them; null shows them all from the opening view. The land, roads, shields, water and every
+  // layer over the land stay as they are.
+  let part = null, framePending = false;
+  const fitCamera = new THREE.PerspectiveCamera(), seen = new THREE.Vector3();
+  // The nearest view, from this tilt and turn, that holds every stake of the part with its label inside the room the
+  // page leaves (framePad: the pixels kept clear at each side, and the boxes of the buttons over the map), centered in that room. It comes no closer than
+  // Tahoe's opening distance and goes no further than the region's own limit.
+  function fitPart(list, polar, turn) {
+    const w = container.clientWidth, h = container.clientHeight, pad = framePad();
+    const room = {x0: pad.left, x1: w - pad.right, y0: pad.top, y1: h - pad.bottom};
+    fitCamera.copy(camera); fitCamera.up.set(0, 0, 1);
+    const tan = Math.tan(fitCamera.fov * Math.PI / 360), right = [Math.cos(turn), Math.sin(turn)], ahead = [-Math.sin(turn), Math.cos(turn)];
+    const extent = (r, tx, ty) => {
+      fitCamera.position.set(tx + r * Math.sin(polar) * Math.sin(turn), ty - r * Math.sin(polar) * Math.cos(turn), TARGET_Z + r * Math.cos(polar));
+      fitCamera.lookAt(tx, ty, TARGET_Z); fitCamera.updateMatrixWorld();
+      const s = scaleAt(r), box = {x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity, tags: []};
+      for (const item of list) {
+        const z = standAt(item, s);
+        seen.set(item.x, item.y, z - STAKE_RADIUS * STAKE_TIP_RADII * s).project(fitCamera);
+        const bx = (seen.x + 1) / 2 * w, by = (1 - seen.y) / 2 * h;
+        seen.set(item.x, item.y, z + Math.max(item.fill.scale.z, 0.02) + 0.7).project(fitCamera);
+        const lx = (seen.x + 1) / 2 * w, ly = (1 - seen.y) / 2 * h;
+        const tag = {x0: Math.min(bx, lx - item.width / 2 - 2), x1: Math.max(bx, lx + item.width / 2 + 2), y0: ly - item.tall - 12, y1: Math.max(by, ly), item, lx, ly, depth: seen.z};
+        box.tags.push(tag);
+        box.x0 = Math.min(box.x0, tag.x0); box.x1 = Math.max(box.x1, tag.x1); box.y0 = Math.min(box.y0, tag.y0); box.y1 = Math.max(box.y1, tag.y1);
+      }
+      return box;
+    };
+    const cx = list.reduce((sum, item) => sum + item.x, 0) / list.length, cy = list.reduce((sum, item) => sum + item.y, 0) / list.length;
+    const reach = RADIUS * 0.75;
+    // The view at distance r with the stakes and labels centered across the room, and down it either centered or
+    // (high=true) against its top, which leaves the buttons low on the sides clear for a closer view.
+    const settleAt = (r, high) => {
+      let tx = cx, ty = cy, box;
+      const per = 2 * r * tan / h;
+      for (let n = 0; n < 5; n++) {
+        box = extent(r, tx, ty);
+        const down = high ? box.y0 - room.y0 : (box.y0 + box.y1 - room.y0 - room.y1) / 2;
+        const across = (box.x0 + box.x1 - room.x0 - room.x1) / 2 * per, along = down * per / Math.max(0.3, Math.cos(polar));
+        tx += right[0] * across - ahead[0] * along; ty += right[1] * across - ahead[1] * along;
+        const d = Math.hypot(tx - lakeX, ty - lakeY);
+        if (d > reach) { tx = lakeX + (tx - lakeX) * reach / d; ty = lakeY + (ty - lakeY) * reach / d; }
+      }
+      box = extent(r, tx, ty);
+      // Inside the room, and clear of the buttons over the map (pad.avoid: their boxes).
+      const clear = box.tags.every((tag) => !(pad.avoid || []).some((b) => tag.x0 < b.x1 && tag.x1 > b.x0 && tag.y0 < b.y1 && tag.y1 > b.y0));
+      // How many labels show, placed as placeLabels places them (the selected first, then the nearest; one that
+      // would cover another shrinks to its number, and one that still would is left out).
+      const placed = [], hits = (q) => placed.some((p) => q.x0 < p.x1 && q.x1 > p.x0 && q.y0 < p.y1 && q.y1 > p.y0);
+      let shown = 0;
+      for (const tag of [...box.tags].sort((a, b) => (b.item.key === picked) - (a.item.key === picked) || a.item.backcountry - b.item.backcountry || a.depth - b.depth)) {
+        const at = (width, height) => ({x0: tag.lx - width / 2 - 2, x1: tag.lx + width / 2 + 2, y0: tag.ly - height - 6, y1: tag.ly});
+        let q = at(tag.item.width, tag.item.tall);
+        if (hits(q)) q = at(46, 24);
+        if (hits(q)) continue;
+        placed.push(q); shown++;
+      }
+      return {tx, ty, shown, fits: clear && box.x0 >= room.x0 && box.x1 <= room.x1 && box.y0 >= room.y0 && box.y1 <= room.y1};
+    };
+    // Up a ladder of distances from the nearest: the nearest view that fits and shows the most labels (all of them
+    // where any view does).
+    const lo = openR / sizeUp, hi = controls.maxDistance, STEPS = 48;
+    let best = null, r = hi;
+    for (let n = 0; n <= STEPS && !(best && best.shown === list.length); n++) {
+      const at = lo * (hi / lo) ** (n / STEPS);
+      for (const high of [false, true]) {
+        const tried = settleAt(at, high);
+        if (tried.fits && (!best || tried.shown > best.shown)) { best = tried; r = at; }
+      }
+    }
+    if (!best) best = settleAt(hi, false);
+    return {target: new THREE.Vector3(best.tx, best.ty, TARGET_Z), r, polar, turn, shown: best.shown};
+  }
+  // Where the camera goes for the part on screen, in the flat view or the tilted one.
+  function partView() {
+    const polar = flat ? FLAT_POLAR : HOME_POLAR;
+    if (!part) return flat ? {target: openTarget.clone(), r: openR, polar, turn: 0} : {target: openTarget.clone(), r: openR, polar, turn: HOME_TURN, position: openPosition.clone()};
+    const turn = flat ? 0 : (part.turnDeg ?? region.turnDeg ?? 0) * Math.PI / 180;
+    if (part.look && part.zoom) {
+      const z = part.zoom, target = new THREE.Vector3(xOf(part.look[1]), yOf(part.look[0]) - 4, TARGET_Z);
+      return {target, r: Math.hypot(6 * z, 100 * z, 77 * z), polar, turn};
+    }
+    // Two mountains close together can stand one behind the other from the region's own direction, so that one's
+    // label always covers the other's. Unless the part sets its own turn, the view swings round in steps, nearest
+    // first, to the first direction from which every label shows, or failing that the one that shows the most (the
+    // flat view stays north up).
+    const list = items.filter((item) => !item.off), own = fitPart(list, polar, turn);
+    if (own.shown === list.length || flat || part.turnDeg != null) return own;
+    let best = own;
+    for (const step of [20, -20, 40, -40, 60, -60, 90, -90]) {
+      const tried = fitPart(list, polar, turn + step * Math.PI / 180);
+      if (tried.shown > best.shown) best = tried;
+      if (best.shown === list.length) break;
+    }
+    return best;
+  }
+  function showPart(next, instant = false) {
+    part = next && next.mountains ? next : null;
+    const keep = part && new Set(part.mountains);
+    for (const item of items) {
+      item.off = !!keep && !keep.has(item.key);
+      item.fill.visible = item.point.visible = !item.off;
+      if (item.off) item.ghost.visible = false;
+    }
+    paintedAt = -1;
+    if (instant || !visible || !container.clientWidth || !container.clientHeight) { framePending = true; return; }
+    resize();
+    flyTo(partView());
+  }
+  // Puts the camera where the part asks, at once (the map was not on screen when it was chosen).
+  function framePart() {
+    framePending = false;
+    resize();
+    const goal = partView();
+    glide = null;
+    controls.target.copy(goal.target);
+    setPose(goal);
+    if (goal.position) camera.position.copy(goal.position);
+    settle();
+  }
+
   function paint() {
     const i = Math.min(steps - 1, Math.floor(time)), j = Math.min(steps - 1, i + 1), f = time - i;
     const nowAt = Math.max(0, Math.min(steps - 1, Math.round(nowStep)));
@@ -753,7 +936,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       const all = cumulative[item.n][steps - 1], value = interp(cumulative[item.n], time);
       item.fill.scale.z = Math.max(0.02, value * STAKE_KM_PER_IN);
       // The snow still to come stands on top of the snow so far; two stakes sharing one surface flicker.
-      item.ghost.visible = all - value > 0.05;
+      item.ghost.visible = !item.off && all - value > 0.05;
       item.ghost.position.z = item.z + item.fill.scale.z;
       item.ghost.scale.z = Math.max(0.02, (all - value) * STAKE_KM_PER_IN);
       item.fill.material = item.point.material = item.key === picked ? pickMaterial : fillMaterial;
@@ -785,7 +968,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     // The selected and nearest labels are placed first; one that would cover another shrinks to its number, then steps up.
     const placed = [];
     const hits = (r) => placed.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.y0 < q.y1 && r.y1 > q.y0);
-    const order = items.map((item) => {
+    // A mountain outside the part of the region on screen has no label, no tap target, and no room kept for it.
+    for (const item of items) if (item.off) item.label.style.display = "none";
+    const order = items.filter((item) => !item.off).map((item) => {
       item.top.set(item.x, item.y, item.z + Math.max(item.fill.scale.z, 0.02) + 0.7);
       return {item, p: project(item.top)};
     }).sort((a, b) => (b.item.key === picked) - (a.item.key === picked) || a.item.backcountry - b.item.backcountry || a.p.depth - b.p.depth);
@@ -812,7 +997,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     };
     if (lake) put(lake, lakeAt);
     // A shield gives way to anything more important: a resort label, or a stake standing in front of it.
-    const stakeLines = items.map((item) => [project(new THREE.Vector3(item.x, item.y, item.z)), project(item.top)]);
+    const stakeLines = items.filter((item) => !item.off).map((item) => [project(new THREE.Vector3(item.x, item.y, item.z)), project(item.top)]);
     for (const shield of shields) {
       const q = project(shield.point), box = {x0: q.x - 15, x1: q.x + 15, y0: q.y - 15, y1: q.y + 15};
       const behindStake = stakeLines.some(([a, b]) => Math.abs(q.x - (a.x + b.x) / 2) < 16 && q.y > Math.min(a.y, b.y) - 14 && q.y < Math.max(a.y, b.y) + 14);
@@ -851,9 +1036,11 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       flakeGeometry.attributes.position.needsUpdate = true;
     }
     flakeLook.tall.value = renderer.domElement.height;
+    if (framePending && container.clientWidth && container.clientHeight) framePart();
     stepGlide(t);
     sway(t, dt);
     controls.update();
+    if (sizeUp > 1) { const s = scaleAt(camera.position.distanceTo(controls.target)); if (Math.abs(s - drawnAt) > drawnAt * 0.01) scaleTo(s); }
     renderer.render(scene, camera);
     placeLabels();
     // The needle's red end points north whichever way the map is turned.
@@ -861,6 +1048,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     needle.style.transform = `rotate(${(Math.atan2(-ahead.x, ahead.y) * 180 / Math.PI).toFixed(1)}deg)`;
   }
   requestAnimationFrame(frame);
+  if (area) showPart(area, true);
 
   return {
     steps, nowStep, stormActive: storm.active,
@@ -919,7 +1107,10 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     async showRadar(on) { if (on) await loadRadar(); radarOn = on; ground.material = on ? flatMaterial : litMaterial; paintedAt = -1; },
     northUp() { glideTo({turn: 0}); },
     // Flat is the view from straight above, north up; leaving it tilts back to the opening angle.
-    setFlat(on) { flat = on; glideTo(on ? {polar: FLAT_POLAR, turn: 0} : {polar: HOME_POLAR}); },
+    // In a part of the region the view also frames the part again, from above or tilted.
+    setFlat(on) { flat = on; if (part) { if (visible) flyTo(partView()); else framePending = true; return; } glideTo(on ? {polar: FLAT_POLAR, turn: 0} : {polar: HOME_POLAR}); },
+    // Shows one part of the region ({mountains: [keys], look?, zoom?, turnDeg?}), or all of it (null), moving the view there.
+    setArea(next) { showPart(next); },
     dispose() {
       running = false;
       for (const watcher of watchers) watcher.disconnect();

@@ -380,6 +380,18 @@ html.tabs #map3d .maprail #avyToggle,html.tabs #map3d .maprail #radarToggle:has(
 html.tabs #map3d .maprail #roadPill:has(+ #radarToggle[hidden]):has(~ #avyToggle[hidden]),
 html.tabs #map3d .maprail #shieldsToggle:has(+ #roadPill[hidden]):has(~ #radarToggle[hidden]):has(~ #avyToggle[hidden]){border-radius:0 0 22px 22px}
 #map3d.nolabels .map-label,#map3d.noshields .map-shield{display:none!important}
+/* A region too wide for one view (Seattle, New England) has a row of pills at the top of the map, one per part and
+   "All", sharing the row equally; the chosen part's capsule slides as the tab bar's does, and is as tall as the row
+   leaves. Its card is the storm slider's (see .mapbar). On a phone a long name gives way to its short word. */
+.mapareas{display:none}
+html.tabs .mapareas{display:block;top:14px;height:var(--mapbar-h,56px)}
+html.tabs .mapareas[hidden]{display:none}
+html.tabs .mapareas .seg{display:flex;width:100%;height:100%;margin:0;padding:0;background:none;border-radius:999px}
+html.tabs .mapareas .seg button{flex:1 1 0;min-width:0;height:100%;padding:0 2px;border-radius:999px;white-space:nowrap;color:var(--mark-mid);font-size:13px;font-weight:600;text-align:center}
+html.tabs .mapareas .seg button[aria-pressed=true]{background:none;box-shadow:none;color:var(--mark)}
+html.tabs .mapareas .segind{top:0;bottom:0;background:color-mix(in srgb,var(--mark) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mark) 10%,transparent)}
+.mapareas .short{display:none}
+@media (max-width:560px){.mapareas .full{display:none}.mapareas .short{display:inline}}
 /* Name tags and highway shields each have a button. Put away, the button's mark is faint and struck through. */
 html.tabs #map3d .map-toggle.show::before{display:none}
 .map-toggle.show svg{width:22px;height:22px;fill:none;stroke:var(--mark);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -401,8 +413,12 @@ html.tabs #roadPill::before{border-color:var(--surface)}
 html.tabs #avyToggle img{height:26px;margin:0}
 html.tabs #avyToggle:not(.sign)::before{width:14px;height:14px}
 html.tabs .map-key{top:auto;right:62px;bottom:var(--rail)}
-html.tabs .mapbar{position:absolute;z-index:400001;left:4px;right:4px;bottom:14px;padding:6px;border-radius:999px;row-gap:0;align-items:center;grid-template-columns:auto 1fr auto;
+/* The storm slider's card, and the row of a region's parts at the top of the map, are one shape: the same insets,
+   height, round ends and glass, so they frame the map as a pair (the row sits as far under the header as the card
+   sits over the tab bar). */
+html.tabs .mapbar,html.tabs .mapareas{position:absolute;z-index:400001;left:4px;right:4px;padding:6px;box-sizing:border-box;border-radius:999px;
   background:color-mix(in srgb,var(--surface) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 2px 10px rgba(15,23,32,.18)}
+html.tabs .mapbar{bottom:14px;row-gap:0;align-items:center;grid-template-columns:auto 1fr auto}
 html.tabs .roadpill{display:inline-flex}
 html.tabs #play{width:44px;height:44px;margin:0;grid-row:1 / 3;align-self:center}
 html.tabs #play svg{width:15px;height:15px}
@@ -1406,7 +1422,7 @@ if (HOSTED) {
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
   <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
-    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="flatbtn" id="flatToggle" aria-label="Switch to the flat view from above" hidden>2D</button><div class="maprail"><button class="map-toggle show" id="labelsToggle" aria-pressed="true" aria-label="Mountain labels" title="Mountain labels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.500 19l6.500-12 4.200 7.700 2.300-3.700 6 8z"/><path d="M6.900 10.900l2.100 1.600 2.100-1.600"/></svg></button><button class="map-toggle show" id="shieldsToggle" aria-pressed="true" aria-label="Highway shields" title="Highway shields"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.200c2.300 1.300 4.700 1.900 7.200 1.900.500 6.700-1.900 12-7.200 15.700C6.700 17.100 4.300 11.800 4.800 5.100c2.500 0 4.900-.600 7.200-1.900z"/></svg></button><button class="map-toggle roadpill" id="roadPill" hidden>Roads</button><button class="map-toggle" id="radarToggle" aria-pressed="false" aria-label="Weather radar" title="Weather radar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.800 16.200a6 6 0 0 1 0-8.400M16.200 7.800a6 6 0 0 1 0 8.400M4.600 19.400a10.500 10.500 0 0 1 0-14.800M19.400 4.600a10.500 10.500 0 0 1 0 14.800"/></svg></button><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button></div><div class="map-key" id="avyKey" hidden></div></div>
+    <div id="map3d"><div class="map-hint"><span class="touch">Two fingers move the map</span><span class="mouse">Drag to turn · Ctrl + scroll to zoom</span></div><button class="flatbtn" id="flatToggle" aria-label="Switch to the flat view from above" hidden>2D</button><div class="mapareas" id="mapAreasWrap" hidden><div class="seg" id="mapAreas" role="group" aria-label="Part of the map"></div></div><div class="maprail"><button class="map-toggle show" id="labelsToggle" aria-pressed="true" aria-label="Mountain labels" title="Mountain labels"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.500 19l6.500-12 4.200 7.700 2.300-3.700 6 8z"/><path d="M6.900 10.900l2.100 1.600 2.100-1.600"/></svg></button><button class="map-toggle show" id="shieldsToggle" aria-pressed="true" aria-label="Highway shields" title="Highway shields"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.200c2.300 1.300 4.700 1.900 7.200 1.900.500 6.700-1.900 12-7.200 15.700C6.700 17.100 4.300 11.800 4.800 5.100c2.500 0 4.900-.600 7.200-1.900z"/></svg></button><button class="map-toggle roadpill" id="roadPill" hidden>Roads</button><button class="map-toggle" id="radarToggle" aria-pressed="false" aria-label="Weather radar" title="Weather radar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.800 16.200a6 6 0 0 1 0-8.400M16.200 7.800a6 6 0 0 1 0 8.400M4.600 19.400a10.500 10.500 0 0 1 0-14.800M19.400 4.600a10.500 10.500 0 0 1 0 14.800"/></svg></button><button class="map-toggle" id="avyToggle" aria-pressed="false" hidden>Avalanche danger</button></div><div class="map-key" id="avyKey" hidden></div></div>
     <div class="mapbar">
       <button id="play" aria-label="Play the storm"></button>
       <div class="ticks"><input type="range" id="scrub" min="0" max="120" step="0.25" value="0" aria-label="Storm time"><button id="toNow" aria-label="Back to now">now</button></div>
@@ -1527,7 +1543,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "236";
+const BUILD = "237";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1552,7 +1568,12 @@ let index = null, data = null, elevation = "summit", selected = location.hash.sl
 // the chain-control feed does not report those), and its avalanche centers (the first is the one the pane at the bottom reports).
 // Each needs name, terrain, roads, center, waterM, pick and avalanche (which may be empty: no center forecasts there).
 // The rest may be left out: lake (no lake is named on the map), chainFeeds and closureFeeds (no Roads button),
-// short, look, discKm, zoom, turnDeg, land, floorM, lowlandM and rev.
+// short, look, discKm, zoom, turnDeg, land, floorM, lowlandM, rev and areas.
+// areas splits a region too wide for one view into parts the map shows one at a time (see the pills over the map):
+// [{key, name, short (the pill's word on a phone, where the name is too long), mountains, and optionally look, zoom and
+// turnDeg to frame the part by hand instead of fitting the view to its mountains}]. A mountain is in at most one part;
+// one in none shows only under "All". Today every Seattle and New England mountain is in a part (checkAreas says so
+// in the console if one is not).
 const CALTRANS_CLOSURES = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/lcs/lcsStatusD${String(district).padStart(2, "0")}.json`;
 const CALTRANS = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/cc/ccStatusD${String(district).padStart(2, "0")}.json`;
 const REGIONS = {
@@ -1572,6 +1593,9 @@ const REGIONS = {
     // across a phone.
     // The land reaches the sea, so no ground is raised to a floor, and level ground at any height is water.
     discKm: 190, zoom: 3.9, turnDeg: -30, look: [44.1, -71.94], floorM: 0, lowlandM: 0,
+    areas: [{key: "vermont", name: "Vermont", mountains: ["stowe", "sugarbush", "killington", "pico", "okemo", "stratton", "mountsnow"]},
+      {key: "newhampshire", name: "New Hampshire", short: "N.H.", mountains: ["loon", "wildcat", "attitash", "tuckerman", "sunapee", "crotched"]},
+      {key: "maine", name: "Maine", mountains: ["sugarloaf", "sundayriver"]}],
     // Forest to about 1,300 m, then bare rock on the few summits above it.
     land: [[0, [0.42, 0.50, 0.32]], [400, [0.30, 0.43, 0.28]], [900, [0.21, 0.37, 0.26]], [1250, [0.27, 0.40, 0.30]],
       [1450, [0.55, 0.53, 0.48]], [1800, [0.70, 0.68, 0.65]]],
@@ -1585,6 +1609,11 @@ const REGIONS = {
     // comes from the water mask built with its terrain, not from level ground.
     // Washington writes its state routes "SR" as California does, but its marker is the plain one.
     discKm: 176, zoom: 5, turnDeg: 22, look: [47.45, -121.95], floorM: 0, lowlandM: 0, plainStateRoutes: true,
+    // Hurricane Ridge alone is seen from the north-northeast, over the Strait, with the Olympics rising behind it.
+    areas: [{key: "north", name: "North Cascades", short: "North", mountains: ["bakerskiarea", "mtbaker", "glacierpeak"]},
+      {key: "passes", name: "Passes", mountains: ["stevens", "snoqualmie", "alpental", "missionridge"]},
+      {key: "rainier", name: "Rainier", mountains: ["crystal", "whitepass", "rainier", "adams", "sthelens"]},
+      {key: "olympics", name: "Olympics", mountains: ["hurricaneridge"], turnDeg: 160}],
     // Lowland and rainforest green, forest to about 1,500 m, then meadow and rock, and the volcanoes' glaciers
     // above about 2,400 m pale grey-white whether or not snow is lying.
     land: [[0, [0.42, 0.50, 0.32]], [300, [0.26, 0.42, 0.28]], [1000, [0.20, 0.36, 0.25]], [1500, [0.27, 0.40, 0.30]],
@@ -3548,12 +3577,15 @@ async function startMap() {
     $("roadSheet").hidden = !roadFeeds;
     if (!roadFeeds) $("roadPill").hidden = true;
     $("mapPanel").style.display = "block";
+    mapArea = openingArea(mapPlace);
     const made = await createMap($("map3d"), {...data, resorts: list.map(markedAt)}, {region: REGIONS[mapPlace], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
+      area: areaFor(mapPlace, mapArea), framePad,
       // A tap on a mountain's label does what a tap on its row of the summary does: it opens the mountain's tab.
       onSelect: (key) => { if (map) chooseMountain(key, true); }});
     if (build !== mapBuild) { made.dispose(); return; }
     if (staleMap) { staleMap.dispose(); staleMap = null; }
     map = made;
+    renderAreas();
     stakesIn = stakeDepths();
     $("flatToggle").hidden = false; $("flatToggle").textContent = "2D";
     // With no road file there are no shields to put away.
@@ -3578,6 +3610,69 @@ async function startMap() {
     if (radarOn) mapRadar();
     loadRoads();
   } catch (error) { if (staleMap) { staleMap.dispose(); staleMap = null; } $("mapPanel").style.display = "none"; console.warn("3D map unavailable", error); }
+}
+
+// ---------- the parts of a region on the map ----------
+// A region with areas shows one part at a time on the map (see REGIONS). mapArea is the part of mapPlace on screen:
+// an area's key, or "all". The part last chosen for each region is kept in prefs.areas.
+let mapArea = "all";
+const areasOf = (key) => (REGIONS[key] && REGIONS[key].areas) || null;
+const areaFor = (key, area) => (areasOf(key) || []).find((a) => a.key === area) || null;
+const areaWith = (key, mtn) => (areasOf(key) || []).find((a) => a.mountains.includes(mtn)) || null;
+// The part a region's map opens on: the one last chosen there, when it is "All" or holds the selected mountain (the
+// map never opens with the selected mountain left off it); else the selected mountain's part; else "All".
+function openingArea(key) {
+  if (!areasOf(key)) return "all";
+  const saved = prefs.areas && prefs.areas[key], chosen = areaFor(key, saved);
+  if (saved === "all" || (chosen && chosen.mountains.includes(selected))) return saved;
+  const own = areaWith(key, selected);
+  return own ? own.key : "all";
+}
+// The room the map keeps clear when it frames a part: under the pills, over the storm slider, a little at each side,
+// and the buttons over the map (the rail, the compass and 2D).
+function framePad() {
+  const box = $("map3d").getBoundingClientRect(), row = $("mapAreasWrap"), bar = document.querySelector(".mapbar").getBoundingClientRect();
+  const avoid = [document.querySelector("#map3d .maprail"), document.querySelector("#map3d .map-compass"), $("flatToggle")].map((el) => el && el.getBoundingClientRect())
+    .filter((b) => b && b.width).map((b) => ({x0: b.left - box.left - 4, x1: b.right - box.left + 4, y0: b.top - box.top - 4, y1: b.bottom - box.top + 4}));
+  return {top: row.hidden ? 12 : row.getBoundingClientRect().bottom - box.top + 10, bottom: bar.height ? Math.max(12, box.bottom - bar.top + 10) : 12, left: 10, right: 10, avoid};
+}
+function renderAreas() {
+  const areas = map && areasOf(mapPlace);
+  $("mapAreasWrap").hidden = !areas;
+  if (!areas) return;
+  $("mapAreas").innerHTML = [...areas, {key: "all", name: "All"}].map((a) => `<button data-area="${a.key}" aria-pressed="${a.key === mapArea}"${a.short ? ` aria-label="${esc(a.name)}"` : ""}>${a.short ? `<span class="full">${esc(a.name)}</span><span class="short" aria-hidden="true">${esc(a.short)}</span>` : esc(a.name)}</button>`).join("");
+  placeSegs(true);
+}
+function showArea(area) {
+  mapArea = area;
+  if (map) map.setArea(areaFor(mapPlace, area));
+  for (const b of $("mapAreas").querySelectorAll("button[data-area]")) b.setAttribute("aria-pressed", b.dataset.area === area);
+  placeSegs();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("#mapAreas button[data-area]");
+  if (!b || !map || b.dataset.area === mapArea) return;
+  prefs.areas = {...prefs.areas, [mapPlace]: b.dataset.area};
+  savePrefs();
+  showArea(b.dataset.area);
+});
+// A mountain selected from outside the map (the summary, the Mountain chooser, Favorites, a region's opening) that the
+// part on screen does not hold brings its own part on screen. "All" stays "All".
+function followArea() {
+  if (!map || mapArea === "all" || place() !== mapPlace || !areasOf(mapPlace)) return;
+  const now = areaFor(mapPlace, mapArea);
+  if (now && now.mountains.includes(selected)) return;
+  const own = areaWith(mapPlace, selected);
+  showArea(own ? own.key : "all");
+}
+// Every mountain of a region with areas should be in exactly one of them.
+function checkAreas() {
+  for (const [key, r] of Object.entries(REGIONS)) {
+    if (!r.areas) continue;
+    const listed = r.areas.flatMap((a) => a.mountains), twice = listed.filter((k, n) => listed.indexOf(k) !== n);
+    const orphans = everyMountain().filter((m) => regionOf(m) === key && !listed.includes(m.key)).map((m) => m.key);
+    if (orphans.length || twice.length) console.warn(`${key}: in no part of the map: ${orphans.join(", ") || "none"}; in two: ${twice.join(", ") || "none"}`);
+  }
 }
 
 // ---------- regions ----------
@@ -3669,7 +3764,7 @@ async function setRegion(key) {
     try { step(); } catch (error) { console.error(error); }
   }
   // Favorites and the region of its first favorite are one place: the map stays and only the selection moves.
-  if (place() === mapPlace) { if (map) map.select(selected); loadAvalanches(false); return; }
+  if (place() === mapPlace) { if (map) map.select(selected); followArea(); loadAvalanches(false); return; }
   loadAvalanches();
   startMap();
 }
@@ -4436,7 +4531,7 @@ $("detail").addEventListener("change", (e) => {
   history.replaceState(null, "", "#" + selected);
   const moved = followPlace();
   renderHeat(); renderDetail();
-  if (map && !moved) map.select(selected);
+  if (map && !moved) { map.select(selected); followArea(); }
 });
 // Favorites are put in order the way a phone's lists are: hold a mountain for a moment and it lifts, follows the finger
 // up or down while the others make room, and settles where it is let go. A finger that moves before the hold is up is
@@ -4613,7 +4708,7 @@ function chooseMountain(key, open) {
   history.replaceState(null, "", "#" + selected);
   const moved = followPlace();
   renderHeat(); renderDetail();
-  if (map && !moved) map.select(selected);
+  if (map && !moved) { map.select(selected); followArea(); }
   if (open) goTo($("detail"));
 }
 // The forecast is republished every few hours to its own branch. Asking for the branch's current commit first
@@ -4763,6 +4858,7 @@ openForecast().then(async () => {
     try { step(); } catch (error) { console.error(error); }
   }
   loadAvalanches(); setInterval(loadAvalanches, 30 * 60 * 1000);
+  checkAreas();
   setInterval(renderHeadline, 5 * 60 * 1000);
   // The resorts' reports are read again as their feeds refresh, and the map takes what they now say.
   setInterval(() => { if (!document.hidden) stakeDepths(); }, 5 * 60 * 1000);
