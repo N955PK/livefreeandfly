@@ -567,6 +567,67 @@ ALL_RESORTS = {
                region="shasta", kind="backcountry"),
         Resort("lassen", "Lassen Peak", 40.47685, -121.50608, 2051, 3187, "LLP:CDEC", "Backcountry",
                region="shasta", kind="backcountry"),
+        # ---- Canada: built by the second collector (see COLLECTOR). Heights are metres as the resorts publish
+        # them, checked against OpenTopoData's SRTM, the USGS service having nothing north of the border. None has a
+        # station yet: British Columbia's and Alberta's snow stations need a reader of their own.
+        # The Okanagan (looked up 2026-11-24). Each point is the midpoint of a main lift in OpenStreetMap: Big
+        # White's Bullet Express, SilverStar's Comet Express, Sun Peaks' Sunburst Express and Apex's Quickdraw.
+        # Summits are the top of the highest lift where the published one is a peak no lift reaches (Big White's
+        # Alpine T-Bar, 34 m under the peak; Sun Peaks' West Bowl Express, below Mt. Tod). SilverStar's base is its
+        # summit less its stated vertical, where the Putnam chair starts; Apex's is the foot of its lowest chair,
+        # 30 m above the published figure. Nobody shares weather: the nearest two are 71 km apart. Sun Peaks is
+        # also on the Mountain Collective, and is counted as Ikon.
+        Resort("bigwhite", "Big White", 49.73055, -118.92684, 1508, 2285, None, "Indy", region="okanagan"),
+        Resort("silverstar", "SilverStar", 50.36381, -119.05471, 1155, 1915, None, "Ikon", region="okanagan"),
+        Resort("sunpeaks", "Sun Peaks", 50.89223, -119.8983, 1198, 2093, None, "Ikon", region="okanagan"),
+        Resort("apex", "Apex", 49.38404, -119.90579, 1607, 2178, None, "Indy", region="okanagan"),
+        # The BC Coast (looked up 2026-11-24). Each resort's point is the midpoint of a main lift in OpenStreetMap:
+        # Whistler's Village Gondola, which serves for Blackcomb too (their gondolas are 2.6 km apart across
+        # Fitzsimmons Creek), Cypress's Lions Express, Grouse's Screaming Eagle, Seymour's Mystery Peak Express and
+        # Mt. Washington's Eagle Express. Whistler's base is Creekside and its top Blackcomb's 7th Heaven; its
+        # figures and Cypress's are Wikipedia's, Vail's own site being behind a waiting room. Grouse publishes no
+        # ski base, so its base is the foot of its lowest chair. Grouse is only a two-day bonus on the Ikon pass, so
+        # it is Independent. Cypress and Seymour take Grouse's weather: 9 and 10 km along the one North Shore
+        # front, with valleys and no crest between.
+        Resort("whistler", "Whistler Blackcomb", 50.09129, -122.95018, 653, 2240, None, "Epic", region="bccoast"),
+        Resort("cypress", "Cypress", 49.40067, -123.19927, 826, 1440, None, "Ikon",
+               region="bccoast", weather_from="grouse"),                 # 9.1 km from Grouse
+        Resort("grouse", "Grouse", 49.37568, -123.07964, 865, 1231, None, "Independent", region="bccoast"),
+        Resort("seymour", "Mt. Seymour", 49.37252, -122.94576, 935, 1265, None, "Independent",
+               region="bccoast", weather_from="grouse"),                 # 9.7 km from Grouse
+        Resort("mtwashington", "Mt. Washington", 49.74717, -125.30003, 1083, 1588, None, "Indy", region="bccoast"),
+        # Backcountry. The Spearhead is Decker Mountain from the top of Blackcomb's lifts, its point on the Decker
+        # Glacier and its base Decker Lake, the tour's low point; it is 7.7 km from Whistler's point but over the
+        # Spearhead crest and 950 m higher, so it asks for its own weather. The Duffey is Mount Chief Pascall from
+        # the pull-out east of Cayoosh Pass. Paul Ridge is Round Mountain from the Diamond Head lot, its point at
+        # the Red Heather shelter.
+        Resort("spearhead", "Spearhead", 50.07236, -122.84629, 1988, 2421, None, "Backcountry",
+               region="bccoast", kind="backcountry"),
+        Resort("duffey", "Duffey Lake", 50.36998, -122.46033, 1261, 2204, None, "Backcountry",
+               region="bccoast", kind="backcountry"),
+        Resort("paulridge", "Paul Ridge", 49.76275, -123.03811, 975, 1646, None, "Backcountry",
+               region="bccoast", kind="backcountry"),
+        # Quebec (looked up 2026-11-24): the Laurentians, the Eastern Townships, and Québec City and Charlevoix.
+        # Each point is the midpoint of a main lift in OpenStreetMap. Only Bromont's and Mont Orford's own pages
+        # gave heights; the rest are Wikipedia's or the Indy Pass's, each checked against the lifts' ends. Mont
+        # Orford's base and Owl's Head's base and top are read at the ends of their lifts, the published figures
+        # sitting 50 m under and 20 m under and 48 m over them. Le Massif is on the Ikon pass and the Mountain
+        # Collective, and is counted as Ikon. Mont Blanc takes Tremblant's weather, 14 km across the one plateau;
+        # everything else is 21 km apart or more. Nothing here reports snow water: three climate stations report
+        # depth alone, so no mountain has a station.
+        Resort("tremblant", "Tremblant", 46.21673, -74.56864, 230, 875, None, "Ikon", region="quebec"),
+        Resort("montblanc", "Mont Blanc", 46.10553, -74.48358, 346, 556, None, "Indy",
+               region="quebec", weather_from="tremblant"),               # 14 km from Tremblant
+        Resort("saintsauveur", "Mont Saint-Sauveur", 45.88143, -74.14762, 203, 416, None, "Independent",
+               region="quebec"),
+        Resort("bromont", "Bromont", 45.29512, -72.63725, 192, 550, None, "Mountain Collective", region="quebec"),
+        Resort("sutton", "Mont Sutton", 45.09892, -72.56068, 400, 860, None, "Indy", region="quebec"),
+        Resort("orford", "Mont Orford", 45.3154, -72.23078, 315, 850, None, "Independent", region="quebec"),
+        Resort("owlshead", "Owl's Head", 45.06831, -72.29791, 238, 708, None, "Indy", region="quebec"),
+        Resort("stoneham", "Stoneham", 47.02946, -71.39479, 248, 593, None, "Independent", region="quebec"),
+        Resort("montsainteanne", "Mont-Sainte-Anne", 47.08071, -70.92012, 175, 800, None, "Independent",
+               region="quebec"),
+        Resort("lemassif", "Le Massif", 47.28086, -70.5914, 36, 806, None, "Ikon", region="quebec"),
     ]
 }
 
@@ -598,6 +659,18 @@ ALL_REGIONS = {
         # Built twice a day, at 5 am and 5 pm Pacific, to keep the day's calls under the service's limit (Sean's
         # choice, 2026-11-24). The lowest ground is Castle Lake's lot at 1,659 m: no lower levels are read.
         Region("shasta", "Shasta", "America/Los_Angeles", 8, 12, ("MSAC",), at=(5, 17)),
+        # ---- Canada, the second collector's. Built at the West's hours on each region's own clock. Avalanche
+        # Canada's forecasts are not on avalanche.org, so no center is named here; the page reads them itself.
+        # SilverStar's and Sun Peaks' bases are near 1,150 to 1,200 m, under 850 hPa, so 900 hPa (near 990 m) is read.
+        Region("okanagan", "Okanagan", "America/Vancouver", 8, 8, (), low_levels=(900,), at=(5, 13, 21),
+               collector="canada", country="Canada"),
+        # Whistler's Creekside base is at 653 m, which 950 hPa (near 540 m) covers.
+        Region("bccoast", "BC Coast", "America/Vancouver", 8, 8, (), low_levels=(950, 925, 900), at=(5, 13, 21),
+               collector="canada", country="Canada"),
+        # Like New England, every lift-served metre is below 850 hPa (Le Massif's gondola starts at 36 m), and it is
+        # built at New England's hours on the same clock.
+        Region("quebec", "Quebec", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
+               collector="canada", country="Canada"),
     ]
 }
 

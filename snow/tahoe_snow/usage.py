@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from tahoe_snow.config import DATA, REGIONS, RESORTS
+from tahoe_snow.config import ALL_REGIONS, DATA, REGIONS, RESORTS
 from tahoe_snow.sources import openmeteo
 
 LEDGER = DATA / "archive" / "usage.json"
@@ -30,7 +30,7 @@ EXTRA_LEVEL_CALLS = 2.51
 
 def resort_run_calls(region: str) -> float:
     """What one mountain's forecast costs in ``region``, with the levels it reads below the usual ones."""
-    return CALLS_PER_RESORT_RUN + EXTRA_LEVEL_CALLS * len(REGIONS[region].low_levels)
+    return CALLS_PER_RESORT_RUN + EXTRA_LEVEL_CALLS * len(ALL_REGIONS[region].low_levels)
 
 
 def pulls(region: str, resorts: dict = RESORTS) -> int:

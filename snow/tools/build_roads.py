@@ -53,6 +53,11 @@ ROUTES = {
     # roads (CA 89, CA 44), CA 299 across the south, CA 3 through the Trinities and the Mt. Ashland turn-off's CA 96.
     "shasta": {"I 5": "I-5", "US 97": "US-97", "CA 89": "SR-89", "CA 44": "SR-44", "CA 299": "SR-299",
                "CA 3": "SR-3", "CA 96": "SR-96", "CA 36": "SR-36", "OR 66": "OR-66"},
+    # British Columbia's highways as OpenStreetMap writes them: "BC 97", the Yellowhead as "YH 5" and the
+    # Trans-Canada as "TCH 1". The Okanagan's valley road (97), the Connector (97C), the roads toward Big White (33)
+    # and Apex (3A), Vernon's Highway 6, and the Yellowhead and Trans-Canada through Kamloops toward Sun Peaks.
+    "okanagan": {"BC 97": "BC-97", "BC 97C": "BC-97C", "BC 33": "BC-33", "BC 3A": "BC-3A", "BC 6": "BC-6",
+                 "BC 97A": "BC-97A", "BC 3": "BC-3", "YH 5": "BC-5", "BC 5": "BC-5", "TCH 1": "TCH-1"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the

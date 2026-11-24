@@ -60,7 +60,12 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # Mt. Shasta is 4,322 m. Lake Shasta and the Sacramento Valley are far below the mountains; no water mask
            # was built, as the Overpass servers were down the day it was made (2026-11-24). Add "water": True and
            # rebuild.
-           "shasta": {"box": (40.137, 42.433, -123.634, -120.596), "max_m": 4350, "columns": 640}}
+           "shasta": {"box": (40.137, 42.433, -123.634, -120.596), "max_m": 4350, "columns": 640},
+           # Canada. A 218 km square around the circle, 109 km in radius about 50.138 N 119.904 W, that holds Sun
+           # Peaks in the north and Apex in the south (each 84 km from its middle) with 25 km to spare. The
+           # Monashees at the box's east edge reach about 2,900 m. Okanagan Lake lies along the valley floor, the
+           # lowest ground there is, so it is drawn as level ground and no mask is built.
+           "okanagan": {"box": (49.153, 51.123, -121.431, -118.377), "max_m": 3100, "columns": 559}}
 
 
 def stem(region: str) -> str:
