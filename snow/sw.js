@@ -13,7 +13,8 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icon
   'data/terrain-seattle.json?v=2', 'data/terrain-seattle.bin?v=2', 'data/terrain-seattle.water.bin?v=2', 'data/roads-seattle.json?v=2',
   'data/terrain-tetons.json', 'data/terrain-tetons.bin', 'data/terrain-tetons.water.bin', 'data/roads-tetons.json',
   'data/terrain-wasatch.json', 'data/terrain-wasatch.bin', 'data/terrain-wasatch.water.bin', 'data/roads-wasatch.json',
-  'data/terrain-colorado.json', 'data/terrain-colorado.bin', 'data/terrain-shasta.json', 'data/terrain-shasta.bin'];
+  'data/terrain-colorado.json', 'data/terrain-colorado.bin', 'data/roads-colorado.json',
+  'data/terrain-shasta.json', 'data/terrain-shasta.bin', 'data/roads-shasta.json'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale
