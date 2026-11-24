@@ -188,7 +188,28 @@ TETONS_STATIONS = {
         Station("506:WY:SNTL", "Gros Ventre Summit", 43.3894, -110.1294, _ft(8760)),
     ]
 }
-ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS}
+# SNOTEL stations in the central and northern Wasatch (NRCS AWDB, active 2026-11-24): the six paired with the
+# region's mountains first, then four between them and Ben Lomond that a water correction can also be fitted to.
+# Atwater and Powder Mountain began in 2022 and 2021. Utah's daily values are stamped on the Pacific standard clock,
+# as Wyoming's are: at Snowbird the value dated 17 November matched the hourly reading stamped midnight starting the
+# 18th, on each of ten days, and the station list gives all of Utah's a data time zone of UTC-8.
+WASATCH_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("766:UT:SNTL", "Snowbird", 40.56914, -111.65852, _ft(9170)),
+        Station("366:UT:SNTL", "Brighton", 40.59936, -111.58167, _ft(8790)),
+        Station("814:UT:SNTL", "Thaynes Canyon", 40.6235, -111.53322, _ft(9260)),
+        Station("1308:UT:SNTL", "Atwater", 40.59124, -111.63775, _ft(8750)),
+        Station("1300:UT:SNTL", "Powder Mountain", 41.37428, -111.76673, _ft(8490)),
+        Station("820:UT:SNTL", "Timpanogos Divide", 40.42817, -111.61633, _ft(8180)),
+        Station("628:UT:SNTL", "Mill-D North", 40.65883, -111.63683, _ft(8940)),
+        Station("596:UT:SNTL", "Lookout Peak", 40.83731, -111.70965, _ft(8150)),
+        Station("474:UT:SNTL", "Farmington", 40.97462, -111.80975, _ft(7920)),
+        Station("332:UT:SNTL", "Ben Lomond Peak", 41.37603, -111.94405, _ft(7690)),
+    ]
+}
+ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
+                **WASATCH_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -392,6 +413,45 @@ RESORTS = {
                region="tetons", kind="backcountry", weak_match=True),
         Resort("togwotee", "Togwotee Pass", 43.7822, -110.0715, 2886, _ft(11007), "822:WY:SNTL", "Backcountry",
                region="tetons", kind="backcountry"),
+        # The Wasatch (looked up 2026-11-24). Each resort's point is the midpoint of a main lift from its base in
+        # OpenStreetMap, checked against the USGS elevation service. Bases are the resorts' own figures (Alta's and
+        # Sundance's from Ski Utah). A summit is the top of the highest lift where the published one is a peak
+        # reached on foot: Alta's is the Sugarloaf lift's (not Mt. Baldy, 11,068 ft), Solitude's the Summit
+        # Express's, Park City's the Jupiter lift's, Snowbasin's the Allen Peak tram's and Powder Mountain's
+        # Lightning Ridge's (not James Peak). The Ikon mountains that are also on the Mountain Collective are Ikon.
+        # Four pairs are close enough to share weather, none across the main crest; Alta and Brighton are 5 km
+        # apart but over the divide between the Cottonwood canyons, so each asks for its own.
+        # Sensors by the guide's rule. Alta and Mt. Superior take Snowbird's: Atwater is nearer but 320 m under
+        # their middles. Thaynes Canyon is 3 km from Park City and 258 m above its middle; it is 369 m above Deer
+        # Valley's, which is taken with it because the two share one reading of the weather. Timpanogos Divide is
+        # 347 m under Mt. Timpanogos's middle, a weak match. Nothing reports within 10 km of Snowbasin.
+        Resort("alta", "Alta", 40.57979, -111.63715, _ft(8530), _ft(10556), "766:UT:SNTL", "Ikon",
+               region="wasatch"),
+        Resort("snowbird", "Snowbird", 40.57104, -111.65074, _ft(7760), _ft(11000), "766:UT:SNTL", "Ikon",
+               region="wasatch", weather_from="alta"),                   # 1.5 km from Alta
+        Resort("brighton", "Brighton", 40.59049, -111.58015, _ft(8755), _ft(10500), "366:UT:SNTL", "Ikon",
+               region="wasatch"),
+        Resort("solitude", "Solitude", 40.61639, -111.5978, _ft(7994), _ft(10010), "366:UT:SNTL", "Ikon",
+               region="wasatch", weather_from="brighton"),               # 3.2 km from Brighton
+        Resort("parkcity", "Park City", 40.64296, -111.50814, _ft(6800), _ft(9977), "814:UT:SNTL", "Epic",
+               region="wasatch"),
+        Resort("deervalley", "Deer Valley", 40.6315, -111.4821, _ft(6530), _ft(9570), "814:UT:SNTL", "Ikon",
+               region="wasatch", weather_from="parkcity"),               # 2.5 km from Park City
+        Resort("snowbasin", "Snowbasin", 41.20469, -111.86577, _ft(6450), _ft(9366), None, "Ikon",
+               region="wasatch"),
+        Resort("powdermountain", "Powder Mountain", 41.37722, -111.76249, _ft(6900), _ft(9005), "1300:UT:SNTL",
+               "Independent", region="wasatch"),
+        Resort("sundance", "Sundance", 40.38668, -111.58493, _ft(6100), _ft(8250), "820:UT:SNTL", "Independent",
+               region="wasatch"),
+        # Backcountry. Each point is on the way up at about the middle height: Mt. Superior's on its east ridge,
+        # Cardiff Peak's on the Cardiff Pass trail, both from the trailhead in Alta (2,631 m), and Mt. Timpanogos's
+        # on the trail from Aspen Grove (2,099 m). Summits are OpenStreetMap's peaks, checked against USGS.
+        Resort("superior", "Mt. Superior", 40.59391, -111.65865, 2631, 3364, "766:UT:SNTL", "Backcountry",
+               region="wasatch", kind="backcountry", weather_from="alta"),          # 2.4 km from Alta
+        Resort("cardiff", "Cardiff Peak", 40.59335, -111.64418, 2631, 3132, "1308:UT:SNTL", "Backcountry",
+               region="wasatch", kind="backcountry", weather_from="alta"),          # 1.6 km from Alta
+        Resort("timpanogos", "Mt. Timpanogos", 40.39824, -111.63013, 2099, 3581, "820:UT:SNTL", "Backcountry",
+               region="wasatch", kind="backcountry", weak_match=True, weather_from="sundance"),   # 4 km
     ]
 }
 
@@ -414,6 +474,9 @@ REGIONS = {
         # 8, not Mountain time's 7. The lowest ground is Snow King's base at 1,901 m, well above 850 hPa: no lower
         # levels are read.
         Region("tetons", "Tetons", "America/Denver", 8, 8, ("BTAC",), at=(5, 13, 21)),
+        # The Tetons' hours and clocks: Utah's SNOTEL stations keep the Pacific standard clock too (see
+        # WASATCH_STATIONS). The lowest ground is Sundance's base at 1,859 m: no lower levels are read.
+        Region("wasatch", "Wasatch", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21)),
     ]
 }
 
@@ -453,3 +516,5 @@ MAMMOTH_BBOX = (37.0, 38.3, -119.7, -118.4)
 SEATTLE_BBOX = (46.0, 49.0, -123.6, -120.3)
 # Around the Tetons: Yellowstone's south edge to the Wyoming Range, the Big Holes to the Wind Rivers' north end.
 TETONS_BBOX = (43.0, 44.4, -111.6, -109.8)
+# Around the Wasatch's ten snow sensors, Timpanogos Divide in the south to Ben Lomond Peak in the north.
+WASATCH_BBOX = (40.2, 41.5, -112.1, -111.4)

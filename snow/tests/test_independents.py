@@ -17,12 +17,14 @@ def feed(open_lifts: int, snow: dict | None) -> dict:
     return out
 
 
-def test_every_reader_is_a_mountain_of_new_england_or_the_tetons_and_says_where_its_page_is():
+def test_every_reader_is_a_mountain_of_new_england_the_tetons_or_the_wasatch_and_says_where_its_page_is():
     for key, module in independents.MODULES.items():
-        assert config.RESORTS[key].region in ("newengland", "tetons"), key
+        assert config.RESORTS[key].region in ("newengland", "tetons", "wasatch"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
-    assert len(independents.MODULES) == 15
+    assert len(independents.MODULES) == 21
+    assert [key for key in independents.MODULES if config.RESORTS[key].region == "wasatch"] == [
+        "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance"]
     assert [key for key in independents.MODULES if config.RESORTS[key].region == "tetons"] == ["jacksonhole", "targhee"]
 
 

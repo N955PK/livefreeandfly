@@ -178,7 +178,7 @@ def test_observed_reports_water_when_the_sensor_has_no_depth(monkeypatch):
 
 
 def test_every_location_is_well_formed():
-    assert {r.region for r in RESORTS.values()} == {"tahoe", "mammoth", "newengland", "seattle", "tetons"}
+    assert {r.region for r in RESORTS.values()} == {"tahoe", "mammoth", "newengland", "seattle", "tetons", "wasatch"}
     for resort in RESORTS.values():
         assert resort.kind in ("resort", "backcountry")
         assert (resort.pass_group == "Backcountry") == (resort.kind == "backcountry")
