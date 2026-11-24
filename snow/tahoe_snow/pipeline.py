@@ -635,7 +635,14 @@ def mend(now: datetime | None = None) -> list[str]:
         found = False
         for payload in (forecast or {}).get("resorts", []):
             resort = RESORTS.get(payload["key"])
-            if resort is None or resort.station is None or payload.get("observed") is not None or not payload.get("hours_utc"):
+            if resort is None or resort.station is None:
+                continue
+            # A mountain given a station since its forecast was built is told so, or the page cannot find its season.
+            named = ALL_STATIONS[resort.station].name
+            if payload.get("station") != named or payload.get("weak_station_match") != resort.weak_match:
+                payload["station"], payload["weak_station_match"] = named, resort.weak_match
+                found = True
+            if payload.get("observed") is not None or not payload.get("hours_utc"):
                 continue
             source = ALL_STATIONS[resort.station].source
             if source in down:

@@ -19,7 +19,8 @@ def stubbed(tmp_path, monkeypatch):
     def forecast(resort, snow_model, correction, now, weights=None):
         payload = {"key": resort.key, "name": resort.name, "region": resort.region, "tz": "America/Los_Angeles",
                    "lat": resort.lat, "lon": resort.lon, "kind": resort.kind, "pass": resort.pass_group,
-                   "station": None, "weak_station_match": resort.weak_match, "observed": None,
+                   "station": config.ALL_STATIONS[resort.station].name if resort.station else None,
+                   "weak_station_match": resort.weak_match, "observed": None,
                    "elevations": {"summit": {"windows": {"next72": {}}}}}
         return payload, []
 
@@ -151,3 +152,20 @@ def test_a_forecast_published_without_sensor_readings_is_mended_when_the_sensors
     assert after["generated_utc"] == forecast["generated_utc"] and after["published_utc"] == forecast["published_utc"]
     asked.clear()
     assert pipeline.mend(NOW) == [] and asked == []        # nothing is missing now, so nothing is asked
+
+
+def test_a_mountain_given_a_station_since_its_forecast_is_told_so(tmp_path, stubbed, monkeypatch):
+    for key in config.REGIONS:
+        pipeline.run(key, NOW)
+    path = tmp_path / "forecast/tahoe.json"
+    forecast = json.loads(path.read_text())
+    resort = next(r for r in config.resorts_in("tahoe") if r.station)
+    for payload in forecast["resorts"]:
+        payload["observed"] = {"station": "Sensor"}            # nothing to ask the sensors for
+        if payload["key"] == resort.key:
+            payload["station"] = None
+    path.write_text(json.dumps(forecast))
+    monkeypatch.setattr(pipeline, "observed", raising(AssertionError("no sensor should be asked")))
+    assert "tahoe" in pipeline.mend(NOW)
+    after = {p["key"]: p for p in json.loads(path.read_text())["resorts"]}
+    assert after[resort.key]["station"] == config.ALL_STATIONS[resort.station].name
