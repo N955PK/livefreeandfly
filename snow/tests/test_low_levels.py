@@ -1,4 +1,5 @@
-"""Seattle's passes sit below 850 hPa, so its forecast reads three lower levels; the Sierra's does not."""
+"""Seattle's passes and all of New England sit below 850 hPa, so their forecasts read lower levels; the Sierra's
+does not."""
 import json
 
 import numpy as np
@@ -9,8 +10,8 @@ from tahoe_snow.config import MODELS, PRESSURE_LEVELS, REGIONS, RESORTS
 from tahoe_snow.snow import dataset, features, phase, train
 from tahoe_snow.sources import omfiles_s3, openmeteo
 
-HEIGHTS = {950: 540.0, 925: 760.0, 900: 990.0, 850: 1450.0, 800: 1950.0, 750: 2450.0, 700: 3000.0, 650: 3600.0,
-           600: 4200.0, 550: 4850.0, 500: 5550.0}
+HEIGHTS = {1000: 110.0, 975: 320.0, 950: 540.0, 925: 760.0, 900: 990.0, 850: 1450.0, 800: 1950.0, 750: 2450.0,
+           700: 3000.0, 650: 3600.0, 600: 4200.0, 550: 4850.0, 500: 5550.0}
 
 
 def profile(levels, hours=48, t700=-8.0):
@@ -25,10 +26,26 @@ def profile(levels, hours=48, t700=-8.0):
     return pd.DataFrame(data, index=pd.date_range("2026-12-01", periods=hours, freq="h"))
 
 
-def test_only_seattle_reads_below_850():
+def test_only_the_low_regions_read_below_850():
     assert config.levels_for("seattle") == [950, 925, 900] + PRESSURE_LEVELS
-    for region in ("tahoe", "mammoth", "newengland"):
+    assert config.levels_for("newengland") == [1000, 975, 950, 925, 900] + PRESSURE_LEVELS
+    for region in ("tahoe", "mammoth"):
         assert config.levels_for(region) == PRESSURE_LEVELS, region
+
+
+def test_every_new_england_height_is_inside_the_levels_it_reads():
+    # Before, every lift-served foot of New England was under the lowest level read and got its temperature.
+    lowest, floor_850 = HEIGHTS[min(config.levels_for("newengland"), key=HEIGHTS.get)], HEIGHTS[850]
+    lifts = [r for r in config.resorts_in("newengland") if r.kind == "resort"]
+    assert all(r.summit_m < floor_850 for r in lifts)
+    # Attitash's base, the lowest, is 73 m above the 1000 hPa level of a standard day.
+    assert min(r.base_m for r in lifts) > lowest
+    attitash = RESORTS["attitash"]
+    held = features.hourly_features(profile(PRESSURE_LEVELS), attitash.base_m)
+    read = features.hourly_features(profile(config.levels_for("newengland")), attitash.base_m)
+    assert abs(read["t0"].iloc[0] - held["t0"].iloc[0] - 6.5 * (floor_850 - attitash.base_m) / 1000.0) < 1e-6
+    top = features.hourly_features(profile(config.levels_for("newengland")), attitash.summit_m)
+    assert read["t0"].iloc[0] > top["t0"].iloc[0] + 3
 
 
 def test_the_sierra_asks_for_exactly_what_it_did():
@@ -38,6 +55,9 @@ def test_the_sierra_asks_for_exactly_what_it_did():
     seattle = pipeline.forecast_variables("seattle")
     assert set(before) < set(seattle) and len(seattle) == len(before) + 12
     assert "temperature_925hPa" in seattle and "geopotential_height_950hPa" in seattle
+    newengland = pipeline.forecast_variables("newengland")
+    assert set(seattle) < set(newengland) and len(newengland) == len(before) + 20
+    assert "relative_humidity_1000hPa" in newengland and "wind_speed_975hPa" in newengland
 
 
 def test_a_base_below_850_is_warmer_than_the_850_level():
@@ -84,6 +104,8 @@ def test_the_extra_levels_are_counted_against_the_allowance():
     seattle = {"seattle": REGIONS["seattle"]}
     assert round(usage.planned(seattle)) == round(13 * 2 * (51.9 + 3 * usage.EXTRA_LEVEL_CALLS))
     assert usage.estimate([], "seattle") == round(13 * usage.resort_run_calls("seattle"), 1)
+    assert abs(usage.resort_run_calls("newengland") - (usage.CALLS_PER_RESORT_RUN + 5 * usage.EXTRA_LEVEL_CALLS)) < 1e-9
+    assert abs((cost("newengland") - cost("tahoe")) / 5 - usage.EXTRA_LEVEL_CALLS) < 0.01
     assert usage.planned() <= usage.PLAN_LIMIT
 
 

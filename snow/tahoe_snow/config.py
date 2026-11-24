@@ -310,7 +310,10 @@ REGIONS = {
     for r in [
         Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",)),
         Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC")),
-        Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",)),
+        # Every lift-served foot of New England is below 850 hPa (near 1,450 m): the highest summit is Killington's
+        # 1,293 m and the lowest base Attitash's 183 m, which 1000 hPa (near 110 m) covers.
+        Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",),
+               low_levels=(1000, 975, 950, 925, 900)),
         # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
         # trailhead at 630 m, which 950 hPa (near 540 m) covers.
         Region("seattle", "Seattle", "America/Los_Angeles", 8, 12, ("NWAC",), low_levels=(950, 925, 900)),
