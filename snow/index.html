@@ -1627,7 +1627,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "274";
+const BUILD = "275";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4493,12 +4493,15 @@ const LOCATORS = [
   {where: "central and southern Utah", lon0: -116.977, lat0: 42.263, kx: 8.19, ky: 10.5, lakes: [], towns: [["Moab", -109.546, 38.574, true]],
     peaks: {1741: ["South Tent", -111.358, 39.392, "S. Tent"], 1743: ["Delano Peak", -112.371, 38.369, "Delano"],
       1742: ["Mt. Peale", -109.229, 38.438, "Peale"], 1744: ["Abajo Peak", -109.463, 37.839, "Abajo"]}},
-  // Colorado's zones, which its center redraws each day: no mountains are named, as no zone stays put. Last, so Utah's eastern zones are taken by Utah's frames.
+  // Colorado's zones, which its center redraws each day: no mountains are named, as no zone stays put. Denver and
+  // Durango, 380 km apart at opposite corners, give the scale. Last, so Utah's eastern zones are taken by Utah's frames.
   // The Mount Shasta center's one zone, with the mountain, the town under it and Lake Siskiyou.
   {where: "the mountains around Mt. Shasta", title: "Shasta", lon0: -124.294, lat0: 42.73, kx: 21.0, ky: 28,
     lakes: [[-122.336, 41.281, 0.5, 0.35]], towns: [["Mt. Shasta City", -122.3127, 41.3136, true]], shapes: [SHAPES.siskiyou],
     peaks: {3044: ["Mt. Shasta", -122.19486, 41.4092, "Shasta"]}},
-  {where: "the Colorado Rockies", lon0: -116.3, lat0: 44.73, kx: 5.05, ky: 6.5, towns: [["Denver", -104.99, 39.74, true]], peaks: {},
+  {where: "the Colorado Rockies", lon0: -116.3, lat0: 44.73, kx: 5.05, ky: 6.5, towns: [["Denver", -104.99, 39.74, true], ["Durango", -107.877, 37.277, true]], peaks: {},
+    // More towns for the large map alone, which has the room.
+    more: [["Steamboat Springs", -106.832, 40.485, true], ["Vail", -106.389, 39.644, true], ["Aspen", -106.824, 39.191, true], ["Gunnison", -107.06, 38.648, true], ["Telluride", -107.812, 37.937, true], ["Colorado Springs", -104.825, 38.834, true]],
     // Lake Granby, Dillon Reservoir and Blue Mesa Reservoir, drawn a little larger than life on the small map so
     // they show; the large map draws them and Green Mountain Reservoir as they lie.
     lakes: [[-105.855, 40.154, 0.5, 0.4], [-106.056, 39.6, 0.5, 0.4], [-107.317, 38.459, 1.0, 0.35]],
@@ -4630,7 +4633,7 @@ function bigLocator(zone, all) {
     const spot = xy([lon, lat]);
     if (inside(lon, lat) && !zoneSays.has(said(text)) && !marks.some((m) => Math.hypot(m.at[0] - spot[0], m.at[1] - spot[1]) < 9)) marks.push({words: text, at: spot, peak: true});
   }
-  for (const [text, lon, lat, dot] of (frame && frame.towns) || []) if (dot && inside(lon, lat) && !zoneSays.has(said(text))) marks.push({words: text, at: xy([lon, lat])});
+  for (const [text, lon, lat, dot] of [...((frame && frame.towns) || []), ...((frame && frame.more) || [])]) if (dot && inside(lon, lat) && !zoneSays.has(said(text))) marks.push({words: text, at: xy([lon, lat])});
   for (const m of marks) placed.push([m.at[0] - 4.5, m.at[1] - 4.5, m.at[0] + 4.5, m.at[1] + 4.5]);
   // Nothing is written on a lake either: the middle of each (a sea is too big to keep off) counts as taken.
   for (const rings of (frame && frame.shapes) || []) {
