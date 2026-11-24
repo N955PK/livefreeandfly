@@ -1627,7 +1627,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "273";
+const BUILD = "274";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3961,7 +3961,13 @@ function renderRegion() {
   // The row of names is for two or three choices; with more, the menu the phone uses serves every width (D7).
   $("regionBar").hidden = keys.length < 2 || keys.length > 3;
   $("regionPickWrap").hidden = keys.length < 2;
-  $("regionPick").innerHTML = keys.map((key) => `<option value="${key}"${key === shown ? " selected" : ""}>${choiceName(key)}</option>`).join("");
+  // The menu lists Favorites first, then the regions under the country each is in (a region says its country;
+  // one that does not is in the USA), countries A to Z.
+  const option = (key) => `<option value="${key}"${key === shown ? " selected" : ""}>${choiceName(key)}</option>`;
+  const countries = {};
+  for (const key of keys.filter((k) => k !== FAVORITES)) (countries[REGIONS[key].country || "USA"] ||= []).push(key);
+  $("regionPick").innerHTML = keys.filter((k) => k === FAVORITES).map(option).join("")
+    + Object.keys(countries).sort().map((country) => `<optgroup label="${esc(country)}">${countries[country].map(option).join("")}</optgroup>`).join("");
   // The summary's title is a second way to the same choice, as the Mountain and Avalanche titles choose theirs.
   $("sumPick").innerHTML = $("regionPick").innerHTML;
   $("sumPickWrap").classList.toggle("solo", keys.length < 2);
@@ -4122,7 +4128,8 @@ function openPicker(select) {
   const groups = [...select.querySelectorAll("optgroup")];
   pickFor = select;
   $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
-  $("pickList").innerHTML = groups.length ? groups.map((g) => `<div class="pickgroup">${esc(g.label)}</div>${[...g.children].map(row).join("")}`).join("") : [...select.options].map(row).join("");
+  // In the menu's own order: a choice outside every group (Favorites, above the countries) is listed where it stands.
+  $("pickList").innerHTML = groups.length ? [...select.children].map((node) => node.tagName === "OPTGROUP" ? `<div class="pickgroup">${esc(node.label)}</div>${[...node.children].map(row).join("")}` : row(node)).join("") : [...select.options].map(row).join("");
   markHeader();
   $("pickSheet").showModal();
   const now = $("pickList").querySelector('[aria-current="true"]');
