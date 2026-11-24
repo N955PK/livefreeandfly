@@ -9,7 +9,10 @@ from tahoe_snow.sources import openmeteo
 
 SHARED = {"pico": "killington", "tuckerman": "wildcat", "mountsnow": "stratton",
           "alpine": "palisades", "boreal": "sugarbowl", "castle": "sugarbowl", "roundtop": "kirkwood",
-          "jakes": "tallac", "carsonpeak": "june", "sherwins": "mammoth", "alpental": "snoqualmie"}
+          "jakes": "tallac", "carsonpeak": "june", "sherwins": "mammoth", "alpental": "snoqualmie",
+          "smugglers": "stowe", "bolton": "stowe", "mansfield": "stowe", "madriverglen": "sugarbush",
+          "bromley": "stratton", "magic": "stratton", "cannon": "loon", "waterville": "loon",
+          "cranmore": "attitash", "blackmountain": "attitash"}
 
 
 def km(a, b) -> float:
@@ -91,7 +94,7 @@ def test_the_members_are_asked_for_at_the_height_their_parents_were(monkeypatch)
 
 def test_a_shared_mountain_costs_no_calls():
     newengland = {"newengland": config.REGIONS["newengland"]}
-    assert usage.pulls("newengland") == len(config.resorts_in("newengland")) - 3 == 12
-    assert round(usage.planned(newengland)) == round(12 * 2 * usage.resort_run_calls("newengland"))
-    assert usage.estimate([], "newengland") == round(12 * usage.resort_run_calls("newengland"), 1)
+    assert usage.pulls("newengland") == len(config.resorts_in("newengland")) - 13 == 16
+    assert round(usage.planned(newengland)) == round(16 * 2 * usage.resort_run_calls("newengland"))
+    assert usage.estimate([], "newengland") == round(16 * usage.resort_run_calls("newengland"), 1)
     assert (usage.pulls("tahoe"), usage.pulls("mammoth"), usage.pulls("seattle")) == (9, 5, 12)

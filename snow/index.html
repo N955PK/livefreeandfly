@@ -1582,7 +1582,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "246";
+const BUILD = "247";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1632,9 +1632,9 @@ const REGIONS = {
     // across a phone.
     // The land reaches the sea, so no ground is raised to a floor, and level ground at any height is water.
     discKm: 190, zoom: 3.9, turnDeg: -30, look: [44.1, -71.94], floorM: 0, lowlandM: 0,
-    areas: [{key: "vermont", name: "Vermont", mountains: ["stowe", "sugarbush", "killington", "pico", "okemo", "stratton", "mountsnow"]},
-      {key: "newhampshire", name: "New Hampshire", short: "N.H.", mountains: ["loon", "wildcat", "attitash", "tuckerman", "sunapee", "crotched"]},
-      {key: "maine", name: "Maine", mountains: ["sugarloaf", "sundayriver"]}],
+    areas: [{key: "vermont", name: "Vermont", mountains: ["jaypeak", "burke", "smugglers", "stowe", "mansfield", "bolton", "madriverglen", "sugarbush", "killington", "pico", "okemo", "bromley", "magic", "stratton", "mountsnow"]},
+      {key: "newhampshire", name: "New Hampshire", short: "N.H.", mountains: ["cannon", "brettonwoods", "loon", "waterville", "wildcat", "tuckerman", "blackmountain", "attitash", "cranmore", "sunapee", "crotched"]},
+      {key: "maine", name: "Maine", mountains: ["sugarloaf", "saddleback", "sundayriver"]}],
     // Forest to about 1,300 m, then bare rock on the few summits above it.
     land: [[0, [0.42, 0.50, 0.32]], [400, [0.30, 0.43, 0.28]], [900, [0.21, 0.37, 0.26]], [1250, [0.27, 0.40, 0.30]],
       [1450, [0.55, 0.53, 0.48]], [1800, [0.70, 0.68, 0.65]]],

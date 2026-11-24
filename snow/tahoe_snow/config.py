@@ -249,6 +249,44 @@ RESORTS = {
                region="newengland"),
         Resort("crotched", "Crotched", 43.00708, -71.8781, _ft(1050), _ft(2066), None, "Epic",
                region="newengland"),
+        # The rest of New England's larger mountains (looked up 2026-11-24). Each point is the midpoint of a main
+        # lift in OpenStreetMap, checked against the USGS elevation service; for Cannon, Bretton Woods and
+        # Saddleback it is the lift from the base, since the one to the top starts mid-mountain. Elevations are the
+        # resort's own or the Indy Pass's figures, except where those do not match the ground: Jay Peak's summit is
+        # its tram's top, Bolton Valley's base is the Timberline lift's, and Saddleback, Cranmore and Black
+        # Mountain's summit are read at the ends of their lifts. Most take a neighbour's weather; Jay Peak, Burke,
+        # Bretton Woods and Saddleback have no neighbour near enough and ask for their own.
+        Resort("jaypeak", "Jay Peak", 44.93161, -72.51601, _ft(1815), _ft(3823), None, "Indy",
+               region="newengland"),
+        Resort("smugglers", "Smugglers' Notch", 44.56721, -72.76681, _ft(1030), _ft(3640), None, "Indy",
+               region="newengland", weather_from="stowe"),               # 4.5 km from Stowe
+        Resort("bolton", "Bolton Valley", 44.41768, -72.84166, _ft(1560), _ft(3150), None, "Indy",
+               region="newengland", weather_from="stowe"),               # 13 km from Stowe
+        Resort("madriverglen", "Mad River Glen", 44.19682, -72.92455, _ft(1600), _ft(3637), None, "Independent",
+               region="newengland", weather_from="sugarbush"),           # 7 km from Sugarbush
+        Resort("burke", "Burke", 44.57798, -71.89843, _ft(1210), _ft(3267), None, "Indy",
+               region="newengland"),
+        Resort("bromley", "Bromley", 43.22020, -72.93758, _ft(1950), _ft(3284), None, "Independent",
+               region="newengland", weather_from="stratton"),            # 13 km from Stratton
+        Resort("magic", "Magic Mountain", 43.19703, -72.76516, _ft(1350), _ft(2850), None, "Indy",
+               region="newengland", weather_from="stratton"),            # 16 km from Stratton
+        Resort("cannon", "Cannon", 44.17026, -71.69910, _ft(1900), _ft(4080), None, "Indy",
+               region="newengland", weather_from="loon"),                # 15 km from Loon
+        Resort("waterville", "Waterville Valley", 43.96268, -71.53846, _ft(1820), _ft(3840), None, "Indy",
+               region="newengland", weather_from="loon"),                # 12 km from Loon
+        Resort("brettonwoods", "Bretton Woods", 44.25233, -71.46541, _ft(1600), _ft(3100), None, "Independent",
+               region="newengland"),
+        # Cranmore gives two days on the full Ikon pass only, so it is not counted as an Ikon mountain.
+        Resort("cranmore", "Cranmore", 44.05756, -71.10110, _ft(553), _ft(1667), None, "Independent",
+               region="newengland", weather_from="attitash"),            # 10 km from Attitash
+        Resort("blackmountain", "Black Mountain", 44.17199, -71.16709, _ft(1250), _ft(2258), None, "Indy",
+               region="newengland", weather_from="attitash"),            # 12 km from Attitash
+        Resort("saddleback", "Saddleback", 44.94152, -70.52148, _ft(2143), _ft(4002), None, "Indy",
+               region="newengland"),
+        # Mt. Mansfield above Stowe's lifts: the point and top are the summit (the Chin), and the base is the Hell
+        # Brook trailhead on Route 108. No avalanche center forecasts it.
+        Resort("mansfield", "Mt. Mansfield", 44.54395, -72.81431, 560, 1339, None, "Backcountry",
+               region="newengland", kind="backcountry", weather_from="stowe"),     # 1.5 km from Stowe
         # Tuckerman Ravine, on Mt. Washington: the skiing is in the ravine, not on the 6,288 ft summit above it. The
         # point is the ravine (OpenStreetMap), the top is the lip of the headwall, where a profile of the ground
         # toward the summit eases from 45 degrees, and the base is the Pinkham Notch trailhead; heights are read
