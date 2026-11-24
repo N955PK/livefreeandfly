@@ -17,7 +17,7 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icon
   'data/terrain-shasta.json', 'data/terrain-shasta.bin', 'data/roads-shasta.json',
   'data/terrain-okanagan.json', 'data/terrain-okanagan.bin', 'data/roads-okanagan.json',
   'data/terrain-bccoast.json', 'data/terrain-bccoast.bin', 'data/roads-bccoast.json',
-  'data/terrain-quebec.json', 'data/terrain-quebec.bin',
+  'data/terrain-quebec.json', 'data/terrain-quebec.bin', 'data/roads-quebec.json',
   'data/terrain-powderhighway.json', 'data/terrain-powderhighway.bin', 'data/roads-powderhighway.json',
   'data/terrain-eastkootenays.json', 'data/terrain-eastkootenays.bin', 'data/roads-eastkootenays.json',
   'data/terrain-rockies.json', 'data/terrain-rockies.bin', 'data/roads-rockies.json'];
