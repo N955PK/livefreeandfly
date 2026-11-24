@@ -51,7 +51,7 @@ def fixture_feed(name: str) -> dict:
 
 
 def test_the_new_england_resorts_are_read_from_their_own_sites_under_their_mountain_keys():
-    assert {"stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched", "parkcity"} <= set(resort_status.RESORTS)
+    assert {"stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched", "parkcity", "vail", "beavercreek", "breckenridge", "keystone", "crestedbutte"} <= set(resort_status.RESORTS)
     assert resort_status.RESORTS["stowe"][1] == "www.stowe.com"
     assert resort_status.RESORTS["sunapee"][2] == "lift-and-terrain-status.aspx"
 

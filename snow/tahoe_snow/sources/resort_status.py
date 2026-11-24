@@ -1,5 +1,5 @@
 """Lift and trail status from Vail's resorts' own status pages: Heavenly, Northstar, Kirkwood, in New England
-Stowe, Okemo, Mount Snow, Wildcat, Attitash, Mount Sunapee and Crotched, Stevens Pass near Seattle, and Park City in Utah.
+Stowe, Okemo, Mount Snow, Wildcat, Attitash, Mount Sunapee and Crotched, Stevens Pass near Seattle, Park City in Utah, and Vail, Beaver Creek, Breckenridge, Keystone and Crested Butte in Colorado.
 
 Each resort's lift and terrain status page carries its feed as a JSON literal in the page source. The sites
 reject plain HTTP clients, so the page is read with curl_cffi, which presents a browser TLS fingerprint.
@@ -31,6 +31,11 @@ RESORTS = {
     "crotched": ("Crotched", "www.crotchedmtn.com", LIFT_AND_TERRAIN),
     "stevens": ("Stevens Pass", "www.stevenspass.com", LIFT_AND_TERRAIN),
     "parkcity": ("Park City", "www.parkcitymountain.com", TERRAIN_AND_LIFT),
+    "vail": ("Vail", "www.vail.com", TERRAIN_AND_LIFT),
+    "beavercreek": ("Beaver Creek", "www.beavercreek.com", TERRAIN_AND_LIFT),
+    "breckenridge": ("Breckenridge", "www.breckenridge.com", TERRAIN_AND_LIFT),
+    "keystone": ("Keystone", "www.keystoneresort.com", TERRAIN_AND_LIFT),
+    "crestedbutte": ("Crested Butte", "www.skicb.com", LIFT_AND_TERRAIN),
 }
 URL = "https://{host}/the-mountain/mountain-conditions/{page}"
 # Pages read at once, and how long one may take: the collector passes every five minutes, so a pass over all of
