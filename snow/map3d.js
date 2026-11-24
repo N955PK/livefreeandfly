@@ -7,6 +7,10 @@ import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 const EXAGGERATION = 2.7;
 const STAKE_KM_PER_IN = 0.16;
 const STAKE_RADIUS = 0.7;
+// A stake comes to a point under its body, this many of its radii long, and floats this far over the highest ground
+// within its reach, so its tip marks the spot without sinking into the slope.
+const STAKE_TIP_RADII = 2.2;
+const STAKE_GAP_KM = 0.3;
 const FLAKES = 9000;
 const WHITEN_AT_IN = 5;
 const BIN_M = 50;
@@ -573,14 +577,26 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const fillMaterial = new THREE.MeshStandardMaterial({color: 0x2a78d6, roughness: 0.4, emissive: 0x0d366b, emissiveIntensity: 0.5});
   const pickMaterial = new THREE.MeshStandardMaterial({color: 0xffffff, roughness: 0.4, emissive: 0x2a78d6, emissiveIntensity: 0.9});
   const unit = new THREE.CylinderGeometry(STAKE_RADIUS * sizeUp, STAKE_RADIUS * sizeUp, 1, 20).rotateX(Math.PI / 2).translate(0, 0, 0.5);
+  const tipLength = STAKE_RADIUS * STAKE_TIP_RADII * sizeUp, gap = STAKE_GAP_KM * sizeUp;
+  const tip = new THREE.ConeGeometry(STAKE_RADIUS * sizeUp, tipLength, 20).rotateX(-Math.PI / 2).translate(0, 0, -tipLength / 2);
+  // The highest ground within a stake's reach of its spot (a summit on the coarse grid can stand off its cell).
+  const groundUnder = (x, y) => {
+    const reach = STAKE_RADIUS * sizeUp * 1.5, dc = W / (columns - 1), dr = H / (rows - 1);
+    const c0 = Math.max(0, Math.floor((x - reach) / dc + (columns - 1) / 2)), c1 = Math.min(columns - 1, Math.ceil((x + reach) / dc + (columns - 1) / 2));
+    const r0 = Math.max(0, Math.floor((rows - 1) / 2 - (y + reach) / dr)), r1 = Math.min(rows - 1, Math.ceil((rows - 1) / 2 - (y - reach) / dr));
+    let top = -Infinity;
+    for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) top = Math.max(top, positions[3 * (r * columns + c) + 2]);
+    return top;
+  };
   // A label counts as chosen only on a clean tap: a press that wanders more than a few pixels before it lifts (a drag
   // of the map begun on a label, a mouse dragged off and back) chooses nothing. The keyboard's Enter always chooses.
   let pressAt = null;
   const items = data.resorts.map((r, n) => {
-    const x = xOf(r.lon), y = yOf(r.lat), z = zOf(heightAt(r.lat, r.lon));
-    const ghost = new THREE.Mesh(unit, ghostMaterial), fill = new THREE.Mesh(unit, fillMaterial);
-    ghost.position.set(x, y, z); fill.position.set(x, y, z);
-    stakes.add(ghost, fill);
+    // The body stands on its point, which hangs just over the ground.
+    const x = xOf(r.lon), y = yOf(r.lat), z = Math.max(zOf(heightAt(r.lat, r.lon)), groundUnder(x, y)) + gap + tipLength;
+    const ghost = new THREE.Mesh(unit, ghostMaterial), fill = new THREE.Mesh(unit, fillMaterial), point = new THREE.Mesh(tip, fillMaterial);
+    ghost.position.set(x, y, z); fill.position.set(x, y, z); point.position.set(x, y, z);
+    stakes.add(ghost, fill, point);
     const label = document.createElement("button");
     label.className = "map-label";
     label.addEventListener("pointerdown", (e) => { pressAt = {x: e.clientX, y: e.clientY}; });
@@ -592,7 +608,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     overlay.appendChild(label);
     // The snow on the ground now, where the mountain's sensor measures it; null where none does.
     const ground = r.observed && r.observed.depth_in != null ? r.observed.depth_in : null;
-    return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", ground, x, y, z, ghost, fill, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
+    return {key: r.key, name: r.name, backcountry: r.kind === "backcountry", ground, x, y, z, ghost, fill, point, label, n, top: new THREE.Vector3(), width: 80, tall: 40};
   });
   // A region with no lake to name has no lake label.
   const lake = region.lake ? document.createElement("div") : null;
@@ -740,7 +756,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       item.ghost.visible = all - value > 0.05;
       item.ghost.position.z = item.z + item.fill.scale.z;
       item.ghost.scale.z = Math.max(0.02, (all - value) * STAKE_KM_PER_IN);
-      item.fill.material = item.key === picked ? pickMaterial : fillMaterial;
+      item.fill.material = item.point.material = item.key === picked ? pickMaterial : fillMaterial;
       const more = all - value;
       // The number is the snow on the ground now, where a sensor measures it; under it the storm plays: what has
       // fallen by the time shown and what is still to come. With no depth measured the storm's snow is the number.
