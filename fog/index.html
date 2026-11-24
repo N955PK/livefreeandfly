@@ -13,7 +13,7 @@
 :root{
   --bg:#0a0e13; --ink:#e9edf1; --dim:#8B959E; --line:rgba(233,237,241,.14);
   --accent:#A31F34;
-  --v0:#ff5c39; --v1:#ffa32e; --v2:#e8d34f; --v3:#39d0a4; --vna:#5a6672;
+  --v0:#ff5c39; --v1:#ffa32e; --vna:#5a6672;
   --vfr:#39d07f; --mvfr:#3aa8ff; --ifr:#ff4d4d; --lifr:#d95ce8;
   --glass:rgba(16,22,29,.6);
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
@@ -37,10 +37,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-r
   background:rgba(10,14,19,.72);border:1px solid var(--line);border-radius:5px;padding:1.5px 5px;white-space:nowrap;
   text-shadow:0 1px 2px #000}
 .mk.cam svg{width:15px;height:15px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
-.mk.v0 i{background:var(--v0)} .mk.v1 i{background:var(--v1)} .mk.v2 i{background:var(--v2)}
-.mk.v3 i{background:var(--v3)} .mk.vna i{background:var(--vna)}
-.mk.v0 svg{color:var(--v0)} .mk.v1 svg{color:var(--v1)} .mk.v2 svg{color:var(--v2)}
-.mk.v3 svg{color:var(--v3)} .mk.vna svg{color:var(--vna)}
+.mk.apt::before{content:"";position:absolute;inset:-11px -6px}   /* finger-sized hit area */
+.mk.vna i{background:var(--vna)} .mk.vna svg{color:var(--vna)}
 .mk.vfr i{background:var(--vfr)} .mk.mvfr i{background:var(--mvfr)}
 .mk.ifr i{background:var(--ifr)} .mk.lifr i{background:var(--lifr)}
 .mk.vfr svg{color:var(--vfr)} .mk.mvfr svg{color:var(--mvfr)}
@@ -54,7 +52,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-r
 
 /* ---- header ---- */
 header{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;
-  padding:calc(10px + env(safe-area-inset-top)) 14px 24px;background:linear-gradient(rgba(10,14,19,.72),rgba(10,14,19,0));
+  padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 24px calc(14px + env(safe-area-inset-left));background:linear-gradient(rgba(10,14,19,.72),rgba(10,14,19,0));
   pointer-events:none;transition:opacity .45s}
 header .brand,#status{pointer-events:auto}
 .brand{font-family:var(--mono);font-size:14px;letter-spacing:.08em}
@@ -71,7 +69,7 @@ header .brand,#status{pointer-events:auto}
 #frameSub{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:3px;letter-spacing:.03em}
 
 /* ---- dock ---- */
-#dock{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:5;
+#dock{position:absolute;left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));z-index:5;
   background:var(--glass);backdrop-filter:blur(16px) saturate(1.25);-webkit-backdrop-filter:blur(16px) saturate(1.25);
   border:1px solid var(--line);border-radius:16px;padding:10px 12px 9px;transition:opacity .45s;max-width:880px;margin:0 auto}
 .row{display:flex;align-items:center;gap:9px}
@@ -103,11 +101,13 @@ header .brand img{height:30px;width:auto;display:block}
   #segTime{grid-column:1/-1}
   #row2 .dock-label{justify-self:start;margin:0}
   #row2 .seg{display:flex;width:100%}
-  #row2 .seg button{flex:1;padding:7px 4px;text-align:center}
+  #row2 .seg button{flex:1;padding:7px 4px;text-align:center;min-height:36px}
+  .icon-btn{width:36px;height:36px}
 }
+#dayChips{flex:1 1 100%;overflow-x:auto;scrollbar-width:none} #dayChips::-webkit-scrollbar{display:none}
+#dayChips button{flex:0 0 auto}
 body.now #ruler,body.now #playBtn svg{opacity:.35}
 body.now #ruler{pointer-events:none}
-.spacer{flex:1}
 .dock-label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.14em;margin-right:-3px}
 #hourSel{flex:1;min-width:80px;accent-color:var(--accent);height:22px}
 body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
@@ -121,17 +121,18 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
 #resetView{position:absolute;top:calc(78px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;
   font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--ink);background:var(--glass);border:1px solid var(--line);
   border-radius:999px;padding:7px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;transition:opacity .45s}
-#toast{position:absolute;bottom:132px;left:50%;transform:translateX(-50%);z-index:8;font-family:var(--mono);font-size:11.5px;
+#toast{position:absolute;bottom:calc(var(--dockH,114px) + 18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:8;font-family:var(--mono);font-size:11.5px;
   background:rgba(20,26,33,.92);border:1px solid var(--line);border-radius:10px;padding:9px 14px;opacity:0;pointer-events:none;
   transition:opacity .3s;max-width:86vw;text-align:center}
 #toast.show{opacity:1}
 
 /* ---- detail card ---- */
-#card{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom));z-index:6;
+#card{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--dockH,114px) + 18px + env(safe-area-inset-bottom));z-index:6;
+  max-height:calc(100% - var(--dockH,114px) - 34px - env(safe-area-inset-bottom) - env(safe-area-inset-top));overflow-y:auto;
   width:min(400px,calc(100vw - 20px));background:#10161d;border:1px solid var(--line);border-radius:14px;padding:13px 14px;
   display:none;box-shadow:0 10px 40px rgba(0,0,0,.55)}
 #card.open{display:block}
-#card h3{font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;padding-right:26px}
+#card h3{font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;padding-right:34px}
 #card .sub{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px}
 #card .big{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:9px;display:flex;align-items:center;gap:7px}
 #card .big i{width:9px;height:9px;border-radius:50%;display:inline-block}
@@ -139,15 +140,16 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
 #card .grid b{color:var(--ink);font-weight:600}
 #card img{width:100%;border-radius:9px;margin-top:10px;background:#0a0e13;min-height:120px}
 #card .foot{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:8px;display:flex;justify-content:space-between;align-items:center}
-#cardX{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);color:var(--dim);font-size:12px;line-height:1}
-#camRefresh,#camBig{font-family:var(--mono);font-size:10px;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+#cardX{position:absolute;top:6px;right:6px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);color:var(--dim);font-size:12px;line-height:1}
+#camRefresh,#camBig{font-family:var(--mono);font-size:10px;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:7px 12px}
 #camBig{margin-right:8px}
 
 /* ---- veil / info ---- */
 #veil{position:absolute;inset:0;z-index:10;background:var(--bg);display:grid;place-items:center;overflow:hidden;
   transition:opacity .7s,background-color .8s}
 #veil.peek{background:rgba(10,14,19,.55)}
-#veil.gone{opacity:0;pointer-events:none}
+#veil.gone{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .7s,background-color .8s,visibility 0s .7s}
+#veil.gone .fogblob{animation-play-state:paused}
 .fogblob{position:absolute;width:130vmax;height:130vmax;border-radius:50%;pointer-events:none}
 .fogblob.a{background:radial-gradient(circle at 35% 45%,rgba(139,152,165,.16),transparent 55%);animation:drift 26s ease-in-out infinite alternate}
 .fogblob.b{background:radial-gradient(circle at 65% 55%,rgba(233,237,241,.09),transparent 50%);animation:drift 34s ease-in-out infinite alternate-reverse}
@@ -174,7 +176,7 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
 #infoCard a{color:var(--ink)}
 #infoCard .keys{font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.9}
 #infoClose{position:sticky;float:right;top:0;font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
-@media (max-width:560px){#frameTime{font-size:15px} #dock{left:8px;right:8px}}
+@media (max-width:560px){#frameTime{font-size:15px} #dock{left:calc(8px + env(safe-area-inset-left));right:calc(8px + env(safe-area-inset-right))}}
 @media (min-width:900px){#card{width:min(680px,80vw)} #card img{max-height:60vh;object-fit:contain;background:#0a0e13}}
 #lightbox{position:absolute;inset:0;z-index:40;background:rgba(10,14,19,.95);display:none;place-items:center}
 #lightbox.open{display:grid}
@@ -251,7 +253,7 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
   <div id="veil">
     <div class="fogblob a"></div><div class="fogblob b"></div>
     <div class="inner">
-      <div class="brand"><span id="brandA">fog</span><span class="slash">/</span>map</div>
+      <div class="brand"><span>fog</span><span class="slash">/</span>map</div>
       <div id="loadMsg">contacting GOES-West…</div>
       <div id="bar"><i></i></div>
       <div id="errBox"><p id="errTxt"></p><button id="retryBtn">RETRY</button></div>
@@ -265,10 +267,10 @@ body.zen #dock,body.zen #resetView{opacity:0;pointer-events:none}
     <h2>fog<span class="slash">/</span>map</h2>
     <p>A live loop of <b>fog and low cloud along the entire West Coast</b> — Washington, Oregon, and California — from NOAA's <b>GOES-18 (GOES-West)</b> satellite's Pacific U.S. scan. New frames arrive about every 5 minutes; the page refreshes itself. <b>GeoColor</b> shows natural color by day and infrared at night; <b>IR</b> is the 3.9&nbsp;µm shortwave band forecasters use to find fog in the dark.</p>
     <p><b>Airports</b> show live visibility from official aviation weather reports — dots are colored by <b>flight category</b> from the live report — <span style="color:var(--vfr)">VFR</span>, <span style="color:var(--mvfr)">MVFR</span>, <span style="color:var(--ifr)">IFR</span>, <span style="color:var(--lifr)">LIFR</span> (ceiling and visibility combined, standard aviation thresholds). Tap one for the full report. <b>Webcams</b> are ridge-top sky cameras from the ALERTCalifornia / ALERTWest network — each icon is a wedge rotated to the camera's live pointing direction (zooming in reveals more cameras) — mountaintop views over the marine layer and valley fog — tinted by the visibility at the nearest reporting airport; tap for the live image.</p>
-    <p><b>Imagery engine:</b> frames stream as <b>map tiles from CIRA's SLIDER service</b> — only the pixels in your viewport download, at the resolution your zoom needs, up to the satellite's native ½&nbsp;km. Zoom in <i>while the loop plays</i> and it sharpens automatically; replay reaches as far back as the tile archive holds (typically ~2–3 weeks). If the tile service is unreachable, the app falls back to NOAA's whole-frame feed.</p>
+    <p><b>Imagery engine:</b> frames stream as <b>map tiles from CIRA's SLIDER service</b> — only the pixels in your viewport download, at the resolution your zoom needs, up to the satellite's native ½&nbsp;km. Zoom in <i>while the loop plays</i> and it sharpens automatically; replay reaches back about two weeks through the tile archive. If the tile service is unreachable, the app falls back to NOAA's whole-frame feed.</p>
     <p><b>fire/west:</b> the <b>Fire</b> view switches the imagery to the Fire Temperature RGB (hotspots glow through smoke), and the 🔥 layer overlays official <b>NIFC/WFIGS</b> incidents — flame size by acreage, red = active, amber = mostly contained — with fire perimeters outlined where published. Tap a flame for acres, containment, and discovery date. Smoke itself is visible directly in GeoColor imagery.</p>
     <p><b>Resolution:</b> the tile engine streams whatever your zoom needs automatically, up to ½&nbsp;km. If the app ever falls back to the legacy whole-frame feed, that loop runs at 1&nbsp;km with pause-to-sharpen up to ½&nbsp;km.</p>
-    <p><b>Outlook</b> switches the timeline to the <b>next 18 hours</b> and paints a <b>forecast fog picture</b> on the map: bright white where NOAA's short-range models (NOAA HRRR (3&nbsp;km, hourly), via <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, CC BY 4.0) predict surface fog, and a soft gray wash where they predict the marine-layer / low-stratus deck. Drag the timeline to watch tonight's fog form and burn off before it happens. Airport dots recolor to the official NWS terminal-forecast (TAF) visibility as an independent cross-check, with an "FG" tag where fog is explicitly forecast — TAFs are only issued for larger fields, so some airports show gray. Forecasts are models, not measurements. The map-lines toggle draws <b>state and coast boundaries</b> over the raw satellite tiles (they're not baked into the imagery) in both WEST and USA views. In outlook, the <b>play button animates the forecast</b> — the fog field sweeps through the next 18 hours on a clean vector map. The live loop <b>preloads every frame at one uniform sharpness</b> before playback begins — a LOADING percentage counts up top-right; press ▶ to start early with progressive sharpening. <b>Current</b> pins the single newest frame — no playback, auto-advancing as new scans publish, rendered at the sharpest tile level your zoom allows. <b>Replay</b> re-runs actual imagery from NOAA's rolling archive (roughly the last 2–3 days) — pick a day and start hour. The <b>SAT switch</b> swaps between GOES-West's Pacific view (sharpest over the coast) and GOES-East's whole-country view; the two satellites photograph from different points in space, so each is shown in its own true perspective.</p>
+    <p><b>Outlook</b> switches the timeline to the <b>next 18 hours</b> and paints a <b>forecast fog picture</b> on the map: bright white where NOAA's short-range models (NOAA HRRR (3&nbsp;km, hourly), via <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, CC BY 4.0) predict surface fog, and a soft gray wash where they predict the marine-layer / low-stratus deck. Drag the timeline to watch tonight's fog form and burn off before it happens. Airport dots recolor to the official NWS terminal-forecast (TAF) visibility as an independent cross-check, with an "FG" tag where fog is explicitly forecast — TAFs are only issued for larger fields, so some airports show gray. Forecasts are models, not measurements. The map-lines toggle draws <b>state and coast boundaries</b> over the raw satellite tiles (they're not baked into the imagery) in both WEST and USA views. In outlook, the <b>play button animates the forecast</b> — the fog field sweeps through the next 18 hours on a clean vector map. The live loop <b>preloads every frame at one uniform sharpness</b> before playback begins — a LOADING percentage counts up top-right; press ▶ to start early with progressive sharpening. <b>Current</b> pins the single newest frame — no playback, auto-advancing as new scans publish, rendered at the sharpest tile level your zoom allows. <b>Replay</b> re-runs actual imagery from the tile archive (about the last two weeks) — pick a day and start hour. The <b>SAT switch</b> swaps between GOES-West's Pacific view (sharpest over the coast) and GOES-East's whole-country view; the two satellites photograph from different points in space, so each is shown in its own true perspective.</p>
     <p class="keys">pinch / scroll · zoom&nbsp;&nbsp;&nbsp;drag · pan<br>double-tap · zoom in / out&nbsp;&nbsp;&nbsp;tap map · hide / show controls<br>space · play / pause&nbsp;&nbsp;&nbsp;← → · step frames</p>
     <p>Imagery: NOAA / NESDIS &amp; <a href="https://rammb-slider.cira.colostate.edu/" target="_blank" rel="noopener">CIRA SLIDER</a> tiles (GeoColor by CIRA &amp; NOAA). Fire data: <a href="https://data-nifc.opendata.arcgis.com/" target="_blank" rel="noopener">NIFC WFIGS</a>. Weather: <a href="https://www.weather.gov/" target="_blank" rel="noopener">National Weather Service</a>. Cameras: Shelter Cove airport &amp; headlands cams by <a href="http://northcoastaviation.com/" target="_blank" rel="noopener">NorthCoastAviation</a> / Inn of the Lost Coast, and ridge-top sky cams from <a href="https://alertcalifornia.org/" target="_blank" rel="noopener">ALERTCalifornia | UC San Diego</a> via ALERTWest (many PG&amp;E-sponsored) — mountaintop views that show the fog deck from above. Informational only — not for navigation, aviation, or safety-of-life use. A West Coast homage to <a href="https://fog.today" target="_blank" rel="noopener">fog.today</a>.</p>
   </div></div>
@@ -294,11 +296,9 @@ let region='west', PROJ=REGIONS.west;
 const PRODUCTS={geo:{dir:'GEOCOLOR',token:'GEOCOLOR',label:'GeoColor'},
                 ir:{dir:'07',token:'07',label:'IR 3.9 µm'},
                 fire:{dir:'GEOCOLOR',token:'GEOCOLOR',label:'Fire Temperature'}};
-const BASE_W=2500, BASE_H=1500, HIRES_SCALE=2;
-const SIZE_PREF=[2500,1250,5000,625];
-let hd=true, hdPlus=false;              // legacy engine always runs 1 km
-function sizePrefs(){return (hd&&!hdPlus)?[5000,2500,1250,625]:SIZE_PREF;}
-function maxFrames(){return engine==='tiles'?MAXF:(hdPlus?12:hd?18:MAXF);}
+const BASE_W=2500, BASE_H=1500;
+const SIZE_PREF=[5000,2500,1250,625];   // legacy whole-frame engine: 1 km first
+function maxFrames(){return engine==='tiles'?MAXF:18;}
 const MAXF=30, HOLD_MS=1150, FPS={0.5:4.5,1:9,2:16};
 const IMG_REFRESH=5*60*1000, WX_REFRESH=10*60*1000;
 const HIRES_MIN_ZOOM=1.25;
@@ -446,13 +446,13 @@ function coastDistKm(lat,lon){
   return best;
 }
 /* ---------------- tiled imagery engine (CIRA SLIDER) ---------------- */
-const SLIDER_HOSTS=['https://rammb-slider.cira.colostate.edu','https://slider.cira.colostate.edu'];
+const SLIDER_HOSTS=['https://slider.cira.colostate.edu','https://rammb-slider.cira.colostate.edu'];   // the rammb- host only redirects now
 let sliderHost=SLIDER_HOSTS[0];
 const TPROD={geo:'geocolor',ir:'band_07',fire:'fire_temperature'};
 let engine='tiles';                      // 'tiles' | 'star' fallback
 let TILE={size:625,maxZ:4,ready:false};
 const tileCache=new Map();
-let tileQueue=[], tileActive=0;
+let tileQueue=[], tileActive=0, queueDirty=false;
 let tTimes=[], tTimesDeep=[], timesMode='json', scanSS=null;
 function sliderSat(){return PROJ.sat==='GOES18'?'goes-18':'goes-19';}
 function tprod(){return TPROD[mode]||'geocolor';}
@@ -483,31 +483,62 @@ function discoverSecondsAt(baseMs){
     setTimeout(()=>{if(!done)res(null);},9000);
   });
 }
+function saveSS(ss){scanSS=ss;
+  try{localStorage.setItem(ssCacheKey(),JSON.stringify({ss,at:Date.now()}));}catch(e){}}
+async function ssValid(ss){   // the scan second drifts every few days: never trust a cached one unprobed
+  for(let k=1;k<=3;k++)if(await tileProbe(stampFor(recentScanMinute(k),ss),0))return true;
+  return false;
+}
 async function discoverSeconds(){
   if(scanSS!=null)return scanSS;
-  try{const c=JSON.parse(localStorage.getItem(ssCacheKey())||'null');
-    if(c&&Date.now()-c.at<36*3600000){scanSS=c.ss;return scanSS;}}catch(e){}
+  let c=null;
+  try{c=JSON.parse(localStorage.getItem(ssCacheKey())||'null');}catch(e){}
+  if(c&&Date.now()-c.at<36*3600000&&await ssValid(c.ss)){scanSS=c.ss;return scanSS;}
   for(let k=0;k<3;k++){
     const found=await discoverSecondsAt(recentScanMinute(k));
-    if(found!=null){
-      scanSS=found;
-      try{localStorage.setItem(ssCacheKey(),JSON.stringify({ss:found,at:Date.now()}));}catch(e){}
-      return found;
-    }
+    if(found!=null){saveSS(found);return found;}
   }
   throw 0;
+}
+/* synth stamps guess one scan second for every frame; when a frame's base tile 404s,
+   look for it a second or two either side and remember what worked */
+const ssFix=new Map(), ssTried=new Map();
+let fixChain=Promise.resolve();
+function fixStamp(st){
+  if(timesMode!=='synth')return;
+  const f=frames.find(x=>x.stamp===st)||tailPending.find(x=>x.stamp===st);
+  if(!f||Date.now()-(ssTried.get(f.t)||0)<4*60000)return;
+  ssTried.set(f.t,Date.now());
+  const sat=region, prod=tprod();
+  fixChain=fixChain.then(async()=>{
+    const ss0=+st.slice(12,14);
+    for(const d of [1,-1,2,-2]){
+      const ss=ss0+d; if(ss<0||ss>59)continue;
+      const st2=stampFor(f.t,ss);
+      const ok=await tileProbe(st2,0);
+      if(sat!==region||prod!==tprod()||f.stamp!==st)return;
+      if(!ok)continue;
+      f.stamp=st2; ssFix.set(f.t,ss);
+      if(ssFix.size>6000)ssFix.clear();
+      if(Date.now()-f.t<30*60000)saveSS(ss);          // the clock itself moved
+      reqTile(st2,0,0,0,0); reqBase(st2,5); scheduleDraw();
+      return;
+    }
+  }).catch(()=>{});
 }
 function synthTileTimes(deep){
   const ss=scanSS==null?0:scanSS;
   const n=deep?14*288:(8*12+10);
   const out=[];
   let t=recentScanMinute(0);
-  for(let i=0;i<n;i++,t-=5*60000)out.push({stamp:stampFor(t,ss),t});
+  for(let i=0;i<n;i++,t-=5*60000){const fx=ssFix.get(t);out.push({stamp:stampFor(t,fx==null?ss:fx),t});}
   out.reverse();
   if(deep)tTimesDeep=out; else tTimes=out;
   return out;
 }
+let jsonDeadUntil=0, ttKey='', ttAt=0;
 async function tileTimesJson(deep){
+  if(Date.now()<jsonDeadUntil)throw 0;       // SLIDER's JSON sends no CORS header: don't pay for it on every refresh
   const f=deep?'latest_times_5760.json':'latest_times.json';
   let lastErr=0;
   for(const host of SLIDER_HOSTS){
@@ -526,9 +557,17 @@ async function tileTimesJson(deep){
       return out;
     }catch(e){}
   }
+  jsonDeadUntil=Date.now()+6*3600000;
   throw lastErr||0;
 }
 async function tileTimes(deep){
+  const key=sliderSat()+tprod();
+  if(!deep&&ttKey===key&&Date.now()-ttAt<20000&&tTimes.length)return tTimes;
+  const out=await tileTimesRaw(deep);
+  if(!deep){ttKey=key;ttAt=Date.now();}
+  return out;
+}
+async function tileTimesRaw(deep){
   try{ return await tileTimesJson(deep); }
   catch(e){
     if(deep){
@@ -550,10 +589,11 @@ async function calibrateTiles(){
   const times=await tileTimes(false);
   if(times.length<2)throw 0;
   const st=times[times.length-2].stamp;
-  const t0=await tileProbe(st,0);
+  const zs=[5,4,3,2];
+  const [t0,...oks]=await Promise.all([tileProbe(st,0),...zs.map(z=>tileProbe(st,z))]);
   if(!t0)throw 0;
   TILE.size=t0.naturalWidth||625;
-  for(const z of [5,4,3,2]){ if(await tileProbe(st,z)){TILE.maxZ=z;break;} }
+  const zi=oks.findIndex(Boolean); if(zi>=0)TILE.maxZ=zs[zi];
   TILE.ready=true;
 }
 function spanCount(v,z){const sp=tileSpan(v,z);
@@ -589,11 +629,27 @@ function reqTile(st,z,r,c,pri){
     tileCache.delete(key);
   }
   tileCache.set(key,{ok:false,pending:true});
-  tileQueue.push({key,url:tileUrl(st,z,r,c),st,pri:pri||0});
+  tileQueue.push({key,url:tileUrl(st,z,r,c),st,z,r,c,pri:pri||0}); queueDirty=true;
   pumpTiles();
 }
+function cropSpan(z){return tileSpan({W:CROP.w,H:CROP.h,s:1,tx:0,ty:0},z);}
+function reqBase(st,pri){   // coarse z1 underlay, only the tiles the region's crop can show
+  const sp=cropSpan(1);
+  for(let r=sp.r0;r<=sp.r1;r++)for(let c=sp.c0;c<=sp.c1;c++)reqTile(st,1,r,c,pri);
+}
+let qSig='';
+function pruneTileQueue(v,z){   // drop queued tiles for a viewport / zoom level the user has left
+  const sp=tileSpan(v,z), sig=[z,loopZ,sp.r0,sp.r1,sp.c0,sp.c1].join();
+  if(sig===qSig)return; qSig=sig;
+  const zp=Math.max(0,z-2);
+  tileQueue=tileQueue.filter(q=>{
+    const keep=q.z<=1||q.z===zp||((q.z===z||q.z===loopZ)&&q.r>=sp.r0&&q.r<=sp.r1&&q.c>=sp.c0&&q.c<=sp.c1);
+    if(!keep)tileCache.delete(q.key);   // forget the pending marker so it can be asked for again
+    return keep;});
+}
 function pumpTiles(){
-  tileQueue.sort((a,b)=>a.pri-b.pri);
+  if(tileActive>=6||!tileQueue.length)return;
+  if(queueDirty){tileQueue.sort((a,b)=>a.pri-b.pri);queueDirty=false;}
   while(tileActive<6&&tileQueue.length){
     const q=tileQueue.shift(); tileActive++;
     const im=new Image(); im.decoding='async';
@@ -603,7 +659,9 @@ function pumpTiles(){
       trimTileCache();
       if(frames[idx]&&(frames[idx].stamp===q.st||tmode==='outlook'))scheduleDraw();
       pumpTiles();};
-    im.onerror=()=>{tileActive--;const e=tileCache.get(q.key);if(e){e.err=true;e.pending=false;e.at=Date.now();}pumpTiles();};
+    im.onerror=()=>{tileActive--;const e=tileCache.get(q.key);if(e){e.err=true;e.pending=false;e.at=Date.now();}
+      if(q.z<=1)fixStamp(q.st);
+      pumpTiles();};
     im.src=q.url;
   }
 }
@@ -651,6 +709,7 @@ function drawParent(st,z,r,c,wt,PADY,v){
 }
 function drawTiles(f,v){
   const z=pickZ(v), sp=tileSpan(v,z);
+  pruneTileQueue(v,z);
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
   let drew=false;
   for(let r=sp.r0;r<=sp.r1;r++)for(let c=sp.c0;c<=sp.c1;c++){
@@ -670,7 +729,7 @@ function prefetchAhead(v){
     for(let r=sp.r0;r<=sp.r1;r++)for(let c=sp.c0;c<=sp.c1;c++)reqTile(f.stamp,z,r,c,k+2);
   }
 }
-function resetTiles(){tileCache.clear();tileQueue.length=0;tailPending=[];lastGoodStamp=null;}
+function resetTiles(){tileCache.clear();tileQueue.length=0;tailPending=[];lastGoodStamp=null;qSig='';}
 let tailPending=[], lastGoodStamp=null;
 function sentinelKey(st){return st+'/0/0_0';}
 function gateTail(list){
@@ -690,7 +749,7 @@ function gateTail(list){
   return ready.length>=2?ready:list;
 }
 function promoteTail(st){
-  if(tmode!=='live')return;
+  if(tmode!=='live'&&tmode!=='now')return;
   const i=tailPending.findIndex(f=>f.stamp===st);
   if(i<0)return;
   const f=tailPending.splice(i,1)[0];
@@ -699,21 +758,20 @@ function promoteTail(st){
   frames.push(f); frames.sort((a,b)=>a.t-b.t);
   const cutoff=frames[frames.length-1].t-hours*3600000;
   while(frames.length>maxFrames()+6||(frames.length&&frames[0].t<cutoff)){frames.shift();idx=Math.max(0,idx-1);}
-  if(wasLast)idx=frames.length-1;
-  for(let r=0;r<2;r++)for(let c=0;c<2;c++)reqTile(f.stamp,1,r,c,5);
-  buildRuler(); syncHUD();
+  if(wasLast||tmode==='now')idx=frames.length-1;
+  reqBase(f.stamp,5);
+  buildRuler(); syncHUD(); scheduleDraw();
 }
 function warmLoopBase(){
   if(engine!=='tiles')return;
-  for(const f of frames)
-    for(let r=0;r<2;r++)for(let c=0;c<2;c++)reqTile(f.stamp,1,r,c,6);
+  for(const f of frames)reqBase(f.stamp,6);
   if(loopZ!=null&&loopZ>1){
     const v=view(), sp=tileSpan(v,loopZ);
     for(const f of frames)
       for(let r=sp.r0;r<=sp.r1;r++)for(let c=sp.c0;c<=sp.c1;c++)reqTile(f.stamp,loopZ,r,c,4);
   }
 }
-let warming=false, warmPct=0, autoResume=false, loopZ=null, rewarmT=null;
+let warming=false, warmPct=0, autoResume=false, loopZ=null, rewarmT=null, warmRun=0;
 function pickLoopZ(v){
   const need=v.s*Math.min(devicePixelRatio||1,2.2)*0.55;
   let z=Math.ceil(Math.log2(Math.max(1e-6,need*BASE_W/TILE.size)));
@@ -722,34 +780,37 @@ function pickLoopZ(v){
   return z;
 }
 async function warmLoop(){
-  if(engine!=='tiles'||!TILE.ready||tmode!=='live'||!frames.length)return;
-  const v=view(), z=pickLoopZ(v), sp=tileSpan(v,z);
-  loopZ=z;
-  const keys=[];
-  for(const f of frames)
-    for(let r=sp.r0;r<=sp.r1;r++)for(let c=sp.c0;c<=sp.c1;c++){
-      reqTile(f.stamp,z,r,c,4);
-      keys.push(tKey(f.stamp,z,r,c));
+  const run=++warmRun;                       // a newer warm-up (pan, reload) supersedes this one
+  if(engine==='tiles'&&TILE.ready&&tmode==='live'&&frames.length){
+    const v=view(), z=pickLoopZ(v), sp=tileSpan(v,z);
+    loopZ=z;
+    const keys=[];
+    for(const f of frames)
+      for(let r=sp.r0;r<=sp.r1;r++)for(let c=sp.c0;c<=sp.c1;c++){
+        reqTile(f.stamp,z,r,c,4);
+        keys.push(tKey(f.stamp,z,r,c));
+      }
+    warming=true; warmPct=0;
+    const t0=Date.now();
+    while(Date.now()-t0<45000&&tmode==='live'){
+      let done=0;
+      for(const k of keys){const e=tileCache.get(k); if(!e||e.ok||e.err)done++;}   // pruned counts as done
+      warmPct=keys.length?done/keys.length:1;
+      syncHUD();
+      if(done>=keys.length)break;
+      await new Promise(r=>setTimeout(r,250));
+      if(run!==warmRun)return;
     }
-  warming=true; warmPct=0;
-  const t0=Date.now();
-  while(Date.now()-t0<45000){
-    let done=0;
-    for(const k of keys){const e=tileCache.get(k); if(e&&(e.ok||e.err))done++;}
-    warmPct=keys.length?done/keys.length:1;
-    syncHUD();
-    if(done>=keys.length)break;
-    await new Promise(r=>setTimeout(r,250));
+    warming=false; syncHUD();
   }
-  warming=false; syncHUD(); draw();
+  if(autoResume&&tmode==='live'){autoResume=false;setPlaying(true);}
+  else draw();
 }
 function startSharpLoad(){
   if(engine!=='tiles'||tmode!=='live'||reduceMotion)return;
   setPlaying(false);
   autoResume=true;
-  warmLoop().then(()=>{
-    if(autoResume&&tmode==='live'){autoResume=false;setPlaying(true);}
-  });
+  warmLoop();
 }
 let drawQueued=false;
 function scheduleDraw(){
@@ -782,7 +843,7 @@ async function listFrames(){
     if(!byTs.has(ts)) byTs.set(ts,{}); byTs.get(ts)[+size]=file;}
   if(!byTs.size) throw new Error('empty listing');
   sizesAvail=[...sizes];
-  const size=sizePrefs().find(s=>sizes.has(s))||[...sizes].sort((a,b)=>b-a)[0];
+  const size=SIZE_PREF.find(s=>sizes.has(s))||[...sizes].sort((a,b)=>b-a)[0];
   lastListing=[...byTs.entries()].filter(([,f])=>f[size])
     .map(([ts,f])=>({t:tsToMs(ts),stamp:ts,url:baseUrl()+f[size]}))
     .sort((a,b)=>a.t-b.t);
@@ -838,7 +899,6 @@ async function reload(fullVeil){
     try{ await calibrateTiles(); }
     catch(e){ engine='star'; toast('tile server fully unreachable — legacy imagery mode'); }
     if(run!==loadRun)return;
-    syncEngineUI();
   }
   if(engine==='tiles'){
     try{
@@ -847,14 +907,14 @@ async function reload(fullVeil){
       let list=windowed(times);
       if(tmode==='live'||tmode==='now')list=gateTail(list);
       if(list.length<2)throw 0;
-      frames=list; idx=frames.length-1;
+      frames=list; idx=frames.length-1; liveAt=Date.now();
       warmLoopBase();
       buildRuler(); syncHUD(); draw(); hideVeil();
       startSharpLoad();
       holdUntil=performance.now()+600;
     }catch(e){
       if(run!==loadRun)return;
-      engine='star'; syncEngineUI();
+      engine='star';
       toast('tile times unavailable — legacy imagery mode');
       reloadStar(fullVeil,run);
     }
@@ -862,7 +922,6 @@ async function reload(fullVeil){
   }
   reloadStar(fullVeil,run);
 }
-function syncEngineUI(){}
 async function reloadStar(fullVeil,run){
   try{
     if(fullVeil&&!frames.length)
@@ -879,7 +938,7 @@ async function reloadStar(fullVeil,run){
     if(ok.length<3&&usedSynth){ok=await preload(windowed(synthFrames(0)),(d,n)=>run===loadRun&&setProg(d,n));
       if(run!==loadRun)return;}
     if(ok.length<2) throw new Error('no frames');
-    frames=ok; idx=frames.length-1; resetOverlays();
+    frames=ok; idx=frames.length-1;
     buildRuler(); syncHUD(); draw(); hideVeil();
     holdUntil=performance.now()+600;
   }catch(e){
@@ -888,12 +947,27 @@ async function reloadStar(fullVeil,run){
     else showError("NOAA's satellite feed didn't respond. It may be a brief CDN or network hiccup — this page needs internet access to cdn.star.nesdis.noaa.gov.");
   }
 }
+let starTicks=0, liveAt=0;
+async function retryTiles(){   // a session that fell back to the legacy feed gets another shot at tiles
+  const run=loadRun, reg=region;
+  try{
+    TILE.ready=false; scanSS=null; ttKey='';
+    await calibrateTiles();
+    if(run!==loadRun||reg!==region||engine!=='star'){return;}
+    engine='tiles'; veilForced=false; resetTiles();
+    toast('tile imagery is back'); reload(false);
+  }catch(e){TILE.ready=false;}
+}
 async function quietRefresh(){
   if(document.hidden||(tmode!=='live'&&tmode!=='now'))return;
+  const run=loadRun, tm=tmode;
+  if(engine==='star'&&++starTicks%3===0){retryTiles();return;}
   if(engine==='tiles'){
+    if(frames.length&&Date.now()-liveAt>20*60000){reload(false);return;}   // back from a long sleep: rebuild the loop, don't trickle frames in
+    liveAt=Date.now();
     try{
       const times=await tileTimes(false);
-      if(!frames.length)return;
+      if(run!==loadRun||tm!==tmode||!frames.length)return;   // the loop was swapped while we waited
       const newest=frames[frames.length-1].t;
       let fresh=times.filter(f=>f.t>newest);
       tailPending=tailPending.filter(f=>f.t>newest);
@@ -921,68 +995,19 @@ async function quietRefresh(){
   }
   try{
     const all=await listFrames();
-    if(!all.length||!frames.length)return;
+    if(run!==loadRun||tm!==tmode||!all.length||!frames.length)return;
     const newest=frames[frames.length-1].t;
     const fresh=all.filter(f=>f.t>newest);
     if(!fresh.length)return;
     const ok=await preload(fresh,()=>{});
-    if(!ok.length)return;
+    if(run!==loadRun||tm!==tmode||!ok.length)return;
     const wasLast=idx===frames.length-1;
     frames=frames.concat(ok);
     const cutoff=frames[frames.length-1].t-hours*3600000;
     while(frames.length>maxFrames()+6||(frames.length&&frames[0].t<cutoff)){frames.shift();idx=Math.max(0,idx-1);}
     if(wasLast)idx=frames.length-1;
-    if(hdPlus)ensureOverlays();
     buildRuler(); syncHUD();
   }catch(e){}
-}
-
-/* ---------------- HD+ viewport overlays (½ km loop over your area) ---------------- */
-let ovRegion=null, ovRun=0;
-function ovSize(){const c=sizesAvail.filter(x=>x>5000);return c.length?Math.max(...c):(sizesAvail.includes(5000)?5000:0);}
-function computeOvRegion(){
-  const v=view();
-  let wx=( -v.tx)/v.s, wy=(-v.ty)/v.s, ww=v.W/v.s, wh=v.H/v.s;
-  const cx=wx+ww/2, cy=wy+wh/2;
-  ww=Math.min(460,ww*2.2); wh=Math.min(460,wh*2.2);
-  wx=Math.max(0,Math.min(CROP.w-ww,cx-ww/2));
-  wy=Math.max(0,Math.min(CROP.h-wh,cy-wh/2));
-  ovRegion={x:Math.round(wx),y:Math.round(wy),w:Math.round(ww),h:Math.round(wh)};
-}
-function resetOverlays(){
-  ovRun++;
-  for(const f of frames)delete f.ov;
-  if(hdPlus&&mode==='geo'){computeOvRegion();ensureOverlays();}
-}
-async function ensureOverlays(){
-  if(!hdPlus||mode!=='geo'||!ovRegion)return;
-  const size=ovSize(); if(!size)return;
-  const run=++ovRun, R=ovRegion;
-  const order=[...frames].sort((a,b)=>Math.abs(frames.indexOf(a)-idx)-Math.abs(frames.indexOf(b)-idx));
-  for(const f of order){
-    if(run!==ovRun||!hdPlus)return;
-    if(f.ov||!f.stamp)continue;
-    try{
-      await new Promise((res,rej)=>{
-        const im=new Image(); im.decoding='async';
-        im.onload=()=>{
-          try{
-            const sc=im.naturalWidth/BASE_W;
-            const c=document.createElement('canvas');
-            c.width=Math.round(R.w*sc); c.height=Math.round(R.h*sc);
-            c.getContext('2d').drawImage(im,(CROP.x+R.x)*sc,(CROP.y+R.y)*sc,R.w*sc,R.h*sc,0,0,c.width,c.height);
-            f.ov={c,region:R};
-          }catch(e){}
-          res();
-        };
-        im.onerror=rej;
-        im.src=hiresUrl(f.stamp,size);
-      });
-      if(run!==ovRun)return;
-      if(frames[idx]===f)draw();
-      await new Promise(r=>setTimeout(r,80));
-    }catch(e){/* skip frame */}
-  }
 }
 
 /* ---------------- hi-res sharpening ---------------- */
@@ -1023,7 +1048,7 @@ async function fetchTafs(){
       tafs[t.icaoId]={from:t.validTimeFrom*1000,to:t.validTimeTo*1000,fcsts:t.fcsts}; }
     tafFetched=Date.now();
     tafError=Object.keys(tafs).length===0;
-  }catch(e){ tafError=true; toast('forecast source unreachable right now'); }
+  }catch(e){ if(!tafError)toast('airport forecast (TAF) feed unavailable — model fog still shown'); tafError=true; }
 }
 function pvVis(v){
   if(v==null)return null;
@@ -1067,6 +1092,7 @@ function enterOutlook(){
   buildRuler(); restyleMarkers(); updateMarkers(); syncHUD(); draw();
   fetchTafs().then(()=>{restyleMarkers();if(openMk)renderCard();syncHUD();});
   fetchFog().then(()=>{fogT=-1;draw();syncHUD();});
+  syncHUD();
   toast('drag the timeline into the next 18 hours');
 }
 
@@ -1161,12 +1187,17 @@ async function fetchFog(){
   }
   fogLoading=false;
 }
+const fogSpr={};
+function fogSprite(rgb){   // one pre-rendered soft dot per colour, stamped with globalAlpha
+  if(fogSpr[rgb])return fogSpr[rgb];
+  const c=document.createElement('canvas'); c.width=c.height=64;
+  const g=c.getContext('2d'), gr=g.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,`rgba(${rgb},1)`); gr.addColorStop(1,`rgba(${rgb},0)`);
+  g.fillStyle=gr; g.fillRect(0,0,64,64);
+  return fogSpr[rgb]=c;
+}
 function splat(g,p,r,rgb,a){
-  const x=p.u/2,y=p.v/2;
-  const gr=g.createRadialGradient(x,y,0,x,y,r);
-  gr.addColorStop(0,`rgba(${rgb},${a})`);
-  gr.addColorStop(1,`rgba(${rgb},0)`);
-  g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,6.2832); g.fill();
+  g.globalAlpha=a; g.drawImage(fogSprite(rgb),p.u/2-r,p.v/2-r,2*r,2*r);
 }
 function renderFog(T){
   if(!fog)return;
@@ -1187,6 +1218,7 @@ function renderFog(T){
     const a=(scoreVis(fog.vis[i*48+hi])*(1-fr)+scoreVis(fog.vis[i*48+hi+1])*fr)*0.8;
     if(a>=0.03)splat(fogCtx,fog.pts[i],16,'236,243,248',a);
   }
+  fogCtx.globalAlpha=1;
   fogT=T;
 }
 
@@ -1210,6 +1242,9 @@ function buildDayChips(){
       b.setAttribute('aria-pressed','true'); loadReplay();};
     el.appendChild(b);
   }
+  const sel=el.querySelector('[aria-pressed="true"]');
+  if(sel){const a=sel.getBoundingClientRect(), b=el.getBoundingClientRect();
+    if(a.right>b.right)el.scrollLeft+=a.right-b.right; else if(a.left<b.left)el.scrollLeft-=b.left-a.left;}
   syncReplayLbl();
 }
 function syncReplayLbl(){
@@ -1243,7 +1278,7 @@ async function loadReplay(){
     const ok=engine==='tiles'?list:await preload(list,()=>{});
     if(run!==loadRun)return;
     if(ok.length<2){toast('no imagery stored for that window');return;}
-    frames=ok; idx=0; hires={stamp:null,img:null}; resetOverlays();
+    frames=ok; idx=0; hires={stamp:null,img:null};
     tailPending=[];
     warmLoopBase();
     buildRuler(); syncHUD(); draw();
@@ -1264,9 +1299,11 @@ async function setTMode(v){
   document.body.classList.toggle('now',v==='now');
   $('replayBar').style.display=v==='replay'?'flex':'none';
   if(v==='outlook'){ enterOutlook(); return; }
-  restyleMarkers();
+  restyleMarkers(); maybeObs();
+  if(openMk)renderCard();          // an open card switches from forecast back to the live report
   if(v==='replay'){
     try{ if(engine==='tiles'){if(!tTimesDeep.length)await tileTimes(true);} else if(!lastListing.length)await listFrames(); }catch(e){}
+    if(tmode!=='replay')return;      // tapped away while the archive list loaded
     buildDayChips(); loadReplay();
   }else if(v==='now'){
     setPlaying(false);
@@ -1315,7 +1352,7 @@ function draw(){
     }
     drawBasemap(v);
     if(fog){
-      if(playing||!fogCanvas||Math.abs(fogT-olT)>60000)renderFog(olT);
+      if(!fogCanvas||Math.abs(fogT-olT)>300000)renderFog(olT);
       if(fogCanvas)ctx.drawImage(fogCanvas,0,0,fogCanvas.width,fogCanvas.height,v.tx,v.ty,CROP.w*v.s,CROP.h*v.s);
     }
     if(layers.lines)drawStates(v);
@@ -1335,10 +1372,6 @@ function draw(){
     }else if(f.bmp){
       ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
       ctx.drawImage(f.bmp,v.tx,v.ty,CROP.w*v.s,CROP.h*v.s);
-      if(hdPlus&&f.ov&&mode==='geo'){
-        const R=f.ov.region;
-        ctx.drawImage(f.ov.c,v.tx+R.x*v.s,v.ty+R.y*v.s,R.w*v.s,R.h*v.s);
-      }
       if(!playing&&hires.img&&f.stamp&&hires.stamp===f.stamp&&mode==='geo'&&zoom>=HIRES_MIN_ZOOM){
         const hs=hires.img.naturalWidth/BASE_W;
         ctx.drawImage(hires.img,CROP.x*hs,CROP.y*hs,CROP.w*hs,CROP.h*hs,v.tx,v.ty,CROP.w*v.s,CROP.h*v.s);
@@ -1354,7 +1387,7 @@ function zoomAt(px,py,target){
   const ix=(px-v.tx)/v.s, iy=(py-v.ty)/v.s;
   const s2=v.s0*z2; zoom=z2;
   panX=px-ix*s2-(v.W-CROP.w*s2)/2; panY=py-iy*s2-(v.H-CROP.h*s2)/2;
-  atHome=false; clampPan(); draw(); syncZoomUI();
+  atHome=false; clampPan(); scheduleDraw(); syncZoomUI();
   if(!playing) scheduleHires();
 }
 function computeHome(){
@@ -1367,7 +1400,6 @@ function computeHome(){
   homeY=H/2-ay*s-(H-CROP.h*s)/2;
 }
 function goHome(){computeHome();zoom=homeZ;panX=homeX;panY=homeY;atHome=true;clampPan();draw();syncZoomUI();}
-function resetView(){goHome();}
 function syncZoomUI(){$('resetView').style.display=atHome?'none':'block';}
 
 /* ---------------- playback ---------------- */
@@ -1409,10 +1441,11 @@ function syncHUD(){
     chip.classList.remove('on'); $('liveTxt').textContent='OUTLOOK · TAF';
     $('frameTime').textContent=fmtTime.format(olT);
     const errs=[];
-    if(tafError)errs.push('TAF feed unreachable');
+    if(tafError)errs.push('TAF feed unavailable');
     if(fogError)errs.push('fog model unreachable');
     $('frameSub').textContent=errs.length
       ?errs.join(' · ')
+      :(fogLoading&&!fog)?'loading model fog…'
       :`${fmtDate.format(olT)} · NWS TAF + model fog`;
     const p=Math.min(100,Math.max(0,(olT-olk0)/(olk1-olk0)*100)).toFixed(3)+'%';
     rThumb.style.left=p; rFill.style.width=p;
@@ -1420,7 +1453,7 @@ function syncHUD(){
   }
   const f=frames[idx]; if(!f)return;
   $('frameTime').textContent=fmtTime.format(f.t);
-  const hd2=(!playing&&hires.img&&hires.stamp===f.stamp&&mode==='geo'&&zoom>=HIRES_MIN_ZOOM)?(hires.size>=10000?' · HD ½ km':' · HD 1 km'):(engine==='star'&&hd?' · 1 km loop':'');
+  const hd2=(!playing&&hires.img&&hires.stamp===f.stamp&&mode==='geo'&&zoom>=HIRES_MIN_ZOOM)?(hires.size>=10000?' · HD ½ km':' · HD 1 km'):(engine==='star'?' · 1 km loop':'');
   $('frameSub').textContent=`${fmtDate.format(f.t)} · ${PROJ.tag} · ${PRODUCTS[mode].label}${hd2}`;
   const last=frames[frames.length-1];
   if(tmode==='replay'){
@@ -1487,14 +1520,15 @@ function seekFromEvent(e){
 ruler.addEventListener('pointerdown',e=>{ruler.setPointerCapture(e.pointerId);
   scrubResume=playing; setPlaying(false); seekFromEvent(e);});
 ruler.addEventListener('pointermove',e=>{if(ruler.hasPointerCapture(e.pointerId))seekFromEvent(e);});
-ruler.addEventListener('pointerup',()=>{if(scrubResume){holdUntil=performance.now()+700;setPlaying(true);}else scheduleHires();});
+const scrubEnd=()=>{if(scrubResume){scrubResume=false;holdUntil=performance.now()+700;setPlaying(true);}else scheduleHires();};
+ruler.addEventListener('pointerup',scrubEnd);
+ruler.addEventListener('pointercancel',scrubEnd);
 
 /* ---------------- gestures ---------------- */
-const pts=new Map(), tracked=new Set(); let pinch=null,lastTap={t:0,x:0,y:0},moved=false,tapMk=false,tapMkEl=null;
+const pts=new Map(), tracked=new Set(); let pinch=null,lastTap={t:0,x:0,y:0},moved=false,tapMkEl=null;
 stage.addEventListener('pointerdown',e=>{
   if(e.target.closest('#dock,header,#card,#resetView,#info,#lightbox'))return;
   tapMkEl=e.target.closest?e.target.closest('.mk'):null;
-  tapMk=!!tapMkEl;
   stage.setPointerCapture(e.pointerId);
   tracked.add(e.pointerId);
   pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); moved=false;
@@ -1513,9 +1547,9 @@ stage.addEventListener('pointermove',e=>{
     const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
     zoomAt(mid.x,mid.y,pinch.zoom*(d/pinch.d));
     panX+=mid.x-pinch.mid.x; panY+=mid.y-pinch.mid.y;
-    pinch.mid=mid; clampPan(); draw();
+    pinch.mid=mid; clampPan(); scheduleDraw();
   }else if(pts.size===1&&zoom>1.02){
-    panX+=dx; panY+=dy; atHome=false; clampPan(); draw(); syncZoomUI();
+    panX+=dx; panY+=dy; atHome=false; clampPan(); scheduleDraw(); syncZoomUI();
     if(!playing) scheduleHires();
   }
 });
@@ -1528,7 +1562,7 @@ function endPointer(e){
     rewarmT=setTimeout(()=>{if(tmode==='live')warmLoop();},700);
   }
   if(e.type==='pointerup'&&!moved&&pts.size===0){
-    if(tapMk&&tapMkEl){const el=tapMkEl;tapMkEl=null;tapMk=false;
+    if(tapMkEl){const el=tapMkEl;tapMkEl=null;
       if(!el._clk){el._clk=1;setTimeout(()=>{el._clk=0;},400);el.click();}
       return;}
     const now=performance.now();
@@ -1536,8 +1570,7 @@ function endPointer(e){
       lastTap.t=0; zoom>homeZ*1.35?goHome():zoomAt(e.clientX,e.clientY,Math.min(18,homeZ*2.6));
     }else{
       lastTap={t:now,x:e.clientX,y:e.clientY};
-      const wasMk=tapMk;
-      setTimeout(()=>{if(lastTap.t&&performance.now()-lastTap.t>=350){if(!wasMk){closeCard();toggleZen();}lastTap.t=0;}},360);
+      setTimeout(()=>{if(lastTap.t&&performance.now()-lastTap.t>=350){closeCard();toggleZen();lastTap.t=0;}},360);
     }
   }
 }
@@ -1559,7 +1592,6 @@ function wedgeSvg(az,fov){
     `<path d="M0 0 L${x1} ${y1} A ${R} ${R} 0 0 1 ${x2} ${y2} Z" fill="currentColor" opacity=".5"/>`+
     `<circle r="2.8" fill="currentColor"/></svg>`;
 }
-function visClass(sm){return sm==null?'vna':sm<1?'v0':sm<3?'v1':sm<6?'v2':'v3';}
 function fltCat(vis,ceil){
   if(vis==null&&ceil==null)return null;
   const v=vis==null?99:vis, c=ceil==null?99999:ceil;
@@ -1569,15 +1601,16 @@ function fltCat(vis,ceil){
   return 'vfr';
 }
 function catClass(vis,ceil){const k=fltCat(vis,ceil);return k||'vna';}
-function ceilOf(layers,raw){
+function ceilOf(cl,raw){
   let ceil=null,txt=null;
-  for(const L of (layers||[])){
+  for(const L of (cl||[])){
     const amt=String(L.amount||L.cover||'').toUpperCase();
     if(amt!=='BKN'&&amt!=='OVC'&&amt!=='VV')continue;
     let b=(L.base&&typeof L.base==='object')?L.base.value:L.base;
     if(b==null)continue;
     b=+b; if(!isFinite(b))continue;
-    const ft=(L.base&&L.base.unitCode&&/m$/.test(String(L.base.unitCode)))?b*3.28084:b;
+    // NWS rounds bases to 10 m (OVC010 arrives as 300 m = 984 ft): snap back to the reported hundreds of feet
+    const ft=(L.base&&L.base.unitCode&&/m$/.test(String(L.base.unitCode)))?Math.round(b*3.28084/100)*100:b;
     if(ceil==null||ft<ceil){ceil=ft;txt=amt+' '+(Math.round(ft/100)*100)+' ft';}
   }
   if(ceil==null&&raw){   // AWOS feeds often ship empty cloudLayers; parse the raw METAR
@@ -1589,7 +1622,12 @@ function ceilOf(layers,raw){
   }
   return {ceil,txt};
 }
-function visLabel(sm){return sm==null?'—':sm>=10?'10+':sm>=3?String(Math.round(sm)):sm.toFixed(1);}
+function visLabel(sm){return sm==null?'—':sm>=10?'10+':Math.abs(sm-6.01)<1e-6?'6+':sm>=3?String(Math.round(sm)):sm.toFixed(1);}
+// api.weather.gov's "latest" runs 45-105 min behind for hourly METAR fields, so tighter limits gray out half the map
+const OBS_STALE=150*60000, OBS_AGING=75*60000;
+const obsAge=o=>o&&o.time?Date.now()-o.time:null;
+const freshObs=o=>!!(o&&o.ok&&o.time&&Date.now()-o.time<OBS_STALE);   // an old report is not a current one
+const ageTxt=ms=>{const m=Math.round(ms/60000);return m<90?m+' min':(m/60).toFixed(1)+' h';};
 
 function buildAirportMarkers(){
   for(const a of AIRPORTS){
@@ -1623,27 +1661,29 @@ function addCamMarkers(list){
   }
   restyleMarkers(); updateMarkers(view());
 }
+function setCls(el,cls){if(el.className!==cls)el.className=cls;}
 function restyleMarkers(){
-  const useTaf=tmode==='outlook';
-  for(const a of AIRPORTS){
+  const useTaf=tmode==='outlook', wx=new Map();
+  for(const a of AIRPORTS){              // one lookup per airport; cams reuse their airport's
     let vis=null, ceil=null, extra='';
     if(useTaf){
       const f=tafAt(a.id,olT);
       if(f){vis=f.vis; ceil=f.ceil; if(/FG/.test(f.wx||''))extra=' FG';}
     }else{
-      const o=obs[a.id]; if(o&&o.ok){vis=o.vis;ceil=o.ceil;}
+      const o=obs[a.id];
+      if(freshObs(o)){vis=o.vis;ceil=o.ceil;
+        const age=obsAge(o); if(age>OBS_AGING)extra=' ·'+Math.round(age/60000)+'m';}
     }
     const cls=catClass(vis,ceil);
-    if(a._mk){a._mk.className='mk apt '+cls+(openMk&&openMk.ref===a?' sel':'');
-      a._mk.querySelector('b').textContent=((a.code||a.id.slice(1))+' '+(vis!=null?visLabel(vis)+'sm':'')+extra).trim();}
+    wx.set(a.id,cls);
+    if(a._mk){
+      setCls(a._mk,'mk apt '+cls+(openMk&&openMk.ref===a?' sel':''));
+      const lbl=((a.code||a.id.slice(1))+' '+(vis!=null?visLabel(vis)+'sm':'')+extra).trim();
+      if(a._lbl!==lbl){a._lbl=lbl;(a._b||(a._b=a._mk.querySelector('b'))).textContent=lbl;}
+    }
   }
   for(const c of cams){
-    let vis=null,ceil=null;
-    if(c.apt){
-      if(useTaf){const f=tafAt(c.apt.id,olT); if(f){vis=f.vis;ceil=f.ceil;}}
-      else{const o=obs[c.apt.id]; if(o&&o.ok){vis=o.vis;ceil=o.ceil;}}
-    }
-    if(c._mk)c._mk.className='mk cam '+catClass(vis,ceil)+(openMk&&openMk.ref===c?' sel':'');
+    if(c._mk)setCls(c._mk,'mk cam '+((c.apt&&wx.get(c.apt.id))||'vna')+(openMk&&openMk.ref===c?' sel':''));
   }
 }
 function updateMarkers(v){
@@ -1726,19 +1766,21 @@ async function fetchFires(){
   try{
     const bb=regionBBox();
     const geoQ=`geometry=${bb.x0},${bb.y0},${bb.x1},${bb.y1}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`;
-    const r=await fetch(`${WFIGS}/WFIGS_Incident_Locations_Current/FeatureServer/0/query?where=1%3D1&outFields=IncidentName,IncidentSize,DailyAcres,PercentContained,FireDiscoveryDateTime,IncidentTypeCategory,POOState&resultRecordCount=1000&${geoQ}`,{cache:'no-store'});
+    const r=await fetch(`${WFIGS}/WFIGS_Incident_Locations_Current/FeatureServer/0/query?where=1%3D1&outFields=IncidentName,IncidentSize,PercentContained,FireDiscoveryDateTime,IncidentTypeCategory,POOState&resultRecordCount=1000&${geoQ}`,{cache:'no-store'});
+    if(!r.ok)throw 0;
     const j=await r.json();
-    const list=(j.features||[]).map(ft=>{
+    if(!j||j.error||!Array.isArray(j.features))throw 0;
+    const list=j.features.map(ft=>{
       const pr=ft.properties||{}, g=ft.geometry||{}, cc=g.coordinates||[];
       return {n:pr.IncidentName||'Fire', lat:+cc[1], lon:+cc[0],
-        acres:+(pr.DailyAcres||pr.IncidentSize||0)||0,
+        acres:+(pr.IncidentSize||0)||0,     // WFIGS dropped DailyAcres; asking for it fails the whole query
         pct:pr.PercentContained, disc:pr.FireDiscoveryDateTime,
         typ:pr.IncidentTypeCategory, st:pr.POOState||''};
     }).filter(f=>isFinite(f.lat)&&isFinite(f.lon)&&f.typ!=='RX');
     rebuildFireMarkers(list);
     fires=list; fireFetched=Date.now();
     fetch(`${WFIGS}/WFIGS_Interagency_Perimeters_Current/FeatureServer/0/query?where=1%3D1&outFields=attr_IncidentName&resultRecordCount=500&maxAllowableOffset=0.008&geometryPrecision=3&${geoQ}`,{cache:'no-store'})
-      .then(r2=>r2.json()).then(j2=>{firePerimGeo=(j2&&j2.features)||[];firePerimPath=null;draw();})
+      .then(r2=>r2.ok?r2.json():null).then(j2=>{if(!j2||!Array.isArray(j2.features))return;firePerimGeo=j2.features;firePerimPath=null;draw();})
       .catch(()=>{});
   }catch(e){toast('fire data unreachable right now');}
   fireLoading=false;
@@ -1835,7 +1877,7 @@ async function loadAlertWest(){
     const m=/_(\d{10})_/.exec(c.img||'');
     if(!m)continue;
     const d=new Date(+m[1]*1000);
-    out.push({n:String(c.cn||'sky cam').replace(/_/g,' '),lat,lon,sky:true,lid:c.lid,
+    out.push({n:String(c.cn||'sky cam').replace(/_/g,' '),lat,lon,sky:true,lid:c.lid,ts:+m[1]*1000,
       az:isFinite(+c.p)?((+c.p%360)+360)%360:null,
       fov:isFinite(+c.fov)?+c.fov:null,
       img:`${AW_IMG}/${c.id}/${d.getUTCFullYear()}/${p2(d.getUTCMonth()+1)}/${p2(d.getUTCDate())}/${c.img}`,
@@ -1869,6 +1911,10 @@ async function loadAlertWest(){
   cams=cams.filter(c=>!c.sky).concat(out);
   alertCams=out; awFetched=Date.now();
   addCamMarkers(out);
+  if(openMk&&openMk.type==='cam'&&openMk.ref.sky){   // the open card's camera object was just replaced
+    const o=openMk.ref, n=out.find(x=>x.n===o.n&&x.lid===o.lid);
+    if(n)openCard('cam',n); else closeCard();
+  }
 }
 
 /* ---------------- NWS observations ---------------- */
@@ -1886,7 +1932,8 @@ async function fetchObsOne(a){
     const cl=ceilOf(p.cloudLayers,p.rawMessage);
     obs[a.id]={ok:true,
       ceil:cl.ceil, ceilTxt:cl.txt,
-      vis:visM==null?null:visM/1609.344,
+      sky:(Array.isArray(p.cloudLayers)&&p.cloudLayers.length>0)||/\b(CLR|SKC|NCD|NSC|CAVOK|(FEW|SCT|BKN|OVC|VV)\d{3})\b/.test(String(p.rawMessage||'').toUpperCase()),
+      vis:visM==null?null:Math.round(visM/1609.344*16)/16,   // NWS ships metres rounded to 10: 5 SM arrives as 5.002
       txt:p.textDescription||'',
       tC,dC,
       wKt:wKmh==null?null:wKmh/1.852,
@@ -1902,6 +1949,14 @@ async function refreshObs(){
   restyleMarkers();
   if(openMk)renderCard();
 }
+let obsAt=0, obsBusy=false;
+async function maybeObs(){   // 62 station requests: only when something on screen uses them, and not more than every 5 min
+  if(obsBusy||document.hidden)return;
+  if(!(layers.apt||layers.cam||(openMk&&openMk.type!=='fire')))return;
+  if(Date.now()-obsAt<5*60000)return;
+  obsBusy=true;
+  try{await refreshObs(); obsAt=Date.now();}finally{obsBusy=false;}
+}
 
 /* ---------------- detail card ---------------- */
 const compass=d=>d==null?'':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];
@@ -1911,6 +1966,7 @@ function openCard(type,ref){
   openMk={type,ref}; renderCard();
   if(ref._mk)ref._mk.classList.add('sel');
   $('card').classList.add('open');
+  if(type!=='fire')maybeObs();
 }
 function closeCard(){
   if(openMk&&openMk.ref&&openMk.ref._mk)openMk.ref._mk.classList.remove('sel');
@@ -1939,7 +1995,7 @@ function renderCard(){
         return `<span>${h?'+'+h+'h':'now'} <b style="color:var(--${catClass(g?g.vis:null,g?g.ceil:null)})">${gc?gc.toUpperCase():'—'}${g&&g.vis!=null?' '+visLabel(g.vis)+'sm':''}</b></span><span>${g&&g.wx?esc(g.wx):''}</span>`;
       }).join('');
       B.innerHTML=`<h3>${esc(a.n)}</h3><div class="sub">${a.id} · NWS terminal forecast (TAF)</div>
-        <div class="big"><i style="background:var(--${cls})"></i>${f&&(f.vis!=null||f.ceil!=null)?((fltCat(f.vis,f.ceil)||'').toUpperCase()+(f.vis!=null?' · '+visLabel(f.vis)+' sm':'')+' at '+fmtHM.format(olT)):(tafs[a.id]?'—':'no TAF issued for this field')}</div>
+        <div class="big"><i style="background:var(--${cls})"></i>${f&&(f.vis!=null||f.ceil!=null)?((fltCat(f.vis,f.ceil)||'').toUpperCase()+(f.vis!=null?' · '+visLabel(f.vis)+' sm':'')+' at '+fmtHM.format(olT)):(tafs[a.id]?'—':tafError?'forecast feed unavailable':'no TAF issued for this field')}</div>
         <div class="grid">${rows}</div>
         <div class="foot"><span>forecast visibility · statute miles</span><span></span></div>`;
       return;
@@ -1949,33 +2005,35 @@ function renderCard(){
       for(const x of AIRPORTS){if(x.noWx)continue;
         const d=Math.hypot((x.lat-a.lat)*110.6,(x.lon-a.lon)*111.3*Math.cos(a.lat*Math.PI/180));
         if(d<nd){nd=d;nb=x;}}
-      const no=nb&&obs[nb.id];
-      const ncls=catClass(no&&no.ok?no.vis:null,no&&no.ok?no.ceil:null);
+      const no=nb&&freshObs(obs[nb.id])?obs[nb.id]:null;
+      const ncls=catClass(no?no.vis:null,no?no.ceil:null);
       B.innerHTML=`<h3>${esc(a.n)}</h3><div class="sub">${a.code||a.id} · no on-field weather station</div>
         <div class="big"><i style="background:var(--vna)"></i>conditions not reported here</div>
         <div class="grid">
           <span>nearest report <b>${nb?(nb.code||nb.id.slice(1)):'—'}</b></span>
           <span>distance <b>${nb?Math.round(nd/1.852)+' nm':'—'}</b></span>
-          <span>their visibility <b style="color:var(--${ncls})">${no&&no.ok&&no.vis!=null?visLabel(no.vis)+' sm':'—'}</b></span>
-          <span>their sky <b>${no&&no.ok?esc(no.txt||'—'):'—'}</b></span>
+          <span>their visibility <b style="color:var(--${ncls})">${no&&no.vis!=null?visLabel(no.vis)+' sm':'—'}</b></span>
+          <span>their sky <b>${no?esc(no.txt||'—'):'—'}</b></span>
         </div>
         <div class="foot"><span>check the satellite + nearby cams before committing</span><span></span></div>`;
       return;
     }
-    const o=obs[a.id];
-    const cls=catClass(o&&o.ok?o.vis:null,o&&o.ok?o.ceil:null);
-    const cat=o&&o.ok?fltCat(o.vis,o.ceil):null;
-    const age=o&&o.time?Math.round((Date.now()-o.time)/60000):null;
+    const o=obs[a.id], ok=freshObs(o), age=obsAge(o);
+    const cls=catClass(ok?o.vis:null,ok?o.ceil:null);
+    const cat=ok?fltCat(o.vis,o.ceil):null;
+    const big=ok?((cat||'—').toUpperCase()+' · '+(o.vis!=null?visLabel(o.vis)+' sm':'vis not reported'))
+      :(o&&o.ok&&age!=null)?'no current report · last one '+ageTxt(age)+' old'
+      :obsBusy?'loading report…':'no recent report';
     B.innerHTML=`<h3>${esc(a.n)}</h3><div class="sub">${a.id} · aviation weather (NWS)</div>
-      <div class="big"><i style="background:var(--${cls})"></i>${o&&o.ok?((cat||'—').toUpperCase()+(o.vis!=null?' · '+visLabel(o.vis)+' sm':'')):'no recent report'}</div>
+      <div class="big"><i style="background:var(--${cls})"></i>${big}</div>
       ${o&&o.ok?`<div class="grid">
-        <span>ceiling <b>${o.ceilTxt?esc(o.ceilTxt):'unlimited'}</b></span>
+        <span>ceiling <b>${o.ceilTxt?esc(o.ceilTxt):o.sky?'none reported':'not reported'}</b></span>
         <span>sky <b>${esc(o.txt||'—')}</b></span>
         <span>wind <b>${o.wKt!=null?compass(o.wDir)+' '+Math.round(o.wKt)+' kt':'—'}</b></span>
         <span>temp <b>${o.tC!=null?Math.round(o.tC*9/5+32)+'°F':'—'}</b></span>
         <span>dew pt <b>${o.dC!=null?Math.round(o.dC*9/5+32)+'°F':'—'}</b></span>
       </div>
-      <div class="foot"><span>${age!=null?'observed '+age+' min ago':''}</span><span></span></div>`:''}`;
+      <div class="foot"><span>${age!=null?'observed '+ageTxt(age)+' ago':''}</span><span></span></div>`:''}`;
   }else if(openMk.type==='fire'){
     const f=openMk.ref;
     const acres=f.acres>=1000?Math.round(f.acres).toLocaleString():f.acres.toFixed(f.acres<10?1:0);
@@ -1988,17 +2046,23 @@ function renderCard(){
       </div>
       <div class="foot"><span>official interagency incident data</span><span></span></div>`;
   }else{
-    const c=openMk.ref, o=c.apt&&obs[c.apt.id];
-    const cls=catClass(o&&o.ok?o.vis:null,o&&o.ok?o.ceil:null);
+    const c=openMk.ref, o=c.apt&&freshObs(obs[c.apt.id])?obs[c.apt.id]:null;
+    const cls=catClass(o?o.vis:null,o?o.ceil:null);
     const bust=c.img?(c.img+(c.img.includes('?')?'&':'?')+'t='+Date.now()):'';
-    B.innerHTML=`<h3>${esc(c.n)}</h3><div class="sub">${esc(c.src)}${c.route?' · '+esc(c.route):''}</div>
-      <div class="big"><i style="background:var(--${cls})"></i>${o&&o.ok?((fltCat(o.vis,o.ceil)||'—').toUpperCase()+' at '+c.apt.id):'nearby conditions unknown'}</div>
+    B.innerHTML=`<h3>${esc(c.n)}</h3><div class="sub">${esc(c.src)}</div>
+      <div class="big"><i style="background:var(--${cls})"></i>${o?((fltCat(o.vis,o.ceil)||'—').toUpperCase()+' at '+c.apt.id):'nearby conditions unknown'}</div>
       ${c.az!=null?`<div class="grid"><span>looking <b>${compass(c.az)} · ${Math.round(c.az)}°</b></span><span>field of view <b>${c.fov?Math.round(c.fov)+'°':'—'}</b></span></div>`:''}
-      ${c.img?`<img alt="${esc(c.n)}" src="${bust}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      ${c.img?`<img alt="${esc(c.n)}" src="${esc(bust)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
       <div style="display:none;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:10px">camera image unavailable right now${c.link?' — try the source link below':''}</div>`:`
-      <a href="${c.link}" target="_blank" rel="noopener" style="display:block;text-align:center;font-family:var(--mono);font-size:12px;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:14px;margin-top:10px">open live view ↗</a>`}
-      <div class="foot"><span>${c.img?'live still':'external live view'}</span><span>${c.link?`<a href="${c.link}" target="_blank" rel="noopener" style="color:var(--dim);margin-right:10px">source ↗</a>`:''}${c.img?'<button id="camBig">enlarge ⤢</button><button id="camRefresh">refresh</button>':''}</span></div>`;
-    const btn=B.querySelector('#camRefresh'); if(btn)btn.onclick=()=>renderCard();
+      <a href="${esc(c.link)}" target="_blank" rel="noopener" style="display:block;text-align:center;font-family:var(--mono);font-size:12px;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:14px;margin-top:10px">open live view ↗</a>`}
+      <div class="foot"><span>${c.ts?'captured '+ageTxt(Math.max(0,Date.now()-c.ts))+' ago':c.img?'live still':'external live view'}</span><span>${c.link?`<a href="${esc(c.link)}" target="_blank" rel="noopener" style="color:var(--dim);margin-right:10px">source ↗</a>`:''}${c.img?'<button id="camBig">enlarge ⤢</button><button id="camRefresh">refresh</button>':''}</span></div>`;
+    const btn=B.querySelector('#camRefresh');
+    if(btn)btn.onclick=()=>{
+      if(!c.sky){renderCard();return;}        // fixed-URL cam: a cache-busted reload is a real refresh
+      btn.textContent='refreshing…'; btn.disabled=true;
+      awFetched=0;                            // sky-cam files are named by capture time: re-read the directory
+      loadAlertWest().then(()=>{if(openMk&&openMk.ref===c)renderCard();});
+    };
     const big=B.querySelector('#camBig'); if(big)big.onclick=()=>openLightbox(c);
     const im=B.querySelector('img'); if(im){im.style.cursor='zoom-in'; im.onclick=()=>openLightbox(c);}
   }
@@ -2012,10 +2076,10 @@ function toggleZen(){document.body.classList.toggle('zen');}
 
 $('playBtn').onclick=()=>{
   if(tmode==='now'){setTMode('live');return;}   // play from CURRENT jumps to the live loop
-  autoResume=false; warming=false;
+  autoResume=false; warming=false; warmRun++;
   setPlaying(!playing);
 };
-$('resetView').onclick=resetView;
+$('resetView').onclick=goHome;
 function segWire(el,attr,fn){el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
   el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b)); fn(b.dataset[attr]); wake();});}
 segWire($('segHours'),'h',v=>{hours=+v;
@@ -2032,16 +2096,20 @@ async function switchRegion(v){
   if(tmode==='outlook'){
     tmode='live';
     $('segTime').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.t==='live'));
+    restyleMarkers(); maybeObs();
   }
   region=v; PROJ=REGIONS[v];
   engine='tiles'; veilForced=false;      // each region gets a fresh shot at the tile engine
-  TILE.ready=false; tTimes=[]; tTimesDeep=[]; scanSS=null; timesMode='json'; resetTiles(); firePerimPath=null; statesPath=null;
+  TILE.ready=false; tTimes=[]; tTimesDeep=[]; scanSS=null; timesMode='json'; ssFix.clear(); ssTried.clear(); resetTiles(); firePerimPath=null; statesPath=null;
   computeCrop(); recomputePositions(); bmPaths=null; fogCanvas=null; fogT=-1;
   hires={stamp:null,img:null}; hiresCache.clear(); hiresDead=false;
   lastListing=[]; replayDay=null; frames=[]; idx=0;
   atHome=true; goHome();
-  if(tmode==='replay'){ try{await listFrames();}catch(e){} buildDayChips(); loadReplay(); }
-  else reload(true);
+  if(tmode==='replay'){
+    try{ if(engine==='tiles')await tileTimes(true); else await listFrames(); }catch(e){}
+    if(tmode!=='replay'||region!==v)return;
+    buildDayChips(); loadReplay();
+  }else reload(true);
 }
 $('hourSel').addEventListener('input',()=>{replayHour=+$('hourSel').value;syncReplayLbl();});
 $('hourSel').addEventListener('change',()=>{replayHour=+$('hourSel').value;loadReplay();});
@@ -2076,7 +2144,7 @@ async function reloadMode(prev){
     }
     if(run!==loadRun)return;
     if(ok.length<2)throw new Error('empty');
-    frames=ok; idx=frames.length-1; resetOverlays();
+    frames=ok; idx=frames.length-1;
     warmLoopBase();
     buildRuler(); syncHUD(); draw();
   }catch(e){
@@ -2091,6 +2159,8 @@ function wireToggle(btn,key){btn.onclick=()=>{layers[key]=!layers[key];
 wireToggle($('tglLines'),'lines');
 $('tglLines').addEventListener('click',()=>{if(layers.lines)fetchStates();draw();});
 wireToggle($('tglApt'),'apt'); wireToggle($('tglCam'),'cam');
+$('tglApt').addEventListener('click',()=>{if(layers.apt)maybeObs();});
+$('tglCam').addEventListener('click',()=>{if(layers.cam){loadAlertWest();maybeObs();}});
 wireToggle($('tglFire'),'fire');
 $('tglFire').addEventListener('click',()=>{if(layers.fire)fetchFires();draw();});
 setInterval(()=>{if(layers.fire&&!document.hidden)fetchFires();},10*60*1000);
@@ -2106,12 +2176,14 @@ $('infoClose').onclick=()=>$('info').classList.remove('open');
 $('info').addEventListener('pointerdown',e=>{if(e.target===$('info'))$('info').classList.remove('open');});
 
 document.addEventListener('keydown',e=>{
-  if(e.code==='Space'){e.preventDefault();setPlaying(!playing);}
+  const ctl=e.target.closest&&e.target.closest('button,input,a,select,textarea');
+  if(e.code==='Space'){if(ctl)return;e.preventDefault();$('playBtn').click();}   // a focused control keeps its own Space
+  else if(ctl&&ctl.tagName==='INPUT')return;
   else if(e.key==='ArrowRight'&&frames.length){setPlaying(false);idx=(idx+1)%frames.length;hires={stamp:null,img:null};draw();syncHUD();scheduleHires();}
   else if(e.key==='ArrowLeft'&&frames.length){setPlaying(false);idx=(idx-1+frames.length)%frames.length;hires={stamp:null,img:null};draw();syncHUD();scheduleHires();}
   else if(e.key==='+'||e.key==='=')zoomAt(innerWidth/2,innerHeight/2,zoom*1.3);
   else if(e.key==='-')zoomAt(innerWidth/2,innerHeight/2,zoom/1.3);
-  else if(e.key==='0'||e.key.toLowerCase()==='r')resetView();
+  else if(e.key==='0'||e.key.toLowerCase()==='r')goHome();
   else if(e.key.toLowerCase()==='f')$('fsBtn').click();
   else if(e.key==='Escape'){$('lightbox').classList.remove('open');closeCard();$('info').classList.remove('open');}
 });
@@ -2124,7 +2196,7 @@ function showVeil(msg){const v=$('veil');v.classList.remove('gone');v.classList.
   veilGuard=setTimeout(()=>{
     if($('veil').classList.contains('gone')||frames.length>1)return;
     if(engine==='tiles'&&!veilForced){
-      veilForced=true; engine='star'; syncEngineUI();
+      veilForced=true; engine='star';
       toast('tile service not responding \u2014 legacy imagery mode');
       reloadStar(true,++loadRun);
     }else{
@@ -2144,12 +2216,12 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');
 
 /* ---------------- boot ---------------- */
 addEventListener('resize',resize);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastTick=performance.now();quietRefresh();refreshObs();}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastTick=performance.now();quietRefresh();maybeObs();}});
+if(window.ResizeObserver)new ResizeObserver(()=>document.documentElement.style.setProperty('--dockH',$('dock').offsetHeight+'px')).observe($('dock'));
 resize();
 buildAirportMarkers();
 setPlaying(playing);
 reload(true);
-refreshObs();
 const CUSTOM_CAMS=[
  {n:'Shelter Cove Airport — West',lat:40.0276,lon:-124.0738,custom:true,lv:0,az:270,fov:60,ox:-8,oy:-4,
   img:'https://northcoastaviation.com/shelter_cove/cove-west000M.jpg',
@@ -2168,10 +2240,9 @@ const CUSTOM_CAMS=[
 ];
 cams=cams.concat(CUSTOM_CAMS);
 addCamMarkers(CUSTOM_CAMS);
-loadAlertWest();
 setInterval(()=>{if(layers.cam&&!document.hidden)loadAlertWest();},10*60*1000);
 setInterval(quietRefresh,IMG_REFRESH);
-setInterval(refreshObs,WX_REFRESH);
+setInterval(maybeObs,WX_REFRESH);
 requestAnimationFrame(tick);
 </script>
 </body>
