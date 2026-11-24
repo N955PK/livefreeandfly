@@ -49,6 +49,10 @@ ROUTES = {
     "colorado": {"I 70": "I-70", "US 40": "US-40", "US 6": "US-6", "US 24": "US-24", "US 34": "US-34",
                  "CO 9": "CO-9", "CO 91": "CO-91", "CO 131": "CO-131", "CO 14": "CO-14",
                  "SH 9": "CO-9", "SH 91": "CO-91", "SH 131": "CO-131", "SH 14": "CO-14"},
+    # I-5 through the Sacramento canyon and over Siskiyou Summit, US 97 north of Mt. Shasta, the McCloud and Lassen
+    # roads (CA 89, CA 44), CA 299 across the south, CA 3 through the Trinities and the Mt. Ashland turn-off's CA 96.
+    "shasta": {"I 5": "I-5", "US 97": "US-97", "CA 89": "SR-89", "CA 44": "SR-44", "CA 299": "SR-299",
+               "CA 3": "SR-3", "CA 96": "SR-96", "CA 36": "SR-36", "OR 66": "OR-66"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the
