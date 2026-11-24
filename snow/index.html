@@ -1561,7 +1561,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "241";
+const BUILD = "242";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3409,8 +3409,32 @@ document.addEventListener("click", (event) => {
 
 // Playback runs the map's whole window in this long, whatever its length.
 const PLAY_SECONDS = 10;
+// The radar's two hours run faster, and go round again after a pause on the live picture.
+const RADAR_PLAY_SECONDS = 4, RADAR_HOLD_SECONDS = 1;
 let map = null, playing = false, playFrame = 0;
+// While the radar shows, the slider runs over the radar's pictures (radarTimes, oldest first, the live one last)
+// and not over the storm.
+const radarShowing = () => radarOn && !!map && radarTimes.length > 1;
+const scrubEnd = () => radarShowing() ? radarTimes.length - 1 : map.steps - 1;
+const scrubNow = () => radarShowing() ? radarTimes.length - 1 : map.nowStep;
+function showRadarTime(value) {
+  const last = radarTimes.length - 1, at = radarTimes[Math.round(value)], live = value > last - 0.5, ago = Math.round((radarTimes[last] - at) / 60000);
+  $("mapWhen").textContent = live ? "Live" : new Date(at).toLocaleTimeString("en-US", clockOpts({timeZone: tzOf(mountain(selected)), hour: "numeric", minute: "2-digit"}));
+  $("toNow").classList.toggle("away", !live); $("backNow").classList.toggle("away", !live);
+  $("mapWhat").textContent = live ? "Radar now" : `Radar ${ago < 60 ? `${ago} min` : `${Math.floor(ago / 60)} hr${ago % 60 ? ` ${ago % 60} min` : ""}`} ago`;
+}
+// Sets the slider out for what it plays, the storm or the radar, and puts it at now.
+function scrubMode() {
+  const radar = radarShowing(), end = scrubEnd(), now = scrubNow();
+  togglePlay(false);
+  $("scrub").max = end; $("scrub").step = radar ? 1 : 0.25; $("scrub").setAttribute("aria-label", radar ? "Radar time" : "Storm time");
+  $("toNow").style.left = `calc(${(100 * now / end).toFixed(1)}% + ${(8 - 16 * now / end).toFixed(1)}px)`;
+  // The mountains' stakes stay at now while the radar plays.
+  if (radar) map.setTime(map.nowStep);
+  setTime(now);
+}
 function showTime(value) {
+  if (radarShowing()) return showRadarTime(value);
   const t = map.timeAt(value), rate = map.rateAt(value), level = Math.round(map.snowLevelFtAt(value) / 100) * 100;
   const atNow = Math.abs(value - map.nowStep) < 0.3;
   $("mapWhen").textContent = atNow ? (offlineCopy ? "Saved" : "Live") : t.toLocaleString("en-US", clockOpts({timeZone: tzOf(mountain(selected)), weekday: "short", hour: "numeric"}));
@@ -3421,23 +3445,26 @@ function showTime(value) {
   $("mapWhat").textContent = `${falling} · ${level > peaks ? "snow level above the peaks" : height(level)}`;
 }
 function setTime(value) {
-  $("scrub").value = value; $("scrub").style.setProperty("--p", `${(100 * value / (map.steps - 1)).toFixed(2)}%`);
-  map.setTime(value); showTime(value);
+  $("scrub").value = value; $("scrub").style.setProperty("--p", `${(100 * value / scrubEnd()).toFixed(2)}%`);
+  if (radarShowing()) map.setRadarTime(value); else map.setTime(value);
+  showTime(value);
 }
 function togglePlay(on) {
   playing = on;
   $("play").innerHTML = on ? '<svg viewBox="0 0 12 12"><rect x="1.5" y="1" width="3.2" height="10" rx="1"/><rect x="7.3" y="1" width="3.2" height="10" rx="1"/></svg>'
     : '<svg viewBox="0 0 12 12"><path d="M3 1.2v9.6a.6.6 0 0 0 .9.5l7.2-4.8a.6.6 0 0 0 0-1L3.9.7a.6.6 0 0 0-.9.5z"/></svg>';
-  $("play").setAttribute("aria-label", on ? "Pause" : "Play the storm");
+  $("play").setAttribute("aria-label", on ? "Pause" : radarShowing() ? "Play the radar" : "Play the storm");
   cancelAnimationFrame(playFrame);
   if (!on) return;
   // The playhead is kept here, not read back from the slider, which snaps to its own steps.
   let last = performance.now(), value = 0;
   setTime(0);
   const tick = (now) => {
-    value += (now - last) / 1000 * (map.steps - 1) / PLAY_SECONDS; last = now;
-    if (value >= map.steps - 1) { setTime(map.steps - 1); togglePlay(false); return; }
-    setTime(value); playFrame = requestAnimationFrame(tick);
+    const end = scrubEnd(), radar = radarShowing(), seconds = radar ? RADAR_PLAY_SECONDS : PLAY_SECONDS;
+    value += (now - last) / 1000 * end / seconds; last = now;
+    if (value >= end && !radar) { setTime(end); togglePlay(false); return; }
+    if (value >= end * (1 + RADAR_HOLD_SECONDS / seconds)) value = 0;
+    setTime(Math.min(value, end)); playFrame = requestAnimationFrame(tick);
   };
   playFrame = requestAnimationFrame(tick);
 }
@@ -3640,20 +3667,20 @@ async function startMap() {
     $("flatToggle").hidden = false; $("flatToggle").textContent = "2D";
     // With no road file there are no shields to put away.
     $("shieldsToggle").hidden = !map.hasRoads;
-    $("scrub").max = map.steps - 1;
-    $("toNow").style.left = `calc(${(100 * map.nowStep / (map.steps - 1)).toFixed(1)}% + ${(8 - 16 * map.nowStep / (map.steps - 1)).toFixed(1)}px)`;
+    // A new map has no radar pictures yet: the slider is the storm's until they are fetched.
+    radarTimes = [];
     if (!mapWired) {
       mapWired = true;
       $("scrub").addEventListener("input", (e) => { togglePlay(false); setTime(+e.target.value); });
       $("play").addEventListener("click", () => togglePlay(!playing));
-      for (const id of ["toNow", "backNow"]) $(id).addEventListener("click", () => { togglePlay(false); setTime(map.nowStep); });
+      for (const id of ["toNow", "backNow"]) $(id).addEventListener("click", () => { togglePlay(false); setTime(scrubNow()); });
       $("avyToggle").addEventListener("click", () => { avyOn = !avyOn; mapAvalanche(); });
       $("radarToggle").addEventListener("click", () => { radarOn = !radarOn; mapRadar(); });
       // The radar is redrawn every five minutes at its source; while it is showing, so is this.
       setInterval(() => { if (radarOn && document.documentElement.dataset.view === "map") mapRadar(); }, 5 * 60 * 1000);
       setInterval(loadRoads, 5 * 60 * 1000);
     }
-    setTime(map.nowStep);
+    scrubMode();
     mapAvalanche();
     $("radarToggle").hidden = false;
     railReady(); setTimeout(() => railReady(true), 4000);
@@ -4126,15 +4153,22 @@ document.addEventListener("click", (e) => {
   if (b) goTo($(b.dataset.goto));
 });
 // The weather radar on the map: fetched when it is switched on, and switched back off if it cannot be had.
-let radarOn = false;
+// While it shows, the slider under the map plays the radar's last two hours and not the storm (see scrubMode).
+let radarOn = false, radarTimes = [];
 async function mapRadar() {
-  const button = $("radarToggle"), asked = map;
+  const button = $("radarToggle"), asked = map, was = radarShowing();
   button.setAttribute("aria-pressed", radarOn);
   if (!map) return;
   button.classList.toggle("busy", radarOn);
-  try { await map.showRadar(radarOn); }
+  let times = [];
+  try { await map.showRadar(radarOn); if (radarOn) times = asked.radarTimes(); }
   catch (error) { if (map === asked) { radarOn = false; button.setAttribute("aria-pressed", "false"); button.title = navigator.onLine ? "The radar could not be loaded right now" : "The radar needs a signal"; map.showRadar(false); } }
   button.classList.remove("busy");
+  if (map !== asked) return;
+  radarTimes = times;
+  // A fresh picture every five minutes leaves the slider where it is; turning the radar on or off sets it out again.
+  if (was && radarShowing()) { if (!playing) showTime(+$("scrub").value); } else scrubMode();
+  if (radarOn) map.loadRadarPast();
 }
 function mapAvalanche() {
   const zones = zonesHere();

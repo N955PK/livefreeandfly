@@ -731,35 +731,66 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   // block the beam from the valley radars, so echoes over the high Sierra are patchy: an absence is not a clear sky.
   // While the radar shows, the land gives up its own colors, its snow and its shading for one flat pale gray, so that
   // the echoes are the only color and the only tone on the map.
-  const RADAR_ZOOM = 8, RADAR_TILES = "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913", RADAR_TINT = 0.9, RADAR_LAND = [0.9, 0.91, 0.92];
-  const radarOf = new Uint8Array(count * 4);
-  let radarOn = false;
-  async function loadRadar() {
+  // The mesonet also keeps every past mosaic, so the last two hours can be played back: one picture every ten minutes
+  // (radarFrames, oldest first, the live one last). The live picture is fetched first and the past ones after it; a
+  // past picture that has not arrived yet shows as the next one that has.
+  const RADAR_ZOOM = 8, RADAR_TILES = "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0", RADAR_LIVE = "nexrad-n0q-900913", RADAR_TINT = 0.9, RADAR_LAND = [0.9, 0.91, 0.92];
+  const RADAR_PAST = 12, RADAR_EVERY_MS = 10 * 60000, RADAR_REDRAWN_MS = 5 * 60000;
+  let radarOn = false, radarFrames = [], radarAt = 0, radarSheet = null;
+  // The tiles over the map, and which pixel of them lies over each terrain vertex.
+  function radarLayout() {
     const n = 2 ** RADAR_ZOOM, tileX = (lon) => (lon + 180) / 360 * n;
     const tileY = (lat) => { const r = lat * Math.PI / 180; return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n; };
     const x0 = Math.floor(tileX(meta.lon_w)), x1 = Math.floor(tileX(meta.lon_e)), y0 = Math.floor(tileY(meta.lat_n)), y1 = Math.floor(tileY(meta.lat_s));
+    const width = (x1 - x0 + 1) * 256, height = (y1 - y0 + 1) * 256, pixelOf = new Int32Array(count);
+    for (let v = 0; v < count; v++) {
+      const lon = meta.lon_w + (positions[3 * v] / W + 0.5) * (meta.lon_e - meta.lon_w), lat = meta.lat_s + (positions[3 * v + 1] / H + 0.5) * (meta.lat_n - meta.lat_s);
+      const px = Math.min(width - 1, Math.max(0, Math.floor((tileX(lon) - x0) * 256))), py = Math.min(height - 1, Math.max(0, Math.floor((tileY(lat) - y0) * 256)));
+      pixelOf[v] = 4 * (py * width + px);
+    }
+    return {x0, x1, y0, y1, width, height, pixelOf};
+  }
+  // One mosaic as a color for every vertex (r, g, b, a). Rejects if none of its tiles could be had.
+  async function radarPicture(layer, stamp) {
+    const at = radarSheet || (radarSheet = radarLayout());
     const sheet = document.createElement("canvas");
-    sheet.width = (x1 - x0 + 1) * 256; sheet.height = (y1 - y0 + 1) * 256;
-    const pen = sheet.getContext("2d", {willReadFrequently: true}), stamp = Math.floor(Date.now() / 300000);
+    sheet.width = at.width; sheet.height = at.height;
+    const pen = sheet.getContext("2d", {willReadFrequently: true});
     const jobs = [];
-    for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) jobs.push(new Promise((done) => {
+    for (let x = at.x0; x <= at.x1; x++) for (let y = at.y0; y <= at.y1; y++) jobs.push(new Promise((done) => {
       const tile = new Image();
       tile.crossOrigin = "anonymous";
-      tile.onload = () => { pen.drawImage(tile, (x - x0) * 256, (y - y0) * 256); done(true); };
+      tile.onload = () => { pen.drawImage(tile, (x - at.x0) * 256, (y - at.y0) * 256); done(true); };
       tile.onerror = () => done(false);
-      tile.src = `${RADAR_TILES}/${RADAR_ZOOM}/${x}/${y}.png?t=${stamp}`;
+      tile.src = `${RADAR_TILES}/${layer}/${RADAR_ZOOM}/${x}/${y}.png${stamp ? `?t=${stamp}` : ""}`;
     }));
     const got = await Promise.all(jobs);
     if (!got.some(Boolean)) throw new Error("no radar tiles");
-    const pixels = pen.getImageData(0, 0, sheet.width, sheet.height).data;
-    for (let v = 0; v < count; v++) {
-      const lon = meta.lon_w + (positions[3 * v] / W + 0.5) * (meta.lon_e - meta.lon_w), lat = meta.lat_s + (positions[3 * v + 1] / H + 0.5) * (meta.lat_n - meta.lat_s);
-      const px = Math.min(sheet.width - 1, Math.max(0, Math.floor((tileX(lon) - x0) * 256))), py = Math.min(sheet.height - 1, Math.max(0, Math.floor((tileY(lat) - y0) * 256)));
-      const at = 4 * (py * sheet.width + px);
-      radarOf[4 * v] = pixels[at]; radarOf[4 * v + 1] = pixels[at + 1]; radarOf[4 * v + 2] = pixels[at + 2]; radarOf[4 * v + 3] = pixels[at + 3];
-    }
+    const pixels = pen.getImageData(0, 0, sheet.width, sheet.height).data, echo = new Uint8Array(count * 4);
+    for (let v = 0; v < count; v++) { const p = at.pixelOf[v]; echo[4 * v] = pixels[p]; echo[4 * v + 1] = pixels[p + 1]; echo[4 * v + 2] = pixels[p + 2]; echo[4 * v + 3] = pixels[p + 3]; }
+    return echo;
+  }
+  // Fetches the live picture and sets out the times of the past ones, keeping any past picture already here.
+  async function loadRadar() {
+    const live = RADAR_REDRAWN_MS * Math.floor(Date.now() / RADAR_REDRAWN_MS), latest = await radarPicture(RADAR_LIVE, live / RADAR_REDRAWN_MS);
+    const kept = new Map(radarFrames.filter((f) => !f.live).map((f) => [f.at, f.echo])), atEnd = radarAt >= radarFrames.length - 1;
+    const frames = [];
+    for (let k = RADAR_PAST; k >= 1; k--) { const at = live - k * RADAR_EVERY_MS; frames.push({at, echo: kept.get(at) || null}); }
+    frames.push({at: live, echo: latest, live: true});
+    radarFrames = frames;
+    if (atEnd) radarAt = frames.length - 1;
     paintedAt = -1;
   }
+  // Fetches the past pictures still missing, each shown as it arrives. One that cannot be had is left out.
+  async function loadRadarPast() {
+    const frames = radarFrames;
+    await Promise.all(frames.filter((f) => !f.echo).map(async (f) => {
+      try { f.echo = await radarPicture(`ridge::USCOMP-N0Q-${new Date(f.at).toISOString().replace(/\D/g, "").slice(0, 12)}`); } catch (error) { return; }
+      if (frames === radarFrames) paintedAt = -1;
+    }));
+  }
+  // The picture shown for frame i: its own, or the next later one that has arrived (the live one always has).
+  function radarEcho(i) { for (let k = i; k < radarFrames.length; k++) if (radarFrames[k].echo) return radarFrames[k].echo; return null; }
 
   // ---------- falling snow (fills the whole view, from well above the peaks) ----------
   const flakePositions = new Float32Array(FLAKES * 3), flakeSpeed = new Float32Array(FLAKES);
@@ -977,6 +1008,7 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   function paint() {
     const i = Math.min(steps - 1, Math.floor(time)), j = Math.min(steps - 1, i + 1), f = time - i;
     const nowAt = Math.max(0, Math.min(steps - 1, Math.round(nowStep)));
+    const ri = Math.floor(radarAt), rf = radarAt - ri, e0 = radarOn ? radarEcho(ri) : null, e1 = e0 && rf ? radarEcho(ri + 1) : e0;
     for (let v = 0; v < count; v++) {
       if (shore[v]) continue;
       const b = Math.min(bins - 1, Math.floor(heights[v] / BIN_M));
@@ -986,11 +1018,12 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       const amount = fell + lying * WHITEN_AT_IN / PACK_WHITE_IN;
       const w = Math.min(1, amount / WHITEN_AT_IN), s = w * w * (3 - 2 * w);
       const tint = dangerOn && zoneOf[v] ? dangerColors[zoneOf[v] - 1] : null;
-      const echo = radarOn ? radarOf[4 * v + 3] / 255 * RADAR_TINT : 0;
+      // Between two radar pictures the echoes fade from one to the next.
+      const a0 = e0 ? e0[4 * v + 3] * (1 - rf) : 0, a1 = e0 ? e1[4 * v + 3] * rf : 0, echo = (a0 + a1) / 255 * RADAR_TINT;
       for (let k = 0; k < 3; k++) {
         const land = radarOn ? RADAR_LAND[k] : base[3 * v + k] + s * (SNOW[k] - base[3 * v + k]);
         const shown = tint ? land + DANGER_TINT * (tint[k] - land) : land;
-        colors[4 * v + k] = echo ? shown + echo * (radarOf[4 * v + k] / 255 - shown) : shown;
+        colors[4 * v + k] = echo ? shown + echo * ((e0[4 * v + k] * a0 + e1[4 * v + k] * a1) / (a0 + a1) / 255 - shown) : shown;
       }
     }
     terrain.attributes.color.needsUpdate = true;
@@ -1176,6 +1209,11 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     showAvalanche(on) { dangerOn = on; paintedAt = -1; },
     // Turns the radar on (fetching the latest picture first; rejects if none could be had) or off.
     async showRadar(on) { if (on) await loadRadar(); radarOn = on; ground.material = on ? flatMaterial : litMaterial; paintedAt = -1; },
+    // The radar's pictures, oldest first and the live one last: when each was taken (ms), fetching the past ones
+    // (resolves when they are all in), and showing the one at a place along them (between two, a fade).
+    radarTimes: () => radarFrames.map((f) => f.at),
+    loadRadarPast,
+    setRadarTime(value) { radarAt = Math.max(0, Math.min(radarFrames.length - 1, value)); paintedAt = -1; },
     // How far the camera is from the point it looks at, in km (for checks).
     cameraDistance: () => camera.position.distanceTo(controls.target),
     northUp() { glideTo({turn: 0}); },
