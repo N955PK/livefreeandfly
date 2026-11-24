@@ -1618,7 +1618,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "264";
+const BUILD = "265";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1733,7 +1733,7 @@ const REGIONS = {
       [3100, [0.55, 0.53, 0.48]], [3500, [0.72, 0.70, 0.67]]],
     lake: {name: "Great Salt Lake", lat: 41.05, lon: -112.3},
     avalanche: [{id: "UAC", name: "Utah Avalanche Center", url: "https://utahavalanchecenter.org/", state: "UT"}]},
-  colorado: {name: "Colorado", terrain: "data/terrain-colorado", roads: "data/roads-colorado.json", center: [39.968, -106.436], pick: "vail",
+  colorado: {name: "Colorado", terrain: "data/terrain-colorado", roads: "data/roads-colorado.json", center: [39.968, -106.436], pick: "winterpark",
     // Steamboat in the north-west and Breckenridge in the south-east are each about 63 km from the middle: the disc
     // is 88 km in radius and the terrain the square that holds it. The lowest real ground is near 1,750 m, on the
     // Colorado River, so heights are drawn from 1,700 m (two bad cells in the tiles read lower and are raised to
