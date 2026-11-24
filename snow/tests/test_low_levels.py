@@ -106,7 +106,6 @@ def test_the_extra_levels_are_counted_against_the_allowance():
     assert usage.estimate([], "seattle") == round(12 * usage.resort_run_calls("seattle"), 1)
     assert abs(usage.resort_run_calls("newengland") - (usage.CALLS_PER_RESORT_RUN + 5 * usage.EXTRA_LEVEL_CALLS)) < 1e-9
     assert abs((cost("newengland") - cost("tahoe")) / 5 - usage.EXTRA_LEVEL_CALLS) < 0.01
-    assert usage.planned() <= usage.PLAN_LIMIT
 
 
 def test_seattle_blends_with_its_own_weights_and_the_rest_with_the_sierras():

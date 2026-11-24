@@ -30,7 +30,6 @@ def test_six_of_the_twelve_ask_for_weather():
     assert {r.key for r in config.resorts_in("wasatch") if r.weather_from is None} == {
         "alta", "brighton", "parkcity", "snowbasin", "powdermountain", "sundance"}
     assert round(usage.planned({"wasatch": config.REGIONS["wasatch"]})) == round(6 * 3 * usage.CALLS_PER_RESORT_RUN)
-    assert usage.planned() <= usage.PLAN_LIMIT
 
 
 def test_the_wasatch_is_built_at_the_tetons_hours_and_reads_its_sensors_on_the_pacific_clock():

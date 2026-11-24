@@ -24,7 +24,6 @@ def test_the_tetons_are_built_at_the_wests_hours_on_their_own_clock_and_read_no_
     assert region.tz == "America/Denver" and region.at == REGIONS["tahoe"].at and region.low_levels == ()
     # Wyoming's SNOTEL days are stamped on the Pacific standard clock.
     assert region.std_offset_h == 8
-    assert usage.planned() <= usage.PLAN_LIMIT
 
 
 def test_the_fitting_box_holds_every_teton_sensor():

@@ -32,7 +32,6 @@ def test_all_five_ask_for_weather_twice_a_day():
     region = config.REGIONS["shasta"]
     assert usage.pulls("shasta") == 5 and (region.at, region.every_h) == ((5, 17), 12)
     assert round(usage.planned({"shasta": region})) == round(5 * 2 * usage.CALLS_PER_RESORT_RUN)
-    assert usage.planned() <= usage.PLAN_LIMIT < 10000
     assert region.avalanche == ("MSAC",) and pipeline.snotel_offset_h(RESORTS["lassen"]) == 8
 
 

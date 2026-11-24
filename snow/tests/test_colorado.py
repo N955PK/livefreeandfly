@@ -29,8 +29,6 @@ def test_eight_of_the_twelve_ask_for_weather():
     assert {r.key for r in config.resorts_in("colorado") if r.weather_from is None} == {
         "vail", "beavercreek", "breckenridge", "keystone", "loveland", "copper", "winterpark", "steamboat"}
     assert round(usage.planned({"colorado": config.REGIONS["colorado"]})) == round(8 * 3 * usage.CALLS_PER_RESORT_RUN)
-    # Colorado took the plan past the old ceiling of 8,500; the service allows 10,000.
-    assert 8500 < usage.planned() <= usage.PLAN_LIMIT < 10000
 
 
 def test_colorado_is_built_at_the_tetons_hours_and_reads_its_sensors_on_the_pacific_clock():
