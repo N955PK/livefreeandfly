@@ -63,8 +63,16 @@ def test_the_most_overdue_region_is_due_first(tmp_path, stubbed):
     assert pipeline.due(NOW) in config.REGIONS
     for key in config.REGIONS:
         pipeline.run(key, NOW)
-    assert pipeline.due(NOW + timedelta(hours=5)) is None
-    assert pipeline.due(NOW + timedelta(hours=6, minutes=1)) in config.REGIONS
+    # NOW is 4 am Pacific and 7 am Eastern. The West's next build hour is 5 am Pacific, an hour on; New England's is
+    # 4 pm Eastern, nine hours on.
+    assert pipeline.due(NOW + timedelta(minutes=59)) is None
+    assert pipeline.due(NOW + timedelta(hours=1, minutes=1)) in ("tahoe", "mammoth", "seattle")
+    for key in ("tahoe", "mammoth", "seattle"):
+        pipeline.run(key, NOW + timedelta(hours=1, minutes=1))
+    assert pipeline.due(NOW + timedelta(hours=8)) is None                       # noon Pacific: nothing until 1 pm
+    assert pipeline.due(NOW + timedelta(hours=9, minutes=1)) in config.REGIONS  # 1 pm Pacific and 4 pm Eastern
+    pipeline.run("newengland", NOW + timedelta(hours=9, minutes=1))
+    assert pipeline.due(NOW + timedelta(hours=9, minutes=2)) in ("tahoe", "mammoth", "seattle")
 
 
 def test_a_region_where_every_mountain_fails_keeps_its_last_file(tmp_path, stubbed, monkeypatch):
@@ -185,4 +193,4 @@ def test_season_figures_with_no_date_or_an_old_one_are_redrawn_once(tmp_path, st
     assert pipeline.mend(NOW) == ["tahoe"] and len(drawn) == 1
     assert json.loads(path.read_text())["season_curves"] == {"Sensor": {"depth": [0]}}
     assert pipeline.mend(NOW + timedelta(hours=3)) == [] and len(drawn) == 1           # dated now, and in date
-    assert "tahoe" in pipeline.mend(NOW + timedelta(hours=8))                           # its forecast is late
+    assert "tahoe" in pipeline.mend(NOW + timedelta(hours=10))                          # its forecast is late

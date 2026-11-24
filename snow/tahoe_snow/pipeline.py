@@ -614,11 +614,17 @@ def write_home_forecast() -> dict | None:
     return forecast
 
 
+def last_slot(region, now: pd.Timestamp) -> pd.Timestamp:
+    """The latest of the region's build hours (on its own clock) that has come, as a UTC time."""
+    local = now.tz_localize("UTC").tz_convert(region.tz)
+    slots = [local.normalize() + pd.Timedelta(days=day, hours=hour) for day in (-1, 0) for hour in region.at]
+    return max(slot for slot in slots if slot <= local).tz_convert("UTC").tz_localize(None)
+
+
 def due(now: datetime | None = None) -> str | None:
-    """The region most overdue for a new forecast, by the fraction of its interval since it was generated, among
-    those at or past their interval; a region never built is the most overdue, and so is one whose forecast has
-    not tried a mountain added since (one that was tried and failed waits for the next run). None when nothing is
-    due."""
+    """The region most overdue for a new forecast: one not built since the latest of its build hours, the longest
+    wait first; a region never built is the most overdue, and so is one whose forecast has not tried a mountain
+    added since (one that was tried and failed waits for the next build hour). None when nothing is due."""
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None)
     late = {}
     for key, region in REGIONS.items():
@@ -627,9 +633,9 @@ def due(now: datetime | None = None) -> str | None:
         if forecast is None or not {resort.key for resort in config.resorts_in(key)} <= tried:
             late[key] = float("inf")
             continue
-        age_h = (now - pd.Timestamp(forecast["generated_utc"]).tz_localize(None)) / pd.Timedelta(hours=1)
-        if age_h >= region.every_h:
-            late[key] = age_h / region.every_h
+        slot = last_slot(region, now)
+        if pd.Timestamp(forecast["generated_utc"]).tz_localize(None) < slot:
+            late[key] = (now - slot) / pd.Timedelta(hours=1)
     return max(late, key=late.get) if late else None
 
 

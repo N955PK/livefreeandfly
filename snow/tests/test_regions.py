@@ -12,9 +12,9 @@ def test_the_configured_regions_fit_the_daily_allowance():
 
 
 def test_the_home_regions_cost_what_the_ledger_measured():
-    # 21 mountains, 4 runs a day, 1,089 calls a run
+    # 21 mountains, 3 runs a day, 1,089 calls a run
     home = {key: config.REGIONS[key] for key in ("tahoe", "mammoth")}
-    assert round(usage.planned(home)) == round(21 * 4 * 51.9)
+    assert round(usage.planned(home)) == round(21 * 3 * 51.9)
 
 
 def test_avalanche_centers_come_from_the_regions_without_repeats():
@@ -84,3 +84,16 @@ def test_the_last_season_figures_stand_in_while_the_sensors_cannot_be_reached(mo
     assert payload["season"] == {"water": {"pct": 80}} and curves == {name: {"water": [1, 2]}}
     fresh = {"key": resort.key, "observed": None}
     assert pipeline.add_season([fresh], pd.Timestamp("2026-11-21T16:00:00")) == {} and fresh["season"] is None
+
+
+def test_every_region_is_built_at_its_own_hours_as_often_as_its_interval_says():
+    for region in config.REGIONS.values():
+        assert region.at and len(region.at) * region.every_h == 24, region.key
+        assert list(region.at) == sorted(region.at), region.key
+
+
+def test_the_latest_build_hour_is_told_on_the_regions_own_clock():
+    now = pd.Timestamp("2026-12-01 12:30")                                        # 4:30 am Pacific, 7:30 am Eastern
+    assert pipeline.last_slot(config.REGIONS["tahoe"], now) == pd.Timestamp("2026-12-01 05:00")        # 9 pm Pacific
+    assert pipeline.last_slot(config.REGIONS["newengland"], now) == pd.Timestamp("2026-12-01 09:00")   # 4 am Eastern
+    assert pipeline.last_slot(config.REGIONS["seattle"], pd.Timestamp("2026-12-01 13:00")) == pd.Timestamp("2026-12-01 13:00")

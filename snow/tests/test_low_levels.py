@@ -102,7 +102,7 @@ def test_the_extra_levels_are_counted_against_the_allowance():
     assert usage.resort_run_calls("tahoe") == usage.CALLS_PER_RESORT_RUN
     assert abs(usage.resort_run_calls("seattle") - (usage.CALLS_PER_RESORT_RUN + 3 * usage.EXTRA_LEVEL_CALLS)) < 1e-9
     seattle = {"seattle": REGIONS["seattle"]}
-    assert round(usage.planned(seattle)) == round(13 * 2 * (51.9 + 3 * usage.EXTRA_LEVEL_CALLS))
+    assert round(usage.planned(seattle)) == round(13 * 3 * (51.9 + 3 * usage.EXTRA_LEVEL_CALLS))
     assert usage.estimate([], "seattle") == round(13 * usage.resort_run_calls("seattle"), 1)
     assert abs(usage.resort_run_calls("newengland") - (usage.CALLS_PER_RESORT_RUN + 5 * usage.EXTRA_LEVEL_CALLS)) < 1e-9
     assert abs((cost("newengland") - cost("tahoe")) / 5 - usage.EXTRA_LEVEL_CALLS) < 0.01

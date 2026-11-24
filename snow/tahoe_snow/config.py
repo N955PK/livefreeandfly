@@ -66,12 +66,15 @@ class Region:
     tz: str
     # Hours behind UTC in standard time: SNOTEL reads its daily values at midnight on that clock all year.
     std_offset_h: int
-    # Hours between forecast runs for the region's mountains.
+    # Hours between forecast runs for the region's mountains: 24 over the number of hours in ``at``.
     every_h: int
     # The avalanche centers whose forecasts cover the region.
     avalanche: tuple[str, ...]
     # Pressure levels (hPa) read below the usual lowest one, where the region's mountains reach under it.
     low_levels: tuple[int, ...] = ()
+    # The hours of the day, on the region's own clock, at which its forecast is built. Regions that share a clock
+    # share their hours, so their forecasts change together.
+    at: tuple[int, ...] = ()
 
 
 def _ft(feet: float) -> float:
@@ -308,15 +311,17 @@ RESORTS = {
 REGIONS = {
     r.key: r
     for r in [
-        Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",)),
-        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC")),
+        # The three western regions are built together at 5 am, 1 pm and 9 pm Pacific: before the ski day, at midday and
+        # in the evening. New England is built at 4 am and 4 pm Eastern; the afternoon one falls with the West's 1 pm.
+        Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 8, ("SAC",), at=(5, 13, 21)),
+        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 8, ("ESAC", "BAC"), at=(5, 13, 21)),
         # Every lift-served foot of New England is below 850 hPa (near 1,450 m): the highest summit is Killington's
         # 1,293 m and the lowest base Attitash's 183 m, which 1000 hPa (near 110 m) covers.
         Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",),
-               low_levels=(1000, 975, 950, 925, 900)),
+               low_levels=(1000, 975, 950, 925, 900), at=(4, 16)),
         # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
         # trailhead at 630 m, which 950 hPa (near 540 m) covers.
-        Region("seattle", "Seattle", "America/Los_Angeles", 8, 12, ("NWAC",), low_levels=(950, 925, 900)),
+        Region("seattle", "Seattle", "America/Los_Angeles", 8, 8, ("NWAC",), low_levels=(950, 925, 900), at=(5, 13, 21)),
     ]
 }
 
