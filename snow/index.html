@@ -38,6 +38,11 @@
 }}
 /* Controls and highlights take the accent; snow amounts keep their own blue. A host page can set its own accent. */
 :root{--accent:var(--snow)}
+/* The accent can be chosen in Settings (Theme). Blue is the snow colour itself; the others are a shade lighter in the dark. */
+:root[data-accent="evergreen"]{--accent:#1f8a5b}:root[data-accent="alpenglow"]{--accent:#d6456b}:root[data-accent="sunrise"]{--accent:#e0752a}
+:root[data-accent="teal"]{--accent:#1697a6}:root[data-accent="violet"]{--accent:#7a52d6}
+@media (prefers-color-scheme:dark){:root[data-accent="evergreen"]{--accent:#35a873}:root[data-accent="alpenglow"]{--accent:#e8607f}:root[data-accent="sunrise"]{--accent:#ee8a45}
+  :root[data-accent="teal"]{--accent:#2fb0bf}:root[data-accent="violet"]{--accent:#9373e6}}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none !important}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
@@ -1143,6 +1148,10 @@ dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavio
 #settings h3{margin:0 0 6px}
 .setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;color:var(--ink2)}
 .setrow .seg{margin-left:0}
+/* Theme: one round swatch a colour; the chosen one wears a ring. */
+.swatches{display:inline-flex;gap:9px}
+.swatches button{width:28px;height:28px;border-radius:50%;border:0;padding:0;background:var(--sw);cursor:pointer;box-shadow:0 0 0 2px var(--surface)}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--mark)}
 @media(max-width:460px){.setrow .seg button{padding:6px 9px;font-size:12.5px}}
 .ahead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .ahead h2{font-size:22px;line-height:1.15}
@@ -1439,6 +1448,7 @@ if (HOSTED) {
     <div class="setrow"><span>Units</span><div class="seg" role="group" aria-label="Units"><button data-pref="units" data-value="us">in · °F · mph</button><button data-pref="units" data-value="metric">cm · °C · km/h</button></div></div>
     <div class="setrow"><span>Clock</span><div class="seg" role="group" aria-label="Clock"><button data-pref="clock" data-value="12">12 hour</button><button data-pref="clock" data-value="24">24 hour</button></div></div>
     <div class="setrow"><span>Map controls</span><div class="seg" role="group" aria-label="Map controls"><button data-pref="finger" data-value="spin">Default</button><button data-pref="finger" data-value="pan">Pan</button></div></div>
+    <div class="setrow"><span>Theme</span><div class="swatches" role="group" aria-label="Theme"><button data-pref="accent" data-value="blue" aria-label="Blue" style="--sw:var(--snow)"></button><button data-pref="accent" data-value="evergreen" aria-label="Evergreen" style="--sw:#1f8a5b"></button><button data-pref="accent" data-value="alpenglow" aria-label="Alpenglow" style="--sw:#d6456b"></button><button data-pref="accent" data-value="sunrise" aria-label="Sunrise" style="--sw:#e0752a"></button><button data-pref="accent" data-value="teal" aria-label="Glacier teal" style="--sw:#1697a6"></button><button data-pref="accent" data-value="violet" aria-label="Violet" style="--sw:#7a52d6"></button></div></div>
   </div>
   <h4 class="ghead">The forecast</h4>
   <div class="gnav">
@@ -1613,7 +1623,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 // The reader's choices, kept on their device. The forecast is worked out in inches, °F, mph, and feet; these turn
 // each number into the chosen units at the moment it is written.
 const PREFS_KEY = "turbo-snow.prefs";
-const prefs = {units: "us", clock: "12", finger: "spin", labels: "on", shields: "on", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
+const prefs = {units: "us", clock: "12", finger: "spin", labels: "on", shields: "on", accent: "blue", ...(() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch (error) { return {}; } })()};
 const savePrefs = () => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (error) { /* private browsing: the choice lasts for this visit */ } };
 // ---------- favorites ----------
 // Any mountain can be starred: prefs.favorites holds their keys in the reader's order (the order starred, until moved).
@@ -3291,6 +3301,8 @@ document.addEventListener("touchcancel", dragEnd, {passive: true});
 applyLayout("forecast");
 function showPrefs() {
   for (const b of document.querySelectorAll("[data-pref]")) b.setAttribute("aria-pressed", prefs[b.dataset.pref] === b.dataset.value);
+  // The accent colour chosen under Theme; blue is the page's own and needs no mark.
+  if (prefs.accent && prefs.accent !== "blue") document.documentElement.dataset.accent = prefs.accent; else delete document.documentElement.dataset.accent;
   // The map's name tags and highway shields can each be put away.
   $("map3d").classList.toggle("nolabels", prefs.labels === "off");
   $("map3d").classList.toggle("noshields", prefs.shields === "off");
