@@ -83,7 +83,7 @@ The site is static files on GitHub Pages, one folder per app, so this follows th
 
 | Piece | Choice | Why |
 |---|---|---|
-| Page | `cabin/index.html`, plain HTML, CSS, and JavaScript | Matches `fog/`, `burnoff/`, `drive/`. No build, no dependencies to update. |
+| Page | `cabin/index.html`, plain HTML, CSS, and JavaScript | Matches `fog/` and `burnoff/`. No build, no dependencies to update. |
 | Shared data | Supabase (hosted Postgres) | A static page needs somewhere shared to keep data. Called straight from the browser. |
 | Sign-in | Google, through Supabase Auth | No passwords to manage. People stay signed in on their phone. |
 | Calendar feed | One Supabase edge function | Calendar apps can't sign in, so a private token in the link stands in for it. |
