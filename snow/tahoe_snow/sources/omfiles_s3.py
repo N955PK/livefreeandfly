@@ -21,6 +21,8 @@ LAT0, LAT1, LON0, LON1 = 36.25, 40.25, -121.5, -118.0
 SIERRA_BLOCK = (LAT0, LAT1, LON0, LON1)
 # The Washington Cascades and Olympics, around the Seattle region's sensors.
 CASCADES_BLOCK = (46.0, 49.0, -123.75, -120.25)
+# The Tetons and the ranges around them.
+TETONS_BLOCK = (43.0, 44.5, -111.75, -109.75)
 LEVEL_VARIABLES = ["temperature", "relative_humidity", "wind_u_component", "wind_v_component", "geopotential_height"]
 PRECIP_SHAPE = (1536, 3072)
 GRID_WIDTH = {"ncep_gfs025": 1440, "ncep_gfs013": 3072}

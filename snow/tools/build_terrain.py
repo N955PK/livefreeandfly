@@ -39,7 +39,10 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            "newengland": {"box": (42.28, 45.73, -74.015, -69.215), "max_m": 1950, "columns": 640},
            # A 355 km square around the circle holding Mt. Baker to Mt. Adams and Hurricane Ridge to Mission Ridge.
            # Mt. Rainier is 4,392 m on the tiles; Puget Sound and the Strait are sea level, clipped to 0.
-           "seattle": {"box": (45.9172, 49.1053, -124.3165, -119.5965), "max_m": 4420, "columns": 640, "water": True}}
+           "seattle": {"box": (45.9172, 49.1053, -124.3165, -119.5965), "max_m": 4420, "columns": 640, "water": True},
+           # Snow King to Grand Targhee and Teton Pass to Togwotee Pass with 25 km around them, 125 by 94 km. The
+           # Grand Teton is 4,199 m. Jackson Lake sits above the valley floor south of it, so its water comes from a mask.
+           "tetons": {"box": (43.2, 44.05, -111.3, -109.75), "max_m": 4250, "columns": 320, "water": True}}
 
 
 def stem(region: str) -> str:

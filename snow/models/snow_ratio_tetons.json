@@ -1,0 +1,40 @@
+{
+  "model": "ridge (all)",
+  "features": [
+    "t0",
+    "t500",
+    "t1000",
+    "t2000",
+    "wind0",
+    "wind500",
+    "wind1000",
+    "wind2000",
+    "rh0",
+    "rh500",
+    "rh1000",
+    "rh2000",
+    "tw0",
+    "tmax_col",
+    "lapse",
+    "liquid_mm",
+    "elev_m",
+    "doy_sin",
+    "doy_cos"
+  ],
+  "events": 2092,
+  "stations": 67,
+  "seasons": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026,
+    2027
+  ],
+  "first_date": "2021-03-26",
+  "last_date": "2026-11-01",
+  "where": "Sierra and Teton",
+  "region_events": 869,
+  "region_stations": 21
+}

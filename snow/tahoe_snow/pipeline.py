@@ -36,16 +36,16 @@ ENSEMBLE_VARS = ["precipitation", "temperature_2m"]
 
 def load_snow_model(region: str | None = None) -> tuple:
     """The trained snow model when its files exist, else Kuchera with a default rain/snow split. The rain/snow
-    split is the region's own where one was fitted."""
+    split and the snow ratio are each the region's own where one was fitted, else the Sierra's."""
     try:
         kind, params = phase.load(region)
     except FileNotFoundError:
         kind, params = DEFAULT_PHASE
     try:
-        sidecar = json.loads((MODELS / "snow_ratio.json").read_text())
-        described = (f"trained on {sidecar['events']} hand-measured Sierra snow days at "
+        sidecar = ratio.described(region)
+        described = (f"trained on {sidecar['events']} hand-measured {sidecar.get('where', 'Sierra')} snow days at "
                      f"{sidecar['stations']} stations, {sidecar['first_date'][:4]} to {sidecar['last_date'][:4]}")
-        return SnowModel(ratio.load(), kind, params), described
+        return SnowModel(ratio.load(region), kind, params), described
     except FileNotFoundError:
         return SnowModel(ratio.Kuchera(), kind, params), "Kuchera (trained model not yet fitted)"
 

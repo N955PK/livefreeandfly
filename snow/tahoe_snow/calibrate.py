@@ -10,7 +10,7 @@ import pandas as pd
 
 from tahoe_snow import biascorrect, blend
 from tahoe_snow.config import (MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW, SEATTLE_BBOX, SEATTLE_STATIONS, STATIONS,
-                               TABLES, TAHOE_BBOX)
+                               TABLES, TAHOE_BBOX, TETONS_BBOX, TETONS_STATIONS)
 from tahoe_snow.snow import dataset, phase
 
 BUCKET = "openmeteo/data"
@@ -23,7 +23,8 @@ WINTER_MONTHS = (11, 12, 1, 2, 3, 4)
 # Tahoe keeps the file names it had before there were regions.
 REGIONS = {"tahoe": (STATIONS, TAHOE_BBOX, "snotel_daily"),
            "mammoth": (MAMMOTH_STATIONS, MAMMOTH_BBOX, "mammoth_daily"),
-           "seattle": (SEATTLE_STATIONS, SEATTLE_BBOX, "seattle_daily")}
+           "seattle": (SEATTLE_STATIONS, SEATTLE_BBOX, "seattle_daily"),
+           "tetons": (TETONS_STATIONS, TETONS_BBOX, "tetons_daily")}
 # A pillow reading this much water on a day when no model had any, that day or the days beside it, is a sensor
 # fault (a step in the reading), not a storm.
 PHANTOM_MM, DRY_MM = 25.0, 2.0

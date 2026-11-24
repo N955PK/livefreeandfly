@@ -167,7 +167,28 @@ SEATTLE_STATIONS = {
         Station("1012:WA:SNTL", "Swift Creek", 46.1638, -122.18402, _ft(4440)),
     ]
 }
-ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS}
+# SNOTEL stations around the Tetons (NRCS AWDB, active 2026-11-24): the three paired with the region's places first
+# (Grand Targhee, Phillips Bench above Teton Pass, Togwotee Pass), then seven neighbours from the Snake River's
+# headwaters to the Gros Ventre that the region's water correction is also fitted to. Wyoming's daily values are
+# stamped on the Pacific standard clock too, an hour off the mountains' own: at Phillips Bench the value dated
+# 17 November matched the hourly reading stamped midnight starting the 18th, and the station list gives every one of
+# these a data time zone of UTC-8.
+TETONS_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("1082:WY:SNTL", "Grand Targhee", 43.7793, -110.9278, _ft(9260)),
+        Station("689:WY:SNTL", "Phillips Bench", 43.5169, -110.9126, _ft(8170)),
+        Station("822:WY:SNTL", "Togwotee Pass", 43.749, -110.0578, _ft(9590)),
+        Station("499:WY:SNTL", "Grassy Lake", 44.126, -110.8343, _ft(7330)),
+        Station("577:WY:SNTL", "Lewis Lake Divide", 44.2086, -110.6663, _ft(7880)),
+        Station("764:WY:SNTL", "Snake River Station", 44.1336, -110.6692, _ft(6900)),
+        Station("314:WY:SNTL", "Base Camp", 43.9402, -110.4454, _ft(7040)),
+        Station("695:ID:SNTL", "Pine Creek Pass", 43.57, -111.2116, _ft(6710)),
+        Station("497:WY:SNTL", "Granite Creek", 43.343, -110.435, _ft(6770)),
+        Station("506:WY:SNTL", "Gros Ventre Summit", 43.3894, -110.1294, _ft(8760)),
+    ]
+}
+ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -348,6 +369,29 @@ RESORTS = {
                region="seattle", kind="backcountry"),
         Resort("sthelens", "Mt. St. Helens", 46.1725, -122.188, 814, _ft(8363), "1012:WA:SNTL", "Backcountry",
                region="seattle", kind="backcountry", weak_match=True, corrected=False),
+        # Tetons: the three lift-served mountains around Jackson and the two passes skied from the road (looked up
+        # 2026-11-24). Jackson Hole's base and summit are from its own statistics page, Grand Targhee's from its
+        # own (the main base area and the top of Fred's Mountain, its highest lift), Snow King's from Wikipedia
+        # (its own site refused to be read). Each resort's point is the middle of its main lift in OpenStreetMap:
+        # Jackson Hole's tram, Targhee's Dreamcatcher, Snow King's Summit Gondola. Jackson Hole is also on the
+        # Mountain Collective; Snow King's place on the Indy Pass this winter is disputed, so it is Independent.
+        # Teton Pass runs from the lot at the top of the pass (8,431 ft) to Mount Glory's higher, south summit
+        # (10,086 ft), its point half way up the bootpack. Togwotee Pass is Breccia Peak (11,007 ft), the tour the
+        # guides call the most accessible, from its pull-out a kilometre north of the pass, which the Terrain Tiles
+        # put at 2,886 m, below the pass itself; its point is on the way up at about the middle height.
+        # Sensors by the guide's rule: Phillips Bench is 9.8 km from Jackson Hole's point and 64 m under its middle;
+        # it is 3.6 km from Teton Pass's but 330 m under that middle, below the pass itself, so a weak match there.
+        # Nothing reports within 10 km of Snow King.
+        Resort("jacksonhole", "Jackson Hole", 43.59236, -110.84913, _ft(6311), _ft(10450), "689:WY:SNTL", "Ikon",
+               region="tetons"),
+        Resort("targhee", "Grand Targhee", 43.78795, -110.94568, _ft(7851), _ft(9862), "1082:WY:SNTL",
+               "Mountain Collective", region="tetons"),
+        Resort("snowking", "Snow King", 43.4678, -110.76167, _ft(6237), _ft(7808), None, "Independent",
+               region="tetons"),
+        Resort("tetonpass", "Teton Pass", 43.5022, -110.9526, _ft(8431), _ft(10086), "689:WY:SNTL", "Backcountry",
+               region="tetons", kind="backcountry", weak_match=True),
+        Resort("togwotee", "Togwotee Pass", 43.7822, -110.0715, 2886, _ft(11007), "822:WY:SNTL", "Backcountry",
+               region="tetons", kind="backcountry"),
     ]
 }
 
@@ -365,6 +409,11 @@ REGIONS = {
         # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
         # trailhead at 630 m, which 950 hPa (near 540 m) covers.
         Region("seattle", "Cascades", "America/Los_Angeles", 8, 8, ("NWAC",), low_levels=(950, 925, 900), at=(5, 13, 21)),
+        # Built at the West's hours on its own clock, 5 am, 1 pm and 9 pm Mountain, an hour before the West's.
+        # Wyoming's SNOTEL stations keep the Pacific standard clock (see TETONS_STATIONS), so the sensor offset is
+        # 8, not Mountain time's 7. The lowest ground is Snow King's base at 1,901 m, well above 850 hPa: no lower
+        # levels are read.
+        Region("tetons", "Tetons", "America/Denver", 8, 8, ("BTAC",), at=(5, 13, 21)),
     ]
 }
 
@@ -402,3 +451,5 @@ TAHOE_BBOX = (38.4, 39.7, -120.8, -119.6)
 MAMMOTH_BBOX = (37.0, 38.3, -119.7, -118.4)
 # Around the Seattle region's ten snow sensors, Swift Creek in the south to Wells Creek in the north.
 SEATTLE_BBOX = (46.0, 49.0, -123.6, -120.3)
+# Around the Tetons: Yellowstone's south edge to the Wyoming Range, the Big Holes to the Wind Rivers' north end.
+TETONS_BBOX = (43.0, 44.4, -111.6, -109.8)

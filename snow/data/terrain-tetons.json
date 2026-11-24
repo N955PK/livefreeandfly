@@ -1,0 +1,1 @@
+{"rows": 241, "columns": 320, "lat_s": 43.2, "lat_n": 44.05, "lon_w": -111.3, "lon_e": -109.75, "width_km": 124.9, "height_km": 93.98, "min_m": 1603, "max_m": 3992, "source": "Terrain Tiles on AWS (Mapzen terrarium); see tilezen/joerd attribution", "water_mask": "terrain-tetons.water.bin", "water_source": "the tiles' sea level and OpenStreetMap (ODbL)"}

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import clone
 
-from tahoe_snow.config import MM_PER_IN, MODELS, REPORTS, SEATTLE_BBOX, STATIONS, TABLES, levels_for
+from tahoe_snow.config import MM_PER_IN, MODELS, REPORTS, STATIONS, TABLES, levels_for
 from tahoe_snow.snow import dataset, features, observations, phase, ratio
 from tahoe_snow.snow.model import SnowModel
 from tahoe_snow.sources import omfiles_s3
@@ -120,14 +120,28 @@ def fit_phase(stations: dict) -> tuple:
     return table, best
 
 
+# Where a region's rain/snow split and snow ratio are fitted or checked: its box of stations
+# (``observations.BOXES``) and the block of the upper-air archive over it.
+REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("tetonbox", omfiles_s3.TETONS_BLOCK)}
+
+
+def region_profiles(region: str, end: str) -> dict:
+    return omfiles_s3.block_profiles(dataset.RAW_ARCHIVE_START, end, REGION_BOXES[region][1], levels_for(region))
+
+
 def fit_seattle_phase(end: str, kind: str = "wet-bulb logistic") -> pd.DataFrame:
-    """Fit the Seattle region's rain/snow split to every SNOTEL station in its box (``observations.pull_cascades``
-    first) and save it, in the form the Sierra uses unless told otherwise. Returns the table of held-out tests."""
-    profiles = omfiles_s3.block_profiles(dataset.RAW_ARCHIVE_START, end, omfiles_s3.CASCADES_BLOCK,
-                                         levels_for("seattle"))
-    gains = pd.read_parquet(TABLES / "cascades_daily.parquet")
+    return fit_region_phase("seattle", end, kind)
+
+
+def fit_region_phase(region: str, end: str, kind: str = "wet-bulb logistic") -> pd.DataFrame:
+    """Fit a region's rain/snow split to every SNOTEL station in its box (``observations.pull_box`` first) and
+    save it, in the form the Sierra uses unless told otherwise. Returns the table of held-out tests."""
+    box = REGION_BOXES[region][0]
+    states, bbox, _ = observations.BOXES[box]
+    profiles = region_profiles(region, end)
+    gains = pd.read_parquet(TABLES / f"{box}_daily.parquet")
     gains = gains[gains["date"].dt.month.isin(SPLIT_MONTHS)]
-    stations = sensor_hourly(observations.box_stations("WA", SEATTLE_BBOX), gains, profiles)
+    stations = sensor_hourly(observations.box_stations(states, bbox), gains, profiles)
     table, best = fit_phase(stations)
     # For the scorecard: the same days scored with everything called snow, and with the Sierra's curve as it is.
     sierra = phase_errors(stations, *phase.load())
@@ -136,19 +150,21 @@ def fit_seattle_phase(end: str, kind: str = "wet-bulb logistic") -> pd.DataFrame
     table["sierra_error"] = float(sierra["error_mm"].abs().mean())
     table["sierra_mixed_error"] = float(mixed["error_mm"].abs().mean())
     table["stations"] = len(stations)
-    table.to_csv(TABLES / "phase_table_seattle.csv")
+    table.to_csv(TABLES / f"phase_table_{region}.csv")
     phase.save(kind, best[kind], {"held_out_error_mm": float(table.loc[kind, "held-out error (mm water)"]),
-                                  "stations": len(stations), "days": int(table.loc[kind, "days"])}, region="seattle")
+                                  "stations": len(stations), "days": int(table.loc[kind, "days"])}, region=region)
     return table
 
 
 def check_seattle_ratio(end: str) -> dict:
-    """Score the Sierra-trained ratio model on the Seattle box's hand-measured snow days, against the simple
-    methods and against refits that pool those days in, and keep the result beside the models. Nothing is refitted
-    for use: the record says whether one should be."""
-    profiles = omfiles_s3.block_profiles(dataset.RAW_ARCHIVE_START, end, omfiles_s3.CASCADES_BLOCK,
-                                         levels_for("seattle"))
-    events = dataset.ratio_filter(dataset.build_cascades(end, profiles))
+    return check_region_ratio("seattle", end)
+
+
+def check_region_ratio(region: str, end: str) -> dict:
+    """Score the Sierra-trained ratio model on a region's hand-measured snow days, against the simple methods and
+    against refits that pool those days in, and keep the result beside the models. Nothing is refitted for use:
+    the record says whether one should be."""
+    events = dataset.ratio_filter(dataset.build_box(REGION_BOXES[region][0], end, region_profiles(region, end)))
     sierra = dataset.ratio_filter(load_events())
     sierra = sierra[sierra["source"] == "manual"]
     days = events[events["source"] == "manual"].reset_index(drop=True)
@@ -177,8 +193,20 @@ def check_seattle_ratio(end: str) -> dict:
               "flat_10_to_1": brief(np.full(len(days), 10.0)),
               "pooled_refit_each_winter_held_out": pooled("season"),
               "pooled_refit_each_station_held_out": pooled("station")}
-    (MODELS / "snow_ratio_check_seattle.json").write_text(json.dumps(record, indent=2))
+    (MODELS / f"snow_ratio_check_{region}.json").write_text(json.dumps(record, indent=2))
     return record
+
+
+def fit_region_ratio(region: str, where: str, name: str = "ridge (all)") -> ratio.ColumnModel:
+    """Fit a region's own ratio model and save it: the Sierra's form, trained on the Sierra's hand-measured snow
+    days with the region's added (the table ``check_region_ratio`` leaves). ``where`` says so in the forecast's
+    description of itself."""
+    sierra = dataset.ratio_filter(load_events())
+    days = dataset.ratio_filter(pd.read_parquet(TABLES / f"events_{REGION_BOXES[region][0]}.parquet"))
+    days = days[days["source"] == "manual"]
+    both = pd.concat([sierra[sierra["source"] == "manual"], days], ignore_index=True)
+    return ratio.fit_final(both, name, ratio.candidates()[name], region=region, where=where,
+                           extra={"region_events": int(len(days)), "region_stations": int(days["station"].nunique())})
 
 
 def end_to_end(events: pd.DataFrame, stations: dict, ratio_name: str, phase_kind: str,

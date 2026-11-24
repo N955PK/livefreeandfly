@@ -30,6 +30,10 @@ ROUTES = {
     "seattle": {"I 5": "I-5", "I 90": "I-90", "I 405": "I-405", "US 2": "US-2", "US 12": "US-12", "US 97": "US-97",
                 "US 101": "US-101", "SR 410": "SR-410", "SR 542": "SR-542", "SR 20": "SR-20", "SR 530": "SR-530",
                 "SR 706": "SR-706", "SR 503": "SR-503", "SR 141": "SR-141"},
+    # The roads to Jackson and over its passes: the Snake River highways, Teton Pass (WY 22) and the road to Teton
+    # Village (WY 390), Togwotee Pass (US 26/287), and Idaho's side to Driggs and Grand Targhee.
+    "tetons": {"US 26": "US-26", "US 89": "US-89", "US 191": "US-191", "US 287": "US-287", "WY 22": "WY-22",
+               "WY 390": "WY-390", "ID 33": "ID-33", "ID 31": "ID-31", "ID 32": "ID-32"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the

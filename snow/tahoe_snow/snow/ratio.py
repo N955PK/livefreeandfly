@@ -170,21 +170,40 @@ def learning_curve(events: pd.DataFrame, model, seasons_per_step: list) -> pd.Da
     return pd.DataFrame(rows)
 
 
-def fit_final(events: pd.DataFrame, name: str, model) -> ColumnModel:
+def model_files(region: str | None = None) -> tuple:
+    """The fitted ratio model and its description: a region's own where one was fitted
+    (snow_ratio_<region>.joblib), else the Sierra's."""
+    own = MODELS / f"snow_ratio_{region}.joblib"
+    if region and own.exists():
+        return own, MODELS / f"snow_ratio_{region}.json"
+    return MODELS / MODEL_FILE, MODELS / "snow_ratio.json"
+
+
+def fit_final(events: pd.DataFrame, name: str, model, region: str | None = None, where: str | None = None,
+              extra: dict | None = None) -> ColumnModel:
+    """Fit on every event and save: the Sierra's model, or ``region``'s own, said to be trained in ``where``."""
     fitted = clone(model)
     if isinstance(fitted, ColumnModel):
         fitted.fit(events, events["slr"].to_numpy(), sample_weight=np.sqrt(events["liquid_mm"].to_numpy()))
     else:
         fitted.fit(events, events["slr"].to_numpy())
     MODELS.mkdir(parents=True, exist_ok=True)
-    joblib.dump(fitted, MODELS / MODEL_FILE)
+    joblib.dump(fitted, MODELS / (f"snow_ratio_{region}.joblib" if region else MODEL_FILE))
     sidecar = {"model": name, "features": list(getattr(fitted, "columns", None) or []), "events": int(len(events)),
                "stations": int(events["station"].nunique()),
                "seasons": sorted(int(s) for s in events["season"].unique()),
                "first_date": str(events["date"].min().date()), "last_date": str(events["date"].max().date())}
-    (MODELS / "snow_ratio.json").write_text(json.dumps(sidecar, indent=2))
+    if where:
+        sidecar["where"] = where
+    sidecar.update(extra or {})
+    (MODELS / (f"snow_ratio_{region}.json" if region else "snow_ratio.json")).write_text(json.dumps(sidecar, indent=2))
     return fitted
 
 
-def load():
-    return joblib.load(MODELS / MODEL_FILE)
+def load(region: str | None = None):
+    return joblib.load(model_files(region)[0])
+
+
+def described(region: str | None = None) -> dict:
+    """What the ratio model in use for a region was trained on."""
+    return json.loads(model_files(region)[1].read_text())

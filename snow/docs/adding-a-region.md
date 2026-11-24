@@ -65,6 +65,10 @@ England has none: give those mountains `station=None` and skip to 1c.
 - For the region's first station, check the time its daily values are stamped in against its hourly readings
   (see the note at the top of `sources/snotel.py`) and confirm `Region.std_offset_h` is right for it.
 
+A region uses its own fitted files where they exist and the Sierra's otherwise: `models/bias_<region>.json` (the
+water correction; with none, the models are used as they are), `weights_<region>.json`, `snow_phase_<region>.json`
+and `snow_ratio_<region>.joblib`. The Cascades have the first three and the Tetons all four.
+
 There is no fitted correction for a new region (`models/bias_<region>.json` does not exist), and the pipeline
 handles that: the models are used as they are. Fitting one is a separate job (`calibrate.py`, which needs the
 region's stations and a box added to its `REGIONS`) and is not part of adding a region.

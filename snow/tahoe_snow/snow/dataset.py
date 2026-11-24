@@ -185,17 +185,22 @@ def build(end: str, early_cells: list | None = None, profiles: Profiles | None =
 
 
 def build_cascades(end: str, profiles: dict) -> pd.DataFrame:
-    """The event table for the Seattle box: its hand-measured stations and every SNOTEL station in it, with
-    predictors from ``profiles`` (``omfiles_s3.block_profiles`` over the Cascades). Reads the tables that
-    ``observations.pull_cascades`` and ``pull_cascades_manual`` leave."""
+    """The event table for the Seattle box."""
+    return build_box("cascades", end, profiles)
+
+
+def build_box(box: str, end: str, profiles: dict) -> pd.DataFrame:
+    """The event table for a box (``observations.BOXES``): its hand-measured stations and every SNOTEL station in
+    it, with predictors from ``profiles`` (``omfiles_s3.block_profiles`` over the box). Reads the tables that
+    ``observations.pull_box`` and ``pull_box_manual`` leave."""
     def windows(lat: float, lon: float, elev_m: float) -> pd.DataFrame:
         node = (round(round(lat / 0.25) * 0.25, 3), round(round(lon / 0.25) * 0.25, 3))
         return features.window_features(features.hourly_features(profiles[node], elev_m))
 
-    stations = pd.read_parquet(TABLES / "cascades_manual_stations.parquet")
-    manual = pd.read_parquet(TABLES / "cascades_manual_daily.parquet").set_index("date")
-    gains = pd.read_parquet(TABLES / "cascades_daily.parquet").set_index("date")
-    sensors = pd.read_parquet(TABLES / "cascades_stations.parquet")
+    stations = pd.read_parquet(TABLES / f"{box}_manual_stations.parquet")
+    manual = pd.read_parquet(TABLES / f"{box}_manual_daily.parquet").set_index("date")
+    gains = pd.read_parquet(TABLES / f"{box}_daily.parquet").set_index("date")
+    sensors = pd.read_parquet(TABLES / f"{box}_stations.parquet")
     frames = []
     for _, row in stations.iterrows():
         daily = manual[(manual["station"] == row["station"]) & (manual.index <= end)]
@@ -207,7 +212,7 @@ def build_cascades(end: str, profiles: dict) -> pd.DataFrame:
         frames.append(snotel_events(days, row.station, windows(row.lat, row.lon, row.elev_m), row.elev_m)
                       .assign(name=row.name))
     table = pd.concat(frames, ignore_index=True)
-    table.to_parquet(TABLES / "events_cascades.parquet")
+    table.to_parquet(TABLES / f"events_{box}.parquet")
     return table
 
 
