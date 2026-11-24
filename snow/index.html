@@ -1589,7 +1589,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "250";
+const BUILD = "251";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4307,11 +4307,11 @@ const LOCATORS = [
   // Wildcat sits under Mt. Washington at this size, so only Attitash, to the south, is named beside it.
   {where: "the White Mountains", lon0: -73.471, lat0: 45.201, kx: 28.6, ky: 40, lakes: [], towns: [["Attitash", -71.225, 44.076, true]],
     peaks: {"Presidential Range": ["Mt. Washington", -71.303, 44.270, "Washington"]}},
-  // The Bridger-Teton center's four zones, set left of the middle so the names have room to their right.
-  {where: "the Tetons and the ranges around Jackson", lon0: -114.28, lat0: 45.931, kx: 10.19, ky: 14,
-    lakes: [[-110.677, 43.921, 0.5, 1.4]], towns: [["Jackson", -110.762, 43.480, true]],
+  // The Bridger-Teton center's four zones, set to the right with every name to their left, clear of the zones.
+  {where: "the Tetons and the ranges around Jackson", lon0: -116.991, lat0: 46.135, kx: 9.46, ky: 13, side: "left",
+    lakes: [[-110.677, 43.921, 0.45, 1.3]], towns: [["Jackson", -110.762, 43.480, true]],
     peaks: {2855: ["Grand Teton", -110.802, 43.741, "Grand"], 2852: ["Togwotee Pass", -110.070, 43.764, "Togwotee"],
-      2860: ["Mt. Baird", -111.095, 43.363, "Baird"], 2856: ["Wyoming Peak", -110.624, 42.604, "Wyoming"]}},
+      2860: ["Mt. Baird", -111.095, 43.363, "Baird"], 2856: ["Wyoming Pk", -110.624, 42.604, "Wyoming"]}},
   // The Utah center's northern zones, Logan to Provo and the Uintas, with the Great Salt Lake and Utah Lake.
   {where: "the Wasatch Range", lon0: -116.976, lat0: 44.566, kx: 8.28, ky: 11,
     lakes: [[-112.55, 41.17, 3.3, 5.4], [-111.81, 40.185, 1.1, 1.9]], towns: [],
