@@ -1627,7 +1627,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "271";
+const BUILD = "272";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4244,10 +4244,10 @@ function onTheDay(product, zone) {
   return product;
 }
 // The states the avalanche zones lie in, by the two letters the centers' map layers give.
-// The part of the country a zone is listed under, by its state, in the order the picker shows them.
+// The part of the country a zone is listed under, by its state. The picker shows them A to Z, as this is written.
 // A zone whose name is too long for the tab's title or the large map is said shorter there.
 const ZONE_SHORT = {"Salt River and Wyoming Ranges": "Salt River & Wyoming"};
-const AVY_AREAS = ["California", "New England", "Cascades", "Tetons", "Utah", "Colorado"];
+const AVY_AREAS = ["California", "Cascades", "Colorado", "New England", "Tetons", "Utah"];
 const AVY_AREA = {CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Cascades", OR: "Cascades", WY: "Tetons", ID: "Tetons", UT: "Utah", CO: "Colorado"};
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
