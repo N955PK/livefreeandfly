@@ -54,7 +54,13 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # spare. The highest ground is Grays Peak at 4,352 m and Longs Peak at 4,346 m. Its reservoirs (Dillon,
            # Granby, Green Mountain) are drawn as level ground for now: a water mask needs OpenStreetMap's outlines,
            # and the Overpass servers were down the day it was built (2026-11-24). Add "water": True and rebuild.
-           "colorado": {"box": (39.172, 40.764, -107.466, -105.406), "max_m": 4400, "columns": 451}}
+           "colorado": {"box": (39.172, 40.764, -107.466, -105.406), "max_m": 4400, "columns": 451},
+           # A 254 km square around the circle, 127 km in radius about 41.285 N 122.115 W, that holds Mt. Ashland in
+           # the north and Lassen Peak in the south-east (each about 102 km from its middle) with 25 km to spare.
+           # Mt. Shasta is 4,322 m. Lake Shasta and the Sacramento Valley are far below the mountains; no water mask
+           # was built, as the Overpass servers were down the day it was made (2026-11-24). Add "water": True and
+           # rebuild.
+           "shasta": {"box": (40.137, 42.433, -123.634, -120.596), "max_m": 4350, "columns": 640}}
 
 
 def stem(region: str) -> str:

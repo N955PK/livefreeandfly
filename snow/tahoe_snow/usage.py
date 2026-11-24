@@ -23,9 +23,9 @@ CALLS_PER_RESORT_RUN = 51.9
 # What each pressure level a region reads below the usual ones adds to that, by the service's rule: four fields from
 # four models over the 22 days a forecast request spans (16 variables / 10, times 22 days / 14).
 EXTRA_LEVEL_CALLS = 2.51
-# The most calls a day the regions may be planned to spend: the service allows 10,000, and this keeps a twentieth
-# of that back for an extra build on a day a region gains mountains.
-PLAN_LIMIT = 9500
+# The most calls a day the regions may be planned to spend: the service allows 10,000, and this keeps a hundredth
+# of that back.
+PLAN_LIMIT = 9900
 
 
 def resort_run_calls(region: str) -> float:

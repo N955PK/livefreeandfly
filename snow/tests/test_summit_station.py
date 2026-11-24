@@ -198,7 +198,8 @@ def test_the_index_says_a_sensor_with_no_fitted_correction_corrects_nothing(tmp_
 
 def test_a_volcano_is_shown_its_sensor_and_not_corrected_against_it(tmp_path, monkeypatch):
     volcanoes = [RESORTS[key] for key in ("rainier", "mtbaker", "sthelens")]
-    assert [r.key for r in RESORTS.values() if not r.corrected] == [r.key for r in volcanoes]
+    # Mt. Shasta is another, in a region with no correction fitted.
+    assert [r.key for r in RESORTS.values() if not r.corrected] == [r.key for r in volcanoes] + ["shasta"]
     correction = pipeline.load_corrections()["seattle"]
     for volcano in volcanoes:
         assert volcano.station and pipeline.correcting_station(volcano) is None

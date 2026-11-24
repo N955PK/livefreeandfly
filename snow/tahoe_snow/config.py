@@ -234,8 +234,27 @@ COLORADO_STATIONS = {
         Station("408:CO:SNTL", "Columbine", 40.39591, -106.60437, _ft(9170)),
     ]
 }
+# California's snow pillows around Mt. Shasta and Lassen (CDEC, reporting 2026-11-24); there is no SNOTEL station
+# north of the Sierra near them. The two paired with the region's mountains first: Sand Flat, the only pillow on
+# Mt. Shasta, and Lower Lassen Peak, which went quiet for most of the last two winters. Then seven more with full
+# winters on record, from the Trinity and Scott mountains west of I-5 to Blacks Mountain east of Lassen, that a
+# water correction could be fitted to; only Sand Flat among them is on Shasta itself.
+SHASTA_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("SDF:CDEC", "Sand Flat", 41.350239, -122.246529, _ft(6750), source="cdec"),
+        Station("LLP:CDEC", "Lower Lassen Peak", 40.466602, -121.50811, _ft(8338), source="cdec"),
+        Station("PET:CDEC", "Peterson Flat", 41.302219, -122.527779, _ft(7150), source="cdec"),
+        Station("HIG:CDEC", "Highland Lakes", 41.09186, -122.49239, _ft(5830), source="cdec"),
+        Station("SLT:CDEC", "Slate Creek", 41.04398, -122.479893, _ft(5560), source="cdec"),
+        Station("STM:CDEC", "Stouts Meadow", 41.169275, -121.939465, _ft(5200), source="cdec"),
+        Station("SNM:CDEC", "Snow Mountain", 40.778809, -121.782677, _ft(5950), source="cdec"),
+        Station("HRK:CDEC", "Harkness Flat", 40.418, -121.275, _ft(6200), source="cdec"),
+        Station("BLA:CDEC", "Blacks Mountain", 40.76984, -121.199783, _ft(7050), source="cdec"),
+    ]
+}
 ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
-                **WASATCH_STATIONS, **COLORADO_STATIONS}
+                **WASATCH_STATIONS, **COLORADO_STATIONS, **SHASTA_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -520,6 +539,29 @@ RESORTS = {
                region="colorado", kind="backcountry", weak_match=True, weather_from="loveland"),   # 2.6 km
         Resort("vailpass", "Vail Pass", 39.5475, -106.2035, 3232, 3813, "415:CO:SNTL", "Backcountry",
                region="colorado", kind="backcountry", weak_match=True, weather_from="copper"),     # 7.4 km
+        # Shasta: Mt. Shasta and the mountains a day's drive around it, from Mt. Ashland in Oregon to Lassen Peak
+        # (looked up 2026-11-24). The Ski Park's point is the midpoint of its Douglas chair and Mt. Ashland's of its
+        # Ariel chair, in OpenStreetMap, checked against the USGS elevation service. The Ski Park's summit is its
+        # stated base plus its stated vertical, which is where the Gray Butte chair ends; Mt. Ashland's is the top
+        # of the Ariel chair, 55 ft under the peak. Mt. Shasta runs from Bunny Flat up Avalanche Gulch, its point at
+        # Helen Lake; Lassen Peak from the Kohm Yah-mah-nee visitor center, where the road is closed in winter;
+        # Castle Lake from the lot at the lake to Middle Peak, the tour the avalanche center's observers make there.
+        # Nobody shares weather: the Ski Park is on Shasta's own flank, 1,360 m under the mountain's point, and the
+        # rest are 19 km apart or more.
+        # Sensors: Sand Flat is 5 km from the Ski Park and near its middle height; it is the nearest to Mt. Shasta
+        # too, but 1,158 m under that mountain's middle, so there it is shown and corrects nothing. Lower Lassen
+        # Peak is on Lassen. Nothing reports within 10 km of Castle Lake or of Mt. Ashland (Big Red Mountain is
+        # 12 km along the crest).
+        Resort("shastaskipark", "Mt. Shasta Ski Park", 41.32316, -122.19807, _ft(5500), _ft(7536), "SDF:CDEC", "Indy",
+               region="shasta"),
+        Resort("ashland", "Mt. Ashland", 42.08402, -122.71416, _ft(6344), _ft(7478), None, "Independent",
+               region="shasta"),
+        Resort("shasta", "Mt. Shasta", 41.38988, -122.21016, 2109, 4322, "SDF:CDEC", "Backcountry",
+               region="shasta", kind="backcountry", weak_match=True, corrected=False),
+        Resort("castlelake", "Castle Lake", 41.22132, -122.38332, 1659, 2016, None, "Backcountry",
+               region="shasta", kind="backcountry"),
+        Resort("lassen", "Lassen Peak", 40.47685, -121.50608, 2051, 3187, "LLP:CDEC", "Backcountry",
+               region="shasta", kind="backcountry"),
     ]
 }
 
@@ -548,6 +590,9 @@ REGIONS = {
         # The same hours and clocks again: Colorado's SNOTEL stations keep the Pacific standard clock (see
         # COLORADO_STATIONS). The lowest ground is Steamboat's base at 2,103 m: no lower levels are read.
         Region("colorado", "Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21)),
+        # Built twice a day, at 5 am and 5 pm Pacific, to keep the day's calls under the service's limit (Sean's
+        # choice, 2026-11-24). The lowest ground is Castle Lake's lot at 1,659 m: no lower levels are read.
+        Region("shasta", "Shasta", "America/Los_Angeles", 8, 12, ("MSAC",), at=(5, 17)),
     ]
 }
 
@@ -592,3 +637,5 @@ WASATCH_BBOX = (40.2, 41.5, -112.1, -111.4)
 # Around Colorado's sixteen snow sensors: Hoosier Pass in the south to Tower above Steamboat in the north. The four
 # by Steamboat sit apart, in (40.3, 40.6, -106.85, -106.55); the twelve along I-70 are in (39.3, 39.9, -106.6, -105.75).
 COLORADO_BBOX = (39.3, 40.6, -106.85, -105.75)
+# Around Shasta's nine snow pillows, Harkness Flat by Lassen to Sand Flat on Mt. Shasta.
+SHASTA_BBOX = (40.4, 41.6, -122.9, -121.19)

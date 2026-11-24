@@ -61,7 +61,7 @@ regions three times a day (5 am, 1 pm, 9 pm), New England twice (4 am, 4 pm). Se
 region's hours or add builds without asking. A new western region takes the same three hours on its own clock.
 
 A mountain that takes a neighbour's weather (`Resort.weather_from`) makes no pull and costs nothing, so count
-pulls, not mountains. The day's ceiling is 9,500 (`usage.PLAN_LIMIT`; the service allows 10,000). The tests enforce it; do the sum first:
+pulls, not mountains. The day's ceiling is 9,900 (`usage.PLAN_LIMIT`; the service allows 10,000). The tests enforce it; do the sum first:
 
 ```python
 from tahoe_snow import usage; print(usage.planned())   # after adding the region, before pushing
@@ -350,7 +350,7 @@ anything you change.
 ### 2e. Push
 
 Commit (`snow: Salt Lake is on the page, with its map, roads and avalanche forecast`) and push. The next morning,
-read the ledger on the data branch (`archive/usage.json`): the last day's calls are under 9,500 and nothing was
+read the ledger on the data branch (`archive/usage.json`): the last day's calls are under 9,900 and nothing was
 rate limited.
 
 ## 3. Lifts and the resort's report
@@ -388,7 +388,7 @@ are what turns the map white, counted at half weight because they are mostly sno
 ## What to tell Sean when a region ships
 
 One short message, answer first: the region and its mountains, which share weather and with whom, how many calls
-a day the whole app now plans to spend out of 9,500, which mountains are Corrected, Low sensor or Uncorrected, what
+a day the whole app now plans to spend out of 9,900, which mountains are Corrected, Low sensor or Uncorrected, what
 was fitted and whether it beat the Sierra's, which resorts have lift status and which could not be read, and every
 checklist line that is not done or could not be checked (nothing is ever checked on a real phone; say so).
 

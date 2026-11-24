@@ -19,10 +19,11 @@ def feed(open_lifts: int, snow: dict | None) -> dict:
 
 def test_every_reader_is_a_mountain_of_new_england_the_tetons_the_wasatch_or_colorado_and_says_where_its_page_is():
     for key, module in independents.MODULES.items():
-        assert config.RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado"), key
+        assert config.RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado", "shasta"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
-    assert len(independents.MODULES) == 23
+    assert len(independents.MODULES) == 25
+    assert [key for key in independents.MODULES if config.RESORTS[key].region == "shasta"] == ["shastaskipark", "ashland"]
     assert [key for key in independents.MODULES if config.RESORTS[key].region == "colorado"] == ["copper", "loveland"]
     assert [key for key in independents.MODULES if config.RESORTS[key].region == "wasatch"] == [
         "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance"]
@@ -49,3 +50,9 @@ def test_a_closed_mountains_undated_or_old_report_is_left_out():
     assert "SnowReport" in independents.settled(feed(0, {**base, "LastUpdate": "2026-11-16T13:36:00Z"}), NOW)
     assert "SnowReport" in independents.settled(feed(1, {**base, "LastUpdate": None}), NOW)
     assert "SnowReport" not in independents.settled(feed(0, None), NOW)
+
+
+def test_a_mountain_with_no_lifts_posted_is_left_out():
+    empty = {"Name": "Somewhere", "LastUpdate": "2026-11-24T17:00:00Z", "MountainAreas": [{"Name": "Somewhere", "Lifts": [], "Trails": []}]}
+    assert not independents.posted(empty)
+    assert independents.posted(feed(0, None))

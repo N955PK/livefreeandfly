@@ -1,5 +1,5 @@
 """Lifts, trails and snow reports of the mountains that each run their own website: New England's independents,
-Jackson Hole and Grand Targhee in the Tetons, six of the Wasatch's resorts, and Copper and Loveland in Colorado.
+Jackson Hole and Grand Targhee in the Tetons, six of the Wasatch's resorts, Copper and Loveland in Colorado, and the Mt. Shasta Ski Park and Mt. Ashland.
 
 Each mountain has a module of its own that knows its page (``URL``, or ``URLS`` where it takes more than one request)
 and reads it (``parse``). This runs them all and writes one file the page reads, in the shape of the Ikon feed the
@@ -16,10 +16,10 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import (alta, blackmountain, bolton, brettonwoods, brighton, bromley, burke, cannon,
-                                copper, cranmore, jacksonhole, jaypeak, loveland, madriverglen, magic,
-                                powdermountain, saddleback, smugglers, snowbasin, snowbird, sundance, targhee,
-                                waterville)
+from tahoe_snow.sources import (alta, ashland, blackmountain, bolton, brettonwoods, brighton, bromley, burke,
+                                cannon, copper, cranmore, jacksonhole, jaypeak, loveland, madriverglen, magic,
+                                powdermountain, saddleback, shastaskipark, smugglers, snowbasin, snowbird,
+                                sundance, targhee, waterville)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -31,7 +31,8 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "jacksonhole": jacksonhole, "targhee": targhee,
            "alta": alta, "snowbird": snowbird, "brighton": brighton, "snowbasin": snowbasin,
            "powdermountain": powdermountain, "sundance": sundance,
-           "copper": copper, "loveland": loveland}
+           "copper": copper, "loveland": loveland,
+           "shastaskipark": shastaskipark, "ashland": ashland}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
 RANGED = ("Base", "Last24Hours")
 
@@ -80,6 +81,10 @@ def settled(feed: dict, now: datetime) -> dict:
     return feed
 
 
+def posted(feed: dict) -> bool:
+    return any(area["Lifts"] for area in feed["MountainAreas"])
+
+
 def read(module, now: datetime) -> dict:
     if hasattr(module, "URLS"):
         return module.parse({name: fetch(url) for name, url in module.URLS.items()}, now)
@@ -91,9 +96,16 @@ def main(out_path: str) -> int:
     resorts = {}
     for key, module in MODULES.items():
         try:
-            resorts[key] = settled(read(module, now), now)
+            feed = settled(read(module, now), now)
         except Exception as error:
             print(f"{key}: {error}")
+            continue
+        # A mountain that has posted no lifts yet (the Ski Park's sheet is empty until it opens) is left out, which
+        # the page reads as nothing posted, not as a mountain with no lifts.
+        if not posted(feed):
+            print(f"{key}: no lifts posted yet")
+            continue
+        resorts[key] = feed
     if not resorts:
         return 1
     with open(out_path, "w") as handle:
