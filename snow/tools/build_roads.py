@@ -43,6 +43,12 @@ ROUTES = {
                 "SR 92": "UT-92", "SR 39": "UT-39", "SR 226": "UT-226", "SR 167": "UT-167", "SR 158": "UT-158",
                 "UT 210": "UT-210", "UT 190": "UT-190", "UT 224": "UT-224", "UT 92": "UT-92", "UT 39": "UT-39",
                 "UT 226": "UT-226", "UT 167": "UT-167", "UT 158": "UT-158"},
+    # I-70 over the Divide and Vail Pass, the roads to Winter Park and Steamboat (US 40) and over Loveland Pass
+    # (US 6), to Breckenridge (CO 9) and from Copper to Leadville (CO 91), and the Colorado River road (CO 131).
+    # OpenStreetMap writes Colorado's state routes as "CO" on most ways and "SH" on some, so both are asked for.
+    "colorado": {"I 70": "I-70", "US 40": "US-40", "US 6": "US-6", "US 24": "US-24", "US 34": "US-34",
+                 "CO 9": "CO-9", "CO 91": "CO-91", "CO 131": "CO-131", "CO 14": "CO-14",
+                 "SH 9": "CO-9", "SH 91": "CO-91", "SH 131": "CO-131", "SH 14": "CO-14"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the

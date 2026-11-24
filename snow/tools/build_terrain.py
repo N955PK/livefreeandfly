@@ -48,7 +48,13 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # in the north and Sundance and Mt. Timpanogos in the south (each about 56 km from its middle) with
            # 25 km to spare. The highest ground is the western Uintas, Hayden Peak at 3,790 m. Utah Lake and the
            # canyon reservoirs sit above the Great Salt Lake, so the water comes from a mask.
-           "wasatch": {"box": (40.157, 41.613, -112.652, -110.728), "max_m": 3850, "columns": 415, "water": True}}
+           "wasatch": {"box": (40.157, 41.613, -112.652, -110.728), "max_m": 3850, "columns": 415, "water": True},
+           # A 176 km square around the circle, 88 km in radius about 39.968 N 106.436 W, that holds Steamboat in
+           # the north-west and Breckenridge in the south-east (each about 63 km from its middle) with 25 km to
+           # spare. The highest ground is Grays Peak at 4,352 m and Longs Peak at 4,346 m. Its reservoirs (Dillon,
+           # Granby, Green Mountain) are drawn as level ground for now: a water mask needs OpenStreetMap's outlines,
+           # and the Overpass servers were down the day it was built (2026-11-24). Add "water": True and rebuild.
+           "colorado": {"box": (39.172, 40.764, -107.466, -105.406), "max_m": 4400, "columns": 451}}
 
 
 def stem(region: str) -> str:

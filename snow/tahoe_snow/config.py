@@ -208,8 +208,34 @@ WASATCH_STATIONS = {
         Station("332:UT:SNTL", "Ben Lomond Peak", 41.37603, -111.94405, _ft(7690)),
     ]
 }
+# SNOTEL stations along Colorado's I-70 corridor and above Steamboat (NRCS AWDB, active 2026-11-24): the eight
+# paired with the region's mountains first, then four more between Vail and Berthoud Pass, then three more in the
+# Park Range by Steamboat, which is 100 km north of the rest and lower. Colorado's daily values are stamped on the
+# Pacific standard clock, as Wyoming's and Utah's are: at Vail Mountain the value dated D matched the hourly reading
+# stamped midnight starting D+1 on each of fourteen days, and the station list gives every one a zone of UTC-8.
+COLORADO_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("842:CO:SNTL", "Vail Mountain", 39.61765, -106.38019, _ft(10290)),
+        Station("1040:CO:SNTL", "McCoy Park", 39.60231, -106.544, _ft(9500)),
+        Station("505:CO:SNTL", "Grizzly Peak", 39.64646, -105.8694, _ft(11110)),
+        Station("602:CO:SNTL", "Loveland Basin", 39.67428, -105.90264, _ft(11410)),
+        Station("415:CO:SNTL", "Copper Mountain", 39.48917, -106.17154, _ft(10500)),
+        Station("335:CO:SNTL", "Berthoud Summit", 39.80364, -105.77786, _ft(11300)),
+        Station("457:CO:SNTL", "Dry Lake", 40.5337, -106.7814, _ft(8240)),
+        Station("1041:CO:SNTL", "Beaver Creek Village", 39.59871, -106.51113, _ft(8530)),
+        Station("485:CO:SNTL", "Fremont Pass", 39.38014, -106.19784, _ft(11310)),
+        Station("531:CO:SNTL", "Hoosier Pass", 39.36092, -106.05999, _ft(11600)),
+        Station("935:CO:SNTL", "Jackwhacker Gulch", 39.57096, -105.80355, _ft(11030)),
+        Station("970:CO:SNTL", "Jones Pass", 39.7645, -105.90655, _ft(10430)),
+        Station("1186:CO:SNTL", "Fool Creek", 39.86866, -105.86765, _ft(11130)),
+        Station("709:CO:SNTL", "Rabbit Ears", 40.36735, -106.74118, _ft(9390)),
+        Station("825:CO:SNTL", "Tower", 40.5374, -106.67655, _ft(10610)),
+        Station("408:CO:SNTL", "Columbine", 40.39591, -106.60437, _ft(9170)),
+    ]
+}
 ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
-                **WASATCH_STATIONS}
+                **WASATCH_STATIONS, **COLORADO_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -452,6 +478,48 @@ RESORTS = {
                region="wasatch", kind="backcountry", weather_from="alta"),          # 1.6 km from Alta
         Resort("timpanogos", "Mt. Timpanogos", 40.39824, -111.63013, 2099, 3581, "820:UT:SNTL", "Backcountry",
                region="wasatch", kind="backcountry", weak_match=True, weather_from="sundance"),   # 4 km
+        # Colorado: the I-70 corridor from Beaver Creek to Loveland, Winter Park and Berthoud Pass, and Steamboat
+        # (looked up 2026-11-24). Each resort's point is the midpoint of a main lift from its base in
+        # OpenStreetMap, checked against the USGS elevation service; Breckenridge's is the Colorado SuperChair's,
+        # from the Peak 8 base. Bases are the resorts' own figures (A-Basin's, Copper's and Steamboat's from
+        # secondary sources that match the ground). A summit is the top of the highest lift where the published
+        # one is reached on foot: Breckenridge's Imperial chair, Keystone's Bergman, A-Basin's Lenawee, Loveland's
+        # Lift 9, Copper's Three Bears, Winter Park's Panoramic and Steamboat's Morningside.
+        # Sharing: A-Basin takes Keystone's weather (7.8 km, both west of the Divide), Loveland Pass takes
+        # Loveland's (2.6 km), Vail Pass takes Copper's (7.4 km, across West Tenmile Creek, not the Divide) and
+        # Berthoud Pass takes Winter Park's (9.3 km; the pass is on the Divide, but nothing else is near). Loveland
+        # and A-Basin are 4.9 km apart across the Divide and Breckenridge and Copper 7 km across the Tenmile
+        # Range, so each asks for its own.
+        # Sensors by the guide's rule. Breckenridge's only one within 10 km is Copper Mountain's, across the
+        # Tenmile crest, so it has none. Winter Park takes Berthoud Summit, level with Fool Creek by distance but
+        # on record since 1963 and shared with the pass. Loveland Pass and Vail Pass sit more than 300 m above
+        # theirs, weak matches.
+        Resort("vail", "Vail", 39.62698, -106.37096, _ft(8120), _ft(11570), "842:CO:SNTL", "Epic", region="colorado"),
+        Resort("beavercreek", "Beaver Creek", 39.59273, -106.51323, _ft(8100), _ft(11440), "1040:CO:SNTL", "Epic",
+               region="colorado"),
+        Resort("breckenridge", "Breckenridge", 39.47582, -106.07661, _ft(9600), _ft(12840), None, "Epic",
+               region="colorado"),
+        Resort("keystone", "Keystone", 39.59276, -105.94115, _ft(9280), _ft(12277), "505:CO:SNTL", "Epic",
+               region="colorado"),
+        Resort("abasin", "Arapahoe Basin", 39.63778, -105.87148, _ft(10780), _ft(12479), "505:CO:SNTL", "Ikon",
+               region="colorado", weather_from="keystone"),              # 7.8 km from Keystone
+        Resort("loveland", "Loveland", 39.67672, -105.89713, _ft(10800), _ft(12700), "602:CO:SNTL", "Indy",
+               region="colorado"),
+        Resort("copper", "Copper Mountain", 39.49158, -106.15617, _ft(9712), _ft(12322), "415:CO:SNTL", "Ikon",
+               region="colorado"),
+        Resort("winterpark", "Winter Park", 39.88023, -105.76915, _ft(9000), _ft(11988), "335:CO:SNTL", "Ikon",
+               region="colorado"),
+        Resort("steamboat", "Steamboat", 40.45519, -106.78864, _ft(6900), _ft(10543), "457:CO:SNTL", "Ikon",
+               region="colorado"),
+        # Backcountry, each from its pass's lot to the summit most skied from it, the point half way up: Colorado
+        # Mines Peak above Berthoud Pass, the Divide ridge east of Loveland Pass below Mt. Sniktau, and Uneva Peak
+        # from Vail Pass. Heights are USGS's.
+        Resort("berthoud", "Berthoud Pass", 39.7964, -105.76994, 3448, 3805, "335:CO:SNTL", "Backcountry",
+               region="colorado", kind="backcountry", weather_from="winterpark"),            # 9.3 km
+        Resort("lovelandpass", "Loveland Pass", 39.6722, -105.8668, 3655, 3938, "602:CO:SNTL", "Backcountry",
+               region="colorado", kind="backcountry", weak_match=True, weather_from="loveland"),   # 2.6 km
+        Resort("vailpass", "Vail Pass", 39.5475, -106.2035, 3232, 3813, "415:CO:SNTL", "Backcountry",
+               region="colorado", kind="backcountry", weak_match=True, weather_from="copper"),     # 7.4 km
     ]
 }
 
@@ -477,6 +545,9 @@ REGIONS = {
         # The Tetons' hours and clocks: Utah's SNOTEL stations keep the Pacific standard clock too (see
         # WASATCH_STATIONS). The lowest ground is Sundance's base at 1,859 m: no lower levels are read.
         Region("wasatch", "Wasatch", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21)),
+        # The same hours and clocks again: Colorado's SNOTEL stations keep the Pacific standard clock (see
+        # COLORADO_STATIONS). The lowest ground is Steamboat's base at 2,103 m: no lower levels are read.
+        Region("colorado", "Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21)),
     ]
 }
 
@@ -518,3 +589,6 @@ SEATTLE_BBOX = (46.0, 49.0, -123.6, -120.3)
 TETONS_BBOX = (43.0, 44.4, -111.6, -109.8)
 # Around the Wasatch's ten snow sensors, Timpanogos Divide in the south to Ben Lomond Peak in the north.
 WASATCH_BBOX = (40.2, 41.5, -112.1, -111.4)
+# Around Colorado's sixteen snow sensors: Hoosier Pass in the south to Tower above Steamboat in the north. The four
+# by Steamboat sit apart, in (40.3, 40.6, -106.85, -106.55); the twelve along I-70 are in (39.3, 39.9, -106.6, -105.75).
+COLORADO_BBOX = (39.3, 40.6, -106.85, -105.75)
