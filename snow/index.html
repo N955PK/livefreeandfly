@@ -1608,7 +1608,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "253";
+const BUILD = "254";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4137,6 +4137,8 @@ function onTheDay(product, zone) {
 }
 // The states the avalanche zones lie in, by the two letters the centers' map layers give.
 // The part of the country a zone is listed under, by its state, in the order the picker shows them.
+// A zone whose name is too long for the tab's title or the large map is said shorter there.
+const ZONE_SHORT = {"Salt River and Wyoming Ranges": "Salt River & Wyoming"};
 const AVY_AREAS = ["California", "New England", "Cascades", "Tetons"];
 const AVY_AREA = {CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Cascades", OR: "Cascades", WY: "Tetons", ID: "Tetons"};
 async function zonesFrom(centers) {
@@ -4455,7 +4457,7 @@ function bigLocator(zone, all) {
   const span = (words, size) => words.length * size * 0.56;
   const zoneNames = [zone, ...zones.filter((z) => z !== zone)].map((z) => {
     const ring = z.rings.flat().map(xy), x = (Math.min(...ring.map((c) => c[0])) + Math.max(...ring.map((c) => c[0]))) / 2, y = (Math.min(...ring.map((c) => c[1])) + Math.max(...ring.map((c) => c[1]))) / 2;
-    const words = z.name.replace(/ Avalanche Center$/, ""), half = span(words, 10) / 2, cx = Math.max(half + 2, Math.min(wide - half - 2, x));
+    const words = ZONE_SHORT[z.name] || z.name.replace(/ Avalanche Center$/, ""), half = span(words, 10) / 2, cx = Math.max(half + 2, Math.min(wide - half - 2, x));
     placed.push([cx - half, y - 7, cx + half, y + 4]);
     return `<text x="${cx.toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="middle">${esc(words)}</text>`;
   }).join("");
@@ -4471,20 +4473,26 @@ function bigLocator(zone, all) {
     placed.push([x - 4, y - 4, x + 4, y + 4]);
     return [r, x, y];
   });
-  const peaks = spots.map(([r, x, y]) => `<path class="pk" d="M${x.toFixed(1)} ${(y - 4).toFixed(1)}l3.6 6.4h-7.2z"/>${beside(SHORT[r.key] || r.name, x, y, "pk", 9)}`).join("");
-  // The small map's landmarks too: each zone's named mountain (unless a peak above already stands there) and the
-  // towns and lakes it names.
-  const dotted = (text, lon, lat) => {
+  // Every mountain is a triangle: the app's backcountry peaks, then the small map's named mountains (unless one of
+  // the peaks already stands there). A town is a dot, and a lake's name has no mark. The small map marks all of
+  // these with dots, being too small for two shapes.
+  const triangle = (x, y) => `<path class="pk" d="M${x.toFixed(1)} ${(y - 4).toFixed(1)}l3.6 6.4h-7.2z"/>`;
+  const peaks = spots.map(([r, x, y]) => `${triangle(x, y)}${beside(SHORT[r.key] || r.name, x, y, "pk", 9)}`).join("");
+  const marks = Object.values((frame && frame.peaks) || {}).map(([text, lon, lat]) => {
     const [x, y] = xy([lon, lat]);
     if (!inside(lon, lat) || spots.some(([, px, py]) => Math.hypot(px - x, py - y) < 9)) return "";
+    placed.push([x - 4, y - 4, x + 4, y + 4]);
+    return `${triangle(x, y)}${beside(text, x, y, "pk", 9)}`;
+  }).join("");
+  const towns = ((frame && frame.towns) || []).filter(([, lon, lat]) => inside(lon, lat)).map(([text, lon, lat, dot]) => {
+    const [x, y] = xy([lon, lat]);
+    if (!dot) return beside(text, x - 3, y, "tn", 9);
     placed.push([x - 3, y - 3, x + 3, y + 3]);
     return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2"/>${beside(text, x, y, "tn", 9)}`;
-  };
-  const marks = Object.values((frame && frame.peaks) || {}).map(([text, lon, lat]) => dotted(text, lon, lat)).join("");
-  const towns = ((frame && frame.towns) || []).map(([text, lon, lat, dot]) => { const [x, y] = xy([lon, lat]); return dot ? dotted(text, lon, lat) : inside(lon, lat) ? beside(text, x - 3, y, "tn", 9) : ""; }).join("");
+  }).join("");
   const rows = zones.map((z) => `<button class="azrow${z === zone ? " on" : ""}" data-zone="${esc(zoneKey(z))}"><i style="background:${fill(z)}"></i>${esc(z.name.replace(/ Avalanche Center$/, ""))} · ${z.stale ? "No forecast yet" : dangerText(z.level)}</button>`).join("");
   return `<svg viewBox="0 0 ${wide} ${tall.toFixed(0)}" role="img" aria-label="The avalanche zones of ${esc(frame ? frame.where : zone.center.name)}">${sea ? `<path class="water" d="${sea}"/>` : ""}${drawn}${lakes}${marks}${towns}${peaks}${zoneNames}</svg>
-    <div class="azrows">${rows}</div><p class="anote">Tap a zone for its forecast. Triangles are this app's backcountry peaks; dots are landmarks.</p>`;
+    <div class="azrows">${rows}</div><p class="anote">Tap a zone for its forecast. Triangles are mountains and dots are towns.</p>`;
 }
 function openAvyMap() {
   if (!avyMapFor) return;
@@ -4567,7 +4575,7 @@ function drawAvalanche() {
   const areaOf = (z) => AVY_AREA[z.state] || "Other";
   const areas = [...AVY_AREAS, "Other"].filter((area) => listed.some((z) => areaOf(z) === area));
   const option = (z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`;
-  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${areas.map((area) => `<optgroup label="${esc(area)}">${listed.filter((z) => areaOf(z) === area).sort((a, b) => midLat(b) - midLat(a)).map(option).join("")}</optgroup>`).join("")}</select></label>`;
+  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(ZONE_SHORT[zone.name] || zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${areas.map((area) => `<optgroup label="${esc(area)}">${listed.filter((z) => areaOf(z) === area).sort((a, b) => midLat(b) - midLat(a)).map(option).join("")}</optgroup>`).join("")}</select></label>`;
   const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
   // A time more than six days away (an off-season forecast from the spring) also gives its date, so it is not read as this week's.
