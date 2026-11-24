@@ -1589,7 +1589,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "248";
+const BUILD = "249";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4484,8 +4484,6 @@ function drawAvalanche() {
   else {
     expired = product.expires_time && new Date(product.expires_time) < Date.now();
     if (expired) body += `<p class="anotice"><b>Expired ${clock(product.expires_time)}.</b> The center may have posted a newer forecast.</p>`;
-    const rated = product.product_type === "forecast" && (product.danger || []).some((d) => BANDS.some(([band]) => d[band] > 0));
-    if (!rated) body += `<p class="anotice">No danger rating: the center has posted ${product.product_type === "summary" ? "a general summary" : "an update"}, not a daily forecast.</p>`;
   }
   let rating = zone.advice ? `<p class="aadvice">${esc(zone.advice)}</p>` : "", trouble = "", words = "";
   if (tabbed()) rating = `<div class="abanner" style="--d:${danger(zone.level)[1]}"><img src="${dangerIcon(zone.level)}" alt="" onerror="this.remove()"><div><b>${dangerText(zone.level)}</b>${zone.advice ? `<p>${esc(zone.advice)}</p>` : ""}</div></div>`;
