@@ -1561,7 +1561,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "242";
+const BUILD = "243";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1660,7 +1660,9 @@ const everyMountain = () => index ? index.resorts : data.resorts;
 const mountain = (key) => (data && data.resorts.find((r) => r.key === key)) || (index && index.resorts.find((r) => r.key === key));
 // The regions this page can draw that the data has: the index's that have been published at least once (one not
 // built yet has nothing to show), or with no index the forecast's own.
-const regionKeys = () => Object.keys(REGIONS).filter((key) => index ? index.regions[key] && index.regions[key].published_utc : data.resorts.some((r) => regionOf(r) === key));
+// Regions are listed by name, A to Z, wherever the page lists them.
+const regionsByName = () => Object.keys(REGIONS).sort((a, b) => REGIONS[a].name.localeCompare(REGIONS[b].name));
+const regionKeys = () => regionsByName().filter((key) => index ? index.regions[key] && index.regions[key].published_utc : data.resorts.some((r) => regionOf(r) === key));
 // Everything about the weather is told in the time at the mountain; data published before mountains carried their
 // time zone is all Pacific.
 const tzOf = (resort) => (resort && resort.tz) || "America/Los_Angeles";
@@ -4352,7 +4354,7 @@ function drawAvalanche() {
   const main = state && state.zones.find((z) => z.center === home);
   // Every zone the app's regions cover, region by region in the region menu's order, without repeats where two
   // regions share a center.
-  const seen = new Set(), byRegion = [...new Set([...regionKeys(), ...Object.keys(REGIONS)])]
+  const seen = new Set(), byRegion = [...new Set([...regionKeys(), ...regionsByName()])]
     .map((key) => ((avy[key] && avy[key].zones.length ? avy[key].zones : avyElsewhere[key]) || [])
       .filter((z) => !seen.has(zoneKey(z)) && seen.add(zoneKey(z))));
   const all = byRegion.flat();
