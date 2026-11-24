@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "228";
+const BUILD = "229";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3998,7 +3998,7 @@ const SIERRA_TOWNS = [["Tahoe", -120.04, 39.09, false], ["Bridgeport", -119.23, 
 // its position is the summit from OpenStreetMap (Nominatim), or the app's own mountain where it is one.
 const LOCATORS = [
   {where: "the Sierra Nevada", lon0: -124.6, lat0: 42.15, kx: 7.93, ky: 10, lakes: SIERRA_LAKES, towns: SIERRA_TOWNS},
-  {where: "the Washington Cascades and Olympics", lon0: -133.02, lat0: 52.92, kx: 4.35, ky: 6.4,
+  {where: "the Washington Cascades and Olympics", lon0: -135.09, lat0: 52.92, kx: 4.35, ky: 6.4, side: "left",
     lakes: [[-122.45, 47.6, 0.35, 2.2], [-123.55, 48.22, 3, 0.6]], towns: [["Seattle", -122.33, 47.6, true]],
     peaks: {3020: ["Mt. Olympus", -123.711, 47.801, "Olympus"], 3021: ["Mt. Baker", -121.815, 48.777, "Baker"],
       3022: ["Glacier Peak", -121.113, 48.112, "Glacier"], 3023: ["Mt. Rainier", -121.760, 46.853, "Rainier"],
@@ -4023,9 +4023,53 @@ function locator(zone, all) {
   // Outside the Sierra each zone's mountain is named too, the forecast zone's first and always; then the towns, then
   // the other zones' mountains wherever one fits: right of its spot, else left, else by its short name. A name that
   // would overlap one already placed or run off the map is left out.
-  const placed = [], fits = (box) => box[0] >= 27.5 && box[2] <= 69.5 && !placed.some((b) => b[0] < box[2] && box[0] < b[2] && b[1] < box[3] && box[1] < b[3]);
+  const placed = [], spots = [], meets = (box) => (b) => b[0] < box[2] && box[0] < b[2] && b[1] < box[3] && box[1] < b[3];
+  const fits = (box) => box[0] >= 27.5 && box[2] <= 69.5 && (frame.side !== "left" || (box[1] >= 23.6 && box[3] <= 51.1)) && !placed.some(meets(box)) && !spots.some(meets(box));
+  // A frame whose zones lie east of its spots (Seattle's) sets every name to the left instead, right-aligned: a name
+  // over the zone its spot stands in, or one touching it, moves left until clear of it; one that would still cross a
+  // zone, sit on a spot or run off the map, even lifted or lowered a little, is said shorter or left out.
+  const zoneSpans = (z) => z.rings.flatMap((ring) => ring.map((p, k) => [xy(p), xy(ring[(k + 1) % ring.length])]));
+  const edges = frame.side === "left" ? [zone, ...all.filter((z) => z !== zone && inBox(xy(middle(z))))].map(zoneSpans) : [];
+  // The x-extent of each zone within the band y0..y1 (each edge cut to the band).
+  const across = (y0, y1) => edges.map((segs) => {
+    let lo = Infinity, hi = -Infinity;
+    for (const [[ax, ay], [bx, by]] of segs) {
+      if (ay === by) { if (ay >= y0 && ay <= y1) { lo = Math.min(lo, ax, bx); hi = Math.max(hi, ax, bx); } continue; }
+      const ta = Math.max(0, Math.min((y0 - ay) / (by - ay), (y1 - ay) / (by - ay))), tb = Math.min(1, Math.max((y0 - ay) / (by - ay), (y1 - ay) / (by - ay)));
+      if (ta > tb) continue;
+      for (const t of [ta, tb]) { const v = ax + (bx - ax) * t; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    }
+    return [lo, hi];
+  }).filter(([lo]) => lo < Infinity);
+  const leftOf = (words, x, y, reach, wet = false) => {
+    const wide = 2.2 * words.length;
+    for (const dy of [0, -0.6, 0.6, -1.2, 1.2, -1.8, 1.8, -2.4, 2.4, -3, 3, -3.6, 3.6, -4.2, 4.2].filter((d) => Math.abs(d) <= reach)) {
+      const y0 = y + dy - 2.4, y1 = y + dy + 1.6, spans = across(y0, y1);
+      // The water is not crossed either.
+      if (!wet) for (const [lon, lat, rx, ry] of frame.lakes) { const [cx, cy] = xy([lon, lat]); if (cy - ry < y1 && cy + ry > y0) spans.push([cx - rx, cx + rx, true]); }
+      let right = x - 1.6, clear = false;
+      for (let step = 0; step < 12 && !clear; step++) {
+        const hit = spans.find(([lo, hi]) => lo < right + 0.4 && hi > right - wide - 0.4);
+        if (!hit) clear = true; else if (!hit[2] && hit[1] >= x - 1.7) right = Math.min(right, hit[0] - 0.8); else break;
+      }
+      const box = [right - wide, y0, right, y1];
+      if (clear && fits(box)) return {words, left: true, right, dy, box};
+    }
+    return null;
+  };
   const mark = ([text, lon, lat, short], always = false) => {
     const [x, y] = xy([lon, lat]);
+    if (frame.side === "left") {
+      // The forecast zone's own name may stand further above or below its spot, and, failing that, over the water.
+      const pick = [[1.2], ...(always ? [[4.2], [4.2, true]] : [])].flatMap(([reach, wet]) => [text, short].filter(Boolean).map((words) => leftOf(words, x, y, reach, wet))).find(Boolean);
+      if (!pick && !always) return "";
+      const dot = `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/>`, spot = [x - 0.8, y - 0.8, x + 0.8, y + 0.8];
+      if (!always && placed.some(meets(spot))) return "";
+      spots.push(spot);
+      if (!pick) return dot;
+      placed.push(pick.box);
+      return `${dot}<text x="${pick.right.toFixed(1)}" y="${(y + pick.dy + 1.1).toFixed(1)}" text-anchor="end">${pick.words}</text>`;
+    }
     const tries = [text, short].filter(Boolean).flatMap((words) => [[words, false], [words, true]]).map(([words, left]) => {
       const wide = 2.2 * words.length + 1.6;
       return {words, left, box: left ? [x - wide, y - 2.4, x, y + 1.6] : [x, y - 2.4, x + wide, y + 1.6]};
