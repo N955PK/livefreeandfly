@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "232";
+const BUILD = "233";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1559,11 +1559,12 @@ const REGIONS = {
       [1450, [0.55, 0.53, 0.48]], [1800, [0.70, 0.68, 0.65]]],
     lake: {name: "Lake Winnipesaukee", lat: 43.60307, lon: -71.32397},
     avalanche: [{id: "MWAC", name: "Mount Washington Avalanche Center", url: "https://www.mountwashingtonavalanchecenter.org/", state: "NH"}]},
-  seattle: {name: "Seattle", terrain: "data/terrain-seattle", roads: "data/roads-seattle.json", center: [47.5113, -121.9565], waterM: 0, pick: "crystal",
+  seattle: {name: "Seattle", terrain: "data/terrain-seattle", roads: "data/roads-seattle.json", center: [47.5113, -121.9565], rev: "?v=2", waterM: 0, pick: "crystal",
     // Mt. Baker to Mt. Adams and Hurricane Ridge to Mission Ridge: the disc is 176 km in radius, the terrain the
     // square that holds it. The view opens far out, from the south-southeast, where the mountains spread least
     // across the screen, so Hurricane Ridge, Mission Ridge and Mt. St. Helens all fit across a phone.
-    // The land reaches the sea, so no ground is raised to a floor, and level ground at any height is water.
+    // The land reaches the sea, so no ground is raised to a floor. Its water (the sea, the lakes and the Columbia)
+    // comes from the water mask built with its terrain, not from level ground.
     // Washington writes its state routes "SR" as California does, but its marker is the plain one.
     discKm: 176, zoom: 5, turnDeg: 22, look: [47.45, -121.95], floorM: 0, lowlandM: 0, plainStateRoutes: true,
     // Lowland and rainforest green, forest to about 1,500 m, then meadow and rock, and the volcanoes' glaciers

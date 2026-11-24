@@ -90,6 +90,22 @@ function landColor(m, ramp) {
   return ramp[ramp.length - 1][1];
 }
 
+// The water of a region with a mask: each point of the land takes the water's color where the water's share,
+// read smoothly between the cells, is over one half, so the shore follows that line rather than the cells' edges.
+// It is softened over about the width Lake Tahoe's shore blends across, and lit as the land and the lakes are.
+const SHORE_SOFT = 0.12;
+function wetShore(material) {
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.waterColor = {value: new THREE.Vector3(...WATER)};
+    shader.vertexShader = shader.vertexShader.replace("#include <common>", "#include <common>\nattribute float wet;\nvarying float vWet;")
+      .replace("#include <color_vertex>", "#include <color_vertex>\nvWet = wet;");
+    shader.fragmentShader = shader.fragmentShader.replace("#include <common>", "#include <common>\nvarying float vWet;\nuniform vec3 waterColor;")
+      .replace("#include <color_fragment>", `#include <color_fragment>
+        float soft = max(fwidth(vWet) * 0.75, ${SHORE_SOFT.toFixed(2)});
+        diffuseColor.rgb = mix(diffuseColor.rgb, waterColor, smoothstep(0.5 - soft, 0.5 + soft, vWet));`);
+  };
+}
+
 // Even-odd test against every ring at once, so holes and multi-part zones need no special handling.
 function inRings(rings, x, y) {
   let inside = false;
@@ -141,6 +157,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     fetch(region.roads + rev).then((r) => r.ok ? r.json() : []).catch(() => []),
   ]);
   const heights = new Uint16Array(buffer);
+  // A region built with a water mask (how much of each cell is water, 0 to 255, in runs of a value byte and a
+  // count seven bits to a byte, low bits first) draws its water from that, not from the heights.
+  const runs = meta.water_mask ? new Uint8Array(await fetch(`${region.terrain}.water.bin${rev}`).then((r) => r.arrayBuffer())) : null;
   const {rows, columns, width_km: W, height_km: H} = meta;
   const floorM = region.floorM ?? FLOOR_M, lowlandM = region.lowlandM ?? LOWLAND_M;
   const zOf = (m) => (Math.max(m, floorM) - region.waterM) / 1000 * EXAGGERATION;
@@ -315,6 +334,13 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const count = rows * columns;
   const positions = new Float32Array(count * 3), colors = new Float32Array(count * 4), base = new Float32Array(count * 3);
   const water = new Uint8Array(count);
+  const wet = runs ? new Float32Array(count) : null;
+  for (let k = 0, at = 0; runs && k < runs.length;) {
+    const value = runs[k++] / 255;
+    let n = 0, shift = 0, byte;
+    do { byte = runs[k++]; n += (byte & 0x7f) * 2 ** shift; shift += 7; } while (byte & 0x80);
+    wet.fill(value, at, at + n); at += n;
+  }
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < columns; c++) {
       const i = r * columns + c, m = heights[i];
@@ -323,13 +349,14 @@ export async function createMap(container, data, {region, onSelect, elevation = 
       colors[4 * i + 3] = cover(x, y);
       const flat = (j) => Math.abs(heights[j] - m) < 0.6;
       // Level ground is a lake in the mountains, but in the Central Valley it is only farmland.
-      water[i] = m >= lowlandM && r > 0 && r < rows - 1 && c > 0 && c < columns - 1 && flat(i - 1) && flat(i + 1) && flat(i - columns) && flat(i + columns) ? 1 : 0;
+      water[i] = wet ? (wet[i] >= 0.5 ? 1 : 0) : m >= lowlandM && r > 0 && r < rows - 1 && c > 0 && c < columns - 1 && flat(i - 1) && flat(i + 1) && flat(i - columns) && flat(i + columns) ? 1 : 0;
     }
   }
   const shore = water.slice();
-  for (let i = columns; i < count - columns; i++) if (!water[i] && (water[i - 1] || water[i + 1] || water[i - columns] || water[i + columns]) && Math.abs(heights[i] - heights[i - 1]) < 2) shore[i] = 1;
+  // With a mask the shore is drawn where the water's share crosses one half, between the cells (see wetShore below).
+  if (!wet) for (let i = columns; i < count - columns; i++) if (!water[i] && (water[i - 1] || water[i + 1] || water[i - columns] || water[i + columns]) && Math.abs(heights[i] - heights[i - 1]) < 2) shore[i] = 1;
   for (let i = 0; i < count; i++) {
-    base.set(shore[i] ? WATER : landColor(heights[i], region.land || LAND), 3 * i);
+    base.set(shore[i] && !wet ? WATER : landColor(heights[i], region.land || LAND), 3 * i);
     colors.set(base.subarray(3 * i, 3 * i + 3), 4 * i);
   }
   const index = new Uint32Array((rows - 1) * (columns - 1) * 6);
@@ -341,11 +368,13 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   const terrain = new THREE.BufferGeometry();
   terrain.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   terrain.setAttribute("color", new THREE.BufferAttribute(colors, 4));
+  if (wet) terrain.setAttribute("wet", new THREE.BufferAttribute(wet, 1));
   terrain.setIndex(new THREE.BufferAttribute(index, 1));
   terrain.computeVertexNormals();
   const ground = new THREE.Mesh(terrain, new THREE.MeshStandardMaterial({vertexColors: true, roughness: 0.92, metalness: 0, ...(globe ? {alphaTest: 0.5} : {transparent: true})}));
   // The same land with no light on it (every slope the same tone), for when the radar is showing.
   const litMaterial = ground.material, flatMaterial = new THREE.MeshBasicMaterial({vertexColors: true, ...(globe ? {alphaTest: 0.5} : {transparent: true})});
+  if (wet) { wetShore(litMaterial); wetShore(flatMaterial); }
   ground.renderOrder = 1;
   scene.add(ground);
 
