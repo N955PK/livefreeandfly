@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
-<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, the Cascades, the Tetons, the Wasatch, Colorado, Mt. Shasta, and New England.">
+<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, the Cascades, the Tetons, the Wasatch, Colorado, Mt. Shasta, New England, and Canada.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1592,6 +1592,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <h5>Shasta</h5>
 <p>Nothing is fitted around Mt. Shasta, and what could be checked is thin. A water correction was tried against nine state snow pillows and not kept. They sit at 5,200 to 8,300 ft and measure snow alone, so they miss the rain: on days above freezing the four models carry 2.7 times the water the pillows gained, and on all-snow days 1.1 times. A correction fitted to them would take out rain that the rain-or-snow step takes out anyway. On all-snow days alone the models are close at Sand Flat, the one pillow on Mt. Shasta (1.2 times, 34 days), and bring about half of what the Lower Lassen Peak pillow gained (46 days, nearly all in one winter), too few to fit or to hold a winter out. So Lassen Peak's forecast may well run dry.</p>
 <p>With no rain gauges beside the pillows there is nothing to fit a rain-or-snow curve to, and the blend weights come from the water test. The snow ratio could be checked a little: on 85 all-snow days measured by hand at 10 stations since 2023, most of them in the valley towns below 4,000 ft, the Sierra's model misses the snowfall by 1.93 in, against 2.31 in for a flat 10:1 and 2.82 in for Kuchera. That is too few days, too low down, to train on. Its forecasts use the four models uncorrected with the Sierra's curve, snow ratio model and blend weights.</p>
+<h5>Canada</h5>
+<p>Nothing on this page has been checked in Canada. Its snow sensors are not read yet, so its forecasts use the four models uncorrected, with the Sierra's rain-or-snow curve, snow ratio model, and blend weights.</p>
 <h5>Everywhere</h5>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
   </div>
@@ -1606,6 +1608,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Colorado</b> Its own correction, fitted to 16 snow sensors, its own blend weights, its own rain-or-snow curve and a fluffiness model trained on Sierra and Colorado snowfall together. The correction matters most: the models bring about two thirds of the water the sensors measure. Breckenridge has no sensor within reach and is left uncorrected. Its avalanche center draws its zones afresh with each forecast, so a zone here is named after the range or county it mostly covers, and may cover different ground tomorrow.</p>
     <p><b>Shasta</b> Nothing is fitted here. The Ski Park and Mt. Shasta are shown the Sand Flat snow pillow's readings and Lassen Peak its own pillow's, but the models are used uncorrected, with the Sierra's rain-or-snow curve, fluffiness model and blend weights. A correction was tried and left out: the pillows there are low and miss the rain, so they cannot say how much water fell. Its forecast is made twice a day, at 5 am and 5 pm, where the other western regions' are made three times.</p>
     <p><b>New England</b> No snow sensors sit near its mountains, so there is no correction, and the rain-or-snow curve, the fluffiness model, and the blend weights are the Sierra's, not checked there. The air is read down to near sea level.</p>
+    <p><b>Canada</b> Nothing is fitted here yet, and its snow sensors are not read, so there is no correction, and the rain-or-snow curve, the fluffiness model, and the blend weights are the Sierra's, not checked there. No avalanche forecast is shown for Canada yet.</p>
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon in the Sierra.</p>
@@ -1627,7 +1630,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "277";
+const BUILD = "278";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1780,6 +1783,20 @@ const REGIONS = {
       [2600, [0.55, 0.53, 0.48]], [3400, [0.72, 0.70, 0.67]]],
     lake: {name: "Lake Shasta", lat: 40.752, lon: -122.395},
     avalanche: [{id: "MSAC", name: "Mount Shasta Avalanche Center", url: "https://www.shastaavalanche.org/", state: "CA"}]},
+  // Canada's regions are forecast by the second collector (see MORE_BRANCHES). No avalanche forecast is read for
+  // them yet: Avalanche Canada's is not on avalanche.org.
+  okanagan: {name: "Okanagan", country: "Canada", terrain: "data/terrain-okanagan", roads: "data/roads-okanagan.json", center: [50.138, -119.904], pick: "silverstar",
+    // Sun Peaks in the north and Apex in the south are each about 84 km from the middle: the disc is 107 km in
+    // radius, a kilometre inside the terrain's shorter side (217.82 km), so its edge is the circle's own. The land
+    // runs down the Fraser Canyon nearly to sea level, so no ground is raised to a floor; level ground above 300 m
+    // is water (Okanagan Lake at 342 m, Shuswap Lake at 347 m).
+    waterM: 0, floorM: 0, lowlandM: 300,
+    discKm: 107, zoom: 2.2, turnDeg: 0,
+    // Sagebrush and orchards on the valley floors, forest to about 2,000 m, then open alpine.
+    land: [[0, [0.62, 0.60, 0.42]], [500, [0.58, 0.57, 0.40]], [900, [0.34, 0.44, 0.29]], [1800, [0.25, 0.39, 0.28]],
+      [2200, [0.55, 0.53, 0.48]], [2600, [0.72, 0.70, 0.67]]],
+    lake: {name: "Okanagan Lake", lat: 49.95, lon: -119.5},
+    avalanche: []},
 };
 // Data published before regions existed has no region field; all of it is Tahoe.
 const regionOf = (r) => r.region || "tahoe";
@@ -2631,6 +2648,8 @@ const STATUS_PAGES = {
   abasin: "https://www.arapahoebasin.com/snow-report/", winterpark: "https://www.winterparkresort.com/the-mountain/mountain-report",
   steamboat: "https://www.steamboat.com/the-mountain/mountain-report",
   shastaskipark: "https://www.skipark.com/winter/conditions", ashland: "https://www.mtashland.com/mountain-report/",
+  bigwhite: "https://www.bigwhite.com/mountain-conditions/lift-status-hours", silverstar: "https://www.skisilverstar.com/the-mountain/weather-conditions/",
+  sunpeaks: "https://www.sunpeaksresort.com/ski-ride/weather-conditions-cams/lifts-trail-status",
   vail: "https://www.vail.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
   beavercreek: "https://www.beavercreek.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
   breckenridge: "https://www.breckenridge.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
@@ -2660,7 +2679,9 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
     // Park City and Colorado's four Vail mountains, read by the collector from Vail's own pages.
     "parkcity", "vail", "beavercreek", "breckenridge", "keystone",
     // Shasta's two resorts, each read by the collector from its own page.
-    "shastaskipark", "ashland"].map((key) => [key, [key, () => true]]))};
+    "shastaskipark", "ashland",
+    // The Okanagan. Apex's site turns readers away, so it has no status here.
+    "bigwhite", "silverstar", "sunpeaks"].map((key) => [key, [key, () => true]]))};
 // Sierra-at-Tahoe publishes its own feed; it is recast here into the shape of the Ikon feed the rest of the page reads.
 // Its one weather reading is taken near mid-mountain.
 const getJsonLive = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -2734,7 +2755,7 @@ const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBo
   // Tetons. Jackson Hole and Grand Targhee are read with the mountains that each run their own site.
   jacksonhole: publishedFeed("independents.json", "jacksonhole"), targhee: publishedFeed("independents.json", "targhee"),
   ...Object.fromEntries(["alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance", "copper", "loveland",
-    "shastaskipark", "ashland"].map((key) => [key, publishedFeed("independents.json", key)]))};
+    "shastaskipark", "ashland", "bigwhite", "silverstar", "sunpeaks"].map((key) => [key, publishedFeed("independents.json", key)]))};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
 // avalanche control before upper terrain opens. The exposed tier is Palisades' own account of its ridgetop gusts,
@@ -3060,7 +3081,7 @@ const STAKES = {palisades: [61, ["BaseArea", "MidMountainArea", "SummitArea"]], 
   ...Object.fromEntries(["sugarloaf", "sundayriver", "loon", "killington", "pico", "snoqualmie", "alpental",
     "jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback",
     "jacksonhole", "targhee", "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance", "copper", "loveland",
-    "shastaskipark", "ashland"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]]))};
+    "shastaskipark", "ashland", "bigwhite", "silverstar", "sunpeaks"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]]))};
 function stakeDepth(key, level) {
   const spec = STAKES[key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
   if (!report) return null;

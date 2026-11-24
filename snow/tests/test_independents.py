@@ -19,15 +19,17 @@ def feed(open_lifts: int, snow: dict | None) -> dict:
 
 def test_every_reader_is_a_mountain_of_new_england_the_tetons_the_wasatch_or_colorado_and_says_where_its_page_is():
     for key, module in independents.MODULES.items():
-        assert config.RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado", "shasta"), key
+        assert config.ALL_RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado", "shasta", "okanagan"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
-    assert len(independents.MODULES) == 25
-    assert [key for key in independents.MODULES if config.RESORTS[key].region == "shasta"] == ["shastaskipark", "ashland"]
-    assert [key for key in independents.MODULES if config.RESORTS[key].region == "colorado"] == ["copper", "loveland"]
-    assert [key for key in independents.MODULES if config.RESORTS[key].region == "wasatch"] == [
+    assert len(independents.MODULES) == 28
+    assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "okanagan"] == [
+        "bigwhite", "silverstar", "sunpeaks"]
+    assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "shasta"] == ["shastaskipark", "ashland"]
+    assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "colorado"] == ["copper", "loveland"]
+    assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "wasatch"] == [
         "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance"]
-    assert [key for key in independents.MODULES if config.RESORTS[key].region == "tetons"] == ["jacksonhole", "targhee"]
+    assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "tetons"] == ["jacksonhole", "targhee"]
 
 
 def test_a_range_is_given_its_middle_and_a_single_figure_is_left_alone():

@@ -1,5 +1,6 @@
 """Lifts, trails and snow reports of the mountains that each run their own website: New England's independents,
-Jackson Hole and Grand Targhee in the Tetons, six of the Wasatch's resorts, Copper and Loveland in Colorado, and the Mt. Shasta Ski Park and Mt. Ashland.
+Jackson Hole and Grand Targhee in the Tetons, six of the Wasatch's resorts, Copper and Loveland in Colorado, the Mt. Shasta Ski Park and Mt. Ashland,
+and Big White, SilverStar and Sun Peaks in the Okanagan.
 
 Each mountain has a module of its own that knows its page (``URL``, or ``URLS`` where it takes more than one request)
 and reads it (``parse``). This runs them all and writes one file the page reads, in the shape of the Ikon feed the
@@ -16,10 +17,10 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import (alta, ashland, blackmountain, bolton, brettonwoods, brighton, bromley, burke,
+from tahoe_snow.sources import (alta, ashland, bigwhite, blackmountain, bolton, brettonwoods, brighton, bromley, burke,
                                 cannon, copper, cranmore, jacksonhole, jaypeak, loveland, madriverglen, magic,
-                                powdermountain, saddleback, shastaskipark, smugglers, snowbasin, snowbird,
-                                sundance, targhee, waterville)
+                                powdermountain, saddleback, shastaskipark, silverstar, smugglers, snowbasin,
+                                snowbird, sundance, sunpeaks, targhee, waterville)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -32,7 +33,8 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "alta": alta, "snowbird": snowbird, "brighton": brighton, "snowbasin": snowbasin,
            "powdermountain": powdermountain, "sundance": sundance,
            "copper": copper, "loveland": loveland,
-           "shastaskipark": shastaskipark, "ashland": ashland}
+           "shastaskipark": shastaskipark, "ashland": ashland,
+           "bigwhite": bigwhite, "silverstar": silverstar, "sunpeaks": sunpeaks}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
 RANGED = ("Base", "Last24Hours")
 
