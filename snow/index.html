@@ -652,6 +652,11 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
    element by element, so the whole list is unselectable: its headings, every cell's text, and the lines just above
    and below it that a resting finger can reach. Only the summary: the Mountain tab and the sheets stay selectable. */
 .heat,.heat tr,.heat td,.heat th,.heat b,.heat span,.heat i,.heat em,.heat small,.sumhead .bar h2,.gridfresh,.gridcap,.gridcap span,.gridnote,.legend,.legend *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* While a finger rests on a mountain's row, and for a moment after it lifts, nothing anywhere can be selected: the
+   sheet that a hold brings up opens under the finger still held down, and the phone would select its words and
+   offer to copy them. The sheet's own name and button are never selectable. */
+html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+#favSheet,#favSheet *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* A favorite in a region's own list carries a small star after its name. */
 .heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
 .heat.lifting tr[data-key]{transform:translate3d(0,0,0);transition:transform .15s ease-out}
@@ -1621,7 +1626,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "268";
+const BUILD = "269";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4992,6 +4997,19 @@ let favFor = null, favOpened = 0;
 // A selection the phone began under a held finger is let go of as soon as the hold is up.
 const dropSelection = () => { try { window.getSelection().removeAllRanges(); } catch (error) { /* nothing selected */ } };
 $("heat").addEventListener("selectstart", (e) => e.preventDefault());
+// From a finger landing on a row until a moment after it lifts, the whole page refuses a selection (see html.holding
+// in the styles), and one the phone starts anyway is dropped at once.
+let holdingOff = 0;
+const holdingNow = () => document.documentElement.classList.contains("holding");
+function holding(on) {
+  clearTimeout(holdingOff);
+  if (on) document.documentElement.classList.add("holding");
+  else holdingOff = setTimeout(() => { document.documentElement.classList.remove("holding"); }, 700);
+}
+document.addEventListener("selectstart", (e) => { if (holdingNow()) e.preventDefault(); });
+document.addEventListener("selectionchange", () => { if (holdingNow()) dropSelection(); });
+document.addEventListener("touchend", () => holding(false), {passive: true});
+document.addEventListener("touchcancel", () => holding(false), {passive: true});
 function askFavorite() {
   if (!hold) return;
   dropSelection();
@@ -5113,7 +5131,7 @@ function putInOrder(keys) {
 $("heat").addEventListener("touchstart", (e) => {
   if (e.touches.length !== 1) { holdEnd(false); return; }
   const row = e.target.closest("tr[data-key]");
-  if (row) holdStart(row, e.touches[0].clientX, e.touches[0].clientY);
+  if (row) { holding(true); holdStart(row, e.touches[0].clientX, e.touches[0].clientY); }
 }, {passive: true});
 $("heat").addEventListener("touchmove", (e) => holdMove(e.touches[0].clientX, e.touches[0].clientY, e), {passive: false});
 $("heat").addEventListener("touchend", (e) => { if (hold && hold.lifted && e.cancelable) e.preventDefault(); holdEnd(true); });
