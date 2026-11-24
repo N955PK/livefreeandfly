@@ -1200,7 +1200,7 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .aloc{flex:none;width:102px;height:65px;margin-top:4px}
 .aloc .other{fill:var(--mark-dull);opacity:.4}
 .aloc .here{stroke:var(--mark);stroke-width:.45;stroke-linejoin:round}
-.aloc ellipse{fill:var(--accent)}
+.aloc ellipse,.aloc .water{fill:var(--accent)}
 .aloc circle{fill:var(--mark-mid)}
 .aloc text{font-size:4px;font-weight:600;fill:var(--mark-mid);paint-order:stroke;stroke:var(--surface);stroke-width:1.1px;stroke-linejoin:round}
 .probs details.prob{flex:1;min-width:0;margin:0;padding:0}
@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "234";
+const BUILD = "235";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4024,15 +4024,19 @@ const SIERRA_TOWNS = [["Tahoe", -120.04, 39.09, false], ["Bridgeport", -119.23, 
 // The small zone maps, one frame each, flat and north up, in the same box and style: a frame is chosen by the zone
 // lying in it. Each projects lon and lat as (lon - lon0) * kx and (lat0 - lat) * ky, with ky the scale and kx it
 // times the cosine of the frame's latitude. The Sierra's runs from Lake Tahoe to Bishop. Seattle's holds NWAC's ten
-// zones, from the border to Mt. Hood, with Puget Sound and the Strait of Juan de Fuca as its water (each spot read
-// as sea level on the map's own terrain). New England's is close in on the Presidential Range, set right of middle
+// zones, from the border to Mt. Hood, with the Sound and the eastern Strait of Juan de Fuca in their own shape as
+// its water (PUGET_SOUND), which names may cross. New England's is close in on the Presidential Range, set right of middle
 // so Mt. Washington's name fits to its left. East Slopes North and East Slopes South hold none of the app's
 // mountains (Mt. Adams's summit lies just inside West Slopes South), so they are not named. Outside the Sierra each zone's best-known mountain is named, in the style of the Sierra's town names;
 // its position is the summit from OpenStreetMap (Nominatim), or the app's own mountain where it is one.
+// Puget Sound, Hood Canal, Admiralty Inlet and the eastern Strait of Juan de Fuca as [lon, lat]: the sea of the 3D
+// map's water mask (data/terrain-seattle.water.bin), its channels widened to stay a pixel wide at this size and its
+// outline simplified. Made by python tools/build_terrain.py seattle --locator-water.
+const PUGET_SOUND = [[-124.3, 48.45], [-123.83, 48.37], [-123.65, 48.4], [-123.66, 48.33], [-123.57, 48.34], [-123.47, 48.45], [-122.65, 48.45], [-122.64, 48.36], [-122.74, 48.24], [-122.35, 48.36], [-122.33, 48.31], [-122.52, 48.2], [-122.48, 48.13], [-122.5, 48.19], [-122.37, 48.23], [-122.34, 48.12], [-122.19, 48.0], [-122.38, 47.8], [-122.36, 47.71], [-122.41, 47.66], [-122.32, 47.61], [-122.39, 47.57], [-122.3, 47.35], [-122.42, 47.25], [-122.51, 47.29], [-122.69, 47.07], [-122.87, 47.14], [-122.91, 47.04], [-122.95, 47.15], [-122.87, 47.22], [-122.93, 47.29], [-122.85, 47.36], [-122.76, 47.3], [-122.64, 47.4], [-122.67, 47.3], [-122.57, 47.28], [-122.52, 47.51], [-122.57, 47.59], [-122.51, 47.64], [-122.58, 47.73], [-122.49, 47.76], [-122.54, 47.9], [-122.72, 47.67], [-123.01, 47.52], [-123.09, 47.4], [-123.02, 47.35], [-123.13, 47.31], [-123.17, 47.4], [-122.92, 47.66], [-122.88, 47.82], [-122.81, 47.87], [-122.76, 47.81], [-122.64, 47.88], [-122.82, 48.08], [-122.78, 48.13], [-122.87, 48.1], [-122.81, 48.05], [-122.87, 47.98], [-122.95, 48.08], [-123.05, 48.06], [-123.13, 48.15], [-123.31, 48.1], [-123.98, 48.15], [-124.3, 48.25]];
 const LOCATORS = [
   {where: "the Sierra Nevada", lon0: -124.6, lat0: 42.15, kx: 7.93, ky: 10, lakes: SIERRA_LAKES, towns: SIERRA_TOWNS},
   {where: "the Washington Cascades and Olympics", lon0: -135.09, lat0: 52.92, kx: 4.35, ky: 6.4, side: "left",
-    lakes: [[-122.45, 47.6, 0.35, 2.2], [-123.55, 48.22, 3, 0.6]], towns: [["Seattle", -122.33, 47.6, true]],
+    lakes: [], water: [PUGET_SOUND], towns: [["Seattle", -122.33, 47.6, true]],
     peaks: {3020: ["Mt. Olympus", -123.711, 47.801, "Olympus"], 3021: ["Mt. Baker", -121.815, 48.777, "Baker"],
       3022: ["Glacier Peak", -121.113, 48.112, "Glacier"], 3023: ["Mt. Rainier", -121.760, 46.853, "Rainier"],
       3024: ["Stevens Pass", -121.1, 47.739, "Stevens"], 3028: ["Snoqualmie Pass", -121.419, 47.405, "Snoqualmie"],
@@ -4051,6 +4055,8 @@ function locator(zone, all) {
   if (!frame) return "";
   const xy = ([lon, lat]) => [(lon - frame.lon0) * frame.kx, (frame.lat0 - lat) * frame.ky], at = (spot) => xy(spot).map((v) => v.toFixed(1)).join(" ");
   const shape = (z) => z.rings.map((ring) => `M${ring.filter((_, k) => k % 3 === 0).map(at).join("L")}Z`).join("");
+  // A frame's sea is drawn as its shape, under the zones; a lake is an ellipse over them.
+  const sea = (frame.water || []).map((ring) => `M${ring.map(at).join("L")}Z`).join(""), water = sea ? `<path class="water" d="${sea}"/>` : "";
   const lakes = frame.lakes.map(([lon, lat, rx, ry]) => { const [x, y] = xy([lon, lat]); return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${ry}"/>`; }).join("");
   const name = (text, x, y, dot) => `${dot ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/>` : ""}<text x="${(x + (dot ? 1.6 : 2)).toFixed(1)}" y="${(y + 1.1).toFixed(1)}">${text}</text>`;
   // Outside the Sierra each zone's mountain is named too, the forecast zone's first and always; then the towns, then
@@ -4078,7 +4084,7 @@ function locator(zone, all) {
     const wide = 2.2 * words.length;
     for (const dy of [0, -0.6, 0.6, -1.2, 1.2, -1.8, 1.8, -2.4, 2.4, -3, 3, -3.6, 3.6, -4.2, 4.2].filter((d) => Math.abs(d) <= reach)) {
       const y0 = y + dy - 2.4, y1 = y + dy + 1.6, spans = across(y0, y1);
-      // The water is not crossed either.
+      // A lake is not crossed either.
       if (!wet) for (const [lon, lat, rx, ry] of frame.lakes) { const [cx, cy] = xy([lon, lat]); if (cy - ry < y1 && cy + ry > y0) spans.push([cx - rx, cx + rx, true]); }
       let right = x - 1.6, clear = false;
       for (let step = 0; step < 12 && !clear; step++) {
@@ -4117,7 +4123,7 @@ function locator(zone, all) {
   const towns = frame.towns.map(([text, lon, lat, dot]) => frame.peaks ? mark([text, lon, lat]) : name(text, ...xy([lon, lat]), dot)).join("");
   const peaks = own + all.filter((z) => z !== zone && peakOf(z)).map((z) => mark(peakOf(z))).join("");
   const others = (frame.peaks ? all.filter((z) => z !== zone && inBox(xy(middle(z)))) : all.filter((z) => z !== zone)).map((z) => `<path class="other" d="${shape(z)}"/>`).join("");
-  return `<svg class="aloc" viewBox="27 23.500 43 27.500" role="img" aria-label="Where in ${frame.where} the ${esc(zone.name)} forecast applies">${others}<path class="here" style="fill:${danger(zone.stale ? 0 : zone.level)[1]}" d="${shape(zone)}"/>${lakes}${towns}${peaks}</svg>`;
+  return `<svg class="aloc" viewBox="27 23.500 43 27.500" role="img" aria-label="Where in ${frame.where} the ${esc(zone.name)} forecast applies">${water}${others}<path class="here" style="fill:${danger(zone.stale ? 0 : zone.level)[1]}" d="${shape(zone)}"/>${lakes}${towns}${peaks}</svg>`;
 }
 // The forecasters' aspect and elevation rose: north up, the summit at the middle, filled where the problem is.
 function rose(location) {

@@ -2,7 +2,8 @@
 
 Writes data/terrain.bin (uint16 meters, row-major, north to south) and data/terrain.json for Tahoe, and the
 same pair with a region suffix (terrain-mammoth) for the others: python tools/build_terrain.py [region].
-Run once per region; the output is committed.
+Run once per region; the output is committed. python tools/build_terrain.py seattle --locator-water prints the
+outline of the region's sea for the Avalanche tab's small map, from the water mask already built (see sea_outline).
 
 A region marked ``water`` also gets a water mask, data/terrain-<region>.water.bin: how much of each cell is water,
 from 0 to 255, decided from the full-resolution tiles (sea floor and the sea itself read at or below 0 m there,
@@ -20,7 +21,7 @@ from pathlib import Path
 import numpy as np
 import requests
 from PIL import Image, ImageDraw
-from scipy.ndimage import median_filter
+from scipy.ndimage import binary_dilation, binary_fill_holes, label, median_filter
 
 ROOT = Path(__file__).resolve().parent.parent
 TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
@@ -162,6 +163,103 @@ def runs(values: np.ndarray) -> bytes:
     return bytes(out)
 
 
+# The sea for the small zone map: the salt water around this spot, inside these boxes (south, north, west, east), so
+# the Sound, Hood Canal, Admiralty Inlet and the eastern Strait are kept and the open Pacific and the bays south of
+# the Olympics are not. Channels are widened by this many cells (half a kilometer each) so they stay a pixel wide
+# at the map's size, and the outline is simplified to within this many degrees.
+SEA_OUTLINE = {"seattle": {"seed": (47.60, -122.45), "boxes": [(47.0, 48.45, -123.3, -122.0), (48.0, 48.45, -124.3, -122.0)],
+                           "widen": 3, "tolerance": 0.04}}
+
+
+def unrun(data: bytes, rows: int, columns: int) -> np.ndarray:
+    """The water mask back from its runs (see runs)."""
+    out, k = [], 0
+    while k < len(data):
+        value, count, shift = data[k], 0, 0
+        k += 1
+        while True:
+            byte = data[k]
+            k += 1
+            count |= (byte & 0x7F) << shift
+            shift += 7
+            if not byte & 0x80:
+                break
+        out.append(np.full(count, value, np.uint8))
+    return np.concatenate(out).reshape(rows, columns)
+
+
+def simplify(points: list, tolerance: float) -> list:
+    """Douglas-Peucker on an open line of (x, y), without recursion."""
+    keep, stack = {0, len(points) - 1}, [(0, len(points) - 1)]
+    while stack:
+        a, b = stack.pop()
+        if b - a < 2:
+            continue
+        (x0, y0), (x1, y1) = points[a], points[b]
+        length = math.hypot(x1 - x0, y1 - y0)
+        far = [abs((x1 - x0) * (y0 - y) - (x0 - x) * (y1 - y0)) / length if length else math.hypot(x - x0, y - y0)
+               for x, y in points[a + 1:b]]
+        k = int(np.argmax(far))
+        if far[k] > tolerance:
+            keep.add(a + 1 + k)
+            stack += [(a, a + 1 + k), (a + 1 + k, b)]
+    return [points[k] for k in sorted(keep)]
+
+
+def outline(shape: np.ndarray) -> list:
+    """The outer edge of the one region in a boolean grid, as (row, col) corners in order, walked along the cell
+    edges with the region on the left."""
+    rows, cols = shape.shape
+    filled = lambda r, c: 0 <= r < rows and 0 <= c < cols and shape[r, c]
+    r0, c0 = map(int, np.argwhere(shape)[0])
+    # Start at the top edge of the first cell, heading east (the region is below, on the right in row-down terms).
+    start = (r0, c0, 0)
+    steps = {0: (0, 1), 1: (1, 0), 2: (0, -1), 3: (-1, 0)}  # east, south, west, north along corners
+    r, c, heading = start
+    path = []
+    while True:
+        path.append((r, c))
+        # Try turning toward the region first, then straight, then away.
+        for turn in (1, 0, 3, 2):
+            h = (heading + turn) % 4
+            dr, dc = steps[h]
+            # The cell on the right of the edge from corner (r, c) heading h must be filled, the left one empty.
+            right = {0: (r, c), 1: (r, c - 1), 2: (r - 1, c - 1), 3: (r - 1, c)}[h]
+            left = {0: (r - 1, c), 1: (r, c), 2: (r, c - 1), 3: (r - 1, c - 1)}[h]
+            if filled(*right) and not filled(*left):
+                heading = h
+                r, c = r + dr, c + dc
+                break
+        if (r, c) == start[:2]:
+            break
+    return path
+
+
+def sea_outline(region: str) -> list:
+    """The region's sea, from its water mask, as one simplified ring of [lon, lat]."""
+    spec, meta = SEA_OUTLINE[region], json.loads((ROOT / "data" / f"{stem(region)}.json").read_text())
+    rows, columns = meta["rows"], meta["columns"]
+    wet = unrun((ROOT / "data" / meta["water_mask"]).read_bytes(), rows, columns) >= 128
+    lats = np.linspace(meta["lat_n"], meta["lat_s"], rows)[:, None]
+    lons = np.linspace(meta["lon_w"], meta["lon_e"], columns)[None, :]
+    inside = np.zeros_like(wet)
+    for south, north, west, east in spec["boxes"]:
+        inside |= (lats >= south) & (lats <= north) & (lons >= west) & (lons <= east)
+    parts, _ = label(wet & inside)
+    seed = parts[int(round((meta["lat_n"] - spec["seed"][0]) / (meta["lat_n"] - meta["lat_s"]) * (rows - 1))),
+                 int(round((spec["seed"][1] - meta["lon_w"]) / (meta["lon_e"] - meta["lon_w"]) * (columns - 1)))]
+    sea = binary_fill_holes(binary_dilation(parts == seed, iterations=spec["widen"]) & inside)
+    corners = outline(sea)
+    # Corner (r, c) lies half a cell up and left of cell (r, c)'s center.
+    to_lonlat = lambda r, c: (meta["lon_w"] + (c - 0.5) / (columns - 1) * (meta["lon_e"] - meta["lon_w"]),
+                              meta["lat_n"] - (r - 0.5) / (rows - 1) * (meta["lat_n"] - meta["lat_s"]))
+    # A closed ring is simplified as two halves, split at the corner farthest from where it starts.
+    ring = [to_lonlat(r, c) for r, c in corners]
+    half = max(range(len(ring)), key=lambda k: math.dist(ring[0], ring[k]))
+    ring = simplify(ring[:half + 1], spec["tolerance"])[:-1] + simplify(ring[half:] + [ring[0]], spec["tolerance"])[:-1]
+    return [[round(lon, 2), round(lat, 2)] for lon, lat in ring]
+
+
 def main(region: str = "tahoe") -> None:
     LAT_S, LAT_N, LON_W, LON_E = REGIONS[region]["box"]
     MAX_REAL_M, COLUMNS = REGIONS[region]["max_m"], REGIONS[region]["columns"]
@@ -209,4 +307,7 @@ def main(region: str = "tahoe") -> None:
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:2])
+    if "--locator-water" in sys.argv:
+        print(json.dumps(sea_outline(sys.argv[1]), separators=(",", ":")))
+    else:
+        main(*sys.argv[1:2])
