@@ -316,18 +316,17 @@ RESORTS = {
 REGIONS = {
     r.key: r
     for r in [
-        # The three western regions are built together every six hours, at 5 am, 11 am, 5 pm and 11 pm Pacific: the
-        # first is before the ski day. New England is built at 4 am and 4 pm Eastern.
-        Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 6, ("SAC",), at=(5, 11, 17, 23)),
-        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 6, ("ESAC", "BAC"), at=(5, 11, 17, 23)),
+        # The three western regions are built together at 5 am, 1 pm and 9 pm Pacific: before the ski day, at midday and
+        # in the evening. New England is built at 4 am and 4 pm Eastern; the afternoon one falls with the West's 1 pm.
+        Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 8, ("SAC",), at=(5, 13, 21)),
+        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 8, ("ESAC", "BAC"), at=(5, 13, 21)),
         # Every lift-served foot of New England is below 850 hPa (near 1,450 m): the highest summit is Killington's
         # 1,293 m and the lowest base Attitash's 183 m, which 1000 hPa (near 110 m) covers.
         Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",),
                low_levels=(1000, 975, 950, 925, 900), at=(4, 16)),
         # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
         # trailhead at 630 m, which 950 hPa (near 540 m) covers.
-        Region("seattle", "Cascades", "America/Los_Angeles", 8, 6, ("NWAC",), low_levels=(950, 925, 900),
-               at=(5, 11, 17, 23)),
+        Region("seattle", "Cascades", "America/Los_Angeles", 8, 8, ("NWAC",), low_levels=(950, 925, 900), at=(5, 13, 21)),
     ]
 }
 
