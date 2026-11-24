@@ -1608,7 +1608,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's and the Cascades' included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is every resort but Stratton, whose status cannot be read from outside its own site; Attitash, Mount Sunapee, and Crotched show theirs once they post their lifts for the season. A New England resort that is closed and whose snow report is undated or more than two weeks old has that report left out, since several keep last season's figures up until they open. In the Cascades that is the Summit at Snoqualmie, Alpental, and Mission Ridge, and Stevens Pass once it posts its lifts for the season. Crystal Mountain's status cannot be read from outside its own site, and Mt. Baker Ski Area, White Pass, and Hurricane Ridge do not publish theirs in a form this page can read, so these four have none here. In the Wasatch that is every resort but Park City, whose status cannot be read from outside its own site. In Colorado that is Copper, Loveland, Arapahoe Basin, Winter Park, and Steamboat; Vail, Beaver Creek, Breckenridge, and Keystone cannot be read from outside their own sites.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's and the Cascades' included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is every resort but Stratton, whose status cannot be read from outside its own site; Attitash, Mount Sunapee, and Crotched show theirs once they post their lifts for the season. A New England resort that is closed and whose snow report is undated or more than two weeks old has that report left out, since several keep last season's figures up until they open. In the Cascades that is the Summit at Snoqualmie, Alpental, and Mission Ridge, and Stevens Pass once it posts its lifts for the season. Crystal Mountain's status cannot be read from outside its own site, and Mt. Baker Ski Area, White Pass, and Hurricane Ridge do not publish theirs in a form this page can read, so these four have none here. In the Wasatch that is every resort, Park City included. In Colorado that is every resort too.</p>
     <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
@@ -2605,6 +2605,10 @@ const STATUS_PAGES = {
   copper: "https://www.coppercolorado.com/the-mountain/conditions-weather/snow-report", loveland: "https://skiloveland.com/trail-lift-report/",
   abasin: "https://www.arapahoebasin.com/snow-report/", winterpark: "https://www.winterparkresort.com/the-mountain/mountain-report",
   steamboat: "https://www.steamboat.com/the-mountain/mountain-report",
+  vail: "https://www.vail.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
+  beavercreek: "https://www.beavercreek.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
+  breckenridge: "https://www.breckenridge.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
+  keystone: "https://www.keystoneresort.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
   jacksonhole: "https://www.jacksonhole.com/mountain-report", targhee: "https://www.grandtarghee.com/the-mountain/cams-conditions/lifts-trails-report",
   snowking: "https://snowkingmountain.com/mountain/conditions/",
 };
@@ -2615,11 +2619,9 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
   // New England. Sugarbush is read straight from its Ikon feed, without its uphill routes (the other resorts' lists
   // leave those out too). Stratton's status cannot be read by anyone but a browser on its own site, so it has none here.
   sugarbush: [70, (area) => area !== "Uphill Travel"],
-  // The Wasatch. Solitude and Deer Valley are read straight from their Ikon feeds; Park City's status cannot be read
-  // by anyone but a browser on its own site, so it has none here.
+  // The Wasatch. Solitude and Deer Valley are read straight from their Ikon feeds.
   solitude: [65, () => true], deervalley: [49, () => true],
-  // Colorado. A-Basin, Winter Park and Steamboat are read straight from their Ikon feeds; Vail, Beaver Creek,
-  // Breckenridge and Keystone cannot be read by anyone but a browser on their own sites, so they have none here.
+  // Colorado. A-Basin, Winter Park and Steamboat are read straight from their Ikon feeds.
   abasin: [93, () => true], winterpark: [5, () => true], steamboat: [6, () => true],
   ...Object.fromEntries(["stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched", "sugarloaf", "sundayriver", "loon", "killington", "pico",
     // The New England mountains that each run their own site, read by the collector one page at a time.
@@ -2628,7 +2630,9 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
     // publish nothing a reader can take.
     "stevens", "snoqualmie", "alpental", "missionridge",
     // Tetons. Snow King's site sits behind a bot check, so it has only the link to its own report.
-    "jacksonhole", "targhee", "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance", "copper", "loveland"].map((key) => [key, [key, () => true]]))};
+    "jacksonhole", "targhee", "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance", "copper", "loveland",
+    // Park City and Colorado's four Vail mountains, read by the collector from Vail's own pages.
+    "parkcity", "vail", "beavercreek", "breckenridge", "keystone"].map((key) => [key, [key, () => true]]))};
 // Sierra-at-Tahoe publishes its own feed; it is recast here into the shape of the Ikon feed the rest of the page reads.
 // Its one weather reading is taken near mid-mountain.
 const getJsonLive = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -2692,7 +2696,7 @@ const publishedFeed = (file, key) => async () => {
 const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed, heavenly: publishedFeed("resort_status.json", "heavenly"), northstar: publishedFeed("resort_status.json", "northstar"),
   kirkwood: publishedFeed("resort_status.json", "kirkwood"), homewood: publishedFeed("homewood.json", "homewood"),
   boreal: publishedFeed("boreal.json", "boreal"),
-  ...Object.fromEntries(["stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched"].map((key) => [key, publishedFeed("resort_status.json", key)])),
+  ...Object.fromEntries(["stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched", "parkcity", "vail", "beavercreek", "breckenridge", "keystone"].map((key) => [key, publishedFeed("resort_status.json", key)])),
   ...Object.fromEntries(["sugarloaf", "sundayriver", "loon"].map((key) => [key, publishedFeed("boyne.json", key)])),
   ...Object.fromEntries(["killington", "pico"].map((key) => [key, publishedFeed("killington.json", key)])),
   ...Object.fromEntries(["jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback"].map((key) => [key, publishedFeed("independents.json", key)])),
