@@ -552,12 +552,13 @@ html.tabs .gridfresh{display:block}
 .cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;cursor:pointer;
   color:var(--ink);background:linear-gradient(to top,color-mix(in oklab,var(--c) 62%,var(--surface)) var(--fill),var(--wash) var(--fill))}
 .cell.none{color:var(--muted);font-weight:400}
-/* A day's rain rises hatched above its snow in the box (see rainWater); the number stays over it. */
+/* A day's rain rises hatched above its snow in the box (see rainAsSnow); the number stays over it. */
 .cell{position:relative}
 .cell > span{position:relative}
 .cell .rainfill{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;pointer-events:none}
 svg.defs{position:absolute;width:0;height:0;overflow:hidden}
-.legend .sw svg.hatchsw{width:16px;height:12px;flex:none}
+.legend .sw svg.hatchsw,.key .sw svg.hatchsw{width:16px;height:12px;flex:none}
+.srow .rainamt{text-align:center;font-size:11.5px;line-height:1.2;color:var(--mark-dull);white-space:nowrap}
 /* In the summary the days run evenly with no gap; after day 5 they are greyed, since that far out the numbers are a rough guide. */
 .cell.far{filter:grayscale(1);opacity:.55}
 .heat th.day.far{opacity:.55}
@@ -1536,6 +1537,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon in the Sierra.</p>
+    <p><b>Rain</b> Snow is mostly air: an inch of water makes about ten inches of snow on an ordinary day, as little as five or six when the snow is wet and heavy, and fifteen to twenty or more when it is cold and dry. When the snow level is above the elevation you are looking at while it is snowing higher up, what falls there is rain. The hourly chart, the daily bars and the summary show that rain as a hatched bar, drawn as tall as the snow it would have been higher up, so ten inches of hatch is about an inch of rain, and the same storm that leaves an inch of rain at the base can leave ten inches or more at the summit. The number beside the bar is still the snow expected at that elevation, and the daily rows give the rain in inches of water.</p>
     <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
     <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
     <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken at about 10,000 ft for every elevation, which is near the crest in the Sierra and above the resorts' tops elsewhere; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
@@ -1553,7 +1555,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "238";
+const BUILD = "239";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1860,8 +1862,8 @@ function renderHeat() {
       const x = byDate[d.date] || {};
       const p = x.powder || {}, total = p.snow_in || 0, fill = total < 0.5 ? 0 : Math.max(Math.round(100 * Math.min(total, BAR_FULL_IN) / BAR_FULL_IN), 6);
       // Rain rises hatched above the snow, as tall as the snow it would have made.
-      const rain = rainWater(x), wet = rain ? Math.min(100 - fill, Math.max(6, Math.round(100 * rain * RAIN_AS_SNOW / BAR_FULL_IN))) : 0;
-      return `<td><div class="cell${dim}${total < 0.5 ? " none" : ""}" style="--fill:${fill}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} ${LEN()}${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}${rain ? `, ${waterText(rain)} of rain` : ""}${dim ? `, ${pct(x.prob_6in)} chance of 6 in or more` : ""}">${wet ? `<svg class="rainfill" aria-hidden="true"><rect x="0" width="100%" y="${100 - fill - wet}%" height="${wet}%" fill="url(#rainhatch)"/></svg>` : ""}<span>${whole(total)}</span></div></td>`;
+      const rain = x.date ? rainAsSnow(r, el, x.date) : 0, wet = rain >= 0.05 ? Math.min(100 - fill, Math.max(6, Math.round(100 * Math.min(rain, BAR_FULL_IN) / BAR_FULL_IN))) : 0, water = wet ? rainWater(x) : 0;
+      return `<td><div class="cell${dim}${total < 0.5 ? " none" : ""}" style="--fill:${fill}%;--c:${snowColor(p.slr)}" title="${esc(r.name)}, ${weekday(d.date, "long")}: ${inches(total)} ${LEN()}${p.pm_in == null ? "" : ` ± ${inches(p.pm_in)}`}${p.slr ? `, ${quality(p.slr)[0].toLowerCase()} snow` : ""}${wet ? `, and rain${water >= 0.05 ? ` (${waterText(water)} of water)` : ""}` : ""}${dim ? `, ${pct(x.prob_6in)} chance of 6 in or more` : ""}">${wet ? `<svg class="rainfill" aria-hidden="true"><rect x="0" width="100%" y="${100 - fill - wet}%" height="${wet}%" fill="url(#rainhatch)"/></svg>` : ""}<span>${whole(total)}</span></div></td>`;
     };
     html += near.map((d) => cell(d, "")).join("");
     if (far.length) html += '<td class="sep"></td>';
@@ -1873,7 +1875,7 @@ function renderHeat() {
   badges();
   $("legend").innerHTML = `<span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>` +
     `<span class="sw"><i class="gauge"></i>fill = ${metric() ? "cm" : "inches"}, full at ${Math.round(asLen(BAR_FULL_IN))}</span>` +
-    `<span class="sw"><svg class="hatchsw" aria-hidden="true"><rect x=".5" y=".5" width="15" height="11" rx="2.5" fill="url(#rainhatch)" stroke="var(--mark-dull)" stroke-width=".75"/></svg>rain</span>`;
+    `<span class="sw"><svg class="hatchsw" aria-hidden="true"><rect x=".5" y=".5" width="15" height="11" rx="2.5" fill="url(#rainhatch)" stroke="var(--mark-dull)" stroke-width=".75"/></svg>rain, drawn as the snow it would have been</span>`;
 }
 
 const ICONS = {
@@ -1897,15 +1899,31 @@ function rainShare(p, day) {
   if (p.rain_share != null) return p.rain_share;
   return water > 0 ? Math.max(0, 1 - ((day && day.snow_in) ?? p.snow_in ?? 0) / 10 / water) : 0;
 }
-// The day's rain, in inches of water: its water times the share of it that is rain (the reckoning the day's weather
-// icon makes), or 0 under a twentieth of an inch. The daily bars and the summary's boxes draw it hatched as the hourly
-// chart does, on the same snow scale, as the snow it would have made at ten to one, beyond the snow that fell.
-const RAIN_SHOWN_IN = 0.05, RAIN_AS_SNOW = 10;
-function rainWater(day) {
-  const water = (day && day.liquid_in) || 0, rain = water * rainShare((day && day.powder) || {}, day);
-  return rain >= RAIN_SHOWN_IN ? rain : 0;
+// Rain at one elevation, hour by hour, as the hourly chart draws it: an hour when the snow level is above this
+// elevation while it snows at the summit is rain here, and counts as the snow it would have been, the summit's
+// snowfall that hour (or this elevation's, if more). The hourly chart, the daily bars and the summary's boxes all
+// read it from here, so they agree hour for hour.
+function rainHours(resort, el) {
+  const h = el.hourly, above = resort.elevations.summit.hourly.snow_in;
+  return h.snow_in.map((snow, i) => h.snow_level_ft[i] != null && h.snow_level_ft[i] > el.elevation_ft && (above[i] || 0) > 0.004 ? Math.max(above[i], snow || 0) : 0);
 }
-const waterText = (v) => metric() ? `${(v * 2.54).toFixed(1)} cm` : `${v.toFixed(2)} in`;
+// A ski day's rain (4 pm the day before to 4 pm), in inches of the snow it would have been: over its rain hours, what
+// rises above the snow that fell, which is the hatched part of the hourly bars. The daily bars and the summary's boxes
+// stack it, hatched, on top of the day's snow.
+const rainKept = new WeakMap();
+function rainAsSnow(resort, el, date) {
+  let kept = rainKept.get(el);
+  if (!kept) rainKept.set(el, kept = {rain: rainHours(resort, el), at: resort.hours_utc.map((t) => new Date(t).getTime())});
+  const tz = tzOf(resort), from = wallClock(dayBefore(date), 16, tz), to = wallClock(date, 16, tz);
+  if (!from || !to) return 0;
+  let sum = 0;
+  kept.at.forEach((t, i) => { const snow = el.hourly.snow_in[i] || 0; if (t >= from.getTime() && t < to.getTime() && kept.rain[i] > snow + 0.004) sum += kept.rain[i] - snow; });
+  return sum;
+}
+// The day's rain in inches of water, for the words beside it: its water times the share that is rain (the reckoning
+// the day's weather icon makes).
+const rainWater = (day) => ((day && day.liquid_in) || 0) * rainShare((day && day.powder) || {}, day);
+const waterText = (v) => metric() ? `${v * 2.54 < 0.1 ? "<0.1" : (v * 2.54).toFixed(1)} cm` : `${v < 0.1 ? "<0.1" : v.toFixed(1)} in`;
 function sky(p, day) {
   if (p.sky_pct == null) return ["", ""];
   const water = (day && day.liquid_in) || 0, rain = rainShare(p, day), snowing = (p.snowing_hours || 0) >= 3;
@@ -1953,9 +1971,8 @@ function timeline(resort, el) {
   const T = 20, H1 = wide ? 190 : 132, TA = merged ? T : T + H1 + 16, HA = merged ? H1 : wide ? 104 : 78, STRIP = merged ? 20 : wide ? 16 : 10, LAB = 0, WIND_Y = TA + HA + (merged ? 24 : 10) + LAB, GUST_Y = merged ? WIND_Y : WIND_Y + STRIP + 5, CLOUD_Y = GUST_Y + STRIP + 5 + LAB, TEMP_Y = CLOUD_Y + STRIP + 5 + LAB, T2 = TEMP_Y + (merged ? STRIP + 18 : 30), H2 = merged ? (wide ? 64 : 48) : wide ? 124 : 92, H = T2 + H2 + 6;
   const snow = Array.from({length: n}, (_, i) => h.snow_in[i] || 0);
   // In tabs, an hour when the snow level is above this elevation while it snows at the summit is rain here. Its bar
-  // is drawn hatched, as tall as the summit's snowfall that hour: what would have been snow.
-  const above = resort.elevations.summit.hourly.snow_in;
-  const rain = Array.from({length: n}, (_, i) => tabbed() && h.snow_level_ft[i] != null && h.snow_level_ft[i] > el.elevation_ft && (above[i] || 0) > 0.004 ? Math.max(above[i], snow[i]) : 0);
+  // is drawn hatched, as tall as the summit's snowfall that hour: what would have been snow (see rainHours).
+  const hourlyRain = tabbed() ? rainHours(resort, el) : [], rain = Array.from({length: n}, (_, i) => hourlyRain[i] || 0);
   const top = [0.2, 0.5, 1, 1.5, 2, 3, 4].find((v) => v >= Math.max(...snow, ...rain)) || 5;
   const {running, storms} = stormTotals(snow);
   // Measured depth gain at the sensor since each storm began (past hours only).
@@ -2185,8 +2202,8 @@ function dayBar(p, withRange, fromZero, rain = 0) {
   // its meaning. The ± range is a dark error bar across its end, each model is a ringed dot on the bar, and a scale
   // of quarter marks runs under it.
   if (fromZero) {
-    // Rain runs on, hatched, past the end of the snow, as far as the snow it would have made (see rainWater).
-    const snowEnd = total >= 0.05 ? +at(total) : 0, wet = rain ? Math.min(100 - snowEnd, Math.max(4, +at(rain * RAIN_AS_SNOW))) : 0;
+    // Rain runs on, hatched, past the end of the snow, as far as the snow it would have been (see rainAsSnow).
+    const snowEnd = total >= 0.05 ? +at(total) : 0, wet = rain >= 0.05 ? Math.min(100 - snowEnd, Math.max(4, +at(rain))) : 0;
     let parts = wet ? `<svg class="rainfill" aria-hidden="true"><rect x="${snowEnd}%" y=".375" width="${wet}%" height="17.25" rx="4" fill="url(#rainhatch)" stroke="var(--mark-dull)" stroke-width=".75"/></svg>` : "";
     parts += total >= 0.05 ? `<i class="fill" style="width:${at(total)}%;background:${snowColor(p.slr)}"></i>` : "";
     if (p.pm_in != null && total >= 0.5) parts += `<i class="whisk" style="left:${at(total - p.pm_in)}%;width:${(at(total + p.pm_in) - at(total - p.pm_in)).toFixed(1)}%"></i>`;
@@ -2202,8 +2219,11 @@ function dayBar(p, withRange, fromZero, rain = 0) {
 }
 
 let legendOpen = false;
-function skiDay(d) {
+function skiDay(d, resort) {
   const far = d.lead_day > data.deterministic_days, p = d.powder || {};
+  // Rain at this elevation, as the hourly chart draws it, and its water in words.
+  const rainSnow = rainAsSnow(resort, resort.elevations[elevation], d.date), water = rainSnow >= 0.05 ? rainWater(d) : 0;
+  const rainWords = water >= 0.05 ? `<div class="rainamt">${waterText(water)} rain</div>` : "";
   // In tabs the day reads like the Region table's headings: the weekday small, the date's number bold under it.
   // The day's weather icon sits above it.
   const date = tabbed() ? `<div class="d cal">${sky(p, d)[0] ? `<i class="wx" title="${sky(p, d)[1]}">${sky(p, d)[0]}</i>` : ""}<span>${weekday(d.date)}</span><b>${dayOfMonth(d.date)}</b></div>`
@@ -2219,7 +2239,7 @@ function skiDay(d) {
   // every row, however many digits a day has.
   const num = (text) => `<span class="num">${text}</span>`;
   const lead = tabbed()
-    ? `<div class="tot${total < 0.05 ? " none" : ""}"><div class="amt">${num(inches(total))}<span class="unit"> ${LEN()}${p.pm_in == null || total < 0.5 ? "" : ` ± ${num(inches(p.pm_in))}`}</span></div>${total >= 0.05 ? `<div class="split"><span title="Overnight, ${hourName(16)} to ${hourName(8)}">${ICONS.moon}${num(inches(p.night_in))}</span><span title="During the day, ${hourName(8)} to ${hourName(16)}">${ICONS.sun}${num(inches(p.day_in))}</span></div>` : ""}</div>${dayBar(p, true, true, rainWater(d))}`
+    ? `<div class="tot${total < 0.05 ? " none" : ""}"><div class="amt">${num(inches(total))}<span class="unit"> ${LEN()}${p.pm_in == null || total < 0.5 ? "" : ` ± ${num(inches(p.pm_in))}`}</span></div>${total >= 0.05 ? `<div class="split"><span title="Overnight, ${hourName(16)} to ${hourName(8)}">${ICONS.moon}${num(inches(p.night_in))}</span><span title="During the day, ${hourName(8)} to ${hourName(16)}">${ICONS.sun}${num(inches(p.day_in))}</span></div>` : ""}${rainWords}</div>${dayBar(p, true, true, rainSnow)}`
     : `<div class="snowbar">${bars}</div>${amount}`;
   return `<div class="srow${far ? " far" : ""}${tabbed() ? " day2" : ""}">${date}${lead}
     <div class="cond"><span class="sky" title="${icon ? word : ""}">${icon ? `${icon}${word}` : ""}</span>
@@ -3088,9 +3108,9 @@ function renderDetail() {
     <div class="tiles four">${tile("Next 24 h", w.next24)}${tile("Next 3 days", w.next72)}${tile("Days 4–5", w.days4to5)}${tile("Days 6–10", w.days6to10)}</div>
     <details class="lgd"${legendOpen ? " open" : ""}><summary><span>From ${hourName(16)} previous day</span><em>Legend</em></summary>
     <div class="key" style="margin:4px 0 0;column-gap:8px"><span class="blocks">Snow<span><b style="background:var(--q0)">wet</b><b style="background:var(--q1)">medium</b><b class="dark" style="background:var(--q2)">dry</b></span></span>
-      <span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>each model</span></div>
+      <span class="sw"><svg class="hatchsw" aria-hidden="true"><rect x=".5" y=".5" width="15" height="11" rx="2.5" fill="url(#rainhatch)" stroke="var(--mark-dull)" stroke-width=".75"/></svg>rain, drawn as snow</span><span class="sw"><i class="kband"></i>± 1 std dev</span><span class="sw"><i class="ktick"></i>each model</span></div>
     <div class="key" style="margin:6px 0 4px;column-gap:12px"><span class="sw glyph">${ICONS.moon}night</span><span class="sw glyph">${ICONS.sun}day</span><span class="sw glyph">${barb(23, 270, "var(--ink2)")}W at 20 kt</span><span>G = gust, ${SPEED()}</span><span>${deg(18)}°/${deg(4)}° = temperature / feels like, ${DEG()}</span><span>PS = powder score</span></div></details>
-    <div class="days"><div class="srow head"><div></div><div>Snow, from ${hourName(16)} previous day</div><div></div><div class="cond"><span>Lift hours</span><span>${DEG()} / feels</span><span>Wind, ${SPEED()}</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d)).join("")}</div>
+    <div class="days"><div class="srow head"><div></div><div>Snow, from ${hourName(16)} previous day</div><div></div><div class="cond"><span>Lift hours</span><span>${DEG()} / feels</span><span>Wind, ${SPEED()}</span><span class="pscore">Powder</span></div></div>${days.map((d) => skiDay(d, resort)).join("")}</div>
     ${resort.kind === "backcountry" ? cornWindow(resort, el) : ""}
     <div class="hhead" data-sec="Hourly"><h3>Hourly</h3><button id="tlNow" hidden>Back to now</button><div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     ${tabbed() ? `<div class="hchips" id="hChips"></div><div class="hread" id="hRead"></div>` : ""}
