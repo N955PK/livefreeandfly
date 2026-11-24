@@ -1,27 +1,75 @@
 # Adding a region to Turbo Snow
 
-One pass of this guide adds one region. It assumes Tasks 1 to 6 of `2026-11-22-regions-plan.md` are done (regions
-are a table, each has its own forecast file, the page loads regions one at a time). Read the plan's **Global
-Constraints** first; they all apply here.
+Sean names a region ("add the Wasatch"); this guide is everything that has to happen for it to be finished, in the
+order to do it. Do all of it in one go. Nothing here is optional unless it says so, and the checklist below is what
+"done" means: before reporting back, go down it and say for each line whether it is done, could not be done (and
+why), or does not apply.
 
-It is **two pushes**. The first tells the forecast about the region, and the collector builds real data within one
-pass. The second teaches the page to show it, checked against that real data. The page ignores a region it has no
-entry for, so nothing shows between the two.
+Read the **Global Constraints** of `2026-11-22-regions-plan.md` first; they all apply. Throughout, `<region>` is the
+key: lower case, no spaces (`saltlake`). To add mountains to a region that exists, do the lines marked (M) only.
 
-Throughout, `<region>` is the key: lower case, no spaces (`saltlake`).
+## The checklist
+
+**Before starting**
+- [ ] The mountains are chosen: every resort in the area on any pass, and the backcountry spots people ski there
+      (volcano summits, passes, the classic lines). Ask Sean only if the area's edges are unclear.
+- [ ] The call budget fits (step 0), with close neighbours sharing weather. (M)
+
+**The forecast (first push)**
+- [ ] Each mountain's point, base, summit and pass are looked up, not remembered, and the source is in the comment
+      above its entry (1a). (M)
+- [ ] Mountains within about 8 km of another share its weather (`weather_from`); up to about 16 km where the
+      budget needs it and no crest runs between them (1a). (M)
+- [ ] Snow sensors are found and paired, or the region is said to have none (1b). (M)
+- [ ] `Region` has its time zone, sensor clock offset, build hours on its own clock, avalanche centers, and low
+      pressure levels if any base is under about 1,450 m (1c).
+- [ ] The region's own models are fitted where it has sensors: water correction, blend weights, rain-or-snow
+      curve, and the snow-ratio model checked and refitted only if that beats the Sierra's (1e). Each is saved as
+      the region's own file even where it barely differs.
+- [ ] Tests updated and passing; pushed; collector restarted; the region's first forecast is published with every
+      mountain in it (1d). (M)
+
+**The page (second push)**
+- [ ] Terrain, with a water mask where lakes or sea sit above the floor (2a).
+- [ ] Road lines (2b). If Overpass is down, ship without and say so.
+- [ ] Terrain, water mask and roads are in `SHELL` in `sw.js` (2b).
+- [ ] The region's entry in `REGIONS`, with its opening view tuned so every mountain fits a phone (2c).
+- [ ] Sub-area pills (`areas`) if the region has more than about ten mountains or spans more than one range or
+      state (2c). (M: add the mountain to its area's list.)
+- [ ] Summit marker positions (`PEAK_AT`) for backcountry peaks whose forecast point is not the summit (2c). (M)
+- [ ] Avalanche: the centers' states are in `AVY_AREA` under the region's group, the group is in `AVY_AREAS`, and
+      the small locator map has a frame for the region (`LOCATORS`) in the California style, with water where
+      there is some and each zone's prominent mountain named (2c).
+- [ ] Short names (`SHORT`, and the region's `short`) where a name is long for a table row (2c). (M)
+- [ ] Lift status, trail counts and the resort's snow report for every resort that publishes them (step 3). (M)
+- [ ] The resort's reported base depth feeds the map where the region has no sensors (`STAKES`) (step 3). (M)
+- [ ] "How the forecast is made" has the region's paragraph, "How it is tested" has its results under each topic,
+      and the Status paragraph says which resorts' lifts are read and which cannot be (2f).
+- [ ] The scorecard has the region's sections (`verify.py`) if anything was fitted (2f).
+- [ ] The page's description (`og:description`) names the region (2f).
+- [ ] Checked in the preview, light and dark, at phone size (2d); pushed.
+
+**After**
+- [ ] The first real build is confirmed, and the next day's calls are under the limit (2e).
+- [ ] Sean gets the short report at the end of this guide.
 
 ## 0. Check it fits
 
-Each mountain costs 51.9 Open-Meteo calls a run (more where the region reads extra low pressure levels). A region is
-built at fixed hours on its own clock (`Region.at`; `every_h` is 24 over their number): the western regions three
-times a day, New England twice. At twice a day that is **103.7 calls a mountain a day**. A mountain within about
-8 km of another can take its neighbour's weather instead of asking for its own (`Resort.weather_from`), and then
-costs nothing.
-The day's ceiling is 8,500. The test in step 1 enforces it; do the sum first anyway:
+Each weather pull costs 51.9 Open-Meteo calls a run (more where the region reads extra low pressure levels). A
+region is built at fixed hours on its own clock (`Region.at`; `every_h` is 24 over their number): the western
+regions three times a day (5 am, 1 pm, 9 pm), New England twice (4 am, 4 pm). Sean set these; do not change a
+region's hours or add builds without asking. A new western region takes the same three hours on its own clock.
 
+A mountain that takes a neighbour's weather (`Resort.weather_from`) makes no pull and costs nothing, so count
+pulls, not mountains. The day's ceiling is 8,500 (`usage.PLAN_LIMIT`). The tests enforce it; do the sum first:
+
+```python
+from tahoe_snow import usage; print(usage.planned())   # after adding the region, before pushing
 ```
-calls a day = (Tahoe + Eastern Sierra mountains) x 4 x 51.9  +  (all other mountains) x 2 x 51.9
-```
+
+Adding mountains makes the collector rebuild that region straight away, outside its hours, which costs one extra
+run that day. Check the last day's use in `archive/usage.json` on the data branch first, and if the day is already
+near 10,000 (the service's hard limit), wait for the region's next scheduled build instead of restarting.
 
 A region whose mountains reach below about 1,450 m needs pressure levels under 850 hPa, or every height below that
 is given the 850 hPa temperature and rain is called snow. Give its `Region` `low_levels=(950, 925, 900)` as Seattle
@@ -29,8 +77,8 @@ has, or New England's `(1000, 975, 950, 925, 900)` (900 hPa is near 990 m, 925 n
 320 m, 1000 near 110 m; take only the ones the lowest base needs). Each extra level costs 2.51 calls a mountain a
 run, and `usage.planned()` counts it: with both regions the plan is 7,838 calls a day of 8,500.
 
-One region is built in one collector pass. Eight mountains take about a minute and a half; New England's fourteen
-take about two and a half, which is the most a region should hold. A bigger area is two regions.
+One region is built in one collector pass. Eight pulls take about a minute and a half; New England's sixteen are
+the most a region has held. A much bigger area is two regions.
 
 ## 1. First push: the forecast
 
@@ -40,7 +88,20 @@ For each mountain you need: a key (lower case, no spaces, unique across all regi
 longitude **at mid-mountain**, base and summit elevation in metres, and its pass (`Ikon`, `Epic`,
 `Mountain Collective`, `Indy`, `Independent`, or `Backcountry`).
 
-- Elevations: the resort's own published base and summit, or OpenSkiMap's statistics. Feet go through `_ft()`.
+- The point: the midpoint of the main lift from the base in OpenStreetMap (the main OSM API's `map?bbox=` works
+  when Overpass is at capacity), checked against the USGS elevation service
+  (`https://epqs.nationalmap.gov/v1/json?x=LON&y=LAT&units=Feet&wkid=4326`): the height there sits between base
+  and summit.
+- Elevations: the resort's own published base and summit of lift-served skiing, or the Indy Pass page's. Where a
+  published figure does not match the ground (a summit higher than the peak, a base below the lowest lift), use the
+  height at the lift's end and say so in the comment. Feet go through `_ft()`.
+- The pass for the coming season, confirmed from the pass's own list. A resort that only gives a couple of bonus
+  days on a pass is `Independent`.
+- Sharing weather: list every pair of mountains in the region by distance. Under about 8 km, the further-out or
+  smaller one takes `weather_from="<neighbour>"`; the base of a group is the bigger, better-known mountain. Between
+  8 and 16 km share only when the budget needs it and both sit on the same side of the range. Never share across a
+  crest, or between a volcano's summit and a resort on its flank. A mountain that shares is still read at its own
+  heights. Add each pair to `SHARED` in `tests/test_shared_weather.py`.
 - Backcountry spots: summit is the peak, base is the usual winter trailhead; `kind="backcountry"`,
   pass `"Backcountry"`.
 - Check every point against the terrain: after step 2a, the heightmap's height at the mountain's coordinates should
@@ -69,9 +130,8 @@ A region uses its own fitted files where they exist and the Sierra's otherwise: 
 water correction; with none, the models are used as they are), `weights_<region>.json`, `snow_phase_<region>.json`
 and `snow_ratio_<region>.joblib`. The Cascades have the first three and the Tetons all four.
 
-There is no fitted correction for a new region (`models/bias_<region>.json` does not exist), and the pipeline
-handles that: the models are used as they are. Fitting one is a separate job (`calibrate.py`, which needs the
-region's stations and a box added to its `REGIONS`) and is not part of adding a region.
+Until those files exist the pipeline uses the models as they are with the Sierra's curve, ratio and weights, so
+the region can be built before it is fitted. Fitting is step 1e and is part of adding a region.
 
 ### 1c. Edit `snow/tahoe_snow/config.py`
 
@@ -130,6 +190,27 @@ curl -s https://raw.githubusercontent.com/N955PK/livefreeandfly/snow-data/foreca
 curl -s https://raw.githubusercontent.com/N955PK/livefreeandfly/snow-data/index.json > snow/data/index.json
 ```
 
+### 1e. Fit the region's own models
+
+Only for a region with snow sensors; New England has none and uses the Sierra's throughout. None of this calls the
+metered Open-Meteo API: the fits read Open-Meteo's archive on S3 and the sensors from NRCS. `cascades-snow-model.md`
+records how each was done for the Cascades and what it cost; the Tetons followed it. In order:
+
+1. **Water correction.** Add the region's stations and a box to `calibrate.REGIONS`, then `pairs`, `held_out_test`
+   on each of the last three winters, and `fit_and_save` (`models/bias_<region>.json`). Keep it only if corrected
+   beats raw on the held-out winters. A station whose own curve overshoots its held-out winter goes in
+   `calibrate.POOLED_ONLY`. A peak whose sensor sits far below it is left uncorrected (`Resort.corrected=False`).
+2. **Blend weights.** `calibrate.save_weights` from the same held-out table (`models/weights_<region>.json`).
+3. **Rain or snow.** `train.fit_region_phase` (`models/snow_phase_<region>.json`).
+4. **Snow ratio.** `train.check_region_ratio` first, against snowfall measured by hand near the region. Refit
+   (`train.fit_region_ratio`) only if that beats the Sierra's model at stations left out of the fit; either way
+   save the check (`models/snow_ratio_check_<region>.json`).
+
+Sean wants each file saved even where it barely differs from the Sierra's, as the record that it was fitted there.
+Write the results into the testing page (2f) and add the region's sections to the scorecard (`verify.py`, beside
+`seattle_sections` and `tetons_sections`). Push, and restart the collector so the next build uses them. The Sensor
+corrections list on the page follows the published index, so it reads Corrected as soon as the index is rebuilt.
+
 ## 2. Second push: the page
 
 ### 2a. Terrain
@@ -154,6 +235,11 @@ It needs `requests`, `Pillow`, `numpy` and `scipy` and reads public elevation ti
 forecast's own interpreter may lack Pillow; a throwaway virtual environment with those four is enough. It writes
 `data/terrain-<region>.bin` and `.json`. Commit both. Then read the heightmap back and print its height at each
 mountain's coordinates: every one should sit between that mountain's base and summit.
+
+Where the region has the sea, or a lake that sits above the lowest ground in the box, mark it `"water": True`: the
+tool then also writes `data/terrain-<region>.water.bin`, and the map draws water from that instead of from level
+ground. `python tools/build_terrain.py <region> --locator-water` prints the sea's outline for the avalanche
+locator (2c).
 
 ### 2b. Road lines
 
@@ -198,11 +284,25 @@ saltlake: {name: "Salt Lake", terrain: "data/terrain-saltlake", roads: "data/roa
 | `floorM`, `lowlandM` (optional) | The map raises all ground below 1,150 m to that height, and only counts level ground above 400 m as a lake: right for the Sierra, wrong anywhere low. A region with summits near or under 1,500 m, or one that reaches the sea, sets both to 0 |
 | `rev` (optional) | `"?v=2"`; bump it whenever the terrain or road files are rebuilt, so phones fetch the new ones |
 
-Leave out `chainFeeds` and `closureFeeds`: there is no road status outside California and Nevada.
+Leave out `chainFeeds` and `closureFeeds`: there is no road status outside California and Nevada. A state whose
+route numbers are not California's takes `plainStateRoutes: true`.
 
-Also in `index.html`, only if wanted:
-- `SHORT`: a shorter name for a long one, for the Region tab's rows.
-- The resort-report and webcam link tables: a mountain missing from them simply has no link.
+Also in `index.html`, all part of the job:
+- **Sub-areas** (`areas` in the region's entry): `[{key, name, short?, mountains: [...]}]`, one pill each beside
+  "All" under the map, for a region with more than about ten mountains or more than one range or state. Order each
+  list north to south. Every mountain in the region is in exactly one list.
+- **`PEAK_AT`**: `{key: [lat, lon]}` for a backcountry peak whose forecast point is on its flank, so its stake
+  stands over the summit.
+- **`AVY_AREAS` and `AVY_AREA`**: the avalanche menu groups zones by part of the country. Add the group's name to
+  `AVY_AREAS` and each state the region's centers cover to `AVY_AREA`. Each center in the region's `avalanche`
+  list carries its `state`.
+- **`LOCATORS`**: a frame for the small map on the Avalanche tab that shows where the zone is, drawn in the same
+  style and with the same markers as California's: the zones' outlines, the sea or big lake where there is one
+  (from `--locator-water`), and the prominent mountain of each zone named, with names set to the side so they do
+  not sit on the zones.
+- **`SHORT`** and the region's `short`: a shorter name for a long one, for table rows and the Favorites table
+  (New England is "NE").
+- **`STATUS_PAGES`**: the link to each resort's own status page.
 
 ### 2d. Check it in the preview
 
@@ -221,6 +321,26 @@ Also in `index.html`, only if wanted:
   opens as general reading and no resort is marked as uncovered. Check a center that is out of season: no rating,
   nothing broken.
 - Star one of the new mountains: it appears in Favorites next to mountains from other regions.
+- **Sub-area pills:** each frames its mountains with every name showing; where two names would collide one sits to
+  the side of its stake.
+- **Menus:** the region is in A-to-Z order in the region menu (Favorites first), in the Sensor corrections list and
+  in the explanations; its avalanche zones are under their group.
+- **Lifts:** each resort with a reader shows its lift and trail counts and its report; one without says so plainly.
+
+Use a browser tab of your own for this (Sean uses the main preview tab and has his own saved choices), and put back
+anything you change.
+
+### 2f. The words
+
+- **How the forecast is made:** a paragraph for the region beside Tahoe's, Eastern Sierra's and the others',
+  saying what is fitted there and what is borrowed from the Sierra, and anything read differently (lower pressure
+  levels). The Status paragraph says which of the region's resorts have their lifts read and which cannot be.
+- **How it is tested:** under each topic (snow ratio, rain or snow, water), a heading for the region with its
+  held-out results, or one line under "What is not tested yet" if nothing was fitted. Say what was tried and did
+  not win; do not recount errors that were made and fixed along the way.
+- **`og:description`** in the page's head names the region.
+- Plain whole sentences, no jargon, no avalanche or travel disclaimers. The sensor tags are exactly Corrected,
+  Low sensor and Uncorrected.
 
 ### 2e. Push
 
@@ -228,9 +348,9 @@ Commit (`snow: Salt Lake is on the page, with its map, roads and avalanche forec
 read the ledger on the data branch (`archive/usage.json`): the last day's calls are under 8,500 and nothing was
 rate limited.
 
-## 3. Later, per mountain: lifts and the resort's report
+## 3. Lifts and the resort's report
 
-Not part of adding a region. When wanted, a mountain's lift status comes one of three ways:
+Part of adding a region: do it for every resort. A mountain's lift status comes one of three ways:
 
 1. **Alterra's feed** (many Ikon mountains): open the resort's own mountain-report page with the browser's network
    panel and look for a request to `mtnpowder.com/feed?resortId=<N>`. If there is one, the phone can read it
@@ -238,12 +358,44 @@ Not part of adding a region. When wanted, a mountain's lift status comes one of 
    `holds.py`. Do not guess an id.
 2. **Vail's pages** (Epic mountains): the phone cannot read them. Add the mountain to
    `tahoe_snow/sources/resort_status.py`, which the collector runs every pass and publishes on `snow-lifts`.
-3. **Anything else**: a reader of its own under `tahoe_snow/sources/`, as `homewood.py` and `boreal.py` are, added
-   to the collector's pass. If the site sits behind a bot check, stop there: the app does not work around those.
+3. **Anything else**: a reader of its own under `tahoe_snow/sources/<key>.py` that knows the page (`URL`, or `URLS`
+   for more than one request) and reads it (`parse(page, now)`), with a saved copy of the page in `tests/fixtures/`
+   and a test. It gives the Ikon feed's shape: lifts, trails, and a `SnowReport` with base depth and new snow where
+   the site has them. It fails on a page it does not recognise instead of giving wrong numbers. Add the module to
+   `MODULES` in `sources/independents.py`, which runs them all each pass, gives a depth that comes as a range its
+   middle, and leaves out a closed mountain's undated or old report (several sites keep last season's figures up
+   until they open). A new region can have a runner of its own beside it; then add its line to the collector's pass
+   in `snow-collect.yml` and its name to the list in `collect.py`. If the site sits behind a bot check, stop there:
+   the app does not work around those, and the Status paragraph says the resort has none.
+
+Finding the source: look at the resort's conditions page for the request it makes or the JSON in its HTML
+(`__NEXT_DATA__`, a `wp-admin/admin-ajax.php` call, a framed page on another host). The Liftie project's
+`lib/resorts/<name>/` often records the page and where the statuses are, though its addresses go stale. Thirteen
+resorts' worth of this goes fastest as three or four subagents, each writing only new files, with the runner and the
+page wired here afterwards.
+
+On the page, for each resort that is read: `LIFT_FEEDS`, `FEED_LOADERS` (`publishedFeed("<file>.json", key)`),
+`STATUS_PAGES`, and `STAKES` when its report gives a base depth. Where the region has no snow sensors, those depths
+are what turns the map white, counted at half weight because they are mostly snow made on the trails.
 
 `holds.py` and `reports.py` assume Pacific time; give them the region's zone before adding a mountain outside it.
 
 ## What to tell Sean when a region ships
 
-One short message: the region and its mountains, how many calls a day the whole app now spends out of 8,500, which
-mountains have a sensor and which do not, and anything on the list in 2d you could not check.
+One short message, answer first: the region and its mountains, which share weather and with whom, how many calls
+a day the whole app now plans to spend out of 8,500, which mountains are Corrected, Low sensor or Uncorrected, what
+was fitted and whether it beat the Sierra's, which resorts have lift status and which could not be read, and every
+checklist line that is not done or could not be checked (nothing is ever checked on a real phone; say so).
+
+## Working rules that apply the whole way
+
+- Push to `main` as each piece is done; do not batch. Commit messages are one plain sentence starting `snow:`.
+- Other sessions commit in this checkout. Commit with explicit paths, check `git log origin/main..HEAD` before
+  pushing, and push only your own commits. Where another session has uncommitted edits in a file you need, make
+  your change as a patch against `HEAD` and apply it to the index and the working tree.
+- A running collector keeps the code it started with. After pushing pipeline or workflow changes, cancel its run
+  (`gh run cancel <id>`; it restarts itself if it had run ten minutes, otherwise
+  `gh workflow run snow-collect.yml --ref main`). Do not cancel during a build.
+- Never run the forecast locally or call Open-Meteo's metered API. Sensor, lift, map and elevation reads are fine.
+- Never commit `snow/data/forecast*`, `snow/data/index.json` or the feed copies used for the preview.
+- Requests to outside services carry a generic client name and nothing about Sean or the project.
