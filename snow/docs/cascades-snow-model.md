@@ -83,8 +83,8 @@ Sean said to fit it. `models/bias_seattle.json` is in use; the Sierra files are 
     Sierra over the same winters, because new snow settles before the midnight reading. A fit on those 5,059
     sensor days alone runs 1.5 in a day too dense on the hand-measured ones.
   - So no Seattle density file is in use, and the record says why. What would change that is a resort or
-    avalanche-center snow-stake record west of the crest (decision 5). The testing page's scorecard has no
-  Seattle section yet. New England's mountains are below 850 hPa too; they were given 1000 to 900 hPa the same way
+    avalanche-center snow-stake record west of the crest (decision 5). The testing page's scorecard now has
+  three Seattle sections (water, rain or snow, snow ratio), built by `verify.scorecard`. New England's mountains are below 850 hPa too; they were given 1000 to 900 hPa the same way
   afterwards (7,462 to 7,838 planned calls a day).
 
 ## 1. How the Sierra models were fitted, and what a Cascades version needs

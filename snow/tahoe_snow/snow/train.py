@@ -129,6 +129,13 @@ def fit_seattle_phase(end: str, kind: str = "wet-bulb logistic") -> pd.DataFrame
     gains = gains[gains["date"].dt.month.isin(SPLIT_MONTHS)]
     stations = sensor_hourly(observations.box_stations("WA", SEATTLE_BBOX), gains, profiles)
     table, best = fit_phase(stations)
+    # For the scorecard: the same days scored with everything called snow, and with the Sierra's curve as it is.
+    sierra = phase_errors(stations, *phase.load())
+    mixed = sierra[sierra["fraction"].between(0.05, 0.95)]
+    table["all_snow_error"] = float(((1 - sierra["fraction"]) * sierra["liquid_mm"]).mean())
+    table["sierra_error"] = float(sierra["error_mm"].abs().mean())
+    table["sierra_mixed_error"] = float(mixed["error_mm"].abs().mean())
+    table["stations"] = len(stations)
     table.to_csv(TABLES / "phase_table_seattle.csv")
     phase.save(kind, best[kind], {"held_out_error_mm": float(table.loc[kind, "held-out error (mm water)"]),
                                   "stations": len(stations), "days": int(table.loc[kind, "days"])}, region="seattle")
