@@ -19,7 +19,7 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icon
   'data/terrain-bccoast.json', 'data/terrain-bccoast.bin', 'data/roads-bccoast.json',
   'data/terrain-quebec.json', 'data/terrain-quebec.bin',
   'data/terrain-powderhighway.json', 'data/terrain-powderhighway.bin', 'data/roads-powderhighway.json',
-  'data/terrain-eastkootenays.json', 'data/terrain-eastkootenays.bin',
+  'data/terrain-eastkootenays.json', 'data/terrain-eastkootenays.bin', 'data/roads-eastkootenays.json',
   'data/terrain-rockies.json', 'data/terrain-rockies.bin'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;

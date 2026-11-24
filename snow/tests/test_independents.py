@@ -19,10 +19,10 @@ def feed(open_lifts: int, snow: dict | None) -> dict:
 
 def test_every_reader_is_a_mountain_of_new_england_the_tetons_the_wasatch_or_colorado_and_says_where_its_page_is():
     for key, module in independents.MODULES.items():
-        assert config.ALL_RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado", "shasta", "okanagan", "bccoast", "quebec", "rockies"), key
+        assert config.ALL_RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado", "shasta", "okanagan", "bccoast", "quebec", "rockies", "powderhighway", "eastkootenays"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
-    assert len(independents.MODULES) == 46
+    assert len(independents.MODULES) == 53
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "okanagan"] == [
         "bigwhite", "silverstar", "sunpeaks"]
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "shasta"] == ["shastaskipark", "ashland"]

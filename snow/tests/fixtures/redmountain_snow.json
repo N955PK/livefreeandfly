@@ -1,0 +1,93 @@
+{
+ "MountainReport": {
+  "MRID": 12672,
+  "SkyB": 30,
+  "SkyBText": "partly cloudy",
+  "SkyS": 30,
+  "SkySText": "partly cloudy",
+  "MetricToday": 0,
+  "MetricOvernight": 0,
+  "Metric24hours": 0,
+  "Metric48hours": 0,
+  "Metric3days": 0,
+  "Metric7days": 0,
+  "MetricAlpineSnowDepth": 18,
+  "BaseCond": "",
+  "SummCond": "",
+  "BaseTemp": "7",
+  "SummTemp": "3",
+  "BaseWinds": "2",
+  "SummWinds": "5",
+  "BaseVis": "Excellent",
+  "SummVis": "Excellent",
+  "Runs": "0",
+  "Acres": "0",
+  "Groomedruns": "",
+  "Notes": "<p><strong style=\"background-color: rgb(255, 255, 255); color: rgb(37, 37, 37);\"><u>Daily snow report updates will begin on December 1, 2026. </u></strong></p><p><strong><em>November 22 Update: </em></strong>Winter is starting to make its presence felt at RED! We&#39;ve currently got <strong>18 cm of snow at our alpine weather plot</strong>, and snowmaking operations officially kicked off at the base this past weekend. It&#39;s still early days, but we&#39;re making progress as we prepare for the season ahead. Keep those snow dances going!</p>",
+  "SummerMode": true,
+  "DateTime": "2026-11-22T21:11:31-08:00",
+  "MailingListID": 0,
+  "UserID": 1,
+  "Lifts": [
+   {
+    "Name": "Grey Quad",
+    "Status": "",
+    "Hours": "9:30 AM - 3:30 pm",
+    "Classname": "loh_grey"
+   },
+   {
+    "Name": "Silverlode Quad",
+    "Status": "",
+    "Hours": "9:00 AM - 3:30 pm",
+    "Classname": "loh_silverlode"
+   },
+   {
+    "Name": "Motherlode Triple",
+    "Status": "",
+    "Hours": "9:00 AM - 3:30 pm",
+    "Classname": "loh_motherlode"
+   },
+   {
+    "Name": "Red Double",
+    "Status": "",
+    "Hours": "9:00 AM - 3:30 pm",
+    "Classname": "loh_red"
+   },
+   {
+    "Name": "Paradise Triple",
+    "Status": "",
+    "Hours": "9:30 AM - 3:30 pm",
+    "Classname": "loh_paradise"
+   },
+   {
+    "Name": "Topping Triple",
+    "Status": "",
+    "Hours": "9:00 AM - 3:30 pm",
+    "Classname": "loh_topping"
+   },
+   {
+    "Name": "Magic Carpet",
+    "Status": "",
+    "Hours": "9:00 AM - 3:30 pm",
+    "Classname": "loh_magic"
+   },
+   {
+    "Name": "T-Bar",
+    "Status": "",
+    "Hours": "9:00 AM - 3:30 pm",
+    "Classname": "loh_terrain"
+   },
+   {
+    "Name": "Mt. Kirkup Cat",
+    "Status": "",
+    "Hours": "10:00 AM - 2:30 PM",
+    "Classname": "loh_snowbus"
+   }
+  ],
+  "SnowData": [],
+  "HeaderImage": "header-background.png",
+  "TotalSnowDepth": 0
+ },
+ "WeatherData": {},
+ "RequestedYear": 0
+}
