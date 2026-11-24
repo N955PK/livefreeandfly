@@ -1561,7 +1561,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "240";
+const BUILD = "241";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4450,10 +4450,13 @@ function renderNotes() {
   $("formula").innerHTML = (data.powder_formula || []).map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join("");
 }
 
-// Whether a mountain's water is corrected against its sensor: what its forecast says (water_correction), or with its
-// region not loaded, what the index says. A region with sensors but no correction fitted to them yet (Seattle) is
-// uncorrected, its sensors' readings only shown. Data published before either field falls back to the pairing.
+// Whether a mountain's water is corrected against its sensor. The index says how its forecast is made now (a
+// correction fitted for its region and a sensor to correct against), and is read first: a correction fitted since the
+// forecast on screen was built already counts, since every build from here on uses it. Without the index, what the
+// mountain's own forecast says (water_correction); data published before either field falls back to the pairing.
 function waterCorrected(r) {
+  const listed = index && index.resorts.find((x) => x.key === r.key);
+  if (listed && "water_corrected" in listed) return listed.water_corrected;
   const own = mountain(r.key);
   if (own && "water_correction" in own) return own.water_correction != null;
   if ("water_corrected" in r) return r.water_corrected;
