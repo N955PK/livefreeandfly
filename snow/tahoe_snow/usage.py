@@ -32,10 +32,15 @@ def resort_run_calls(region: str) -> float:
     return CALLS_PER_RESORT_RUN + EXTRA_LEVEL_CALLS * len(REGIONS[region].low_levels)
 
 
+def pulls(region: str, resorts: dict = RESORTS) -> int:
+    """How many mountains in ``region`` ask for weather of their own; one that shares a neighbour's asks for none."""
+    return sum(r.region == region and r.weather_from is None for r in resorts.values())
+
+
 def planned(regions: dict = REGIONS, resorts: dict = RESORTS) -> float:
-    """Calls a day the configured regions will spend: each mountain's cost for every run its region makes."""
-    return sum(sum(r.region == region.key for r in resorts.values()) * 24 / region.every_h
-               * resort_run_calls(region.key) for region in regions.values())
+    """Calls a day the configured regions will spend: each weather pull's cost for every run its region makes."""
+    return sum(pulls(region.key, resorts) * 24 / region.every_h * resort_run_calls(region.key)
+               for region in regions.values())
 
 
 def of_run(requests: list) -> dict:
@@ -103,12 +108,12 @@ def estimate(ledger: list, region: str) -> float:
     recent = [row["calls"] for row in ledger if row.get("region") == region][-3:]
     if recent:
         return sum(recent) / len(recent)
-    return round(sum(r.region == region for r in RESORTS.values()) * resort_run_calls(region), 1)
+    return round(pulls(region) * resort_run_calls(region), 1)
 
 
 def largest_region() -> str:
-    """The region with the most mountains, which is the most a single run can cost."""
-    return max(REGIONS, key=lambda key: sum(r.region == key for r in RESORTS.values()))
+    """The region whose run costs the most, which is the most a single run can cost."""
+    return max(REGIONS, key=lambda key: pulls(key) * resort_run_calls(key))
 
 
 def room(ledger: list, now: datetime, by_hand: bool, region: str | None = None) -> tuple:

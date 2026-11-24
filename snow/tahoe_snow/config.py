@@ -50,6 +50,9 @@ class Resort:
     weak_match: bool = False
     # Whether the mountain's forecast is corrected against its station. Where it is not, the station is only shown.
     corrected: bool = True
+    # The neighbour whose weather this mountain's forecast is made from, where the two are close enough that the
+    # models see one place: the weather is asked for once, at the neighbour, and read at this mountain's own heights.
+    weather_from: str | None = None
 
     @property
     def mid_m(self) -> float:
@@ -225,7 +228,7 @@ RESORTS = {
         Resort("killington", "Killington", 43.61127, -72.81108, _ft(1165), _ft(4241), None, "Ikon",
                region="newengland"),
         Resort("pico", "Pico", 43.64769, -72.83847, _ft(2000), _ft(3967), None, "Ikon",
-               region="newengland"),
+               region="newengland", weather_from="killington"),          # 4.6 km from Killington
         Resort("sugarbush", "Sugarbush", 44.13197, -72.90544, _ft(1575), _ft(3975), None, "Ikon",
                region="newengland"),
         Resort("stratton", "Stratton", 43.10461, -72.91493, _ft(1872), _ft(3875), None, "Ikon",
@@ -235,7 +238,7 @@ RESORTS = {
         Resort("okemo", "Okemo", 43.40547, -72.73386, _ft(1144), _ft(3344), None, "Epic",
                region="newengland"),
         Resort("mountsnow", "Mount Snow", 42.96339, -72.90724, _ft(1900), _ft(3600), None, "Epic",
-               region="newengland"),
+               region="newengland", weather_from="stratton"),            # 15.7 km from Stratton
         Resort("wildcat", "Wildcat", 44.25667, -71.23137, _ft(1950), _ft(4062), None, "Epic",
                region="newengland"),
         Resort("attitash", "Attitash", 44.07554, -71.22543, _ft(600), _ft(2350), None, "Epic",
@@ -250,7 +253,7 @@ RESORTS = {
         # from the Terrain Tiles elevation model (2026-11-23). It sits inside the Presidential Range avalanche zone.
         # It shows the summit's measured snow, which is not used to correct its forecast.
         Resort("tuckerman", "Tuckerman Ravine", 44.2619, -71.2961, 619, 1580, "USW00014755:ACIS", "Backcountry",
-               region="newengland", kind="backcountry"),
+               region="newengland", kind="backcountry", weather_from="wildcat"),   # 5.2 km, across Pinkham Notch
         # Seattle: the Washington Cascades and Olympics resorts a Seattle skier drives to, and the Washington
         # volcanoes skied from their summits (looked up 2026-11-23). Elevations are from each resort's own page where
         # it could be read (Stevens Pass, Mt. Baker, Crystal's stats page as search engines show it, Alpental's
@@ -328,6 +331,11 @@ REGIONS = {
 
 def resorts_in(region: str) -> list[Resort]:
     return [r for r in RESORTS.values() if r.region == region]
+
+
+def weather_point(resort: Resort) -> Resort:
+    """The mountain whose place a resort's weather is asked for at: its own, or the neighbour it shares with."""
+    return RESORTS[resort.weather_from] if resort.weather_from else resort
 
 
 def avalanche_centers() -> tuple[str, ...]:

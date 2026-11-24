@@ -106,10 +106,10 @@ def test_prune_removes_old_archives_of_both_name_shapes(tmp_path, stubbed, monke
 
 
 def test_a_run_is_budgeted_by_the_region_about_to_run():
-    big = max(config.REGIONS, key=lambda key: len(config.resorts_in(key)))
+    big = usage.largest_region()
     ledger = []
     now = datetime(2026, 12, 1, 12, tzinfo=timezone.utc)
-    assert usage.estimate(ledger, big) == round(len(config.resorts_in(big)) * usage.resort_run_calls(big), 1)
+    assert usage.estimate(ledger, big) == round(usage.pulls(big) * usage.resort_run_calls(big), 1)
     ledger = [{"utc": (now - timedelta(hours=1)).strftime(usage.STAMP), "calls": 300.0, "rate_limited": 0,
                "region": "tahoe"}]
     assert usage.estimate(ledger, "tahoe") == 300.0

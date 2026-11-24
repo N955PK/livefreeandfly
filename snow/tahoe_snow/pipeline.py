@@ -430,7 +430,10 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
     """Site payload and archive rows for one resort."""
     tz = REGIONS[resort.region].tz
     today = now.tz_localize("UTC").tz_convert(tz).tz_localize(None).normalize()
-    frames = openmeteo.forecast(resort.lat, resort.lon, resort.summit_m, DET_MODELS,
+    # Asked for at the mountain's own place, or at the neighbour it shares its weather with: the second of a pair
+    # asks for exactly what the first did, which the cache answers without another call.
+    point = config.weather_point(resort)
+    frames = openmeteo.forecast(point.lat, point.lon, point.summit_m, DET_MODELS,
                                 forecast_variables(resort.region), days=DAYS,
                                 past_days=HISTORY_DAYS + 1)
     models = {}
@@ -447,7 +450,9 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
         if parent not in models:
             continue
         try:
-            ensembles[system] = (openmeteo.ensemble(resort.lat, resort.lon, resort.mid_m, system, ENSEMBLE_VARS,
+            # At the height the models above were asked at: a member's surface temperature is compared with its
+            # parent's, and the two only compare at one height.
+            ensembles[system] = (openmeteo.ensemble(point.lat, point.lon, point.summit_m, system, ENSEMBLE_VARS,
                                                     days=DAYS), parent)
         except RuntimeError:
             continue
