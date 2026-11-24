@@ -108,6 +108,8 @@ main.sliding{will-change:transform}
 .tabs div:has(button:nth-child(4)[aria-current])::before{transform:translateX(300%)}
 .tabs button{position:relative;z-index:1;height:46px;padding:0 4px;border-radius:999px;font-family:var(--mono);font-size:13px;letter-spacing:.03em;color:var(--dim);white-space:nowrap}
 .tabs button[aria-current="page"]{color:var(--ink)}
+/* Snow is a different site that opens over this one, so it is tinted in the theme color to say so. */
+.tabs button[data-view="snow"]{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
 @media (max-width:380px){.tabs button{font-size:12px;letter-spacing:0}}
 @media (prefers-reduced-motion:reduce){.tabs div::before{transition:none}}
 
