@@ -206,6 +206,10 @@ html.tabs .sumhead{position:relative;z-index:6;box-sizing:border-box;background:
   html.tabs[data-view="forecast"],html.tabs[data-view="forecast"] body{overscroll-behavior-x:none}
   html.tabs[data-view="forecast"] main{width:max-content;min-width:100%;max-width:none;margin:0;padding-right:0;box-sizing:border-box}
   html.tabs[data-view="forecast"] .panel.summary{margin-right:0}
+  /* A region with few mountains is no taller than the screen, and its page would not scroll at all while Tahoe's
+     does. Every region's page is at least the app's header (51px) taller than the screen, so the header always
+     goes off the top and the title block always comes to rest there. */
+  html.tabs[data-view="forecast"] body main{min-height:calc(100dvh + 51px)}
   html.tabs[data-view="forecast"] .brand{position:sticky;left:16px;width:calc(100vw - 32px);touch-action:pan-y}
   html.tabs .sumhead{position:sticky;top:var(--sat);left:0;width:100vw;height:94px;touch-action:pan-y}
   html.tabs .gridwrap{overflow:visible}
@@ -1630,7 +1634,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "279";
+const BUILD = "281";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
