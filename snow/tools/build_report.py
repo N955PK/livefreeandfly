@@ -209,13 +209,11 @@ Given the measured water, it misses the snowfall by <b>{s['This site']['snow_mae
 <p>At {phase_out['days']:,} wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
 <figure><img src="{phase_out['fig']}" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about {phase_out['params']['center_c']:.2f} °C.</figcaption></figure>
 <p>Three methods were tried and came out tied: about 2.4 mm of water miscalled per wet day, half the 4.9 mm you get by calling everything snow.</p>
-<p><b>A mistake we caught:</b> an earlier version of this test read the sensors' daily records one day off, which made every method look much worse and one winter look broken. Lining the dates up fixed both.</p>
-
 <h2>3. How much water</h2>
 <p>Weather models are consistently too dry or too wet at particular spots in the mountains. Each dot below is one model's total water at one sensor as a share of what the sensor measured ({water_out['pairs']:,} model-days).</p>
 <figure><img src="{water_out['fig_stations']}" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
 <p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
-<p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. (One model delivers 13% of the measured water at Mt Rose; uncapped, its correction once turned 43 mm into 247.)</p>
+<p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. One model delivers 13% of the measured water at Mt Rose, so its correction there is a large multiple, and these guards keep it from running away.</p>
 <div class="scroll"><table><tr><th>Water forecast</th><th>Total vs measured</th><th>Daily error (in)</th><th>3-day error (in)</th><th>3-day error, 2 in+ storms</th></tr>{water_rows}</table></div>
 {water_out['mammoth']}
 <h2>4. Wind gusts</h2>

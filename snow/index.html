@@ -1500,6 +1500,7 @@ if (HOSTED) {
     <div id="scoreBody"></div>
     
 <h4 class="ghead">How fluffy the snow is</h4>
+<h5>Tahoe and the Eastern Sierra</h5>
 <p>The snow ratio is inches of snow per inch of water. It is the hardest part to predict and the part most forecasts guess at.
 The raw material is 13,124 days of snowfall measured by hand at Sierra stations since 1979. Colder storms make lighter snow, but with a lot of scatter.</p>
 <figure class="plot"><img loading="lazy" src="report/ratio_vs_temperature.png" alt="Median snow ratio falls from about 14 to 7 as temperature rises from −12 to +3 °C"><figcaption>The line is the middle day at each temperature; the band holds the middle half of days.</figcaption></figure>
@@ -1509,25 +1510,38 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <figure class="plot"><img loading="lazy" src="report/ratio_error_by_temperature.png" alt="Average snowfall error by temperature band for three methods"><figcaption>Kuchera does worst in cold storms, where it calls for very light snow that the Sierra rarely delivers.</figcaption></figure>
 <div class="gridwrap"><table class="plain"><tr><th>Winter held out</th><th>Snow days</th><th>Kuchera error (in)</th><th>This site (in)</th></tr><tr><td>2021–22</td><td>231</td><td>2.40</td><td>2.06</td></tr><tr><td>2022–23</td><td>487</td><td>1.93</td><td>1.46</td></tr><tr><td>2023–24</td><td>207</td><td>1.92</td><td>1.61</td></tr><tr><td>2024–25</td><td>131</td><td>1.36</td><td>1.42</td></tr><tr><td>2025–26</td><td>141</td><td>2.47</td><td>1.97</td></tr></table></div>
 <p><b>What did not work:</b> training on the full 45-year record. Its upper-air data is coarse and does not line up with the forecast models, so it made the forecasts slightly worse, and it is not used.</p>
+<h5>Seattle</h5>
+<p>Seattle uses the Sierra's model. It was checked against 248 all-snow days measured by hand at 9 Cascade stations over three winters. Given the measured water, it misses the snowfall by <b>1.51 in</b> on average, against 2.08 in for Kuchera and 1.72 in for a flat 10:1, with no lean either way overall.</p>
+<p>It is not even across the range: west of the crest and at it (Paradise, Snoqualmie Pass) it runs a little fluffy, and east of the crest it runs dense. Refitting it with the Cascade days added did no better at a station left out of the fit, so the Sierra's model is kept as it is.</p>
 
 <h4 class="ghead">Rain or snow</h4>
+<h5>Tahoe and the Eastern Sierra</h5>
 <p>At 5,405 wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
 <figure class="plot"><img loading="lazy" src="report/rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about 1.25 °C.</figcaption></figure>
 <p>Three methods were tried and came out tied: about 2.4 mm of water miscalled per wet day, half the 4.9 mm you get by calling everything snow.</p>
-<p><b>A mistake we caught:</b> an earlier version of this test read the sensors' daily records one day off, which made every method look much worse and one winter look broken. Lining the dates up fixed both.</p>
+<p>The curve is fitted at Tahoe and used in the Eastern Sierra as well.</p>
+<h5>Seattle</h5>
+<p>Seattle has its own curve, fitted the same way to 16,508 wet days at 64 Cascade and Olympic snow sensors over three winters. Half the water falls as snow at a wet-bulb temperature of about 0.75 °C, half a degree colder than at Tahoe, so more of a storm near freezing is rain.</p>
+<p>On winters left out of the fit it miscalls 3.00 mm of water per wet day, against 3.27 mm for Tahoe's curve on the same days, and it leans toward snow by 0.66 mm a day where Tahoe's leans by 1.78. It did better in each of the three winters and at every height below 1,600 m; above that the two are about even.</p>
 
 <h4 class="ghead">How much water</h4>
-<p>Weather models are consistently too dry or too wet at particular spots in the mountains. Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,206 model-days).</p>
+<p>Weather models are consistently too dry or too wet at particular spots in the mountains, so each model is corrected against the snow sensors of the region it is forecasting. Each region's correction is fitted and tested on its own sensors.</p>
+<h5>Tahoe</h5>
+<p>Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,206 model-days).</p>
 <figure class="plot"><img loading="lazy" src="report/water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
 <p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
-<p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. (One model delivers 13% of the measured water at Mt Rose; uncapped, its correction once turned 43 mm into 247.)</p>
+<p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. One model delivers 13% of the measured water at Mt Rose, so its correction there is a large multiple, and these guards keep it from running away. They apply in every region.</p>
 
-<h5>Around Mammoth</h5>
-<p>Mammoth gets its own correction, fitted to 10 snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
+<h5>Eastern Sierra</h5>
+<p>The Eastern Sierra gets its own correction, fitted to 10 snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
 <p><b>Mammoth Mountain and Sherwin Ridge</b> use the Mammoth Pass sensor, 2 km south of the summit. The models' shares of its measured water: GEM 69%, ECMWF 88%, ICON 101%, GFS 133%. Those misses offset, so at this one sensor the corrected blend only ties the raw one; the correction is kept because it makes each model right on its own.</p>
 <p><b>Matterhorn Peak and Dana Plateau</b> use the sensors nearest them: Slide Canyon, 4 km west across the crest, and Dana Meadows, 5 km southwest.</p>
 <p><b>June Mountain, Carson Peak, and Mt. Whitney</b> have no working sensor nearby and are left uncorrected. The record of a sensor that has since gone quiet (Gem Pass) says a correction borrowed from Mammoth Pass would make them worse.</p>
 <p><b>The sensors:</b> most are state snow pillows that are not quality-controlled the way SNOTEL is. Adding up their daily rises counts sensor jitter as snow (about 20% too much over a week), so readings are smoothed and small dips ignored before any of this is fitted or scored.</p>
+<h5>Seattle</h5>
+<p>Seattle gets its own correction, fitted to 10 snow sensors from Mt. Baker to Mt. St. Helens and in the Olympics, and tested the same way on the 2024, 2025, and 2026 winters. Every model is dry there: uncorrected, the four together deliver 72% of the measured water, and corrected 101%. The average miss over three days falls from 0.55 in of water to 0.40, and in storms of 2 in or more from 1.33 in to 0.78. Corrected beat uncorrected in each of the three winters.</p>
+<p><b>Crystal Mountain and White Pass</b> sit east of the crest, where their own sensors' corrections overshot the winter left out, so they use the correction pooled over all ten sensors, which did better than either their own or none.</p>
+<p><b>The five volcanoes</b> are left uncorrected. Mt. Rainier, Mt. Baker, and Mt. St. Helens have sensors far below their summits, whose readings are only shown, and Glacier Peak and Mt. Adams have none. The models are used as they are at every height.</p>
 
 <h4 class="ghead">Wind gusts</h4>
 <p>The weather models' own gust field runs low in the mountains, so above the base this site estimates gusts from the faster air 500 m higher up, which is where gusts come from. The method is the same at every mountain.</p>
@@ -1535,11 +1549,18 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p><b>The limit:</b> that sensor sits in a sheltered spot and averages only 7 mph, and the one other free sensor is more sheltered still. So the method's shape is tested, at Palisades, but how strong gusts get on an exposed ridge is not tested anywhere. Treat ridge gusts as estimates at every mountain.</p>
 
 <h4 class="ghead">What is not tested yet</h4>
+<h5>New England</h5>
+<p>Nothing on this page has been checked in New England. No snow sensors sit near its mountains to fit or test against, so its forecasts use the four models uncorrected, with the Sierra's rain-or-snow curve, snow ratio model, and blend weights.</p>
+<h5>Everywhere</h5>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
   </div>
   <div class="gpage" id="how" data-page="how" data-title="How the forecast is made" hidden>
-    <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each resort. <span id="biasNote"></span></p>
-    <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> This model, which turns water into inches of snow, was trained on Sierra snow and has not been checked anywhere else. The weights that blend the four weather models were also fitted in the Sierra.</p>
+    <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each mountain. Mountains a few miles apart are forecast from one reading of the weather, each at its own heights. <span id="biasNote"></span></p>
+    <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> What each step is fitted to depends on the region.</p>
+    <p><b>Tahoe</b> Everything is fitted here: the correction to 22 snow sensors around the lake, the rain-or-snow curve to the same sensors, the fluffiness model to snowfall measured by hand at Sierra stations, and the weights that blend the four models.</p>
+    <p><b>Eastern Sierra</b> Its own correction, fitted to 10 snow sensors along the crest. The rain-or-snow curve, the fluffiness model, and the blend weights are Tahoe's.</p>
+    <p><b>Seattle</b> Its own correction, fitted to 10 snow sensors, and its own rain-or-snow curve, which turns to rain half a degree colder than Tahoe's. Its blend weights were fitted there too and came out equal. The fluffiness model is the Sierra's, checked against snowfall measured by hand in the Cascades and kept. Because the passes are low, the air is read closer to the ground than in the Sierra.</p>
+    <p><b>New England</b> No snow sensors sit near its mountains, so there is no correction, and the rain-or-snow curve, the fluffiness model, and the blend weights are the Sierra's, not checked there. The air is read down to near sea level.</p>
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon in the Sierra.</p>
@@ -1561,7 +1582,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "245";
+const BUILD = "246";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
