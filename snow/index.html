@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "231";
+const BUILD = "232";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1820,11 +1820,28 @@ const ICONS = {
   sun: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 1.2v1.9M8 12.9v1.9M1.2 8h1.9M12.9 8h1.9M3.2 3.2l1.3 1.3M11.5 11.5l1.3 1.3M3.2 12.8l1.3-1.3M11.5 4.5l1.3-1.3"/></g></svg>',
   cloud: '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M5.5 13a3.5 3.5 0 0 1-.4-7 4.6 4.6 0 0 1 8.8-.9A3.9 3.9 0 0 1 14.8 13z" fill="currentColor"/></svg>',
   partly: '<svg viewBox="0 0 20 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 14a3 3 0 0 1-.3-6 4 4 0 0 1 7.6-.7A3.4 3.4 0 0 1 16 14z" fill="currentColor"/></svg>',
-  snow: '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M5.5 10a3.3 3.3 0 0 1-.4-6.6 4.4 4.4 0 0 1 8.4-.8A3.7 3.7 0 0 1 14.6 10z" fill="currentColor"/><g fill="currentColor"><circle cx="6.5" cy="13.4" r="1.1"/><circle cx="10.2" cy="14.6" r="1.1"/><circle cx="13.9" cy="13.4" r="1.1"/></g></svg>',
+  snow: '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M5.5 10a3.3 3.3 0 0 1-.4-6.6 4.4 4.4 0 0 1 8.4-.8A3.7 3.7 0 0 1 14.6 10z" fill="currentColor"/><path d="M6.00 14.00L6.00 11.20M4.79 13.30L7.21 11.90M7.21 13.30L4.79 11.90M10.20 15.30L10.20 12.50M8.99 14.60L11.41 13.20M11.41 14.60L8.99 13.20M14.40 14.00L14.40 11.20M13.19 13.30L15.61 11.90M15.61 13.30L13.19 11.90" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>',
+  // Rain is the snow cloud with short slanted drops; rain and snow together, a drop either side of a flake.
+  rain: '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M5.5 10a3.3 3.3 0 0 1-.4-6.6 4.4 4.4 0 0 1 8.4-.8A3.7 3.7 0 0 1 14.6 10z" fill="currentColor"/><path d="M6.9 11.6l-1 2.4M10.9 12.6l-1 2.4M14.9 11.6l-1 2.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  mix: '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M5.5 10a3.3 3.3 0 0 1-.4-6.6 4.4 4.4 0 0 1 8.4-.8A3.7 3.7 0 0 1 14.6 10z" fill="currentColor"/><path d="M6.9 11.6l-1 2.4M14.9 11.6l-1 2.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M10.20 15.30L10.20 12.50M8.99 14.60L11.41 13.20M11.41 14.60L8.99 13.20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>',
 };
-function sky(p) {
+// A day is rainy when a tenth of an inch of water or more comes down and at least half of it is rain (the bar the
+// insights use to call the rain out); rain and snow when snow falls for three lift hours or more and a quarter to a
+// half of the water is rain. The share is the forecast's own where it gives one (a day with snow on it); a day with
+// next to no snow (or a day too far ahead for the hour-by-hour figures) takes the day's snow at ten to one, and the
+// rest of the water as rain.
+const RAIN_DAY_IN = 0.1;
+function rainShare(p, day) {
+  const water = (day && day.liquid_in) || 0;
+  if (p.rain_share != null) return p.rain_share;
+  return water > 0 ? Math.max(0, 1 - ((day && day.snow_in) ?? p.snow_in ?? 0) / 10 / water) : 0;
+}
+function sky(p, day) {
   if (p.sky_pct == null) return ["", ""];
-  if ((p.snowing_hours || 0) >= 3) return [ICONS.snow, "Snowing"];
+  const water = (day && day.liquid_in) || 0, rain = rainShare(p, day), snowing = (p.snowing_hours || 0) >= 3;
+  if (water >= RAIN_DAY_IN && rain >= 0.5) return [ICONS.rain, "Rain"];
+  if (water >= RAIN_DAY_IN && snowing && rain >= 0.25) return [ICONS.mix, "Rain/snow"];
+  if (snowing) return [ICONS.snow, "Snowing"];
   // Short words, so the column beside them can sit close.
   return p.sky_pct < 25 ? [ICONS.sun, "Sunny"] : p.sky_pct < 60 ? [ICONS.partly, "Some sun"] : [ICONS.cloud, "Cloudy"];
 }
@@ -2116,10 +2133,10 @@ function skiDay(d) {
   const far = d.lead_day > data.deterministic_days, p = d.powder || {};
   // In tabs the day reads like the Region table's headings: the weekday small, the date's number bold under it.
   // The day's weather icon sits above it.
-  const date = tabbed() ? `<div class="d cal">${sky(p)[0] ? `<i class="wx" title="${sky(p)[1]}">${sky(p)[0]}</i>` : ""}<span>${weekday(d.date)}</span><b>${dayOfMonth(d.date)}</b></div>`
+  const date = tabbed() ? `<div class="d cal">${sky(p, d)[0] ? `<i class="wx" title="${sky(p, d)[1]}">${sky(p, d)[0]}</i>` : ""}<span>${weekday(d.date)}</span><b>${dayOfMonth(d.date)}</b></div>`
     : `<div class="d"><b>${weekday(d.date)}</b><span>${new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", {month: "short", day: "numeric", timeZone: "UTC"})}</span></div>`;
   const total = p.snow_in || 0;
-  const [icon, word] = sky(p), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
+  const [icon, word] = sky(p, d), wind = p.wind_mph, gust = p.gust_mph, wb = windBin(Math.max(wind || 0, gust || 0));
   const bars = `${dayBar(p, true)}` + (total >= 0.05
     ? `<div class="split"><span title="Overnight, ${hourName(16)} to ${hourName(8)}">${ICONS.moon}${inches(p.night_in)} ${LEN()}</span><span title="During the day, ${hourName(8)} to ${hourName(16)}">${ICONS.sun}${inches(p.day_in)} ${LEN()}</span>${p.slr ? `<em>${quality(p.slr)[0]} snow</em>` : ""}</div>`
     : `<div class="split">No new snow</div>`);
