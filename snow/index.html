@@ -1589,7 +1589,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "249";
+const BUILD = "250";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4307,6 +4307,21 @@ const LOCATORS = [
   // Wildcat sits under Mt. Washington at this size, so only Attitash, to the south, is named beside it.
   {where: "the White Mountains", lon0: -73.471, lat0: 45.201, kx: 28.6, ky: 40, lakes: [], towns: [["Attitash", -71.225, 44.076, true]],
     peaks: {"Presidential Range": ["Mt. Washington", -71.303, 44.270, "Washington"]}},
+  // The Bridger-Teton center's four zones, set left of the middle so the names have room to their right.
+  {where: "the Tetons and the ranges around Jackson", lon0: -114.28, lat0: 45.931, kx: 10.19, ky: 14,
+    lakes: [[-110.677, 43.921, 0.5, 1.4]], towns: [["Jackson", -110.762, 43.480, true]],
+    peaks: {2855: ["Grand Teton", -110.802, 43.741, "Grand"], 2852: ["Togwotee Pass", -110.070, 43.764, "Togwotee"],
+      2860: ["Mt. Baird", -111.095, 43.363, "Baird"], 2856: ["Wyoming Peak", -110.624, 42.604, "Wyoming"]}},
+  // The Utah center's northern zones, Logan to Provo and the Uintas, with the Great Salt Lake and Utah Lake.
+  {where: "the Wasatch Range", lon0: -116.976, lat0: 44.566, kx: 8.28, ky: 11,
+    lakes: [[-112.55, 41.17, 3.3, 5.4], [-111.81, 40.185, 1.1, 1.9]], towns: [],
+    peaks: {1736: ["Naomi Peak", -111.675, 41.911, "Naomi"], 1737: ["Ben Lomond", -111.961, 41.363, "Lomond"],
+      1738: ["Mt. Superior", -111.667, 40.592, "Superior"], 1739: ["Mt. Timpanogos", -111.646, 40.391, "Timp"],
+      1740: ["Hayden Peak", -110.844, 40.736, "Hayden"]}},
+  // ...and its southern ones: the Skyline, the Tushars and the south-west, the La Sals above Moab and the Abajos.
+  {where: "central and southern Utah", lon0: -116.977, lat0: 42.263, kx: 8.19, ky: 10.5, lakes: [], towns: [["Moab", -109.546, 38.574, true]],
+    peaks: {1741: ["South Tent", -111.358, 39.392, "S. Tent"], 1743: ["Delano Peak", -112.371, 38.369, "Delano"],
+      1742: ["Mt. Peale", -109.229, 38.438, "Peale"], 1744: ["Abajo Peak", -109.463, 37.839, "Abajo"]}},
 ];
 // The zone's spot on a small flat map, north up: the frame's water and names, the other zones in it faint, and the
 // forecast zone in its danger color (quiet grey while its forecast is last season's).
