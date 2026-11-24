@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "229";
+const BUILD = "230";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1540,14 +1540,14 @@ const CALTRANS = (district) => `https://cwwp2.dot.ca.gov/data/d${district}/cc/cc
 const REGIONS = {
   tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897, pick: "palisades",
     lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
-    avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/"}]},
+    avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/", state: "CA"}]},
   mammoth: {name: "Eastern Sierra", short: "E Sierra", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.34, -118.84], rev: "?v=3", discKm: 115, look: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 72, pick: "mammoth",
     lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)], closureFeeds: [CALTRANS_CLOSURES(9)],
     // East of the crest the low ground is sagebrush, not forest.
     land: [[1300, [0.72, 0.66, 0.48]], [2000, [0.62, 0.60, 0.42]], [2350, [0.36, 0.44, 0.30]], [2800, [0.27, 0.40, 0.30]],
       [3200, [0.55, 0.53, 0.48]], [3800, [0.72, 0.70, 0.67]]],
-    avalanche: [{id: "ESAC", name: "Eastern Sierra Avalanche Center", url: "https://www.esavalanche.org/"},
-      {id: "BAC", name: "Bridgeport Avalanche Center", url: "https://bridgeportavalanchecenter.org/"}]},
+    avalanche: [{id: "ESAC", name: "Eastern Sierra Avalanche Center", url: "https://www.esavalanche.org/", state: "CA"},
+      {id: "BAC", name: "Bridgeport Avalanche Center", url: "https://bridgeportavalanchecenter.org/", state: "CA"}]},
   newengland: {name: "New England", short: "NE", terrain: "data/terrain-newengland", roads: "data/roads-newengland.json", center: [44.005, -71.615], rev: "?v=2", waterM: 0, pick: "sugarloaf",
     // The mountains run 300 km from Mount Snow to Sugarloaf: the disc is 190 km in radius, the terrain is a square
     // that just holds it, and the view opens far out, from the south-southwest, so Stowe and Crotched both fit
@@ -1558,7 +1558,7 @@ const REGIONS = {
     land: [[0, [0.42, 0.50, 0.32]], [400, [0.30, 0.43, 0.28]], [900, [0.21, 0.37, 0.26]], [1250, [0.27, 0.40, 0.30]],
       [1450, [0.55, 0.53, 0.48]], [1800, [0.70, 0.68, 0.65]]],
     lake: {name: "Lake Winnipesaukee", lat: 43.60307, lon: -71.32397},
-    avalanche: [{id: "MWAC", name: "Mount Washington Avalanche Center", url: "https://www.mountwashingtonavalanchecenter.org/"}]},
+    avalanche: [{id: "MWAC", name: "Mount Washington Avalanche Center", url: "https://www.mountwashingtonavalanchecenter.org/", state: "NH"}]},
   seattle: {name: "Seattle", terrain: "data/terrain-seattle", roads: "data/roads-seattle.json", center: [47.5113, -121.9565], waterM: 0, pick: "crystal",
     // Mt. Baker to Mt. Adams and Hurricane Ridge to Mission Ridge: the disc is 176 km in radius, the terrain the
     // square that holds it. The view opens far out, from the south-southeast, where the mountains spread least
@@ -1571,7 +1571,7 @@ const REGIONS = {
     land: [[0, [0.42, 0.50, 0.32]], [300, [0.26, 0.42, 0.28]], [1000, [0.20, 0.36, 0.25]], [1500, [0.27, 0.40, 0.30]],
       [1850, [0.52, 0.51, 0.46]], [2300, [0.68, 0.68, 0.67]], [2700, [0.86, 0.88, 0.91]]],
     lake: {name: "Puget Sound", lat: 47.60, lon: -122.45},
-    avalanche: [{id: "NWAC", name: "Northwest Avalanche Center", url: "https://nwac.us/"}]},
+    avalanche: [{id: "NWAC", name: "Northwest Avalanche Center", url: "https://nwac.us/", state: "WA"}]},
 };
 // Data published before regions existed has no region field; all of it is Tahoe.
 const regionOf = (r) => r.region || "tahoe";
@@ -3832,13 +3832,16 @@ function onTheDay(product, zone) {
   for (const problem of product.forecast_avalanche_problems || []) if (!keep(problem.media)) problem.media = null;
   return product;
 }
+// The states the avalanche zones lie in, by the two letters the centers' map layers give.
+const STATE_NAMES = {CA: "California", NH: "New Hampshire", WA: "Washington", OR: "Oregon"};
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
   layers.forEach((layer, n) => {
     for (const feature of (layer && layer.features) || []) {
       const p = feature.properties, g = feature.geometry;
-      zones.push({id: feature.id, center: centers[n], name: p.name, level: p.danger_level, link: p.link, advice: p.travel_advice,
+      // The state is the zone's own where the layer gives one (NWAC's Mt Hood zone is Oregon's), else its center's.
+      zones.push({id: feature.id, center: centers[n], state: p.state || centers[n].state, name: p.name, level: p.danger_level, link: p.link, advice: p.travel_advice,
         offSeason: p.off_season, warning: p.warning && p.warning.product,
         rings: (g.type === "MultiPolygon" ? g.coordinates : [g.coordinates]).flat()});
       if (lastSeason(p.start_date)) leftOver(zones[zones.length - 1]);
@@ -4149,7 +4152,10 @@ function drawAvalanche() {
   const listed = byRegion.flatMap((zones) => [...zones].sort((a, b) => midLat(b) - midLat(a)));
   // A center with one zone names it after itself; the title drops the repeat ("Bridgeport").
   const zoneName = (z) => z.name === z.center.name ? z.name.replace(/ Avalanche Center$/, "") : z.name;
-  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${listed.map((z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`).join("")}</select></label>`;
+  // ...under the name of each state, the states in the order they first come.
+  const states = [...new Set(listed.map((z) => z.state))];
+  const option = (z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`;
+  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${states.map((st) => `<optgroup label="${esc(STATE_NAMES[st] || st || "Other")}">${listed.filter((z) => z.state === st).map(option).join("")}</optgroup>`).join("")}</select></label>`;
   const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
   // A time more than six days away (an off-season forecast from the spring) also gives its date, so it is not read as this week's.
