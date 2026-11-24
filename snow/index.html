@@ -1254,7 +1254,7 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .amap text.tn{font-size:9px;font-weight:500;fill:var(--mark-mid)}
 .amap path.pk{fill:var(--mark);stroke:var(--surface);stroke-width:.8;pointer-events:none}
 .amap circle{fill:var(--mark-mid);pointer-events:none}
-.azrows{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.azrows{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:12px}
 .azrow{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:7px;margin:0;padding:5px 12px 5px 6px;border:0;border-radius:999px;background:var(--wash);color:var(--mark);font:inherit;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .azrow.on{box-shadow:inset 0 0 0 1.5px var(--mark)}
 .azrow i{flex:none;width:14px;height:14px;border-radius:50%;border:1px solid rgba(15,23,32,.18)}
@@ -1608,7 +1608,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "255";
+const BUILD = "256";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4513,7 +4513,9 @@ function bigLocator(zone, all) {
     const sign = m.peak ? `<path class="pk" d="M${x.toFixed(1)} ${(y - 4).toFixed(1)}l3.6 6.4h-7.2z"/>` : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2"/>`;
     return sign + (pick ? `<text class="${m.peak ? "pk" : "tn"}" x="${pick[5].toFixed(1)}" y="${pick[6].toFixed(1)}" text-anchor="${pick[4]}">${esc(m.words)}</text>` : "");
   }).join("");
-  const rows = zones.map((z) => `<button class="azrow${z === zone ? " on" : ""}" data-zone="${esc(zoneKey(z))}"><i style="background:${fill(z)}"></i>${esc(z.name.replace(/ Avalanche Center$/, ""))} · ${z.stale ? "No forecast yet" : dangerText(z.level)}</button>`).join("");
+  // The list under the map runs north to south, by the middle of each zone, as the zone menu does, one to a line.
+  const midLat = (z) => { const ring = z.rings.flat(); return ring.reduce((sum, c) => sum + c[1], 0) / ring.length; };
+  const rows = [...zones].sort((a, b) => midLat(b) - midLat(a)).map((z) => `<button class="azrow${z === zone ? " on" : ""}" data-zone="${esc(zoneKey(z))}"><i style="background:${fill(z)}"></i>${esc(z.name.replace(/ Avalanche Center$/, ""))} · ${z.stale ? "No forecast yet" : dangerText(z.level)}</button>`).join("");
   return `<svg viewBox="0 0 ${wide} ${tall.toFixed(0)}" role="img" aria-label="The avalanche zones of ${esc(frame ? frame.where : zone.center.name)}">${sea ? `<path class="water" d="${sea}"/>` : ""}${drawn}${real}${lakes}${noted}${lakeNames}${zoneNames}</svg>
     <div class="azrows">${rows}</div><p class="anote">Tap a zone for its forecast. Triangles are mountains and dots are towns.</p>`;
 }
