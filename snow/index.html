@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "235";
+const BUILD = "236";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1528,6 +1528,14 @@ let HOME = "palisades";
 const homeOf = (key) => (knownFavorites().find((r) => regionOf(r) === key) || {key: REGIONS[key].pick}).key;
 // index is every region and every mountain in them (index.json); data holds the forecasts of the regions loaded so
 // far, with the times of the one on screen (see loadRegion).
+// Where the map marks a mountain named for its summit: the volcanoes' forecasts are made for a point partway up the
+// route, but the stake and its name stand over the summit. Each is the researched summit (Columbia Crest, Grant
+// Peak, the tiles' highest point on Glacier Peak, Mt. Adams's and St. Helens's summits in OpenStreetMap), moved to
+// the highest cell of the map's own terrain within 1.5 km of it, so the stake points at the top the map draws.
+// Everything else (the forecast, the avalanche zone, the sensors) keeps the entry's own point.
+const PEAK_AT = {rainier: [46.85104, -121.76076], mtbaker: [48.77896, -121.81985], glacierpeak: [48.11624, -121.11074],
+  adams: [46.20338, -121.49484], sthelens: [46.18831, -122.18918]};
+const markedAt = (r) => PEAK_AT[r.key] ? {...r, lat: PEAK_AT[r.key][0], lon: PEAK_AT[r.key][1]} : r;
 let index = null, data = null, elevation = "summit", selected = location.hash.slice(1) || HOME, region = "tahoe";
 // What differs between regions: the map's data files and framing (see createMap), the Caltrans districts whose
 // chain-control feeds cover it (and closureFeeds, their lane-closure feeds, where the passes shut for the winter:
@@ -3528,7 +3536,7 @@ async function startMap() {
     $("roadSheet").hidden = !roadFeeds;
     if (!roadFeeds) $("roadPill").hidden = true;
     $("mapPanel").style.display = "block";
-    const made = await createMap($("map3d"), {...data, resorts: list}, {region: REGIONS[mapPlace], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
+    const made = await createMap($("map3d"), {...data, resorts: list.map(markedAt)}, {region: REGIONS[mapPlace], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
       // A tap on a mountain's label does what a tap on its row of the summary does: it opens the mountain's tab.
       onSelect: (key) => { if (map) chooseMountain(key, true); }});
     if (build !== mapBuild) { made.dispose(); return; }
