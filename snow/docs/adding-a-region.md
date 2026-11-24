@@ -13,7 +13,8 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 **Before starting**
 - [ ] The mountains are chosen: every resort in the area on any pass, and the backcountry spots people ski there
       (volcano summits, passes, the classic lines). Ask Sean only if the area's edges are unclear.
-- [ ] The call budget fits (step 0), with close neighbours sharing weather. (M)
+- [ ] The plan's total is worked out (step 0), with close neighbours sharing weather. (M)
+- [ ] The collector is settled: the first for the USA, the second for Canada (step 0).
 
 **The forecast (first push)**
 - [ ] Each mountain's point, base, summit and pass are looked up, not remembered, and the source is in the comment
@@ -21,8 +22,9 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] Mountains within about 8 km of another share its weather (`weather_from`); up to about 16 km where the
       budget needs it and no crest runs between them (1a). (M)
 - [ ] Snow sensors are found and paired, or the region is said to have none (1b). (M)
-- [ ] `Region` has its time zone, sensor clock offset, build hours on its own clock, avalanche centers, and low
-      pressure levels if any base is under about 1,450 m (1c).
+- [ ] `Region` has its time zone, sensor clock offset, build hours on its own clock, avalanche centers, low
+      pressure levels if any base is under about 1,450 m, and its collector and country if not the first and the
+      USA (1c).
 - [ ] The region's own models are fitted where it has sensors: water correction, blend weights, rain-or-snow
       curve, and the snow-ratio model checked and refitted only if that beats the Sierra's (1e). Each is saved as
       the region's own file even where it barely differs.
@@ -33,13 +35,19 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] Terrain, with a water mask where lakes or sea sit above the floor (2a).
 - [ ] Road lines (2b). If Overpass is down, ship without and say so.
 - [ ] Terrain, water mask and roads are in `SHELL` in `sw.js` (2b).
-- [ ] The region's entry in `REGIONS`, with its opening view tuned so every mountain fits a phone (2c).
+- [ ] The region's entry in `REGIONS`, with a round map (a `discKm` a kilometre under half the terrain's shorter
+      side) and its opening view tuned so every mountain fits a phone (2a, 2c).
+- [ ] The region opens on an Ikon resort where it has one (`pick`), so Ikon is listed before Epic (2c).
+- [ ] The region's `country` where it is not the USA, so the region menu lists it under that country (2c).
 - [ ] Sub-area pills (`areas`) if the region has more than about ten mountains or spans more than one range or
       state (2c). (M: add the mountain to its area's list.)
 - [ ] Summit marker positions (`PEAK_AT`) for backcountry peaks whose forecast point is not the summit (2c). (M)
-- [ ] Avalanche: the centers' states are in `AVY_AREA` under the region's group, the group is in `AVY_AREAS`, and
-      the small locator map has a frame for the region (`LOCATORS`) in the California style, with water where
-      there is some and each zone's prominent mountain named (2c).
+- [ ] Avalanche: the centers' states are in `AVY_AREA` under the region's group, the group is in `AVY_AREAS`
+      (A to Z), and the locator has a frame for the region (`LOCATORS`): the small map in the California style and
+      the large map that opens from it, with the lakes or sea as they really lie, each zone's prominent mountain,
+      and two or more towns for scale (2c).
+- [ ] Every zone has a name that fits the tab's title (`ZONE_SHORT`), every mountain is read against a zone
+      (`AVY_AT` where its point falls outside them), and a zone picked there brings the app to this region (2c).
 - [ ] Short names (`SHORT`, and the region's `short`) where a name is long for a table row (2c). (M)
 - [ ] Lift status, trail counts and the resort's snow report for every resort that publishes them (step 3). (M)
 - [ ] The resort's reported base depth feeds the map where the region has no sensors (`STAKES`) (step 3). (M)
@@ -50,7 +58,7 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] Checked in the preview, light and dark, at phone size (2d); pushed.
 
 **After**
-- [ ] The first real build is confirmed, and the next day's calls are under the limit (2e).
+- [ ] The first real build is confirmed, on the right collector's branch (2e).
 - [ ] Sean gets the short report at the end of this guide.
 
 ## 0. Check it fits
@@ -76,6 +84,22 @@ gives. Tell him the plan's total and how far over it is when a region ships.
 Adding mountains makes the collector rebuild that region straight away, outside its hours, which costs one extra
 run that day. That is fine; do not hold a push back for the day's count.
 
+**Which collector.** There are two, each a workflow of its own with its own data branch, index and ledger of
+calls:
+
+| Collector | Workflow | Regions | Data branch | Preview folder |
+|---|---|---|---|---|
+| `main` | `snow-collect.yml` | the USA's | `snow-data` | `snow/data/` |
+| `canada` | `snow-collect-canada.yml` | Canada's (`collector="canada", country="Canada"`) | `snow-data-canada` | `snow/data/canada/` |
+
+A region's `collector` decides who builds it: under `SNOW_COLLECTOR=canada` the code's `REGIONS` and `RESORTS` are
+Canada's alone (`ALL_REGIONS` and `ALL_RESORTS` are everything), so `due`, the index, the ledger and
+`usage.planned()` are each collector's own. The page reads every collector's index and takes a region's forecast
+from the branch that holds it (`MORE_BRANCHES`, `branchOf` in `index.html`). Lifts, roads, history and the
+avalanche file stay with the first collector for every region. After a push, restart the collector the change
+concerns; `gh run list --workflow snow-collect-canada.yml` finds the second's run. To see a Canadian region's plan:
+`SNOW_COLLECTOR=canada python -c "from tahoe_snow import usage; print(usage.planned())"`.
+
 A region whose mountains reach below about 1,450 m needs pressure levels under 850 hPa, or every height below that
 is given the 850 hPa temperature and rain is called snow. Give its `Region` `low_levels=(950, 925, 900)` as Seattle
 has, or New England's `(1000, 975, 950, 925, 900)` (900 hPa is near 990 m, 925 near 760 m, 950 near 540 m, 975 near
@@ -97,6 +121,9 @@ longitude **at mid-mountain**, base and summit elevation in metres, and its pass
   when Overpass is at capacity), checked against the USGS elevation service
   (`https://epqs.nationalmap.gov/v1/json?x=LON&y=LAT&units=Feet&wkid=4326`): the height there sits between base
   and summit.
+- Outside the USA the USGS service has nothing: check heights against OpenTopoData
+  (`https://api.opentopodata.org/v1/srtm30m?locations=LAT,LON`) and say so. Canadian resorts publish metres; give
+  metres to `Resort` as they are.
 - Elevations: the resort's own published base and summit of lift-served skiing, or the Indy Pass page's. Where a
   published figure does not match the ground (a summit higher than the peak, a base below the lowest lift), use the
   height at the lift's end and say so in the comment. Feet go through `_ft()`.
@@ -131,6 +158,10 @@ England has none: give those mountains `station=None` and skip to 1c.
 - For the region's first station, check the time its daily values are stamped in against its hourly readings
   (see the note at the top of `sources/snotel.py`) and confirm `Region.std_offset_h` is right for it.
 
+Canada has no SNOTEL. British Columbia's and Alberta's automated snow stations need a reader of their own under
+`tahoe_snow/sources/` before a mountain can name one (as `cdec.py` reads California's and `acis.py` Mt.
+Washington's); until one exists a Canadian mountain has `station=None` and reads Uncorrected, as New England does.
+
 A region uses its own fitted files where they exist and the Sierra's otherwise: `models/bias_<region>.json` (the
 water correction; with none, the models are used as they are), `weights_<region>.json`, `snow_phase_<region>.json`
 and `snow_ratio_<region>.joblib`. The Cascades have the first three and the Tetons all four.
@@ -141,10 +172,14 @@ the region can be built before it is fitted. Fitting is step 1e and is part of a
 ### 1c. Edit `snow/tahoe_snow/config.py`
 
 ```python
-# in REGIONS
+# in ALL_REGIONS
 "saltlake": Region("saltlake", "Salt Lake", "America/Denver", 7, 12, ("UAC",)),
 
-# in RESORTS, with region="saltlake" on every one
+# a Canadian region also says who builds it and where it is
+"bccoast": Region("bccoast", "BC Coast", "America/Vancouver", 8, 8, ("AVCAN",), at=(5, 13, 21),
+                  collector="canada", country="Canada"),
+
+# in ALL_RESORTS, with region="saltlake" on every one
 Resort("alta", "Alta", <lat>, <lon>, _ft(<base>), _ft(<summit>), "<triplet or None>", "Ikon", region="saltlake"),
 ```
 
@@ -169,9 +204,10 @@ which has not been tried. A center whose zones do not show a forecast is left ou
 cd snow && python -m pytest -q
 ```
 
-`test_the_configured_regions_fit_the_daily_allowance` is the one that matters. Update
-`test_the_home_regions_cost_what_the_ledger_measured` only if it was written against the total; it should count the
-home regions alone.
+Add a test file for the region (`tests/test_colorado.py` is the pattern: where the mountains are, which have no
+sensor, how many ask for weather, the build hours) and add its key wherever the tests list every region or
+avalanche center. `tests/test_collectors.py` checks that each region is some collector's and that Canada's are the
+second's.
 
 Commit (`snow: the forecast covers Salt Lake: eight mountains, built twice a day`), push, and restart the collector
 (Global Constraints): a run in progress keeps the configuration it started with. Within one pass the collector sees
@@ -316,6 +352,35 @@ Also in `index.html`, all part of the job:
 - **`SHORT`** and the region's `short`: a shorter name for a long one, for table rows and the Favorites table
   (New England is "NE").
 - **`STATUS_PAGES`**: the link to each resort's own status page.
+- **`pick`**: the mountain the region opens on. The pass group that holds it is listed first in the Summary, so
+  pick an Ikon resort where the region has one (Colorado opens on Copper, so Ikon comes before Epic).
+- **`country`**: `country: "Canada"` on a region outside the USA. The region menu lists regions under their
+  country, countries A to Z, with Favorites above.
+
+**The avalanche maps.** A frame in `LOCATORS` serves two maps: the small one beside the title and the large one a
+tap on it opens (`bigLocator`), which shows every zone of the frame in its danger color. What a frame can say:
+
+| Field | What it does |
+|---|---|
+| `lon0`, `lat0`, `kx`, `ky` | Where the small map sits: choose `ky` so the zones fill most of its height, `kx = ky x cos(latitude)`, and the corner so they sit left of the middle with room for names (see the comments on the Tetons' and Utah's) |
+| `lakes` | `[lon, lat, rx, ry]` ovals on the small map, and where a name may not go |
+| `shapes` | The lakes or sea as they really lie, from `SHAPES` (OpenStreetMap outlines via Nominatim's `polygon_geojson`, or the map's water mask traced with the terrain tool). The large map always draws these; `outlines: true` makes the small map draw them too, for a lake too big or too odd for an oval (the Great Salt Lake) |
+| `towns` | `[name, lon, lat, dot]`: on both maps. Give two or more, far apart, for scale (Colorado has Denver and Durango) |
+| `more` | Extra towns for the large map alone, drawn only where the dot and name are clear of everything else |
+| `peaks` | `{zone id or name: [name, lon, lat, short]}`: each zone's prominent mountain. On the large map every mountain is a triangle in the accent color and every town a dot; the small map uses dots for all |
+| `side: "left"` | Names to the left of the zones on the small map, where the zones sit east of their landmarks |
+| `beside: true` | On the large map, zone names stand beside their zones, not on them, where the zones are a thin band (the Sierra) |
+| `title` | The large map's title where the menu's group name is too wide a place (Shasta, inside "California") |
+
+Put a new frame before Colorado's, which is last so that Utah's eastern zones are not taken by it, and check no
+other frame's box takes the new zones. Then:
+- **`ZONE_SHORT`**: a shorter name for a zone whose own is too long for the tab's title.
+- **`AVY_AT`**: `{key: [lat, lon]}` for a mountain whose forecast point falls just outside every zone while the
+  mountain itself is inside one (Park City, Deer Valley, Steamboat).
+- **A center that redraws or does not name its zones** (Colorado's): give the center `places` in the region's
+  `avalanche` entry, `[[name, lon, lat], ...]`, and each zone is named after the nearest, closest pairs first.
+- A zone picked from the menu or the large map takes the app to the region whose center it is; nothing to add,
+  but check it.
 
 ### 2d. Check it in the preview
 
@@ -339,6 +404,11 @@ Also in `index.html`, all part of the job:
 - **Menus:** the region is in A-to-Z order in the region menu (Favorites first), in the Sensor corrections list and
   in the explanations; its avalanche zones are under their group.
 - **Lifts:** each resort with a reader shows its lift and trail counts and its report; one without says so plainly.
+- **Large avalanche map:** tap the small map. Every zone is named with nothing overlapping, lakes are their real
+  shapes with no name on them, mountains are accent-colored triangles and towns dots, the title is the region's,
+  and tapping a zone opens its forecast.
+- **The 3D map needs the preview pane showing.** While it is hidden the map does not draw; say so if it could not
+  be seen.
 
 Use a browser tab of your own for this (Sean uses the main preview tab and has his own saved choices), and put back
 anything you change.
@@ -370,7 +440,8 @@ Part of adding a region: do it for every resort. A mountain's lift status comes 
    directly: add the mountain to `LIFT_FEEDS` and `STAKES` in `index.html` and to `MOUNTAINS` in `reports.py` and
    `holds.py`. Do not guess an id.
 2. **Vail's pages** (Epic mountains): the phone cannot read them. Add the mountain to
-   `tahoe_snow/sources/resort_status.py`, which the collector runs every pass and publishes on `snow-lifts`.
+   `tahoe_snow/sources/resort_status.py`, which the collector runs every pass and publishes on `snow-lifts`
+   (Park City and Colorado's four are there; Whistler Blackcomb would go the same way).
 3. **Anything else**: a reader of its own under `tahoe_snow/sources/<key>.py` that knows the page (`URL`, or `URLS`
    for more than one request) and reads it (`parse(page, now)`), with a saved copy of the page in `tests/fixtures/`
    and a test. It gives the Ikon feed's shape: lifts, trails, and a `SnowReport` with base depth and new snow where
@@ -378,7 +449,8 @@ Part of adding a region: do it for every resort. A mountain's lift status comes 
    `MODULES` in `sources/independents.py`, which runs them all each pass, gives a depth that comes as a range its
    middle, and leaves out a closed mountain's undated or old report (several sites keep last season's figures up
    until they open). A new region can have a runner of its own beside it; then add its line to the collector's pass
-   in `snow-collect.yml` and its name to the list in `collect.py`. If the site sits behind a bot check, stop there:
+   in `snow-collect.yml` and its name to the list in `collect.py`. A mountain whose page lists no lifts yet (closed for the season, an empty sheet)
+   is left out by the runner and reads on the page as not posted. If the site sits behind a bot check, stop there:
    the app does not work around those, and the Status paragraph says the resort has none.
 
 Finding the source: look at the resort's conditions page for the request it makes or the JSON in its HTML
