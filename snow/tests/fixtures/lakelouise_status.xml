@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<report name="The Lake Louise Ski Resort" updated="2026-11-24T17:32:16-06:00" units="metric">
+  <operations resortStatus="Open" openTime="9am" closeTime="4pm" totalAcres="4200"/>
+  <currentConditions>
+    <resortwide totalAcresOpen="200" totalTrailLengthOpen="200" lastSnowfallDate="2026-11-24" lastSnowfallUpdate="2026-11-24T15:04:52-06:00"/>
+    <resortLocations>
+      <location name="Lower Mountain" primarySurface="" secondarySurface="" base="25" snowOverNight="0" snow24Hours="5" snow48Hours="5" snow7Days="5" snowYearToDate="42" weatherTimestamp="2026-11-24T17:30:14-06:00" stationName="Operations" temperature="-4" windSpeed="3" windDirection="N"/>
+      <location name="Mid-Mountain" primarySurface="" secondarySurface="" base="" snowOverNight="" snow24Hours="" snow48Hours="" snow7Days="" snowYearToDate="" weatherTimestamp="2026-11-24T17:30:33-06:00" stationName="SM-Control" temperature="-4" windSpeed="0" windDirection="E"/>
+      <location name="Upper Mountain" primarySurface="" secondarySurface="" base="30" snowOverNight="0" snow24Hours="6" snow48Hours="6" snow7Days="6" snowYearToDate="50" weatherTimestamp="2026-11-24T17:30:45-06:00" stationName="Paradise-Top" temperature="-8" windSpeed="13" windDirection="E"/>
+    </resortLocations>
+    <best cms="0" time="12" period="hours"/>
+    <info html="&lt;h4 class=&quot;obj-title style-1&quot;&gt;&lt;span style=&quot;color:#0f5f96; font-weight:bold;&quot;&gt;More Terrain Coming Soon &amp; 6 cm of New Snow&lt;/span&gt;&lt;/h4&gt;&#13;&#10;&lt;p&gt;&lt;strong&gt;Great news. Additional terrain is coming very soon&lt;/strong&gt;, with our crews continuing snowmaking and trail preparation. We also picked up &lt;strong&gt;6 cm of snow yesterday afternoon&lt;/strong&gt;, adding to our early-season base. There’s the possibility of more snow later this week, giving us another reason to look forward to the days ahead.&lt;/p&gt;&#13;&#10;&lt;p&gt;Today, enjoy about &lt;strong&gt;2,400 vertical feet of skiing and riding&lt;/strong&gt; from the top of &lt;strong&gt;Grizzly Gondola&lt;/strong&gt; back to the base via Deer Run and Lower Flight. All routes from the gondola start on blue (intermediate) terrain, with Deer Run temporarily rated blue. &lt;strong&gt;Glacier Chair, Juniper Chair and the Magic Carpet&lt;/strong&gt; round out today’s lineup, with &lt;strong&gt;4 lifts, 6 runs and 2 small terrain parks open&lt;/strong&gt;.&lt;/p&gt;&#13;&#10;&lt;p&gt;Please ski and ride with care, stay aware of those around you and have a great day on the slopes.&lt;/p&gt;&#13;&#10;&lt;p&gt;&lt;em&gt;Save big with early-season lift tickets, &lt;a style=&quot;text-decoration: underline;&quot; href=&quot;https://passes.skilouise.com/en/catalogue/categories/winter-lift-tickets_265/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;available online&lt;/a&gt; and at the resort. Winter lift hours are 9:30 am to 4:30 pm daily. &lt;a style=&quot;text-decoration: underline;&quot; href=&quot;https://www.skilouise.com/things-to-do/new-lift-hours-for-winter/&quot; &gt;Details here&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;"/>
+    <infoIntl html="&lt;h4 class=&quot;obj-title style-1&quot;&gt;&lt;span style=&quot;color:#0f5f96; font-weight:bold;&quot;&gt;More Terrain Coming Soon &amp; 6 cm of New Snow&lt;/span&gt;&lt;/h4&gt;&#13;&#10;&lt;p&gt;&lt;strong&gt;Great news. Additional terrain is coming very soon&lt;/strong&gt;, with our crews continuing snowmaking and trail preparation. We also picked up &lt;strong&gt;6 cm of snow yesterday afternoon&lt;/strong&gt;, adding to our early-season base. There’s the possibility of more snow later this week, giving us another reason to look forward to the days ahead.&lt;/p&gt;&#13;&#10;&lt;p&gt;Today, enjoy about &lt;strong&gt;2,400 vertical feet of skiing and riding&lt;/strong&gt; from the top of &lt;strong&gt;Grizzly Gondola&lt;/strong&gt; back to the base via Deer Run and Lower Flight. All routes from the gondola start on blue (intermediate) terrain, with Deer Run temporarily rated blue. &lt;strong&gt;Glacier Chair, Juniper Chair and the Magic Carpet&lt;/strong&gt; round out today’s lineup, with &lt;strong&gt;4 lifts, 6 runs and 2 small terrain parks open&lt;/strong&gt;.&lt;/p&gt;&#13;&#10;&lt;p&gt;Please ski and ride with care, stay aware of those around you and have a great day on the slopes.&lt;/p&gt;&#13;&#10;&lt;p&gt;&lt;em&gt;Save 30% with early-season lift tickets, &lt;a style=&quot;text-decoration: underline;&quot; href=&quot;https://passes.skilouise.com/en/catalogue/categories/winter-lift-tickets_265/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;available online&lt;/a&gt; and at the resort. Winter lift hours are 9:30 am to 4:30 pm daily. &lt;a style=&quot;text-decoration: underline;&quot; href=&quot;https://www.skilouise.com/things-to-do/new-lift-hours-for-winter/&quot; &gt;Details here&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;"/>
+    <liftsAndRuns runs="6" lifts="4" groomed="5" info="Grizzly Gondola is open with access to Deer Run and Lower Flight (both are rated blue at this time). Glacier Chair, Juniper Chair and the Magic Carpet are also open, with 6 runs open across the resort. More terrain will open as conditions allow."/>
+    <terrainPark status="open" parks="2" jumps="2" boxes="2" rails="4" other="0" features="8" info="Two small terrain parks are open and groomed daily. More to come as conditions allow."/>
+    <tubePark status="closed" lanes="1" info="Sunny Tube Park is expected to open mid-December, 2026."/>
+    <restaurants open="5" total="14" info="Kuma Yama, Bier Stube, Lodge of Ten Peaks Cafeteria, Slopeside Coffee and Powder Keg are all open."/>
+  </currentConditions>
+  <forecast>
+    <day name="Tuesday" high="-2" low="0" weather="Cloud/Sun/Mixed"></day>
+    <day name="Wednesday" high="0" low="0" weather="Snow"></day>
+    <day name="Thursday" high="0" low="0" weather="Snow"></day>
+    <day name="Friday" high="0" low="0" weather="Sunny"></day>
+    <day name="Saturday" high="0" low="0" weather="Snow"></day>
+    <day name="Sunday" high="0" low="0" weather="Sunny"></day>
+  </forecast>
+  <comments>
+    <comment name="Events"></comment>
+    <comment name="Special"></comment>
+    <comment name="Facebook"></comment>
+    <comment name="Conditions">More Terrain Coming Soon &amp; 6 cm of New Snow&#13;
+Great news. Additional terrain is coming very soon, with our crews continuing snowmaking and trail preparation. We also picked up 6 cm of snow yesterday afternoon, adding to our early-season base. There’s the possibility of more snow later this week, giving us another reason to look forward to the days ahead.&#13;
+Today, enjoy about 2,400 vertical feet of skiing and riding from the top of Grizzly Gondola back to the base via Deer Run and Lower Flight. All routes from the gondola start on blue (intermediate) terrain, with Deer Run temporarily rated blue. Glacier Chair, Juniper Chair and the Magic Carpet round out today’s lineup, with 4 lifts, 6 runs and 2 small terrain parks open.&#13;
+Please ski and ride with care, stay aware of those around you and have a great day on the slopes.&#13;
+Save big with early-season lift tickets, available online and at the resort. Winter lift hours are 9:30 am to 4:30 pm daily. Details here.</comment>
+    <comment name="ConditionsIntl">More Terrain Coming Soon &amp; 6 cm of New Snow&#13;
+Great news. Additional terrain is coming very soon, with our crews continuing snowmaking and trail preparation. We also picked up 6 cm of snow yesterday afternoon, adding to our early-season base. There’s the possibility of more snow later this week, giving us another reason to look forward to the days ahead.&#13;
+Today, enjoy about 2,400 vertical feet of skiing and riding from the top of Grizzly Gondola back to the base via Deer Run and Lower Flight. All routes from the gondola start on blue (intermediate) terrain, with Deer Run temporarily rated blue. Glacier Chair, Juniper Chair and the Magic Carpet round out today’s lineup, with 4 lifts, 6 runs and 2 small terrain parks open.&#13;
+Please ski and ride with care, stay aware of those around you and have a great day on the slopes.&#13;
+Save 30% with early-season lift tickets, available online and at the resort. Winter lift hours are 9:30 am to 4:30 pm daily. Details here.</comment>
+  </comments>
+  <facilities>
+    <areas>
+      <area name="Front Side">
+        <lifts>
+          <lift id="201" name="Magic Carpet" status="Open" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="202" name="Lower Sunny Carpet" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="203" name="Upper Sunny Carpet" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="204" name="Glacier Express" status="Open" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="205" name="Grizzly Gondola" status="Open" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="206" name="Top of the World" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="207" name="Summit Chair" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="213" name="Juniper Express" status="Open" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="214" name="Pipestone Express Chair" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+        </lifts>
+        <trails>
+          <trail id="1" name="Men's Downhill" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="46" name="Flight Chutes 4" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="34" name="Grizzly Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="35" name="Helen's" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="36" name="Home Run Chutes" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="37" name="Home Run" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="38" name="Mirkwood" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="39" name="Grizzly Gully" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="40" name="Flight Chutes Cat Track" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="41" name="Upshoots" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="42" name="Flight Chutes 1" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="43" name="Flight Chutes 2" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="2" name="Upper Juniper" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="45" name="Flight Chutes 3" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="48" name="Eagle Flight" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="32" name="Skyline" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="49" name="Eagle's Beak" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="50" name="Lower Flight" status="Open" groomed="yes" realtime="Closed" difficulty="intermediate"/>
+          <trail id="51" name="Eagle Trees" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="52" name="Race Pitch" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="53" name="Eagle Poma" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="54" name="Upper Grouse" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="55" name="Eagle Meadows" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="56" name="Deer Run" status="Open" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="57" name="Wapta" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="58" name="Upper Meadowlark" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="59" name="Meadowlark" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="60" name="Lower Grouse" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="65" name="Pika" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="33" name="Kernahan's" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="44" name="Steep &amp; Flat" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="31" name="Whitehorn Cat Track" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="175" name="Bearberry" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="3" name="Juniper" status="Open" groomed="yes" realtime="Closed" difficulty="intermediate"/>
+          <trail id="30" name="Jerry's Jungle" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="6" name="Bald Eagle" status="Open" groomed="yes" realtime="Closed" difficulty="beginner"/>
+          <trail id="7" name="Lake Lindsey Way" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="8" name="Cameron's Way" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="9" name="Wiwaxy" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="10" name="Pinecone Way" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="12" name="Lowest Meadowlark" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="13" name="Easy Street" status="Open" groomed="yes" realtime="Closed" difficulty="beginner"/>
+          <trail id="14" name="Sunny Side" status="Open" groomed="yes" realtime="Closed" difficulty="beginner"/>
+          <trail id="173" name="Blueberry" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="174" name="Buffaloberry" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="4" name="Juniper Jungle" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="176" name="Bunchberry" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="24" name="Sunset Gully" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="29" name="Wrong Turn" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="28" name="Upper Wiwaxy" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="27" name="Tight Turn" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="17" name="Middle Limits" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="25" name="Charlie's Choice" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="26" name="Tickety Chutes" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="23" name="Sunset Terrace" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="22" name="Headwall" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="21" name="Sunset" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="20" name="Headwall Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="19" name="Outer Limits" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="18" name="Sunset Pocket" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+        </trails>
+        <freestyleTerrain>
+          <parks>
+            <park id="5" name="Terrain Park" status="Closed" groomedOrCut="no"/>
+            <park id="211" name="Sunny Tube Park" status="Closed" groomedOrCut="no"/>
+          </parks>
+        </freestyleTerrain>
+      </area>
+      <area name="Back Bowls">
+        <lifts>
+          <lift id="208" name="Paradise" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+          <lift id="210" name="Ptarmigan" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+        </lifts>
+        <trails>
+          <trail id="62" name="Ptarmigan Chute 1" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="63" name="Ptarmigan Chute 2" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="64" name="Ptarmigan Chute 3" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="66" name="Exhibition" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="67" name="Ptarmigan Cat Track" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="68" name="Exhibition Trees" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="69" name="Ptarmigan Glades" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="75" name="Old Ptarmigan" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="76" name="Ptarmigan" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="77" name="Raven" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="78" name="Pika Trees" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="79" name="Alley" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="80" name="Pikaboo" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="83" name="Corridor" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="84" name="East Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="85" name="Crow Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="86" name="East Bowl Trees" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="87" name="2/3 Shoulder" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="88" name="Upper Alley" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="89" name="Cowboy" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="90" name="E.R. 3" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="91" name="Swede's" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="92" name="The Heart" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="93" name="Powder Pockets" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="94" name="Fenceline Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="95" name="Paradise Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="96" name="4/5 Shoulder" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="97" name="Hell's Kitchen" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="98" name="Paradise Cornice" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="100" name="Lower 5" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="82" name="Lily Pads" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="101" name="E.R. 6" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="102" name="Big 7" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="103" name="Drop Out" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="104" name="Vertical Cornice" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="105" name="Couloir" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="106" name="Peyto's Pitch" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="107" name="The Beast" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="108" name="Jackpot" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="109" name="Saddleback" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="110" name="Read's Way" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="111" name="Saddleback Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="112" name="Hour Glass" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="113" name="Wounded Knee" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="114" name="Kiddie's Corner" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="115" name="Split Rock" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="116" name="Warden's Run" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="117" name="Fourth Gate" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="118" name="Third Gate" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="119" name="Second Gate" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="120" name="Whitehorn 1" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="121" name="Ridge Run" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="123" name="Rodney's Ridge" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="124" name="A Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="125" name="B Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="126" name="C Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="127" name="D Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="128" name="E Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="129" name="F Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="130" name="G Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="131" name="H Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="132" name="I Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="133" name="Boomerang" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="134" name="Little Pipestone" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="135" name="Upper Boomerang" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="136" name="Shoulder Roll" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="137" name="Brown Cow" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="138" name="Brown Cow 1st" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="139" name="Brown Cow Main" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="70" name="North Cornice" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="71" name="Wild Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="72" name="Ghostly Gully" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="73" name="Lake Pitch" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="140" name="UNC" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="141" name="Boundary Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+        </trails>
+      </area>
+      <area name="Larch">
+        <lifts>
+          <lift id="209" name="Larch Express" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+        </lifts>
+        <trails>
+          <trail id="142" name="Rock Garden" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="143" name="Marmot" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="144" name="Wolverine" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="145" name="30 Goats" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="146" name="Larch Poma" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="147" name="Lynx" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="148" name="Larch" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="149" name="Lipalian Chutes" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="150" name="Lookout" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="151" name="Tower 12" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="152" name="Lookout Chutes" status="Closed" groomed="no" realtime="Closed" difficulty="expert"/>
+          <trail id="153" name="Bobcat" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="154" name="Prunepickers" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="155" name="Ski Out" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+        </trails>
+      </area>
+      <area name="Richardson's Ridge">
+        <lifts>
+          <lift id="218" name="Richardson's Ridge Express" status="Closed" realtime="Closed" type="Unknown" persons="0"/>
+        </lifts>
+        <trails>
+          <trail id="177" name="Merlin" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="178" name="Skoki" status="Closed" groomed="no" realtime="Closed" difficulty="beginner"/>
+          <trail id="179" name="Fossil" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="180" name="Vermillion" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+          <trail id="181" name="Redoubt" status="Closed" groomed="no" realtime="Closed" difficulty="intermediate"/>
+        </trails>
+      </area>
+      <area name="West Bowl">
+        <lifts/>
+        <trails>
+          <trail id="156" name="Pipestone Ridge" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="157" name="West Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="158" name="Temple" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="159" name="Ten Peaks" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="160" name="Instructors Bowl" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="161" name="Outback" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="162" name="White Rabbit" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="163" name="Instructors Gully" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="164" name="Enchanted Forest" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="165" name="West Bowl Gully" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="166" name="Doughnut Plains" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="167" name="Maintenance Gully" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="168" name="Maverick" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="169" name="Free Spirit" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="170" name="Oly Slides West" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="171" name="Oly Slides East" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+          <trail id="172" name="Egress" status="Closed" groomed="no" realtime="Closed" difficulty="advanced"/>
+        </trails>
+      </area>
+    </areas>
+    <diningAreas>
+      <diningArea name="Base Area Dining">
+        <restaurants>
+          <restaurant id="1" name="Lodge of Ten Peaks Cafe" status="Open"/>
+          <restaurant id="2" name="Slopeside Coffee" status="Open"/>
+          <restaurant id="3" name="Kuma Yama" status="Open"/>
+          <restaurant id="4" name="Powder Keg Lounge" status="Open"/>
+          <restaurant id="5" name="Bier Stube" status="Open"/>
+          <restaurant id="6" name="Whiskyjack Cafe" status="Closed"/>
+          <restaurant id="7" name="Northface Bistro" status="Closed"/>
+          <restaurant id="9" name="Banded Peak Base Camp" status="Closed"/>
+        </restaurants>
+      </diningArea>
+      <area name="On-Mountain Dining">
+        <restaurants>
+          <restaurant id="10" name="Whitehorn Lodge" status="Closed"/>
+          <restaurant id="11" name="Temple Cafe" status="Closed"/>
+          <restaurant id="12" name="Sawyer's Nook" status="Closed"/>
+          <restaurant id="13" name="Temple Cantina" status="Closed"/>
+        </restaurants>
+      </area>
+    </diningAreas>
+  </facilities>
+</report>

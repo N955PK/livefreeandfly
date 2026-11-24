@@ -1634,7 +1634,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "283";
+const BUILD = "284";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -2724,6 +2724,9 @@ const STATUS_PAGES = {
   sutton: "https://montsutton.com/en/conditions/", orford: "https://montorford.com/en-ca/winter/conditions-ski/", owlshead: "https://owlshead.com/en/ski-conditions/",
   stoneham: "https://ski-stoneham.com/en/skiing-riding/snow-report/snow-conditions/", montsainteanne: "https://mont-sainte-anne.com/en/alpine-skiing-snow-conditions/",
   lemassif: "https://www.lemassif.com/en/the-mountain/winter/lifts-trails-grooming",
+  lakelouise: "https://www.skilouise.com/explore-winter/winter-ski-ride/lift-runs-parks-status/",
+  sunshine: "https://www.skibanff.com/the-mountain/mountain-report/lifts-trails-report", norquay: "https://banffnorquay.com/conditions/",
+  nakiska: "https://skinakiska.com/conditions/snow-report/", marmot: "https://www.skimarmot.com/mountain/trail-map-lift-status/",
   vail: "https://www.vail.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
   beavercreek: "https://www.beavercreek.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
   breckenridge: "https://www.breckenridge.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
@@ -2759,7 +2762,9 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
     // The BC Coast's four that run their own sites.
     "cypress", "grouse", "seymour", "mtwashington",
     // Quebec's nine that run their own sites. Tremblant is on the Ikon feed.
-    "montblanc", "saintsauveur", "bromont", "sutton", "orford", "owlshead", "stoneham", "montsainteanne", "lemassif"].map((key) => [key, [key, () => true]])),
+    "montblanc", "saintsauveur", "bromont", "sutton", "orford", "owlshead", "stoneham", "montsainteanne", "lemassif",
+    // The Canadian Rockies' five, each from its own site.
+    "lakelouise", "sunshine", "norquay", "nakiska", "marmot"].map((key) => [key, [key, () => true]])),
   tremblant: [4, () => true]};
 // Sierra-at-Tahoe publishes its own feed; it is recast here into the shape of the Ikon feed the rest of the page reads.
 // Its one weather reading is taken near mid-mountain.
@@ -2836,7 +2841,8 @@ const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBo
   ...Object.fromEntries(["alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance", "copper", "loveland",
     "shastaskipark", "ashland", "bigwhite", "silverstar", "sunpeaks",
     "cypress", "grouse", "seymour", "mtwashington",
-    "montblanc", "saintsauveur", "bromont", "sutton", "orford", "owlshead", "stoneham", "montsainteanne", "lemassif"].map((key) => [key, publishedFeed("independents.json", key)]))};
+    "montblanc", "saintsauveur", "bromont", "sutton", "orford", "owlshead", "stoneham", "montsainteanne", "lemassif",
+    "lakelouise", "sunshine", "norquay", "nakiska", "marmot"].map((key) => [key, publishedFeed("independents.json", key)]))};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
 // avalanche control before upper terrain opens. The exposed tier is Palisades' own account of its ridgetop gusts,
@@ -3163,7 +3169,8 @@ const STAKES = {palisades: [61, ["BaseArea", "MidMountainArea", "SummitArea"]], 
     "jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback",
     "jacksonhole", "targhee", "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance", "copper", "loveland",
     "shastaskipark", "ashland", "bigwhite", "silverstar", "sunpeaks",
-    "cypress", "grouse", "seymour", "mtwashington"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]])),
+    "cypress", "grouse", "seymour", "mtwashington",
+    "lakelouise", "sunshine", "norquay", "nakiska", "marmot"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]])),
   tremblant: [4, ["BaseArea", "MidMountainArea", "SummitArea"]]};
 function stakeDepth(key, level) {
   const spec = STAKES[key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;

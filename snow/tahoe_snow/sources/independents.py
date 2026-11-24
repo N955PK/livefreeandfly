@@ -1,7 +1,7 @@
 """Lifts, trails and snow reports of the mountains that each run their own website: New England's independents,
 Jackson Hole and Grand Targhee in the Tetons, six of the Wasatch's resorts, Copper and Loveland in Colorado, the Mt. Shasta Ski Park and Mt. Ashland,
 Big White, SilverStar and Sun Peaks in the Okanagan, and Cypress, Grouse, Mt. Seymour and Mount Washington on
-British Columbia's coast, and nine of Quebec's.
+British Columbia's coast, nine of Quebec's, and five in the Canadian Rockies.
 
 Each mountain has a module of its own that knows its page (``URL``, or ``URLS`` where it takes more than one request)
 and reads it (``parse``). This runs them all and writes one file the page reads, in the shape of the Ikon feed the
@@ -20,10 +20,11 @@ from datetime import datetime, timedelta, timezone
 
 from tahoe_snow.sources import (alta, ashland, bigwhite, blackmountain, bolton, brettonwoods, brighton,
                                 bromley, bromont, burke, cannon, copper, cranmore, cypress, grouse,
-                                jacksonhole, jaypeak, lemassif, loveland, madriverglen, magic, montblanc,
-                                montsainteanne, mtwashington, orford, owlshead, powdermountain, saddleback,
-                                saintsauveur, seymour, shastaskipark, silverstar, smugglers, snowbasin,
-                                snowbird, stoneham, sundance, sunpeaks, sutton, targhee, waterville)
+                                jacksonhole, jaypeak, lakelouise, lemassif, loveland, madriverglen, magic,
+                                marmot, montblanc, montsainteanne, mtwashington, nakiska, norquay, orford,
+                                owlshead, powdermountain, saddleback, saintsauveur, seymour, shastaskipark,
+                                silverstar, smugglers, snowbasin, snowbird, stoneham, sundance, sunpeaks,
+                                sunshine, sutton, targhee, waterville)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -40,7 +41,8 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "bigwhite": bigwhite, "silverstar": silverstar, "sunpeaks": sunpeaks,
            "cypress": cypress, "grouse": grouse, "seymour": seymour, "mtwashington": mtwashington,
            "montblanc": montblanc, "saintsauveur": saintsauveur, "bromont": bromont, "sutton": sutton, "orford": orford,
-           "owlshead": owlshead, "stoneham": stoneham, "montsainteanne": montsainteanne, "lemassif": lemassif}
+           "owlshead": owlshead, "stoneham": stoneham, "montsainteanne": montsainteanne, "lemassif": lemassif,
+           "lakelouise": lakelouise, "sunshine": sunshine, "norquay": norquay, "nakiska": nakiska, "marmot": marmot}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
 RANGED = ("Base", "Last24Hours")
 
