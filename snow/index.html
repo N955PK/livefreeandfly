@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
-<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, the Cascades, the Tetons, and New England.">
+<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, the Cascades, the Tetons, the Wasatch, and New England.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1572,6 +1572,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <h4 class="ghead">What is not tested yet</h4>
 <h5>New England</h5>
 <p>Nothing on this page has been checked in New England. No snow sensors sit near its mountains to fit or test against, so its forecasts use the four models uncorrected, with the Sierra's rain-or-snow curve, snow ratio model, and blend weights.</p>
+<h5>Wasatch</h5>
+<p>Nothing on this page has been checked in the Wasatch yet. It has snow sensors at or near most of its mountains, but no correction, rain-or-snow curve, snow ratio model or blend weights have been fitted to them, so for now its forecasts use the four models uncorrected with the Sierra's.</p>
 <h5>Everywhere</h5>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
   </div>
@@ -1582,6 +1584,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Eastern Sierra</b> Its own correction, fitted to 10 snow sensors along the crest. The rain-or-snow curve, the fluffiness model, and the blend weights are Tahoe's.</p>
     <p><b>Cascades</b> Its own correction, fitted to 10 snow sensors, and its own rain-or-snow curve, which turns to rain half a degree colder than Tahoe's. Its blend weights were fitted there too and came out equal. The fluffiness model is the Sierra's, checked against snowfall measured by hand in the Cascades and kept. Because the passes are low, the air is read closer to the ground than in the Sierra.</p>
     <p><b>Tetons</b> Its own correction, fitted to 10 snow sensors, its own blend weights, its own rain-or-snow curve and a fluffiness model trained on Sierra and Teton snowfall together. The correction is the one that matters: the other three come out close to the Sierra's.</p>
+    <p><b>Wasatch</b> Nothing is fitted here yet. Most of its mountains have a snow sensor at or near them, whose readings are shown, but the models are used uncorrected, with the Sierra's rain-or-snow curve, fluffiness model and blend weights, until its own are fitted. Every base is high enough that the air is read as it is in the Sierra.</p>
     <p><b>New England</b> No snow sensors sit near its mountains, so there is no correction, and the rain-or-snow curve, the fluffiness model, and the blend weights are the Sierra's, not checked there. The air is read down to near sea level.</p>
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
@@ -1594,7 +1597,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's and the Cascades' included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is every resort but Stratton, whose status cannot be read from outside its own site; Attitash, Mount Sunapee, and Crotched show theirs once they post their lifts for the season. A New England resort that is closed and whose snow report is undated or more than two weeks old has that report left out, since several keep last season's figures up until they open. In the Cascades that is the Summit at Snoqualmie, Alpental, and Mission Ridge, and Stevens Pass once it posts its lifts for the season. Crystal Mountain's status cannot be read from outside its own site, and Mt. Baker Ski Area, White Pass, and Hurricane Ridge do not publish theirs in a form this page can read, so these four have none here.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's and the Cascades' included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is every resort but Stratton, whose status cannot be read from outside its own site; Attitash, Mount Sunapee, and Crotched show theirs once they post their lifts for the season. A New England resort that is closed and whose snow report is undated or more than two weeks old has that report left out, since several keep last season's figures up until they open. In the Cascades that is the Summit at Snoqualmie, Alpental, and Mission Ridge, and Stevens Pass once it posts its lifts for the season. Crystal Mountain's status cannot be read from outside its own site, and Mt. Baker Ski Area, White Pass, and Hurricane Ridge do not publish theirs in a form this page can read, so these four have none here. In the Wasatch that is every resort but Park City, whose status cannot be read from outside its own site.</p>
     <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
@@ -1604,7 +1607,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "260";
+const BUILD = "261";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1621,7 +1624,12 @@ const homeOf = (key) => (knownFavorites().find((r) => regionOf(r) === key) || {k
 // the highest cell of the map's own terrain within 1.5 km of it, so the stake points at the top the map draws.
 // Everything else (the forecast, the avalanche zone, the sensors) keeps the entry's own point.
 const PEAK_AT = {rainier: [46.85104, -121.76076], mtbaker: [48.77896, -121.81985], glacierpeak: [48.11624, -121.11074],
-  adams: [46.20338, -121.49484], sthelens: [46.18831, -122.18918]};
+  adams: [46.20338, -121.49484], sthelens: [46.18831, -122.18918],
+  superior: [40.5921, -111.66703], cardiff: [40.59496, -111.65277], timpanogos: [40.39083, -111.64606]};
+// Where a mountain is read against the avalanche zones, where its own point falls outside them all: the Salt Lake
+// zone's edge runs through Park City and Deer Valley, whose upper mountains are inside it.
+const AVY_AT = {parkcity: [40.625, -111.535], deervalley: [40.622, -111.515]};
+const avyAt = (r) => AVY_AT[r.key] ? {lat: AVY_AT[r.key][0], lon: AVY_AT[r.key][1]} : r;
 const markedAt = (r) => PEAK_AT[r.key] ? {...r, lat: PEAK_AT[r.key][0], lon: PEAK_AT[r.key][1]} : r;
 let index = null, data = null, elevation = "summit", selected = location.hash.slice(1) || HOME, region = "tahoe";
 // What differs between regions: the map's data files and framing (see createMap), the Caltrans districts whose
@@ -1695,6 +1703,23 @@ const REGIONS = {
       [3100, [0.55, 0.53, 0.48]], [3600, [0.72, 0.70, 0.67]]],
     lake: {name: "Jackson Lake", lat: 43.90, lon: -110.67},
     avalanche: [{id: "BTAC", name: "Bridger-Teton Avalanche Center", url: "https://bridgertetonavalanchecenter.org/", state: "WY"}]},
+  wasatch: {name: "Wasatch", terrain: "data/terrain-wasatch", roads: "data/roads-wasatch.json", center: [40.885, -111.69], pick: "alta",
+    // Powder Mountain in the north and Sundance and Mt. Timpanogos in the south are each about 56 km from the
+    // middle: the disc is 81 km in radius and the terrain the square that holds it. The lowest ground is the Great
+    // Salt Lake at 1,280 m, so heights are drawn from there (a few bad cells in the tiles read lower and are raised
+    // to it). Utah Lake and the canyon reservoirs sit above it, so the water comes from the mask built with the
+    // terrain. Utah's state routes take the plain marker.
+    waterM: 1280, floorM: 1280, lowlandM: 1280, plainStateRoutes: true,
+    discKm: 81, zoom: 1.6, turnDeg: 0,
+    areas: [{key: "ogden", name: "Ogden", mountains: ["powdermountain", "snowbasin"]},
+      {key: "parkcity", name: "Park City", mountains: ["parkcity", "deervalley"]},
+      {key: "cottonwoods", name: "Cottonwoods", mountains: ["solitude", "brighton", "cardiff", "superior", "alta", "snowbird"]},
+      {key: "provo", name: "Provo", mountains: ["timpanogos", "sundance"]}],
+    // Sagebrush and farmland on the valley floors, scrub oak and forest to about 3,000 m, then rock.
+    land: [[1280, [0.66, 0.63, 0.46]], [1700, [0.58, 0.58, 0.42]], [2100, [0.33, 0.43, 0.29]], [2800, [0.26, 0.39, 0.29]],
+      [3100, [0.55, 0.53, 0.48]], [3500, [0.72, 0.70, 0.67]]],
+    lake: {name: "Great Salt Lake", lat: 41.05, lon: -112.3},
+    avalanche: [{id: "UAC", name: "Utah Avalanche Center", url: "https://utahavalanchecenter.org/", state: "UT"}]},
 };
 // Data published before regions existed has no region field; all of it is Tahoe.
 const regionOf = (r) => r.region || "tahoe";
@@ -2537,6 +2562,11 @@ const STATUS_PAGES = {
   stevens: "https://www.stevenspass.com/the-mountain/mountain-conditions/lift-and-terrain-status.aspx",
   snoqualmie: "https://www.summitatsnoqualmie.com/mountain-report", alpental: "https://www.summitatsnoqualmie.com/mountain-report",
   missionridge: "https://www.missionridge.com/mountain-report/",
+  alta: "https://www.alta.com/lift-terrain-status", snowbird: "https://www.snowbird.com/the-mountain/mountain-report/lift-trail-report/",
+  brighton: "https://www.brightonresort.com/conditions", solitude: "https://www.solitudemountain.com/mountain-and-village/conditions-and-maps",
+  deervalley: "https://www.deervalley.com/explore-the-mountain/mountain-report", snowbasin: "https://www.snowbasin.com/the-mountain/mountain-report/",
+  powdermountain: "https://powdermountain.com/conditions", sundance: "https://www.sundanceresort.com/mountain-report/",
+  parkcity: "https://www.parkcitymountain.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
   jacksonhole: "https://www.jacksonhole.com/mountain-report", targhee: "https://www.grandtarghee.com/the-mountain/cams-conditions/lifts-trails-report",
   snowking: "https://snowkingmountain.com/mountain/conditions/",
 };
@@ -2547,6 +2577,9 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
   // New England. Sugarbush is read straight from its Ikon feed, without its uphill routes (the other resorts' lists
   // leave those out too). Stratton's status cannot be read by anyone but a browser on its own site, so it has none here.
   sugarbush: [70, (area) => area !== "Uphill Travel"],
+  // The Wasatch. Solitude and Deer Valley are read straight from their Ikon feeds; Park City's status cannot be read
+  // by anyone but a browser on its own site, so it has none here.
+  solitude: [65, () => true], deervalley: [49, () => true],
   ...Object.fromEntries(["stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched", "sugarloaf", "sundayriver", "loon", "killington", "pico",
     // The New England mountains that each run their own site, read by the collector one page at a time.
     "jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback",
@@ -2554,7 +2587,7 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
     // publish nothing a reader can take.
     "stevens", "snoqualmie", "alpental", "missionridge",
     // Tetons. Snow King's site sits behind a bot check, so it has only the link to its own report.
-    "jacksonhole", "targhee"].map((key) => [key, [key, () => true]]))};
+    "jacksonhole", "targhee", "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance"].map((key) => [key, [key, () => true]]))};
 // Sierra-at-Tahoe publishes its own feed; it is recast here into the shape of the Ikon feed the rest of the page reads.
 // Its one weather reading is taken near mid-mountain.
 const getJsonLive = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -2626,7 +2659,8 @@ const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBo
   stevens: publishedFeed("resort_status.json", "stevens"), snoqualmie: publishedFeed("boyne.json", "snoqualmie"),
   alpental: publishedFeed("boyne.json", "alpental"), missionridge: publishedFeed("missionridge.json", "missionridge"),
   // Tetons. Jackson Hole and Grand Targhee are read with the mountains that each run their own site.
-  jacksonhole: publishedFeed("independents.json", "jacksonhole"), targhee: publishedFeed("independents.json", "targhee")};
+  jacksonhole: publishedFeed("independents.json", "jacksonhole"), targhee: publishedFeed("independents.json", "targhee"),
+  ...Object.fromEntries(["alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance"].map((key) => [key, publishedFeed("independents.json", key)]))};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
 // avalanche control before upper terrain opens. The exposed tier is Palisades' own account of its ridgetop gusts,
@@ -2946,9 +2980,10 @@ function outlook(resort) {
 const STAKES = {palisades: [61, ["BaseArea", "MidMountainArea", "SummitArea"]], alpine: [61, ["Station4", "Station5", "Station6"]],
   mammoth: [60, ["BaseArea", "MidMountainArea", "SummitArea"]], june: [59, ["BaseArea", "MidMountainArea", "SummitArea"]],
   sugarbush: [70, ["BaseArea", "MidMountainArea", "SummitArea"]],
+  solitude: [65, ["BaseArea", "MidMountainArea", "SummitArea"]], deervalley: [49, ["BaseArea", "MidMountainArea", "SummitArea"]],
   ...Object.fromEntries(["sugarloaf", "sundayriver", "loon", "killington", "pico", "snoqualmie", "alpental",
     "jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback",
-    "jacksonhole", "targhee"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]]))};
+    "jacksonhole", "targhee", "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]]))};
 function stakeDepth(key, level) {
   const spec = STAKES[key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
   if (!report) return null;
@@ -4135,8 +4170,8 @@ function onTheDay(product, zone) {
 // The part of the country a zone is listed under, by its state, in the order the picker shows them.
 // A zone whose name is too long for the tab's title or the large map is said shorter there.
 const ZONE_SHORT = {"Salt River and Wyoming Ranges": "Salt River & Wyoming"};
-const AVY_AREAS = ["California", "New England", "Cascades", "Tetons"];
-const AVY_AREA = {CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Cascades", OR: "Cascades", WY: "Tetons", ID: "Tetons"};
+const AVY_AREAS = ["California", "New England", "Cascades", "Tetons", "Utah"];
+const AVY_AREA = {CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Cascades", OR: "Cascades", WY: "Tetons", ID: "Tetons", UT: "Utah"};
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
@@ -4195,7 +4230,7 @@ function badges() {
   // region whose zones have arrived can say no forecast covers a peak; until then the peak carries no mark.
   const spotOf = (key) => data.resorts.find((r) => r.key === key);
   const zonesOf = (spot) => (avy[regionOf(spot)] || {}).zones || [];
-  const zoneOf = (key) => { const spot = spotOf(key); return spot && zonesOf(spot).find((z) => inRings(z.rings, spot.lon, spot.lat)); };
+  const zoneOf = (key) => { const spot = spotOf(key); return spot && zonesOf(spot).find((z) => inRings(z.rings, avyAt(spot).lon, avyAt(spot).lat)); };
   const uncovered = (key) => { const spot = spotOf(key); return !!spot && zonesOf(spot).length > 0 && !zoneOf(key); };
   const icon = (zone, extra = "", by = zone.center.name) => { const said = zone.stale ? notYet(zone) : `Avalanche danger: ${danger(zone.level)[0]}, ${by}`; return `<img class="avyicon${extra}" src="${dangerIcon(zone.level)}" alt="${esc(said)}" title="${esc(said)}" onerror="this.remove()">`; };
   // The peaks in the grid share one icon beside the group's name when every forecast that covers them gives the same
@@ -4581,7 +4616,7 @@ function drawAvalanche() {
   // The pane opens on the zone the selected mountain stands in (the region's first where none covers it). A zone
   // picked from the title holds until another mountain or region is chosen.
   const spot = data && data.resorts.find((r) => r.key === selected), tz = tzOf(spot);
-  const mine = spot && state ? state.zones.find((z) => inRings(z.rings, spot.lon, spot.lat)) : null;
+  const mine = spot && state ? state.zones.find((z) => inRings(z.rings, avyAt(spot).lon, avyAt(spot).lat)) : null;
   avyShown = selected;
   const picked = avyPick && avyPick.region === at && avyPick.mountain === selected ? all.find((z) => zoneKey(z) === avyPick.key) : null;
   const zone = picked || mine || main, center = zone ? zone.center : home;
