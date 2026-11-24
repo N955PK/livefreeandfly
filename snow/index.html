@@ -1561,7 +1561,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "243";
+const BUILD = "244";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4057,7 +4057,9 @@ function onTheDay(product, zone) {
   return product;
 }
 // The states the avalanche zones lie in, by the two letters the centers' map layers give.
-const STATE_NAMES = {CA: "California", NH: "New Hampshire", WA: "Washington", OR: "Oregon"};
+// The part of the country a zone is listed under, by its state, in the order the picker shows them.
+const AVY_AREAS = ["CA", "New England", "Pacific Northwest"];
+const AVY_AREA = {CA: "CA", NH: "New England", VT: "New England", ME: "New England", WA: "Pacific Northwest", OR: "Pacific Northwest"};
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];
@@ -4389,10 +4391,11 @@ function drawAvalanche() {
   const listed = byRegion.flatMap((zones) => [...zones].sort((a, b) => midLat(b) - midLat(a)));
   // A center with one zone names it after itself; the title drops the repeat ("Bridgeport").
   const zoneName = (z) => z.name === z.center.name ? z.name.replace(/ Avalanche Center$/, "") : z.name;
-  // ...under the name of each state, the states in the order they first come.
-  const states = [...new Set(listed.map((z) => z.state))];
+  // ...under the part of the country each is in, north to south within it.
+  const areaOf = (z) => AVY_AREA[z.state] || "Other";
+  const areas = [...AVY_AREAS, "Other"].filter((area) => listed.some((z) => areaOf(z) === area));
   const option = (z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`;
-  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${states.map((st) => `<optgroup label="${esc(STATE_NAMES[st] || st || "Other")}">${listed.filter((z) => z.state === st).map(option).join("")}</optgroup>`).join("")}</select></label>`;
+  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${areas.map((area) => `<optgroup label="${esc(area)}">${listed.filter((z) => areaOf(z) === area).sort((a, b) => midLat(b) - midLat(a)).map(option).join("")}</optgroup>`).join("")}</select></label>`;
   const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
   // A time more than six days away (an off-season forecast from the spring) also gives its date, so it is not read as this week's.
