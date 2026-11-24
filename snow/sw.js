@@ -15,7 +15,9 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.png', 'icon
   'data/terrain-wasatch.json?v=2', 'data/terrain-wasatch.bin?v=2', 'data/terrain-wasatch.water.bin?v=2', 'data/roads-wasatch.json?v=2',
   'data/terrain-colorado.json', 'data/terrain-colorado.bin', 'data/roads-colorado.json',
   'data/terrain-shasta.json', 'data/terrain-shasta.bin', 'data/roads-shasta.json',
-  'data/terrain-okanagan.json', 'data/terrain-okanagan.bin'];
+  'data/terrain-okanagan.json', 'data/terrain-okanagan.bin',
+  'data/terrain-bccoast.json', 'data/terrain-bccoast.bin', 'data/roads-bccoast.json',
+  'data/terrain-quebec.json', 'data/terrain-quebec.bin'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale
