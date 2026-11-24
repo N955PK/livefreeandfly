@@ -228,6 +228,9 @@ corrections list on the page follows the published index, so it reads Corrected 
   Eastern Sierra 640; stay at or under 640 and let the cell grow instead (New England's box is 262 x 284 km at
   640 columns, a 0.41 km cell and an 880 KB file).
 - `max_m` clips bad pixels in the source tiles. Too low flattens real summits.
+- For a round map, make the box a square around the circle and give the region a `discKm` a kilometre **under**
+  half the built terrain's shorter side (`width_km`, `height_km` in its `.json`). A disc that reaches past the
+  terrain is faded at the square's edges too, and the map comes out a rounded square instead of a circle.
 
 ```bash
 cd snow && python tools/build_terrain.py <region>
