@@ -1608,7 +1608,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "256";
+const BUILD = "257";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4460,7 +4460,7 @@ function bigLocator(zone, all) {
   const drawn = [...zones.filter((z) => z !== zone), zone].map((z) => `<path class="z${z === zone ? " on" : ""}" data-zone="${esc(zoneKey(z))}" style="fill:${fill(z)}" d="${shape(z)}"><title>${esc(z.name)}</title></path>`).join("");
   // Nothing written sits on anything else written or on a mark. The marks are set down first: a triangle for every
   // mountain (the app's backcountry peaks, then the small map's named mountains unless a peak already stands there
-  // or it only repeats a zone's name), a dot for a town. The small map marks all of these with dots, being too
+  // or it only repeats a zone's name), a dot for a town. A lake is drawn and not named. The small map marks all of these with dots, being too
   // small for two shapes.
   const placed = [], clear = (box) => box[0] > 1 && box[2] < wide - 1 && box[1] > 1 && box[3] < tall - 1 && !placed.some((b) => b[0] < box[2] && box[0] < b[2] && b[1] < box[3] && box[1] < b[3]);
   const span = (words, size) => words.length * size * 0.57, said = (text) => text.toLowerCase().replace(/[^a-z]/g, "");
@@ -4471,15 +4471,8 @@ function bigLocator(zone, all) {
     const spot = xy([lon, lat]);
     if (inside(lon, lat) && !zoneSays.has(said(text)) && !marks.some((m) => Math.hypot(m.at[0] - spot[0], m.at[1] - spot[1]) < 9)) marks.push({words: text, at: spot, peak: true});
   }
-  for (const [text, lon, lat, dot] of (frame && frame.towns) || []) if (inside(lon, lat) && !zoneSays.has(said(text))) marks.push({words: text, at: xy([lon, lat]), dot, lake: !dot});
-  for (const m of marks) if (!m.lake) placed.push([m.at[0] - 4.5, m.at[1] - 4.5, m.at[0] + 4.5, m.at[1] + 4.5]);
-  // A lake's name is written on the lake, before the zones' names, which then keep off it.
-  const lakeNames = marks.filter((m) => m.lake).map((m) => {
-    const [x, y] = m.at, width = span(m.words, 9), box = [x - width / 2, y - 5.5, x + width / 2, y + 4.5];
-    if (!clear(box)) return "";
-    placed.push(box);
-    return `<text class="tn" x="${x.toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="middle">${esc(m.words)}</text>`;
-  }).join("");
+  for (const [text, lon, lat, dot] of (frame && frame.towns) || []) if (dot && inside(lon, lat) && !zoneSays.has(said(text))) marks.push({words: text, at: xy([lon, lat])});
+  for (const m of marks) placed.push([m.at[0] - 4.5, m.at[1] - 4.5, m.at[0] + 4.5, m.at[1] + 4.5]);
   // A zone's name goes inside it, as far from its edges as there is room clear of the marks and the names before it;
   // the smallest zones are named first, having the fewest places to go. A long name is set on two lines. One with
   // no clear place anywhere in its zone is left to the list under the map.
@@ -4503,7 +4496,7 @@ function bigLocator(zone, all) {
   }).join("");
   // Then each mark's name beside it: right, left, above or below, wherever is clear. A named mountain or town with
   // no room is left off with its mark; one of the app's own peaks keeps its triangle.
-  const noted = marks.filter((m) => !m.lake).map((m) => {
+  const noted = marks.map((m) => {
     const [x, y] = m.at, width = span(m.words, 9), gap = 5.5;
     const tries = [[x + gap, y - 5.5, x + gap + width, y + 4.5, "start", x + gap, y + 3], [x - gap - width, y - 5.5, x - gap, y + 4.5, "end", x - gap, y + 3],
       [x - width / 2, y - 16, x + width / 2, y - 6, "middle", x, y - 7.5], [x - width / 2, y + 6, x + width / 2, y + 16, "middle", x, y + 14]];
@@ -4516,7 +4509,7 @@ function bigLocator(zone, all) {
   // The list under the map runs north to south, by the middle of each zone, as the zone menu does, one to a line.
   const midLat = (z) => { const ring = z.rings.flat(); return ring.reduce((sum, c) => sum + c[1], 0) / ring.length; };
   const rows = [...zones].sort((a, b) => midLat(b) - midLat(a)).map((z) => `<button class="azrow${z === zone ? " on" : ""}" data-zone="${esc(zoneKey(z))}"><i style="background:${fill(z)}"></i>${esc(z.name.replace(/ Avalanche Center$/, ""))} · ${z.stale ? "No forecast yet" : dangerText(z.level)}</button>`).join("");
-  return `<svg viewBox="0 0 ${wide} ${tall.toFixed(0)}" role="img" aria-label="The avalanche zones of ${esc(frame ? frame.where : zone.center.name)}">${sea ? `<path class="water" d="${sea}"/>` : ""}${drawn}${real}${lakes}${noted}${lakeNames}${zoneNames}</svg>
+  return `<svg viewBox="0 0 ${wide} ${tall.toFixed(0)}" role="img" aria-label="The avalanche zones of ${esc(frame ? frame.where : zone.center.name)}">${sea ? `<path class="water" d="${sea}"/>` : ""}${drawn}${real}${lakes}${noted}${zoneNames}</svg>
     <div class="azrows">${rows}</div><p class="anote">Tap a zone for its forecast. Triangles are mountains and dots are towns.</p>`;
 }
 function openAvyMap() {
