@@ -1627,7 +1627,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "270";
+const BUILD = "271";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1726,7 +1726,7 @@ const REGIONS = {
       [3100, [0.55, 0.53, 0.48]], [3600, [0.72, 0.70, 0.67]]],
     lake: {name: "Jackson Lake", lat: 43.90, lon: -110.67},
     avalanche: [{id: "BTAC", name: "Bridger-Teton Avalanche Center", url: "https://bridgertetonavalanchecenter.org/", state: "WY"}]},
-  wasatch: {name: "Wasatch", terrain: "data/terrain-wasatch", roads: "data/roads-wasatch.json", center: [40.885, -111.69], pick: "alta",
+  wasatch: {name: "Wasatch", terrain: "data/terrain-wasatch", roads: "data/roads-wasatch.json", center: [40.885, -111.69], rev: "?v=2", pick: "alta",
     // Powder Mountain in the north and Sundance and Mt. Timpanogos in the south are each about 56 km from the
     // middle: the disc is 80 km in radius and the terrain the square that holds it. The lowest ground is the Great
     // Salt Lake at 1,280 m, so heights are drawn from there (a few bad cells in the tiles read lower and are raised
