@@ -1517,7 +1517,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "227";
+const BUILD = "228";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3988,17 +3988,59 @@ const likelyScale = (said) => { const at = LIKELY.findIndex((step) => (said || "
 const SIERRA_LAKES = [[-120.04, 39.09, 0.9, 1.6], [-119, 38, 0.9, 0.7]];
 // Names sit to the east of their spots, clear of the zones. Tahoe names the lake, so it gets no dot of its own.
 const SIERRA_TOWNS = [["Tahoe", -120.04, 39.09, false], ["Bridgeport", -119.23, 38.26, true], ["Bishop", -118.39, 37.36, true]];
-// A small flat map, north up, from Lake Tahoe to Bishop: the two lakes, the names, the other covered zones faint,
-// and the forecast zone in its danger color.
+// The small zone maps, one frame each, flat and north up, in the same box and style: a frame is chosen by the zone
+// lying in it. Each projects lon and lat as (lon - lon0) * kx and (lat0 - lat) * ky, with ky the scale and kx it
+// times the cosine of the frame's latitude. The Sierra's runs from Lake Tahoe to Bishop. Seattle's holds NWAC's ten
+// zones, from the border to Mt. Hood, with Puget Sound and the Strait of Juan de Fuca as its water (each spot read
+// as sea level on the map's own terrain). New England's is close in on the Presidential Range, set right of middle
+// so Mt. Washington's name fits to its left. East Slopes North and East Slopes South hold none of the app's
+// mountains (Mt. Adams's summit lies just inside West Slopes South), so they are not named. Outside the Sierra each zone's best-known mountain is named, in the style of the Sierra's town names;
+// its position is the summit from OpenStreetMap (Nominatim), or the app's own mountain where it is one.
+const LOCATORS = [
+  {where: "the Sierra Nevada", lon0: -124.6, lat0: 42.15, kx: 7.93, ky: 10, lakes: SIERRA_LAKES, towns: SIERRA_TOWNS},
+  {where: "the Washington Cascades and Olympics", lon0: -133.02, lat0: 52.92, kx: 4.35, ky: 6.4,
+    lakes: [[-122.45, 47.6, 0.35, 2.2], [-123.55, 48.22, 3, 0.6]], towns: [["Seattle", -122.33, 47.6, true]],
+    peaks: {3020: ["Mt. Olympus", -123.711, 47.801, "Olympus"], 3021: ["Mt. Baker", -121.815, 48.777, "Baker"],
+      3022: ["Glacier Peak", -121.113, 48.112, "Glacier"], 3023: ["Mt. Rainier", -121.760, 46.853, "Rainier"],
+      3024: ["Stevens Pass", -121.1, 47.739, "Stevens"], 3028: ["Snoqualmie Pass", -121.419, 47.405, "Snoqualmie"],
+      3030: ["Mt. Stuart", -120.902, 47.475, "Stuart"], 3032: ["Mt. Hood", -121.696, 45.374, "Hood"]}},
+  // Wildcat sits under Mt. Washington at this size, so only Attitash, to the south, is named beside it.
+  {where: "the White Mountains", lon0: -73.471, lat0: 45.201, kx: 28.6, ky: 40, lakes: [], towns: [["Attitash", -71.225, 44.076, true]],
+    peaks: {"Presidential Range": ["Mt. Washington", -71.303, 44.270, "Washington"]}},
+];
+// The zone's spot on a small flat map, north up: the frame's water and names, the other zones in it faint, and the
+// forecast zone in its danger color (quiet grey while its forecast is last season's).
 function locator(zone, all) {
-  const xy = ([lon, lat]) => [(lon + 124.6) * 7.93, (42.15 - lat) * 10], at = (spot) => xy(spot).map((v) => v.toFixed(1)).join(" ");
-  // A zone outside the Sierra has no place on this map, so it gets none (the danger sign stands there instead).
-  const points = zone.rings.flat(), [midX, midY] = xy([0, 1].map((k) => points.reduce((sum, c) => sum + c[k], 0) / points.length));
-  if (!(midX > 27 && midX < 70 && midY > 23.5 && midY < 51)) return "";
+  const middle = (z) => { const points = z.rings.flat(); return [0, 1].map((k) => points.reduce((sum, c) => sum + c[k], 0) / points.length); };
+  const inBox = ([x, y]) => x > 27 && x < 70 && y > 23.5 && y < 51;
+  const frame = LOCATORS.find((f) => inBox([(middle(zone)[0] - f.lon0) * f.kx, (f.lat0 - middle(zone)[1]) * f.ky]));
+  // A zone in no frame gets no map (the danger sign stands there instead).
+  if (!frame) return "";
+  const xy = ([lon, lat]) => [(lon - frame.lon0) * frame.kx, (frame.lat0 - lat) * frame.ky], at = (spot) => xy(spot).map((v) => v.toFixed(1)).join(" ");
   const shape = (z) => z.rings.map((ring) => `M${ring.filter((_, k) => k % 3 === 0).map(at).join("L")}Z`).join("");
-  const lakes = SIERRA_LAKES.map(([lon, lat, rx, ry]) => { const [x, y] = xy([lon, lat]); return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${ry}"/>`; }).join("");
-  const towns = SIERRA_TOWNS.map(([name, lon, lat, dot]) => { const [x, y] = xy([lon, lat]); return `${dot ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/>` : ""}<text x="${(x + (dot ? 1.6 : 2)).toFixed(1)}" y="${(y + 1.1).toFixed(1)}">${name}</text>`; }).join("");
-  return `<svg class="aloc" viewBox="27 23.500 43 27.500" role="img" aria-label="Where in the Sierra Nevada the ${esc(zone.name)} forecast applies">${all.filter((z) => z !== zone).map((z) => `<path class="other" d="${shape(z)}"/>`).join("")}<path class="here" style="fill:${danger(zone.level)[1]}" d="${shape(zone)}"/>${lakes}${towns}</svg>`;
+  const lakes = frame.lakes.map(([lon, lat, rx, ry]) => { const [x, y] = xy([lon, lat]); return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${rx}" ry="${ry}"/>`; }).join("");
+  const name = (text, x, y, dot) => `${dot ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/>` : ""}<text x="${(x + (dot ? 1.6 : 2)).toFixed(1)}" y="${(y + 1.1).toFixed(1)}">${text}</text>`;
+  // Outside the Sierra each zone's mountain is named too, the forecast zone's first and always; then the towns, then
+  // the other zones' mountains wherever one fits: right of its spot, else left, else by its short name. A name that
+  // would overlap one already placed or run off the map is left out.
+  const placed = [], fits = (box) => box[0] >= 27.5 && box[2] <= 69.5 && !placed.some((b) => b[0] < box[2] && box[0] < b[2] && b[1] < box[3] && box[1] < b[3]);
+  const mark = ([text, lon, lat, short], always = false) => {
+    const [x, y] = xy([lon, lat]);
+    const tries = [text, short].filter(Boolean).flatMap((words) => [[words, false], [words, true]]).map(([words, left]) => {
+      const wide = 2.2 * words.length + 1.6;
+      return {words, left, box: left ? [x - wide, y - 2.4, x, y + 1.6] : [x, y - 2.4, x + wide, y + 1.6]};
+    });
+    const pick = tries.find((t) => fits(t.box)) || (always ? tries[tries.length - 1] : null);
+    if (!pick) return "";
+    placed.push(pick.box);
+    return pick.left ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.800"/><text x="${(x - 1.6).toFixed(1)}" y="${(y + 1.1).toFixed(1)}" text-anchor="end">${pick.words}</text>` : name(pick.words, x, y, true);
+  };
+  const peakOf = (z) => frame.peaks && (frame.peaks[z.id] || frame.peaks[z.name]);
+  const own = peakOf(zone) ? mark(peakOf(zone), true) : "";
+  const towns = frame.towns.map(([text, lon, lat, dot]) => frame.peaks ? mark([text, lon, lat]) : name(text, ...xy([lon, lat]), dot)).join("");
+  const peaks = own + all.filter((z) => z !== zone && peakOf(z)).map((z) => mark(peakOf(z))).join("");
+  const others = (frame.peaks ? all.filter((z) => z !== zone && inBox(xy(middle(z)))) : all.filter((z) => z !== zone)).map((z) => `<path class="other" d="${shape(z)}"/>`).join("");
+  return `<svg class="aloc" viewBox="27 23.500 43 27.500" role="img" aria-label="Where in ${frame.where} the ${esc(zone.name)} forecast applies">${others}<path class="here" style="fill:${danger(zone.stale ? 0 : zone.level)[1]}" d="${shape(zone)}"/>${lakes}${towns}${peaks}</svg>`;
 }
 // The forecasters' aspect and elevation rose: north up, the summit at the middle, filled where the problem is.
 function rose(location) {
