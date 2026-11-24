@@ -25,6 +25,8 @@ CASCADES_BLOCK = (46.0, 49.0, -123.75, -120.25)
 TETONS_BLOCK = (43.0, 44.5, -111.75, -109.75)
 # The Wasatch, Mt. Timpanogos to the Bear River Range's south end.
 WASATCH_BLOCK = (40.0, 41.75, -112.25, -111.25)
+# Colorado's I-70 corridor and the Park Range by Steamboat.
+COLORADO_BLOCK = (39.25, 40.75, -107.0, -105.5)
 LEVEL_VARIABLES = ["temperature", "relative_humidity", "wind_u_component", "wind_v_component", "geopotential_height"]
 PRECIP_SHAPE = (1536, 3072)
 GRID_WIDTH = {"ncep_gfs025": 1440, "ncep_gfs013": 3072}

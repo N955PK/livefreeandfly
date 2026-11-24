@@ -1,6 +1,10 @@
 """Colorado: nine resorts along I-70, at Winter Park and at Steamboat, and three passes, eight asking for weather."""
-from tahoe_snow import config, pipeline, usage
-from tahoe_snow.config import RESORTS
+import json
+
+from tahoe_snow import calibrate, config, pipeline, usage
+from tahoe_snow.config import COLORADO_BBOX, COLORADO_STATIONS, MODELS, RESORTS
+from tahoe_snow.snow import observations, phase, ratio, train
+from tahoe_snow.sources import omfiles_s3
 
 
 def test_the_colorado_mountains_are_where_they_should_be():
@@ -34,3 +38,33 @@ def test_colorado_is_built_at_the_tetons_hours_and_reads_its_sensors_on_the_paci
     assert (region.tz, region.at, region.every_h) == (tetons.tz, tetons.at, tetons.every_h)
     assert pipeline.snotel_offset_h(RESORTS["vail"]) == 8
     assert region.avalanche == ("CAIC",)
+
+
+def test_the_fitting_box_holds_every_colorado_sensor():
+    lat0, lat1, lon0, lon1 = COLORADO_BBOX
+    lats, lons, _, _ = omfiles_s3.grid_025(omfiles_s3.COLORADO_BLOCK)
+    for station in COLORADO_STATIONS.values():
+        assert lat0 < station.lat < lat1 and lon0 < station.lon < lon1, station.name
+        assert lats[0] <= station.lat <= lats[-1] and lons[0] <= station.lon <= lons[-1], station.name
+    assert calibrate.REGIONS["colorado"] == (COLORADO_STATIONS, COLORADO_BBOX, "colorado_daily")
+    assert observations.BOXES["coloradobox"][:2] == ("CO", COLORADO_BBOX)
+    assert train.REGION_BOXES["colorado"] == ("coloradobox", omfiles_s3.COLORADO_BLOCK)
+
+
+def test_colorado_uses_its_own_correction_weights_split_and_ratio():
+    correction = pipeline.load_corrections()["colorado"]
+    # Every sensor has its own curve, the four above Steamboat among them.
+    for triplet in COLORADO_STATIONS:
+        assert correction.fitted(triplet), triplet
+    weights = pipeline.load_weights("colorado")
+    assert weights == json.loads((MODELS / "weights_colorado.json").read_text())
+    assert set(weights) == set(config.DET_MODELS) and abs(sum(weights.values()) - 1) < 0.005
+    model, described = pipeline.load_snow_model("colorado")
+    assert (model.phase_kind, model.phase_params) == phase.load("colorado")
+    assert phase.params_file("colorado") == MODELS / "snow_phase_colorado.json"
+    assert ratio.model_files("colorado")[0] == MODELS / "snow_ratio_colorado.joblib" and "Colorado" in described
+    # A Colorado snow day counts once: its days already outnumber the Sierra's.
+    saved = json.loads((MODELS / "snow_ratio_colorado.json").read_text())
+    assert "region_day_weight" not in saved and saved["region_events"] > saved["events"] / 2
+    check = json.loads((MODELS / "snow_ratio_check_colorado.json").read_text())
+    assert check["pooled_refit_each_station_held_out"]["snow_error_in"] < check["sierra_model"]["snow_error_in"]

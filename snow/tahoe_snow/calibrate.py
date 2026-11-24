@@ -9,7 +9,8 @@ import omfiles
 import pandas as pd
 
 from tahoe_snow import biascorrect, blend
-from tahoe_snow.config import (MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW, SEATTLE_BBOX, SEATTLE_STATIONS, STATIONS,
+from tahoe_snow.config import (COLORADO_BBOX, COLORADO_STATIONS, MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW,
+                               SEATTLE_BBOX, SEATTLE_STATIONS, STATIONS,
                                TABLES, TAHOE_BBOX, TETONS_BBOX, TETONS_STATIONS, WASATCH_BBOX, WASATCH_STATIONS)
 from tahoe_snow.snow import dataset, phase
 
@@ -25,7 +26,8 @@ REGIONS = {"tahoe": (STATIONS, TAHOE_BBOX, "snotel_daily"),
            "mammoth": (MAMMOTH_STATIONS, MAMMOTH_BBOX, "mammoth_daily"),
            "seattle": (SEATTLE_STATIONS, SEATTLE_BBOX, "seattle_daily"),
            "tetons": (TETONS_STATIONS, TETONS_BBOX, "tetons_daily"),
-           "wasatch": (WASATCH_STATIONS, WASATCH_BBOX, "wasatch_daily")}
+           "wasatch": (WASATCH_STATIONS, WASATCH_BBOX, "wasatch_daily"),
+           "colorado": (COLORADO_STATIONS, COLORADO_BBOX, "colorado_daily")}
 # A pillow reading this much water on a day when no model had any, that day or the days beside it, is a sensor
 # fault (a step in the reading), not a storm.
 PHANTOM_MM, DRY_MM = 25.0, 2.0

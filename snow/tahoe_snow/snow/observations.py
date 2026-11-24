@@ -2,7 +2,8 @@
 import pandas as pd
 
 from tahoe_snow.cache import get_json
-from tahoe_snow.config import (M_PER_FT, MAMMOTH_STATIONS, SEATTLE_BBOX, SEATTLE_STATIONS, SIERRA_BBOX, STATIONS,
+from tahoe_snow.config import (COLORADO_BBOX, COLORADO_STATIONS, M_PER_FT, MAMMOTH_STATIONS, SEATTLE_BBOX,
+                               SEATTLE_STATIONS, SIERRA_BBOX, STATIONS,
                                TABLES, TETONS_BBOX, TETONS_STATIONS, WASATCH_BBOX, WASATCH_STATIONS, Station)
 from tahoe_snow.sources import cdec, ghcn, snotel
 
@@ -69,6 +70,11 @@ def pull_wasatch(end: str, start: str = "2020-10-01") -> pd.DataFrame:
     return pull_region(WASATCH_STATIONS, "wasatch_daily", end, start)
 
 
+def pull_colorado(end: str, start: str = "2020-10-01") -> pd.DataFrame:
+    """Daily gains at the SNOTEL stations Colorado's water correction is fitted to."""
+    return pull_region(COLORADO_STATIONS, "colorado_daily", end, start)
+
+
 def box_stations(states, bbox: tuple) -> dict:
     """Every active SNOTEL station of ``states`` (one, or several) inside ``bbox`` (lat0, lat1, lon0, lon1), from
     the NRCS list."""
@@ -85,7 +91,7 @@ def box_stations(states, bbox: tuple) -> dict:
 # The boxes a region's rain/snow split and snow ratio are fitted or checked in: the states its SNOTEL stations are
 # listed under, the box, and the lowest hand-measured station taken.
 BOXES = {"cascades": ("WA", SEATTLE_BBOX, 600.0), "tetonbox": (("WY", "ID"), TETONS_BBOX, 1500.0),
-         "wasatchbox": ("UT", WASATCH_BBOX, 1500.0)}
+         "wasatchbox": ("UT", WASATCH_BBOX, 1500.0), "coloradobox": ("CO", COLORADO_BBOX, 2000.0)}
 
 
 def pull_box(name: str, end: str, start: str = "2023-10-01") -> pd.DataFrame:

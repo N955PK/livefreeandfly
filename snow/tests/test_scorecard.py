@@ -44,11 +44,11 @@ def test_seattle_has_its_three_sections_and_mammoths_is_kept(tmp_path, monkeypat
     assert [s["title"] for s in card["sections"]] == [
         "Snow ratio.", "Rain or snow.", "Water.", "Water, Mammoth area.", "Water, Cascades.",
         "Rain or snow, Cascades.", "Snow ratio, Cascades.", "Snow ratio, Tetons.", "Snow ratio, Wasatch.",
-        "Live forecasts."]
-    # The Tetons' and the Wasatch's water and rain-or-snow tables are not among these; their ratio checks are kept
-    # beside the models.
-    assert [row[0] for row in card["sections"][-3]["rows"]][-1] == "Trained on Sierra and Teton days together (in use)"
-    assert card["sections"][-2]["rows"][-1][0] == "Trained on Sierra and Wasatch days together (in use)"
+        "Snow ratio, Colorado.", "Live forecasts."]
+    # The Tetons', the Wasatch's and Colorado's water and rain-or-snow tables are not among these; their ratio
+    # checks are kept beside the models.
+    for at, where in ((-4, "Teton"), (-3, "Wasatch"), (-2, "Colorado")):
+        assert card["sections"][at]["rows"][-1][0] == f"Trained on Sierra and {where} days together (in use)"
     assert json.loads((tmp_path / "scorecard.json").read_text()) == card
     by_title = {s["title"]: s for s in card["sections"]}
     assert by_title["Water, Mammoth area."] == MAMMOTH

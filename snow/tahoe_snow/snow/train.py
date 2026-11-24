@@ -123,7 +123,8 @@ def fit_phase(stations: dict) -> tuple:
 # Where a region's rain/snow split and snow ratio are fitted or checked: its box of stations
 # (``observations.BOXES``) and the block of the upper-air archive over it.
 REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("tetonbox", omfiles_s3.TETONS_BLOCK),
-                "wasatch": ("wasatchbox", omfiles_s3.WASATCH_BLOCK)}
+                "wasatch": ("wasatchbox", omfiles_s3.WASATCH_BLOCK),
+                "colorado": ("coloradobox", omfiles_s3.COLORADO_BLOCK)}
 # How many times a region's own snow day counts against a Sierra one where the two are fitted together. The Sierra
 # model ran an inch fluffy on Wasatch snow, and at stations held out a fit with the Wasatch's days at ten times
 # missed by 1.21 in, against 1.32 at equal weight and 1.31 on the Wasatch's days alone.
