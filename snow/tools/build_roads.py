@@ -34,6 +34,15 @@ ROUTES = {
     # Village (WY 390), Togwotee Pass (US 26/287), and Idaho's side to Driggs and Grand Targhee.
     "tetons": {"US 26": "US-26", "US 89": "US-89", "US 191": "US-191", "US 287": "US-287", "WY 22": "WY-22",
                "WY 390": "WY-390", "ID 33": "ID-33", "ID 31": "ID-31", "ID 32": "ID-32"},
+    # The Wasatch Front's interstates, the roads behind the range, and the canyon roads to the lifts: Little and
+    # Big Cottonwood (UT 210, UT 190), Park City (UT 224), Provo Canyon and Sundance (US 189, UT 92), Ogden Canyon
+    # and Snowbasin (UT 39, UT 226, UT 167) and Powder Mountain (UT 158). OpenStreetMap writes Utah's state routes
+    # as "SR" on most ways and "UT" on some, so both are asked for.
+    "wasatch": {"I 15": "I-15", "I 80": "I-80", "I 84": "I-84", "I 215": "I-215", "US 40": "US-40",
+                "US 189": "US-189", "US 89": "US-89", "SR 210": "UT-210", "SR 190": "UT-190", "SR 224": "UT-224",
+                "SR 92": "UT-92", "SR 39": "UT-39", "SR 226": "UT-226", "SR 167": "UT-167", "SR 158": "UT-158",
+                "UT 210": "UT-210", "UT 190": "UT-190", "UT 224": "UT-224", "UT 92": "UT-92", "UT 39": "UT-39",
+                "UT 226": "UT-226", "UT 167": "UT-167", "UT 158": "UT-158"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the
