@@ -1627,7 +1627,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "275";
+const BUILD = "276";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -4500,8 +4500,8 @@ const LOCATORS = [
     lakes: [[-122.336, 41.281, 0.5, 0.35]], towns: [["Mt. Shasta City", -122.3127, 41.3136, true]], shapes: [SHAPES.siskiyou],
     peaks: {3044: ["Mt. Shasta", -122.19486, 41.4092, "Shasta"]}},
   {where: "the Colorado Rockies", lon0: -116.3, lat0: 44.73, kx: 5.05, ky: 6.5, towns: [["Denver", -104.99, 39.74, true], ["Durango", -107.877, 37.277, true]], peaks: {},
-    // More towns for the large map alone, which has the room.
-    more: [["Steamboat Springs", -106.832, 40.485, true], ["Vail", -106.389, 39.644, true], ["Aspen", -106.824, 39.191, true], ["Gunnison", -107.06, 38.648, true], ["Telluride", -107.812, 37.937, true], ["Colorado Springs", -104.825, 38.834, true]],
+    // More towns for the large map alone, each drawn only where it and its name sit clear of everything else.
+    more: [["Steamboat Springs", -106.832, 40.485, true], ["Aspen", -106.824, 39.191, true], ["Gunnison", -107.06, 38.648, true], ["Telluride", -107.812, 37.937, true], ["Colorado Springs", -104.825, 38.834, true]],
     // Lake Granby, Dillon Reservoir and Blue Mesa Reservoir, drawn a little larger than life on the small map so
     // they show; the large map draws them and Green Mountain Reservoir as they lie.
     lakes: [[-105.855, 40.154, 0.5, 0.4], [-106.056, 39.6, 0.5, 0.4], [-107.317, 38.459, 1.0, 0.35]],
@@ -4633,7 +4633,7 @@ function bigLocator(zone, all) {
     const spot = xy([lon, lat]);
     if (inside(lon, lat) && !zoneSays.has(said(text)) && !marks.some((m) => Math.hypot(m.at[0] - spot[0], m.at[1] - spot[1]) < 9)) marks.push({words: text, at: spot, peak: true});
   }
-  for (const [text, lon, lat, dot] of [...((frame && frame.towns) || []), ...((frame && frame.more) || [])]) if (dot && inside(lon, lat) && !zoneSays.has(said(text))) marks.push({words: text, at: xy([lon, lat])});
+  for (const [text, lon, lat, dot] of (frame && frame.towns) || []) if (dot && inside(lon, lat) && !zoneSays.has(said(text))) marks.push({words: text, at: xy([lon, lat])});
   for (const m of marks) placed.push([m.at[0] - 4.5, m.at[1] - 4.5, m.at[0] + 4.5, m.at[1] + 4.5]);
   // Nothing is written on a lake either: the middle of each (a sea is too big to keep off) counts as taken.
   for (const rings of (frame && frame.shapes) || []) {
@@ -4691,7 +4691,17 @@ function bigLocator(zone, all) {
     const sign = m.peak ? `<path class="pk" d="M${x.toFixed(1)} ${(y - 4).toFixed(1)}l3.6 6.4h-7.2z"/>` : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2"/>`;
     return sign + (pick ? `<text class="${m.peak ? "pk" : "tn"}" x="${pick[5].toFixed(1)}" y="${pick[6].toFixed(1)}" text-anchor="${pick[4]}">${esc(m.words)}</text>` : "");
   }).join("");
-  return `<svg viewBox="0 0 ${wide} ${tall.toFixed(0)}" role="img" aria-label="The avalanche zones of ${esc(frame ? frame.where : zone.center.name)}">${sea ? `<path class="water" d="${sea}"/>` : ""}${drawn}${real}${lakes}${noted}${zoneNames}</svg><p class="anote">Tap a zone for its forecast.</p>`;
+  // Last, the frame's extra towns, which give way to all of the above: one is drawn only if its dot and a place for
+  // its name are both clear.
+  const extras = ((frame && frame.more) || []).filter(([, lon, lat]) => inside(lon, lat)).map(([text, lon, lat]) => {
+    const [x, y] = xy([lon, lat]), width = span(text, 9), spot = [x - 3, y - 3, x + 3, y + 3];
+    if (!clear(spot)) return "";
+    const pick = [[x + 5.5, y - 5.5, x + 5.5 + width, y + 4.5, "start", x + 5.5], [x - 5.5 - width, y - 5.5, x - 5.5, y + 4.5, "end", x - 5.5]].find((box) => clear(box.slice(0, 4)));
+    if (!pick) return "";
+    placed.push(spot, pick.slice(0, 4));
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2"/><text class="tn" x="${pick[5].toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="${pick[4]}">${esc(text)}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${wide} ${tall.toFixed(0)}" role="img" aria-label="The avalanche zones of ${esc(frame ? frame.where : zone.center.name)}">${sea ? `<path class="water" d="${sea}"/>` : ""}${drawn}${real}${lakes}${noted}${extras}${zoneNames}</svg><p class="anote">Tap a zone for its forecast.</p>`;
 }
 function openAvyMap() {
   if (!avyMapFor) return;
