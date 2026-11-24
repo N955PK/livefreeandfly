@@ -2269,13 +2269,24 @@ function seasonSoFar(resort) {
   }
   // The line ends at the sensor's latest reading, which the every-few-days history can trail during a storm.
   const mine = lines[winters[winters.length - 1]], [yearNow, monthNow, dayNow] = (s.as_of_date || new Date().toLocaleDateString("en-CA", {timeZone: tzOf(resort)})).split("-").map(Number);
+  // This season's line is drawn unbroken: days the record leaves out between two readings are bridged straight
+  // across (snow on the ground does not vanish and return between them). The readout keeps the readings as they are.
+  const bridged = (line) => {
+    const out = [...line], known = line.map((v, k) => (v == null ? -1 : k)).filter((k) => k >= 0);
+    for (let n = 1; n < known.length; n++) {
+      const a = known[n - 1], b = known[n];
+      for (let k = a + 1; k < b; k++) out[k] = line[a] + (line[b] - line[a]) * (k - a) / (b - a);
+    }
+    return out;
+  };
+  const mineLine = bridged(mine);
   const sinceOct = Math.round((Date.UTC(yearNow, monthNow - 1, dayNow) - Date.UTC(monthNow >= 10 ? yearNow : yearNow - 1, 9, 1)) / 864e5);
   if (sinceOct < SEASON_DAYS) mine[Math.min(count - 1, Math.round(sinceOct / curve.step_days))] = nowDeep;
   const last = mine.reduce((found, v, k) => v == null ? found : k, 0), first = mine.findIndex((v) => v != null), endX = x(last), endY = y(mine[last] || 0);
   // The label sits left of the dot once the line is far enough along that it would run off the right edge.
   const flip = endX > W - R - 44;
-  body += `<path class="usual" d="${path(typical)}"/><path class="nowfill" d="${path(mine)}L${endX.toFixed(1)} ${y(0)}L${x(Math.max(0, first)).toFixed(1)} ${y(0)}Z"/>
-    <line class="today" x1="${endX}" x2="${endX}" y1="${endY}" y2="${y(0)}"/><path class="nowbase" d="${path(mine)}"/><path class="now" pathLength="1" d="${path(mine)}"/><path class="nowglow" pathLength="1" d="${path(mine)}"/><path class="nowspark" pathLength="1" d="${path(mine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="0" x2="0" visibility="hidden"/><circle class="tdot" id="seasonTypDot" r="3.5" visibility="hidden"/><circle class="cdot" id="seasonNowDot" r="3.5" visibility="hidden"/>
+  body += `<path class="usual" d="${path(typical)}"/><path class="nowfill" d="${path(mineLine)}L${endX.toFixed(1)} ${y(0)}L${x(Math.max(0, first)).toFixed(1)} ${y(0)}Z"/>
+    <line class="today" x1="${endX}" x2="${endX}" y1="${endY}" y2="${y(0)}"/><path class="nowbase" d="${path(mineLine)}"/><path class="now" pathLength="1" d="${path(mineLine)}"/><path class="nowglow" pathLength="1" d="${path(mineLine)}"/><path class="nowspark" pathLength="1" d="${path(mineLine)}"/><line class="cur" id="seasonCur" y1="${T}" y2="${H - B}" x1="0" x2="0" visibility="hidden"/><circle class="tdot" id="seasonTypDot" r="3.5" visibility="hidden"/><circle class="cdot" id="seasonNowDot" r="3.5" visibility="hidden"/>
     <circle class="nowring" cx="${endX}" cy="${endY}" r="5"/><circle class="nowring two" cx="${endX}" cy="${endY}" r="5"/><circle class="nowhalo" cx="${endX}" cy="${endY}" r="8"/><circle class="nowdot" cx="${endX}" cy="${endY}" r="4.5"/>
     <text class="nowlab" text-anchor="${flip ? "end" : "start"}" x="${endX + (flip ? -9 : 9)}" y="${Math.max(12, endY - 8)}">${rounded(mine[last])} ${LEN()}</text>${scale}`;
   // The readout's record high is the most there has been on the touched date in any winter, which is not always
