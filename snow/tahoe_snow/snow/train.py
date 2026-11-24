@@ -122,7 +122,17 @@ def fit_phase(stations: dict) -> tuple:
 
 # Where a region's rain/snow split and snow ratio are fitted or checked: its box of stations
 # (``observations.BOXES``) and the block of the upper-air archive over it.
-REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("tetonbox", omfiles_s3.TETONS_BLOCK)}
+REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("tetonbox", omfiles_s3.TETONS_BLOCK),
+                "wasatch": ("wasatchbox", omfiles_s3.WASATCH_BLOCK)}
+# How many times a region's own snow day counts against a Sierra one where the two are fitted together. The Sierra
+# model ran an inch fluffy on Wasatch snow, and at stations held out a fit with the Wasatch's days at ten times
+# missed by 1.21 in, against 1.32 at equal weight and 1.31 on the Wasatch's days alone.
+REGION_DAY_WEIGHT = {"wasatch": 10.0}
+
+
+def pooled_weights(sierra_days: int, region_days: pd.DataFrame, region: str) -> np.ndarray:
+    """What multiplies each day's usual weight in a fit of the Sierra's days followed by the region's."""
+    return np.concatenate([np.ones(sierra_days), np.full(len(region_days), REGION_DAY_WEIGHT.get(region, 1.0))])
 
 
 def region_profiles(region: str, end: str) -> dict:
@@ -180,8 +190,8 @@ def check_region_ratio(region: str, end: str) -> dict:
         for group in pd.unique(days[by]):
             test = (days[by] == group).to_numpy()
             train = pd.concat([sierra, days[~test]])
-            fitted = clone(spec).fit(train, train["slr"].to_numpy(),
-                                     sample_weight=np.sqrt(train["liquid_mm"].to_numpy()))
+            weight = np.sqrt(train["liquid_mm"].to_numpy()) * pooled_weights(len(sierra), days[~test], region)
+            fitted = clone(spec).fit(train, train["slr"].to_numpy(), sample_weight=weight)
             predicted[test] = fitted.predict(days[test])
         return brief(predicted)
 
@@ -204,9 +214,13 @@ def fit_region_ratio(region: str, where: str, name: str = "ridge (all)") -> rati
     sierra = dataset.ratio_filter(load_events())
     days = dataset.ratio_filter(pd.read_parquet(TABLES / f"events_{REGION_BOXES[region][0]}.parquet"))
     days = days[days["source"] == "manual"]
-    both = pd.concat([sierra[sierra["source"] == "manual"], days], ignore_index=True)
-    return ratio.fit_final(both, name, ratio.candidates()[name], region=region, where=where,
-                           extra={"region_events": int(len(days)), "region_stations": int(days["station"].nunique())})
+    sierra = sierra[sierra["source"] == "manual"]
+    both = pd.concat([sierra, days], ignore_index=True)
+    extra = {"region_events": int(len(days)), "region_stations": int(days["station"].nunique())}
+    if region in REGION_DAY_WEIGHT:
+        extra["region_day_weight"] = REGION_DAY_WEIGHT[region]
+    return ratio.fit_final(both, name, ratio.candidates()[name], region=region, where=where, extra=extra,
+                           weights=pooled_weights(len(sierra), days, region))
 
 
 def end_to_end(events: pd.DataFrame, stations: dict, ratio_name: str, phase_kind: str,

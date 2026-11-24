@@ -194,7 +194,7 @@ curl -s https://raw.githubusercontent.com/N955PK/livefreeandfly/snow-data/index.
 
 Only for a region with snow sensors; New England has none and uses the Sierra's throughout. None of this calls the
 metered Open-Meteo API: the fits read Open-Meteo's archive on S3 and the sensors from NRCS. `cascades-snow-model.md`
-records how each was done for the Cascades and what it cost; the Tetons followed it. In order:
+records how each was done for the Cascades and what it cost; the Tetons and the Wasatch followed it. In order:
 
 1. **Water correction.** Add the region's stations and a box to `calibrate.REGIONS`, then `pairs`, `held_out_test`
    on each of the last three winters, and `fit_and_save` (`models/bias_<region>.json`). Keep it only if corrected
@@ -205,10 +205,12 @@ records how each was done for the Cascades and what it cost; the Tetons followed
 4. **Snow ratio.** `train.check_region_ratio` first, against snowfall measured by hand near the region. Refit
    (`train.fit_region_ratio`) only if that beats the Sierra's model at stations left out of the fit; either way
    save the check (`models/snow_ratio_check_<region>.json`).
+   The refit is the Sierra's days with the region's added. Where the Sierra's days still pull it off (the Wasatch,
+   where it ran an inch deep), give the region's days more weight in `train.REGION_DAY_WEIGHT` and check again.
 
 Sean wants each file saved even where it barely differs from the Sierra's, as the record that it was fitted there.
 Write the results into the testing page (2f) and add the region's sections to the scorecard (`verify.py`, beside
-`seattle_sections` and `tetons_sections`). Push, and restart the collector so the next build uses them. The Sensor
+`seattle_sections`, `tetons_sections` and `wasatch_sections`). Push, and restart the collector so the next build uses them. The Sensor
 corrections list on the page follows the published index, so it reads Corrected as soon as the index is rebuilt.
 
 ## 2. Second push: the page

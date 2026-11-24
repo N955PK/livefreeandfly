@@ -1529,6 +1529,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>The Cascades use the Sierra's model. It was checked against 248 all-snow days measured by hand at 9 Cascade stations over three winters. Given the measured water, it misses the snowfall by <b>1.51 in</b> on average, against 2.08 in for Kuchera and 1.72 in for a flat 10:1, with no lean either way overall.</p>
 <h5>Tetons</h5>
 <p>The Tetons use the Sierra's model trained again with 869 all-snow days measured by hand at 21 stations around Jackson added to the Sierra's. Snow there averages about 14:1. Tested at stations it never saw, it misses the snowfall by <b>1.15 in</b> on average, against 1.19 in for Kuchera and 1.41 in for a flat 10:1, which runs more than an inch short. The Sierra's model alone does as well: it already reads the dry snow from the cold.</p>
+<h5>Wasatch</h5>
+<p>The Wasatch uses the Sierra's model trained again with 690 all-snow days measured by hand at 25 Wasatch stations, from Alta and Brighton down to the benches, each counted ten times against a Sierra day. Snow there averages about 12:1, and the Sierra's model alone runs too fluffy on it: it misses the snowfall by 1.62 in on average and runs an inch deep, worse than a flat 10:1 (1.43 in). Tested at stations it never saw, the one in use misses by <b>1.21 in</b>, against 1.87 in for Kuchera. At Alta and Brighton, the two stations at ski height, it misses by 1.59 in where the Sierra's alone misses by 2.52.</p>
 <p>It is not even across the range: west of the crest and at it (Paradise, Snoqualmie Pass) it runs a little fluffy, and east of the crest it runs dense. Refitting it with the Cascade days added did no better at a station left out of the fit, so the Sierra's model is kept as it is.</p>
 
 <h4 class="ghead">Rain or snow</h4>
@@ -1541,6 +1543,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>The Cascades have their own curve, fitted the same way to 16,508 wet days at 64 Cascade and Olympic snow sensors over three winters. Half the water falls as snow at a wet-bulb temperature of about 0.75 °C, half a degree colder than at Tahoe, so more of a storm near freezing is rain.</p>
 <h5>Tetons</h5>
 <p>The Tetons have their own curve too, fitted to 2,915 wet days at 18 snow sensors over three winters. It is centered at about 0.75 °C and does no better than the Sierra's: nearly all of the water there falls as snow, so the split seldom decides anything.</p>
+<h5>Wasatch</h5>
+<p>The Wasatch has its own curve, fitted to 4,125 wet days at 25 snow sensors over three winters, about a quarter of them mixed. Half the water falls as snow at a wet-bulb temperature of about 0.5 °C, three quarters of a degree colder than Tahoe's. On winters left out of the fit it miscalls 1.83 mm of water per wet day, against 2.01 mm for Tahoe's curve on the same days.</p>
 <p>On winters left out of the fit it miscalls 3.00 mm of water per wet day, against 3.27 mm for Tahoe's curve on the same days, and it leans toward snow by 0.66 mm a day where Tahoe's leans by 1.78. It did better in each of the three winters and at every height below 1,600 m; above that the two are about even.</p>
 
 <h4 class="ghead">How much water</h4>
@@ -1561,6 +1565,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>The Cascades get their own correction, fitted to 10 snow sensors from Mt. Baker to Mt. St. Helens and in the Olympics, and tested the same way on the 2024, 2025, and 2026 winters. Every model is dry there: uncorrected, the four together deliver 72% of the measured water, and corrected 101%. The average miss over three days falls from 0.55 in of water to 0.40, and in storms of 2 in or more from 1.33 in to 0.78. Corrected beat uncorrected in each of the three winters.</p>
 <h5>Tetons</h5>
 <p>The Tetons get their own correction, fitted to 10 snow sensors from the Snake River's headwaters to the Gros Ventre and tested the same way on the 2024, 2025, and 2026 winters. Uncorrected, the four models together deliver 86% of the measured water, and corrected 101%. The average miss over three days falls from 0.26 in of water to 0.22, and in storms of 2 in or more from 0.85 in to 0.47. Snow King has no sensor within reach and is left uncorrected.</p>
+<h5>Wasatch</h5>
+<p>The Wasatch gets its own correction, fitted to 10 snow sensors from Timpanogos Divide to Ben Lomond Peak and tested the same way on the 2024, 2025, and 2026 winters. The models are drier here than anywhere else on this page: uncorrected, the four together deliver 60% of the measured water, and corrected 95%. The average miss over three days falls from 0.50 in of water to 0.37, and in storms of 2 in or more from 1.57 in to 0.87. Corrected beat uncorrected in each of the three winters. It matters most in Little Cottonwood, where the models deliver under half of what the Snowbird sensor measures, so Alta's and Snowbird's forecasts are roughly doubled; at Brighton, Park City and Sundance the models are within a quarter of the sensors and the correction is small. Snowbasin has no sensor within reach and is left uncorrected.</p>
 <p><b>Crystal Mountain and White Pass</b> sit east of the crest, where their own sensors' corrections overshot the winter left out, so they use the correction pooled over all ten sensors, which did better than either their own or none.</p>
 <p><b>The five volcanoes</b> are left uncorrected. Mt. Rainier, Mt. Baker, and Mt. St. Helens have sensors far below their summits, whose readings are only shown, and Glacier Peak and Mt. Adams have none. The models are used as they are at every height.</p>
 
@@ -1572,8 +1578,6 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <h4 class="ghead">What is not tested yet</h4>
 <h5>New England</h5>
 <p>Nothing on this page has been checked in New England. No snow sensors sit near its mountains to fit or test against, so its forecasts use the four models uncorrected, with the Sierra's rain-or-snow curve, snow ratio model, and blend weights.</p>
-<h5>Wasatch</h5>
-<p>Nothing on this page has been checked in the Wasatch yet. It has snow sensors at or near most of its mountains, but no correction, rain-or-snow curve, snow ratio model or blend weights have been fitted to them, so for now its forecasts use the four models uncorrected with the Sierra's.</p>
 <h5>Everywhere</h5>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
   </div>
@@ -1584,7 +1588,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Eastern Sierra</b> Its own correction, fitted to 10 snow sensors along the crest. The rain-or-snow curve, the fluffiness model, and the blend weights are Tahoe's.</p>
     <p><b>Cascades</b> Its own correction, fitted to 10 snow sensors, and its own rain-or-snow curve, which turns to rain half a degree colder than Tahoe's. Its blend weights were fitted there too and came out equal. The fluffiness model is the Sierra's, checked against snowfall measured by hand in the Cascades and kept. Because the passes are low, the air is read closer to the ground than in the Sierra.</p>
     <p><b>Tetons</b> Its own correction, fitted to 10 snow sensors, its own blend weights, its own rain-or-snow curve and a fluffiness model trained on Sierra and Teton snowfall together. The correction is the one that matters: the other three come out close to the Sierra's.</p>
-    <p><b>Wasatch</b> Nothing is fitted here yet. Most of its mountains have a snow sensor at or near them, whose readings are shown, but the models are used uncorrected, with the Sierra's rain-or-snow curve, fluffiness model and blend weights, until its own are fitted. Every base is high enough that the air is read as it is in the Sierra.</p>
+    <p><b>Wasatch</b> Its own correction, fitted to 10 snow sensors, its own blend weights, its own rain-or-snow curve, which turns to rain three quarters of a degree colder than Tahoe's, and a fluffiness model trained on Sierra and Wasatch snowfall together, with the Wasatch's counted more. All of them matter here: the models bring little more than half the water the sensors measure, and the Sierra's fluffiness model alone runs an inch deep on Utah snow. Snowbasin has no sensor within reach and is left uncorrected. Every base is high enough that the air is read as it is in the Sierra.</p>
     <p><b>New England</b> No snow sensors sit near its mountains, so there is no correction, and the rain-or-snow curve, the fluffiness model, and the blend weights are the Sierra's, not checked there. The air is read down to near sea level.</p>
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
@@ -1607,7 +1611,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "261";
+const BUILD = "262";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";

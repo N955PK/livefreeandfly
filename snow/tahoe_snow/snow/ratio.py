@@ -180,11 +180,13 @@ def model_files(region: str | None = None) -> tuple:
 
 
 def fit_final(events: pd.DataFrame, name: str, model, region: str | None = None, where: str | None = None,
-              extra: dict | None = None) -> ColumnModel:
-    """Fit on every event and save: the Sierra's model, or ``region``'s own, said to be trained in ``where``."""
+              extra: dict | None = None, weights: np.ndarray | None = None) -> ColumnModel:
+    """Fit on every event and save: the Sierra's model, or ``region``'s own, said to be trained in ``where``.
+    ``weights`` multiplies each event's usual weight."""
     fitted = clone(model)
     if isinstance(fitted, ColumnModel):
-        fitted.fit(events, events["slr"].to_numpy(), sample_weight=np.sqrt(events["liquid_mm"].to_numpy()))
+        weight = np.sqrt(events["liquid_mm"].to_numpy()) * (1.0 if weights is None else weights)
+        fitted.fit(events, events["slr"].to_numpy(), sample_weight=weight)
     else:
         fitted.fit(events, events["slr"].to_numpy())
     MODELS.mkdir(parents=True, exist_ok=True)
