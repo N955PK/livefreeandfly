@@ -1634,7 +1634,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "282";
+const BUILD = "283";
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -1828,6 +1828,41 @@ const REGIONS = {
     // Farmland along the river, forest above it to the few summits near 1,000 m.
     land: [[0, [0.46, 0.52, 0.33]], [200, [0.32, 0.44, 0.28]], [600, [0.22, 0.38, 0.26]], [1000, [0.27, 0.40, 0.30]],
       [1300, [0.55, 0.53, 0.48]]],
+    avalanche: []},
+  powderhighway: {name: "Powder Highway", country: "Canada", terrain: "data/terrain-powderhighway", roads: "data/roads-powderhighway.json", center: [50.181, -117.321], pick: "revelstoke",
+    // Rogers Pass in the north and Kootenay Pass in the south are each about 126 km from the middle: the disc is
+    // 150 km in radius, a kilometre inside the terrain's shorter side (301.96 km), so its edge is the circle's own.
+    // The lowest ground is 271 m, so no ground is raised to a floor; level ground above 250 m is water (the Arrow
+    // Lakes at 440 m, Kootenay Lake at 532 m).
+    waterM: 0, floorM: 0, lowlandM: 250,
+    discKm: 150, zoom: 3.1, turnDeg: 0,
+    // Cedar and hemlock in the valleys, forest to about 2,100 m, then rock and the icefields above about 2,700 m.
+    land: [[0, [0.40, 0.49, 0.31]], [600, [0.27, 0.42, 0.28]], [1400, [0.22, 0.37, 0.26]], [2000, [0.28, 0.40, 0.30]],
+      [2300, [0.55, 0.53, 0.48]], [2700, [0.72, 0.71, 0.70]], [3100, [0.86, 0.88, 0.91]]],
+    lake: {name: "Kootenay Lake", lat: 49.75, lon: -116.85},
+    avalanche: []},
+  eastkootenays: {name: "East Kootenays", country: "Canada", terrain: "data/terrain-eastkootenays", roads: "data/roads-eastkootenays.json", center: [50.369, -116.078], pick: "panorama",
+    // Kicking Horse in the north and Fernie in the south are each about 124 km from the middle: the disc is 148 km
+    // in radius, a kilometre inside the terrain's shorter side (298.08 km), so its edge is the circle's own. The
+    // lowest ground is 396 m; level ground above 380 m is water (Kootenay Lake, Lake Koocanusa, Columbia Lake).
+    waterM: 0, floorM: 0, lowlandM: 380,
+    discKm: 148, zoom: 3.0, turnDeg: 0,
+    // Cedar and hemlock in the valleys, forest to about 2,100 m, then rock and the icefields above about 2,700 m.
+    land: [[0, [0.40, 0.49, 0.31]], [600, [0.27, 0.42, 0.28]], [1400, [0.22, 0.37, 0.26]], [2000, [0.28, 0.40, 0.30]],
+      [2300, [0.55, 0.53, 0.48]], [2700, [0.72, 0.71, 0.70]], [3100, [0.86, 0.88, 0.91]]],
+    avalanche: []},
+  rockies: {name: "Canadian Rockies", short: "Rockies", country: "Canada", terrain: "data/terrain-rockies", roads: "data/roads-rockies.json", center: [51.874, -116.632], pick: "lakelouise",
+    // Marmot Basin in the north-west and Nakiska in the south-east are each about 145 km from the middle: the disc
+    // is 168 km in radius, a kilometre inside the terrain's shorter side (338.12 km), so its edge is the circle's
+    // own. The lowest ground is 347 m; level ground above 340 m is water.
+    waterM: 0, floorM: 0, lowlandM: 340,
+    discKm: 168, zoom: 3.4, turnDeg: 0,
+    areas: [{key: "banff", name: "Banff", mountains: ["nakiska", "norquay", "sunshine", "lakelouise", "bowsummit"]},
+      {key: "jasper", name: "Jasper", mountains: ["parkerridge", "marmot"]}],
+    // Cedar and hemlock in the valleys, forest to about 2,100 m, then rock and the icefields above about 2,700 m.
+    land: [[0, [0.40, 0.49, 0.31]], [600, [0.27, 0.42, 0.28]], [1400, [0.22, 0.37, 0.26]], [2000, [0.28, 0.40, 0.30]],
+      [2300, [0.55, 0.53, 0.48]], [2700, [0.72, 0.71, 0.70]], [3100, [0.86, 0.88, 0.91]]],
+    lake: {name: "Lake Louise", lat: 51.4115, lon: -116.229},
     avalanche: []},
 };
 // Data published before regions existed has no region field; all of it is Tahoe.
