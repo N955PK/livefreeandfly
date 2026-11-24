@@ -1,4 +1,5 @@
-"""Lifts, trails and snow reports of the New England mountains that each run their own website.
+"""Lifts, trails and snow reports of the mountains that each run their own website: New England's independents,
+and Jackson Hole and Grand Targhee in the Tetons.
 
 Each mountain has a module of its own that knows its page (``URL``, or ``URLS`` where it takes more than one request)
 and reads it (``parse``). This runs them all and writes one file the page reads, in the shape of the Ikon feed the
@@ -15,8 +16,8 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import (blackmountain, bolton, brettonwoods, bromley, burke, cannon, cranmore, jaypeak,
-                                madriverglen, magic, saddleback, smugglers, waterville)
+from tahoe_snow.sources import (blackmountain, bolton, brettonwoods, bromley, burke, cannon, cranmore, jacksonhole,
+                                jaypeak, madriverglen, magic, saddleback, smugglers, targhee, waterville)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -24,7 +25,8 @@ STAMP = "%Y-%m-%dT%H:%M:%SZ"
 MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton": bolton,
            "madriverglen": madriverglen, "bromley": bromley, "magic": magic, "cannon": cannon,
            "brettonwoods": brettonwoods, "waterville": waterville, "cranmore": cranmore,
-           "blackmountain": blackmountain, "saddleback": saddleback}
+           "blackmountain": blackmountain, "saddleback": saddleback,
+           "jacksonhole": jacksonhole, "targhee": targhee}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
 RANGED = ("Base", "Last24Hours")
 

@@ -1,0 +1,1797 @@
+
+  
+<!DOCTYPE html>
+<html lang="en" dir="ltr" prefix="og: https://ogp.me/ns#">
+
+<head>
+
+            <!-- Google Tag Manager -->
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-P2BVPG9');</script>
+        <!-- End Google Tag Manager -->
+    
+    
+<link rel="preload" href="https://cdn.jsdelivr.net/combine/npm/slick-carousel@1.8.1/slick/slick.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+
+<noscript>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/slick-carousel@1.8.1/slick/slick.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.min.css">
+</noscript>
+
+
+<script>
+    /*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+    /* This file is meant as a standalone workflow for
+    - testing support for link[rel=preload]
+    - enabling async CSS loading in browsers that do not support rel=preload
+    - applying rel preload css once loaded, whether supported or not.
+    */
+    (function( w ){
+        "use strict";
+        // rel=preload support test
+        if( !w.loadCSS ){
+            w.loadCSS = function(){};
+        }
+        // define on the loadCSS obj
+        var rp = loadCSS.relpreload = {};
+        // rel=preload feature support test
+        // runs once and returns a function for compat purposes
+        rp.support = (function(){
+            var ret;
+            try {
+                ret = w.document.createElement( "link" ).relList.supports( "preload" );
+            } catch (e) {
+                ret = false;
+            }
+            return function(){
+                return ret;
+            };
+        })();
+
+        // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+        // then change that media back to its intended value on load
+        rp.bindMediaToggle = function( link ){
+            // remember existing media attr for ultimate state, or default to 'all'
+            var finalMedia = link.media || "all";
+
+            function enableStylesheet(){
+                // unbind listeners
+                if( link.addEventListener ){
+                    link.removeEventListener( "load", enableStylesheet );
+                } else if( link.attachEvent ){
+                    link.detachEvent( "onload", enableStylesheet );
+                }
+                link.setAttribute( "onload", null );
+                link.media = finalMedia;
+            }
+
+            // bind load handlers to enable media
+            if( link.addEventListener ){
+                link.addEventListener( "load", enableStylesheet );
+            } else if( link.attachEvent ){
+                link.attachEvent( "onload", enableStylesheet );
+            }
+
+            // Set rel and non-applicable media type to start an async request
+            // note: timeout allows this to happen async to let rendering continue in IE
+            setTimeout(function(){
+                link.rel = "stylesheet";
+                link.media = "only x";
+            });
+            // also enable media after 3 seconds,
+            // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+            setTimeout( enableStylesheet, 3000 );
+        };
+
+        // loop through link elements in DOM
+        rp.poly = function(){
+            // double check this to prevent external calls from running
+            if( rp.support() ){
+                return;
+            }
+            var links = w.document.getElementsByTagName( "link" );
+            for( var i = 0; i < links.length; i++ ){
+                var link = links[ i ];
+                // qualify links to those with rel=preload and as=style attrs
+                if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+                    // prevent rerunning on link
+                    link.setAttribute( "data-loadcss", true );
+                    // bind listeners to toggle media back
+                    rp.bindMediaToggle( link );
+                }
+            }
+        };
+
+        // if unsupported, run the polyfill
+        if( !rp.support() ){
+            // run once at least
+            rp.poly();
+
+            // rerun poly on an interval until onload
+            var run = w.setInterval( rp.poly, 500 );
+            if( w.addEventListener ){
+                w.addEventListener( "load", function(){
+                    rp.poly();
+                    w.clearInterval( run );
+                } );
+            } else if( w.attachEvent ){
+                w.attachEvent( "onload", function(){
+                    rp.poly();
+                    w.clearInterval( run );
+                } );
+            }
+        }
+
+
+        // commonjs
+        if( typeof exports !== "undefined" ){
+            exports.loadCSS = loadCSS;
+        }
+        else {
+            w.loadCSS = loadCSS;
+        }
+    }( typeof global !== "undefined" ? global : this ) );
+
+</script>
+<script></script><!-- here to ensure a non-blocking load still occurs in IE and Edge, even if scripts follow loadCSS in head -->
+    <meta charset="utf-8" />
+<style>/* @see https://github.com/aFarkas/lazysizes#broken-image-symbol */.js img.lazyload:not([src]) { visibility: hidden; }/* @see https://github.com/aFarkas/lazysizes#automatically-setting-the-sizes-attribute */.js img.lazyloaded[data-sizes=auto] { display: block; width: 100%; }/* Transition effect. */.js .lazyload, .js .lazyloading { opacity: 0; }.js .lazyloaded { opacity: 1; -webkit-transition: opacity 2000ms; transition: opacity 2000ms; }</style>
+<meta name="description" content="Hear it firsthand from our experts on current conditions to set you up for a day that&#039;s better than best." />
+<link rel="canonical" href="https://www.grandtarghee.com/the-mountain/cams-conditions/mountain-report" />
+<link rel="image_src" href="https://www.grandtarghee.com/sites/default/files/styles/max_2600x2600/public/2026-04/193.png?itok=eTIo1tKn" />
+<meta property="og:site_name" content="Grand Targhee" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.grandtarghee.com/the-mountain/cams-conditions/mountain-report" />
+<meta property="og:title" content="Mountain Report" />
+<meta property="og:description" content="Hear it firsthand from our experts on current conditions to set you up for a day that&#039;s better than best." />
+<meta property="og:image" content="https://www.grandtarghee.com/sites/default/files/styles/max_2600x2600/public/2026-04/193.png?itok=eTIo1tKn" />
+<meta name="Generator" content="Drupal 11 (https://www.drupal.org)" />
+<meta name="MobileOptimized" content="width" />
+<meta name="HandheldFriendly" content="true" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script type="application/ld+json">{
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "Organization",
+            "@id": "https://www.grandtarghee.com/#organization",
+            "description": "Book winter \u0026 summer adventures in Teton Valley \u0026 Jackson Hole with Grand Targhee Resort, a year-round basecamp in Wyoming\u0027s Teton Range.",
+            "sameAs": [
+                "https://www.facebook.com/grandtarghee",
+                "https://www.instagram.com/grandtargheeresort",
+                "http://www.linkedin.com/company/grand-targhee-resort",
+                "https://twitter.com/grandtarghee",
+                "https://www.youtube.com/user/GrandTargheeResort"
+            ],
+            "url": "https://www.grandtarghee.com/",
+            "name": "Grand Targhee",
+            "telephone": "+13073532300",
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+13073532300",
+                "email": "info@grandtarghee.com",
+                "url": "https://www.grandtarghee.com/"
+            },
+            "image": {
+                "@type": "ImageObject",
+                "url": "https://www.grandtarghee.com/sites/default/files/styles/max_2600x2600/public/styles/max_2600x2600/public/2026-09/1090db19f9a7d6df4d1b17694702d9575f4d8261.jpg?itok=cLP71q4e"
+            },
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://www.grandtarghee.com/themes/custom/origin/logo.svg"
+            },
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "3300 Ski Hill Rd",
+                "addressLocality": "Alta",
+                "addressRegion": "Wyoming",
+                "postalCode": "83414",
+                "addressCountry": "USA"
+            }
+        },
+        {
+            "@type": "WebPage",
+            "@id": "https://www.grandtarghee.com/the-mountain/cams-conditions/mountain-report/#webpage",
+            "description": "Hear it firsthand from our experts on current conditions to set you up for a day that\u0027s better than best.",
+            "publisher": {
+                "@type": "Organization",
+                "@id": "https://www.grandtarghee.com/#organization"
+            },
+            "inLanguage": "en-US"
+        },
+        {
+            "@type": "WebSite",
+            "@id": "https://www.grandtarghee.com/#website",
+            "name": "Grand Targhee",
+            "url": "https://www.grandtarghee.com/",
+            "publisher": {
+                "@type": "Organization",
+                "@id": "https://www.grandtarghee.com/#organization"
+            },
+            "inLanguage": "en-US"
+        }
+    ]
+}</script>
+<link rel="icon" href="/core/misc/favicon.ico" type="image/vnd.microsoft.icon" />
+
+    <title>Mountain Report | Grand Targhee</title>
+    <link rel="stylesheet" media="all" href="/sites/default/files/css/css_cA8Kh27BGJgCoQJF4m1xRRX8-KuQ7i109SRB-3fpHdA.css?delta=0&amp;language=en&amp;theme=origin&amp;include=eJxFiEkKwzAMRS8koiOV71g4AnlAv16kp2-hlK7eAFf4o8UsCDkD5K3dSDTjr8esJudM-1h2hL9MZnrzoV_IQqIl1kWtuRfi-J9jj7VLOC-rwptP61pAewNPPC91" />
+<link rel="stylesheet" media="all" href="/sites/default/files/css/css_WtO3tXU1Dydf_NbcLl4kLJ4Wou5DBosLks9e0uE9qyw.css?delta=1&amp;language=en&amp;theme=origin&amp;include=eJxFiEkKwzAMRS8koiOV71g4AnlAv16kp2-hlK7eAFf4o8UsCDkD5K3dSDTjr8esJudM-1h2hL9MZnrzoV_IQqIl1kWtuRfi-J9jj7VLOC-rwptP61pAewNPPC91" />
+<link rel="stylesheet" media="all" href="/themes/custom/origin/dist/style.css?v=1.1&amp;toz4s4" />
+
+    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="icon" type="image/svg+xml" href="/themes/custom/origin/images/favicon/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/themes/custom/origin/images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/themes/custom/origin/images/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/themes/custom/origin/images/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/themes/custom/origin/images/favicon/site.webmanifest">
+    <link rel="mask-icon" href="/themes/custom/origin/images/favicon/safari-pinned-tab.svg" color="#003449">
+    <link rel="shortcut icon" href="/themes/custom/origin/images/favicon/favicon.ico">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-config" content="/themes/custom/origin/images/favicon/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
+</head>
+
+<body class="path-node page-node-type-page">
+
+            <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P2BVPG9"
+                          height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+    
+        <a href="#main-content" class="center-horizontal pos-fixed opacity-0 button outline skip-link">
+        Skip to main content
+    </a>
+    
+    <div class="d-flex flex-direction-column overflow-hidden layout-container">
+
+    
+<header class="transition-ui pos-fixed w-100 z-index-100 pseudo-before container  season--winter site-header" role="banner">
+    <div class="transition-ui grid-area-main d-flex jc-space-between ai-center z-index-30 header-inner">
+
+        <a href="/" title="Home" rel="home" class="outline-offset logo">
+            
+
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 145 83"><path d="M27.689 35.234c-6.184 3.718-7.262 12.228-5.974 18.821.047.281.07-.35.258-.911 1.03-3.367 6.817-6.266 9.136-7.599 4.404-2.525 9.018-5.4 11.946-9.633 5.365-7.762 3.56-20.925 1.242-29.435-.047 6.265-1.78 13.607-4.943 19.055-2.506 4.348-7.472 7.154-11.665 9.702ZM45.773 3.11s6.63-.374 12.767 2.525c4.498 2.408 8.292 6.032 11.478 9.983 5.458 6.757 9.768 14.426 13.493 22.258 3.537 7.482 7.145 15.478 14.242 20.294 8.714 5.915 20.216 3.788 29.141 9.329-4.966-7.412-10.612-12.93-17.827-18.213-6.418-4.676-11.759-9.049-15.741-16.016-2.905-5.003-6.184-9.82-9.464-14.59-4.31-6.312-9.135-11.946-16.07-15.383C64.163 1.497 60.837.21 56.01.21c-4.825 0-10.237 2.9-10.237 2.9Z" fill="#003449"/><path d="M59.406 23.263c4.17 1.496 7.941 3.016 10.916 6.406 2.46 2.806 3.28 6.477 4.474 9.914 3.022 8.674 7.262 11.807 10.823 16.576-6.044-1.66-12.017-5.143-15.414-10.544-2.132-3.367-3.045-7.552-4.029-11.363-1.64-6.243-6.77-10.989-6.77-10.989ZM4.263 74.537c.984 0 2.038.397 2.835 1.098a.2.2 0 0 1 .023.304l-.913.982a.246.246 0 0 1-.305 0c-.445-.397-.96-.56-1.522-.56-1.265 0-2.296 1.075-2.296 2.337 0 1.263 1.03 2.315 2.295 2.315.328 0 .68-.047 1.031-.187v-.678h-.726a.21.21 0 0 1-.21-.21v-1.146a.21.21 0 0 1 .21-.21h2.343a.21.21 0 0 1 .21.21v3.11c0 .046-.047.14-.093.186 0 0-1.195.749-2.882.749-2.319 0-4.17-1.824-4.17-4.162a4.14 4.14 0 0 1 4.17-4.138ZM9.182 74.864a.21.21 0 0 1 .21-.21h3.49a2.512 2.512 0 0 1 2.53 2.501c0 1.076-.702 1.917-1.71 2.338l1.594 2.946c.07.14 0 .327-.188.327h-1.546c-.094 0-.164-.047-.187-.093l-1.546-3.063h-.82v2.922a.21.21 0 0 1-.211.21H9.416a.21.21 0 0 1-.21-.21v-7.668h-.024Zm3.537 3.25c.468 0 .89-.445.89-.936a.889.889 0 0 0-.89-.888h-1.71v1.8h1.71v.024ZM16.28 82.463l3.63-7.81c.024-.07.118-.116.188-.116h.117c.07 0 .164.046.188.116l3.63 7.81a.207.207 0 0 1-.187.303h-1.288c-.211 0-.305-.07-.399-.28l-.421-.912h-3.163l-.421.935c-.047.14-.188.28-.422.28h-1.288a.23.23 0 0 1-.164-.326Zm4.778-2.479-.89-1.917-.866 1.917h1.756ZM25.135 74.724a.21.21 0 0 1 .21-.21h.282l4.638 4.441v-4.114a.21.21 0 0 1 .21-.21h1.406a.21.21 0 0 1 .211.21v7.809a.21.21 0 0 1-.21.21h-.188a.333.333 0 0 1-.14-.047l-4.592-4.606v4.326a.21.21 0 0 1-.21.21h-1.383a.21.21 0 0 1-.21-.21l-.024-7.81ZM34.037 74.864a.21.21 0 0 1 .21-.21h2.835c2.25 0 4.076 1.823 4.076 4.044a4.075 4.075 0 0 1-4.076 4.068h-2.834a.21.21 0 0 1-.21-.21v-7.692Zm2.928 6.172c1.312 0 2.272-1.029 2.272-2.361 0-1.31-.96-2.338-2.272-2.338h-1.124v4.7h1.124ZM46.897 76.337h-1.663a.21.21 0 0 1-.21-.21v-1.263a.21.21 0 0 1 .21-.21h5.154a.21.21 0 0 1 .21.21v1.262a.21.21 0 0 1-.21.21h-1.663v6.197a.21.21 0 0 1-.211.21h-1.406a.21.21 0 0 1-.21-.21v-6.196ZM50.668 82.463l3.631-7.81c.024-.07.117-.116.188-.116h.117c.07 0 .164.046.187.116l3.631 7.81a.207.207 0 0 1-.187.303h-1.289c-.21 0-.304-.07-.398-.28l-.422-.912h-3.162l-.422.935c-.046.14-.187.28-.421.28h-1.289a.23.23 0 0 1-.164-.326Zm4.78-2.479-.891-1.917-.867 1.917h1.757ZM59.547 74.864a.21.21 0 0 1 .21-.21h3.468a2.512 2.512 0 0 1 2.53 2.501c0 1.076-.703 1.917-1.71 2.338l1.592 2.946c.07.14 0 .327-.187.327h-1.546c-.094 0-.164-.047-.188-.093L62.17 79.61h-.796v2.922a.21.21 0 0 1-.21.21H59.78a.21.21 0 0 1-.21-.21v-7.668h-.024Zm3.537 3.25c.468 0 .89-.445.89-.936a.889.889 0 0 0-.89-.888h-1.71v1.8h1.71v.024ZM71.049 74.537c.983 0 2.037.397 2.834 1.098a.2.2 0 0 1 .023.304l-.913.982a.246.246 0 0 1-.305 0c-.445-.397-.96-.56-1.522-.56-1.265 0-2.296 1.075-2.296 2.337 0 1.263 1.03 2.315 2.296 2.315.328 0 .679-.047 1.03-.187v-.678h-.75a.21.21 0 0 1-.21-.21v-1.146a.21.21 0 0 1 .21-.21h2.343a.21.21 0 0 1 .211.21v3.11c0 .046-.047.14-.094.186 0 0-1.194.749-2.88.749-2.32 0-4.17-1.824-4.17-4.162a4.175 4.175 0 0 1 4.193-4.138ZM75.732 74.864a.21.21 0 0 1 .211-.21h1.382a.21.21 0 0 1 .211.21v2.922h3.326v-2.922a.21.21 0 0 1 .211-.21h1.382a.21.21 0 0 1 .211.21v7.668a.21.21 0 0 1-.21.21h-1.383a.21.21 0 0 1-.21-.21v-3.039h-3.327v3.04a.21.21 0 0 1-.21.21h-1.383a.21.21 0 0 1-.21-.21v-7.67ZM84.588 74.864a.21.21 0 0 1 .21-.21h4.803a.21.21 0 0 1 .21.21v1.262a.21.21 0 0 1-.21.21h-3.21v1.427h2.648a.21.21 0 0 1 .21.21v1.263a.21.21 0 0 1-.21.21h-2.647v1.567H89.6a.21.21 0 0 1 .21.21v1.263a.21.21 0 0 1-.21.21h-4.802a.21.21 0 0 1-.211-.21v-7.622ZM91.756 74.864a.21.21 0 0 1 .21-.21h4.803a.21.21 0 0 1 .21.21v1.262a.21.21 0 0 1-.21.21h-3.21v1.427h2.648a.21.21 0 0 1 .21.21v1.263a.21.21 0 0 1-.21.21H93.56v1.567h3.209a.21.21 0 0 1 .21.21v1.263a.21.21 0 0 1-.21.21h-4.802a.21.21 0 0 1-.211-.21v-7.622ZM101.852 74.864a.21.21 0 0 1 .21-.21h3.467a2.512 2.512 0 0 1 2.53 2.501c0 1.076-.703 1.917-1.71 2.338l1.593 2.946c.07.14 0 .327-.187.327h-1.546c-.094 0-.164-.047-.188-.093l-1.546-3.063h-.796v2.922a.21.21 0 0 1-.211.21h-1.382a.21.21 0 0 1-.211-.21v-7.668h-.023Zm3.56 3.25c.469 0 .89-.445.89-.936a.889.889 0 0 0-.89-.888h-1.71v1.8h1.71v.024ZM109.535 74.864a.21.21 0 0 1 .211-.21h4.802a.21.21 0 0 1 .211.21v1.262a.21.21 0 0 1-.211.21h-3.209v1.427h2.647a.21.21 0 0 1 .211.21v1.263a.21.21 0 0 1-.211.21h-2.647v1.567h3.209a.21.21 0 0 1 .211.21v1.263a.21.21 0 0 1-.211.21h-4.802a.21.21 0 0 1-.211-.21v-7.622ZM116.234 81.644l.539-.959c.094-.14.305-.116.398-.07.047.024.89.632 1.64.632.469 0 .797-.28.797-.702 0-.49-.399-.865-1.195-1.169-1.007-.397-2.249-1.169-2.249-2.572 0-1.145.89-2.314 2.694-2.314 1.218 0 2.132.608 2.483.865.141.07.117.28.07.374l-.585.888c-.071.117-.281.234-.399.14-.093-.046-.96-.7-1.663-.7-.421 0-.726.28-.726.584 0 .42.351.748 1.265 1.122.914.35 2.342 1.075 2.342 2.642 0 1.192-1.03 2.408-2.74 2.408-1.499 0-2.343-.631-2.624-.888-.094-.07-.14-.117-.047-.28ZM127.009 74.537c2.32 0 4.194 1.87 4.194 4.185 0 2.314-1.851 4.161-4.194 4.161a4.13 4.13 0 0 1-4.169-4.161 4.15 4.15 0 0 1 4.169-4.185Zm0 6.476a2.323 2.323 0 0 0 2.32-2.315c0-1.286-1.055-2.338-2.32-2.338-1.264 0-2.319 1.052-2.319 2.338a2.323 2.323 0 0 0 2.319 2.315ZM132.258 74.864a.21.21 0 0 1 .211-.21h3.467a2.512 2.512 0 0 1 2.529 2.501c0 1.076-.702 1.917-1.71 2.338l1.593 2.946c.071.14 0 .327-.187.327h-1.546c-.094 0-.164-.047-.188-.093l-1.546-3.063h-.796v2.922a.21.21 0 0 1-.211.21h-1.382a.21.21 0 0 1-.211-.21v-7.668h-.023Zm3.56 3.25c.469 0 .891-.445.891-.936a.89.89 0 0 0-.891-.888h-1.71v1.8h1.71v.024ZM141.229 76.337h-1.663a.21.21 0 0 1-.211-.21v-1.263a.21.21 0 0 1 .211-.21h5.154a.21.21 0 0 1 .211.21v1.262a.21.21 0 0 1-.211.21h-1.663v6.197a.21.21 0 0 1-.211.21h-1.406a.21.21 0 0 1-.211-.21v-6.196Z" fill="#003449"/></svg>
+        </a>
+
+        <div id="main-menu" class="transition-ui transition-visibility top-header h-100-header bg-green menu-padding main-menu">
+              <nav role="navigation" aria-labelledby="block-origin-main-menu-menu" id="block-origin-main-menu" class="block block-menu navigation menu--main">
+            
+  <h2 class="visually-hidden" id="block-origin-main-menu-menu">Main navigation</h2>
+  
+
+        
+              <ul class="transition-ui reset d-flex ai-center jc-center menu">
+                    <li class="menu-item menu-item--collapsed menu-item--active-trail">
+                        <button class="reset transition f-size-15 w-100 f-icon" data-url="/" id="main-menu-the-mountain" aria-controls="submenu-the-mountain" aria-expanded="false">
+                  <span class="d-inline-block pseudo-after menu-line">
+                      The Mountain
+                  </span>
+              </button>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                        <button class="reset transition f-size-15 w-100 f-icon" data-url="/" id="main-menu-plan-your-trip" aria-controls="submenu-plan-your-trip" aria-expanded="false">
+                  <span class="d-inline-block pseudo-after menu-line">
+                      Plan Your Trip
+                  </span>
+              </button>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                        <button class="reset transition f-size-15 w-100 f-icon" data-url="/" id="main-menu-lessons-rentals" aria-controls="submenu-lessons-rentals" aria-expanded="false">
+                  <span class="d-inline-block pseudo-after menu-line">
+                      Lessons &amp; Rentals
+                  </span>
+              </button>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                        <button class="reset transition f-size-15 w-100 f-icon" data-url="/" id="main-menu-tickets-passes" aria-controls="submenu-tickets-passes" aria-expanded="false">
+                  <span class="d-inline-block pseudo-after menu-line">
+                      Tickets &amp; Passes
+                  </span>
+              </button>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                        <button class="reset transition f-size-15 w-100 f-icon" data-url="/" id="main-menu-activities-events" aria-controls="submenu-activities-events" aria-expanded="false">
+                  <span class="d-inline-block pseudo-after menu-line">
+                      Activities &amp; Events
+                  </span>
+              </button>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                        <button class="reset transition f-size-15 w-100 f-icon" data-url="/" id="main-menu-groups-weddings" aria-controls="submenu-groups-weddings" aria-expanded="false">
+                  <span class="d-inline-block pseudo-after menu-line">
+                      Groups &amp; Weddings
+                  </span>
+              </button>
+                </li>
+                <li class="menu-item">
+                        <a class="reset transition f-size-15 w-100 d-block f-icon" href="https://confluencetarghee.com">
+                  <span class="d-inline-block pseudo-after menu-line">
+                      Real Estate
+                  </span>
+              </a>
+                </li>
+        </ul>
+  
+
+
+  </nav>
+
+            <a class="f-icon icon account hide-large f-size-15 t-d-none d-block" href="https://shop.grandtarghee.com/login?ReturnUrl=%2fcustomer%2Finfo" target="_blank">
+                My Account
+            </a>
+        </div>
+
+        <div class="d-flex jc-space-between ai-center utility">
+
+            <a class="f-icon icon account show-large" href="https://shop.grandtarghee.com/login?ReturnUrl=%2fcustomer%2Finfo" target="_blank">
+                <span class="visually-hidden">
+                    My Account
+                </span>
+            </a>
+
+                            
+  <div id="block-current-temp" class="block block-config-pages block-config-pages-block">
+  
+    
+      
+
+<a href="https://www.grandtarghee.com/node/9" class="t-d-none d-block lh-1 t-align-center weather">
+
+  
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+
+  <span class="d-block f-size-15 temp">
+      16°
+  </span>
+
+</a>
+
+  </div>
+
+            
+            <a href="https://www.grandtarghee.com/the-mountain/cams-conditions/mountain-report" class="button outline icon mountain">
+                Report
+            </a>
+
+            <button id="main-menu-toggle" type="button" aria-expanded="false" aria-controls="main-menu" class="hide-large hamburger hamburger--squeeze">
+                <span class="hamburger-box">
+                    <span class="hamburger-inner">
+                        <span class="visually-hidden">Menu</span>
+                    </span>
+                </span>
+            </button>
+
+        </div>
+
+    </div>
+
+    
+<div class="transition-ui pos-absolute z-index-20 top-header bg-random bg-blue w-100vw h-100-header submenus">
+
+    <button tabindex="-1" aria-hidden="true" class="reset hide-medium pos-absolute d-flex ai-flex-start jc-center h-100 f-icon back">
+        <span class="visually-hidden">
+            Back
+        </span>
+    </button>
+
+    
+        <div id="submenu-the-mountain" class="transition-ui transition-visibility visibility-hidden pos-absolute h-100-header menu-padding submenu" aria-labelledby="main-menu-the-mountain">
+              <nav role="navigation" aria-labelledby="block-submenu-the-mountain-menu" id="block-submenu-the-mountain" class="block block-menu navigation menu--main">
+            
+  <h2 class="visually-hidden" id="block-submenu-the-mountain-menu">Submenu - The Mountain</h2>
+  
+
+        
+              <ul class="reset transition-ui d-flex f-size-15 menu">
+                    <li class="menu-item menu-item--expanded menu-item--active-trail">
+                      <h4 class="h6">Cams &amp; Conditions</h4>
+                          <ul class="reset">
+                    <li class="menu-item menu-item--active-trail">
+                      <a href="/the-mountain/cams-conditions/mountain-report" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line is-active" data-drupal-link-system-path="node/915" aria-current="page">Mountain Report</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/the-mountain/cams-conditions/webcams" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/10">Webcams</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/the-mountain/cams-conditions/lifts-trails-report" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/8">Lifts &amp; Trails Report</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/the-mountain/cams-conditions/hours-of-operation" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/13">Hours of Operation</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Mountain Information</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="https://confluencetarghee.com/" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line">Confluence: Properties at Grand Targhee</a>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                      <a href="/the-mountain/mountain-information/mountain-safety" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/18">Mountain Safety</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/the-mountain/mountain-information/trail-maps" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/16">Trail Maps</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/activities-events/activity-finder/e-bikes" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/896">E-Bike Policy</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/the-mountain/mountain-information/mountain-stats" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/15">Mountain Stats</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/future-vision" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/806">Future Vision</a>
+                </li>
+        </ul>
+  
+                </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+    
+        <div id="submenu-plan-your-trip" class="transition-ui transition-visibility visibility-hidden pos-absolute h-100-header menu-padding submenu" aria-labelledby="main-menu-plan-your-trip">
+              <nav role="navigation" aria-labelledby="block-submenu-plan-your-trip-menu" id="block-submenu-plan-your-trip" class="block block-menu navigation menu--main">
+            
+  <h2 class="visually-hidden" id="block-submenu-plan-your-trip-menu">Submenu - Plan Your Trip</h2>
+  
+
+        
+              <ul class="reset transition-ui d-flex f-size-15 menu">
+                    <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Discover</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/plan-your-trip/discover/mellowstone" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/809">Mellowstone</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/discover/stay-for-a-day-summer" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/19">Stay for a Day</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/discover/stay-for-a-while-summer" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/627">Stay for a While</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/discover/tales-from-targhee" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/6">Tales from Targhee</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/discover/discover-the-tetons" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/22">Discover the Tetons</a>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                      <a href="/plan-your-trip/discover/about-targhee" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/23">About Targhee</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Lodging Options</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/plan-your-trip/lodging-options/slopeside-lodging" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/4">Slopeside Lodging</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/lodging-options/winter-camping" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/521">Winter Camping</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/lodging-options/lodging-policies-amenities" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/25">Lodging Policies &amp; Amenities</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/lodging-options/packages-specials" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/26">Packages &amp; Specials</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Planning Tools</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/plan-your-trip/planning-tools/getting-to-the-ghee-summer" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/894">Getting to the Ghee</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/planning-tools/parking-travel-report" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/12">Parking &amp; Travel Report</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/planning-tools/shopping" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/28">Shopping</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/planning-tools/teton-valley-shuttle-service" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/29">Teton Valley Shuttle Service</a>
+                </li>
+                <li class="menu-item menu-item--collapsed">
+                      <a href="/plan-your-trip/planning-tools/airport-shuttle" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/502">Airport Shuttle</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/planning-tools/airport-shuttle/ride-gtr" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/519">Ride GTR: Jackson &lt;&gt; Targhee Shuttle</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Dining</h4>
+                          <ul class="reset">
+                    <li class="menu-item menu-item--collapsed">
+                      <a href="/plan-your-trip/dining/dining-guide" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/5">Dining Guide</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/dining/powder-cache" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/99">Powder Cache</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/dining/the-trap-bar-grill" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/98">The Trap Bar &amp; Grill</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/dining/snorkels-cafe" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/462">Snorkels Cafe</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/dining/wild-bills-grill" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/463">Wild Bill&#039;s Grill</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/plan-your-trip/dining/the-mother-truck" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/517">The Mother Truck</a>
+                </li>
+        </ul>
+  
+                </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+    
+        <div id="submenu-lessons-rentals" class="transition-ui transition-visibility visibility-hidden pos-absolute h-100-header menu-padding submenu" aria-labelledby="main-menu-lessons-rentals">
+              <nav role="navigation" aria-labelledby="block-submenu-lessons-rentals-menu" id="block-submenu-lessons-rentals" class="block block-menu navigation menu--main">
+            
+  <h2 class="visually-hidden" id="block-submenu-lessons-rentals-menu">Submenu - Lessons &amp; Rentals</h2>
+  
+
+        
+              <ul class="reset transition-ui d-flex f-size-15 menu">
+                    <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Bike Rentals</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/lessons-rentals/bike-rentals/bike-rentals" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/889">Bike Rentals</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Winter Rentals &amp; Tunes at Habitat</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/lessons-rentals/winter-rentals-tunes-at-habitat/all-winter-rentals" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/33">All Winter Rentals</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/lessons-rentals/winter-rentals-tunes-at-habitat/ski-rentals" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/453">Ski Rentals</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/lessons-rentals/winter-rentals-tunes/winter-rentals-at-habitat/snowboard-rentals" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/454">Snowboard Rentals</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/lessons-rentals/winter-rentals-tunes-at-habitat/ski-board-lease-program" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/455">Ski &amp; Board Lease Program</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Mountain Sports School</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/lessons-rentals/mountain-sports-school/ski-board-lessons" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/7">Ski &amp; Board Lessons</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/lessons-rentals/mountain-sports-school/adaptive-programs" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/31">Adaptive Programs</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/lessons-rentals/mountain-sports-school/winter-season-long-programs" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/505">Winter Season Long Programs</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/lessons-rentals/mountain-sports-school/winter-adult-camps" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/849">Winter Adult Camps</a>
+                </li>
+        </ul>
+  
+                </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+    
+        <div id="submenu-tickets-passes" class="transition-ui transition-visibility visibility-hidden pos-absolute h-100-header menu-padding submenu" aria-labelledby="main-menu-tickets-passes">
+              <nav role="navigation" aria-labelledby="block-submenu-tickets-passes-menu" id="block-submenu-tickets-passes" class="block block-menu navigation menu--main">
+            
+  <h2 class="visually-hidden" id="block-submenu-tickets-passes-menu">Submenu - Tickets &amp; Passes</h2>
+  
+
+        
+              <ul class="reset transition-ui d-flex f-size-15 menu">
+                    <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Lift Tickets</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/tickets-passes/lift-tickets/winter-lift-tickets" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/944">Winter Lift Tickets</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Season Passes</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/tickets-passes/season-passes/winter-season-passes" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/945">Winter Season Passes</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/tickets-passes/season-passes/5th-6th-grade-peak-season-passport" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/48">5th &amp; 6th Grade Peak Season Passport</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/tickets-passes/season-passes/mountain-collective-pass" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/46">Mountain Collective Pass</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/tickets-passes/season-passes/season-pass-protection-policy" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/508">Season Pass Protection Policy</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Purchase</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/tickets-passes/purchase/gift-cards" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/49">Gift Cards</a>
+                </li>
+        </ul>
+  
+                </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+    
+        <div id="submenu-activities-events" class="transition-ui transition-visibility visibility-hidden pos-absolute h-100-header menu-padding submenu" aria-labelledby="main-menu-activities-events">
+              <nav role="navigation" aria-labelledby="block-submenu-activities-events-menu" id="block-submenu-activities-events" class="block block-menu navigation menu--main">
+            
+  <h2 class="visually-hidden" id="block-submenu-activities-events-menu">Submenu - Activities &amp; Events</h2>
+  
+
+        
+              <ul class="reset transition-ui d-flex f-size-15 menu">
+                    <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Activities</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/activities-events/activities/winter-activity-finder" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/2">Winter Activity Finder</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/activities-events/activities/winter-daycare" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/32">Winter Daycare</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/activities-events/activities/summer-activity-finder" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/53">Summer Activity Finder</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Events</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/activities-events/events/event-calendar" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/3">Event Calendar</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/targheefest" title="July 10-11" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/853">Targhee Fest</a>
+                </li>
+                <li class="menu-item">
+                      <a href="https://www.grandtarghee.com/eventphotography" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" title="Event Photography">Event Photography</a>
+                </li>
+        </ul>
+  
+                </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+    
+        <div id="submenu-groups-weddings" class="transition-ui transition-visibility visibility-hidden pos-absolute h-100-header menu-padding submenu" aria-labelledby="main-menu-groups-weddings">
+              <nav role="navigation" aria-labelledby="block-submenu-groups-weddings-menu" id="block-submenu-groups-weddings" class="block block-menu navigation menu--main">
+            
+  <h2 class="visually-hidden" id="block-submenu-groups-weddings-menu">Submenu - Groups &amp; Weddings</h2>
+  
+
+        
+              <ul class="reset transition-ui d-flex f-size-15 menu">
+                    <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Groups</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/groups-weddings/groups/groups" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/55">Groups</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/groups-weddings/groups/group-tickets" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/56">Group Tickets</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/groups-weddings/groups/meetings-event-space" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/57">Meetings &amp; Event Space</a>
+                </li>
+                <li class="menu-item">
+                      <a href="https://grandtargheeresort.hbportal.co/public/6a57b47dec2cf44c056df08a" target="_blank" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line">Group 20+ Information Request</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/grouptransportation" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/875">Group Transportation</a>
+                </li>
+        </ul>
+  
+                </li>
+                <li class="menu-item menu-item--expanded">
+                      <h4 class="h6">Weddings</h4>
+                          <ul class="reset">
+                    <li class="menu-item">
+                      <a href="/groups-weddings/weddings/grand-targhee-weddings" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/59">Grand Targhee Weddings</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/groups-weddings/weddings/venues" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/60">Venues</a>
+                </li>
+                <li class="menu-item">
+                      <a href="/groups-weddings/weddings/photo-gallery" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line" data-drupal-link-system-path="node/62">Photo Gallery</a>
+                </li>
+                <li class="menu-item">
+                      <a href="https://grandtargheeresort.hbportal.co/public/6a19dfe11590a9e7d84bef35" target="_blank" class="d-inline-block f-s-15 pseudo-after outline-offset menu-line">Information Request</a>
+                </li>
+        </ul>
+  
+                </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+    
+</div>
+
+</header>
+
+
+    
+
+
+    <main id="main-content" role="main"
+          class="overflow-hidden transition-ui  main-content">
+
+        <div class=" layout-content">
+
+            
+                    
+    
+
+    <div class="region region-content">
+        
+  <div id="block-origin-content" class="block block-system block-system-main-block">
+  
+    
+      
+    
+
+
+
+<article id="node-915"  data-history-node-id="915" class="node node--type-page node--view-mode-full no-hero-image">
+
+    <div data-drupal-messages-fallback class="hidden"></div>
+
+
+            
+
+
+<div class="container pseudo-before p-v-2 bg-blue bg-random bg-topo overflow-hidden hero no-image ">
+    <div class="grid-area-main pos-relative z-index-20">
+
+        
+        
+        <div class="d-flex t-align-right ai-flex-end flex-direction-column z-index-20 copy">
+            <h1>Mountain Report</h1>
+        </div>
+
+    </div>
+</div>
+    
+
+    
+
+    
+                    <div class="row custom-block container">
+                                <div class="grid-area-main row-margin-offset-top">
+                                        
+  <div id="block-mountain-report" class="block block-config-pages block-config-pages-block">
+  
+    
+      
+
+
+  
+
+<div class="config_pages config_pages--type--mountain-report config_pages--view-mode--full config_pages--mountain-report--full rte">
+
+    <section class="mountain-report-hero" aria-labelledby="mountain-report-hero-heading">
+    
+      <a class="mountain-report-hero__tab is-visible" href="#stick-of-truth" data-sticky-tab="before" data-sticky-tab-pin aria-label="Stick of Truth: jump to the webcam">
+      <span class="visually-hidden">Stick of Truth</span>
+<span class="stick-of-truth-wordmark" aria-hidden="true">St<img class="stick-of-truth-wordmark__stick" src="/themes/custom/origin/images/stick-of-truth-seafoam.svg" alt="">ck <span class="stick-of-truth-wordmark__line">of truth</span></span>
+      <img class="mountain-report-hero__tab-icon" src="/themes/custom/origin/images/camera-seafoam.svg" alt="">
+    </a>
+  
+          <img loading="eager" class="mountain-report-hero__cam" src="https://i.ytimg.com/vi/fQiA_DZT0cE/maxresdefault_live.jpg" alt="">
+    <div class="mountain-report-hero__content">
+    <h2 id="mountain-report-hero-heading" class="visually-hidden">Current conditions</h2>
+    <p class="mountain-report-hero__time">
+      <span class="mountain-report-hero__time-label">Current snapshot: </span><time datetime="2026-11-24T10:27:01-07:00">10:27am MST</time>
+    </p>
+    <p class="mountain-report-hero__sky">
+      
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+      Sunny
+    </p>
+        
+          <p class="mountain-report-hero__season">
+        
+<i class="f-icon weather-icon icon-mountain" aria-hidden="true"></i>
+ 44" season total
+      </p>
+      <dl class="mountain-report-hero__now">      <div class="mountain-report-hero__stat">
+        <dt>Temp</dt>
+        <dd>19°</dd>
+      </div>
+      <div class="mountain-report-hero__stat">
+        <dt>Wind</dt>
+        <dd>SW 4<span class="mountain-report-hero__unit">mph</span></dd>
+      </div>
+    </dl>
+    
+    <dl class="mountain-report-hero__stats">
+            <div class="mountain-report-hero__stat mountain-report-hero__stat--snow">
+        <dt>Overnight</dt>
+        <dd>
+          1"
+        </dd>
+      </div>
+      <div class="mountain-report-hero__stat mountain-report-hero__stat--snow">
+        <dt>24hr snow</dt>
+        <dd>
+          1"
+        </dd>
+      </div>
+      <div class="mountain-report-hero__stat">
+        <dt>Base depth</dt>
+        <dd>22"</dd>
+      </div>
+            <div class="mountain-report-hero__stat">
+        <dt>Lifts open</dt>
+        <dd>
+          2 <span class="mountain-report-hero__unit"><span aria-hidden="true">/</span><span class="visually-hidden">of </span>6</span>
+        </dd>
+      </div>
+      <div class="mountain-report-hero__stat">
+        <dt>Runs open</dt>
+        <dd>
+          14
+          <span class="mountain-report-hero__unit">
+            <span aria-hidden="true">/</span><span class="visually-hidden">of </span>95
+          </span>
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+  <div class="row inner-grid">
+  <ul class="grid-inner-full reset h4 d-flex flex-direction-column-phone quicklinks">
+    <li>
+      <a class="f-icon icon gondola t-c-red" href="/the-mountain/cams-conditions/lifts-trails-report">
+        Lifts/Trails Report
+      </a>
+    </li>
+    <li>
+      <a class="f-icon icon parking t-c-red" href="/plan-your-trip/planning-tools/parking-travel-report">
+        Parking/Road Report
+      </a>
+    </li>
+    <li>
+      <a class="f-icon icon light-snow t-c-red" href="#weather">Weather Report</a>
+    </li>
+  </ul>
+</div>
+
+  <section class="row inner-grid" aria-labelledby="mountain-report-conditions-heading">
+  <div class="content-container">
+    <h2 id="mountain-report-conditions-heading">Conditions Update</h2>
+        
+
+
+
+
+
+    
+        
+                        
+            <div class="clearfix text-formatted field field--name-field-daily-report field--type-text-long field--label-hidden field__item"
+                            >
+
+            
+                                    <p>Another inch of fresh snow on the Stick of Truth this Tuesday, November 24! Expect partly sunny skies, light winds, and a high of 24°F on the mountain today. Wednesday is looking a little warmer, with increased cloud cover and no new snow in the forecast.</p>
+<p>Get out and enjoy some early-season turns, and remember to ski and ride with caution as hidden hazards exist. See you on the hill!</p>
+                
+            
+            </div>
+
+        
+    
+
+
+
+  </div>
+</section>
+
+  
+      <section class="row inner-grid mountain-report-snow" aria-labelledby="mountain-report-snow-heading">
+  <div class="grid-inner-full">
+    <h2 id="mountain-report-snow-heading">Full Snow Report</h2>
+          <p class="m-t-0">
+        Updated Daily at 7:00am
+      </p>
+        <dl class="mountain-report-snow__stats">
+      <div>
+        <dt class="h6">Overnight</dt>
+        <dd class="h2">
+          1"
+        </dd>
+      </div>
+      <div>
+        <dt class="h6">24 HR</dt>
+        <dd class="h2">
+          1"
+        </dd>
+      </div>
+      <div>
+        <dt class="h6">48 HR</dt>
+        <dd class="h2">
+          4"
+        </dd>
+      </div>
+      <div>
+        <dt class="h6">Base Depth</dt>
+        <dd class="h2">
+          22"
+        </dd>
+      </div>
+      <div>
+        <dt class="h6">Season</dt>
+        <dd class="h2">
+          44"
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+  
+
+  
+<section class="row inner-grid mountain-report-lifts" aria-labelledby="mountain-report-lifts-heading">
+  <h2 id="mountain-report-lifts-heading">Lifts & Run Status</h2>
+  <div class="mountain-report-lifts__group">
+    
+<figure class="donut">
+  <svg class="donut__chart" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+    <circle class="donut__track" cx="18" cy="18" r="14.4" />
+    <circle class="donut__value" cx="18" cy="18" r="14.4" pathLength="100" stroke-dasharray="33.333333333333 100" />
+  </svg>
+  <figcaption class="donut__caption"><span class="donut__number">2</span> of 6 Lifts</figcaption>
+</figure>
+    <div class="mountain-report-lifts__text">
+      <h3 class="h6">Spinning</h3>
+      <ul class="reset mountain-report-lifts__open">
+        <li>Huckleberry</li><li>Shoshone</li>      </ul>
+    </div>
+  </div>
+  <div class="mountain-report-lifts__group">
+    
+<figure class="donut">
+  <svg class="donut__chart" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+    <circle class="donut__track" cx="18" cy="18" r="14.4" />
+    <circle class="donut__value" cx="18" cy="18" r="14.4" pathLength="100" stroke-dasharray="14.736842105263 100" />
+  </svg>
+  <figcaption class="donut__caption"><span class="donut__number">14</span> of 95 Runs</figcaption>
+</figure>
+    <div class="mountain-report-lifts__text">
+      <h3 class="h6">Trails open</h3>
+      <p class="h3 t-c-red">15%</p>
+      <p>of Total Trails</p>
+    </div>
+  </div>
+  <p class="mountain-report-lifts__more">
+    <a class="button outline" href="/the-mountain/cams-conditions/lifts-trails-report">Full Lift & Trails Report</a>
+  </p>
+</section>
+
+
+      <section id="stick-of-truth" class="row inner-grid mountain-report-sot" tabindex="-1" aria-labelledby="mountain-report-sot-heading">
+  <h2 id="mountain-report-sot-heading" class="mountain-report-sot__title">
+    <span class="visually-hidden">Stick of Truth</span>
+<span class="stick-of-truth-wordmark" aria-hidden="true">St<img class="stick-of-truth-wordmark__stick" src="/themes/custom/origin/images/stick-of-truth.svg" alt="">ck <span class="stick-of-truth-wordmark__line">of truth</span></span>
+  </h2>
+  
+    
+
+<div class="media media--type-remote-video">
+
+        <a class="d-block f-icon outline-offset video-poster-frame" href="">
+    
+                    <div class="field--name-field-media-image">
+                                
+<img
+    class="lazyload "
+    loading="lazy"
+    data-src="https://copyrighted.seejh.com/gtrsnowstick/gtrsnowstick.jpg?v=1795541228"
+    alt="Stick Of Truth Webcam"
+    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            >
+            </div>
+        
+                    <div class="field--name-field-media-oembed-video" data-url="https://streams.seejh.com/gtrsnowstick">
+            </div>
+        
+        </a>
+    
+</div>
+  <div class="mountain-report-sot__copy t-micetype">
+        
+
+    
+
+
+
+    
+        
+                        
+            <div class="clearfix text-formatted field field--name-field-copy-first-column field--type-text-long field--label-hidden rte field__item"
+                            >
+
+            
+                                    <p>Cleared Daily at 9am (during winter operations). The Stick of Truth is supposed to be fun. It's not an official snow measurement. We manage the Stick of Truth as often as we can. If the cam is down, there may be snow on the lens or any number of other issues. We will address them as soon as we can, no need to message us or comment!&nbsp;&nbsp;</p>
+                
+            
+            </div>
+
+        
+    
+
+
+
+  </div>
+  <p class="mountain-report-sot__more">
+    <a class="button outline" href="/the-mountain/cams-conditions/webcams">View all Web Cams</a>
+  </p>
+</section>
+  
+
+  
+<section id="weather" class="row inner-grid mountain-report-weather" aria-labelledby="mountain-report-weather-heading">
+  <h2 id="mountain-report-weather-heading">Weather</h2>
+
+      <div class="mountain-report-weather__current">
+    <div class="mountain-report-weather__heading">
+      <h3 class="h5">Current</h3>
+      <p>
+        Updated November 24th at 10:27am
+      </p>
+    </div>
+    <div class="mountain-report-weather__stations">
+      <div class="mountain-report-weather__station">
+        <h4 class="h6">Summit</h4>
+        <div class="mountain-report-weather__now">
+          
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+          <div>
+            <p class="h3">Sunny</p>
+            <p class="h6">
+              16°
+              <span aria-hidden="true">|</span>
+              0 mph
+            </p>
+          </div>
+        </div>
+      </div>
+            <div class="mountain-report-weather__station">
+        <h4 class="h6">Mid-mountain</h4>
+        <div class="mountain-report-weather__now">
+          
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+          <div>
+            <p class="h3">Sunny</p>
+            <p class="h6">
+              19°
+              <span aria-hidden="true">|</span>
+              SW 4 mph
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="mountain-report-weather__forecast">
+    <div class="mountain-report-weather__heading">
+      <h3 class="h5">Forecast</h3>
+            <a href="https://opensnow.com/location/grandtarghee?units=imperial&amp;utm_source=grand-targhee-v2&amp;utm_medium=external-api&amp;utm_campaign=2022-2023" target="_blank" class="mountain-report-weather__logo t-d-none d-flex ai-center">
+        Powered by
+        
+<img
+    class="lazyload "
+    loading="lazy"
+    data-src="/themes/custom/origin/images/logo-opensnow.png"
+    alt="Logo: Open Snow"
+    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            >
+      </a>
+    </div>
+    
+
+<ol class="field field--name-field-weather-forecast field--type-entity-reference-revisions field--label-hidden mountain-report-weather__days">
+      
+        <li class="mountain-report-weather__day">
+        <h4 class="h6">Tuesday</h4>
+        <div class="mountain-report-weather__periods">
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">AM</p>
+                    
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                <span>Sunny</span>
+                        <span>23°</span>
+                        <span>SW 7 mph</span>
+                    </p>
+                </div>
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">PM</p>
+                    
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                <span>Sunny</span>
+                        <span>27°</span>
+                        <span>SW 7 mph</span>
+                    </p>
+                </div>
+                    </div>
+    </li>
+
+      
+        <li class="mountain-report-weather__day">
+        <h4 class="h6">Wednesday</h4>
+        <div class="mountain-report-weather__periods">
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">AM</p>
+                    
+<i class="f-icon weather-icon icon-sun-cloud" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                <span>Some Cloud</span>
+                        <span>25°</span>
+                        <span>SW 7 mph</span>
+                    </p>
+                </div>
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">PM</p>
+                    
+<i class="f-icon weather-icon icon-cloud" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                <span>Cloudy</span>
+                        <span>34°</span>
+                        <span>SW 7 mph</span>
+                    </p>
+                </div>
+                    </div>
+    </li>
+
+      
+        <li class="mountain-report-weather__day">
+        <h4 class="h6">Thursday</h4>
+        <div class="mountain-report-weather__periods">
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">AM</p>
+                    
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                <span>Sunny</span>
+                        <span>27°</span>
+                        <span>SW 6 mph</span>
+                    </p>
+                </div>
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">PM</p>
+                    
+<i class="f-icon weather-icon icon-sun-cloud" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                <span>Some Cloud</span>
+                        <span>32°</span>
+                        <span>SW 6 mph</span>
+                    </p>
+                </div>
+                    </div>
+    </li>
+
+      
+        <li class="mountain-report-weather__day">
+        <h4 class="h6">Friday</h4>
+        <div class="mountain-report-weather__periods">
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">AM</p>
+                    
+<i class="f-icon weather-icon icon-sun" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                <span>Sunny</span>
+                        <span>25°</span>
+                        <span>SW 15 mph</span>
+                    </p>
+                </div>
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">PM</p>
+                    
+<i class="f-icon weather-icon icon-snow" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                    <span class="mountain-report-weather__snow">3" Snow</span>
+                                                <span>Snow</span>
+                        <span>28°</span>
+                        <span>SW 15 mph</span>
+                    </p>
+                </div>
+                    </div>
+    </li>
+
+      
+        <li class="mountain-report-weather__day">
+        <h4 class="h6">Saturday</h4>
+        <div class="mountain-report-weather__periods">
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">AM</p>
+                    
+<i class="f-icon weather-icon icon-snow" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                    <span class="mountain-report-weather__snow">10" Snow</span>
+                                                <span>Snow</span>
+                        <span>19°</span>
+                        <span>SW 19 mph</span>
+                    </p>
+                </div>
+                            <div class="mountain-report-weather__period">
+                    <p class="mountain-report-weather__label t-micetype">PM</p>
+                    
+<i class="f-icon weather-icon icon-snow" aria-hidden="true"></i>
+                    <p class="mountain-report-weather__desc">
+                                                    <span class="mountain-report-weather__snow">4" Snow</span>
+                                                <span>Snow</span>
+                        <span>25°</span>
+                        <span>SW 19 mph</span>
+                    </p>
+                </div>
+                    </div>
+    </li>
+
+  </ol>
+
+  </div>
+
+  <p class="mountain-report-weather__more">
+    <a class="button outline" href="https://opensnow.com/location/grandtarghee?units=imperial&amp;utm_source=grand-targhee-v2&amp;utm_medium=external-api&amp;utm_campaign=2022-2023" target="_blank">OpenSnow Full Forecast</a>
+  </p>
+</section>
+
+
+  
+
+</div>
+
+  </div>
+
+                                    </div>
+                            </div>
+        
+    
+
+            
+    <div class="row node-content">
+
+                    <div class="fade-in container body">
+                <div class="inner-grid">
+                    <div class="content-container rte">
+                                                
+                            
+
+    
+
+
+
+    
+        
+                        
+            <div class="clearfix text-formatted field field--name-body field--type-text-with-summary field--label-hidden rte field__item"
+                            >
+
+            
+                                    <p><a class="button outline" href="https://www.grandtarghee.com/the-mountain/cams-conditions/lifts-trails-report">Lift &amp; Trails Report</a></p>
+                
+            
+            </div>
+
+        
+    
+
+
+
+                                                
+                        
+                    </div>
+                </div>
+            </div>
+        
+        
+
+                        
+
+    
+
+
+
+    
+        <div class="field field--name-field-paragraphs field--type-entity-reference-revisions field--label-hidden row row-padding p-t-0 field__items">
+
+            
+            
+                
+                                                                                    
+                                            <div class="field__item paragraph-single-column-copy row">
+                            
+    
+
+
+
+
+
+    <div class="paragraph paragraph--type--single-column-copy paragraph--view-mode--default heading--above width--normal container" id="paragraph-1070">
+        <div class="fade-in inner-grid ">
+
+                            <div class="content-container ">
+                        
+
+
+
+
+
+    
+        
+                                                    
+            <h2 class="field field--name-field-heading field--type-string field--label-hidden field__item"
+                            >
+
+            
+                                    Winter Season Reporting Sources
+                
+            
+            </h2>
+
+        
+    
+
+
+
+                        
+
+    
+
+
+
+    
+        
+                        
+            <div class="clearfix text-formatted field field--name-field-copy-first-column field--type-text-long field--label-hidden rte field__item"
+                            >
+
+            
+                                    <ul><li><a href="http://forecast.weather.gov/MapClick.php?lat=43.80&amp;lon=-110.95&amp;site=riw&amp;smap=1&amp;marine=0&amp;unit=0&amp;lg=en" target="_blank">NOAA</a></li><li><a href="http://wxstns.net/wxstns/jhnet/TARGHEE.txt" target="_blank">Chief Joe Bowl</a></li><li><a href="https://wcc.sc.egov.usda.gov/reportGenerator/view/customSingleStationReport/hourly/start_of_period/1082:WY:SNTL%7Cid=%22%22%7Cname/-23,0/WTEQ::value,WTEQ::delta,SNWD::value,SNWD::delta?fitToScreen=false" target="_blank">SNOTEL Station</a></li><li><a href="http://wxstns.net/wxstns/jhnet/TARGWND2.txt" target="_blank">Summit Data</a></li><li><a href="http://www.jhavalanche.org/viewBigsheet" target="_blank">Bridger-Teton Avy Center</a></li><li><a href="https://wxstns.net/wxstns/jhnet/PEAKED_WIND.txt">Peaked Wind Station</a></li></ul><p>The Grand Targhee Resort Huckleberry Conveyor, Dreamcatcher and Shoshone lifts operate from 9:00am-4:00pm. The Sacajawea lift operates from 9:00am-3:45pm.&nbsp;The Colter and Blackfoot lifts operate from 9:00am-3:30pm.</p><p>24 hour totals are updated every morning at 7:00am. Additional accumulations between 7:00am and lift opening can be found by viewing the hourly data from the sources above. All snow accumulated after 7:00 am is included in the next day's 24 hour snowfall total.</p><p>Physical measurements are recorded during the day with season totals adjusted accordingly. The Stick of Truth webcam is cleared off every day at 9:00am. Check in on the Stick of Truth to get an idea of how much snow has fallen since the lifts started.&nbsp;</p>
+                
+            
+            </div>
+
+        
+    
+
+
+
+                </div>
+            
+        </div>
+    </div>
+
+                        </div>
+                    
+                
+            
+            
+        </div>
+
+    
+
+
+
+        
+    </div>
+
+    
+
+    
+
+            
+
+
+
+    
+
+    
+
+    
+
+    
+
+
+</article>
+
+
+
+  </div>
+
+    </div>
+
+
+                
+        </div>
+    </main>
+
+    
+
+  <div id="block-alert-bar" class="pos-fixed transition-ui w-100 z-index-100 block block-config-pages block-config-pages-block">
+  
+    
+      
+
+<div class="config_pages config_pages--type--alert-bar config_pages--view-mode--full config_pages--alert-bar--full with-close container bg-red p-v-1 t-align-center t-micetype rte">
+
+    <div class="pos-relative grid-area-main">
+
+            
+
+
+
+
+
+    
+        
+                        
+            <div class="clearfix text-formatted field field--name-field-copy field--type-text-long field--label-hidden field__item"
+                            >
+
+            
+                                    <div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><div><p><span>Shoshone and Huckleberry are open! </span><strong>Early-season conditions exist. Ski and ride with caution, and watch for hidden hazards. </strong><span>Uphill Travel will remain CLOSED while we prepare additional terrain for opening.&nbsp;</span></p></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div>
+                
+            
+            </div>
+
+        
+    
+
+
+
+
+                <button type="button" class="pos-absolute reset f-icon close" aria-controls="block-alert-bar">
+            <span class="visibility-hidden">Close</span>
+        </button>
+        
+    </div>
+
+</div>
+
+  </div>
+
+
+<footer class="container transition-ui row-padding rte bg-green site-footer" role="contentinfo">
+    <div class="inner-grid">
+
+        <div class="grid-inner-full newsletter">
+            
+<div id="block-newsletter" class="block block-config-pages block-config-pages-block">
+  
+      <h5>
+      Newsletter
+    </h5>
+    
+      <div class="config_pages config_pages--type--footer config_pages--view-mode--newsletter config_pages--footer--newsletter">
+      
+
+
+
+
+
+    
+        
+                        
+            <div class="field field--name-field-newsletter field--type-string-long field--label-hidden field__item"
+                            >
+
+            
+                                    Stay up-to-date with Grand Targhee
+                
+            
+            </div>
+
+        
+    
+
+
+
+</div>
+
+  </div>
+
+            <p>
+                <a href="/newsletter-signup" class="button outline icon email">Sign Up Now</a>
+            </p>
+            
+  <div id="block-text-numbers" class="block block-config-pages block-config-pages-block">
+  
+    
+      <div class="config_pages config_pages--type--footer config_pages--view-mode--text-numbers config_pages--footer--text-numbers">
+  
+</div>
+
+  </div>
+
+        </div>
+
+        <div class="grid-inner-full contact">
+            
+<div id="block-contact-information" class="block block-config-pages block-config-pages-block">
+  
+      <h5>
+      Contact Us
+    </h5>
+    
+      <div class="config_pages config_pages--type--footer config_pages--view-mode--contact config_pages--footer--contact">
+      
+
+
+
+
+
+    
+        
+                        
+            <div class="clearfix text-formatted field field--name-field-address field--type-text-long field--label-hidden field__item"
+                            >
+
+            
+                                    <p>Grand Targhee Resort<br>3300 Ski Hill Rd<br>Alta, WY 83414</p>
+                
+            
+            </div>
+
+        
+    
+
+
+    
+
+    
+
+
+
+    
+        <div class="field field--name-field-phone field--type-link field--label-hidden icon-text phone m-v-base field__items">
+
+            
+            
+                
+                                        
+                                            <div class="field__item">
+                            <a href="tel:+13073532300">307-353-2300</a>
+                        </div>
+                    
+                
+                                        
+                                            <div class="field__item">
+                            <a href="tel:+18008274433">800.TARGHEE</a>
+                        </div>
+                    
+                
+            
+            
+        </div>
+
+    
+
+
+    
+
+
+
+
+
+    
+        
+                        
+            <div class="field field--name-field-email field--type-email field--label-hidden field__item"
+                            >
+
+            
+                                    <a href="mailto:info@grandtarghee.com">info@grandtarghee.com</a>
+                
+            
+            </div>
+
+        
+    
+
+
+
+</div>
+
+  </div>
+
+              <nav role="navigation" aria-labelledby="block-contact-menu-menu" id="block-contact-menu" class="block block-menu navigation menu--contact-menu">
+            
+  <h2 class="visually-hidden" id="block-contact-menu-menu">Contact Menu</h2>
+  
+
+        
+              <ul class="menu reset f-size-15 lh-2">
+                    <li class="menu-item">
+        <a href="/the-mountain/cams-conditions/hours-of-operation" class="d-inline-block outline-offset" data-drupal-link-system-path="node/13">Hours of Operation</a>
+              </li>
+                <li class="menu-item">
+        <a href="/travel-insurance" class="d-inline-block outline-offset" data-drupal-link-system-path="node/77">Travel Insurance</a>
+              </li>
+        </ul>
+  
+
+
+  </nav>
+
+              <nav role="navigation" aria-labelledby="block-social-menu" id="block-social" class="block block-menu navigation menu--social">
+            
+  <h2 class="visually-hidden" id="block-social-menu">Social</h2>
+  
+
+        
+              <ul class="reset d-flex ai-center menu">
+                    <li class="menu-item">
+        <a href="https://www.facebook.com/grandtarghee" target="_blank" class="f-icon d-inline-block border-radius-full outline-offset"><span class="visually-hidden">Facebook</span></a>
+              </li>
+                <li class="menu-item">
+        <a href="https://www.instagram.com/grandtargheeresort/" target="_blank" class="f-icon d-inline-block border-radius-full outline-offset"><span class="visually-hidden">Instagram</span></a>
+              </li>
+                <li class="menu-item">
+        <a href="http://www.linkedin.com/company/grand-targhee-resort" target="_blank" class="f-icon d-inline-block border-radius-full outline-offset"><span class="visually-hidden">LinkedIn</span></a>
+              </li>
+                <li class="menu-item">
+        <a href="https://www.youtube.com/user/GrandTargheeResort" target="_blank" class="f-icon d-inline-block border-radius-full outline-offset"><span class="visually-hidden">YouTube</span></a>
+              </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+        <div class="grid-inner-full menus">
+            <nav role="navigation" aria-labelledby="block-about-menu-menu" id="block-about-menu" class="block block-menu navigation menu--footer">
+      
+  <h5 id="block-about-menu-menu">About</h5>
+  
+
+        
+              <ul class="menu reset f-size-15 lh-2">
+                    <li class="menu-item">
+        <a href="/about/media" class="d-inline-block outline-offset" data-drupal-link-system-path="node/71">Media</a>
+              </li>
+                <li class="menu-item">
+        <a href="/about/brand-assets" class="d-inline-block outline-offset" data-drupal-link-system-path="node/64">Brand Assets</a>
+              </li>
+                <li class="menu-item">
+        <a href="/about/jobs-careers" class="d-inline-block outline-offset" data-drupal-link-system-path="node/72">Jobs &amp; Careers</a>
+              </li>
+                <li class="menu-item">
+        <a href="/communityimpact" class="d-inline-block outline-offset" data-drupal-link-system-path="node/783">Community Impact</a>
+              </li>
+                <li class="menu-item">
+        <a href="/about/contact" class="d-inline-block outline-offset" data-drupal-link-system-path="node/497">Contact</a>
+              </li>
+                <li class="menu-item">
+        <a href="/about/official-resort-partners" class="d-inline-block outline-offset" data-drupal-link-system-path="node/470">Official Resort Partners</a>
+              </li>
+        </ul>
+  
+
+
+  </nav>
+
+            <nav role="navigation" aria-labelledby="block-policies-menu-menu" id="block-policies-menu" class="block block-menu navigation menu--footer">
+      
+  <h5 id="block-policies-menu-menu">Policies</h5>
+  
+
+        
+              <ul class="menu reset f-size-15 lh-2">
+                    <li class="menu-item">
+        <a href="/policies/privacy-policy" class="d-inline-block outline-offset" data-drupal-link-system-path="node/73">Privacy Policy</a>
+              </li>
+                <li class="menu-item">
+        <a href="/policies/terms-conditions" class="d-inline-block outline-offset" data-drupal-link-system-path="node/75">Terms &amp; Conditions</a>
+              </li>
+                <li class="menu-item">
+        <a href="/policies/accessibility-policy" class="d-inline-block outline-offset" data-drupal-link-system-path="node/76">Accessibility Policy</a>
+              </li>
+                <li class="menu-item">
+        <a href="/policies/non-discrimination-policy" class="d-inline-block outline-offset" data-drupal-link-system-path="node/74">Non Discrimination Policy</a>
+              </li>
+        </ul>
+  
+
+
+  </nav>
+
+        </div>
+
+    </div>
+</footer>
+
+                
+    <a href="/the-mountain/mountain-information/mountain-safety"
+       class="pos-fixed z-index-100 transition button outline icon mountain safety">
+        <span class="visually-hidden">Mountain</span> Safety
+    </a>
+
+
+</div>
+    
+    <script type="application/json" data-drupal-selector="drupal-settings-json">{"path":{"baseUrl":"\/","pathPrefix":"","currentPath":"node\/915","currentPathIsAdmin":false,"isFront":false,"currentLanguage":"en"},"pluralDelimiter":"\u0003","suppressDeprecationErrors":true,"lazy":{"lazysizes":{"lazyClass":"lazyload","loadedClass":"lazyloaded","loadingClass":"lazyloading","preloadClass":"lazypreload","errorClass":"lazyerror","autosizesClass":"lazyautosizes","srcAttr":"data-src","srcsetAttr":"data-srcset","sizesAttr":"data-sizes","minSize":40,"customMedia":[],"init":true,"expFactor":1.5,"hFac":0.8,"loadMode":2,"loadHidden":true,"ricTimeout":0,"throttleDelay":125,"plugins":{"object-fit":"object-fit\/ls.object-fit","parent-fit":"parent-fit\/ls.parent-fit"}},"placeholderSrc":"data:image\/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==","preferNative":false,"minified":true,"libraryPath":"\/libraries\/lazysizes"},"user":{"uid":0,"permissionsHash":"6f17d49a8d153cdffe82fb28bbbaf7e577922eebeaa5595ea31946cdb0b9edd0"}}</script>
+<script src="/core/assets/vendor/jquery/jquery.min.js?v=4.0.0"></script>
+<script src="/sites/default/files/js/js_TWdnoF02JkDz6kN_XN1Klj4lR3YzykEWLZbBLzwD28A.js?scope=footer&amp;delta=1&amp;language=en&amp;theme=origin&amp;include=eJxLzNRPzIxPz8lPSszRyUmsqtQHETr5RZnpmXn6EArGKy7JTM6ujC9JTIKJlGWmpOYDAGhKGeQ"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-inview@1.1.2/jquery.inview.min.js"></script>
+<script src="/sites/default/files/js/js_ANhxIEdAixYt1ZYvSpcsA56CWDcyFGU_uM7xkT99pvI.js?scope=footer&amp;delta=3&amp;language=en&amp;theme=origin&amp;include=eJxLzNRPzIxPz8lPSszRyUmsqtQHETr5RZnpmXn6EArGKy7JTM6ujC9JTIKJlGWmpOYDAGhKGeQ"></script>
+
+
+
+    <script type="text/javascript" id="chatbot-initials-script"
+            src="https://bots.getskitickets.com/widget/script-chatbot.js" data-server-url="https://bots.getskitickets.com/api" data-bot-id="017c2e7a-11c0-4f88-a991-f4a099e22c99"></script>
+
+</body>
+
+</html>

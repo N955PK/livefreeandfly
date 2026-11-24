@@ -1,4 +1,4 @@
-"""The runner for the New England mountains that each have a reader of their own."""
+"""The runner for the mountains that each have a reader of their own."""
 from datetime import datetime, timezone
 
 from tahoe_snow import config
@@ -17,12 +17,13 @@ def feed(open_lifts: int, snow: dict | None) -> dict:
     return out
 
 
-def test_every_reader_is_a_new_england_mountain_and_says_where_its_page_is():
+def test_every_reader_is_a_mountain_of_new_england_or_the_tetons_and_says_where_its_page_is():
     for key, module in independents.MODULES.items():
-        assert config.RESORTS[key].region == "newengland", key
+        assert config.RESORTS[key].region in ("newengland", "tetons"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
-    assert len(independents.MODULES) == 13
+    assert len(independents.MODULES) == 15
+    assert [key for key in independents.MODULES if config.RESORTS[key].region == "tetons"] == ["jacksonhole", "targhee"]
 
 
 def test_a_range_is_given_its_middle_and_a_single_figure_is_left_alone():

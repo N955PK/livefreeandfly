@@ -2522,6 +2522,8 @@ const STATUS_PAGES = {
   stevens: "https://www.stevenspass.com/the-mountain/mountain-conditions/lift-and-terrain-status.aspx",
   snoqualmie: "https://www.summitatsnoqualmie.com/mountain-report", alpental: "https://www.summitatsnoqualmie.com/mountain-report",
   missionridge: "https://www.missionridge.com/mountain-report/",
+  jacksonhole: "https://www.jacksonhole.com/mountain-report", targhee: "https://www.grandtarghee.com/the-mountain/cams-conditions/lifts-trails-report",
+  snowking: "https://snowkingmountain.com/mountain/conditions/",
 };
 const ALPINE_AREAS = ["Summit Peak", "Scott/Lakeview Peak", "Sherwood Bowl"];
 const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alpine: [61, (area) => ALPINE_AREAS.includes(area)], mammoth: [60, () => true], june: [59, () => true],
@@ -2535,7 +2537,9 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
     "jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback",
     // Seattle. Crystal Mountain's site sits behind a bot check; Mt. Baker Ski Area, White Pass and Hurricane Ridge
     // publish nothing a reader can take.
-    "stevens", "snoqualmie", "alpental", "missionridge"].map((key) => [key, [key, () => true]]))};
+    "stevens", "snoqualmie", "alpental", "missionridge",
+    // Tetons. Snow King's site sits behind a bot check, so it has only the link to its own report.
+    "jacksonhole", "targhee"].map((key) => [key, [key, () => true]]))};
 // Sierra-at-Tahoe publishes its own feed; it is recast here into the shape of the Ikon feed the rest of the page reads.
 // Its one weather reading is taken near mid-mountain.
 const getJsonLive = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
@@ -2605,7 +2609,9 @@ const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBo
   ...Object.fromEntries(["jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback"].map((key) => [key, publishedFeed("independents.json", key)])),
   // Seattle. The Summit at Snoqualmie's report holds Alpental too; the collector writes each under its own key.
   stevens: publishedFeed("resort_status.json", "stevens"), snoqualmie: publishedFeed("boyne.json", "snoqualmie"),
-  alpental: publishedFeed("boyne.json", "alpental"), missionridge: publishedFeed("missionridge.json", "missionridge")};
+  alpental: publishedFeed("boyne.json", "alpental"), missionridge: publishedFeed("missionridge.json", "missionridge"),
+  // Tetons. Jackson Hole and Grand Targhee are read with the mountains that each run their own site.
+  jacksonhole: publishedFeed("independents.json", "jacksonhole"), targhee: publishedFeed("independents.json", "targhee")};
 // Rules of thumb, not any resort's policy: summit gusts or steady wind (mph) at which lifts tend to go on hold,
 // by how exposed the mountain's main lifts are, and overnight snow (inches) after which patrol needs time for
 // avalanche control before upper terrain opens. The exposed tier is Palisades' own account of its ridgetop gusts,
@@ -2926,7 +2932,8 @@ const STAKES = {palisades: [61, ["BaseArea", "MidMountainArea", "SummitArea"]], 
   mammoth: [60, ["BaseArea", "MidMountainArea", "SummitArea"]], june: [59, ["BaseArea", "MidMountainArea", "SummitArea"]],
   sugarbush: [70, ["BaseArea", "MidMountainArea", "SummitArea"]],
   ...Object.fromEntries(["sugarloaf", "sundayriver", "loon", "killington", "pico", "snoqualmie", "alpental",
-    "jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]]))};
+    "jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback",
+    "jacksonhole", "targhee"].map((key) => [key, [key, ["BaseArea", "MidMountainArea", "SummitArea"]]]))};
 function stakeDepth(key, level) {
   const spec = STAKES[key], feed = spec && liftFeeds[spec[0]], report = feed && !feed.failed && feed.data.SnowReport;
   if (!report) return null;
@@ -3057,6 +3064,8 @@ const RESORT_CAMS = {
   heavenly: "https://www.skiheavenly.com/the-mountain/mountain-conditions/mountain-cams.aspx", sierra: "https://sierraattahoe.com/live-cams/",
   kirkwood: "https://www.kirkwood.com/the-mountain/mountain-conditions/mountain-cams.aspx",
   mammoth: "https://www.mammothmountain.com/on-the-mountain/mammoth-webcam", june: "https://www.junemountain.com/mountain-information/live-cams",
+  jacksonhole: "https://www.jacksonhole.com/live-mountain-cams", targhee: "https://www.grandtarghee.com/the-mountain/cams-conditions/webcams",
+  snowking: "https://snowkingmountain.com/mountain/webcams/",
 };
 // ---------- corn window ----------
 // Spring melt-freeze snow on a backcountry peak: whether the night refroze it, and roughly when a 35 degree slope
