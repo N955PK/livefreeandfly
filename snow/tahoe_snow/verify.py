@@ -34,7 +34,7 @@ def seattle_sections() -> list:
     """Seattle's three tests, each None where its table is not on hand: water against its ten sensors, the rain/snow
     split against the Sierra's on the same days, and the Sierra's snow ratio on Cascade snow days."""
     water = water_section(
-        "Water, Seattle.",
+        "Water, Cascades.",
         "The same test against 10 snow sensors in the Washington Cascades and Olympics, on the 2024, 2025, and 2026 "
         "winters held out in turn. Crystal Mountain and White Pass use the curve pooled over all ten, which did "
         "better there than their own sensor's. Mt. Rainier, Mt. Baker, and Mt. St. Helens are shown their sensor "
@@ -46,16 +46,16 @@ def seattle_sections() -> list:
         kind, params = phase.load("seattle")
         sierra = phase.load()[1]
         row = table.loc[kind]
-        split = {"title": "Rain or snow, Seattle.",
+        split = {"title": "Rain or snow, Cascades.",
                  "note": f"The same test at {int(row['stations'])} snow sensors in the Washington Cascades and "
                          f"Olympics over {int(row['days']):,} held-out days, {int(row['mixed days']):,} of them mixed. "
-                         f"Seattle's curve is centered at {params['center_c']:g} C of wet-bulb against the Sierra's "
+                         f"The Cascades' curve is centered at {params['center_c']:g} C of wet-bulb against the Sierra's "
                          f"{sierra['center_c']:g} C: more of each storm is rain. Calling everything snow would miss "
                          f"by {float(row['all_snow_error']):.1f} mm.",
                  "columns": ["Method", "Error (mm of water)", "On mixed days (mm)"],
                  "rows": [["The Sierra's wet-bulb curve", f"{row['sierra_error']:.2f}",
                            f"{row['sierra_mixed_error']:.2f}"],
-                          ["Seattle's wet-bulb curve (in use)", f"{row['held-out error (mm water)']:.2f}",
+                          ["The Cascades' wet-bulb curve (in use)", f"{row['held-out error (mm water)']:.2f}",
                            f"{row['error on mixed days (mm water)']:.2f}"]]}
     check = MODELS / "snow_ratio_check_seattle.json"
     if check.exists():
@@ -64,7 +64,7 @@ def seattle_sections() -> list:
         pooled = record["pooled_refit_each_station_held_out"]
         rows = {"flat_10_to_1": RATIO_ROWS["fixed 10:1"], "kuchera": RATIO_ROWS["Kuchera"],
                 "sierra_model": "This site's ratio, trained in the Sierra (in use)"}
-        ratio = {"title": "Snow ratio, Seattle.",
+        ratio = {"title": "Snow ratio, Cascades.",
                  "note": f"The Sierra-trained ratio on {on['days']:,} hand-measured snow days at {on['stations']} "
                          f"Washington stations, {on['first_date'][:4]} to {on['last_date'][:4]}, none of which it "
                          "was trained on. Refitting it with those days added did no better at a station held out "
@@ -73,7 +73,7 @@ def seattle_sections() -> list:
                  "columns": ["Method", "Snowfall error (in)", "Average miss (in)"],
                  "rows": [[label, f"{record[key]['snow_error_in']:.2f}", f"{record[key]['snow_bias_in']:+.2f}"]
                           for key, label in rows.items()]}
-    return [("Water, Seattle.", water), ("Rain or snow, Seattle.", split), ("Snow ratio, Seattle.", ratio)]
+    return [("Water, Cascades.", water), ("Rain or snow, Cascades.", split), ("Snow ratio, Cascades.", ratio)]
 
 
 def scorecard() -> dict:

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
-<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, New England, and around Seattle.">
+<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, New England, and the Cascades.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1510,8 +1510,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <figure class="plot"><img loading="lazy" src="report/ratio_error_by_temperature.png" alt="Average snowfall error by temperature band for three methods"><figcaption>Kuchera does worst in cold storms, where it calls for very light snow that the Sierra rarely delivers.</figcaption></figure>
 <div class="gridwrap"><table class="plain"><tr><th>Winter held out</th><th>Snow days</th><th>Kuchera error (in)</th><th>This site (in)</th></tr><tr><td>2021–22</td><td>231</td><td>2.40</td><td>2.06</td></tr><tr><td>2022–23</td><td>487</td><td>1.93</td><td>1.46</td></tr><tr><td>2023–24</td><td>207</td><td>1.92</td><td>1.61</td></tr><tr><td>2024–25</td><td>131</td><td>1.36</td><td>1.42</td></tr><tr><td>2025–26</td><td>141</td><td>2.47</td><td>1.97</td></tr></table></div>
 <p><b>What did not work:</b> training on the full 45-year record. Its upper-air data is coarse and does not line up with the forecast models, so it made the forecasts slightly worse, and it is not used.</p>
-<h5>Seattle</h5>
-<p>Seattle uses the Sierra's model. It was checked against 248 all-snow days measured by hand at 9 Cascade stations over three winters. Given the measured water, it misses the snowfall by <b>1.51 in</b> on average, against 2.08 in for Kuchera and 1.72 in for a flat 10:1, with no lean either way overall.</p>
+<h5>Cascades</h5>
+<p>The Cascades use the Sierra's model. It was checked against 248 all-snow days measured by hand at 9 Cascade stations over three winters. Given the measured water, it misses the snowfall by <b>1.51 in</b> on average, against 2.08 in for Kuchera and 1.72 in for a flat 10:1, with no lean either way overall.</p>
 <p>It is not even across the range: west of the crest and at it (Paradise, Snoqualmie Pass) it runs a little fluffy, and east of the crest it runs dense. Refitting it with the Cascade days added did no better at a station left out of the fit, so the Sierra's model is kept as it is.</p>
 
 <h4 class="ghead">Rain or snow</h4>
@@ -1520,8 +1520,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <figure class="plot"><img loading="lazy" src="report/rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about 1.25 °C.</figcaption></figure>
 <p>Three methods were tried and came out tied: about 2.4 mm of water miscalled per wet day, half the 4.9 mm you get by calling everything snow.</p>
 <p>The curve is fitted at Tahoe and used in the Eastern Sierra as well.</p>
-<h5>Seattle</h5>
-<p>Seattle has its own curve, fitted the same way to 16,508 wet days at 64 Cascade and Olympic snow sensors over three winters. Half the water falls as snow at a wet-bulb temperature of about 0.75 °C, half a degree colder than at Tahoe, so more of a storm near freezing is rain.</p>
+<h5>Cascades</h5>
+<p>The Cascades have their own curve, fitted the same way to 16,508 wet days at 64 Cascade and Olympic snow sensors over three winters. Half the water falls as snow at a wet-bulb temperature of about 0.75 °C, half a degree colder than at Tahoe, so more of a storm near freezing is rain.</p>
 <p>On winters left out of the fit it miscalls 3.00 mm of water per wet day, against 3.27 mm for Tahoe's curve on the same days, and it leans toward snow by 0.66 mm a day where Tahoe's leans by 1.78. It did better in each of the three winters and at every height below 1,600 m; above that the two are about even.</p>
 
 <h4 class="ghead">How much water</h4>
@@ -1538,8 +1538,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p><b>Matterhorn Peak and Dana Plateau</b> use the sensors nearest them: Slide Canyon, 4 km west across the crest, and Dana Meadows, 5 km southwest.</p>
 <p><b>June Mountain, Carson Peak, and Mt. Whitney</b> have no working sensor nearby and are left uncorrected. The record of a sensor that has since gone quiet (Gem Pass) says a correction borrowed from Mammoth Pass would make them worse.</p>
 <p><b>The sensors:</b> most are state snow pillows that are not quality-controlled the way SNOTEL is. Adding up their daily rises counts sensor jitter as snow (about 20% too much over a week), so readings are smoothed and small dips ignored before any of this is fitted or scored.</p>
-<h5>Seattle</h5>
-<p>Seattle gets its own correction, fitted to 10 snow sensors from Mt. Baker to Mt. St. Helens and in the Olympics, and tested the same way on the 2024, 2025, and 2026 winters. Every model is dry there: uncorrected, the four together deliver 72% of the measured water, and corrected 101%. The average miss over three days falls from 0.55 in of water to 0.40, and in storms of 2 in or more from 1.33 in to 0.78. Corrected beat uncorrected in each of the three winters.</p>
+<h5>Cascades</h5>
+<p>The Cascades get their own correction, fitted to 10 snow sensors from Mt. Baker to Mt. St. Helens and in the Olympics, and tested the same way on the 2024, 2025, and 2026 winters. Every model is dry there: uncorrected, the four together deliver 72% of the measured water, and corrected 101%. The average miss over three days falls from 0.55 in of water to 0.40, and in storms of 2 in or more from 1.33 in to 0.78. Corrected beat uncorrected in each of the three winters.</p>
 <p><b>Crystal Mountain and White Pass</b> sit east of the crest, where their own sensors' corrections overshot the winter left out, so they use the correction pooled over all ten sensors, which did better than either their own or none.</p>
 <p><b>The five volcanoes</b> are left uncorrected. Mt. Rainier, Mt. Baker, and Mt. St. Helens have sensors far below their summits, whose readings are only shown, and Glacier Peak and Mt. Adams have none. The models are used as they are at every height.</p>
 
@@ -1559,7 +1559,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> What each step is fitted to depends on the region.</p>
     <p><b>Tahoe</b> Everything is fitted here: the correction to 22 snow sensors around the lake, the rain-or-snow curve to the same sensors, the fluffiness model to snowfall measured by hand at Sierra stations, and the weights that blend the four models.</p>
     <p><b>Eastern Sierra</b> Its own correction, fitted to 10 snow sensors along the crest. The rain-or-snow curve, the fluffiness model, and the blend weights are Tahoe's.</p>
-    <p><b>Seattle</b> Its own correction, fitted to 10 snow sensors, and its own rain-or-snow curve, which turns to rain half a degree colder than Tahoe's. Its blend weights were fitted there too and came out equal. The fluffiness model is the Sierra's, checked against snowfall measured by hand in the Cascades and kept. Because the passes are low, the air is read closer to the ground than in the Sierra.</p>
+    <p><b>Cascades</b> Its own correction, fitted to 10 snow sensors, and its own rain-or-snow curve, which turns to rain half a degree colder than Tahoe's. Its blend weights were fitted there too and came out equal. The fluffiness model is the Sierra's, checked against snowfall measured by hand in the Cascades and kept. Because the passes are low, the air is read closer to the ground than in the Sierra.</p>
     <p><b>New England</b> No snow sensors sit near its mountains, so there is no correction, and the rain-or-snow curve, the fluffiness model, and the blend weights are the Sierra's, not checked there. The air is read down to near sea level.</p>
     <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
@@ -1568,11 +1568,11 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
     <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
     <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken at about 10,000 ft for every elevation, which is near the crest in the Sierra and above the resorts' tops elsewhere; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
-    <p><b>The map</b> The land is drawn white where snow is lying, read from the snow sensors in the Sierra and around Seattle and, in New England, where there are none, from the depths the resorts report, which are mostly snow they made on their trails.</p>
+    <p><b>The map</b> The land is drawn white where snow is lying, read from the snow sensors in the Sierra and the Cascades and, in New England, where there are none, from the depths the resorts report, which are mostly snow they made on their trails.</p>
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p id="usageNote"></p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
-    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's and Seattle's included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is Sugarloaf, Sunday River, Loon, Killington, Pico, Sugarbush, Stowe, Okemo, Mount Snow, and Wildcat, and Attitash, Mount Sunapee, and Crotched once they post their lifts for the season. Stratton's status cannot be read from outside its own site, so it has none here. Around Seattle that is the Summit at Snoqualmie, Alpental, and Mission Ridge, and Stevens Pass once it posts its lifts for the season. Crystal Mountain's status cannot be read from outside its own site, and Mt. Baker Ski Area, White Pass, and Hurricane Ridge do not publish theirs in a form this page can read, so these four have none here.</p>
+    <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on exposed mountains (Kirkwood, Mt. Rose, Palisades, Alpine, Sugar Bowl, and Mammoth) possible from gusts of 45 mph, expected from 55, and closures from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. Average mountains are flagged 5 mph later and sheltered ones (Northstar and Homewood) 15 mph later. Every other mountain, New England's and the Cascades' included, is counted as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live; Sierra-at-Tahoe's single reading is near mid-mountain), and the forecast otherwise. Where a resort publishes them, lift and trail counts come live from it (for Mt. Rose and Sugar Bowl, read from its status page), including any holds it has declared, in its own words. In New England that is Sugarloaf, Sunday River, Loon, Killington, Pico, Sugarbush, Stowe, Okemo, Mount Snow, and Wildcat, and Attitash, Mount Sunapee, and Crotched once they post their lifts for the season. Stratton's status cannot be read from outside its own site, so it has none here. In the Cascades that is the Summit at Snoqualmie, Alpental, and Mission Ridge, and Stevens Pass once it posts its lifts for the season. Crystal Mountain's status cannot be read from outside its own site, and Mt. Baker Ski Area, White Pass, and Hurricane Ridge do not publish theirs in a form this page can read, so these four have none here.</p>
     <p><b>Powder score</b> A 0 to 10 rating of each ski day: depth × ratio × wind × layering × rain × timing.</p>
     <ul id="formula"></ul>
   </div>
@@ -1640,7 +1640,7 @@ const REGIONS = {
       [1450, [0.55, 0.53, 0.48]], [1800, [0.70, 0.68, 0.65]]],
     lake: {name: "Lake Winnipesaukee", lat: 43.60307, lon: -71.32397},
     avalanche: [{id: "MWAC", name: "Mount Washington Avalanche Center", url: "https://www.mountwashingtonavalanchecenter.org/", state: "NH"}]},
-  seattle: {name: "Seattle", terrain: "data/terrain-seattle", roads: "data/roads-seattle.json", center: [47.5113, -121.9565], rev: "?v=2", waterM: 0, pick: "crystal",
+  seattle: {name: "Cascades", terrain: "data/terrain-seattle", roads: "data/roads-seattle.json", center: [47.5113, -121.9565], rev: "?v=2", waterM: 0, pick: "crystal",
     // Mt. Baker to Mt. Adams and Hurricane Ridge to Mission Ridge: the disc is 176 km in radius, the terrain the
     // square that holds it. The view opens far out, from the south-southeast, where the mountains spread least
     // across the screen, so Hurricane Ridge, Mission Ridge and Mt. St. Helens all fit across a phone.
@@ -4079,8 +4079,8 @@ function onTheDay(product, zone) {
 }
 // The states the avalanche zones lie in, by the two letters the centers' map layers give.
 // The part of the country a zone is listed under, by its state, in the order the picker shows them.
-const AVY_AREAS = ["California", "New England", "Pacific Northwest"];
-const AVY_AREA = {CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Pacific Northwest", OR: "Pacific Northwest"};
+const AVY_AREAS = ["California", "New England", "Cascades"];
+const AVY_AREA = {CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Cascades", OR: "Cascades"};
 async function zonesFrom(centers) {
   const layers = await Promise.all(centers.map((center) => avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
   const zones = [];

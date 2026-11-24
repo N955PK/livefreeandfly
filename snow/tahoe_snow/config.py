@@ -326,7 +326,7 @@ REGIONS = {
                low_levels=(1000, 975, 950, 925, 900), at=(4, 16)),
         # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
         # trailhead at 630 m, which 950 hPa (near 540 m) covers.
-        Region("seattle", "Seattle", "America/Los_Angeles", 8, 6, ("NWAC",), low_levels=(950, 925, 900),
+        Region("seattle", "Cascades", "America/Los_Angeles", 8, 6, ("NWAC",), low_levels=(950, 925, 900),
                at=(5, 11, 17, 23)),
     ]
 }
