@@ -169,3 +169,20 @@ def test_a_mountain_given_a_station_since_its_forecast_is_told_so(tmp_path, stub
     assert "tahoe" in pipeline.mend(NOW)
     after = {p["key"]: p for p in json.loads(path.read_text())["resorts"]}
     assert after[resort.key]["station"] == config.ALL_STATIONS[resort.station].name
+
+
+def test_season_figures_with_no_date_or_an_old_one_are_redrawn_once(tmp_path, stubbed, monkeypatch):
+    for key in config.REGIONS:
+        pipeline.run(key, NOW)
+    path = tmp_path / "forecast/tahoe.json"
+    forecast = json.loads(path.read_text())
+    for payload in forecast["resorts"]:
+        payload["observed"] = {"station": "Sensor"}
+    del forecast["season_utc"]
+    path.write_text(json.dumps(forecast))
+    drawn = []
+    monkeypatch.setattr(pipeline, "add_season", lambda resorts, now, last=None: drawn.append(1) or {"Sensor": {"depth": [0]}})
+    assert pipeline.mend(NOW) == ["tahoe"] and len(drawn) == 1
+    assert json.loads(path.read_text())["season_curves"] == {"Sensor": {"depth": [0]}}
+    assert pipeline.mend(NOW + timedelta(hours=3)) == [] and len(drawn) == 1           # dated now, and in date
+    assert "tahoe" in pipeline.mend(NOW + timedelta(hours=8))                           # its forecast is late

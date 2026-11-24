@@ -679,8 +679,15 @@ def mend(now: datetime | None = None) -> list[str]:
                 found = True
             elif time.monotonic() - began > SLOW_READ_S:
                 down.add(source)
-        if found:
+        # The season figures are redrawn with each forecast. A file whose figures have no date, or are older than its
+        # region's interval and an hour, is brought up to date here: one built before a change to how they are
+        # reckoned, or whose next forecast is late.
+        drawn = (forecast or {}).get("season_utc")
+        late = forecast is not None and any(RESORTS.get(p["key"]) and RESORTS[p["key"]].station for p in forecast["resorts"]) and (
+            drawn is None or (now - pd.Timestamp(drawn).tz_localize(None)) / pd.Timedelta(hours=1) > REGIONS[key].every_h + 1)
+        if found or late:
             forecast["season_curves"] = add_season(forecast["resorts"], now, forecast)
+            forecast["season_utc"] = now.strftime("%Y-%m-%dT%H:00:00Z")
             write_whole(DATA / "forecast" / f"{key}.json", forecast)
             mended.append(key)
     if mended:
@@ -715,6 +722,7 @@ def run(region: str, now: datetime | None = None) -> dict:
     season_curves = add_season(resorts, now, read_region(region) or read_legacy())
     forecast = {"generated_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
                 "published_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "season_utc": now.strftime("%Y-%m-%dT%H:00:00Z"),
                 "snow_ratio_model": ratio_name,
                 "rain_snow_split": {"kind": snow_model.phase_kind, "params": snow_model.phase_params},
                 "bias_corrected": "tahoe" in corrections, "deterministic_days": DETERMINISTIC_DAYS,
