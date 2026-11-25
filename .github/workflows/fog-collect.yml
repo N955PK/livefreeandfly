@@ -1,0 +1,68 @@
+name: Fog collect
+
+# The fog map shows airport forecasts (TAF) and reports (METAR) from aviationweather.gov, which sends no CORS header,
+# so a browser cannot read it. This workflow reads them (fog/wx.py) every ten minutes and publishes the one file it
+# writes, wx.json, as the only commit of the fog-wx branch, which the page reads from raw.githubusercontent.com.
+#
+# GitHub fires a scheduled workflow on this repository hours apart, however often the schedule asks, so, like the snow
+# collector, this does not wait to be fired: one job runs for most of six hours, then starts the next run itself. The
+# schedule below only restarts the chain if it ever breaks; while a run is going, a second one waits.
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: fog-collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: fog
+
+      - name: Collect until the job is nearly out of time
+        env:
+          REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        run: |
+          set -u +e   # a pass that fails carries on to the next; nothing here should end the job
+          echo "COLLECT_BEGAN=$(date +%s)" >> "$GITHUB_ENV"
+          root="$PWD" work="$RUNNER_TEMP/wx"
+          mkdir -p "$work"
+          git config --global user.name "fog-collect"
+          git config --global user.email "actions@users.noreply.github.com"
+          # Start from what is published, so a feed that fails keeps what was last read for it.
+          if git fetch -q --depth=1 origin fog-wx 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$work"; fi
+
+          stop=$((SECONDS + 330 * 60)) pass=0
+          while [ "$SECONDS" -lt "$stop" ]; do
+            began=$SECONDS pass=$((pass + 1))
+            if python3 "$root/fog/wx.py" "$work"; then
+              out="$(mktemp -d)"
+              cp "$work/wx.json" "$out/" && cd "$out" && git init -q -b fog-wx && git add -A \
+                && git commit -q -m "Airport weather $(date -u +%Y-%m-%dT%H:%MZ)" && git push -q -f "$REMOTE" fog-wx \
+                || echo "::warning::Airport weather was not published"
+              cd "$root"; rm -rf "$out"
+            else echo "::warning::Airport forecasts and reports could not be read"; fi
+            rest=$((600 - (SECONDS - began)))
+            if [ "$rest" -gt 0 ] && [ $((SECONDS + rest)) -lt "$stop" ]; then sleep "$rest"; else [ "$rest" -gt 0 ] && break; fi
+          done
+          echo "$pass passes"
+
+      # Runs even if the loop above failed or was cancelled, so one bad run does not end the chain. A run that lasted
+      # under ten minutes does not start another (something is broken, and the hourly schedule will try again), so a
+      # fault cannot turn into a stream of runs. To stop the chain for good, disable this workflow.
+      - name: Start the next run
+        if: always() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ $(( $(date +%s) - ${COLLECT_BEGAN:-$(date +%s)} )) -ge 600 ]; then gh workflow run fog-collect.yml --repo "${{ github.repository }}" --ref main; else echo "Short run; leaving the restart to the schedule."; fi

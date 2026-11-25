@@ -1,7 +1,7 @@
 """Airport forecasts (TAF) and reports (METAR) for the fog map, gathered where a browser cannot.
 
-aviationweather.gov answers these requests but sends no CORS header, so the page cannot read them itself. The snow
-collector runs this every pass and publishes the one file it writes, wx.json, as the only commit of the fog-wx branch,
+aviationweather.gov answers these requests but sends no CORS header, so the page cannot read them itself. The fog
+collector (.github/workflows/fog-collect.yml) runs this every ten minutes and publishes the one file it writes, wx.json, as the only commit of the fog-wx branch,
 which the page reads from raw.githubusercontent.com.
 
     python3 fog/wx.py OUT_DIR

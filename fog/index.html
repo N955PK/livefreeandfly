@@ -1035,8 +1035,8 @@ function loadHires(){
 }
 
 /* ---------------- airport weather (collected) ---------------- */
-// aviationweather.gov sends no CORS header, so a browser cannot read it. The snow collector reads the TAFs and METARs
-// every pass (fog/wx.py) and publishes them as one file on the fog-wx branch; this is the page's only copy of them.
+// aviationweather.gov sends no CORS header, so a browser cannot read it. The fog collector reads the TAFs and METARs
+// every ten minutes (fog/wx.py) and publishes them as one file on the fog-wx branch; this is the page's only copy of them.
 const WX_URL='https://raw.githubusercontent.com/N955PK/livefreeandfly/fog-wx/wx.json';
 let wxFile=null, wxAt=0, wxBusy=null;
 function loadWx(){   // one request serves the forecasts and the reports; shared while in flight, kept 4 minutes
