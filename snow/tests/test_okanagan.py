@@ -17,7 +17,7 @@ def test_the_okanagan_mountains_are_where_they_should_be():
         assert r.base_m < r.summit_m, r.key
         # Apex in the south to Sun Peaks in the north.
         assert 49.3 < r.lat < 51.0 and -120.0 < r.lon < -118.8, r.key
-        assert r.station is None and r.weather_from is None and r.kind == "resort", r.key
+        assert r.weather_from is None and r.kind == "resort", r.key
     # SilverStar's and Sun Peaks' bases are under the 850 hPa level; the 900 hPa one is below them both.
     assert min(r.base_m for r in found) > 990
 

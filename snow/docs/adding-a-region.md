@@ -150,6 +150,14 @@ England has none: give those mountains `station=None` and skip to 1c.
 - List a state's stations from the NRCS service the code already uses (no key):
   `https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/stations?stationTriplets=*:UT:SNTL&activeOnly=true`
   Each has a triplet (`766:UT:SNTL`), name, latitude, longitude and elevation in feet.
+- **Canada** has no SNOTEL. British Columbia's stations are read by `sources/bcasws.py` (one file a measure for the
+  whole network, hourly, UTC; station list with elevations from the province's WFS layer
+  `WHSE_WATER_MANAGEMENT.SSL_SNOW_ASWS_STNS_SP`) and Alberta's snow pillows by `sources/abrivers.py` (five days of
+  water only; station list at `https://rivers.alberta.ca/DataService/ListStations`, JSON inside JSON, no elevations).
+  Add a station to `CANADA_STATIONS` as `"<id>:BCASWS"` or `"<id>:ABRIVERS"` with `corrects=False` (nothing is
+  fitted in Canada) and `depth=False` where it has no depth gauge. Neither network's long record is read
+  (`season.NO_RECORD`), so these stations show no usual year. Check a British Columbia station has a column with
+  recent values in `SW.csv` and `SD.csv` before pairing: several list a sensor they do not report.
 - Pair each mountain with the nearest station that is within about 10 km **and** within about 300 m of the
   mountain's mid elevation. Within 10 km but lower than that: pair it and set `weak_match=True`. Nothing within
   10 km: `station=None`. The page then tags the mountain Corrected, Low sensor or Uncorrected by itself.

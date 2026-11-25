@@ -14,6 +14,9 @@ from tahoe_snow.config import ALL_STATIONS, MM_PER_IN, REGIONS, RESORTS
 from tahoe_snow.sources import acis, cdec, snotel
 
 HISTORY_START = "1980-10-01"
+# Networks whose long records are not read: Alberta publishes five days and no more, and British Columbia's
+# archive has no reader yet. Their stations show their readings with no usual year beside them.
+NO_RECORD = {"bcasws", "abrivers"}
 MIN_YEARS = 10
 FULL_YEAR_DAYS = 300
 # Below this much in a usual year, a percent of normal is a ratio of two small numbers and means little.
@@ -196,7 +199,7 @@ def normals(now: pd.Timestamp, keys=None) -> dict:
     clock = {ALL_STATIONS[resort.station]: REGIONS[resort.region].std_offset_h for resort in resorts if resort.station}
     found, down = {}, set()
     for station, offset_h in clock.items():
-        if station.source in down:
+        if station.source in NO_RECORD or station.source in down:
             found[station.triplet] = {}
             continue
         try:

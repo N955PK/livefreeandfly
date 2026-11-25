@@ -12,7 +12,7 @@ def test_the_bc_coast_runs_from_the_north_shore_to_the_duffey_and_across_to_the_
     assert (region.collector, region.country, region.tz, region.low_levels) == ("canada", "Canada", "America/Vancouver", (950, 925, 900))
     assert len(found) == 8 and {r.key for r in found if r.kind == "backcountry"} == {"spearhead", "duffey", "paulridge"}
     for r in found:
-        assert r.base_m < r.summit_m and r.station is None, r.key
+        assert r.base_m < r.summit_m, r.key
         assert 49.3 < r.lat < 50.4 and -125.4 < r.lon < -122.4, r.key
         # Whistler's Creekside base, the lowest, is above the 950 hPa level.
         assert r.base_m > 540, r.key
@@ -47,7 +47,7 @@ def test_the_powder_highway_is_two_regions_because_it_keeps_two_clocks():
     assert [r.key for r in mountains("powderhighway")] == ["revelstoke", "redmountain", "whitewater", "rogerspass", "kootenaypass"]
     assert [r.key for r in mountains("eastkootenays")] == ["kickinghorse", "panorama", "kimberley", "fernie"]
     for r in mountains("powderhighway") + mountains("eastkootenays"):
-        assert r.base_m < r.summit_m and r.station is None and r.weather_from is None, r.key
+        assert r.base_m < r.summit_m and r.weather_from is None, r.key
     # Revelstoke's base is under the 950 hPa level, so the west reads down to 975; the east's lowest is Fernie's.
     assert west.low_levels == (975, 950, 925, 900) and min(r.base_m for r in mountains("powderhighway")) > 320
     assert east.low_levels == (900,) and min(r.base_m for r in mountains("eastkootenays")) > 990
@@ -57,6 +57,6 @@ def test_the_rockies_are_seven_mountains_on_albertas_clock_with_no_low_levels():
     region, found = ALL_REGIONS["rockies"], mountains("rockies")
     assert (region.tz, region.std_offset_h, region.collector, region.country) == ("America/Edmonton", 7, "canada", "Canada")
     assert [r.key for r in found] == ["lakelouise", "sunshine", "norquay", "nakiska", "marmot", "bowsummit", "parkerridge"]
-    assert all(r.base_m < r.summit_m and r.station is None and r.weather_from is None for r in found)
+    assert all(r.base_m < r.summit_m and r.weather_from is None for r in found)
     assert region.low_levels == () and min(r.base_m for r in found) > 1450
     assert usage.pulls("rockies", ALL_RESORTS) == 7

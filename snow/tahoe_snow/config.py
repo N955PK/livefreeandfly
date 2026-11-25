@@ -258,8 +258,29 @@ SHASTA_STATIONS = {
         Station("BLA:CDEC", "Blacks Mountain", 40.76984, -121.199783, _ft(7050), source="cdec"),
     ]
 }
+# Canada's snow stations (reporting 2026-11-24). British Columbia's automated snow weather stations (keyed
+# "<id>:BCASWS"; positions and elevations from the province's own station list) and one Alberta River Basins snow
+# pillow ("<id>:ABRIVERS"; its elevation is SRTM's at the listed spot, as Alberta publishes none). Each is within
+# about 10 km of the mountain it is paired with. None corrects a forecast: nothing has been fitted in Canada, so
+# they are only shown. Mount Strachan, on Cypress itself, measures depth and no water; Wildcat Creek and Sunshine
+# Village measure water and no depth. Alberta publishes five days of readings and no longer record, so Sunshine
+# has no usual year to be told against; the British Columbia stations' records are not read yet either.
+CANADA_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("2F10P:BCASWS", "Silver Star Mountain", 50.37136, -119.06211, 1840, source="bcasws", corrects=False),
+        Station("3A30P:BCASWS", "Mount Strachan", 49.40432, -123.19151, 1215, source="bcasws", corrects=False),
+        Station("3A09P:BCASWS", "Palisade Lake", 49.45444, -123.03194, 900, source="bcasws", corrects=False),
+        Station("2A34P:BCASWS", "Rogers Pass", 51.27012, -117.50942, 1182, source="bcasws", corrects=False),
+        Station("2C09Q:BCASWS", "Morrissey Ridge", 49.44722, -114.975, 1860, source="bcasws", corrects=False),
+        Station("2A32P:BCASWS", "Wildcat Creek", 51.6963, -116.62941, 2122, source="bcasws", depth=False,
+                corrects=False),
+        Station("05BB803:ABRIVERS", "Sunshine Village", 51.07745, -115.78159, 2192, source="abrivers", depth=False,
+                corrects=False),
+    ]
+}
 ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
-                **WASATCH_STATIONS, **COLORADO_STATIONS, **SHASTA_STATIONS}
+                **WASATCH_STATIONS, **COLORADO_STATIONS, **SHASTA_STATIONS, **CANADA_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -578,7 +599,8 @@ ALL_RESORTS = {
         # 30 m above the published figure. Nobody shares weather: the nearest two are 71 km apart. Sun Peaks is
         # also on the Mountain Collective, and is counted as Ikon.
         Resort("bigwhite", "Big White", 49.73055, -118.92684, 1508, 2285, None, "Indy", region="okanagan"),
-        Resort("silverstar", "SilverStar", 50.36381, -119.05471, 1155, 1915, None, "Ikon", region="okanagan"),
+        Resort("silverstar", "SilverStar", 50.36381, -119.05471, 1155, 1915, "2F10P:BCASWS", "Ikon",
+               region="okanagan"),                                       # the station is 1 km off, near the top
         Resort("sunpeaks", "Sun Peaks", 50.89223, -119.8983, 1198, 2093, None, "Ikon", region="okanagan"),
         Resort("apex", "Apex", 49.38404, -119.90579, 1607, 2178, None, "Indy", region="okanagan"),
         # The BC Coast (looked up 2026-11-24). Each resort's point is the midpoint of a main lift in OpenStreetMap:
@@ -590,9 +612,10 @@ ALL_RESORTS = {
         # it is Independent. Cypress and Seymour take Grouse's weather: 9 and 10 km along the one North Shore
         # front, with valleys and no crest between.
         Resort("whistler", "Whistler Blackcomb", 50.09129, -122.95018, 653, 2240, None, "Epic", region="bccoast"),
-        Resort("cypress", "Cypress", 49.40067, -123.19927, 826, 1440, None, "Ikon",
+        Resort("cypress", "Cypress", 49.40067, -123.19927, 826, 1440, "3A30P:BCASWS", "Ikon",
                region="bccoast", weather_from="grouse"),                 # 9.1 km from Grouse
-        Resort("grouse", "Grouse", 49.37568, -123.07964, 865, 1231, None, "Independent", region="bccoast"),
+        Resort("grouse", "Grouse", 49.37568, -123.07964, 865, 1231, "3A09P:BCASWS", "Independent",
+               region="bccoast"),                                        # Palisade Lake, 9.4 km north
         Resort("seymour", "Mt. Seymour", 49.37252, -122.94576, 935, 1265, None, "Independent",
                region="bccoast", weather_from="grouse"),                 # 9.7 km from Grouse
         Resort("mtwashington", "Mt. Washington", 49.74717, -125.30003, 1083, 1588, None, "Indy", region="bccoast"),
@@ -647,15 +670,16 @@ ALL_RESORTS = {
                region="powderhighway"),
         # Rogers Pass is Ursus Minor up Connaught Creek from the Discovery Centre; Kootenay Pass is Cornice Ridge
         # from the lot at Bridal Lake, its point on the ridge's ski trail.
-        Resort("rogerspass", "Rogers Pass", 51.30095, -117.56427, 1318, 2738, None, "Backcountry",
-               region="powderhighway", kind="backcountry"),
+        Resort("rogerspass", "Rogers Pass", 51.30095, -117.56427, 1318, 2738, "2A34P:BCASWS", "Backcountry",
+               region="powderhighway", kind="backcountry", weak_match=True),   # the station is in the valley
         Resort("kootenaypass", "Kootenay Pass", 49.06455, -117.0482, 1775, 2111, None, "Backcountry",
                region="powderhighway", kind="backcountry"),
         Resort("kickinghorse", "Kicking Horse", 51.28638, -117.06322, 1266, 2415, None, "Epic",
                region="eastkootenays"),
         Resort("panorama", "Panorama", 50.45075, -116.23403, 1150, 2365, None, "Ikon", region="eastkootenays"),
         Resort("kimberley", "Kimberley", 49.68391, -116.01971, 1230, 1905, None, "Epic", region="eastkootenays"),
-        Resort("fernie", "Fernie", 49.45083, -115.09335, 1052, 2134, None, "Epic", region="eastkootenays"),
+        Resort("fernie", "Fernie", 49.45083, -115.09335, 1052, 2134, "2C09Q:BCASWS", "Epic",
+               region="eastkootenays"),                                  # Morrissey Ridge, 8.6 km east
         # The Canadian Rockies in Alberta (looked up 2026-11-24): Banff's three hills, Nakiska in Kananaskis, Marmot
         # Basin at Jasper, and two tours off the Icefields Parkway. Each resort's point is the midpoint of a main
         # lift in OpenStreetMap; Sunshine's is the Super Angel chair's, up in the village where the skiing is, not
@@ -666,13 +690,14 @@ ALL_RESORTS = {
         # the map. Banff's three are on Ikon; Nakiska gives Epic holders days, like the East Kootenays' three;
         # Marmot is on the Mountain Collective alone.
         Resort("lakelouise", "Lake Louise", 51.44796, -116.14336, 1646, 2637, None, "Ikon", region="rockies"),
-        Resort("sunshine", "Sunshine Village", 51.07645, -115.77166, 1658, 2730, None, "Ikon", region="rockies"),
+        Resort("sunshine", "Sunshine Village", 51.07645, -115.77166, 1658, 2730, "05BB803:ABRIVERS", "Ikon",
+               region="rockies"),
         Resort("norquay", "Norquay", 51.20909, -115.60912, 1630, 2133, None, "Ikon", region="rockies"),
         Resort("nakiska", "Nakiska", 50.9484, -115.16551, 1525, 2260, None, "Epic", region="rockies"),
         Resort("marmot", "Marmot Basin", 52.7997, -118.09919, 1698, 2498, None, "Independent", region="rockies"),
         # Bow Summit is the slopes west of the highway, from the Peyto Lake lot up the old fire road to the
         # lookout; Parker Ridge is the ridge above its trailhead on the Parkway.
-        Resort("bowsummit", "Bow Summit", 51.71076, -116.50407, 2088, 2362, None, "Backcountry",
+        Resort("bowsummit", "Bow Summit", 51.71076, -116.50407, 2088, 2362, "2A32P:BCASWS", "Backcountry",
                region="rockies", kind="backcountry"),
         Resort("parkerridge", "Parker Ridge", 52.186, -117.10894, 2020, 2350, None, "Backcountry",
                region="rockies", kind="backcountry"),

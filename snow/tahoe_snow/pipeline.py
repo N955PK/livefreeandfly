@@ -12,7 +12,7 @@ from tahoe_snow import biascorrect, blend, cache, config, powder, season, usage
 from tahoe_snow.config import ALL_STATIONS, DATA, DET_MODELS, ENS_MODELS, M_PER_FT, MM_PER_IN, MODELS, REGIONS, RESORTS
 from tahoe_snow.snow import features, phase, ratio
 from tahoe_snow.snow.model import SnowModel
-from tahoe_snow.sources import acis, cdec, nws, openmeteo, snotel
+from tahoe_snow.sources import abrivers, acis, bcasws, cdec, nws, openmeteo, snotel
 
 # Two weeks. Past day 10 only the models that run that far are in the blend (ICON stops near 7 days, GEM at 10).
 DAYS = 14
@@ -294,6 +294,12 @@ def spread(total_cm: float, members: pd.Series, recenter: bool) -> dict:
             "prob_12in": round(float((values >= 12 * CM_PER_IN).mean()), 2), "members": int(len(values))}
 
 
+# The networks other than SNOTEL that publish hourly readings, each read by its station's own id, and those among
+# them whose readings are stamped in UTC already.
+HOURLY_READERS = {"cdec": cdec, "bcasws": bcasws, "abrivers": abrivers}
+UTC_SOURCES = {"bcasws"}
+
+
 def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
     """What the resort's snow sensor has measured: the latest readings, three-day gains, and the hourly
     depth over the page's history window (settled depth, not board totals). None without a paired station.
@@ -305,10 +311,11 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
         return observed_daily(resort, station, now)
     start = (hours[0] - pd.Timedelta(hours=24 + snotel_offset_h(resort))).strftime("%Y-%m-%d")
     end = (now + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+    reader = HOURLY_READERS.get(station.source)
     try:
-        frame = cdec.hourly(station.triplet.split(":")[0], start, end, max_age_h=1.0) if station.source == "cdec" \
+        frame = reader.hourly(station.triplet.split(":")[0], start, end, max_age_h=1.0) if reader \
             else snotel.hourly(station.triplet, start, end, max_age_h=1.0)
-    except (RuntimeError, ValueError):
+    except (RuntimeError, ValueError, KeyError, IndexError):
         return None
     frame = frame.reindex(columns=["depth_cm", "swe_mm", "tobs_c"])
     if not station.depth:
@@ -316,7 +323,8 @@ def observed(resort, now: pd.Timestamp, hours: pd.DatetimeIndex) -> dict | None:
     frame = frame.dropna(subset=["depth_cm", "swe_mm"], how="all")
     if frame.empty:
         return None
-    frame.index = frame.index + pd.Timedelta(hours=snotel_offset_h(resort))   # station clock (standard time) to UTC
+    if station.source not in UTC_SOURCES:
+        frame.index = frame.index + pd.Timedelta(hours=snotel_offset_h(resort))   # station clock (standard time) to UTC
     frame = frame[frame.index <= now]
     last = frame.index[-1]
 

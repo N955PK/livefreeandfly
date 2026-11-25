@@ -178,7 +178,8 @@ def test_every_other_mountain_is_corrected_as_before(monkeypatch):
     palisades = RESORTS["palisades"]
     assert _liquid_station(palisades, monkeypatch) == palisades.station
     assert {s.source for s in [*config.STATIONS.values(), *config.MAMMOTH_STATIONS.values()]} <= {"snotel", "cdec"}
-    assert all(s.corrects for key, s in ALL_STATIONS.items() if key != SUMMIT)
+    # Canada's stations are only shown: nothing is fitted there.
+    assert all(s.corrects for key, s in ALL_STATIONS.items() if key != SUMMIT and key not in config.CANADA_STATIONS)
 
 
 def test_the_index_says_which_station_corrects(tmp_path, monkeypatch):
