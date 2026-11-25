@@ -1034,21 +1034,38 @@ function loadHires(){
   im.src=hiresUrl(stamp,size);
 }
 
+/* ---------------- airport weather (collected) ---------------- */
+// aviationweather.gov sends no CORS header, so a browser cannot read it. The snow collector reads the TAFs and METARs
+// every pass (fog/wx.py) and publishes them as one file on the fog-wx branch; this is the page's only copy of them.
+const WX_URL='https://raw.githubusercontent.com/N955PK/livefreeandfly/fog-wx/wx.json';
+let wxFile=null, wxAt=0, wxBusy=null;
+function loadWx(){   // one request serves the forecasts and the reports; shared while in flight, kept 4 minutes
+  if(wxFile&&Date.now()-wxAt<4*60000)return Promise.resolve(wxFile);
+  if(wxBusy)return wxBusy;
+  wxBusy=(async()=>{
+    try{
+      const r=await fetch(WX_URL,{cache:'no-store'}); if(!r.ok)throw 0;
+      wxFile=await r.json(); wxAt=Date.now();
+    }catch(e){}
+    finally{wxBusy=null;}
+    return wxFile;
+  })();
+  return wxBusy;
+}
+
 /* ---------------- fog outlook (NWS TAF) ---------------- */
 let tafError=false;
 async function fetchTafs(){
-  if(!tafError&&Date.now()-tafFetched<25*60*1000&&Object.keys(tafs).length)return;
-  try{
-    const ids=AIRPORTS.filter(a=>!a.noWx).map(a=>a.id).join(',');
-    const r=await fetch(`https://aviationweather.gov/api/data/taf?ids=${ids}&format=json`,{cache:'no-store'});
-    if(!r.ok)throw 0;
-    let j=await r.json(); if(!Array.isArray(j)) j=(j&&j.data)||[];
-    tafs={};
-    for(const t of j){ if(t&&t.icaoId&&Array.isArray(t.fcsts))
-      tafs[t.icaoId]={from:t.validTimeFrom*1000,to:t.validTimeTo*1000,fcsts:t.fcsts}; }
-    tafFetched=Date.now();
-    tafError=Object.keys(tafs).length===0;
-  }catch(e){ if(!tafError)toast('airport forecast (TAF) feed unavailable — model fog still shown'); tafError=true; }
+  if(!tafError&&Date.now()-tafFetched<10*60*1000&&Object.keys(tafs).length)return;
+  const w=await loadWx(), next={};
+  // TAFs are issued every six hours; a file the collector has not refreshed in three is not worth showing as current
+  if(w&&Array.isArray(w.taf)&&Date.now()-(w.tafAt||0)*1000<3*3600000)
+    for(const t of w.taf){ if(t&&t.icaoId&&Array.isArray(t.fcsts))
+      next[t.icaoId]={from:t.validTimeFrom*1000,to:t.validTimeTo*1000,fcsts:t.fcsts}; }
+  const failed=Object.keys(next).length===0;
+  if(failed&&!tafError)toast('airport forecast (TAF) feed unavailable — model fog still shown');
+  if(!failed){tafs=next;tafFetched=Date.now();}
+  tafError=failed;
 }
 function pvVis(v){
   if(v==null)return null;
@@ -1942,8 +1959,29 @@ async function fetchObsOne(a){
   }catch(e){obs[a.id]=obs[a.id]||{ok:false};}
   finally{clearTimeout(to);}
 }
+const SKY_WORDS={VV:'Sky obscured',OVC:'Overcast',BKN:'Mostly cloudy',SCT:'Partly cloudy',FEW:'Few clouds'};
+function skyWords(m){   // the reported weather, else the most sky cover in words, as the NWS description read
+  if(m.wxString)return m.wxString;
+  const have=new Set((m.clouds||[]).map(c=>String(c.cover||'').toUpperCase()));
+  for(const k in SKY_WORDS)if(have.has(k))return SKY_WORDS[k];
+  return /\b(CLR|SKC|NCD|NSC|CAVOK)\b/.test(String(m.rawOb||''))||have.has('CLR')?'Clear':'';
+}
+function obsFromMetar(m){   // a collected METAR, in the shape fetchObsOne builds
+  const cl=ceilOf(m.clouds,m.rawOb), v=m.visib==null?null:parseFloat(m.visib);
+  return {ok:true, ceil:cl.ceil, ceilTxt:cl.txt,
+    sky:(Array.isArray(m.clouds)&&m.clouds.length>0)||/\b(CLR|SKC|NCD|NSC|CAVOK|(FEW|SCT|BKN|OVC|VV)\d{3})\b/.test(String(m.rawOb||'').toUpperCase()),
+    vis:v==null||isNaN(v)?null:v, txt:skyWords(m),
+    tC:typeof m.temp==='number'?m.temp:null, dC:typeof m.dewp==='number'?m.dewp:null,
+    wKt:typeof m.wspd==='number'?m.wspd:null, wDir:typeof m.wdir==='number'?m.wdir:null,
+    time:m.obsTime?m.obsTime*1000:null};
+}
 async function refreshObs(){
-  const q=[...AIRPORTS];
+  // The collected METARs first: one request, and fresher than api.weather.gov's "latest". Only the fields it lacks,
+  // or all of them when the file is missing or over half an hour old, are asked of NWS one station at a time.
+  const w=await loadWx(), got=new Set();
+  if(w&&Array.isArray(w.metar)&&Date.now()-(w.metarAt||0)*1000<30*60000)
+    for(const m of w.metar){ if(m&&m.icaoId){obs[m.icaoId]=obsFromMetar(m);got.add(m.icaoId);} }
+  const q=AIRPORTS.filter(a=>!got.has(a.id));
   const worker=async()=>{while(q.length){await fetchObsOne(q.shift());}};
   await Promise.all(Array.from({length:4},worker));
   restyleMarkers();

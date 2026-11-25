@@ -12,7 +12,8 @@ name: Snow collect
 #   3. builds the forecast a region at a time, the most overdue first, each on its own interval, and publishes every
 #      region's file together (snow-data);
 #   4. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports), and gathers every
-#      avalanche zone's forecast into one file for the page to keep for when there is no signal (snow-avy).
+#      avalanche zone's forecast into one file for the page to keep for when there is no signal (snow-avy);
+#   5. reads the airport forecasts and reports the fog map cannot read from a browser, and publishes them (fog-wx).
 # This is the only workflow: nothing else here runs on a schedule or by hand.
 on:
   schedule:
@@ -34,7 +35,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: snow
+          sparse-checkout: |
+            snow
+            fog
 
       - uses: actions/setup-python@v5
         with:
@@ -53,7 +56,7 @@ jobs:
           set -u +e   # a pass that fails in one place carries on to the next; nothing here should end the job
           echo "COLLECT_BEGAN=$(date +%s)" >> "$GITHUB_ENV"
           code="$PWD/snow" work="$RUNNER_TEMP/collect"
-          mkdir -p "$work/lifts" "$work/roads" "$work/logs" "$work/avy"
+          mkdir -p "$work/lifts" "$work/roads" "$work/logs" "$work/avy" "$work/wx"
           git config --global user.name "snow-collect"
           git config --global user.email "actions@users.noreply.github.com"
 
@@ -64,6 +67,7 @@ jobs:
           # Start from what is published, so a source that fails keeps its last file.
           if git fetch -q --depth=1 origin snow-lifts 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$work/lifts"; fi
           if git fetch -q --depth=1 origin snow-avy 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$work/avy"; fi
+          if git fetch -q --depth=1 origin fog-wx 2>/dev/null; then git archive FETCH_HEAD | tar -x -C "$work/wx"; fi
 
           # One file as the only commit of a branch, as the page reads it.
           publish() {  # branch, folder, message
@@ -153,6 +157,10 @@ jobs:
               (cd "$code" && python3 -m tahoe_snow.avybundle "$work/avy") || echo "::warning::The avalanche forecasts could not be gathered"
               if [ -s "$work/avy/bundle.json" ] && [ "$(cksum "$work/avy/bundle.json")" != "$was" ]; then publish snow-avy "$work/avy" "Avalanche forecasts $(date -u +%Y-%m-%dT%H:%MZ)" || true; fi
             fi
+
+            # The fog map's airport forecasts and reports: one small file, published only when a feed was read.
+            if python3 "$code/../fog/wx.py" "$work/wx"; then publish fog-wx "$work/wx" "Airport weather $(date -u +%Y-%m-%dT%H:%MZ)" || echo "::warning::Airport weather was not published"
+            else echo "::warning::Airport forecasts and reports could not be read"; fi
 
             # Every five minutes from 5 am to 7 pm Pacific, when lifts and roads change; every fifteen overnight.
             if [ "$hour" -ge 5 ] && [ "$hour" -lt 19 ]; then every=300; else every=900; fi
