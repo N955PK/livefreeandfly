@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.v13.png">
 <style>
 :root{--bg:#0a0e13;--ink:#e9edf1;--dim:#8B959E;--line:rgba(233,237,241,.14);--accent:#A31F34;--glass:rgba(16,22,29,.6);
---vfr:#39d07f;--mvfr:#3aa8ff;--ifr:#ff4d4d;
+--vfr:#39d07f;--mvfr:#3aa8ff;--ifr:#ff4d4d;--lifr:#d95ce8;--vna:#5a6672;
 --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -55,14 +55,16 @@ footer a{color:var(--dim)}
   main{max-width:1280px}
 }
 .pstrip{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:8px}
-.pstrip div{height:10px;border-radius:2px}
+.pstrip div{height:10px;border-radius:2px;cursor:pointer}
+@media(pointer:coarse){.pstrip div{height:18px}}
 .pcap{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.06em;margin-top:3px}
 #about table{border-collapse:collapse;margin-top:10px;font-family:var(--mono);font-size:10.5px}
 #about th,#about td{border:1px solid var(--line);padding:5px 8px;text-align:right}
 #about th:first-child,#about td:first-child{text-align:left}
 #about th{color:var(--dim);font-weight:400;letter-spacing:.06em}
 .fitchip{border-color:rgba(163,31,52,.5)!important}
-.nowrow{display:flex;align-items:baseline;gap:12px;margin-top:10px;flex-wrap:wrap;cursor:pointer}
+.nowrow{display:flex;align-items:baseline;gap:12px;margin-top:10px;flex-wrap:wrap;cursor:pointer;
+  width:100%;background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;appearance:none;-webkit-appearance:none}
 .nowbig{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:.02em}
 .nowsub{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.04em}
 .rawline{display:none;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px;word-break:break-all}
@@ -82,12 +84,6 @@ footer a{color:var(--dim)}
 #about b{color:var(--ink)}
 #about .x{float:right;font-family:var(--mono);color:var(--dim);background:none;border:1px solid var(--line);
   border-radius:999px;width:28px;height:28px;cursor:pointer}
-.doc{background:#0e141b;border:1px solid var(--line);border-radius:18px;max-width:760px;width:100%;
-  max-height:88svh;overflow:auto;padding:26px 26px 30px;font-size:13.5px;line-height:1.65;color:var(--dim)}
-.doc h2{font-family:var(--mono);font-size:15px;color:var(--ink);letter-spacing:.05em;margin-bottom:4px}
-.doc h3{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.14em;margin:20px 0 6px}
-.doc b{color:var(--ink)}
-.doc code{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
 .mcheck{border-top:1px solid var(--line);padding-top:6px;margin-top:8px!important}
 .paxis{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:2px;font-family:var(--mono);font-size:8px;color:var(--dim)}
 .paxis span{text-align:center}
@@ -115,16 +111,16 @@ footer a{color:var(--dim)}
     <span style="color:#8B959E">▮</span> observed fog — lower edge = reported ceiling (ft AGL, log axis) · <span style="color:#8B959E;opacity:.45">▮</span> model expects deck (presence only) ·
     <span style="color:#39d07f">▢ clears</span> · <span style="color:#ffa32e">▢ returns</span> · │ now · ┆ sunrise/sunset<br>
     hour strip: CLARO's P(ceiling &lt; 1,000 ft), green → red · 14-day drawer: white = observed (○-- burn-off, ●— return),
-    <span style="color:#39d07f">green</span>/<span style="color:#ffa32e">amber</span> = model day-ahead, ▍ observed-event day, <span style="color:#A31F34">▍</span> model held all day, ◬ blended call
+    <span style="color:#39d07f">green</span>/<span style="color:#ffa32e">amber</span> = HRRR's own record of that day, ▍ observed-event day, <span style="color:#A31F34">▍</span> model held all day, ◬ blended call
   </div>
   </details>
   <div id="cards"></div>
-  <div id="about" role="dialog" aria-modal="true">
+  <div id="about" role="dialog" aria-modal="true" aria-labelledby="aboutH">
     <div class="box">
       <button class="x" id="aboutX" aria-label="close">✕</button>
-      <h2>how fog/time works</h2>
+      <h2 id="aboutH">how fog/time works</h2>
       <h3>THE NOW LINE</h3>
-      The big colored readout is the field's <b>latest METAR, decoded</b> — lowest ceiling group and visibility — colored by flight category (green VFR · blue MVFR · red IFR), plus <b>current wind</b> (direction° speed, gusts), with the exact observation time and its age. Tap it to see the raw METAR. Observations refresh every 5 minutes and whenever you return to the tab.
+      The big colored readout is the field's <b>latest METAR, decoded</b> — lowest ceiling group and visibility — colored by flight category from ceiling and visibility (green VFR · blue MVFR · red IFR · magenta LIFR), plus <b>current wind</b> (direction° speed, gusts), with the exact observation time and its age. Tap it to see the raw METAR. Observations refresh every 2 minutes and whenever you return to the tab.
       <h3>THE TODAY TIMELINE</h3>
       One bar, 05:00–22:30 <b>Pacific (airport-local) time — all times on this page are</b>. <b style="color:#8B959E">Grey</b> = when a deck (ceiling &lt; 3,000 ft) has <b>actually been observed</b> over the field so far today. <b style="color:#8B959E">Lighter grey</b> = hours where the <b>model expects</b> a deck from now on (HRRR low-cloud ≥ 50%) — same substance as observed, fainter certainty. Prediction windows: <b style="color:#39d07f">green box = clearing</b> (good), <b style="color:#ffa32e">amber box = fog returning</b>, each a best-time marker inside an empirical ± band. Red is reserved for fog itself. Dashed verticals are sunrise and sunset; the white line is now, and it moves.
       <h3>THE FOUR ESTIMATORS</h3>
@@ -135,18 +131,18 @@ footer a{color:var(--dim)}
       <h3>THE PROBABILITY STRIP</h3>
       Eighteen cells, 05–22h: CLARO's P(ceiling &lt; 1,000 ft) for each hour today — anchored to <b>today's dawn ceiling</b> (the feature it was trained on), so the strip is stable through the day and identical for every viewer, refreshing with observations. Green low, red high. Tap a cell for the number.
       <h3>THE 14-DAY DRAWER</h3>
-      Verification view: each row a day, time across. <b>White</b> = observed events (dashed/hollow burn-off, solid/filled return); <b style="color:#39d07f">green</b>/<b style="color:#ffa32e">amber</b> = the model's burn-off/return for that same day; gutter ticks: white = an observed event that day, red = model kept the deck all day. This is where you audit the model against reality.
+      Verification view: each row a day, time across. <b>White</b> = observed events (dashed/hollow burn-off, solid/filled return); <b style="color:#39d07f">green</b>/<b style="color:#ffa32e">amber</b> = HRRR's burn-off/return for that same day, read from its own record of the day rather than a day-ahead forecast (Open-Meteo keeps no day-ahead low-cloud runs), so it flatters the model a little; gutter ticks: white = an observed event that day, red = model kept the deck all day. This is where you audit the model against reality.
       <h3>VERIFICATION &amp; HONESTY</h3>
-      CLARO is scored walk-forward — refit on strictly earlier days, predict blind — against HRRR, persistence, and climatology; the full table and coefficients live in the <b>CLARO Lab</b> at the bottom of the page. Card ± bands are the 80th percentile of CLARO's own hindcast errors. When a deck is present, a <b>break-today confidence</b> also appears: a logistic model over every deck-day in the archive (did it clear before late afternoon?), verified the same walk-forward way and shown <b>only where it beats climatology</b> (positive Brier skill) — otherwise the field's own 3-season base rate is shown, labeled as such. A coastal-fog tool. Experimental — not for flight decisions.
+      CLARO is scored walk-forward — refit on strictly earlier days, predict blind — against HRRR, persistence, and climatology; the full table and coefficients live in the <b>CLARO Lab</b> at the bottom of the page. Card ± bands are the 80th percentile of CLARO's own hindcast errors. CLARO's burn-off time is fitted only on days that did clear, so when the blend says the deck <b>may hold all day</b> CLARO does not overrule it, and once an estimate has passed with the deck still down the card says <b>overdue</b> instead of sliding the time forward. When a deck is present, a <b>break-today confidence</b> also appears: a logistic model over every deck-day in the archive (did it clear before late afternoon?), verified the same walk-forward way and shown <b>only where it beats climatology</b> (positive Brier skill) — otherwise the field's own 3-season base rate is shown, labeled as such. A coastal-fog tool. Experimental — not for flight decisions.
       <h3>CLARO — VERIFICATION &amp; COEFFICIENTS</h3>
       Walk-forward scores (last 45 event-days, refit on strictly earlier days, predicted blind). MAE in minutes; baselines: raw HRRR, persistence, 7-day median. BSS = Brier skill vs climatology for P(&lt;1,000 ft). Coefficients are standardized β (minutes per SD; positive = later clearing). Card ± bands are the 80th percentile of CLARO's blind errors.
       <div id="labTables" style="margin-top:10px"></div>
       <h3>DATA &amp; CADENCE</h3>
-      Observations: freshest of NWS, AviationWeather, and the AWOS/ASOS live feed (via IEM), polled every 2 min · archive: Iowa Environmental Mesonet · model: Open-Meteo (HRRR + historical runs) · pressures: SFO/SMF/RNO. Observations every 5 min · now-line every minute · model rebuild hourly · CLARO refit daily.
+      Observations: ASOS/AWOS METARs through the Iowa Environmental Mesonet, all five fields in one request every 2 min (api.weather.gov stands in if IEM does not answer) · archive: Iowa Environmental Mesonet · model: Open-Meteo (HRRR forecast, and its archived record) · pressures: SFO/SMF/RNO from api.weather.gov. Now-line every minute · forecast rebuilt every 30 min, on returning to the tab, and whenever a deck forms or breaks · CLARO refit daily in season.
     </div>
   </div>
   <footer>
-    blend of NOAA HRRR (3&nbsp;km) · last-7-morning observed clearings (NWS) · live SFO–SAC / SFO–RNO gradients<br>
+    blend of NOAA HRRR (3&nbsp;km) · last-7-morning observed clearings (METARs via IEM) · live SFO–SAC / SFO–RNO gradients<br>
     coastal-fog tool · experimental · not for flight planning
   </footer>
 </main>
@@ -161,12 +157,21 @@ const FIELDS=[
 ];
 const $=i=>document.getElementById(i);
 const TZ='America/Los_Angeles';
-const pa=d=>new Date(d.toLocaleString('en-US',{timeZone:TZ}));
-const paMin=d=>{const p=pa(d);return p.getHours()*60+p.getMinutes();};
-const paDay=d=>pa(d).toDateString();
-function paOffset(d){const u=new Date(d.toLocaleString('en-US',{timeZone:'UTC'}));return (u-pa(d))/60000;}
+// Pacific wall-clock parts from one cached formatter, read once per timestamp
+const PF=new Intl.DateTimeFormat('en-US',{timeZone:TZ,hourCycle:'h23',weekday:'short',year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function paParts(d){
+  const o={};for(const p of PF.formatToParts(d))o[p.type]=p.value;
+  return {min:(+o.hour%24)*60+ +o.minute,day:o.weekday+' '+o.month+' '+o.day+' '+o.year,wd:o.weekday,
+    mon:MONS.indexOf(o.month)+1,y:+o.year,dd:+o.day};
+}
+const paMin=d=>paParts(d).min;
+const paDay=d=>paParts(d).day;
+function paOffset(d){const p=paParts(d);       // minutes Pacific sits behind UTC
+  return (Math.floor(d.getTime()/60000)*60000-Date.UTC(p.y,p.mon-1,p.dd,0,p.min))/60000;}
+function paMidnight(d){const p=paParts(d);     // epoch of that Pacific day's 00:00, right on DST days too
+  return Date.UTC(p.y,p.mon-1,p.dd)+paOffset(new Date(Date.UTC(p.y,p.mon-1,p.dd,8)))*60000;}
 const fmtHM=new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:TZ});
-const DAYNM=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function fmtClock(m){m=((Math.round(m)%1440)+1440)%1440;
   const h=Math.floor(m/60),mm=m%60;
   return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');}
@@ -175,15 +180,17 @@ function fmtDur(m){m=Math.round(m);
   if(m<60)return m+' min';
   const h=Math.floor(m/60),r=m%60;
   return r?h+' h '+r+' min':h+' h';}
-function sunriseOf(lat,lon,d){
+function sunOf(lat,lon,d){        // {rise,set} in Pacific minutes
   const rad=Math.PI/180, J=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
   const g=(360/365.25)*(J-81)*rad;
   const eot=9.87*Math.sin(2*g)-7.53*Math.cos(g)-1.5*Math.sin(g);
   const dec=23.45*Math.sin((360/365*(J-81))*rad)*rad;
   const ha=Math.acos(Math.max(-1,Math.min(1,
     (Math.sin(-0.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec)))))/rad;
-  return 720-4*lon-eot-paOffset(d)-ha*4;
+  const noon=720-4*lon-eot-paOffset(d);
+  return {rise:noon-ha*4,set:noon+ha*4};
 }
+const sunriseOf=(lat,lon,d)=>sunOf(lat,lon,d).rise;
 function ceilOf(layers,raw){
   let c=null;
   for(const L of (layers||[])){
@@ -202,88 +209,93 @@ function ceilOf(layers,raw){
   }
   return c;
 }
-async function j(u){
-  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),14000);
+function visOf(raw){              // statute miles from the raw METAR
+  const m=String(raw).match(/\s(M)?(\d{1,2}(?:\s\d\/\d)?|\d\/\d)SM\b/); if(!m)return null;
+  let v=0; for(const q of m[2].split(' '))v+=q.includes('/')?(+q.split('/')[0]/+q.split('/')[1]):+q;
+  return m[1]?v-0.01:v;
+}
+function tdOf(raw){ const m=String(raw).match(/\s(M?\d{2})\/(M?\d{2})\s/); if(!m)return null;
+  const f=x=>parseInt(x.replace('M','-'),10); return {t:f(m[1]),td:f(m[2])}; }
+function fltCat(vis,ceil){        // same rule as fog/map
+  if(vis==null&&ceil==null)return null;
+  const v=vis==null?99:vis, c=ceil==null?99999:ceil;
+  if(c<500||v<1)return 'lifr';
+  if(c<1000||v<3)return 'ifr';
+  if(c<=3000||v<=5)return 'mvfr';
+  return 'vfr';
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const tick=()=>new Promise(r=>setTimeout(r));
+async function j(u,ms){
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),ms||14000);
   try{const r=await fetch(u,{signal:ctl.signal,headers:{accept:'application/geo+json,application/json'}});
     clearTimeout(t); if(!r.ok)throw 0; return await r.json();
   }catch(e){clearTimeout(t);return null;}
 }
-async function jt(u){
-  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),16000);
-  try{const r=await fetch(u,{signal:ctl.signal});
-    clearTimeout(t); if(!r.ok)throw 0; return await r.text();
-  }catch(e){clearTimeout(t);return null;}
-}
-async function iemObs(icao,days){ // deep METAR archive via Iowa Environmental Mesonet
-  const sid=icao.replace(/^K/,'');
-  const d1=new Date(Date.now()-days*864e5), d2=new Date(Date.now()+864e5);
-  const q=`station=${sid}&data=metar&year1=${d1.getUTCFullYear()}&month1=${d1.getUTCMonth()+1}&day1=${d1.getUTCDate()}`+
-    `&year2=${d2.getUTCFullYear()}&month2=${d2.getUTCMonth()+1}&day2=${d2.getUTCDate()}`+
-    `&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=yes`;
-  const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
-  if(!txt)return null;
-  const feats=[];
-  for(const line of txt.split('\n')){
-    if(!line||line[0]==='#'||line.startsWith('station'))continue;
-    const i1=line.indexOf(','); if(i1<0)continue;
-    const i2=line.indexOf(',',i1+1); if(i2<0)continue;
-    const valid=line.slice(i1+1,i2).trim(), raw=line.slice(i2+1).trim();
-    if(!valid||!raw)continue;
-    let iso=valid.replace(' ','T'); if(iso.length===16)iso+=':00'; 
-    feats.push({properties:{timestamp:iso+'Z',cloudLayers:[],rawMessage:raw}});
-  }
-  if(feats.length>=40)return feats;
-  const net=icao==='KRNO'?'NV_ASOS':'CA_ASOS';
-  const out=[];
-  for(let k=0;k<Math.min(days,16);k++){
-    const d=new Date(Date.now()-k*864e5);
-    const ds=d.toISOString().slice(0,10);
-    const jd=await j(`https://mesonet.agron.iastate.edu/api/1/obhistory.json?station=${icao.slice(1)}&network=${net}&date=${ds}`);
-    const data=jd&&(jd.data||jd);
-    if(Array.isArray(data))for(const o of data){
-      if(!o||!o.metar)continue;
-      let ts=o.utc_valid||o.valid; if(!ts)continue;
-      if(!/Z$/.test(ts))ts=ts.replace(' ','T')+(ts.length<=16?':00':'')+'Z';
-      out.push({properties:{timestamp:ts,cloudLayers:[],rawMessage:o.metar}});
+// IEM's asos.py allows about one request every 2 s per address and answers 429 otherwise:
+// every request goes through this queue — one at a time, spaced, one retry on 429
+const IEM='https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?';
+const IEMFMT='&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=yes';
+let iemAt=0,iemQ=Promise.resolve();
+function iem(q,ms){
+  const go=async()=>{
+    for(let k=0;k<2;k++){
+      const w=iemAt+2300-Date.now(); if(w>0)await sleep(w);
+      const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),ms||20000);
+      let st=0,txt=null;
+      try{const r=await fetch(IEM+q+IEMFMT,{signal:ctl.signal}); st=r.status; if(r.ok)txt=await r.text();}catch(e){}
+      clearTimeout(t); iemAt=Date.now();
+      if(txt!=null)return txt;
+      if(st!==429)return null;
+      await sleep(3000);
     }
-  }
-  return out.length>=40?out:(feats.length?feats:null);
+    return null;
+  };
+  return iemQ=iemQ.then(go,go);
 }
-async function latestObs(icao){
-  const net=icao==='KRNO'?'NV_ASOS':'CA_ASOS';
-  const [nws,awc,iem]=await Promise.all([
-    j(`https://api.weather.gov/stations/${icao}/observations/latest`),
-    j(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json`),
-    j(`https://mesonet.agron.iastate.edu/json/current.py?station=${icao.slice(1)}&network=${net}`)
-  ]);
-  const cands=[];
-  if(nws&&nws.properties){
-    const p=nws.properties;
-    cands.push({ms:Date.parse(p.timestamp)||0,raw:p.rawMessage||'',layers:p.cloudLayers||[],
-      vis:p.visibility&&p.visibility.value!=null?p.visibility.value/1609.344:null,src:'NWS'});
+function* iemLines(txt){          // asos.py CSV → {sid, ms, rest, cols}; rest is everything after "station,valid,"
+  let cols=[];
+  for(const line of txt.split('\n')){
+    if(!line||line[0]==='#')continue;
+    if(line.startsWith('station')){cols=line.trim().split(',').slice(2);continue;}
+    const i1=line.indexOf(','), i2=line.indexOf(',',i1+1); if(i1<0||i2<0)continue;
+    let iso=line.slice(i1+1,i2).trim().replace(' ','T'); if(iso.length===16)iso+=':00';
+    const ms=Date.parse(iso+'Z'), rest=line.slice(i2+1).trim();
+    if(!ms||!rest)continue;
+    yield {sid:line.slice(0,i1),ms,rest,cols};
   }
-  const a=Array.isArray(awc)?awc[0]:(awc&&awc.data&&awc.data[0]);
-  if(a&&(a.rawOb||a.raw_text)){
-    let v=a.visib; if(typeof v==='string')v=parseFloat(v);
-    cands.push({ms:(a.obsTime?a.obsTime*1000:Date.parse(a.reportTime||a.receiptTime||0))||0,
-      raw:a.rawOb||a.raw_text,layers:[],vis:(v!=null&&isFinite(v))?v:null,src:'AWC'});
-  }
-  const lo=iem&&(iem.last_ob||iem);
-  const lraw=lo&&(lo.raw||lo.metar);
-  if(lraw){
-    let ts=lo.utc_valid||lo.local_valid||'';
-    if(ts&&!/Z$/.test(ts))ts=ts.replace(' ','T')+'Z';
-    const ms=Date.parse(ts)||0;
-    if(ms)cands.push({ms,raw:lraw,layers:[],vis:null,src:'AWOS via IEM'});
-  }
-  cands.sort((x,y)=>y.ms-x.ms);
-  if(!cands.length)return null;
-  const top=cands[0];
-  if(!top.raw){
-    const alt=cands.find(c=>c.raw&&c.ms>=top.ms-10*60000);
-    if(alt)return alt;
-  }
-  return top;
+}
+// every METAR the page has seen, per field, merged across pulls: station → Map(epoch → decoded observation)
+const OBS={}; let OBSAT=0;
+function obsPut(sid,ms,raw,layers,src,vis){
+  raw=raw||'';
+  if(!ms||(!raw&&!(layers&&layers.length)))return;
+  const M=OBS[sid]=OBS[sid]||new Map(), had=M.get(ms); if(had&&(had.raw||!raw))return;
+  const p=paParts(new Date(ms)), c=ceilOf(layers,raw);
+  M.set(ms,{ms,raw,c,m:p.min,day:p.day,wd:p.wd,src,vis:vis!=null?vis:visOf(raw),
+    st:raw?skyState(raw,c):(c!=null?(c<3000?'low':'clear'):'clear')});
+}
+const obsList=sid=>OBS[sid]?[...OBS[sid].values()].sort((a,b)=>a.ms-b.ms):[];
+async function pullObs(){         // one request for all five fields: 15 days the first time, then only the gap since the last good pull
+  const now=Date.now(), hrs=OBSAT?Math.min(360,Math.ceil((now-OBSAT)/3600e3)+3):360;
+  const iso=t=>new Date(t).toISOString().slice(0,16)+'Z';
+  const txt=await iem(FIELDS.map(f=>'station='+f.s).join('&')+'&data=metar&sts='+iso(now-hrs*3600e3)+'&ets='+iso(now+3600e3),hrs>48?40000:15000);
+  if(txt==null)return false;
+  let n=0; for(const o of iemLines(txt)){obsPut(o.sid,o.ms,o.rest,null,'IEM');n++;}
+  if(!n)return false;
+  OBSAT=now;
+  for(const s in OBS)for(const k of OBS[s].keys())if(k<now-16*864e5)OBS[s].delete(k);
+  return true;
+}
+const NWS='https://api.weather.gov/stations/';
+function nwsPut(f,ft){const p=ft&&ft.properties; if(!p)return;
+  obsPut(f.s,Date.parse(p.timestamp),p.rawMessage,p.cloudLayers,'NWS',p.visibility&&p.visibility.value!=null?p.visibility.value/1609.344:null);}
+async function nwsLatest(f){nwsPut(f,await j(NWS+f.id+'/observations/latest'));}   // only when IEM does not answer
+async function nwsHist(f){        // only when IEM does not answer on the first load: 14 days in four chunks
+  const now=Date.now(), ch=[];
+  for(let k=0;k<4;k++)ch.push(j(NWS+f.id+'/observations?start='+new Date(now-14*864e5+k*3.5*864e5).toISOString()
+    +'&end='+new Date(now-14*864e5+(k+1)*3.5*864e5).toISOString()+'&limit=500'));
+  for(const g of await Promise.all(ch))for(const ft of (g&&g.features)||[])nwsPut(f,ft);
 }
 function ceilSteps(list,endMin){
   const steps=[]; let lastC=null;
@@ -311,12 +323,6 @@ function windTxt(raw){
   if(m[1]==='000'||(+m[2]===0&&!m[3]))return 'calm';
   return (m[1]==='VRB'?'VRB':m[1]+'°')+' '+(+m[2])+(m[3]?'G'+(+m[3]):'')+' kt';
 }
-function slp(p){
-  const s=p.seaLevelPressure&&p.seaLevelPressure.value;
-  if(s)return s/100;
-  const a=p.barometricPressure&&p.barometricPressure.value;
-  return a?a/100:null;
-}
 function scanDay(samples,sr){ // samples:[{m,low}] sorted → {clear,onset,held,had}
   const sustained=(i,state,dur)=>{      // does `state` hold for `dur` min from sample i?
     const t0=samples[i].m;
@@ -338,22 +344,29 @@ function scanDay(samples,sr){ // samples:[{m,low}] sorted → {clear,onset,held,
   if(held)onset=null;                   // no clearing ⇒ no return, by definition
   return {clear,onset,held,had};
 }
-function obsPerDay(obs,lat,lon){
+function obsPerDay(list,lat,lon){   // list: one field's observations, oldest first
   const byDay={};
-  for(const f of obs){
-    const p=f.properties||f; const t=new Date(p.timestamp);
-    const c=ceilOf(p.cloudLayers,p.rawMessage);
-    (byDay[paDay(t)]=byDay[paDay(t)]||[]).push({m:paMin(t),low:c!=null&&c<3000,t});
-  }
+  for(const o of list)(byDay[o.day]=byDay[o.day]||[]).push(o);
   const out=[];
   for(const k of Object.keys(byDay)){
-    const arr=byDay[k].sort((x,y)=>x.m-y.m);
-    const msMid=arr[0].t.getTime()-arr[0].m*60000;
+    const arr=byDay[k];
+    const msMid=arr[0].ms-arr[0].m*60000;
     const d=new Date(msMid+12*3600e3);
-    out.push({key:k,d,msMid,day:DAYNM[pa(d).getDay()],...scanDay(arr,sunriseOf(lat,lon,d))});
+    out.push({key:k,d,msMid,day:arr[0].wd,...scanDay(arr.map(o=>({m:o.m,low:o.c!=null&&o.c<3000})),sunriseOf(lat,lon,d))});
   }
   out.sort((x,y)=>x.msMid-y.msMid);
   return out;
+}
+function dawnScan(obs,sr){          // CLARO's dawn features, read the same way live and in training: sunrise −60…+90 min
+  let dc=null,sp=null,s5=0,n=0;
+  for(const o of obs){
+    if(o.m<sr-60||o.m>sr+90)continue;
+    n++;
+    if(o.c!=null&&(dc==null||o.c<dc))dc=o.c;
+    if(sp==null){const td=tdOf(o.raw); if(td)sp=td.t-td.td;}
+    if(o.c!=null&&o.c<1000)s5=1;
+  }
+  return {dc,sp,s5,n};
 }
 function modelDayScan(times,vals,dayStart,sr){
   const seq=[];
@@ -377,8 +390,9 @@ function modelDayScan(times,vals,dayStart,sr){
   return {clear,onset,held};
 }
 function med(a){const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;}
-function todayStrip(r,nowMin,sr,ssv){
-  const W=720,H=118,L=36,R=10,T=14,PB=92;
+function todayStrip(r,nowMin,sr,ssv,W){
+  W=W||720;
+  const H=118,L=36,R=10,T=14,PB=92,fs=W<500?10:8.5;
   const Y0=5*60,Y1=22.5*60,PH=PB-T;
   const xv=m=>L+(Math.min(Y1,Math.max(Y0,m))-Y0)/(Y1-Y0)*(W-L-R);
   const CLO=120,CHI=3000;
@@ -388,12 +402,12 @@ function todayStrip(r,nowMin,sr,ssv){
   for(const tk of [200,500,1000,3000]){
     const y=yBase(tk);
     g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="rgba(233,237,241,${tk===1000?'.12':'.06'})"/>`;
-    g+=`<text x="${L-5}" y="${y+3}" fill="#8B959E" font-size="8" font-family="ui-monospace,monospace" text-anchor="end">${tk>=1000?(tk/1000)+'k':tk}</text>`;
+    g+=`<text x="${L-5}" y="${y+3}" fill="#8B959E" font-size="${W<500?9.5:8}" font-family="ui-monospace,monospace" text-anchor="end">${tk>=1000?(tk/1000)+'k':tk}</text>`;
   }
   for(let hh=6;hh<=22;hh++){
     const maj=hh%3===0;
     g+=`<line x1="${xv(hh*60)}" y1="${T}" x2="${xv(hh*60)}" y2="${PB}" stroke="rgba(233,237,241,${maj?'.08':'.04'})"/>`;
-    if(maj)g+=`<text x="${xv(hh*60)}" y="${H-6}" fill="#8B959E" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
+    if(maj)g+=`<text x="${xv(hh*60)}" y="${H-6}" fill="#8B959E" font-size="${fs}" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
   }
   for(const sv of [sr,ssv])
     g+=`<line x1="${xv(sv)}" y1="${T}" x2="${xv(sv)}" y2="${PB}" stroke="rgba(233,237,241,.25)" stroke-dasharray="2 4"/>`;
@@ -420,12 +434,13 @@ function todayStrip(r,nowMin,sr,ssv){
   }
   if(nowMin>=Y0&&nowMin<=Y1)
     g+=`<line x1="${xv(nowMin)}" y1="${T-8}" x2="${xv(nowMin)}" y2="${PB+4}" stroke="#e9edf1" stroke-width="1.6"/>`+
-       `<text x="${xv(nowMin)}" y="${T-10}" fill="#e9edf1" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">now</text>`;
-  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:10px">${g}</svg>`;
+       `<text x="${xv(nowMin)}" y="${T-10}" fill="#e9edf1" font-size="${fs}" font-family="ui-monospace,monospace" text-anchor="middle">now</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:10px;overflow:visible">${g}</svg>`;
 }
-function chart(days,tick,nowMin){
+function chart(days,tick,nowMin,W){
   // rows = days (old → new, then today, tmrw); X = time of day for precision
-  const W=720,L=66,R=10,T=8,B=24,rowH=17;
+  W=W||720;
+  const L=66,R=10,T=8,B=24,rowH=17,fs=W<500?10:8.5;
   const Y0=5*60,Y1=22.5*60;
   const H=T+days.length*rowH+B;
   const xv=m=>L+(Math.min(Y1,Math.max(Y0,m))-Y0)/(Y1-Y0)*(W-L-R);
@@ -434,7 +449,7 @@ function chart(days,tick,nowMin){
   for(let hh=6;hh<=22;hh++){
     const maj=hh%3===0;
     g+=`<line x1="${xv(hh*60)}" y1="${T}" x2="${xv(hh*60)}" y2="${H-B}" stroke="rgba(233,237,241,${maj?'.10':'.05'})"/>`;
-    g+=`<text x="${xv(hh*60)}" y="${H-8}" fill="${maj?'#8B959E':'rgba(139,149,158,.6)'}" font-size="8.5" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
+    if(maj||W>=500)g+=`<text x="${xv(hh*60)}" y="${H-8}" fill="${maj?'#8B959E':'rgba(139,149,158,.6)'}" font-size="${fs}" font-family="ui-monospace,monospace" text-anchor="middle">${hh}</text>`;
   }
   days.forEach((d,i)=>{
     if(d.isToday){
@@ -442,13 +457,13 @@ function chart(days,tick,nowMin){
       if(nowMin!=null)
         g+=`<line x1="${xv(nowMin)}" y1="${yi(i)-rowH/2-1}" x2="${xv(nowMin)}" y2="${yi(i)+rowH/2+1}" stroke="#e9edf1" stroke-width="1.4" opacity=".9"/>`;
     }
-    g+=`<text x="${L-7}" y="${yi(i)+3}" fill="${d.isToday||d.isTmrw?'#e9edf1':'#8B959E'}" font-size="9.5" font-family="ui-monospace,monospace" text-anchor="end">${d.label}</text>`;
+    g+=`<text x="${L-7}" y="${yi(i)+3}" fill="${d.isToday||d.isTmrw?'#e9edf1':'#8B959E'}" font-size="${W<500?10.5:9.5}" font-family="ui-monospace,monospace" text-anchor="end">${d.label}</text>`;
     if(d.obsClear!=null||d.obsOnset!=null)
       g+=`<line x1="8" y1="${yi(i)-rowH/2+2}" x2="8" y2="${yi(i)+rowH/2-2}" stroke="#e9edf1" stroke-width="2.4" opacity=".9"/>`;
     if(d.modHeld)
       g+=`<line x1="14" y1="${yi(i)-rowH/2+2}" x2="14" y2="${yi(i)+rowH/2-2}" stroke="#A31F34" stroke-width="2.4" opacity=".9"/>`;
   });
-  const line=(key,color,dash,heldKey)=>{
+  const line=(key,color,dash)=>{
     let path='',pen=false;
     days.forEach((d,i)=>{
       const v=d[key];
@@ -464,10 +479,10 @@ function chart(days,tick,nowMin){
 
     });
   };
-  line('obsClear','#e9edf1',true,null);
-  line('obsOnset','#e9edf1',false,null);
-  line('modClear','#39d07f',true,null);
-  line('modOnset','#ffa32e',false,null);
+  line('obsClear','#e9edf1',true);
+  line('obsOnset','#e9edf1',false);
+  line('modClear','#39d07f',true);
+  line('modOnset','#ffa32e',false);
   if(tick!=null){
     const i=days.findIndex(d=>tick<1440?d.isToday:d.isTmrw);
     if(i>=0)g+=`<circle cx="${xv(tick%1440)}" cy="${yi(i)}" r="5.6" fill="none" stroke="#A31F34" stroke-width="1.8"/>`+
@@ -476,59 +491,93 @@ function chart(days,tick,nowMin){
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin-top:12px">${g}</svg>`;
 }
 let RESULTS=null,LASTCTX=null;
+const GRAD=['KSFO','KSMF','KRNO'];
+const svgW=()=>Math.max(280,Math.min(720,(($('cards')&&$('cards').clientWidth)||758)-38));   // drawn at real width on phones so labels stay legible
+function slpOf(g,t0,t1){            // newest observation that really carries sea-level pressure — the 5-minute ones don't
+  let best=null;
+  for(const ft of (g&&g.features)||[]){
+    const p=ft.properties, s=p.seaLevelPressure&&p.seaLevelPressure.value, t=Date.parse(p.timestamp);
+    if(!s||!t||(t0!=null&&(t<t0||t>t1)))continue;
+    if(!best||t>best.t)best={t,v:s/100};
+  }
+  return best;
+}
+async function grad05(mid,dayKey){  // CLARO was trained on the 05-local gradients (and their change from 23 local): read those, once a day
+  let c=null; try{c=JSON.parse(localStorage.getItem('burnoff.g05')||'null');}catch(e){}
+  if(c&&c.day===dayKey)return c;
+  const now=Date.now(), h=3600e3; if(now<mid+3.8*h)return null;
+  const gs=await Promise.all(GRAD.map(id=>j(NWS+id+'/observations?start='+new Date(mid-2.2*h).toISOString()
+    +'&end='+new Date(Math.min(now,mid+6.2*h)).toISOString()+'&limit=200')));
+  const a=gs.map(g=>slpOf(g,mid+3.8*h,mid+6.2*h)), b=gs.map(g=>slpOf(g,mid-2.2*h,mid-1));
+  if(!a[0]||!a[1])return null;
+  const g1=a[0].v-a[1].v, o={day:dayKey,g1:+g1.toFixed(1),g2:a[2]?+(a[0].v-a[2].v).toFixed(1):null,
+    g1t:b[0]&&b[1]?+(g1-(b[0].v-b[1].v)).toFixed(1):null};
+  if(now>mid+6.2*h)try{localStorage.setItem('burnoff.g05',JSON.stringify(o));}catch(e){}
+  return o;
+}
+function setNow(r,ob){              // decode the newest observation onto r; true when it changed
+  if(!ob||(r.obsMs===ob.ms&&r.obsRaw===ob.raw))return false;
+  const c=ob.c, vis=ob.vis;
+  r.ceil=c; r.cat=fltCat(vis,c)||(ob.st==='clear'?'vfr':'vna');
+  r.obsRaw=ob.raw; r.obsMs=ob.ms; r.obsSrc=ob.src;
+  const sky=ob.raw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g)||[];
+  const skyTxt=c!=null?(sky.filter(x=>/BKN|OVC|VV/.test(x))[0]||('OVC'+String(Math.round(c/100)).padStart(3,'0')))
+    :(sky[0]||(ob.st==='clear'?'CLR':'sky not reported'));
+  const wtx=windTxt(ob.raw);
+  r.obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
+  return true;
+}
+function setToday(r,list,dayKey,nowMin,sr){   // today's observed deck steps and dawn features
+  const tobs=list.filter(o=>o.day===dayKey);
+  r.todaySteps=ceilSteps(tobs.map(o=>({m:o.m,ceil:o.c,st:o.st})),nowMin);
+  const dw=dawnScan(tobs,sr);
+  r.dawnCeilToday=dw.dc; r.st05Today=dw.s5; r.spreadToday=dw.sp; r.dawnN=dw.n;
+  r.dawnDone=dw.n>0&&nowMin>sr+90;
+}
+// the dawn ceiling CLARO was trained on; before the dawn window has reported, the current ceiling stands in
+const dawnC=r=>(r.dawnDone||r.dawnCeilToday!=null)?r.dawnCeilToday:r.ceil;
+const dawnS5=r=>r.dawnN?r.st05Today:(r.ceil!=null&&r.ceil<1000?1:0);
+function fmtAge(ms){const m=Math.round((Date.now()-ms)/60000);
+  return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+(m%60)+' min ago';}
+const obsLine=r=>r.obsMs?'observed '+fmtHM.format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+(r.obsSrc?' · '+r.obsSrc:'')+' · tap for raw':'no observation loaded';
 async function run(){
   const now=new Date();
   const nowMin=paMin(now);
   const todayKey=paDay(now);
-  const midnight=new Date(now.getTime()-nowMin*60000);   // Pacific midnight, as epoch
-  const gs=await Promise.all(['KSFO','KSMF','KRNO'].map(id=>
-    j(`https://api.weather.gov/stations/${id}/observations?start=${new Date(now-13*3600e3).toISOString()}&limit=60`)));
-  let g1=null,g2=null,tr1=0;
-  if(gs.every(x=>x&&x.features&&x.features.length)){
-    const cur=gs.map(g=>slp(g.features[0].properties));
-    const old=gs.map(g=>{const f=g.features[g.features.length-1];return slp(f.properties);});
-    if(cur.every(v=>v!=null)){
-      g1=cur[0]-cur[1]; g2=cur[0]-cur[2];
-      if(old.every(v=>v!=null))tr1=(cur[0]-cur[1])-(old[0]-old[1]);
-      $('g1').innerHTML=(g1>=0?'+':'')+g1.toFixed(1)+'<small>hPa'+(tr1>0.4?' ↑ building':tr1<-0.4?' ↓ weakening':' → steady')+'</small>';
-      $('g2').innerHTML=(g2>=0?'+':'')+g2.toFixed(1)+'<small>hPa</small>';
-      const strength=g1>=3.5?'strong onshore — deep, stubborn marine layer'
-        :g1>=1.5?'moderate onshore — normal deck, normal burn-off'
-        :g1>=0.3?'weak onshore — shallow deck, early clearing likely'
-        :'flat-to-offshore — layer suppressed; may stay clear';
-      $('grad').style.display='block';
-      $('gread').innerHTML=`<b>${strength}</b>. Higher pressure at the coast than inland pushes marine air onto the land; the stronger the push, the deeper the deck, the later the burn-off — and the earlier the evening return.`;
-    }
-  }
+  const midnight=new Date(paMidnight(now));   // Pacific midnight, as epoch
+  const mid=midnight.getTime();
   const latq=FIELDS.map(f=>f.lat).join(','), lonq=FIELDS.map(f=>f.lon).join(',');
-  const [om,prev,past]=await Promise.all([
-    j(`https://api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low&forecast_days=2&timeformat=unixtime&timezone=auto&models=gfs_hrrr`),
-    j(`https://previous-runs-api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low_previous_day1&past_days=14&forecast_days=1&timeformat=unixtime&timezone=auto&models=gfs_hrrr`),
-    j(`https://api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low&past_days=14&forecast_days=1&timeformat=unixtime&timezone=auto&models=gfs_hrrr`)
-  ]);
+  const iso=h=>new Date(now-h*3600e3).toISOString();
+  const [gs,gOld,om,g05,okObs]=await Promise.all([   // two short windows per station, not 13 h of 5-minute reports
+    Promise.all(GRAD.map(id=>j(NWS+id+'/observations?start='+iso(3)+'&limit=60'))),
+    Promise.all(GRAD.map(id=>j(NWS+id+'/observations?start='+iso(13.5)+'&end='+iso(10.5)+'&limit=60'))),
+    j(`https://api.open-meteo.com/v1/forecast?latitude=${latq}&longitude=${lonq}&hourly=cloud_cover_low&past_days=14&forecast_days=2&timeformat=unixtime&timezone=auto&models=gfs_hrrr`),
+    grad05(mid,todayKey),
+    pullObs()]);
+  if(!okObs)await Promise.all(FIELDS.map(f=>OBS[f.s]&&OBS[f.s].size>100?nwsLatest(f):nwsHist(f)));
+  let g1=null,g2=null,tr1=0;
+  {const cur=gs.map(g=>slpOf(g)), old=gOld.map(g=>slpOf(g));
+   if(cur[0]&&cur[1]){
+    g1=cur[0].v-cur[1].v; g2=cur[2]?cur[0].v-cur[2].v:null;      // Reno missing must not hide SFO→SAC
+    if(old[0]&&old[1])tr1=g1-(old[0].v-old[1].v);
+    $('g1').innerHTML=(g1>=0?'+':'')+g1.toFixed(1)+'<small>hPa'+(tr1>0.4?' ↑ building':tr1<-0.4?' ↓ weakening':' → steady')+'</small>';
+    $('g2').innerHTML=g2!=null?(g2>=0?'+':'')+g2.toFixed(1)+'<small>hPa</small>':'—<small>Reno not reporting</small>';
+    const strength=g1>=3.5?'strong onshore — deep, stubborn marine layer'
+      :g1>=1.5?'moderate onshore — normal deck, normal burn-off'
+      :g1>=0.3?'weak onshore — shallow deck, early clearing likely'
+      :'flat-to-offshore — layer suppressed; may stay clear';
+    $('grad').style.display='block';
+    $('gread').innerHTML=`<b>${strength}</b>. Higher pressure at the coast than inland pushes marine air onto the land; the stronger the push, the deeper the deck, the later the burn-off — and the earlier the evening return.`;
+   }}
   const omArr=Array.isArray(om)?om:om?[om]:[];
-  const pvArr=Array.isArray(prev)?prev:prev?[prev]:[];
-  const paArr=Array.isArray(past)?past:past?[past]:[];
-  const results=await Promise.all(FIELDS.map(async(f,i)=>{
-    const curP=latestObs(f.id);
-    let feats=await iemObs(f.id,15);
-    if(!feats){
-      const chunks=[];
-      for(let k=0;k<4;k++){
-        const c0=new Date(now.getTime()-14*864e5+k*3.5*864e5).toISOString();
-        const c1=new Date(now.getTime()-14*864e5+(k+1)*3.5*864e5).toISOString();
-        chunks.push(j(`https://api.weather.gov/stations/${f.id}/observations?start=${c0}&end=${c1}&limit=500`));
-      }
-      const hs=await Promise.all(chunks);
-      feats=[].concat(...hs.filter(x=>x&&x.features).map(x=>x.features));
-    }
-    const ob=await curP;
-    const hist={features:feats||[]};
+  const results=FIELDS.map((f,i)=>{
+    const list=obsList(f.s);
     const h=omArr[i]&&omArr[i].hourly;
     const series=[];
     if(h&&h.time)for(let k=0;k<h.time.length;k++){
       const tms=h.time[k]*1000;
-      series.push({m:paMin(new Date(tms))+(paDay(new Date(tms))===todayKey?0:1440),c:h.cloud_cover_low[k]});
+      if(tms<mid||h.cloud_cover_low[k]==null)continue;
+      series.push({m:Math.round((tms-mid)/60000),c:h.cloud_cover_low[k]});
     }
     const findClear=(from)=>{for(let k=0;k<series.length-1;k++){
       if(series[k].m<from)continue;
@@ -536,56 +585,23 @@ async function run(){
     const findOnset=(from)=>{for(let k=0;k<series.length-1;k++){
       if(series[k].m<from)continue;
       if(series[k].c>=60&&series[k+1].c>=55)return series[k].m;}return null;};
-    const per=hist&&hist.features?obsPerDay(hist.features,f.lat,f.lon):[];
-    let ceil=null,cat='vna',obsTxt='—',obsWhen='',obsRaw='',obsMs=null;
-    if(ob){
-      ceil=ceilOf(ob.layers,ob.raw);
-      cat=ceil==null||ceil>3000?'vfr':ceil>=1000?'mvfr':'ifr';
-      obsRaw=ob.raw; obsMs=ob.ms;
-      let vis=ob.vis;
-      if(vis==null){const mv=obsRaw.match(/\s(\d{1,2}(?:\s\d\/\d)?|\d\/\d)SM\s/);
-        if(mv){const t2=mv[1].trim().split(' ');let v=0;for(const q of t2)v+=q.includes('/')?(+q.split('/')[0]/+q.split('/')[1]):+q;vis=v;}}
-      const sky=obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g);
-      const skyTxt=ceil!=null?(sky?sky.filter(x=>/BKN|OVC|VV/.test(x))[0]:null)||('OVC'+String(Math.round(ceil/100)).padStart(3,'0')):(sky&&sky.length?sky[0]:'CLR');
-      const wtx=windTxt(obsRaw);
-      obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
-      obsWhen='observed '+fmtHM.format(new Date(obsMs))+' · '+(ob.src||'')+' · tap for raw';
-    }
-    // today's observed deck intervals + sunset
-    const todayIv=[]; let openIv2=null;
-    if(hist&&hist.features){
-      const tobs=hist.features.map(ft=>ft.properties).filter(p=>paDay(new Date(p.timestamp))===todayKey)
-        .map(p=>{const c=ceilOf(p.cloudLayers,p.rawMessage);return {m:paMin(new Date(p.timestamp)),ceil:c,st:skyState(p.rawMessage||'',c)};})
-        .sort((a,b)=>a.m-b.m);
-      var dawnCeilToday=null,st05Today=0;
-      {const srT=sunriseOf(f.lat,f.lon,new Date());
-       for(const o of tobs){
-         if(o.m>=srT-60&&o.m<=srT+90){
-           if(o.ceil!=null&&(dawnCeilToday==null||o.ceil<dawnCeilToday))dawnCeilToday=o.ceil;
-           if(o.ceil!=null&&o.ceil<1000)st05Today=1;
-         }
-       }}
-      for(const o of tobs){
-        if(o.st==='unknown')continue;
-        if(o.st==='low'&&openIv2==null)openIv2=o.m;
-        if(o.st==='clear'&&openIv2!=null){todayIv.push([openIv2,o.m]);openIv2=null;}
-      }
-      if(openIv2!=null)todayIv.push([openIv2,nowMin]);
-      var todaySteps=ceilSteps(tobs,nowMin);
-    }
+    const sun=sunOf(f.lat,f.lon,now);
+    const r={f,series,findClear,findOnset,per:obsPerDay(list,f.lat,f.lon),pa:h,ssv:sun.set,
+      ceil:null,cat:'vna',obsTxt:'—',obsRaw:'',obsMs:null,obsSrc:''};
+    setNow(r,list[list.length-1]);
+    setToday(r,list,todayKey,nowMin,sun.rise);
     const nowM=series.find(x=>x.m>=nowMin);
-    return {f,series,findClear,findOnset,per,ceil,cat,obsTxt,obsWhen,obsRaw,obsMs,obsSrc:ob?ob.src:'',todayIv,todaySteps,dawnCeilToday,st05Today,
-      catCol:cat==='vfr'?'#39d07f':cat==='mvfr'?'#3aa8ff':cat==='ifr'?'#ff4d4d':'#8B959E',
-      ssv:(()=>{const rad=Math.PI/180,d2=new Date(),J=Math.floor((d2-new Date(d2.getFullYear(),0,0))/864e5),
-        gq=(360/365.25)*(J-81)*rad,eot=9.87*Math.sin(2*gq)-7.53*Math.cos(gq)-1.5*Math.sin(gq),
-        dec=23.45*Math.sin((360/365*(J-81))*rad)*rad,
-        haq=Math.acos(Math.max(-1,Math.min(1,(Math.sin(-0.833*rad)-Math.sin(f.lat*rad)*Math.sin(dec))/(Math.cos(f.lat*rad)*Math.cos(dec)))))/rad,
-        noon=720-4*f.lon-eot-paOffset(d2);return noon+haq*4;})(),
-      pv:pvArr[i]&&pvArr[i].hourly, pa:paArr[i]&&paArr[i].hourly,
-      deckNow:(ceil!=null&&ceil<3000)||(nowM&&nowM.c>=55)};
-  }));
-  $('status').textContent='updated '+fmtHM.format(now)+' · obs every 2 min · model every hour';
+    r.deckNow=(r.ceil!=null&&r.ceil<3000)||!!(nowM&&nowM.c>=55);
+    return r;
+  });
+  const wasRaw=new Set(),wasOpen=new Set();    // a rebuild must not fold what the reader had open
+  for(const c of document.querySelectorAll('.apt')){
+    if(c.classList.contains('showraw'))wasRaw.add(c.dataset.id);
+    const d=c.querySelector('.hist'); if(d&&d.open)wasOpen.add(c.dataset.id);
+  }
   $('cards').innerHTML='';
+  const W=svgW();
+  let retry=false;
   const adjClear=(g1==null)?0:Math.max(-35,Math.min(50,(g1-2.0)*18))+(tr1>0.4?15:tr1<-0.4?-15:0);
   const adjOnset=(g1==null)?0:-Math.max(-30,Math.min(40,(g1-2.0)*14))-(tr1>0.4?12:tr1<-0.4?-12:0);
   for(const r of results){
@@ -597,35 +613,38 @@ async function run(){
     const clears=recent.filter(d=>d.clear!=null).map(d=>d.clear);
     const onsets=recent.filter(d=>d.onset!=null).map(d=>d.onset);
     const held=recent.filter(d=>d.held).length;
-    // model hindcast per past day: day-ahead runs where available, model past-record otherwise
-    const errC=[],errO=[]; let usedD1=0,usedD0=0;
+    // model hindcast per past day, from HRRR's own record of that day (Open-Meteo keeps no day-ahead low-cloud runs)
+    const errC=[],errO=[]; let nRec=0;
     const days=pastDays.map(d=>{
       let mc=null,mo=null,mh=false;
-      const srd=sunriseOf(r.f.lat,r.f.lon,d.d);
-      if(r.pv&&r.pv.time){
-        const dm=modelDayScan(r.pv.time,r.pv.cloud_cover_low_previous_day1||[],d.msMid,srd);
-        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD1++;}
-      }
-      if(mc==null&&mo==null&&!mh&&r.pa&&r.pa.time){
-        const dm=modelDayScan(r.pa.time,r.pa.cloud_cover_low||[],d.msMid,srd);
-        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;usedD0++;}
+      if(r.pa&&r.pa.time){
+        const dm=modelDayScan(r.pa.time,r.pa.cloud_cover_low||[],d.msMid,sunriseOf(r.f.lat,r.f.lon,d.d));
+        if(!dm.thin){mc=dm.clear;mo=dm.onset;mh=dm.held;nRec++;}
       }
       if(mc!=null&&d.clear!=null)errC.push(mc-d.clear);
       if(mo!=null&&d.onset!=null)errO.push(mo-d.onset);
-      return {label:d.day,obsClear:d.clear,obsOnset:d.onset,obsHeld:d.held,modClear:mc,modOnset:mo,modHeld:mh};
+      return {label:d.day,obsClear:d.clear,obsOnset:d.onset,modClear:mc,modOnset:mo,modHeld:mh};
     });
     const biasC=errC.length>=4?Math.max(-90,Math.min(90,med(errC))):0;
     const biasO=errO.length>=4?Math.max(-90,Math.min(90,med(errO))):0;
-    const tScan=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),midnight.getTime(),sr);
+    const sT=r.series.map(x=>(x.m*60000+mid)/1000), sV=r.series.map(x=>x.c);
+    const tScan=r.tScan=modelDayScan(sT,sV,mid,sr);
     days.push({label:'today',isToday:true,
-      obsClear:todayObs?todayObs.clear:null,obsOnset:todayObs?todayObs.onset:null,obsHeld:false,
+      obsClear:todayObs?todayObs.clear:null,obsOnset:todayObs?todayObs.onset:null,
       modClear:tScan.clear,modOnset:tScan.onset,modHeld:tScan.held});
-    const tm=new Date(midnight.getTime()+864e5+12*3600e3);
-    const tScan2=modelDayScan(r.series.map(x=>(x.m*60000+midnight.getTime())/1000),r.series.map(x=>x.c),tm.getTime(),sunriseOf(r.f.lat,r.f.lon,tm));
-    days.push({label:'tmrw',isTmrw:true,obsClear:null,obsOnset:null,obsHeld:false,
+    const tm=new Date(mid+864e5+12*3600e3);
+    const tScan2=r.tScan2=modelDayScan(sT,sV,mid+864e5,sunriseOf(r.f.lat,r.f.lon,tm));   // tomorrow counted from tomorrow's midnight
+    days.push({label:'tmrw',isTmrw:true,obsClear:null,obsOnset:null,
       modClear:tScan2.clear,modOnset:tScan2.onset,modHeld:tScan2.held});
     let head,sub='',mCol,hCol,gCol,tick=null;
-    if(r.deckNow){
+    r.events=[]; r.holdCall=false; r.noModel=!r.series.length;
+    if(r.noModel){                 // a missing model must not read as a confident "clear"
+      const hm=med(r.deckNow?clears:onsets);
+      head='forecast unavailable'; sub='model data did not load — retrying'; retry=true;
+      mCol={v:'—',s:'HRRR not loaded'};
+      hCol={v:hm!=null?fmtAbs(hm):'—',s:r.deckNow?`median of ${clears.length} observed clearings, last 7 days`:`median return time, ${onsets.length} of last 7 evenings`};
+      gCol={v:'—',s:'needs the model to blend'};
+    }else if(r.deckNow){
       let model=r.findClear(Math.max(nowMin,sr-30));
       const modelTmrw=(model!=null&&model>=16.5*60)?model:null;
       if(modelTmrw!=null)model=null;                 // beyond today = holds today
@@ -636,27 +655,31 @@ async function run(){
             s:clears.length?`median of ${clears.length} observed clearings, last 7 days`:`${held} of last 7 mornings never cleared`};
       gCol={v:adjClear>8?'later +'+fmtDur(adjClear):adjClear<-8?'earlier −'+fmtDur(-adjClear):'neutral',
             s:'push strength shifts the blend'};
-      if(model==null&&(hm==null||held>=3)){head='may hold all day';sub='model keeps the deck; recent mornings agree'; r.events=[];}
+      if(model==null&&(hm==null||held>=3)){head='may hold all day';sub='model keeps the deck; recent mornings agree'; r.holdCall=true;}
       else{
         const mcorr=model!=null?model-biasC:null;
         let base=mcorr!=null&&hm!=null?0.55*mcorr+0.45*hm:(mcorr??hm);
-        base+=adjClear; if(base<nowMin)base=nowMin+15;
+        base+=adjClear;
         const band=Math.max(25,model!=null&&hm!=null?0.6*Math.abs(model-hm):45);
-        r.events=[{m:base,band,kind:'clear'}];
-        head='clears ~'+fmtAbs(base);
-        const om2=r.findOnset(Math.max(nowMin,base+30));
-        if(om2!=null){
-          let rb=(om2-biasO)+adjOnset;
-          const hmO=med(onsets);
-          if(hmO!=null&&hmO<=rb+240)rb=0.55*rb+0.45*hmO;
-          if(rb>base+90){
-            const band2=Math.max(30,hmO!=null?0.6*Math.abs(om2-hmO):50);
-            r.events.push({m:rb,band:band2,kind:'return'});
-            head+=' · fog returns ~'+fmtAbs(rb);
-            sub='±'+fmtDur(band)+' / ±'+fmtDur(band2)+' · ≈'+fmtDur(rb-base)+' of clear air';
-          }else sub='±'+fmtDur(band)+' · return timing unclear';
-        }else sub='±'+fmtDur(band)+' · no return expected today';
-        tick=base;
+        if(base<nowMin){           // the estimate has passed and the deck is still here: say so, don't promise "15 minutes" forever
+          head='overdue · still holding'; sub='blend expected ~'+fmtAbs(base)+' ±'+fmtDur(band)+' — the deck has outlasted it';
+        }else{
+          r.events=[{m:base,band,kind:'clear'}];
+          head='clears ~'+fmtAbs(base);
+          const om2=r.findOnset(Math.max(nowMin,base+30));
+          if(om2!=null){
+            let rb=(om2-biasO)+adjOnset;
+            const hmO=med(onsets);
+            if(hmO!=null&&hmO<=rb+240)rb=0.55*rb+0.45*hmO;
+            if(rb>base+90){
+              const band2=Math.max(30,hmO!=null?0.6*Math.abs(om2-hmO):50);
+              r.events.push({m:rb,band:band2,kind:'return'});
+              head+=' · fog returns ~'+fmtAbs(rb);
+              sub='±'+fmtDur(band)+' / ±'+fmtDur(band2)+' · ≈'+fmtDur(rb-base)+' of clear air';
+            }else sub='±'+fmtDur(band)+' · return timing unclear';
+          }else sub='±'+fmtDur(band)+' · no return expected today';
+          tick=base;
+        }
       }
     }else{
       const model=r.findOnset(nowMin);
@@ -666,7 +689,7 @@ async function run(){
             s:onsets.length?`median return time, ${onsets.length} of last 7 evenings`:'no returns observed this week'};
       gCol={v:adjOnset<-8?'sooner −'+fmtDur(-adjOnset):adjOnset>8?'later +'+fmtDur(adjOnset):'neutral',
             s:'stronger push brings it back sooner'};
-      if(model==null){head='clear';sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow'; r.events=[];}
+      if(model==null){head='clear';sub=hm!=null?'model holds it off — though it returned most recent evenings ~'+fmtAbs(hm):'no deck expected through tomorrow';}
       else{
         const mcorr=model-biasO;
         let base=hm!=null?0.55*mcorr+0.45*(hm>mcorr+720?mcorr:hm):mcorr;
@@ -674,8 +697,7 @@ async function run(){
         const band=Math.max(25,hm!=null?0.6*Math.abs(model-Math.min(hm,model+240)):45);
         r.events=[{m:base,band,kind:'return'}];
         head='fog returns ~'+fmtAbs(base);
-        const tmSr=sunriseOf(r.f.lat,r.f.lon,new Date(midnight.getTime()+864e5+12*3600e3));
-        const mc2=r.findClear(Math.max(base+60,1440+tmSr-30));
+        const mc2=r.findClear(Math.max(base+60,1440+sunriseOf(r.f.lat,r.f.lon,tm)-30));
         if(mc2!=null){
           let cb=(mc2-biasC)+adjClear;
           const hmC=med(clears);
@@ -690,23 +712,24 @@ async function run(){
         tick=base;
       }
     }
-    const el=document.createElement('div'); el.className='apt'; el.dataset.id=r.f.s;
+    r.days=days; r.tick=tick; r.events0=r.events; r.head0=head+'<small>'+sub+'</small>';
+    const el=document.createElement('div'); el.className='apt'+(wasRaw.has(r.f.s)?' showraw':''); el.dataset.id=r.f.s;
     el.innerHTML=`<div class="top"><span class="id">${r.f.s}</span><span class="nm">${r.f.n}</span>
-      <span class="now"><i style="background:var(--${r.cat})"></i>${r.cat==='vna'?'—':r.cat.toUpperCase()}</span></div>
-      <div class="nowrow"><span class="nowbig" style="color:${r.catCol}" data-nowbig>${r.obsTxt||'—'}</span>
-        <span class="nowsub" data-nowsub>${r.obsWhen||''}</span></div>
+      <span class="now"><i style="background:var(--${r.cat})"></i><span data-cat>${r.cat==='vna'?'—':r.cat.toUpperCase()}</span></span></div>
+      <button type="button" class="nowrow" aria-expanded="${wasRaw.has(r.f.s)}"><span class="nowbig" style="color:var(--${r.cat})" data-nowbig>${r.obsTxt||'—'}</span>
+        <span class="nowsub" data-nowsub>${obsLine(r)}</span></button>
       <div class="rawline" data-raw>${r.obsRaw||('raw METAR not provided by '+(r.obsSrc||'source'))}</div>
-      <div class="head">${head}<small>${sub}</small></div>
-      <div data-strip>${todayStrip(r,nowMin,sr,r.ssv)}</div>
+      <div class="head">${r.head0}</div>
+      <div data-strip>${todayStrip(r,nowMin,sr,r.ssv,W)}</div>
       <div class="parts">
         <div class="p"><div class="k">HRRR</div><div class="x">${mCol.v}<small>${mCol.s}</small></div></div>
         <div class="p"><div class="k">RECENT DAYS</div><div class="x">${hCol.v}<small>${hCol.s}</small></div></div>
         <div class="p"><div class="k">GRADIENT</div><div class="x">${gCol.v}<small>${gCol.s}</small></div></div>
       </div>
-      <details class="hist"><summary>14-DAY OBSERVED vs MODEL — VERIFICATION</summary>
-      ${(r.lastTick=tick,'')}${chart(days,tick,nowMin)}
+      <details class="hist"${wasOpen.has(r.f.s)?' open':''}><summary>14-DAY OBSERVED vs MODEL — VERIFICATION</summary>
+      <div data-chart>${chart(days,tick,nowMin,W)}</div>
       <div class="why mcheck" style="margin-top:2px">
-        model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · sources: ${usedD1} day-ahead / ${usedD0} model record
+        model check (14 d): ${errC.length?`burn-off matched ${errC.length}× · median error ${med(errC)>=0?'+':'−'}${fmtDur(Math.abs(med(errC)))} ${med(errC)>=0?'late':'early'}`:'no matched burn-offs'}${errO.length?` · returns ${errO.length}× · ${med(errO)>=0?'+':'−'}${fmtDur(Math.abs(med(errO)))}`:''}${Math.abs(biasC)>=10?` · applying ${biasC>0?'−':'+'}${fmtDur(Math.abs(biasC))} bias correction`:''} · model side: HRRR's own record of ${nRec} days, not day-ahead forecasts
       </div>
       </details>`;
     $('cards').appendChild(el);
@@ -717,8 +740,12 @@ async function run(){
     $('cards').appendChild(el);
    }
   }
-  RESULTS=results; LASTCTX={g1,g2,tr1,nowMin,midnight};
+  const noObs=results.every(r=>!r.obsMs);
+  $('status').textContent=noObs&&retry?'could not load — retrying'
+    :'updated '+fmtHM.format(now)+' · obs every 2 min · forecast every 30 min'+(retry?' · model did not load, retrying':'')+(noObs?' · observations did not load, retrying':'');
+  RESULTS=results; LASTCTX={g1,g2,tr1,nowMin,midnight,dayKey:todayKey,g05};
   try{CLARO.boot(results,LASTCTX);}catch(e){console.warn('claro',e);}
+  return retry;
 }
 
 /* ============================ CLARO ============================
@@ -731,7 +758,7 @@ async function run(){
    Lineage: Hilliker & Fritsch 1999; MIT-LL Marine Stratus Forecast
    System; Iacobellis & Cayan 2013; Klein–Hartmann LTS.             */
 const CLARO={
-  TESTN:45, key:'claro.v4', st:null,
+  TESTN:45, key:'claro.v5', st:null, g2d:3, building:false,
   windows(){
     const now=new Date(), Y=now.getFullYear(), out=[];
     for(let y=Y-2;y<=Y;y++){
@@ -742,155 +769,134 @@ const CLARO={
     }
     return out;
   },
+  seasons(st){const n=st.nWin||0, f=(st.fail||[]).length;
+    return 'trained on '+(n-f)+' of '+n+' seasons'+(f?' ('+st.fail.join(', ')+' did not load — retrying later)':'');},
   async boot(results,ctx){
+    this._results=results; this._ctx=ctx;
+    if(this.building)return;                 // the build in flight paints the newest cards when it lands
     const today=new Date().toDateString();
     let cache=null;
-    try{cache=JSON.parse(localStorage.getItem(this.key)||'null');}catch(e){}
+    try{localStorage.removeItem('claro.v4'); cache=JSON.parse(localStorage.getItem(this.key)||'null');}catch(e){}
     const stat=document.getElementById('status');
     const say=t=>{if(stat)stat.textContent=t;};
-    if(cache&&cache.day===today&&cache.out){
-      this.st=cache; this.apply(results,ctx); return;
-    }
+    if(cache&&cache.out){this.st=cache; this.g2d=cache.g2d??3; this.apply(results,ctx);}   // yesterday's fit beats no fit while today's trains
+    const owed=((cache&&cache.fail)||[]).length;       // seasons that failed to load are retried, but not more than every 30 min
+    if(cache&&cache.out&&cache.day===today&&(!owed||Date.now()-(cache.at||0)<30*60e3))return;
+    this.building=true;
     say('CLARO — training on three seasons of archives…');
     try{
-      const st=await this.build(results,say,cache);
-      st.day=today; this.st=st;
+      const st=await this.build(say,cache);
+      st.day=today; st.at=Date.now(); this.st=st;
       try{localStorage.setItem(this.key,JSON.stringify(st));}
-      catch(e){ try{localStorage.setItem(this.key,JSON.stringify({day:st.day,out:st.out,names:st.names,tB:st.tB}));}catch(e2){} }
-      this.apply(results,ctx);
-      say('updated '+new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:TZ}).format(new Date())+' · CLARO active · refreshes hourly');
+      catch(e){ try{localStorage.setItem(this.key,JSON.stringify({day:st.day,at:st.at,out:st.out,names:st.names,tB:st.tB,g2d:st.g2d,nWin:st.nWin,fail:st.fail}));}catch(e2){} }
+      this.apply(this._results,this._ctx);
+      say('updated '+fmtHM.format(new Date())+' · obs every 2 min · forecast every 30 min · CLARO '+this.seasons(st));
     }catch(e){console.warn('CLARO build failed',e); say('CLARO unavailable — heuristic blend shown');}
+    finally{this.building=false;}
   },
-  parseTd(raw){ const m=String(raw).match(/\s(M?\d{2})\/(M?\d{2})\s/); if(!m)return null;
-    const f=x=>parseInt(x.replace('M','-'),10); return {t:f(m[1]),td:f(m[2])}; },
   packHc(hc){return hc.map(v=>v==null?-1:Math.min(99,Math.round(v/100)));},
   unpackHc(p){return p.map(v=>v<0?null:v*100);},
-  async fetchRange(results,say,a,b,rowsByField,pressCache){
-    const dstr=d=>d.toISOString().slice(0,10);
-    const spanDays=Math.round((b-a)/864e5)+2;
-    // METAR archives per field
-    for(const r of results){
-      say('CLARO — '+r.f.s+' archive '+dstr(a).slice(0,7)+'…');
-      const q='station='+r.f.id.slice(1)+'&data=metar'
-        +'&year1='+a.getUTCFullYear()+'&month1='+(a.getUTCMonth()+1)+'&day1='+a.getUTCDate()
-        +'&year2='+b.getUTCFullYear()+'&month2='+(b.getUTCMonth()+1)+'&day2='+(b.getUTCDate()+1)
-        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=yes';
-      const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
-      if(!txt)continue;
-      const byDay={};
-      for(const line of txt.split('\n')){
-        if(!line||line[0]==='#'||line.startsWith('station'))continue;
-        const i1=line.indexOf(','); if(i1<0)continue;
-        const i2=line.indexOf(',',i1+1); if(i2<0)continue;
-        let iso=line.slice(i1+1,i2).trim().replace(' ','T'); if(iso.length===16)iso+=':00';
-        const raw=line.slice(i2+1).trim();
-        if(!iso||!raw)continue;
-        const t=new Date(iso+'Z');
-        (byDay[paDay(t)]=byDay[paDay(t)]||[]).push({t,m:paMin(t),
-          ceil:ceilOf([],raw),raw});
+  async fetchRange(say,a,b,rowsByField,pressCache){   // true when METARs, pressures and the model archive all arrived
+    const dstr=d=>d.toISOString().slice(0,10), tag=dstr(a).slice(0,7);
+    const b1=new Date(b.getTime()+864e5);            // exclusive end as a real date — "Oct 32" is a 422
+    // routine + special reports only: the 5-minute feed is 10× the bytes for the same day labels
+    const span='&year1='+a.getUTCFullYear()+'&month1='+(a.getUTCMonth()+1)+'&day1='+a.getUTCDate()
+      +'&year2='+b1.getUTCFullYear()+'&month2='+(b1.getUTCMonth()+1)+'&day2='+b1.getUTCDate()+'&report_type=3&report_type=4';
+    let ok=true;
+    say('CLARO — METAR archive '+tag+'…');
+    const txt=await iem(FIELDS.map(f=>'station='+f.s).join('&')+'&data=metar'+span,120000);
+    if(txt==null)ok=false;
+    else{
+      const by={};                                   // station → day → observations
+      for(const o of iemLines(txt)){
+        const p=paParts(new Date(o.ms)), D=by[o.sid]=by[o.sid]||{};
+        (D[p.day]=D[p.day]||[]).push({ms:o.ms,m:p.min,mon:p.mon,c:ceilOf(null,o.rest),raw:o.rest});
       }
-      const R=rowsByField[r.f.s]=rowsByField[r.f.s]||{};
-      for(const k of Object.keys(byDay)){
-        const arr0=byDay[k];
-        const msMid=arr0[0].t.getTime()-arr0[0].m*60000;
-        const d=new Date(msMid+12*3600e3);
-        const mon=pa(d).getMonth()+1;
-        if(mon<4||mon>10)continue;
-        const obs=byDay[k].sort((x,y)=>x.m-y.m);
-        if(obs.length<8)continue;
-        const sr=sunriseOf(r.f.lat,r.f.lon,d);
-        const ss=scanDay(obs.map(o=>({m:o.m,low:o.ceil!=null&&o.ceil<3000})),sr);
-        let dawnCeil=null,spread=null,st05=0;
-        for(const o of obs){
-          if(o.m>=sr-60&&o.m<=sr+90){
-            if(o.ceil!=null&&(dawnCeil==null||o.ceil<dawnCeil))dawnCeil=o.ceil;
-            if(spread==null){const td=CLARO.parseTd(o.raw); if(td)spread=td.t-td.td;}
-            if(o.ceil!=null&&o.ceil<1000)st05=1;
-          }
+      for(const f of FIELDS){
+        const R=rowsByField[f.s]=rowsByField[f.s]||{}, D=by[f.s]||{};
+        for(const k of Object.keys(D)){
+          const obs=D[k].sort((x,y)=>x.m-y.m);
+          if(obs[0].mon<4||obs[0].mon>10||obs.length<8)continue;
+          const msMid=obs[0].ms-obs[0].m*60000;
+          const d=new Date(msMid+12*3600e3);
+          const sr=sunriseOf(f.lat,f.lon,d);
+          const ss=scanDay(obs.map(o=>({m:o.m,low:o.c!=null&&o.c<3000})),sr), dw=dawnScan(obs,sr);
+          const hc=new Array(24).fill(null);
+          for(const o of obs){const h=Math.floor(o.m/60);
+            if(o.c!=null&&(hc[h]==null||o.c<hc[h]))hc[h]=o.c;
+            else if(o.c==null&&hc[h]==null)hc[h]=9999;}
+          const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+          R[k]={ms:msMid,sr:Math.round(sr),
+            y:ss.clear,yo:ss.onset,held:ss.held?1:0,
+            dc:dw.dc,sp:dw.sp,s5:dw.s5,
+            hc:CLARO.packHc(hc),
+            dS:+Math.sin(2*Math.PI*doy/365).toFixed(4),dC:+Math.cos(2*Math.PI*doy/365).toFixed(4)};
         }
-        const hc=new Array(24).fill(null);
-        for(const o of obs){const h=Math.floor(o.m/60);
-          if(o.ceil!=null&&(hc[h]==null||o.ceil<hc[h]))hc[h]=o.ceil;
-          else if(o.ceil==null&&hc[h]==null)hc[h]=9999;}
-        const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
-        R[k]={ms:msMid,sr:Math.round(sr),
-          y:ss.clear,yo:ss.onset,held:ss.held?1:0,
-          dc:dawnCeil,sp:spread,s5:st05,
-          hc:CLARO.packHc(hc),
-          dS:+Math.sin(2*Math.PI*doy/365).toFixed(4),dC:+Math.cos(2*Math.PI*doy/365).toFixed(4)};
       }
     }
-    // pressure gradients at 05 local, per day
-    for(const sid of ['KSFO','KSMF','KRNO']){
-      say('CLARO — pressure '+sid+' '+dstr(a).slice(0,7));
-      const q='station='+sid.slice(1)+'&data=mslp&data=alti'
-        +'&year1='+a.getUTCFullYear()+'&month1='+(a.getUTCMonth()+1)+'&day1='+a.getUTCDate()
-        +'&year2='+b.getUTCFullYear()+'&month2='+(b.getUTCMonth()+1)+'&day2='+(b.getUTCDate()+1)
-        +'&tz=Etc%2FUTC&format=comma&latlon=no&elev=no&missing=M&trace=T&direct=yes';
-      const txt=await jt('https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?'+q);
-      if(!txt)continue;
-      let hi=-1,hm=-1,ha2=-1;
-      const P=pressCache[sid]=pressCache[sid]||{};
-      for(const line of txt.split('\n')){
-        if(line.startsWith('station')){const h=line.split(',');hm=h.indexOf('mslp');ha2=h.indexOf('alti');hi=h.indexOf('valid');continue;}
-        if(!line||line[0]==='#')continue;
-        const c=line.split(','); if(hi<0||!c[hi])continue;
-        let p=hm>=0&&c[hm]&&c[hm]!=='M'?parseFloat(c[hm]):null;
-        if(p==null&&ha2>=0&&c[ha2]&&c[ha2]!=='M')p=parseFloat(c[ha2])*33.8639;
-        if(p==null||!isFinite(p))continue;
-        let iso=c[hi].trim().replace(' ','T'); if(iso.length===16)iso+=':00';
-        const t=new Date(iso+'Z');
-        const k=paDay(t), hr=paMin(t)/60;
-        const slot=Math.abs(hr-5)<=1.2?'a':(Math.abs(hr-23)<=1.2?'b':null);
-        if(!slot)continue;
-        (P[k]=P[k]||{})[slot]=p;
-      }
+    await tick();
+    // pressure gradients at 05 local (and 23 local, for the overnight change), per day
+    say('CLARO — pressure archive '+tag+'…');
+    const ptx=await iem(GRAD.map(s=>'station='+s.slice(1)).join('&')+'&data=mslp&data=alti'+span,120000);
+    if(ptx==null)ok=false;
+    else for(const o of iemLines(ptx)){
+      const v=o.rest.split(','), ms=parseFloat(v[o.cols.indexOf('mslp')]), al=parseFloat(v[o.cols.indexOf('alti')]);
+      const isM=isFinite(ms), p=isM?ms:(isFinite(al)?al*33.8639:null);
+      if(p==null)continue;
+      const pp=paParts(new Date(o.ms)), hr=pp.min/60;
+      const slot=Math.abs(hr-5)<=1.2?'a':(Math.abs(hr-23)<=1.2?'b':null);
+      if(!slot)continue;
+      const P=pressCache['K'+o.sid]=pressCache['K'+o.sid]||{}, S=P[pp.day]=P[pp.day]||{};
+      // altimeter is only a stand-in: it never replaces a true sea-level pressure (at Reno the two sit ~6 hPa apart)
+      if(isM||!S[slot+'m']){S[slot]=p; if(isM)S[slot+'m']=1;}
     }
+    await tick();
     // Open-Meteo archives for the window
-    say('CLARO — model archive '+dstr(a).slice(0,7));
-    const latq=results.map(r=>r.f.lat).join(','), lonq=results.map(r=>r.f.lon).join(',');
-    let hA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
-      +'&hourly=cloud_cover_low&start_date='+dstr(a)+'&end_date='+dstr(b)+'&timeformat=unixtime&timezone=auto&models=gfs_hrrr');
-    if(!hA)hA=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
-      +'&hourly=cloud_cover_low&start_date='+dstr(a)+'&end_date='+dstr(b)+'&timeformat=unixtime&timezone=auto');
-    const hBres=await j('https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+latq+'&longitude='+lonq
-      +'&hourly=temperature_850hPa,temperature_2m&start_date='+dstr(a)+'&end_date='+dstr(b)+'&timeformat=unixtime&timezone=auto');
-    results.forEach((r,fi)=>{
+    say('CLARO — model archive '+tag+'…');
+    const HA='https://historical-forecast-api.open-meteo.com/v1/forecast?latitude='+FIELDS.map(f=>f.lat).join(',')+'&longitude='+FIELDS.map(f=>f.lon).join(',')
+      +'&start_date='+dstr(a)+'&end_date='+dstr(b)+'&timeformat=unixtime&timezone=auto&hourly=';
+    const [hA0,hB]=await Promise.all([j(HA+'cloud_cover_low&models=gfs_hrrr',60000),j(HA+'temperature_850hPa,temperature_2m',60000)]);
+    const hA=hA0||await j(HA+'cloud_cover_low',60000);
+    if(!hA||!hB)ok=false;
+    const lo=a.getTime()-864e5, hi=b.getTime()+2*864e5;
+    FIELDS.forEach((f,fi)=>{
       const ha=Array.isArray(hA)?hA[fi]&&hA[fi].hourly:hA&&hA.hourly;
-      const hb=Array.isArray(hBres)?hBres[fi]&&hBres[fi].hourly:hBres&&hBres.hourly;
-      const R=rowsByField[r.f.s]||{};
+      const hb=Array.isArray(hB)?hB[fi]&&hB[fi].hourly:hB&&hB.hourly;
+      const R=rowsByField[f.s]||{};
       for(const k of Object.keys(R)){
-        const row=R[k]; const d=new Date(k);
+        const row=R[k], d0=row.ms;                   // the day's Pacific midnight — never re-parse the key in the viewer's zone
+        if(d0<lo||d0>hi)continue;                    // rows outside this fetch keep what they have
         if(row.mhc!==undefined&&row.t8!==undefined)continue;
         if(ha&&ha.time){
-          const dm=modelDayScan(ha.time,ha.cloud_cover_low||[],d.getTime(),row.sr);
+          const dm=modelDayScan(ha.time,ha.cloud_cover_low||[],d0,row.sr);
           if(!dm.thin){row.mhc=dm.clear;row.mho=dm.onset;row.mh=dm.held?1:0;}
-          const cc=new Array(24).fill(-1);
+          const cc=new Array(24).fill(-1); let any=false;
           for(let q3=0;q3<ha.time.length;q3++){
-            const mm=(ha.time[q3]*1000-d.getTime())/3600e3;
-            if(mm>=0&&mm<24&&ha.cloud_cover_low[q3]!=null)cc[Math.round(mm)]=Math.round(ha.cloud_cover_low[q3]);
+            const mm=(ha.time[q3]*1000-d0)/3600e3;
+            if(mm>=0&&mm<24&&ha.cloud_cover_low[q3]!=null){cc[Math.round(mm)]=Math.round(ha.cloud_cover_low[q3]);any=true;}
           }
-          row.cc=cc;
+          if(any)row.cc=cc;
         }
         if(hb&&hb.time){
-          const idx=hb.time.findIndex(t=>Math.abs(t*1000-(d.getTime()+6*3600e3))<1800e3);
+          const idx=hb.time.findIndex(t=>Math.abs(t*1000-(d0+6*3600e3))<1800e3);
           if(idx>=0&&hb.temperature_850hPa&&hb.temperature_850hPa[idx]!=null)
             row.t8=+(hb.temperature_850hPa[idx]-hb.temperature_2m[idx]).toFixed(1);
         }
       }
     });
+    return ok;
   },
-  finalizeRows(results,rowsByField,pressCache){
-    const per={};
-    for(const r of results){
-      const R=rowsByField[r.f.s]||{};
+  finalizeRows(rowsByField,pressCache){
+    const per={}, g2s=[];
+    for(const f of FIELDS){
+      const R=rowsByField[f.s]||{};
       const rows=Object.keys(R).map(k=>({k,...R[k]})).sort((a,b)=>a.ms-b.ms);
       for(const row of rows){
-        const P=k2=>pressCache.KSFO&&pressCache.KSFO[k2]&&pressCache.KSMF&&pressCache.KSMF[k2]?null:null;
         const kk=paDay(new Date(row.ms+12*3600e3));
         const pf=pressCache.KSFO&&pressCache.KSFO[kk], pm=pressCache.KSMF&&pressCache.KSMF[kk], pr=pressCache.KRNO&&pressCache.KRNO[kk];
         row.g1=pf&&pm&&pf.a!=null&&pm.a!=null?+(pf.a-pm.a).toFixed(1):null;
         row.g2=pf&&pr&&pf.a!=null&&pr.a!=null?+(pf.a-pr.a).toFixed(1):null;
+        if(row.g2!=null)g2s.push(row.g2);
         const kprev=paDay(new Date(row.ms-864e5+12*3600e3));
         const pf2=pressCache.KSFO&&pressCache.KSFO[kprev], pm2=pressCache.KSMF&&pressCache.KSMF[kprev];
         const gPrev=pf2&&pm2&&pf2.b!=null&&pm2.b!=null?pf2.b-pm2.b:null;
@@ -902,28 +908,40 @@ const CLARO={
         rows[i].po=gap<=2?rows[i-1].yo:null;
         rows[i].ph=gap<=2?(rows[i-1].held?0:(rows[i-1].y!=null?1:null)):null;
       }
-      per[r.f.s]=rows;
+      per[f.s]=rows;
     }
+    const m=med(g2s); this.g2d=m!=null?m:3;          // a missing SFO−RNO is filled with its own typical value
     return per;
   },
+  lnc(c){return c!=null?Math.log(Math.max(100,Math.min(4000,c))):Math.log(4000);},
+  // the three feature builders take a training row or a live row of the same shape, so live can't drift from training
   featC(row){return [
-    row.dc!=null?Math.log(Math.max(100,Math.min(4000,row.dc))):Math.log(4000),
-    row.g1??2,row.g2??3,row.g1t??0,
+    CLARO.lnc(row.dc),
+    row.g1??2,row.g2??CLARO.g2d,row.g1t??0,
     row.mhc!=null?row.mhc/60:11,row.mh??0,
     row.t8??5,row.sp??3,
     row.pc!=null?row.pc/60:10.5,
     row.dS,row.dC];},
   featO(row){return [
-    row.g1??2,row.g2??3,
+    row.g1??2,row.g2??CLARO.g2d,
     row.mho!=null?row.mho/60:20,
     row.t8??5,
     row.po!=null?row.po/60:20,
     row.dS,row.dC];},
+  featB(row){return [
+    CLARO.lnc(row.dc),
+    row.g1??2,row.g2??CLARO.g2d,row.g1t??0,
+    row.mh??0,
+    (row.mhc!=null&&row.mhc<16.5*60)?row.mhc/60:12,
+    row.t8??5,row.sp??3,
+    row.ph==null?0.5:row.ph,
+    row.dS,row.dC];},
   NAMES:['ln dawn ceiling','SFO−SAC','SFO−RNO','grad Δ12h','HRRR clear','HRRR held','T850−T2m','T−Td dawn','prev clearing','doy sin','doy cos'],
-  fitVerify(results,per){
+  async fitVerify(per){           // async and yielding: three seasons × five fields must not freeze the page
     const out={};
-    for(const r of results){
-      const rows=per[r.f.s]||[];
+    for(const f of FIELDS){
+      await tick();
+      const rows=per[f.s]||[];
       const cR=rows.filter(x=>x.y!=null), oR=rows.filter(x=>x.yo!=null);
       const wf=(R,feat,yk,mk)=>{
         const test=R.slice(-this.TESTN), eF=[],eM=[],eP=[],eC=[];
@@ -934,12 +952,13 @@ const CLARO={
           eF.push(CLARO.dot(w.w,feat(t))-t[yk]);
           if(t[mk]!=null)eM.push(t[mk]-t[yk]);
           const pk=yk==='y'?'pc':'po'; if(t[pk]!=null)eP.push(t[pk]-t[yk]);
-          const m7=CLARO.med(tr.slice(-7).map(x=>x[yk])); if(m7!=null)eC.push(m7-t[yk]);
+          const m7=med(tr.slice(-7).map(x=>x[yk])); if(m7!=null)eC.push(m7-t[yk]);
         }
         return {eF,eM,eP,eC};
       };
-      const vc=wf(cR,this.featC.bind(this),'y','mhc');
-      const vo=wf(oR,this.featO.bind(this),'yo','mho');
+      const vc=wf(cR,this.featC,'y','mhc');
+      await tick();
+      const vo=wf(oR,this.featO,'yo','mho');
       const fitC=cR.length>=40?CLARO.ridge(cR.map(this.featC),cR.map(x=>x.y),3):null;
       const fitO=oR.length>=30?CLARO.ridge(oR.map(this.featO),oR.map(x=>x.yo),3):null;
       // hourly logistic
@@ -950,14 +969,14 @@ const CLARO={
           const c=hc[h]; if(c==null)continue;
           const ccl=row.cc&&row.cc[h]>=0?row.cc[h]:null;
           LX.push([Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
-            row.dc!=null?Math.log(Math.max(100,Math.min(4000,row.dc))):Math.log(4000),
+            CLARO.lnc(row.dc),
             row.s5??0,row.g1??2,row.t8??5,(ccl??50)/100]);
           LY.push(c<1000?1:0);
         }
       }
       const y0=LY.length?LY.reduce((a,b)=>a+b,0)/LY.length:null;
       const nTr=Math.max(0,LY.length-18*this.TESTN);
-      const wL=nTr>400?CLARO.logit(LX.slice(0,nTr),LY.slice(0,nTr)):null;
+      const wL=nTr>400?(await CLARO.logit(LX.slice(0,nTr),LY.slice(0,nTr))).w:null;
       let brier=null,brierClim=null;
       if(wL){
         const base=LY.slice(0,nTr).reduce((a,b)=>a+b,0)/nTr;
@@ -968,96 +987,104 @@ const CLARO={
         }
         if(n){brier=s1/n;brierClim=s2/n;}
       }
-      const featB=row=>[
-        row.dc!=null?Math.log(Math.max(100,Math.min(4000,row.dc))):Math.log(4000),
-        row.g1??2,row.g2??3,row.g1t??0,
-        row.mh??0,
-        (row.mhc!=null&&row.mhc<16.5*60)?row.mhc/60:12,
-        row.t8??5,row.sp??3,
-        row.ph==null?0.5:row.ph,
-        row.dS,row.dC];
+      const featB=this.featB;
       const dRows=rows.filter(x=>x.y!=null||x.held);
       const bY=r2=>r2.y!=null?1:0;
       let wB=null,bssB=null,nBt=0,baseB=null,prevB=0.5;
       if(dRows.length>=80){
         const testB=dRows.slice(-this.TESTN);
-        let s1=0,s2v=0,nb=0;
+        let s1=0,s2v=0,nb=0,warm=null;
         for(const t of testB){
           const tr=dRows.filter(x=>x.ms<t.ms);
           if(tr.length<60)continue;
-          const w=CLARO.logit(tr.map(featB),tr.map(bY));
-          const p=CLARO.sig(CLARO.dot(w,featB(t)));
+          const fit=await CLARO.logit(tr.map(featB),tr.map(bY),warm);   // each refit starts from the previous day's weights
+          warm=fit.z;
+          const p=CLARO.sig(CLARO.dot(fit.w,featB(t)));
           const base=tr.reduce((a,x)=>a+bY(x),0)/tr.length;
           s1+=(p-bY(t))**2; s2v+=(base-bY(t))**2; nb++;
         }
         if(nb>=20){bssB=1-s1/Math.max(1e-9,s2v);nBt=nb;}
         baseB=dRows.reduce((a,x)=>a+bY(x),0)/dRows.length;
-        if(bssB!=null&&bssB>0.02)wB=CLARO.logit(dRows.map(featB),dRows.map(bY));
+        if(bssB!=null&&bssB>0.02)wB=(await CLARO.logit(dRows.map(featB),dRows.map(bY))).w;
         const lastD=dRows[dRows.length-1];
         prevB=lastD?(lastD.held?0:1):0.5;
       }
       const q80=a=>{const s2=a.map(Math.abs).sort((x,y)=>x-y);return s2.length?s2[Math.floor(0.8*(s2.length-1))]:null;};
-      const lastO=oR.length?oR[oR.length-1].yo:null;
-      out[r.f.s]={n:cR.length,no:oR.length,nT:vc.eF.length,nTo:vo.eF.length,
+      out[f.s]={n:cR.length,no:oR.length,nT:vc.eF.length,nTo:vo.eF.length,
         maeF:CLARO.mean(vc.eF.map(Math.abs)),maeM:CLARO.mean(vc.eM.map(Math.abs)),
         maeP:CLARO.mean(vc.eP.map(Math.abs)),maeC:CLARO.mean(vc.eC.map(Math.abs)),
         maeFo:CLARO.mean(vo.eF.map(Math.abs)),maeMo:CLARO.mean(vo.eM.map(Math.abs)),
-        biasF:CLARO.med(vc.eF),p80:q80(vc.eF),p80o:q80(vo.eF),
+        biasF:med(vc.eF),p80:q80(vc.eF),p80o:q80(vo.eF),
         nHrs:LY.length,pBase:LY.length?y0:null,
         wB,bssB,nBt,baseB,nDeck:dRows.length,prevB,
         wC:fitC?fitC.w:null,bC:fitC?fitC.std:null,
-        wO:fitO?fitO.w:null,wL,brier,brierClim,lastO};
+        wO:fitO?fitO.w:null,wL,brier,brierClim};
     }
     return out;
   },
-  async build(results,say,cache){
-    const now=new Date();
-    const rowsByField=(cache&&cache.rows)||{};
-    const pressCache=(cache&&cache.press)||{};
-    const haveAny=Object.keys(rowsByField).length>0;
-    const wins=this.windows();
-    if(!haveAny){
-      for(const [a,b] of wins)await this.fetchRange(results,say,a,b,rowsByField,pressCache);
-    }else{
-      const a=new Date(now.getTime()-10*864e5);
-      await this.fetchRange(results,say,a,now,rowsByField,pressCache);
+  async build(say,cache){
+    const now=new Date(), Y=now.getFullYear();
+    const keep=!!(cache&&cache.rows);
+    const rowsByField=keep?cache.rows:{}, pressCache=(keep&&cache.press)||{}, done=(keep&&cache.done)||{};
+    const hadY=!!done[Y], wins=this.windows(), fail=[];
+    let fetched=false;
+    for(const [a,b] of wins){
+      const y=a.getUTCFullYear();
+      if(done[y])continue;
+      fetched=true;
+      if(await this.fetchRange(say,a,b,rowsByField,pressCache))done[y]=1;
+      else{                       // a season missing one of its three sources is left out whole, and retried, rather than trained on defaults
+        fail.push(y);
+        for(const s in rowsByField)for(const k in rowsByField[s]){const ms=rowsByField[s][k].ms; if(ms>=a.getTime()-864e5&&ms<=b.getTime()+2*864e5)delete rowsByField[s][k];}
+      }
     }
-    say('CLARO — fitting & walk-forward verification…');
-    const per=this.finalizeRows(results,rowsByField,pressCache);
-    const out=this.fitVerify(results,per);
-    const todayB=await j('https://api.open-meteo.com/v1/forecast?latitude='+results.map(r=>r.f.lat).join(',')
-      +'&longitude='+results.map(r=>r.f.lon).join(',')+'&hourly=temperature_850hPa,temperature_2m&forecast_days=2&timeformat=unixtime&timezone=auto');
-    const tB=results.map((r,i)=>{const h=Array.isArray(todayB)?todayB[i]&&todayB[i].hourly:todayB&&todayB.hourly;
+    const a10=new Date(now.getTime()-10*864e5), inSeason=d=>{const m=paParts(d).mon;return m>=4&&m<=10;};
+    if(hadY&&(inSeason(a10)||inSeason(now))){fetched=true; await this.fetchRange(say,a10,now,rowsByField,pressCache);}   // in season, top up the last ten days daily
+    let out=keep&&!fetched&&cache.out;               // nothing new arrived (out of season): yesterday's fit is today's fit
+    if(!out){
+      say('CLARO — fitting & walk-forward verification…');
+      out=await this.fitVerify(this.finalizeRows(rowsByField,pressCache));
+    }
+    const todayB=await j('https://api.open-meteo.com/v1/forecast?latitude='+FIELDS.map(f=>f.lat).join(',')
+      +'&longitude='+FIELDS.map(f=>f.lon).join(',')+'&hourly=temperature_850hPa,temperature_2m&forecast_days=2&timeformat=unixtime&timezone=auto');
+    const tB=FIELDS.map((f,i)=>{const h=Array.isArray(todayB)?todayB[i]&&todayB[i].hourly:todayB&&todayB.hourly;
       return h&&h.time?{time:h.time,t8:h.temperature_850hPa,t2:h.temperature_2m}:null;});
-    return {rows:rowsByField,press:pressCache,out,names:this.NAMES,tB};
+    return {rows:rowsByField,press:pressCache,done,fail,nWin:wins.length,out,names:this.NAMES,tB,g2d:this.g2d};
+  },
+  t8At(fi,ms){                    // T850−T2m at a given hour, from the stored forecast
+    const tb=this.st&&this.st.tB&&this.st.tB[fi]; if(!tb)return null;
+    const idx=tb.time.findIndex(t=>Math.abs(t*1000-ms)<1800e3);
+    return idx>=0&&tb.t8&&tb.t8[idx]!=null&&tb.t2[idx]!=null?tb.t8[idx]-tb.t2[idx]:null;
+  },
+  live(r,ctx,fi){                 // today as a training-shaped row: dawn ceiling and T−Td, 05-local gradients, yesterday's outcome, HRRR's day scan
+    const mid=ctx.midnight.getTime(), g=ctx.g05||{};
+    const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
+    const y=r.per.filter(d=>d.msMid<mid-3600e3).slice(-1)[0], yOk=y&&mid-y.msMid<=2*864e5+3600e3;
+    const t=r.per.find(d=>d.key===ctx.dayKey), ts=r.tScan&&!r.tScan.thin?r.tScan:null;
+    return {dc:dawnC(r),s5:dawnS5(r),sp:r.spreadToday,
+      g1:g.g1??ctx.g1,g2:g.g2??ctx.g2,g1t:g.g1t,
+      mhc:ts?ts.clear:null,mho:ts?ts.onset:null,mh:ts&&ts.held?1:0,
+      t8:this.t8At(fi,mid+6*3600e3),
+      pc:yOk?y.clear:null,po:yOk?y.onset:null,ph:yOk?(y.held?0:(y.clear!=null?1:null)):null,
+      pcT:t?t.clear:null,
+      dS:Math.sin(2*Math.PI*doy/365),dC:Math.cos(2*Math.PI*doy/365)};
   },
   apply(results,ctx){
     const st=this.st; if(!st||!st.out)return;
     this._results=results; this._ctx=ctx;
-    const fmtHM2=new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:TZ});
     const fA=m=>fmtAbs(m);
     results.forEach((r,fi)=>{
       const o=st.out[r.f.s]; if(!o)return;
       const card=document.querySelector('.apt[data-id="'+r.f.s+'"]'); if(!card)return;
-      const parts=card.querySelector('.parts'); if(!parts)return;
-      const sr=sunriseOf(r.f.lat,r.f.lon,new Date());
-      const g1=ctx.g1,g2=ctx.g2;
-      let t8=null; const tb=st.tB&&st.tB[fi];
-      if(tb){const idx=tb.time.findIndex(t=>Math.abs(t*1000-(ctx.midnight.getTime()+6*3600e3))<1800e3);
-        if(idx>=0&&tb.t8&&tb.t8[idx]!=null)t8=tb.t8[idx]-tb.t2[idx];}
-      const doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
-      const dS=Math.sin(2*Math.PI*doy/365),dC=Math.cos(2*Math.PI*doy/365);
-      const oldBl=card.querySelector('.breakline'); if(oldBl)oldBl.remove();
+      const parts=card.querySelector('.parts'), head=card.querySelector('.head'); if(!parts||!head)return;
+      for(const old of card.querySelectorAll('.breakline,.fitchip,.pstrip,.paxis,.pcap'))old.remove();   // safe to run twice on one card
+      head.innerHTML=r.head0; r.events=r.events0;
+      const L=this.live(r,ctx,fi);
       if(r.deckNow){
-        const dc=r.dawnCeilToday??r.ceil;
-        let mToday2=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
-        const heldF2=(mToday2==null||mToday2>=16.5*60)?1:0;
-        const xb=[dc!=null?Math.log(Math.max(100,Math.min(4000,dc))):Math.log(4000),
-          g1??2,g2??3,0,heldF2,heldF2?12:mToday2/60,t8??5,3,o.prevB??0.5,dS,dC];
         const line=document.createElement('div');
         line.className='why breakline'; line.style.marginTop='2px';
         if(o.wB){
-          const p=CLARO.sig(CLARO.dot(o.wB,xb));
+          const p=CLARO.sig(CLARO.dot(o.wB,this.featB(L)));
           const col=p>=0.65?'#39d07f':p>=0.35?'#ffa32e':'#ff4d4d';
           line.innerHTML='chance the deck breaks today: <b style="color:'+col+'">'+Math.round(p*100)+'%</b>'+
             ' <span style="opacity:.75">CLARO · skill +'+o.bssB.toFixed(2)+' vs climatology · '+o.nDeck+' deck-days</span>';
@@ -1065,73 +1092,62 @@ const CLARO={
           line.innerHTML='chance the deck breaks today: <b>~'+Math.round(o.baseB*100)+'%</b>'+
             ' <span style="opacity:.75">3-season climatology · model shows no added skill here ('+o.nDeck+' deck-days'+(o.bssB!=null?', BSS '+o.bssB.toFixed(2):'')+')</span>';
         }
-        if(line.innerHTML){
-          const head=card.querySelector('.head');
-          if(head)head.after(line);
-        }
+        if(line.innerHTML)head.after(line);
       }
-      const evs=[];
-      if(r.deckNow&&o.wC){
-        let mToday=r.findClear?r.findClear(Math.max(ctx.nowMin,sr-30)):null;
-        const heldF=(mToday==null||mToday>=16.5*60)?1:0;
-        if(heldF)mToday=null;
-        const x=[r.ceil!=null?Math.log(Math.max(100,Math.min(4000,r.ceil))):Math.log(4000),
-          g1??2,g2??3,0,mToday!=null?mToday/60:11,heldF,t8??5,3,10.5,dS,dC];
-        let c=CLARO.dot(o.wC,x); if(c<ctx.nowMin)c=ctx.nowMin+15;
-        evs.push({m:c,band:o.p80||45,kind:'clear'});
-        if(o.wO){
-          const mo=r.findOnset?r.findOnset(Math.max(ctx.nowMin,c+30)):null;
-          const x2=[g1??2,g2??3,mo!=null?mo/60:20,t8??5,o.lastO!=null?o.lastO/60:20,dS,dC];
-          let rt=CLARO.dot(o.wO,x2);
-          if(rt>c+90)evs.push({m:rt,band:o.p80o||60,kind:'return'});
+      const evs=[]; let overdue=null;
+      if(r.noModel){                // no HRRR, no CLARO call: its strongest feature would be a made-up default
+      }else if(r.deckNow&&o.wC&&!r.holdCall){     // the "may hold all day" call stands: this regression only ever saw days that cleared
+        const c=CLARO.dot(o.wC,this.featC(L));
+        if(c<ctx.nowMin)overdue={m:c,band:o.p80||45};
+        else{
+          evs.push({m:c,band:o.p80||45,kind:'clear'});
+          if(o.wO){
+            const rt=CLARO.dot(o.wO,this.featO({...L,mho:r.findOnset(Math.max(ctx.nowMin,c+30))}));
+            if(rt>c+90)evs.push({m:rt,band:o.p80o||60,kind:'return'});
+          }
         }
       }else if(!r.deckNow&&o.wO){
-        const mo=r.findOnset?r.findOnset(ctx.nowMin):null;
-        const x=[g1??2,g2??3,mo!=null?mo/60:20,t8??5,o.lastO!=null?o.lastO/60:20,dS,dC];
-        let rt=CLARO.dot(o.wO,x); if(rt<ctx.nowMin)rt=ctx.nowMin+15;
+        let rt=CLARO.dot(o.wO,this.featO({...L,mho:r.findOnset(ctx.nowMin)})); if(rt<ctx.nowMin)rt=ctx.nowMin+15;
         evs.push({m:rt,band:o.p80o||60,kind:'return'});
-        if(o.wC&&r.findClear){
-          const tmSr=sunriseOf(r.f.lat,r.f.lon,new Date(ctx.midnight.getTime()+864e5+12*3600e3));
-          const mc2=r.findClear(Math.max(rt+60,1440+tmSr-30));
-          if(mc2!=null){
-            const x3=[r.ceil!=null?Math.log(Math.max(100,Math.min(4000,r.ceil))):Math.log(4000),
-              g1??2,g2??3,0,mc2/60,0,t8??5,3,10.5,dS,dC];
-            let c2=CLARO.dot(o.wC,x3)+1440*0;   // features already carry tomorrow via HRRR clear
-            if(mc2>=1440&&c2<1440)c2+=1440;
-            if(c2>rt+30)evs.push({m:c2,band:o.p80||45,kind:'clear'});
-          }
+        const t2=r.tScan2;
+        if(o.wC&&t2&&!t2.thin&&!t2.held){
+          // tomorrow's burn-off: HRRR's clear time counted from tomorrow's midnight, as trained (not minutes since today's);
+          // today's dawn spread, gradients and clearing stand in for tomorrow's, which nobody has yet
+          const c2=1440+CLARO.dot(o.wC,this.featC({...L,dc:r.ceil,g1t:null,mhc:t2.clear,mh:0,
+            t8:this.t8At(fi,ctx.midnight.getTime()+30*3600e3)??L.t8,pc:L.pcT??L.pc}));
+          if(c2>rt+30)evs.push({m:c2,band:o.p80||45,kind:'clear'});
         }
       }
       if(evs.length){
         r.events=evs;
-        const head=card.querySelector('.head');
-        if(head){
-          const parts=evs.map(e=>(e.kind==='clear'?'clears ~':'fog returns ~')+fA(e.m));
-          let extra='';
-          const c=evs.find(e=>e.kind==='clear'), rt=evs.find(e=>e.kind==='return');
-          if(c&&rt&&rt.m>c.m)extra=' · ≈'+fmtDur(rt.m-c.m)+' of clear air';
-          head.innerHTML=parts.join(' · ')+'<small>CLARO ±'+evs.map(e=>fmtDur(e.band)).join(' / ±')+extra+'</small>';
-        }
-        if(typeof redrawStrips==='function')redrawStrips();
+        const txt=evs.map(e=>(e.kind==='clear'?'clears ~':'fog returns ~')+fA(e.m));
+        let extra='';
+        const c=evs.find(e=>e.kind==='clear'), rt=evs.find(e=>e.kind==='return');
+        if(c&&rt&&rt.m>c.m)extra=' · ≈'+fmtDur(rt.m-c.m)+' of clear air';
+        head.innerHTML=txt.join(' · ')+'<small>CLARO ±'+evs.map(e=>fmtDur(e.band)).join(' / ±')+extra+'</small>';
+      }else if(overdue){
+        r.events=[];
+        head.innerHTML='overdue · still holding<small>CLARO expected ~'+fA(overdue.m)+' ±'+fmtDur(overdue.band)+' — the deck has outlasted it</small>';
       }
-      const pred=evs.length?evs[0].m:null, band=evs.length?evs[0].band:null;
+      const pred=evs.length?evs[0].m:null, band=evs.length?evs[0].band:null, fit=o.wC||o.wO;
       const cell=document.createElement('div'); cell.className='p fitchip';
       cell.innerHTML='<div class="k">CLARO</div><div class="x">'+
-        (pred!=null?fA(pred)+' ±'+fmtDur(band):(o.wC||o.wO?'—':'training…'))+
-        '<small>'+(o.maeF!=null?'burn-off MAE '+fmtDur(o.maeF)+(o.maeM!=null?' vs HRRR '+fmtDur(o.maeM):''):'')+
-        (o.maeFo!=null?' · return MAE '+fmtDur(o.maeFo):'')+'</small></div>';
+        (pred!=null?fA(pred)+' ±'+fmtDur(band):overdue?'overdue':fit?'—':'not trained')+
+        '<small>'+(fit?(o.maeF!=null?'burn-off MAE '+fmtDur(o.maeF)+(o.maeM!=null?' vs HRRR '+fmtDur(o.maeM):''):'')+
+        (o.maeFo!=null?' · return MAE '+fmtDur(o.maeFo):''):'archives did not load — retrying')+'</small></div>';
       parts.insertBefore(cell,parts.firstChild);
       if(o.wL&&r.series){
         const strip=document.createElement('div'); strip.className='pstrip';
-        strip.innerHTML=CLARO.stripCells(r,o,g1,t8);
+        strip.innerHTML=CLARO.stripCells(r,o,L.g1,L.t8);
         const axis=document.createElement('div'); axis.className='paxis';
         let ax=''; for(let h=5;h<=22;h++)ax+='<span>'+(h%3===0?h:'')+'</span>';
         axis.innerHTML=ax;
-        const anchor=card.querySelector('[data-strip]');
-        const tgt=anchor||card.querySelector('svg');
-        if(tgt){tgt.after(axis); tgt.after(strip);}
+        const cap=document.createElement('div'); cap.className='pcap'; cap.textContent='P(ceiling < 1,000 ft) by hour · tap a cell for the number';
+        const tgt=card.querySelector('[data-strip]')||card.querySelector('svg');
+        if(tgt)tgt.after(strip,axis,cap);
       }
     });
+    redrawStrips();
     // lab
     const lab=document.getElementById('labTables');
     if(!lab)return;
@@ -1150,41 +1166,38 @@ const CLARO={
         const o=st.out[r.f.s];
         return '<td>'+(o&&o.bC?(o.bC[j]>0?'+':'')+o.bC[j].toFixed(1):'—')+'</td>';}).join('')+'</tr>';
     });
-    lab.innerHTML='<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th><th>hrs</th><th>&lt;1000 base</th></tr>'+rowsHtml+'</table>'+
+    lab.innerHTML=(st.nWin?'<div>'+this.seasons(st)+'</div>':'')+
+      '<table><tr><th>field</th><th>days</th><th>test</th><th>burn-off</th><th>HRRR</th><th>persist</th><th>7-d med</th><th>bias</th><th>return</th><th>HRRR</th><th>BSS</th><th>hrs</th><th>&lt;1000 base</th></tr>'+rowsHtml+'</table>'+
       '<table style="margin-top:12px">'+coefHtml+'</table>';
   },
   stripCells(r,o,g1,t8){
     // dawn-anchored: same feature the model was trained on, stable all day, viewer-independent
-    const dc=r.dawnCeilToday??r.ceil;
-    const s5=r.st05Today??(r.ceil!=null&&r.ceil<1000?1:0);
+    const dc=dawnC(r), s5=dawnS5(r);
     let cells='';
     for(let h=5;h<=22;h++){
       const pt=r.series&&r.series.find(z=>Math.abs(z.m-h*60)<40);
       const p=CLARO.sig(CLARO.dot(o.wL,[Math.sin(2*Math.PI*h/24),Math.cos(2*Math.PI*h/24),
-        dc!=null?Math.log(Math.max(100,Math.min(4000,dc))):Math.log(4000),
+        CLARO.lnc(dc),
         s5,g1??2,t8??5,((pt?pt.c:null)??50)/100]));
       const col=p>0.65?'255,77,77':p>0.35?'255,163,46':'57,208,127';
-      cells+='<div title="'+h+':00 — P(ceiling&lt;1000\u2032)='+Math.round(p*100)+'%" style="background:rgba('+col+','+(0.25+0.6*p).toFixed(2)+')"></div>';
+      const t=h+':00 — P(ceiling &lt; 1,000 ft) '+Math.round(p*100)+'%';
+      cells+='<div title="'+t+'" data-t="'+t+'" style="background:rgba('+col+','+(0.25+0.6*p).toFixed(2)+')"></div>';
     }
     return cells;
   },
   restrips(){
-    if(!this.st||!this._results)return;
+    if(!this.st||!this._results||!this._ctx)return;
     for(let i=0;i<this._results.length;i++){
       const r=this._results[i], o=this.st.out[r.f.s];
       if(!o||!o.wL)continue;
       const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
       const strip=card&&card.querySelector('.pstrip');
-      let t8=null; const tb=this.st.tB&&this.st.tB[i];
-      if(tb&&this._ctx){const idx=tb.time.findIndex(t=>Math.abs(t*1000-(this._ctx.midnight.getTime()+6*3600e3))<1800e3);
-        if(idx>=0&&tb.t8&&tb.t8[idx]!=null)t8=tb.t8[idx]-tb.t2[idx];}
-      if(strip)strip.innerHTML=this.stripCells(r,o,this._ctx?this._ctx.g1:null,t8);
+      if(strip){const L=this.live(r,this._ctx,i); strip.innerHTML=this.stripCells(r,o,L.g1,L.t8);}
     }
   },
   dot(w,x){let s=w[0];for(let i=0;i<x.length;i++)s+=w[i+1]*x[i];return s;},
   sig(z){return 1/(1+Math.exp(-z));},
   mean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;},
-  med(a){if(!a||!a.length)return null;const s=a.slice().sort((x,y)=>x-y);return s[Math.floor(s.length/2)];},
   ridge(X,y,lam){
     const n=X.length,d=X[0].length;
     const mu=new Array(d).fill(0),sd=new Array(d).fill(0);
@@ -1218,133 +1231,97 @@ const CLARO={
     }
     return M.map((r,i)=>r[n]/(r[i]||1e-9));
   },
-  logit(X,y){
+  async logit(X,y,z0){            // → {w, z}: weights in feature units, and the standardized weights a later refit can start from
     const n=X.length,d=X[0].length;
     const mu=new Array(d).fill(0),sd=new Array(d).fill(0);
     for(const x of X)for(let j=0;j<d;j++)mu[j]+=x[j]/n;
     for(const x of X)for(let j=0;j<d;j++)sd[j]+=(x[j]-mu[j])**2/n;
     for(let j=0;j<d;j++)sd[j]=Math.sqrt(sd[j])||1;
-    const Z=X.map(x=>x.map((v,j)=>(v-mu[j])/sd[j]));
+    const Z=new Float64Array(n*d);
+    for(let i=0;i<n;i++)for(let j=0;j<d;j++)Z[i*d+j]=(X[i][j]-mu[j])/sd[j];
     const base=y.reduce((a,b)=>a+b,0)/n;
-    let w=new Array(d+1).fill(0);
-    w[0]=Math.log(Math.max(1e-3,base)/Math.max(1e-3,1-base));   // start at climatology
-    for(let it=0;it<600;it++){
-      const g=new Array(d+1).fill(0);
-      for(let i=0;i<n;i++){
-        const p=CLARO.sig(CLARO.dot(w,Z[i]))-y[i];
-        g[0]+=p; for(let j=0;j<d;j++)g[j+1]+=p*Z[i][j];
+    const w=z0?z0.slice():new Array(d+1).fill(0);
+    if(!z0)w[0]=Math.log(Math.max(1e-3,base)/Math.max(1e-3,1-base));   // start at climatology
+    const g=new Float64Array(d+1), lr=1.2/n, iters=z0?120:600;
+    let t0=Date.now();
+    for(let it=0;it<iters;it++){
+      g.fill(0);
+      for(let i=0,k=0;i<n;i++,k+=d){
+        let s=w[0]; for(let j=0;j<d;j++)s+=w[j+1]*Z[k+j];
+        const p=1/(1+Math.exp(-s))-y[i];
+        g[0]+=p; for(let j=0;j<d;j++)g[j+1]+=p*Z[k+j];
       }
-      const lr=1.2/n;
       for(let j=0;j<=d;j++)w[j]-=lr*(g[j]+0.02*w[j]*n*(j?1:0));
+      if((it&15)===15&&Date.now()-t0>30){await tick();t0=Date.now();}   // hand the thread back every ~30 ms
     }
     const out=new Array(d+1).fill(0);
     out[0]=w[0]; for(let j=0;j<d;j++){out[j+1]=w[j+1]/sd[j]; out[0]-=w[j+1]*mu[j]/sd[j];}
-    return out;
+    return {w:out,z:w};
   }
 };
 
-function fmtAge(ms){const m=Math.round((Date.now()-ms)/60000);
-  return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+(m%60)+' min ago';}
-async function refreshToday(r){
-  const todayKey=paDay(new Date());
-  let list=[];
-  // primary: AviationWeather recent METARs — raw text guaranteed
-  const aw=await j(`https://aviationweather.gov/api/data/metar?ids=${r.f.id}&format=json&hours=20`);
-  const arr=Array.isArray(aw)?aw:(aw&&aw.data)||[];
-  for(const o of arr){
-    const raw=o.rawOb||o.raw_text;
-    const ms=o.obsTime?o.obsTime*1000:Date.parse(o.reportTime||o.receiptTime||0);
-    if(!raw||!ms)continue;
-    const t=new Date(ms);
-    if(paDay(t)!==todayKey)continue;
-    const c=ceilOf([],raw);
-    list.push({m:paMin(t),ceil:c,st:skyState(raw,c)});
-  }
-  // fallback: IEM obhistory, using raw if present else decoded sky fields
-  if(list.length<3){
-    const net=r.f.id==='KRNO'?'NV_ASOS':'CA_ASOS';
-    const ds=new Date().toISOString().slice(0,10);
-    const jd=await j(`https://mesonet.agron.iastate.edu/api/1/obhistory.json?station=${r.f.id.slice(1)}&network=${net}&date=${ds}`);
-    const data=jd&&(jd.data||jd);
-    if(Array.isArray(data))for(const o of data){
-      let ts=o.utc_valid||o.valid; if(!ts)continue;
-      if(!/Z$/.test(ts))ts=ts.replace(' ','T')+'Z';
-      const t=new Date(ts);
-      if(paDay(t)!==todayKey)continue;
-      let c=null;
-      if(o.metar||o.raw)c=ceilOf([],o.metar||o.raw);
-      else{
-        for(let k=1;k<=4;k++){
-          const amt=String(o['skyc'+k]||'').toUpperCase(), lvl=o['skyl'+k];
-          if((amt==='BKN'||amt==='OVC'||amt==='VV')&&lvl!=null&&isFinite(+lvl))
-            if(c==null||+lvl<c)c=+lvl;
-        }
+function paintNow(r){               // the now line of one card
+  const card=document.querySelector('.apt[data-id="'+r.f.s+'"]'); if(!card)return;
+  const nb=card.querySelector('[data-nowbig]'), ns=card.querySelector('[data-nowsub]'), rw=card.querySelector('[data-raw]');
+  if(nb){nb.textContent=r.obsTxt;nb.style.color='var(--'+r.cat+')';}
+  if(ns)ns.textContent=obsLine(r);
+  if(rw)rw.textContent=r.obsRaw||('raw METAR not provided by '+(r.obsSrc||'source'));
+  const chipI=card.querySelector('.now i'), chipT=card.querySelector('[data-cat]');
+  if(chipI)chipI.style.background='var(--'+r.cat+')';
+  if(chipT)chipT.textContent=r.cat==='vna'?'—':r.cat.toUpperCase();
+}
+let lastRun=0,busy=false,polling=false,retryT=null;
+async function runOnce(){           // the only way run() is called: never two at once, and a failure retries instead of leaving "reading the morning…"
+  if(busy)return;
+  busy=true; clearTimeout(retryT);
+  try{
+    if(await run())retryT=setTimeout(runOnce,60e3);     // the model did not load
+    lastRun=Date.now();
+  }catch(e){
+    console.warn('run failed',e);
+    $('status').textContent='could not load — retrying';
+    retryT=setTimeout(runOnce,60e3);
+  }finally{busy=false;}
+}
+async function refreshObs(){        // the 2-minute poll: one batched request, then repaint what changed
+  if(!RESULTS||busy||polling)return;
+  polling=true; let flip=false;
+  try{
+    const had=OBSAT;
+    if(!await pullObs())await Promise.all(FIELDS.map(nwsLatest));
+    if(!had&&OBSAT)flip=true;       // the 15-day history just arrived for the first time: the medians need it
+    const now=new Date(), nowMin=paMin(now), dayKey=paDay(now);
+    for(const r of RESULTS){
+      const list=obsList(r.f.s), was=r.ceil!=null&&r.ceil<3000;
+      setToday(r,list,dayKey,nowMin,sunriseOf(r.f.lat,r.f.lon,now));
+      if(setNow(r,list[list.length-1])){
+        paintNow(r);
+        if((r.ceil!=null&&r.ceil<3000)!==was)flip=true;
       }
-      list.push({m:paMin(t),ceil:c,st:skyState(o.metar||o.raw||'',c)});
     }
-  }
-  list.sort((x,y)=>x.m-y.m);
-  if(!list.length)return;
-  const nowMin=paMin(new Date());
-  const iv=[]; let open=null;
-  for(const o of list){
-    if(o.st==='unknown')continue;              // dropout: bridge
-    if(o.st==='low'&&open==null)open=o.m;
-    if(o.st==='clear'&&open!=null){iv.push([open,o.m]);open=null;}
-  }
-  if(open!=null)iv.push([open,nowMin]);
-  r.todayIv=iv;
-  r.todaySteps=ceilSteps(list,nowMin);
-  const srT=sunriseOf(r.f.lat,r.f.lon,new Date());
-  let dc=null,s5=0,firstCeil=null;
-  for(const o of list){
-    if(o.m>=srT-60&&o.m<=srT+90){
-      if(o.ceil!=null&&(dc==null||o.ceil<dc))dc=o.ceil;
-      if(o.ceil!=null&&o.ceil<1000)s5=1;
-    }
-    if(firstCeil==null&&o.ceil!=null)firstCeil=o.ceil;
-  }
-  if(dc!=null){r.dawnCeilToday=dc;r.st05Today=s5;}
-  else if(firstCeil!=null){r.dawnCeilToday=firstCeil;r.st05Today=firstCeil<1000?1:0;}
+    redrawStrips();
+    CLARO.restrips();
+  }finally{polling=false;}
+  if(flip)runOnce();                // a deck formed or broke: the headline is about the wrong sky, rebuild it now
 }
-
-async function refreshObs(){
-  if(!RESULTS)return;
-  const nowMin=paMin(new Date());
-  await Promise.all(RESULTS.map(async r=>{
-    await refreshToday(r).catch(()=>{});
-    const ob=await latestObs(r.f.id);
-    if(!ob||(r.obsMs&&ob.ms<=r.obsMs&&ob.raw===r.obsRaw))return;
-    const c=ceilOf(ob.layers,ob.raw);
-    r.ceil=c; r.cat=c==null||c>3000?'vfr':c>=1000?'mvfr':'ifr';
-    r.catCol=r.cat==='vfr'?'#39d07f':r.cat==='mvfr'?'#3aa8ff':'#ff4d4d';
-    r.obsRaw=ob.raw; r.obsMs=ob.ms; r.obsSrc=ob.src;
-    let vis=ob.vis;
-    const sky=(r.obsRaw.match(/\b(FEW|SCT|BKN|OVC|VV)\d{3}\b/g)||[]);
-    const skyTxt=c!=null?(sky.filter(x=>/BKN|OVC|VV/.test(x))[0]||('OVC'+String(Math.round(c/100)).padStart(3,'0'))):(sky[0]||'CLR');
-    const wtx=windTxt(r.obsRaw);
-    r.obsTxt=skyTxt+(vis!=null?' · '+(vis>=10?'10+':vis>=3?Math.round(vis):vis.toFixed(1))+' mi':'')+(wtx?' · '+wtx:'');
-    const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
-    if(card){
-      const nb=card.querySelector('[data-nowbig]'), ns=card.querySelector('[data-nowsub]'), rw=card.querySelector('[data-raw]');
-      if(nb){nb.textContent=r.obsTxt;nb.style.color=r.catCol;}
-      if(ns)ns.textContent='observed '+fmtHM.format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+(r.obsSrc?' · '+r.obsSrc:'')+' · tap for raw';
-      if(rw)rw.textContent=r.obsRaw||('raw METAR not provided by '+(r.obsSrc||'source'));
-      const chipI=card.querySelector('.now i'), chipT=card.querySelector('.now');
-      if(chipI)chipI.style.background=r.catCol;
-      if(chipT)chipT.lastChild.textContent=r.cat.toUpperCase();
-    }
-  }));
-  redrawStrips();
-  if(typeof CLARO!=='undefined'&&CLARO.restrips)CLARO.restrips();
-}
+const stale=()=>Date.now()-lastRun>30*60e3||!LASTCTX||paDay(new Date())!==LASTCTX.dayKey;
+function wake(){if(!document.hidden)(stale()?runOnce():refreshObs());}
 function redrawStrips(){
   if(!RESULTS)return;
-  const nowMin=paMin(new Date());
+  const now=new Date(), nowMin=paMin(now), W=svgW();
   for(const r of RESULTS){
     const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
     const holder=card&&card.querySelector('[data-strip]');
-    if(holder)holder.innerHTML=todayStrip(r,nowMin,sunriseOf(r.f.lat,r.f.lon,new Date()),r.ssv);
+    if(holder)holder.innerHTML=todayStrip(r,nowMin,sunriseOf(r.f.lat,r.f.lon,now),r.ssv,W);
+  }
+}
+function redrawCharts(){
+  if(!RESULTS)return;
+  const nowMin=paMin(new Date()), W=svgW();
+  for(const r of RESULTS){
+    const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
+    const holder=card&&card.querySelector('[data-chart]');
+    if(holder&&r.days)holder.innerHTML=chart(r.days,r.tick,nowMin,W);
   }
 }
 function tickAges(){
@@ -1353,23 +1330,30 @@ function tickAges(){
     if(!r.obsMs)continue;
     const card=document.querySelector('.apt[data-id="'+r.f.s+'"]');
     const ns=card&&card.querySelector('[data-nowsub]');
-    if(ns)ns.textContent='observed '+new Intl.DateTimeFormat([],{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:TZ}).format(new Date(r.obsMs))+' · '+fmtAge(r.obsMs)+' · tap for raw';
+    if(ns)ns.textContent=obsLine(r);
   }
 }
 $('cards').addEventListener('click',e=>{
-  const card=e.target.closest('.apt');
-  if(card&&e.target.closest('.nowrow'))card.classList.toggle('showraw');
+  const card=e.target.closest('.apt'); if(!card)return;
+  const row=e.target.closest('.nowrow');
+  if(row)row.setAttribute('aria-expanded',card.classList.toggle('showraw'));
+  const cell=e.target.closest('.pstrip div'), cap=card.querySelector('.pcap');
+  if(cell&&cap)cap.textContent=cell.dataset.t;
 });
-document.getElementById('aboutBtn').onclick=()=>document.getElementById('about').classList.add('open');
-document.getElementById('aboutX').onclick=()=>document.getElementById('about').classList.remove('open');
-document.getElementById('about').onclick=e=>{if(e.target.id==='about')e.target.classList.remove('open');};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('about').classList.remove('open');});
-run();
-setInterval(run,60*60*1000);            // full rebuild + CLARO refit hourly
-setInterval(refreshObs,2*60*1000);      // latest observations every 2 min
-setInterval(redrawStrips,60*1000);      // now-line marches every minute
-setInterval(tickAges,30*1000);          // observation age ticker
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshObs();});
+const about=$('about');
+const aboutShut=()=>{if(about.classList.contains('open')){about.classList.remove('open');$('aboutBtn').focus();}};
+$('aboutBtn').onclick=()=>{about.classList.add('open');$('aboutX').focus();};
+$('aboutX').onclick=aboutShut;
+about.onclick=e=>{if(e.target===about)aboutShut();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')aboutShut();});
+runOnce();
+setInterval(wake,2*60*1000);        // observations every 2 min; the whole forecast when it is 30 min old or the day has turned
+setInterval(()=>{if(!document.hidden)redrawStrips();},60*1000);   // now-line marches every minute
+setInterval(()=>{if(!document.hidden)tickAges();},30*1000);       // observation age ticker
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){tickAges();redrawStrips();wake();}});
+let rzT=null,rzW=svgW();
+addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{
+  if(svgW()!==rzW){rzW=svgW();redrawStrips();redrawCharts();}},200);});
 </script>
 </body>
 </html>
