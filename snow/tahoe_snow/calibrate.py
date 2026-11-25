@@ -9,9 +9,12 @@ import omfiles
 import pandas as pd
 
 from tahoe_snow import biascorrect, blend
-from tahoe_snow.config import (COLORADO_BBOX, COLORADO_STATIONS, MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, RAW,
-                               SEATTLE_BBOX, SEATTLE_STATIONS, SHASTA_BBOX, SHASTA_STATIONS, STATIONS,
-                               TABLES, TAHOE_BBOX, TETONS_BBOX, TETONS_STATIONS, WASATCH_BBOX, WASATCH_STATIONS)
+from tahoe_snow.config import (BCCOAST_BBOX, BCCOAST_STATIONS, COLORADO_BBOX, COLORADO_STATIONS, EASTKOOTENAYS_BBOX,
+                               EASTKOOTENAYS_STATIONS, MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, OKANAGAN_BBOX,
+                               OKANAGAN_STATIONS, POWDERHIGHWAY_BBOX, POWDERHIGHWAY_STATIONS, RAW, ROCKIES_BBOX,
+                               ROCKIES_STATIONS, SEATTLE_BBOX, SEATTLE_STATIONS, SHASTA_BBOX, SHASTA_STATIONS,
+                               STATIONS, TABLES, TAHOE_BBOX, TETONS_BBOX, TETONS_STATIONS, WASATCH_BBOX,
+                               WASATCH_STATIONS)
 from tahoe_snow.snow import dataset, phase
 
 BUCKET = "openmeteo/data"
@@ -28,11 +31,23 @@ REGIONS = {"tahoe": (STATIONS, TAHOE_BBOX, "snotel_daily"),
            "tetons": (TETONS_STATIONS, TETONS_BBOX, "tetons_daily"),
            "wasatch": (WASATCH_STATIONS, WASATCH_BBOX, "wasatch_daily"),
            "colorado": (COLORADO_STATIONS, COLORADO_BBOX, "colorado_daily"),
-           "shasta": (SHASTA_STATIONS, SHASTA_BBOX, "shasta_daily")}
+           "shasta": (SHASTA_STATIONS, SHASTA_BBOX, "shasta_daily"),
+           **{region: ({key: s for key, s in stations.items() if s.source == "bcasws" and s.corrects}, bbox,
+                       f"{region}_daily")
+              for region, stations, bbox in (("okanagan", OKANAGAN_STATIONS, OKANAGAN_BBOX),
+                                             ("bccoast", BCCOAST_STATIONS, BCCOAST_BBOX),
+                                             ("powderhighway", POWDERHIGHWAY_STATIONS, POWDERHIGHWAY_BBOX),
+                                             ("eastkootenays", EASTKOOTENAYS_STATIONS, EASTKOOTENAYS_BBOX),
+                                             ("rockies", ROCKIES_STATIONS, ROCKIES_BBOX))}}
 # Shasta is here so its test can be run again, not because it has a correction: its pillows are low and measure
 # snow alone, so on the days it rained at them the models look wet (2.7 times the pillows' water on days above
 # freezing, 1.1 times on all-snow days, 2024 to 2026). A curve fitted to them would take the rain out of the water
 # before the rain-or-snow split takes it out again, so none is saved.
+# Canada's five are British Columbia's stations, read from the province's long record (``bcasws.daily``). On the
+# 2024 to 2026 winters held out in turn the four-model average carried 53% of the measured water in the Okanagan,
+# 61% on the Powder Highway and in the East Kootenays, 59% in the Rockies and 82% on the BC Coast, and 98 to 107%
+# corrected. On the coast five stations that pair with no mountain did a little worse with their own curve than
+# raw (Callaghan Creek, 12 km from Whistler, 0.50 to 0.61 in over three days): test again before pairing one.
 # A pillow reading this much water on a day when no model had any, that day or the days beside it, is a sensor
 # fault (a step in the reading), not a storm.
 PHANTOM_MM, DRY_MM = 25.0, 2.0
@@ -138,7 +153,7 @@ def pairs(region: str = "tahoe") -> pd.DataFrame:
     table = forecast.merge(observed_daily(observed), on=["station", "date"]).dropna(
         subset=["forecast_mm", "observed_mm"])
     table = table[table["date"].dt.month.isin(WINTER_MONTHS)].copy()
-    if any(station.source == "cdec" for station in stations.values()):
+    if any(station.source in ("cdec", "bcasws") for station in stations.values()):
         table = without_phantoms(table)
     table["season"] = dataset.season_of(table["date"])
     table["lead_day"] = 0

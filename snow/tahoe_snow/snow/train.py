@@ -124,7 +124,18 @@ def fit_phase(stations: dict) -> tuple:
 # (``observations.BOXES``) and the block of the upper-air archive over it.
 REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("tetonbox", omfiles_s3.TETONS_BLOCK),
                 "wasatch": ("wasatchbox", omfiles_s3.WASATCH_BLOCK),
-                "colorado": ("coloradobox", omfiles_s3.COLORADO_BLOCK)}
+                "colorado": ("coloradobox", omfiles_s3.COLORADO_BLOCK),
+                "okanagan": ("okanaganbox", omfiles_s3.OKANAGAN_BLOCK),
+                "bccoast": ("bccoastbox", omfiles_s3.BCCOAST_BLOCK),
+                "powderhighway": ("powderhighwaybox", omfiles_s3.POWDERHIGHWAY_BLOCK),
+                "eastkootenays": ("eastkootenaysbox", omfiles_s3.EASTKOOTENAYS_BLOCK),
+                "rockies": ("rockiesbox", omfiles_s3.ROCKIES_BLOCK)}
+# Canada's regions are here for their rain/snow splits alone. Their snow ratio is the Sierra's and cannot be checked
+# on these boxes' hand-measured days: Canada's climate stations report snowfall and its water at exactly 10 to 1
+# (78% of 1,156 snow days at 37 stations, 2023 to 2026, Whistler Roundhouse, Sun Peaks and Mt. Fidelity among them),
+# so one is worked out from the other. On the 229 days at the 16 stations that measure both, all in valley towns,
+# the Sierra's model missed by 0.69 in, a flat 10:1 by 0.64 and Kuchera by 0.99. ``check_region_ratio`` on a
+# Canadian box would score the flat 10:1 near zero and mean nothing, so no check is kept for them.
 # How many times a region's own snow day counts against a Sierra one where the two are fitted together. The Sierra
 # model ran an inch fluffy on Wasatch snow, and at stations held out a fit with the Wasatch's days at ten times
 # missed by 1.21 in, against 1.32 at equal weight and 1.31 on the Wasatch's days alone.

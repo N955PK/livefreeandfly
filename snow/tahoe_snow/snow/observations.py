@@ -2,10 +2,11 @@
 import pandas as pd
 
 from tahoe_snow.cache import get_json
-from tahoe_snow.config import (COLORADO_BBOX, COLORADO_STATIONS, M_PER_FT, MAMMOTH_STATIONS, SEATTLE_BBOX,
+from tahoe_snow.config import (BCCOAST_BBOX, COLORADO_BBOX, COLORADO_STATIONS, EASTKOOTENAYS_BBOX, M_PER_FT,
+                               MAMMOTH_STATIONS, OKANAGAN_BBOX, POWDERHIGHWAY_BBOX, ROCKIES_BBOX, SEATTLE_BBOX,
                                SEATTLE_STATIONS, SIERRA_BBOX, STATIONS,
                                TABLES, TETONS_BBOX, TETONS_STATIONS, WASATCH_BBOX, WASATCH_STATIONS, Station)
-from tahoe_snow.sources import cdec, ghcn, snotel
+from tahoe_snow.sources import bcasws, cdec, ghcn, snotel
 
 MANUAL_START = "1979-01-01"
 SNOTEL_START = "1998-10-01"
@@ -39,6 +40,8 @@ def pull_region(stations: dict, table: str, end: str, start: str = "2020-10-01")
         if station.source == "cdec":
             raw = cdec.daily(station.triplet.split(":")[0], start, end)
             gains = cdec.pillow_gains(raw["swe_mm"]).rename_axis("date").reset_index()
+        elif station.source == "bcasws":
+            gains = snotel.daily_gains(bcasws.daily(station.triplet.split(":")[0], start, end)).reset_index()
         else:
             gains = snotel.daily_gains(snotel.daily(station.triplet, start, end)).reset_index()
         gains.insert(0, "station", station.triplet)
@@ -77,7 +80,9 @@ def pull_colorado(end: str, start: str = "2020-10-01") -> pd.DataFrame:
 
 def box_stations(states, bbox: tuple) -> dict:
     """Every active SNOTEL station of ``states`` (one, or several) inside ``bbox`` (lat0, lat1, lon0, lon1), from
-    the NRCS list."""
+    the NRCS list; for ``"BC"``, every active station of British Columbia's own network there."""
+    if states == BC:
+        return bcasws.stations(bbox)
     lat0, lat1, lon0, lon1 = bbox
     found = {}
     for state in [states] if isinstance(states, str) else states:
@@ -88,10 +93,14 @@ def box_stations(states, bbox: tuple) -> dict:
     return found
 
 
+BC = "BC"
 # The boxes a region's rain/snow split and snow ratio are fitted or checked in: the states its SNOTEL stations are
 # listed under, the box, and the lowest hand-measured station taken.
 BOXES = {"cascades": ("WA", SEATTLE_BBOX, 600.0), "tetonbox": (("WY", "ID"), TETONS_BBOX, 1500.0),
-         "wasatchbox": ("UT", WASATCH_BBOX, 1500.0), "coloradobox": ("CO", COLORADO_BBOX, 2000.0)}
+         "wasatchbox": ("UT", WASATCH_BBOX, 1500.0), "coloradobox": ("CO", COLORADO_BBOX, 2000.0),
+         "okanaganbox": (BC, OKANAGAN_BBOX, 300.0), "bccoastbox": (BC, BCCOAST_BBOX, 300.0),
+         "powderhighwaybox": (BC, POWDERHIGHWAY_BBOX, 300.0), "eastkootenaysbox": (BC, EASTKOOTENAYS_BBOX, 300.0),
+         "rockiesbox": (BC, ROCKIES_BBOX, 300.0)}
 
 
 def pull_box(name: str, end: str, start: str = "2023-10-01") -> pd.DataFrame:

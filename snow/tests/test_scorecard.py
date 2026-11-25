@@ -66,3 +66,17 @@ def test_a_region_with_no_test_on_hand_and_none_published_has_no_section(tmp_pat
     titles = [s["title"] for s in verify.scorecard()["sections"]]
     assert "Water, Mammoth area." not in titles and "Water, Cascades." not in titles
     assert "Rain or snow, Cascades." not in titles and titles[-1] == "Live forecasts."
+
+
+def test_a_western_canadian_region_has_a_water_and_a_rain_or_snow_section_and_no_ratio_one(tmp_path, monkeypatch):
+    monkeypatch.setattr(verify, "TABLES", tmp_path)
+    tables(tmp_path, seattle=False)
+    METHODS.to_csv(tmp_path / "bias_methods_eastkootenays.csv", index=False)
+    pd.read_csv(tmp_path / "phase_table.csv", index_col=0).to_csv(tmp_path / "phase_table_eastkootenays.csv")
+    built = dict(verify.canada_sections())
+    assert list(built) == [f"{kind}, {name}." for name in ("Okanagan", "BC Coast", "Powder Highway", "East Kootenays",
+                                                           "Canadian Rockies") for kind in ("Water", "Rain or snow")]
+    assert built["Water, Okanagan."] is None and built["Rain or snow, Canadian Rockies."] is None
+    water = built["Water, East Kootenays."]
+    assert water["rows"][1][1] == "101%" and "Fernie" in water["note"]
+    assert built["Rain or snow, East Kootenays."]["rows"][1][0] == "The East Kootenays' wet-bulb curve (in use)"

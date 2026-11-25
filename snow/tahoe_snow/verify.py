@@ -208,6 +208,65 @@ def colorado_sections() -> list:
     return [("Water, Colorado.", water), ("Rain or snow, Colorado.", split), ("Snow ratio, Colorado.", ratio)]
 
 
+# Canada's western regions: the name each goes by, then what its water test was run against and which mountains the
+# correction reaches.
+CANADA = {
+    "okanagan": ("Okanagan", "the Okanagan",
+                 "10 snow stations in the Okanagan highlands. The models deliver about half of what the stations "
+                 "measure, and a third of it at Silver Star Mountain. SilverStar is corrected against that station; "
+                 "Big White, Sun Peaks and Apex have none within reach and are left uncorrected."),
+    "bccoast": ("BC Coast", "the south Coast Mountains",
+                "11 snow stations from the North Shore to Bralorne and Vancouver Island. The models are closer here, "
+                "but deliver 70% of what Palisade Lake measures above Grouse, which is corrected against it. Nothing "
+                "with a record is within reach of Whistler, Cypress, Mt. Seymour or Mt. Washington, which are left "
+                "uncorrected."),
+    "powderhighway": ("Powder Highway", "the Selkirks and Monashees",
+                      "9 snow stations in the Selkirks and Monashees. Revelstoke is corrected against Mount "
+                      "Revelstoke's station, where the models deliver 56%, and Rogers Pass against the station in "
+                      "the valley below it; RED Mountain, Whitewater and Kootenay Pass have none within reach and "
+                      "are left uncorrected."),
+    "eastkootenays": ("East Kootenays", "the Purcells and the Rockies' west slope",
+                      "6 snow stations in the Purcells and on the Rockies' west slope. Fernie is corrected against "
+                      "Morrissey Ridge; Kicking Horse, Panorama and Kimberley have no station within reach and are "
+                      "left uncorrected."),
+    "rockies": ("Canadian Rockies", "the Rockies and the Columbias beside them",
+                "4 snow stations on the British Columbia side of the divide, which is all that has a record: Alberta "
+                "publishes five days of readings. Bow Summit is corrected against Wildcat Creek; the mountains in "
+                "Alberta are left uncorrected."),
+}
+
+
+def canada_sections() -> list:
+    """Each western Canadian region's two tests, each None where its table is not on hand: water against British
+    Columbia's snow stations, and the rain/snow split against the Sierra's on the same days. There is no snow
+    ratio test: Canada's climate stations report snowfall as ten times its water."""
+    out = []
+    for region, (name, where, stations) in CANADA.items():
+        water = water_section(
+            f"Water, {name}.",
+            f"The same test against {stations} The 2024, 2025, and 2026 winters are held out in turn.",
+            f"bias_methods_{region}.csv", "Corrected to the snow stations (in use where a station is near)")
+        split = None
+        if (TABLES / f"phase_table_{region}.csv").exists():
+            table = pd.read_csv(TABLES / f"phase_table_{region}.csv", index_col=0)
+            kind, params = phase.load(region)
+            row = table.loc[kind]
+            split = {"title": f"Rain or snow, {name}.",
+                     "note": f"The same test at {int(row['stations'])} snow stations in {where} over "
+                             f"{int(row['days']):,} held-out days, {int(row['mixed days']):,} of them mixed; calling "
+                             f"everything snow would miss by {float(row['all_snow_error']):.1f} mm. The curve fitted "
+                             f"there is centered at {params['center_c']:g} C of wet-bulb, against the Sierra's "
+                             f"{phase.load()[1]['center_c']:g} C.",
+                     "columns": ["Method", "Error (mm of water)", "On mixed days (mm)"],
+                     "rows": [["The Sierra's wet-bulb curve", f"{row['sierra_error']:.2f}",
+                               f"{row['sierra_mixed_error']:.2f}"],
+                              [f"The {name}'{'' if name.endswith('s') else 's'} wet-bulb curve (in use)",
+                               f"{row['held-out error (mm water)']:.2f}",
+                               f"{row['error on mixed days (mm water)']:.2f}"]]}
+        out += [(f"Water, {name}.", water), (f"Rain or snow, {name}.", split)]
+    return out
+
+
 def scorecard() -> dict:
     """The scorecard, rebuilt from the tests on hand. A section whose test is not on this machine is carried over
     from the scorecard already published, so rebuilding one region's tests does not drop another's."""
@@ -241,6 +300,7 @@ def scorecard() -> dict:
         "Carson Peak, and Mt. Whitney have no working sensor nearby and are left uncorrected.",
         "bias_methods_mammoth.csv", "Corrected to the snow sensors (in use where a sensor is near)"))]
     regional += seattle_sections() + tetons_sections() + wasatch_sections() + colorado_sections()
+    regional += canada_sections()
     sections += [built or kept[title] for title, built in regional if built or title in kept]
     sections += [
         {"title": "Live forecasts.",

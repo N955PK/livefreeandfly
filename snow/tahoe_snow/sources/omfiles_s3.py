@@ -27,6 +27,12 @@ TETONS_BLOCK = (43.0, 44.5, -111.75, -109.75)
 WASATCH_BLOCK = (40.0, 41.75, -112.25, -111.25)
 # Colorado's I-70 corridor and the Park Range by Steamboat.
 COLORADO_BLOCK = (39.25, 40.75, -107.0, -105.5)
+# Canada's western regions, each around its stations' box.
+OKANAGAN_BLOCK = (49.25, 51.0, -120.5, -118.5)
+BCCOAST_BLOCK = (49.25, 51.0, -126.0, -122.0)
+POWDERHIGHWAY_BLOCK = (49.0, 51.75, -118.5, -116.5)
+EASTKOOTENAYS_BLOCK = (49.0, 51.5, -117.5, -114.75)
+ROCKIES_BLOCK = (50.75, 53.0, -118.75, -115.0)
 LEVEL_VARIABLES = ["temperature", "relative_humidity", "wind_u_component", "wind_v_component", "geopotential_height"]
 PRECIP_SHAPE = (1536, 3072)
 GRID_WIDTH = {"ncep_gfs025": 1440, "ncep_gfs013": 3072}

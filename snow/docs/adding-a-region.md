@@ -154,10 +154,23 @@ England has none: give those mountains `station=None` and skip to 1c.
   whole network, hourly, UTC; station list with elevations from the province's WFS layer
   `WHSE_WATER_MANAGEMENT.SSL_SNOW_ASWS_STNS_SP`) and Alberta's snow pillows by `sources/abrivers.py` (five days of
   water only; station list at `https://rivers.alberta.ca/DataService/ListStations`, JSON inside JSON, no elevations).
-  Add a station to `CANADA_STATIONS` as `"<id>:BCASWS"` or `"<id>:ABRIVERS"` with `corrects=False` (nothing is
-  fitted in Canada) and `depth=False` where it has no depth gauge. Neither network's long record is read
-  (`season.NO_RECORD`), so these stations show no usual year. Check a British Columbia station has a column with
-  recent values in `SW.csv` and `SD.csv` before pairing: several list a sensor they do not report.
+  Add a British Columbia station to its region's table in `config.py` (`OKANAGAN_STATIONS` and its fellows, made
+  with `_bc(...)`; `CANADA_STATIONS` is all of them) and an Alberta one as `"<id>:ABRIVERS"` with `corrects=False`:
+  Alberta keeps no record, so nothing can be fitted to it. Set `depth=False` where there is no depth gauge.
+  Check a British Columbia station has a column with recent values in `SW.csv` and `SD.csv` before pairing:
+  several list a sensor they do not report. The page reads no long record for either network
+  (`season.NO_RECORD`), so these stations show no usual year.
+- **Fitting in British Columbia.** The province's long record is four files beside the season's, an hour a row
+  since 2003: `SW_Archive.csv` (pillow water, mm), `SD_Archive.csv` (depth, cm), `PC_Archive.csv` (cumulative
+  precipitation, mm) and `TA_Archive.csv`, 40 to 85 MB each. `bcasws.daily` reads them as SNOTEL's daily values
+  (midnight Pacific standard time), so `observations.pull_region`, `calibrate.pairs` and `train.fit_region_phase`
+  work on a British Columbia region as on a SNOTEL one; `observations.BOXES` takes `"BC"` where a state goes.
+  A region's table is what its water correction is fitted to: stations with a pillow and a gauge and four winters
+  since 2020. Adding one means running the fit again (step 1e).
+- **No snow ratio can be fitted or checked in Canada** from GHCN-Daily: Canada's climate stations report snowfall
+  and its water at exactly 10 to 1 (the mountain ones included), so `check_region_ratio` there scores a flat 10:1
+  near zero and means nothing. Before trusting any new region's hand-measured days, look at the share of them
+  whose ratio is exactly 10.
 - Pair each mountain with the nearest station that is within about 10 km **and** within about 300 m of the
   mountain's mid elevation. Within 10 km but lower than that: pair it and set `weak_match=True`. Nothing within
   10 km: `station=None`. The page then tags the mountain Corrected, Low sensor or Uncorrected by itself.
@@ -166,9 +179,9 @@ England has none: give those mountains `station=None` and skip to 1c.
 - For the region's first station, check the time its daily values are stamped in against its hourly readings
   (see the note at the top of `sources/snotel.py`) and confirm `Region.std_offset_h` is right for it.
 
-Canada has no SNOTEL. British Columbia's and Alberta's automated snow stations need a reader of their own under
-`tahoe_snow/sources/` before a mountain can name one (as `cdec.py` reads California's and `acis.py` Mt.
-Washington's); until one exists a Canadian mountain has `station=None` and reads Uncorrected, as New England does.
+Canada has no SNOTEL. British Columbia's and Alberta's automated snow stations have readers of their own under
+`tahoe_snow/sources/` (`bcasws.py`, `abrivers.py`), as `cdec.py` reads California's and `acis.py` Mt. Washington's;
+another province's would need one before a mountain can name its stations. Quebec has no snow stations at all.
 
 A region uses its own fitted files where they exist and the Sierra's otherwise: `models/bias_<region>.json` (the
 water correction; with none, the models are used as they are), `weights_<region>.json`, `snow_phase_<region>.json`
@@ -273,7 +286,7 @@ records how each was done for the Cascades and what it cost; the Tetons, the Was
 
 Sean wants each file saved even where it barely differs from the Sierra's, as the record that it was fitted there.
 Write the results into the testing page (2f) and add the region's sections to the scorecard (`verify.py`, beside
-`seattle_sections`, `tetons_sections`, `wasatch_sections` and `colorado_sections`). Push, and restart the collector so the next build uses them. The Sensor
+`seattle_sections`, `tetons_sections`, `wasatch_sections`, `colorado_sections` and `canada_sections`). Push, and restart the collector so the next build uses them. The Sensor
 corrections list on the page follows the published index, so it reads Corrected as soon as the index is rebuilt.
 
 ## 2. Second push: the page

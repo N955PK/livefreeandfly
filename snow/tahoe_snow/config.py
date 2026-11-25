@@ -260,25 +260,96 @@ SHASTA_STATIONS = {
 }
 # Canada's snow stations (reporting 2026-11-24). British Columbia's automated snow weather stations (keyed
 # "<id>:BCASWS"; positions and elevations from the province's own station list) and one Alberta River Basins snow
-# pillow ("<id>:ABRIVERS"; its elevation is SRTM's at the listed spot, as Alberta publishes none). Each is within
-# about 10 km of the mountain it is paired with. None corrects a forecast: nothing has been fitted in Canada, so
-# they are only shown. Mount Strachan, on Cypress itself, measures depth and no water; Wildcat Creek and Sunshine
-# Village measure water and no depth. Alberta publishes five days of readings and no longer record, so Sunshine
-# has no usual year to be told against; the British Columbia stations' records are not read yet either.
-CANADA_STATIONS = {
+# pillow ("<id>:ABRIVERS"; its elevation is SRTM's at the listed spot, as Alberta publishes none). A region's table
+# is the stations its water correction is fitted to: each has a snow pillow and a precipitation gauge with at least
+# four winters on record since 2020, and the ones paired with a mountain come first. A station between two regions
+# is in both. ``corrects=False`` marks one that is only shown.
+
+
+def _bc(station_id: str, name: str, lat: float, lon: float, elev_m: float, **more) -> Station:
+    return Station(f"{station_id}:BCASWS", name, lat, lon, elev_m, source="bcasws", **more)
+
+
+# The Okanagan's highlands, Trout Creek west of the lake to Park Mountain in the Monashees' foothills. Silver Star
+# Mountain is on SilverStar; nothing reports within 20 km of Big White, Sun Peaks or Apex.
+OKANAGAN_STATIONS = {
     s.triplet: s
     for s in [
-        Station("2F10P:BCASWS", "Silver Star Mountain", 50.37136, -119.06211, 1840, source="bcasws", corrects=False),
-        Station("3A30P:BCASWS", "Mount Strachan", 49.40432, -123.19151, 1215, source="bcasws", corrects=False),
-        Station("3A09P:BCASWS", "Palisade Lake", 49.45444, -123.03194, 900, source="bcasws", corrects=False),
-        Station("2A34P:BCASWS", "Rogers Pass", 51.27012, -117.50942, 1182, source="bcasws", corrects=False),
-        Station("2C09Q:BCASWS", "Morrissey Ridge", 49.44722, -114.975, 1860, source="bcasws", corrects=False),
-        Station("2A32P:BCASWS", "Wildcat Creek", 51.6963, -116.62941, 2122, source="bcasws", depth=False,
-                corrects=False),
+        _bc("2F10P", "Silver Star Mountain", 50.37136, -119.06211, 1840),
+        _bc("2F05P", "Mission Creek", 49.94467, -118.94970, 1780),
+        _bc("2E07P", "Grano Creek", 49.55197, -118.67730, 1870),
+        _bc("1F03P", "Park Mountain", 50.44961, -118.61856, 1890),
+        _bc("2F19P", "Oyama Lake", 50.11633, -119.27900, 1360),
+        _bc("1F04P", "Enderby", 50.65302, -118.92690, 1950),
+        _bc("2F08P", "Greyback Reservoir", 49.61634, -119.42268, 1550),
+        _bc("2F01AP", "Trout Creek West", 49.74017, -120.18910, 1420),
+        _bc("2F18P", "Brenda Mine", 49.86236, -119.98211, 1460),
+        _bc("2F09P", "Whiterocks Mountain", 50.01669, -119.74610, 1800),
+    ]
+}
+# The south Coast Mountains and Vancouver Island: the North Shore, the Sea to Sky, the Lillooet's headwaters and
+# the dry side by Bralorne. Mount Strachan, on Cypress itself, measures depth and no water and has no long record,
+# so it is only shown.
+BCCOAST_STATIONS = {
+    s.triplet: s
+    for s in [
+        _bc("3A09P", "Palisade Lake", 49.45444, -123.03194, 900),
+        _bc("3A30P", "Mount Strachan", 49.40432, -123.19151, 1215, corrects=False),
+        _bc("3A20P", "Callaghan Creek", 50.13706, -123.10289, 1017),
+        _bc("3A25P", "Squamish River Upper", 50.15430, -123.43610, 1360),
+        _bc("3A28P", "Tetrahedron", 49.59785, -123.60499, 1420),
+        _bc("1D06P", "Tenquille Lake", 50.53625, -122.92996, 1680),
+        _bc("1C05P", "McGillivray Pass", 50.69856, -122.62538, 1718, depth=False),
+        _bc("1D08P", "Lamont Creek Upper", 49.58191, -122.31428, 1208),
+        _bc("3B17P", "Wolf River Upper", 49.70414, -125.67925, 1490, depth=False),
+        _bc("1C14P", "Bralorne", 50.77519, -122.78882, 1382),
+        _bc("1C18P", "Mission Ridge", 50.76256, -122.20769, 1850, depth=False),
+        _bc("1C12P", "Green Mountain", 50.79563, -122.92454, 1780, depth=False),
+    ]
+}
+# The Selkirks and Monashees, Kootenay Lake to the Big Bend. Rogers Pass's station is in the valley; Mount
+# Revelstoke's is across the Illecillewaet from the resort.
+POWDERHIGHWAY_STATIONS = {
+    s.triplet: s
+    for s in [
+        _bc("2A34P", "Rogers Pass", 51.27012, -117.50942, 1182),
+        _bc("2A06P", "Mount Revelstoke", 51.03634, -118.15160, 1850, depth=False),
+        _bc("2D14P", "Redfish Creek", 49.69008, -117.08650, 2100),
+        _bc("2A31P", "Caribou Creek", 51.10903, -117.22842, 2201, depth=False),
+        _bc("2A30P", "Colpitti Creek", 51.60772, -117.61086, 2131),
+        _bc("2D10P", "Gray Creek Upper", 49.61656, -116.65890, 1930),
+        _bc("2A18P", "Keystone Creek", 51.41129, -118.36066, 1840, depth=False),
+        _bc("2B08P", "St. Leon Creek", 50.43417, -117.70121, 1800, depth=False),
+        _bc("2B06P", "Barnes Creek", 50.06855, -118.35112, 1620, depth=False),
+    ]
+}
+# The Purcells and the Rockies' west slope, the Flathead to Golden.
+EASTKOOTENAYS_STATIONS = {
+    s.triplet: s
+    for s in [
+        _bc("2C09Q", "Morrissey Ridge", 49.44722, -114.975, 1860),
+        _bc("2C10P", "Moyie Mountain", 49.25150, -115.77390, 1835),
+        _bc("2D08P", "East Creek", 50.63960, -116.92973, 2030, depth=False),
+        _bc("2C14P", "Floe Lake", 51.05992, -116.13712, 2090),
+        _bc("2A31P", "Caribou Creek", 51.10903, -117.22842, 2201, depth=False),
+        _bc("2D10P", "Gray Creek Upper", 49.61656, -116.65890, 1930),
+    ]
+}
+# The Rockies' British Columbia side, which is all that has a record: Alberta publishes five days of readings and
+# no more, so Sunshine Village's pillow is only shown and has no usual year to be told against.
+ROCKIES_STATIONS = {
+    s.triplet: s
+    for s in [
+        _bc("2A32P", "Wildcat Creek", 51.6963, -116.62941, 2122, depth=False),
+        _bc("2C14P", "Floe Lake", 51.05992, -116.13712, 2090),
+        _bc("1A01P", "Yellowhead Lake", 52.90622, -118.54750, 1860),
+        _bc("2A21P", "Molson Creek", 52.22056, -118.22583, 1935),
         Station("05BB803:ABRIVERS", "Sunshine Village", 51.07745, -115.78159, 2192, source="abrivers", depth=False,
                 corrects=False),
     ]
 }
+CANADA_STATIONS = {**OKANAGAN_STATIONS, **BCCOAST_STATIONS, **POWDERHIGHWAY_STATIONS, **EASTKOOTENAYS_STATIONS,
+                   **ROCKIES_STATIONS}
 ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
                 **WASATCH_STATIONS, **COLORADO_STATIONS, **SHASTA_STATIONS, **CANADA_STATIONS}
 
@@ -663,7 +734,8 @@ ALL_RESORTS = {
         # Nobody shares weather: the nearest two are 35 km apart. Revelstoke and Panorama are also on the Mountain
         # Collective and are counted as Ikon; Kicking Horse, Fernie and Kimberley give Epic holders seven days
         # between them and are counted as Epic.
-        Resort("revelstoke", "Revelstoke", 50.95989, -118.14335, 512, 2225, None, "Ikon", region="powderhighway"),
+        Resort("revelstoke", "Revelstoke", 50.95989, -118.14335, 512, 2225, "2A06P:BCASWS", "Ikon",
+               region="powderhighway"),                                  # Mount Revelstoke, 8.5 km north
         Resort("redmountain", "RED Mountain", 49.10237, -117.84281, 1185, 2037, None, "Ikon",
                region="powderhighway"),
         Resort("whitewater", "Whitewater", 49.43994, -117.15131, 1389, 2063, None, "Independent",
@@ -789,7 +861,7 @@ PRESSURE_LEVELS = [850, 800, 750, 700, 650, 600, 550, 500]
 
 def levels_for(region: str) -> list[int]:
     """The pressure levels a region's forecast reads, lowest in the air first."""
-    return sorted(REGIONS[region].low_levels, reverse=True) + PRESSURE_LEVELS
+    return sorted(ALL_REGIONS[region].low_levels, reverse=True) + PRESSURE_LEVELS
 
 
 # Sierra box used to gather hand-measured snowfall for snow-ratio training.
@@ -807,3 +879,9 @@ WASATCH_BBOX = (40.2, 41.5, -112.1, -111.4)
 COLORADO_BBOX = (39.3, 40.6, -106.85, -105.75)
 # Around Shasta's nine snow pillows, Harkness Flat by Lassen to Sand Flat on Mt. Shasta.
 SHASTA_BBOX = (40.4, 41.6, -122.9, -121.19)
+# Around each Canadian region's stations and mountains.
+OKANAGAN_BBOX = (49.3, 51.0, -120.3, -118.5)
+BCCOAST_BBOX = (49.3, 50.9, -125.8, -122.1)
+POWDERHIGHWAY_BBOX = (49.0, 51.7, -118.5, -116.6)
+EASTKOOTENAYS_BBOX = (49.0, 51.3, -117.3, -114.8)
+ROCKIES_BBOX = (50.9, 53.0, -118.7, -115.0)
