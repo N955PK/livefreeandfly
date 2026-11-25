@@ -193,6 +193,17 @@ Avalanche centers by region (all on `api.avalanche.org`, checked 2026-11-22):
 | New England | `MWAC` |
 | Alaska | `CNFAIC`, `HPAC` |
 
+**Canada** is not on avalanche.org. Its forecasts are Avalanche Canada's (`https://api.avalanche.ca/forecasts/en/areas`
+and `/products`, open to browsers), which carries Parks Canada's, Kananaskis's and Quebec's too. The page reads them
+through an adapter (`avcanZones`, `avcanForecast` in `index.html`) that recasts each into the shape the pane reads
+avalanche.org's in. A Canadian region's entry is one center:
+`avalanche: [{id: "AVCAN", name: "Avalanche Canada", url: "https://avalanche.ca/", state: "CAN", source: "avcan", near: [lon, lat]}]`,
+where `near` is the spot whose zone the region opens on. Area ids and outlines change whenever the forecasters merge
+ground differently, so nothing is stored: zones are matched to forecasts by id on every load, and named by who
+forecasts them (`AVCAN_OWNERS`) or the nearest of `AVCAN_PLACES`. Western Canada has one `LOCATORS` frame; a region
+east of Alberta needs its own. Avalanche problems had not been posted when the adapter was written (early season,
+2026-11-24), so that mapping is from the feed's documented shape and should be checked on the first rated day.
+
 For any other region, see whether its center answers:
 `https://api.avalanche.org/v2/public/products/map-layer/<CENTER>` returns a list of zones if it does. Then open one zone on the
 Avalanche tab in the preview before trusting it: Colorado's center answers with seven zones all named "CAIC zone",
