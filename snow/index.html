@@ -1705,6 +1705,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>Nothing on this page has been checked in New England. No snow sensors sit near its mountains to fit or test against, so its forecasts use the four models uncorrected, with the Sierra's rain-or-snow curve, snow ratio model, and blend weights.</p>
 <h5>The regions without snow sensors</h5>
 <p>Nothing on this page has been checked in Southern California, Juneau, Valdez, New York, the Mid-Atlantic, around Lake Superior, in Michigan, the Black Hills, Northern BC, Ontario, the Gaspé, Newfoundland or the Yukon. Like New England, they have no snow sensors near their mountains to fit or test against, so their forecasts are the four models uncorrected with the Sierra's curve, ratio and weights. In Las Vegas the snow ratio could not be checked either, for want of hand-measured snow days.</p>
+<p>The fifty classic ski descents of North America are here as backcountry spots, each forecast at a point on its line. Six stand far from every other region and have regions of their own: the Ruby Mountains, the La Sal Mountains, Denali, Wrangell-St. Elias, the Waddington Range and Baffin Island. Nothing has been fitted or checked in those six either. On Denali and Mt. St. Elias the summit is higher than anything else here, and no forecast this high has been compared with a measurement.</p>
 <h5>Shasta</h5>
 <p>Nothing is fitted around Mt. Shasta, and what could be checked is thin. A water correction was tried against nine state snow pillows and not kept. They sit at 5,200 to 8,300 ft and measure snow alone, so they miss the rain: on days above freezing the four models carry 2.7 times the water the pillows gained, and on all-snow days 1.1 times. A correction fitted to them would take out rain that the rain-or-snow step takes out anyway. On all-snow days alone the models are close at Sand Flat, the one pillow on Mt. Shasta (1.2 times, 34 days), and bring about half of what the Lower Lassen Peak pillow gained (46 days, nearly all in one winter), too few to fit or to hold a winter out. So Lassen Peak's forecast may well run dry.</p>
 <p>With no rain gauges beside the pillows there is nothing to fit a rain-or-snow curve to, and the blend weights come from the water test. The snow ratio could be checked a little: on 85 all-snow days measured by hand at 10 stations since 2023, most of them in the valley towns below 4,000 ft, the Sierra's model misses the snowfall by 1.93 in, against 2.31 in for a flat 10:1 and 2.82 in for Kuchera. That is too few days, too low down, to train on. Its forecasts use the four models uncorrected with the Sierra's curve, snow ratio model and blend weights.</p>
@@ -1736,6 +1737,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Arizona</b> Its own correction, fitted to 5 snow sensors, its own blend weights and its own rain-or-snow curve. Its fluffiness model is trained on Sierra and Arizona snowfall together. Every mountain there has a sensor within reach.</p>
     <p><b>Las Vegas</b> Its own correction, fitted to 4 snow sensors, its own blend weights and its own rain-or-snow curve. The fluffiness model is the Sierra's; there are too few hand-measured snow days there to check it. Every mountain there has a sensor within reach.</p>
     <p><b>Southern California, Juneau, Valdez, New York, the Mid-Atlantic, Lake Superior, Michigan, the Black Hills, Northern BC, Ontario, the Gaspé, Newfoundland and the Yukon</b> No snow sensor is near enough to these mountains to correct against, so their forecasts use the four models uncorrected, with the Sierra's rain-or-snow curve, snow ratio and blend weights. Valdez's backcountry is shown the Upper Tsaina River sensor, which sits far below it and corrects nothing. Where the ground is low the air is read further down: to 1000 hPa in the East, the Midwest, Ontario, the Gaspé and Newfoundland, as in New England.</p>
+    <p><b>The fifty classic descents</b> Each line of the 2010 book <i>Fifty Classic Ski Descents of North America</i> is a backcountry spot: the forecast is read at a point on the line, from the usual winter start to the summit. Nine were mountains already here. Most of the rest joined the region around them, and six regions were made for the ones far from anything else. Where a line's exact place is not mapped it was set on the right face by its height, so it can be a few hundred metres off. Denali and Wrangell-St. Elias read one weather level higher than every other region, because their summits stand above the usual top one.</p>
     <p><b>Shasta</b> Nothing is fitted here. The Ski Park and Mt. Shasta are shown the Sand Flat snow pillow's readings and Lassen Peak its own pillow's, but the models are used uncorrected, with the Sierra's rain-or-snow curve, fluffiness model and blend weights. A correction was tried and left out: the pillows there are low and miss the rain, so they cannot say how much water fell. Its forecast is made twice a day, at 5 am and 5 pm, where the other western regions' are made three times.</p>
     <p><b>New England</b> No snow sensors sit near its mountains, so there is no correction, and the rain-or-snow curve, the fluffiness model, and the blend weights are the Sierra's, not checked there. The air is read down to near sea level.</p>
     <p><b>Canada</b> The five western regions each have their own water correction, rain-or-snow curve and blend weights, fitted to British Columbia's snow stations; the fluffiness model is the Sierra's, because Canada's climate stations do not measure snowfall and its water apart. SilverStar, Grouse, Revelstoke, Rogers Pass, Fernie and Bow Summit are corrected against a station within about six miles (Rogers Pass's is in the valley below it). Cypress and Sunshine Village are shown a station that cannot correct them: Cypress's measures depth alone, and Alberta keeps no record of Sunshine's. The rest have none that close and are left as the models have them. Quebec has no snow stations, so nothing is fitted there and everything is the Sierra's, not checked. Its avalanche forecasts are Avalanche Canada's, which carries Parks Canada's and Kananaskis's too. Their zones are redrawn as the forecasters see fit, so a zone may cover different ground tomorrow. Quebec's resorts have no avalanche forecast.</p>
@@ -1804,7 +1806,8 @@ const PEAK_AT = {rainier: [46.85104, -121.76076], mtbaker: [48.77896, -121.81985
   mcgown: [44.21324, -115.08092], stimson: [48.51441, -113.61039], patriarch: [45.14966, -109.84934], grandteton: [43.74104, -110.80244],
   skillet: [43.83521, -110.77632], middleteton: [43.72993, -110.81133], hypodermicneedle: [40.54347, -111.73111], coldfusion: [40.41643, -111.66839],
   landryline: [39.07166, -106.95011], northmaroon: [39.07601, -106.98714], crosscouloir: [39.46682, -106.48178], wilsonpeak: [37.86043, -107.98469],
-  silvercouloir: [39.61665, -106.14283]};
+  silvercouloir: [39.61665, -106.14283],
+  terminalcancer: [40.64585, -115.41977], tukuhnikivatz: [38.43962, -109.26008], denali: [63.06911, -151.00624], universitypeak: [61.32710, -141.78698], stelias: [60.29345, -140.93074], combatant: [51.39251, -125.24614], polarstar: [70.55299, -71.30136]};
 // Where a mountain is read against the avalanche zones, where its own point falls outside them all: the Salt Lake
 // zone's edge runs through Park City and Deer Valley, whose upper mountains are inside it.
 // Steamboat's base lift is just outside Colorado's zones; the mountain above it is inside.
@@ -2263,6 +2266,57 @@ const REGIONS = {
       [1500, [0.72, 0.73, 0.74]], [2100, [0.88, 0.90, 0.93]]],
     lake: {name: "Bennett Lake", lat: 60.1, lon: -134.85},
     avalanche: [{id: "AVCAN", name: "Avalanche Canada", url: "https://avalanche.ca/", state: "CAN", source: "avcan", near: [-134.989, 59.751]}]},
+  // The six regions made for classic descents far from any other region (2026-11-26): one line each, but for
+  // Wrangell-St. Elias's two. No road reaches any of them but the Rubies and the La Sals, whose road lines are not drawn yet.
+  rubymountains: {name: "Ruby Mountains", short: "Rubies", terrain: "data/terrain-rubymountains", roads: "data/roads-rubymountains.json", center: [40.65, -115.419], pick: "terminalcancer",
+    // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 1 km from the middle.
+    waterM: 1500, floorM: 1500, lowlandM: 4000, plainStateRoutes: true,
+    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // Sagebrush in the valleys, aspen and pine in the canyons, and rock above about 3,000 m. Ruby Valley's marshes and dry lake beds are level but are not drawn as lakes.
+    land: [[1500, [0.70, 0.64, 0.48]], [1800, [0.62, 0.59, 0.43]], [2200, [0.36, 0.44, 0.30]], [2700, [0.26, 0.39, 0.29]],
+      [3000, [0.55, 0.53, 0.48]], [3300, [0.72, 0.70, 0.67]]],
+    avalanche: []},
+  lasal: {name: "La Sal Mountains", short: "La Sals", terrain: "data/terrain-lasal", roads: "data/roads-lasal.json", center: [38.46, -109.26], pick: "tukuhnikivatz",
+    // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 2 km from the middle.
+    waterM: 900, floorM: 900, lowlandM: 4000, plainStateRoutes: true,
+    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // Red desert and canyons low, forest on the range from about 2,400 m, and rock above treeline near 3,500 m. Level desert is not drawn as water.
+    land: [[900, [0.70, 0.64, 0.48]], [1700, [0.62, 0.59, 0.43]], [2400, [0.36, 0.44, 0.30]], [3100, [0.26, 0.39, 0.29]],
+      [3500, [0.55, 0.53, 0.48]], [3800, [0.72, 0.70, 0.67]]],
+    avalanche: [{id: "UAC", name: "Utah Avalanche Center", url: "https://utahavalanchecenter.org/", state: "UT"}]},
+  denali: {name: "Denali", terrain: "data/terrain-denali", roads: "data/roads-denali.json", center: [63.07, -151.041], pick: "denali",
+    // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 2 km from the middle.
+    waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
+    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // Spruce and tundra low, then rock, and ice from about 1,500 m to the summit.
+    land: [[0, [0.36, 0.46, 0.31]], [200, [0.24, 0.40, 0.27]], [600, [0.36, 0.44, 0.32]], [1000, [0.52, 0.51, 0.46]],
+      [1500, [0.72, 0.73, 0.74]], [2100, [0.88, 0.90, 0.93]]],
+    avalanche: []},
+  wrangellstelias: {name: "Wrangell-St. Elias", short: "St. Elias", terrain: "data/terrain-wrangellstelias", roads: "data/roads-wrangellstelias.json", center: [60.8, -141.359], pick: "stelias",
+    // The disc is 86 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 63 km from the middle.
+    waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
+    discKm: 86, zoom: 1.7, turnDeg: 0,
+    areas: [{key: "university", name: "University Peak", short: "University", mountains: ["universitypeak"]},
+      {key: "stelias", name: "Mt. St. Elias", short: "St. Elias", mountains: ["stelias"]}],
+    // Spruce and tundra low, then rock, and the continent's largest icefields above about 1,500 m.
+    land: [[0, [0.36, 0.46, 0.31]], [200, [0.24, 0.40, 0.27]], [600, [0.36, 0.44, 0.32]], [1000, [0.52, 0.51, 0.46]],
+      [1500, [0.72, 0.73, 0.74]], [2100, [0.88, 0.90, 0.93]]],
+    avalanche: []},
+  waddington: {name: "Waddington Range", short: "Waddington", country: "Canada", terrain: "data/terrain-waddington", roads: "data/roads-waddington.json", center: [51.391, -125.248], pick: "combatant",
+    // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 0 km from the middle.
+    waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
+    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // Rainforest in the inlets and valleys, then rock, and glaciers above about 2,300 m.
+    land: [[0, [0.42, 0.50, 0.32]], [300, [0.26, 0.42, 0.28]], [1000, [0.20, 0.36, 0.25]], [1500, [0.27, 0.40, 0.30]],
+      [1850, [0.52, 0.51, 0.46]], [2300, [0.68, 0.68, 0.67]], [2700, [0.86, 0.88, 0.91]]],
+    avalanche: []},
+  baffin: {name: "Baffin Island", short: "Baffin", country: "Canada", terrain: "data/terrain-baffin", roads: "data/roads-baffin.json", center: [70.558, -71.306], pick: "polarstar",
+    // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 1 km from the middle.
+    waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
+    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // Bare tundra and rock from the fjords up, and ice caps on the plateau.
+    land: [[0, [0.50, 0.50, 0.44]], [300, [0.56, 0.55, 0.50]], [700, [0.70, 0.71, 0.71]], [1100, [0.88, 0.90, 0.93]]],
+    avalanche: []},
   // Canada's regions are forecast by the second collector (see MORE_BRANCHES). Their avalanche forecasts are
   // Avalanche Canada's (source "avcan", see avcanZones): one center for the whole country, whose zones every region
   // lists; "near" is the spot (lon, lat) whose zone a region opens on. Quebec has none: the only forecast in the
@@ -2379,17 +2433,18 @@ const countryRank = (country) => { const n = COUNTRY_ORDER.indexOf(country || "U
 // part as a heading ("USA · Northern Rockies") with its regions A to Z under it. A region in no part is listed
 // under its country alone, after the parts.
 const REGION_PARTS = [
-  ["USA", "California & Nevada", ["tahoe", "mammoth", "shasta", "socal", "lasvegas"]],
+  ["USA", "California & Nevada", ["tahoe", "mammoth", "shasta", "socal", "lasvegas", "rubymountains"]],
   ["USA", "Pacific Northwest", ["seattle", "oregon", "inlandnw"]],
   ["USA", "Northern Rockies", ["montana", "nwmontana", "sunvalley", "westidaho", "tetons", "wyoming"]],
-  ["USA", "Utah & Colorado", ["wasatch", "southutah", "colorado", "swcolorado"]],
+  ["USA", "Utah & Colorado", ["wasatch", "southutah", "lasal", "colorado", "swcolorado"]],
   ["USA", "Southwest", ["arizona", "newmexico"]],
-  ["USA", "Alaska", ["alaska", "juneau", "valdez"]],
+  ["USA", "Alaska", ["alaska", "juneau", "valdez", "denali", "wrangellstelias"]],
   ["USA", "Midwest", ["blackhills", "lakesuperior", "michigan"]],
   ["USA", "East", ["newengland", "newyork", "midatlantic"]],
-  ["Canada", "British Columbia", ["bccoast", "okanagan", "powderhighway", "eastkootenays", "northbc"]],
+  ["Canada", "British Columbia", ["bccoast", "okanagan", "powderhighway", "eastkootenays", "northbc", "waddington"]],
   ["Canada", "Alberta & Yukon", ["rockies", "yukon"]],
-  ["Canada", "Eastern Canada", ["ontario", "quebec", "gaspesie", "newfoundland"]]];
+  ["Canada", "Eastern Canada", ["ontario", "quebec", "gaspesie", "newfoundland"]],
+  ["Canada", "Arctic", ["baffin"]]];
 const partRank = (key) => { const n = REGION_PARTS.findIndex(([, , keys]) => keys.includes(key)); return n < 0 ? REGION_PARTS.length : n; };
 const partName = (key) => { const part = REGION_PARTS[partRank(key)], country = REGIONS[key].country || "USA"; return part ? `${country} · ${part[1]}` : country; };
 const regionsByName = () => Object.keys(REGIONS).sort((a, b) => countryRank(REGIONS[a].country) - countryRank(REGIONS[b].country) || partRank(a) - partRank(b)

@@ -29,8 +29,9 @@ EXTRA_LEVEL_CALLS = 2.51
 
 
 def resort_run_calls(region: str) -> float:
-    """What one mountain's forecast costs in ``region``, with the levels it reads below the usual ones."""
-    return CALLS_PER_RESORT_RUN + EXTRA_LEVEL_CALLS * len(ALL_REGIONS[region].low_levels)
+    """What one mountain's forecast costs in ``region``, with the levels it reads below and above the usual ones."""
+    extra = ALL_REGIONS[region].low_levels + ALL_REGIONS[region].high_levels
+    return CALLS_PER_RESORT_RUN + EXTRA_LEVEL_CALLS * len(extra)
 
 
 def pulls(region: str, resorts: dict = RESORTS) -> int:

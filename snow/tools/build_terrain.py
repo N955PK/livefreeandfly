@@ -189,7 +189,14 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            "newfoundland": {"box": (47.015, 50.089, -58.269, -53.624), "max_m": 870, "columns": 640},
            # Yukon: a 146 km square around the circle, 73 km in radius about 60.181 N 135.022 W, that holds
            # every mountain (48 km from its middle at the furthest) with 25 km to spare.
-           "yukon": {"box": (59.527, 60.835, -136.337, -133.706), "max_m": 3000, "columns": 373}}
+           "yukon": {"box": (59.527, 60.835, -136.337, -133.706), "max_m": 3000, "columns": 373},
+           # The classic descents' six regions (2026-11-26): a square 25 km clear of each one's points, 90 km at least.
+           "rubymountains": {"box": (40.246, 41.055, -115.953, -114.886), "max_m": 3500, "columns": 231},
+           "lasal": {"box": (38.055, 38.865, -109.777, -108.744), "max_m": 3950, "columns": 231},
+           "denali": {"box": (62.665, 63.474, -151.934, -150.147), "max_m": 6250, "columns": 231},
+           "wrangellstelias": {"box": (60.008, 61.591, -142.981, -139.736), "max_m": 6050, "columns": 451},
+           "waddington": {"box": (50.987, 51.796, -125.897, -124.599), "max_m": 4100, "columns": 231},
+           "baffin": {"box": (70.153, 70.963, -72.522, -70.09), "max_m": 2200, "columns": 231}}
 
 
 def stem(region: str) -> str:

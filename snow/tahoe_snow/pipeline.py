@@ -75,14 +75,14 @@ def forecast_variables(region: str) -> list:
 
 
 def usable_levels(profile: pd.DataFrame, region: str) -> pd.DataFrame:
-    """The profile without any of the region's low levels that a model reports for only part of the forecast.
+    """The profile without any of the region's low or high levels that a model reports for only part of the forecast.
 
     A level with holes would leave holes in the column wherever it is the nearest one, so a low level is used
     only where it is there for every hour the 850 hPa level is; otherwise the column is held from 850 hPa down,
     as it is everywhere the low levels are not read."""
     there = profile["temperature_850hPa"].notna() if "temperature_850hPa" in profile else None
     drop = []
-    for level in REGIONS[region].low_levels:
+    for level in REGIONS[region].low_levels + REGIONS[region].high_levels:
         columns = [f"{name}_{level}hPa" for name in openmeteo.LEVEL_VARS]
         if there is None or not all(c in profile and profile.loc[there, c].notna().all() for c in columns):
             drop += [c for c in columns if c in profile]

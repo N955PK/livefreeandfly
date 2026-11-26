@@ -76,6 +76,8 @@ class Region:
     avalanche: tuple[str, ...]
     # Pressure levels (hPa) read below the usual lowest one, where the region's mountains reach under it.
     low_levels: tuple[int, ...] = ()
+    # Pressure levels (hPa) read above the usual highest one, where a summit stands over it (Denali, St. Elias).
+    high_levels: tuple[int, ...] = ()
     # The hours of the day, on the region's own clock, at which its forecast is built. Regions that share a clock
     # share their hours, so their forecasts change together.
     at: tuple[int, ...] = ()
@@ -1510,6 +1512,26 @@ ALL_RESORTS = {
                region="colorado", kind="backcountry"),
         Resort("silvercouloir", "Silver Couloir", 39.62405, -106.13635, _ft(9764), _ft(12780), None, "Backcountry",
                region="colorado", kind="backcountry"),
+        # Ruby Mountains: a classic descent far from every other region.
+        Resort("terminalcancer", "Terminal Cancer", 40.64940, -115.42092, _ft(7445), _ft(9426), None, "Backcountry",
+               region="rubymountains", kind="backcountry"),
+        # La Sal Mountains: a classic descent far from every other region.
+        Resort("tukuhnikivatz", "Mt. Tukuhnikivatz", 38.44500, -109.25800, _ft(9909), _ft(12500), None, "Backcountry",
+               region="lasal", kind="backcountry"),
+        # Denali: a classic descent far from every other region.
+        Resort("denali", "Denali", 63.07050, -151.05000, _ft(14173), _ft(20308), None, "Backcountry",
+               region="denali", kind="backcountry"),
+        # Wrangell-St. Elias: a classic descent far from every other region.
+        Resort("universitypeak", "University Peak", 61.31400, -141.78700, _ft(7131), _ft(14472), None, "Backcountry",
+               region="wrangellstelias", kind="backcountry"),
+        Resort("stelias", "Mt. St. Elias", 60.28300, -140.95700, _ft(9242), _ft(18009), None, "Backcountry",
+               region="wrangellstelias", kind="backcountry"),
+        # Waddington Range: a classic descent far from every other region.
+        Resort("combatant", "Combatant Couloir", 51.39157, -125.24865, 3179, 3762, None, "Backcountry",
+               region="waddington", kind="backcountry"),
+        # Baffin Island: a classic descent far from every other region.
+        Resort("polarstar", "Polar Star", 70.56042, -71.30906, 1, 1041, None, "Backcountry",
+               region="baffin", kind="backcountry"),
     ]
 }
 
@@ -1548,8 +1570,8 @@ ALL_REGIONS = {
         Region("okanagan", "Okanagan", "America/Vancouver", 8, 8, (), low_levels=(900,), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # Whistler's Creekside base is at 653 m, which 950 hPa (near 540 m) covers.
-        Region("bccoast", "BC Coast", "America/Vancouver", 8, 8, (), low_levels=(1000, 975, 950, 925, 900), at=(5, 13, 21),
-               collector="canada", country="Canada"),
+        Region("bccoast", "BC Coast", "America/Vancouver", 8, 8, (), low_levels=(1000, 975, 950, 925, 900),
+               at=(5, 13, 21), collector="canada", country="Canada"),
         # Like New England, every lift-served metre is below 850 hPa (Le Massif's gondola starts at 36 m), and it is
         # built at New England's hours on the same clock.
         Region("quebec", "Quebec", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
@@ -1657,6 +1679,27 @@ ALL_REGIONS = {
         # Sima's base is at 853 m, which 925 hPa (near 760 m) covers.
         Region("yukon", "Yukon", "America/Whitehorse", 7, 8, (), low_levels=(925, 900), at=(5, 13, 21),
                collector="canada", country="Canada"),
+        # The Ruby Mountains are Terminal Cancer alone, in Lamoille Canyon above Elko, which keeps Pacific time. No
+        # avalanche center covers them.
+        Region("rubymountains", "Ruby Mountains", "America/Los_Angeles", 8, 8, (), at=(5, 13, 21), collector="north"),
+        # The La Sals above Moab are Mt. Tukuhnikivatz alone, in the Utah center's Moab zone.
+        Region("lasal", "La Sal Mountains", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21), collector="north"),
+        # Denali is the Messner Couloir alone, read from the 14,200 ft camp to the summit. The summit, 6,190 m, is
+        # above the 500 hPa level, so the region reads 400 hPa as well.
+        Region("denali", "Denali", "America/Anchorage", 9, 8, (), at=(5, 13, 21), collector="north",
+               high_levels=(400,)),
+        # University Peak and Mt. St. Elias, 117 km apart in the Saint Elias Mountains. St. Elias's summit, 5,489 m,
+        # is at the 500 hPa level, so the region reads 400 hPa as well.
+        Region("wrangellstelias", "Wrangell-St. Elias", "America/Anchorage", 9, 8, (), at=(5, 13, 21),
+               collector="north", high_levels=(400,)),
+        # The Waddington Range is the Combatant Couloir alone, reached by air; Avalanche Canada forecasts nothing
+        # there.
+        Region("waddington", "Waddington Range", "America/Vancouver", 8, 8, (), at=(5, 13, 21), collector="canada",
+               country="Canada"),
+        # Baffin Island is the Polar Star Couloir alone, which starts on the sea ice of a fjord near Clyde River, so
+        # the region reads down to 1000 hPa. It is built twice a day, as the East is.
+        Region("baffin", "Baffin Island", "America/Iqaluit", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4,
+               16), collector="canada", country="Canada"),
     ]
 }
 
@@ -1696,7 +1739,8 @@ PRESSURE_LEVELS = [850, 800, 750, 700, 650, 600, 550, 500]
 
 def levels_for(region: str) -> list[int]:
     """The pressure levels a region's forecast reads, lowest in the air first."""
-    return sorted(ALL_REGIONS[region].low_levels, reverse=True) + PRESSURE_LEVELS
+    region = ALL_REGIONS[region]
+    return sorted(region.low_levels, reverse=True) + PRESSURE_LEVELS + sorted(region.high_levels, reverse=True)
 
 
 # Sierra box used to gather hand-measured snowfall for snow-ratio training.
@@ -1758,6 +1802,12 @@ MORE_BBOX = {
     "gaspesie": (48.17, 49.11, -68.4, -65.29),
     "newfoundland": (48.01, 49.09, -58.03, -53.85),
     "yukon": (59.6, 60.76, -135.25, -134.79),
+    "rubymountains": (40.5, 40.8, -115.62, -115.22),
+    "lasal": (38.29, 38.63, -109.46, -109.06),
+    "denali": (62.92, 63.22, -151.27, -150.81),
+    "wrangellstelias": (60.12, 61.48, -141.99, -140.73),
+    "waddington": (51.24, 51.54, -125.45, -125.05),
+    "baffin": (70.4, 70.71, -71.51, -71.1),
 }
 # The later regions that have sensors to fit to: the states its SNOTEL stations are listed under, and the lowest
 # hand-measured station (m) taken for its snow ratio.

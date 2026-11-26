@@ -5,12 +5,14 @@ import os
 import subprocess
 import sys
 
-from tahoe_snow import calibrate, config
+from tahoe_snow import calibrate, config, pipeline, usage
 from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, FIT_BOXES, MODELS, MORE_BBOX, MORE_STATIONS
 from tahoe_snow.snow import observations, phase, train
 
 NORTH = {'westidaho': 6, 'wyoming': 7, 'southutah': 3, 'arizona': 3, 'lasvegas': 1, 'socal': 5, 'juneau': 3, 'valdez':
-         5, 'inlandnw': 6, 'nwmontana': 8}
+         5, 'inlandnw': 6, 'nwmontana': 8,
+         # Four regions made for classic descents far from any other region.
+         'rubymountains': 1, 'lasal': 1, 'denali': 1, 'wrangellstelias': 2}
 SHARED = {"delano": "eaglepoint", "humphreys": "azsnowbowl", "snowsummit": "bearmountain", "mttroy": "eaglecrest",
           "benstewart": "eaglecrest", "girlsmountain": "thompsonpass", "stevenspeak": "lookoutpass"}
 
@@ -49,7 +51,7 @@ def test_every_mountain_sits_in_its_regions_box_and_names_one_of_its_sensors():
 
 def test_sensor_clocks_and_low_levels():
     # Alaska's sensors keep Alaska standard time; every other state's the Pacific standard clock.
-    assert {key for key in NORTH if ALL_REGIONS[key].std_offset_h == 9} == {"juneau", "valdez"}
+    assert {key for key in NORTH if ALL_REGIONS[key].std_offset_h == 9} == {"juneau", "valdez", "denali", "wrangellstelias"}
     # A base under about 1,450 m needs levels below 850 hPa.
     for key in NORTH:
         lowest = min(r.base_m for r in mountains(key))
@@ -84,8 +86,8 @@ def test_the_fourth_collector_sees_its_regions_and_plans_only_them():
             "sum(usage.pulls(r) for r in config.REGIONS), round(usage.planned()))")
     out = subprocess.run([sys.executable, "-c", code], env={**os.environ, "SNOW_COLLECTOR": "north"}, text=True,
                          capture_output=True, check=True).stdout.strip()
-    assert out.startswith(f"north {sorted([*NORTH, 'alaska'])} 54 46 ")
-    assert 7300 < int(out.rsplit(" ", 1)[1]) < 7900
+    assert out.startswith(f"north {sorted([*NORTH, 'alaska'])} 59 51 ")
+    assert 8100 < int(out.rsplit(" ", 1)[1]) < 8700
 
 
 def test_each_fitted_region_has_its_correction_weights_and_split_and_two_have_their_own_ratio():
@@ -104,3 +106,14 @@ def test_each_fitted_region_has_its_correction_weights_and_split_and_two_have_th
         check = json.loads((MODELS / f"snow_ratio_check_{key}.json").read_text())
         assert check["pooled_refit_each_station_held_out"]["snow_error_in"] < check["sierra_model"]["snow_error_in"] - 0.03
     assert json.loads((MODELS / "snow_ratio_check_lasvegas.json").read_text())["checked_on"]["days"] < 30
+
+
+def test_a_summit_over_the_highest_usual_level_reads_one_above_it():
+    # Denali's summit (6,190 m) and St. Elias's (5,489 m) are at or above 500 hPa, the highest level read elsewhere.
+    assert {key for key, region in ALL_REGIONS.items() if region.high_levels} == {"denali", "wrangellstelias"}
+    assert config.levels_for("denali") == config.PRESSURE_LEVELS + [400]
+    assert usage.resort_run_calls("denali") == usage.CALLS_PER_RESORT_RUN + usage.EXTRA_LEVEL_CALLS
+    assert "temperature_400hPa" in pipeline.forecast_variables("denali")
+    # Baffin Island's line starts on sea ice, so it reads down to 1000 hPa; both of Canada's are the second collector's.
+    assert ALL_REGIONS["baffin"].low_levels == (1000, 975, 950, 925, 900)
+    assert {ALL_REGIONS[key].collector for key in ("baffin", "waddington")} == {"canada"}
