@@ -4931,7 +4931,8 @@ const CLASSIC_PEAK = {giantsteps: "Mt. Williamson", splitcouloir: "Split Mountai
   hypodermicneedle: "Thunder Mountain", coldfusion: "Mt. Timpanogos", crosscouloir: "Mt. of the Holy Cross", silvercouloir: "Buffalo Mountain",
   landryline: "Pyramid Peak", sickle: "Horstmann Peak", patriarch: "Glacier Peak", newtonclark: "Mt. Hood", aemmer: "Mt. Temple",
   skyladder: "Mt. Andromeda", comstock: "Mt. Dawson", sevensteps: "Youngs Peak", combatant: "Mt. Combatant", polarstar: "Beluga Mountain",
-  terminalcancer: "Lamoille Canyon", tuckerman: "Mt. Washington"};
+  tuckerman: "Mt. Washington"};
+// Terminal Cancer is on an unnamed ridge, so it is placed by its region alone.
 const bareName = (s) => plain(s).replace(/^(mt|mount|the) /, "");
 const sameName = (a, b) => bareName(a).startsWith(bareName(b)) || bareName(b).startsWith(bareName(a));
 // The other names a classic goes by: its lines where the mountain is named for the peak, and the peak where it is
