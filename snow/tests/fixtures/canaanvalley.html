@@ -1,0 +1,253 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+  <title>Trail Report</title>
+</head>
+<body>
+<main class="page-main" id="content">
+            <section class="interior-hero" aria-labelledby="interior-hero-title">
+      <img src="/assets/images/trees-gradient.svg" alt=""  height="" width="1920" class="interior-hero-trees">
+  <div class="container container-xlarge">
+		<div class="block-content">
+                  <h1 id="interior-hero-title">Trails are Closed for the Season</h1>
+              </div>
+  </div>
+</section>
+    <div class="container container-large">
+  <header class="trail-report-header">
+    <h2>Quick Stats</h2>
+    <div class="last-updated">Last Updated:
+      February 10, 2026, 2:30pm</div>
+  </header>
+  <div class="trail-overview">
+    <div class="weather-overview">
+      <h3>Current Weather</h3>
+      <div class="weather">
+      </div>
+    </div>
+    <div class="lifts">
+      <h3>Lifts Open:
+        0/6</h3>
+      <ul>
+                  <li>
+            <span class="name">&quot;A&quot; Lift</span>
+            <span class="status">Closed</span>
+          </li>
+                  <li>
+            <span class="name">&quot;B&quot; Lift</span>
+            <span class="status">Closed</span>
+          </li>
+                  <li>
+            <span class="name">&quot;C&quot; Lift</span>
+            <span class="status">Closed</span>
+          </li>
+                  <li>
+            <span class="name">Magic Carpet</span>
+            <span class="status">Closed</span>
+          </li>
+                  <li>
+            <span class="name">Tubing Lift</span>
+            <span class="status">Closed</span>
+          </li>
+                  <li>
+            <span class="name">Tubing Lift</span>
+            <span class="status">Closed</span>
+          </li>
+              </ul>
+    </div>
+    <div class="trails">
+      <h3>Trails Open: 0/0</h3>
+      <ul>
+        <li data-difficulty="beginner" data-open="0" data-total="0">
+          <span class="amount">0/0</span>
+          <canvas id="chart-beginner"></canvas>
+          <span class="difficult"><span class="icon beginner"></span>Beginner</span>
+        </li>
+        <li data-difficulty="moreDifficult" data-open="0" data-total="0">
+          <span class="amount">0/0</span>
+          <canvas id="chart-moderate"></canvas>
+          <span class="difficult"><span class="icon moderate"></span>More Difficult</span>
+        </li>
+        <li data-difficulty="mostDifficult" data-open="0" data-total="0">
+          <span class="amount">0/0</span>
+          <canvas id="chart-expert"></canvas>
+          <span class="difficult"><span class="icon expert"></span>Most Difficult</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+<div data-atabs class="trail-tabs">
+  <section id="trails" data-atabs-panel>
+    <h2 data-atabs-heading>
+      Trail Status
+    </h2>
+    <h3>Trail Status Legend</h3>
+    <ul class="trail-legend">
+              <li>
+          <img loading="lazy" src="/assets/images/icons/trail-open.svg" width="40" height="36" alt="">
+          <span class="label">
+                        Open
+                      </span>
+        </li>
+              <li>
+          <img loading="lazy" src="/assets/images/icons/trail-closed.svg" width="40" height="36" alt="">
+          <span class="label">
+            <em>            Closed
+            </em>          </span>
+        </li>
+              <li>
+          <img loading="lazy" src="/assets/images/icons/uphill-skiing.svg" width="40" height="36" alt="">
+          <span class="label">
+                        Uphill Skiing
+                      </span>
+        </li>
+              <li>
+          <img loading="lazy" src="/assets/images/icons/tubing.svg" width="40" height="36" alt="">
+          <span class="label">
+                        Snow Tubing
+                      </span>
+        </li>
+              <li>
+          <img loading="lazy" src="/assets/images/icons/snowmaking.svg" width="40" height="36" alt="">
+          <span class="label">
+                        Snowmaking
+                      </span>
+        </li>
+              <li>
+          <img loading="lazy" src="/assets/images/icons/open-with-snowmaking.svg" width="69" height="36" alt="">
+          <span class="label">
+                        Open with Snowmaking
+                      </span>
+        </li>
+              <li>
+          <img loading="lazy" src="/assets/images/icons/open-with-natural-snow.svg" width="69" height="36" alt="">
+          <span class="label">
+                        Open with Natural Snow
+                      </span>
+        </li>
+          </ul>
+    <div class="block-accordions trail-report">
+      <div class="block-accordion">
+        <h3 class="accordion-toggle">
+          <button type="button" id="accordion-beginner" aria-controls="sect-beginner" aria-expanded="false">
+            <span>
+              <span class="icon"></span>
+              Beginner</span>
+            <span class="arrow"></span>
+          </button>
+        </h3>
+        <div class="accordion-content" id="sect-beginner" aria-labelledby="accordion-beginner" hidden="">
+          <div class="accordion-container">
+            <div class="block-content">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trail</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="block-accordion">
+        <h3 class="accordion-toggle">
+          <button type="button" id="accordion-moderate" aria-controls="sect-moderate" aria-expanded="false">
+            <span>
+              <span class="icon"></span>
+              More Difficult</span>
+            <span class="arrow"></span>
+          </button>
+        </h3>
+        <div class="accordion-content" id="sect-moderate" aria-labelledby="accordion-moderate" hidden="">
+          <div class="accordion-container">
+            <div class="block-content">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trail</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="block-accordion">
+        <h3 class="accordion-toggle">
+          <button type="button" id="accordion-expert" aria-controls="sect-expert" aria-expanded="false">
+            <span>
+              <span class="icon"></span>
+              Most Difficult</span>
+            <span class="arrow"></span>
+          </button>
+        </h3>
+        <div class="accordion-content" id="sect-expert" aria-labelledby="accordion-expert" hidden="">
+          <div class="accordion-container">
+            <div class="block-content">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trail</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="conditions" data-atabs-panel>
+    <h2 data-atabs-heading>
+      Conditions
+    </h2>
+    <div class="block-content text-center">
+      <ul>
+        <li><span>&ndash;</span> Temperature</li>
+        <li><span>&ndash;</span> Wind (mph)</li>
+        <li>
+          <span>Overcast, Snowy</span>
+          Skies</li>
+        <li>
+          <span>&ndash;</span>
+          Primary Surface</li>
+        <li>
+          <span>&ndash;</span>
+          Secondary Surface</li>
+        <li>
+          <span>&ndash;</span>
+          Base Depth</li>
+        <li>
+                                                                                  <span>&ndash;</span>
+          Snowfall<br>(Last 24 hrs)</li>
+        <li>
+                                                                                  <span>&ndash;</span>
+          Snowfall<br>(Storm Total)</li>
+        <li>
+          <span>&ndash;</span>
+          Snowfall<br>(Season Total)</li>
+        <li>
+          <span>Yes</span>
+          Snowmaking in Progress</li>
+      </ul>
+    </div>
+  </section>
+  
+</div>
+  </div>
+  <img src="/assets/images/trees-gradient.svg" alt="" loading="lazy" height="297" width="1680" class="page-end-trees">
+    <div class="container container-large">
+  </div>
+  </main>
+</body>
+</html>

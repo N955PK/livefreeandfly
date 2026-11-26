@@ -131,8 +131,9 @@ def snow_report(conditions: dict, at: datetime) -> dict:
     season = INCHES.fullmatch(conditions.get("Depth of Natural Snow All Season", ""))
     surface = conditions.get("Surface Conditions", "")
     return {"LastUpdate": at.astimezone(timezone.utc).strftime(STAMP), "Resortwide": True,
-            "BaseConditions": surface.capitalize() or None, "SeasonTotalIn": number(season.group(1)) if season else None,
-            "BaseArea": area, "Report": None, "Alert": None}
+            "BaseConditions": surface.capitalize() or None,
+            "SeasonTotalIn": number(season.group(1)) if season else None, "BaseArea": area, "Report": None,
+            "Alert": None}
 
 
 def parse(page: str, now: datetime) -> dict:
