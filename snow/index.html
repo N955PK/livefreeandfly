@@ -1199,6 +1199,8 @@ dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavio
 .pickgroup{display:flex;align-items:center;gap:10px;margin:10px 10px 2px;font-size:12.5px;font-weight:700;color:var(--accent)}
 .pickgroup::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 .pickopt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;padding:0 12px 0 14px;border:0;border-radius:999px;background:none;color:var(--mark);font:inherit;font-size:15px;font-weight:550;text-align:left;cursor:pointer}
+.pickhint{display:flex;flex-direction:column;gap:2px;padding:8px 14px;border-radius:10px;background:var(--wash);color:var(--mark)}
+.pickhint span{font-size:.82em;opacity:.75}
 .pickopt svg{flex:none;width:15px;height:12px;fill:none;stroke:var(--surface);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
 .pickopt[aria-current="true"]{background:var(--mark);color:var(--surface);font-weight:700}
 .pickopt[aria-current="true"] svg{visibility:visible}
@@ -4974,6 +4976,10 @@ function openPicker(select) {
   $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
   // In the menu's own order: a choice outside every group (Favorites, above the countries) is listed where it stands.
   $("pickList").innerHTML = groups.length ? [...select.children].map((node) => node.tagName === "OPTGROUP" ? `<div class="pickgroup">${esc(node.label)}</div>${[...node.children].map(row).join("")}` : `<div class="pickpin">${row(node)}</div>`).join("") : [...select.options].map(row).join("");
+  // The region menu always opens with Favorites pinned on top. With no mountain starred yet the row is not a
+  // choice: it says how one gets there.
+  if ((select.id === "regionPick" || select.id === "sumPick") && !select.querySelector(`option[value="${FAVORITES}"]`))
+    $("pickList").insertAdjacentHTML("afterbegin", '<div class="pickpin"><div class="pickhint"><b>Favorites</b><span>None yet. Tap the ☆ by a mountain\'s name on the Mountain tab to add it here.</span></div></div>');
   markHeader();
   $("pickSheet").showModal();
   const now = $("pickList").querySelector('[aria-current="true"]');
