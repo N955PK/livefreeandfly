@@ -298,6 +298,10 @@ pass, and they are kept differently from the first sixteen:
 - Colorado moved from the first collector to the third to make room for the Sierra's west slope, which joined the
   Eastern Sierra's region, now the Central Sierras. Moving a region is its `collector` alone: restart the
   collector that gains it first, so its file is published before the old one drops it from its index.
+- Ten regions were renamed on 2026-11-26 once neighbours made their names too broad; their keys did not change:
+  `seattle` Washington Cascades, `oregon` Oregon Cascades, `colorado` Northern Colorado, `montana` Southwest Montana,
+  `alaska` Anchorage, `southutah` Southwest Utah, `michigan` Northern Michigan, `quebec` Southern Quebec,
+  `bccoast` BC South Coast, `rockies` Banff & Jasper.
 - The fifty classic ski descents (the 2010 book's list) were added as backcountry spots on 2026-11-26, each at a
   point on its line. They pushed three plans past 10,000 calls a day, so the Tetons and Quebec moved to the fifth
   collector and Alaska to the fourth. The Valdez and Rockies maps were rebuilt wider for The Sphinx and Mt. Robson.

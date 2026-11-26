@@ -29,7 +29,7 @@ def tables(folder, seattle: bool):
 def test_a_water_section_averages_the_held_out_winters(tmp_path, monkeypatch):
     monkeypatch.setattr(verify, "TABLES", tmp_path)
     tables(tmp_path, seattle=True)
-    section = verify.water_section("Water, Cascades.", "note", "bias_methods_seattle.csv", "Corrected (in use)")
+    section = verify.water_section("Water, Washington Cascades.", "note", "bias_methods_seattle.csv", "Corrected (in use)")
     assert section["rows"] == [["Raw four-model average", "75%", "0.25", "0.55", "1.30"],
                                ["Corrected (in use)", "101%", "0.20", "0.40", "0.75"]]
     assert verify.water_section("Water, Nowhere.", "note", "bias_methods_nowhere.csv") is None
@@ -42,12 +42,12 @@ def test_seattle_has_its_three_sections_and_mammoths_is_kept(tmp_path, monkeypat
     (tmp_path / "scorecard.json").write_text(json.dumps({"sections": [MAMMOTH]}))
     card = verify.scorecard()
     assert [s["title"] for s in card["sections"]] == [
-        "Snow ratio.", "Rain or snow.", "Water.", "Water, Mammoth area.", "Water, Cascades.",
-        "Rain or snow, Cascades.", "Snow ratio, Cascades.", "Snow ratio, Tetons.", "Snow ratio, Wasatch.",
-        "Snow ratio, Colorado.", "Snow ratio, Montana.", "Snow ratio, Sun Valley.", "Snow ratio, Oregon.",
-        "Snow ratio, New Mexico.", "Snow ratio, Alaska.", "Snow ratio, Southwest Colorado.",
+        "Snow ratio.", "Rain or snow.", "Water.", "Water, Mammoth area.", "Water, Washington Cascades.",
+        "Rain or snow, Washington Cascades.", "Snow ratio, Washington Cascades.", "Snow ratio, Tetons.", "Snow ratio, Wasatch.",
+        "Snow ratio, Northern Colorado.", "Snow ratio, Southwest Montana.", "Snow ratio, Sun Valley.", "Snow ratio, Oregon Cascades.",
+        "Snow ratio, New Mexico.", "Snow ratio, Anchorage.", "Snow ratio, Southwest Colorado.",
         "Snow ratio, Inland Northwest.", "Snow ratio, Northwest Montana.", "Snow ratio, Western Idaho.",
-        "Snow ratio, Wyoming.", "Snow ratio, Southern Utah.", "Snow ratio, Arizona.", "Snow ratio, Las Vegas.",
+        "Snow ratio, Wyoming.", "Snow ratio, Southwest Utah.", "Snow ratio, Arizona.", "Snow ratio, Las Vegas.",
         "Live forecasts."]
     # The Tetons', the Wasatch's and Colorado's water and rain-or-snow tables are not among these; their ratio
     # checks are kept beside the models.
@@ -57,10 +57,10 @@ def test_seattle_has_its_three_sections_and_mammoths_is_kept(tmp_path, monkeypat
     assert json.loads((tmp_path / "scorecard.json").read_text()) == card
     by_title = {s["title"]: s for s in card["sections"]}
     assert by_title["Water, Mammoth area."] == MAMMOTH
-    split = by_title["Rain or snow, Cascades."]
+    split = by_title["Rain or snow, Washington Cascades."]
     assert split["rows"][0][:2] == ["The Sierra's wet-bulb curve", "3.27"] and "(in use)" in split["rows"][1][0]
     assert "0.75 C" in split["note"] and "1.25 C" in split["note"]
-    ratio = by_title["Snow ratio, Cascades."]
+    ratio = by_title["Snow ratio, Washington Cascades."]
     assert ratio["rows"][-1][0].endswith("(in use)") and ratio["rows"][-1][1] < ratio["rows"][0][1]
 
 
@@ -69,8 +69,8 @@ def test_a_region_with_no_test_on_hand_and_none_published_has_no_section(tmp_pat
     monkeypatch.setattr(verify, "DATA", tmp_path)
     tables(tmp_path, seattle=False)
     titles = [s["title"] for s in verify.scorecard()["sections"]]
-    assert "Water, Mammoth area." not in titles and "Water, Cascades." not in titles
-    assert "Rain or snow, Cascades." not in titles and titles[-1] == "Live forecasts."
+    assert "Water, Mammoth area." not in titles and "Water, Washington Cascades." not in titles
+    assert "Rain or snow, Washington Cascades." not in titles and titles[-1] == "Live forecasts."
 
 
 def test_a_western_canadian_region_has_a_water_and_a_rain_or_snow_section_and_no_ratio_one(tmp_path, monkeypatch):
@@ -79,9 +79,9 @@ def test_a_western_canadian_region_has_a_water_and_a_rain_or_snow_section_and_no
     METHODS.to_csv(tmp_path / "bias_methods_eastkootenays.csv", index=False)
     pd.read_csv(tmp_path / "phase_table.csv", index_col=0).to_csv(tmp_path / "phase_table_eastkootenays.csv")
     built = dict(verify.canada_sections())
-    assert list(built) == [f"{kind}, {name}." for name in ("Okanagan", "BC Coast", "Powder Highway", "East Kootenays",
-                                                           "Canadian Rockies") for kind in ("Water", "Rain or snow")]
-    assert built["Water, Okanagan."] is None and built["Rain or snow, Canadian Rockies."] is None
+    assert list(built) == [f"{kind}, {name}." for name in ("Okanagan", "BC South Coast", "Powder Highway", "East Kootenays",
+                                                           "Banff & Jasper") for kind in ("Water", "Rain or snow")]
+    assert built["Water, Okanagan."] is None and built["Rain or snow, Banff & Jasper."] is None
     water = built["Water, East Kootenays."]
     assert water["rows"][1][1] == "101%" and "Fernie" in water["note"]
     assert built["Rain or snow, East Kootenays."]["rows"][1][0] == "The East Kootenays' wet-bulb curve (in use)"

@@ -35,7 +35,7 @@ def seattle_sections() -> list:
     """Seattle's three tests, each None where its table is not on hand: water against its ten sensors, the rain/snow
     split against the Sierra's on the same days, and the Sierra's snow ratio on Cascade snow days."""
     water = water_section(
-        "Water, Cascades.",
+        "Water, Washington Cascades.",
         "The same test against 10 snow sensors in the Washington Cascades and Olympics, on the 2024, 2025, and 2026 "
         "winters held out in turn. Crystal Mountain and White Pass use the curve pooled over all ten, which did "
         "better there than their own sensor's. Mt. Rainier, Mt. Baker, and Mt. St. Helens are shown their sensor "
@@ -47,7 +47,7 @@ def seattle_sections() -> list:
         kind, params = phase.load("seattle")
         sierra = phase.load()[1]
         row = table.loc[kind]
-        split = {"title": "Rain or snow, Cascades.",
+        split = {"title": "Rain or snow, Washington Cascades.",
                  "note": f"The same test at {int(row['stations'])} snow sensors in the Washington Cascades and "
                          f"Olympics over {int(row['days']):,} held-out days, {int(row['mixed days']):,} of them mixed. "
                          f"The Cascades' curve is centered at {params['center_c']:g} C of wet-bulb against the Sierra's "
@@ -65,7 +65,7 @@ def seattle_sections() -> list:
         pooled = record["pooled_refit_each_station_held_out"]
         rows = {"flat_10_to_1": RATIO_ROWS["fixed 10:1"], "kuchera": RATIO_ROWS["Kuchera"],
                 "sierra_model": "This site's ratio, trained in the Sierra (in use)"}
-        ratio = {"title": "Snow ratio, Cascades.",
+        ratio = {"title": "Snow ratio, Washington Cascades.",
                  "note": f"The Sierra-trained ratio on {on['days']:,} hand-measured snow days at {on['stations']} "
                          f"Washington stations, {on['first_date'][:4]} to {on['last_date'][:4]}, none of which it "
                          "was trained on. Refitting it with those days added did no better at a station held out "
@@ -74,7 +74,7 @@ def seattle_sections() -> list:
                  "columns": ["Method", "Snowfall error (in)", "Average miss (in)"],
                  "rows": [[label, f"{record[key]['snow_error_in']:.2f}", f"{record[key]['snow_bias_in']:+.2f}"]
                           for key, label in rows.items()]}
-    return [("Water, Cascades.", water), ("Rain or snow, Cascades.", split), ("Snow ratio, Cascades.", ratio)]
+    return [("Water, Washington Cascades.", water), ("Rain or snow, Washington Cascades.", split), ("Snow ratio, Washington Cascades.", ratio)]
 
 
 def tetons_sections() -> list:
@@ -168,7 +168,7 @@ def colorado_sections() -> list:
     """Colorado's three tests, each None where its table is not on hand: water against sixteen sensors, the
     rain/snow split against the Sierra's on the same days, and the snow ratio on Colorado snow days."""
     water = water_section(
-        "Water, Colorado.",
+        "Water, Northern Colorado.",
         "The same test against 16 snow sensors, twelve along I-70 from Beaver Creek to Berthoud Pass and four in "
         "the Park Range above Steamboat, on the 2024, 2025, and 2026 winters held out in turn. The models are "
         "driest above Steamboat, where they deliver under half of what the Tower sensor measures. Breckenridge has "
@@ -179,7 +179,7 @@ def colorado_sections() -> list:
         table = pd.read_csv(TABLES / "phase_table_colorado.csv", index_col=0)
         kind, params = phase.load("colorado")
         row = table.loc[kind]
-        split = {"title": "Rain or snow, Colorado.",
+        split = {"title": "Rain or snow, Northern Colorado.",
                  "note": f"The same test at {int(row['stations'])} snow sensors in Colorado over "
                          f"{int(row['days']):,} held-out days, {int(row['mixed days']):,} of them mixed. Nearly all "
                          f"of it is snow there: calling everything snow would miss by only "
@@ -197,7 +197,7 @@ def colorado_sections() -> list:
         rows = {"flat_10_to_1": RATIO_ROWS["fixed 10:1"], "kuchera": RATIO_ROWS["Kuchera"],
                 "sierra_model": "This site's ratio, trained in the Sierra",
                 "pooled_refit_each_station_held_out": "Trained on Sierra and Colorado days together (in use)"}
-        ratio = {"title": "Snow ratio, Colorado.",
+        ratio = {"title": "Snow ratio, Northern Colorado.",
                  "note": f"{on['days']:,} hand-measured snow days at {on['stations']} stations from Climax and "
                          f"Breckenridge to Steamboat Springs, {on['first_date'][:4]} to {on['last_date'][:4]}, "
                          "where the snow averages nearly 15 to 1. The Sierra-trained ratio runs half an inch deep "
@@ -206,7 +206,7 @@ def colorado_sections() -> list:
                  "columns": ["Method", "Snowfall error (in)", "Average miss (in)"],
                  "rows": [[label, f"{record[key]['snow_error_in']:.2f}", f"{record[key]['snow_bias_in']:+.2f}"]
                           for key, label in rows.items()]}
-    return [("Water, Colorado.", water), ("Rain or snow, Colorado.", split), ("Snow ratio, Colorado.", ratio)]
+    return [("Water, Northern Colorado.", water), ("Rain or snow, Northern Colorado.", split), ("Snow ratio, Northern Colorado.", ratio)]
 
 
 # Canada's western regions: the name each goes by, then what its water test was run against and which mountains the
@@ -216,7 +216,7 @@ CANADA = {
                  "10 snow stations in the Okanagan highlands. The models deliver about half of what the stations "
                  "measure, and a third of it at Silver Star Mountain. SilverStar is corrected against that station; "
                  "Big White, Sun Peaks and Apex have none within reach and are left uncorrected."),
-    "bccoast": ("BC Coast", "the south Coast Mountains",
+    "bccoast": ("BC South Coast", "the south Coast Mountains",
                 "11 snow stations from the North Shore to Bralorne and Vancouver Island. The models are closer here, "
                 "but deliver 70% of what Palisade Lake measures above Grouse, which is corrected against it. Nothing "
                 "with a record is within reach of Whistler, Cypress, Mt. Seymour or Mt. Washington, which are left "
@@ -230,7 +230,7 @@ CANADA = {
                       "6 snow stations in the Purcells and on the Rockies' west slope. Fernie is corrected against "
                       "Morrissey Ridge; Kicking Horse, Panorama and Kimberley have no station within reach and are "
                       "left uncorrected."),
-    "rockies": ("Canadian Rockies", "the Rockies and the Columbias beside them",
+    "rockies": ("Banff & Jasper", "the Rockies and the Columbias beside them",
                 "4 snow stations on the British Columbia side of the divide, which is all that has a record: Alberta "
                 "publishes five days of readings. Bow Summit is corrected against Wildcat Creek; the mountains in "
                 "Alberta are left uncorrected."),
@@ -270,18 +270,18 @@ def canada_sections() -> list:
 
 # The third collector's regions: the name each goes by, where its sensors are, and what its snow days are called.
 WEST = {
-    "montana": ("Montana", "southwest Montana, from the Little Belts to the Beartooths", "Montana"),
+    "montana": ("Southwest Montana", "southwest Montana, from the Little Belts to the Beartooths", "Montana"),
     "sunvalley": ("Sun Valley", "the Sawtooths and the mountains around Sun Valley", "Idaho"),
-    "oregon": ("Oregon", "Oregon's Cascades, from Mt. Hood to Willamette Pass", "Oregon"),
+    "oregon": ("Oregon Cascades", "Oregon's Cascades, from Mt. Hood to Willamette Pass", "Oregon"),
     "newmexico": ("New Mexico", "the Sangre de Cristo and Jemez mountains", "New Mexico"),
-    "alaska": ("Alaska", "the Chugach, the Kenai and the Talkeetna mountains", "Alaska"),
+    "alaska": ("Anchorage", "the Chugach, the Kenai and the Talkeetna mountains", "Alaska"),
     "swcolorado": ("Southwest Colorado", "the Elk Mountains, the Sawatch and the San Juans", "southwest Colorado"),
     # The fourth collector's regions that have sensors.
     "inlandnw": ("Inland Northwest", "the Selkirks, the Silver Valley and the hills north of Spokane", "Inland Northwest"),
     "nwmontana": ("Northwest Montana", "northwest Montana, from the Whitefish Range to the Bitterroot", "Montana"),
     "westidaho": ("Western Idaho", "the mountains around McCall and Boise and Oregon's Elkhorns", "Idaho"),
     "wyoming": ("Wyoming", "Wyoming's ranges outside Jackson", "Wyoming"),
-    "southutah": ("Southern Utah", "the Tushars and the Markagunt Plateau", "southern Utah"),
+    "southutah": ("Southwest Utah", "the Tushars and the Markagunt Plateau", "southern Utah"),
     "arizona": ("Arizona", "the San Francisco Peaks and the White Mountains", "Arizona"),
     "lasvegas": ("Las Vegas", "the Spring Mountains", "Nevada"),
 }

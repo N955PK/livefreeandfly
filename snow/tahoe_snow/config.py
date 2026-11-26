@@ -1548,7 +1548,7 @@ ALL_REGIONS = {
                low_levels=(1000, 975, 950, 925, 900), at=(4, 16)),
         # 850 hPa is near 1,450 m; the Cascade passes and most of their bases are below that, down to Glacier Peak's
         # trailhead at 630 m, which 950 hPa (near 540 m) covers.
-        Region("seattle", "Cascades", "America/Los_Angeles", 8, 8, ("NWAC",), low_levels=(950, 925, 900), at=(5, 13, 21)),
+        Region("seattle", "Washington Cascades", "America/Los_Angeles", 8, 8, ("NWAC",), low_levels=(950, 925, 900), at=(5, 13, 21)),
         # Built at the West's hours on its own clock, 5 am, 1 pm and 9 pm Mountain, an hour before the West's.
         # Wyoming's SNOTEL stations keep the Pacific standard clock (see TETONS_STATIONS), so the sensor offset is
         # 8, not Mountain time's 7. The lowest ground is Snow King's base at 1,901 m, well above 850 hPa: no lower
@@ -1560,7 +1560,7 @@ ALL_REGIONS = {
         # The same hours and clocks again: Colorado's SNOTEL stations keep the Pacific standard clock (see
         # COLORADO_STATIONS). The lowest ground is Steamboat's base at 2,103 m: no lower levels are read.
         # Built by the third collector since 2026-11-26, to leave the first room for the Sierra's west slope.
-        Region("colorado", "Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21), collector="west"),
+        Region("colorado", "Northern Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21), collector="west"),
         # Built twice a day, at 5 am and 5 pm Pacific, to keep the day's calls under the service's limit (Sean's
         # choice, 2026-11-24). The lowest ground is Castle Lake's lot at 1,659 m: no lower levels are read.
         Region("shasta", "Shasta", "America/Los_Angeles", 8, 12, ("MSAC",), at=(5, 17)),
@@ -1570,11 +1570,11 @@ ALL_REGIONS = {
         Region("okanagan", "Okanagan", "America/Vancouver", 8, 8, (), low_levels=(900,), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # Whistler's Creekside base is at 653 m, which 950 hPa (near 540 m) covers.
-        Region("bccoast", "BC Coast", "America/Vancouver", 8, 8, (), low_levels=(1000, 975, 950, 925, 900),
+        Region("bccoast", "BC South Coast", "America/Vancouver", 8, 8, (), low_levels=(1000, 975, 950, 925, 900),
                at=(5, 13, 21), collector="canada", country="Canada"),
         # Like New England, every lift-served metre is below 850 hPa (Le Massif's gondola starts at 36 m), and it is
         # built at New England's hours on the same clock.
-        Region("quebec", "Quebec", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
+        Region("quebec", "Southern Quebec", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
                collector="east", country="Canada"),
         # Revelstoke's base is at 512 m, just under the 950 hPa level, so 975 hPa (near 320 m) is read too.
         Region("powderhighway", "Powder Highway", "America/Vancouver", 8, 8, (), low_levels=(975, 950, 925, 900),
@@ -1583,25 +1583,25 @@ ALL_REGIONS = {
         Region("eastkootenays", "East Kootenays", "America/Edmonton", 7, 8, (), low_levels=(900,), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # Nakiska's base, the lowest, is at 1,525 m, above the lowest level every pull already reads.
-        Region("rockies", "Canadian Rockies", "America/Edmonton", 7, 8, (), low_levels=(925, 900), at=(5, 13, 21),
+        Region("rockies", "Banff & Jasper", "America/Edmonton", 7, 8, (), low_levels=(925, 900), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # ---- The third collector's: the USA's regions added once the first collector's plan was full. Built at the
         # West's hours on each region's own clock. Every state's SNOTEL stations but Alaska's keep the Pacific
         # standard clock, so the sensor offset is 8; Alaska's keep Alaska standard time, 9.
         # The lowest ground is Bridger Bowl's base at 1,859 m, well above 850 hPa: no lower levels are read.
-        Region("montana", "Montana", "America/Denver", 8, 8, ("GNFAC",), at=(5, 13, 21), collector="west"),
+        Region("montana", "Southwest Montana", "America/Denver", 8, 8, ("GNFAC",), at=(5, 13, 21), collector="west"),
         # Ketchum keeps Mountain time. The lowest ground is Sun Valley's River Run base at 1,753 m.
         Region("sunvalley", "Sun Valley", "America/Boise", 8, 8, ("SNFAC",), at=(5, 13, 21), collector="west"),
         # Mt. Hood is the Northwest Avalanche Center's (the Cascades' center, named there already) and the central
         # Cascades the Central Oregon Avalanche Center's, "COAA" on avalanche.org. Skibowl's base is at 1,097 m and
         # Tilly Jane's trailhead at 1,188 m, under 850 hPa, so 900 hPa (near 990 m) is read.
-        Region("oregon", "Oregon", "America/Los_Angeles", 8, 8, ("NWAC", "COAA"), low_levels=(900,), at=(5, 13, 21),
+        Region("oregon", "Oregon Cascades", "America/Los_Angeles", 8, 8, ("NWAC", "COAA"), low_levels=(900,), at=(5, 13, 21),
                collector="west"),
         # The lowest ground is Sipapu's base at 2,499 m: no lower levels are read.
         Region("newmexico", "New Mexico", "America/Denver", 8, 8, ("TAC",), at=(5, 13, 21), collector="west"),
         # Alyeska's tram starts at 76 m and Turnagain Pass's lots are near 300 m: every level down to 1000 hPa is
         # read, as in New England.
-        Region("alaska", "Alaska", "America/Anchorage", 9, 8, ("CNFAIC", "HPAC"),
+        Region("alaska", "Anchorage", "America/Anchorage", 9, 8, ("CNFAIC", "HPAC"),
                low_levels=(1000, 975, 950, 925, 900), at=(5, 13, 21), collector="north"),
         # Colorado's clocks and center. The lowest ground is Buttermilk's base at 2,399 m: no lower levels are read.
         Region("swcolorado", "Southwest Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21),
@@ -1616,7 +1616,7 @@ ALL_REGIONS = {
         Region("wyoming", "Wyoming", "America/Denver", 8, 8, (), at=(5, 13, 21), collector="north"),
         # Southern Utah is the Utah center's Southwest zone. The lowest ground is Eagle Point's lowest lift at
         # 2,844 m.
-        Region("southutah", "Southern Utah", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21), collector="north"),
+        Region("southutah", "Southwest Utah", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21), collector="north"),
         # Arizona keeps Mountain standard time all year. The Kachina Peaks center forecasts the San Francisco
         # Peaks. The lowest base is Snowbowl's at 2,804 m.
         Region("arizona", "Arizona", "America/Phoenix", 8, 8, ("KPAC",), at=(5, 13, 21), collector="north"),
@@ -1657,7 +1657,7 @@ ALL_REGIONS = {
         Region("lakesuperior", "Lake Superior", "America/Chicago", 6, 12, (), low_levels=(1000, 975, 950, 925, 900),
                at=(4, 16), collector="east"),
         # Michigan's lowest base is Boyne Mountain's at 218 m.
-        Region("michigan", "Michigan", "America/Detroit", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4,
+        Region("michigan", "Northern Michigan", "America/Detroit", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4,
                16), collector="east"),
         # The Black Hills are Terry Peak alone, base 1,798 m, so no lower levels are read.
         Region("blackhills", "Black Hills", "America/Denver", 8, 12, (), at=(4, 16), collector="east"),
