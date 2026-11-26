@@ -601,6 +601,10 @@ MORE_STATIONS = {
         Station("930:MT:SNTL", "Peterson Meadows", 46.12588, -113.30792, _ft(7190)),
         Station("638:ID:SNTL", "Moose Creek", 45.67008, -113.95315, _ft(6170)),
     ]},
+    # Black Hills.
+    "blackhills": {s.triplet: s for s in [
+        Station("920:SD:SNTL", "North Rapid Creek", 44.20617, -103.78758, _ft(6150)),
+    ]},
 }
 
 ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
@@ -1263,6 +1267,134 @@ ALL_RESORTS = {
                region="nwmontana", kind="backcountry"),
         Resort("gashpoint", "Gash Point", 46.42450, -114.29800, _ft(5781), _ft(8886), None, "Backcountry",
                region="nwmontana", kind="backcountry"),
+        # New York: Whiteface and Gore in the Adirondacks, West Mountain by Glens Falls, Hunter, Windham,
+        # Belleayre and Plattekill in the Catskills, and Holiday Valley and Bristol in the west. There are no
+        # snow sensors in the East, so none has a station.
+        Resort("whiteface", "Whiteface", 44.35469, -73.87658, _ft(1220), _ft(4386), None, "Mountain Collective",
+               region="newyork"),
+        Resort("gore", "Gore", 43.67528, -74.02094, _ft(998), _ft(3600), None, "Independent",
+               region="newyork"),
+        Resort("hunter", "Hunter", 42.20275, -74.22128, _ft(1600), _ft(3200), None, "Epic",
+               region="newyork"),
+        Resort("windham", "Windham", 42.29140, -74.26107, _ft(1707), _ft(3053), None, "Independent",
+               region="newyork"),
+        Resort("belleayre", "Belleayre", 42.13443, -74.50963, _ft(2025), _ft(3429), None, "Independent",
+               region="newyork"),
+        Resort("plattekill", "Plattekill", 42.28762, -74.65824, _ft(2340), _ft(3314), None, "Independent",
+               region="newyork"),
+        Resort("westmountain", "West Mountain", 43.28534, -73.73291, _ft(460), _ft(1470), None, "Indy",
+               region="newyork"),
+        Resort("holidayvalley", "Holiday Valley", 42.25957, -78.67618, _ft(1500), _ft(2250), None, "Independent",
+               region="newyork"),
+        Resort("bristol", "Bristol", 42.74416, -77.41239, _ft(1000), _ft(2200), None, "Independent",
+               region="newyork"),
+        # The Mid-Atlantic: Snowshoe, Timberline and Canaan Valley in West Virginia, Wisp in Maryland, Seven
+        # Springs, Blue Mountain, Camelback and Elk Mountain in Pennsylvania, and Wintergreen and Massanutten
+        # in Virginia.
+        Resort("snowshoe", "Snowshoe", 38.41300, -79.98915, _ft(3261), _ft(4786), None, "Ikon",
+               region="midatlantic"),
+        Resort("timberlinewv", "Timberline WV", 39.03737, -79.39780, _ft(3268), _ft(4268), None, "Independent",
+               region="midatlantic"),
+        Resort("canaanvalley", "Canaan Valley", 39.00339, -79.43592, _ft(3430), _ft(4280), None, "Indy",
+               region="midatlantic", weather_from="timberlinewv"),
+        Resort("wisp", "Wisp", 39.55321, -79.36699, _ft(2415), _ft(3115), None, "Indy",
+               region="midatlantic"),
+        Resort("sevensprings", "Seven Springs", 40.02268, -79.30286, _ft(2240), _ft(2994), None, "Epic",
+               region="midatlantic"),
+        Resort("bluemountainpa", "Blue Mountain", 40.81537, -75.51204, _ft(460), _ft(1540), None, "Ikon",
+               region="midatlantic"),
+        Resort("camelback", "Camelback", 41.04750, -75.34796, _ft(1250), _ft(2047), None, "Ikon",
+               region="midatlantic"),
+        Resort("elkmountain", "Elk Mountain", 41.72038, -75.55945, _ft(1690), _ft(2690), None, "Independent",
+               region="midatlantic"),
+        Resort("wintergreen", "Wintergreen", 37.92220, -78.94044, _ft(2512), _ft(3515), None, "Indy",
+               region="midatlantic"),
+        Resort("massanutten", "Massanutten", 38.39554, -78.76542, _ft(1750), _ft(2833), None, "Indy",
+               region="midatlantic"),
+        # Lake Superior's shores and the north woods: Lutsen and Spirit Mountain in Minnesota, Whitecap and
+        # Granite Peak in Wisconsin, and Snowriver, Big Powderhorn and Mount Bohemia in Michigan's Upper
+        # Peninsula. Mount Bohemia keeps Eastern time, an hour ahead of the rest.
+        Resort("lutsen", "Lutsen", 47.65089, -90.72637, _ft(906), _ft(1688), None, "Ikon",
+               region="lakesuperior"),
+        Resort("spiritmtn", "Spirit Mountain", 46.71615, -92.21343, _ft(720), _ft(1298), None, "Indy",
+               region="lakesuperior"),
+        Resort("bohemia", "Mount Bohemia", 47.38934, -88.01689, _ft(651), _ft(1458), None, "Independent",
+               region="lakesuperior"),
+        Resort("snowriver", "Snowriver", 46.50453, -89.97089, _ft(1212), _ft(1750), None, "Ikon",
+               region="lakesuperior"),
+        Resort("bigpowderhorn", "Big Powderhorn", 46.50609, -90.09516, _ft(1218), _ft(1637), None, "Indy",
+               region="lakesuperior"),
+        Resort("granitepeak", "Granite Peak", 44.92535, -89.68637, _ft(1242), _ft(1883), None, "Ikon",
+               region="lakesuperior"),
+        Resort("whitecap", "Whitecap", 46.40790, -90.39872, _ft(1449), _ft(1750), None, "Indy",
+               region="lakesuperior"),
+        # Northern lower Michigan: Boyne Mountain, The Highlands, Nub's Nob, Schuss Mountain, Crystal Mountain
+        # and Caberfae.
+        Resort("boynemountain", "Boyne Mountain", 45.16280, -84.93583, _ft(715), _ft(1155), None, "Ikon",
+               region="michigan"),
+        Resort("boynehighlands", "The Highlands", 45.46946, -84.94146, _ft(773), _ft(1325), None, "Ikon",
+               region="michigan"),
+        Resort("nubsnob", "Nub's Nob", 45.46928, -84.90273, _ft(911), _ft(1338), None, "Indy",
+               region="michigan", weather_from="boynehighlands"),
+        Resort("crystalmi", "Crystal Mountain", 44.52182, -85.99549, _ft(794), _ft(1132), None, "Indy",
+               region="michigan"),
+        Resort("caberfae", "Caberfae", 44.24132, -85.71846, _ft(1172), _ft(1545), None, "Independent",
+               region="michigan"),
+        Resort("schuss", "Schuss Mountain", 44.94219, -85.13559, _ft(829), _ft(1173), None, "Indy",
+               region="michigan"),
+        # Terry Peak in South Dakota's Black Hills. South Dakota's two SNOTEL stations are both further than
+        # 10 km off, so it has no station.
+        Resort("terrypeak", "Terry Peak", 44.33293, -103.82963, _ft(5900), _ft(6990), None, "Indy",
+               region="blackhills"),
+        # Northern British Columbia: Shames by Terrace, Hudson Bay Mountain and the Hankin-Evelyn backcountry
+        # by Smithers, and Powder King at Pine Pass, 300 km east. No snow station is paired yet: the
+        # province's station list could not be read the day these were added.
+        Resort("shames", "Shames", 54.48982, -128.96089, 700, 1189, None, "Indy",
+               region="northbc"),
+        Resort("hudsonbay", "Hudson Bay Mountain", 54.77452, -127.24716, 1142, 1650, None, "Indy",
+               region="northbc"),
+        Resort("powderking", "Powder King", 55.36421, -122.62165, 935, 1525, None, "Independent",
+               region="northbc"),
+        Resort("hankinevelyn", "Hankin-Evelyn", 54.88032, -127.51847, 900, 1546, None, "Backcountry",
+               region="northbc", kind="backcountry"),
+        # Ontario: Blue Mountain at Collingwood, Mount St. Louis Moonstone and Horseshoe north of Barrie, and
+        # Calabogie Peaks in the Ottawa Valley.
+        Resort("bluemountain", "Blue Mountain", 44.49968, -80.31718, 230, 450, None, "Ikon",
+               region="ontario"),
+        Resort("mountstlouis", "Mount St. Louis", 44.62498, -79.67057, 217, 354, None, "Independent",
+               region="ontario"),
+        Resort("horseshoe", "Horseshoe", 44.54735, -79.67544, 269, 392, None, "Independent",
+               region="ontario"),
+        Resort("calabogie", "Calabogie Peaks", 45.26910, -76.78417, 154, 366, None, "Indy",
+               region="ontario"),
+        # The Gaspé: the Chic-Chocs' backcountry (Mont Albert, Mont Hog's Back and the Champs-de-Mars), Mont
+        # Miller at Murdochville, Val-d'Irène, Pin Rouge on the Baie des Chaleurs, and Mont-Comi by Rimouski.
+        Resort("montalbert", "Mont Albert", 48.91592, -66.15176, 221, 1070, None, "Backcountry",
+               region="gaspesie", kind="backcountry"),
+        Resort("hogsback", "Mont Hog's Back", 48.86130, -66.10852, 387, 830, None, "Backcountry",
+               region="gaspesie", kind="backcountry"),
+        Resort("champsdemars", "Champs-de-Mars", 48.87577, -66.08146, 324, 700, None, "Backcountry",
+               region="gaspesie", kind="backcountry", weather_from="hogsback"),
+        Resort("montmiller", "Mont Miller", 48.96333, -65.48581, 548, 836, None, "Independent",
+               region="gaspesie"),
+        Resort("valdirene", "Val-d'Irène", 48.47553, -67.57721, 444, 684, None, "Indy",
+               region="gaspesie"),
+        Resort("montcomi", "Mont-Comi", 48.46744, -68.20176, 283, 570, None, "Independent",
+               region="gaspesie"),
+        Resort("pinrouge", "Pin Rouge", 48.31907, -65.71973, 50, 500, None, "Independent",
+               region="gaspesie"),
+        # Newfoundland: Marble Mountain by Corner Brook and White Hills by Clarenville, 290 km apart. Marble
+        # Mountain's summit is the top of its lift, 470 m; the 546 m it publishes is the top of Mount Musgrave
+        # above.
+        Resort("marblemountain", "Marble Mountain", 48.94058, -57.83263, 10, 470, None, "Indy",
+               region="newfoundland"),
+        Resort("whitehills", "White Hills", 48.16187, -54.05107, 200, 357, None, "Independent",
+               region="newfoundland"),
+        # The Yukon: Mount Sima at Whitehorse and Log Cabin in the White Pass, on the Klondike Highway.
+        Resort("mountsima", "Mount Sima", 60.60817, -135.05439, 853, 1180, None, "Independent",
+               region="yukon"),
+        Resort("logcabin", "Log Cabin", 59.75100, -134.98900, 889, 1700, None, "Backcountry",
+               region="yukon", kind="backcountry"),
     ]
 }
 
@@ -1374,6 +1506,42 @@ ALL_REGIONS = {
         # read.
         Region("nwmontana", "Northwest Montana", "America/Denver", 8, 8, ("FAC", "WCMAC"), low_levels=(900,), at=(5,
                13, 21), collector="north"),
+        # The fifth collector's regions (see COLLECTOR): the East and the Midwest, built at New England's
+        # hours on each region's own clock and, like New England, read all the way down to 1000 hPa. New
+        # York's lowest base is West Mountain's at 140 m.
+        Region("newyork", "New York", "America/New_York", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4,
+               16), collector="east"),
+        # The Mid-Atlantic runs 420 km from Elk Mountain to Wintergreen. Its lowest base is Blue Mountain's at
+        # 140 m.
+        Region("midatlantic", "Mid-Atlantic", "America/New_York", 5, 12, (), low_levels=(1000, 975, 950, 925, 900),
+               at=(4, 16), collector="east"),
+        # Lake Superior keeps Central time (Mount Bohemia, on the Keweenaw, is an hour ahead). Its lowest base
+        # is Mount Bohemia's at 198 m.
+        Region("lakesuperior", "Lake Superior", "America/Chicago", 6, 12, (), low_levels=(1000, 975, 950, 925, 900),
+               at=(4, 16), collector="east"),
+        # Michigan's lowest base is Boyne Mountain's at 218 m.
+        Region("michigan", "Michigan", "America/Detroit", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4,
+               16), collector="east"),
+        # The Black Hills are Terry Peak alone, base 1,798 m, so no lower levels are read.
+        Region("blackhills", "Black Hills", "America/Denver", 8, 12, (), at=(4, 16), collector="east"),
+        # More of Canada, the second collector's. Northern BC spans 405 km, Terrace to Pine Pass. Shames's
+        # base is at 700 m, which 950 hPa (near 540 m) covers.
+        Region("northbc", "Northern BC", "America/Vancouver", 8, 8, (), low_levels=(950, 925, 900), at=(5, 13, 21),
+               collector="canada", country="Canada"),
+        # Ontario is built at New England's hours and read down to 1000 hPa: Calabogie's base is at 154 m.
+        Region("ontario", "Ontario", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
+               collector="canada", country="Canada"),
+        # The Gaspé's Chic-Chocs are forecast by Avalanche Québec, which Avalanche Canada's feed carries. Pin
+        # Rouge's base is at 50 m.
+        Region("gaspesie", "Gaspé", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
+               collector="canada", country="Canada"),
+        # Newfoundland keeps its own half-hour clock. Marble Mountain's base is at 10 m.
+        Region("newfoundland", "Newfoundland", "America/St_Johns", 4, 12, (), low_levels=(1000, 975, 950, 925, 900),
+               at=(4, 16), collector="canada", country="Canada"),
+        # The Yukon's White Pass is forecast by Avalanche Canada with the Yukon Avalanche Association. Mount
+        # Sima's base is at 853 m, which 925 hPa (near 760 m) covers.
+        Region("yukon", "Yukon", "America/Whitehorse", 7, 8, (), low_levels=(925, 900), at=(5, 13, 21),
+               collector="canada", country="Canada"),
     ]
 }
 
@@ -1465,6 +1633,16 @@ MORE_BBOX = {
     "valdez": (60.99, 61.34, -145.95, -145.45),
     "inlandnw": (47.28, 48.52, -117.77, -115.5),
     "nwmontana": (45.52, 48.64, -114.57, -112.93),
+    "newyork": (41.98, 44.5, -78.88, -73.53),
+    "midatlantic": (37.77, 41.87, -80.19, -75.15),
+    "lakesuperior": (44.78, 47.8, -92.41, -87.82),
+    "michigan": (44.09, 45.62, -86.2, -84.7),
+    "blackhills": (44.06, 44.48, -104.03, -103.59),
+    "northbc": (54.34, 55.51, -129.16, -122.42),
+    "ontario": (44.35, 45.42, -80.52, -76.58),
+    "gaspesie": (48.17, 49.11, -68.4, -65.29),
+    "newfoundland": (48.01, 49.09, -58.03, -53.85),
+    "yukon": (59.6, 60.76, -135.25, -134.79),
 }
 # The later regions that have sensors to fit to: the states its SNOTEL stations are listed under, and the lowest
 # hand-measured station (m) taken for its snow ratio.
