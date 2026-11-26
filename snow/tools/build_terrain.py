@@ -105,7 +105,38 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            "alaska": {"box": (60.458, 62.004, -150.951, -147.739), "max_m": 4050, "columns": 441},
            # Southwest Colorado: 250 km, 100 km in radius about 38.316 N 107.123 W, Aspen to Wolf Creek. Mt. Elbert
            # is 4,401 m and Uncompahgre Peak 4,365 m. Blue Mesa and the other reservoirs are drawn as level ground.
-           "swcolorado": {"box": (37.193, 39.44, -108.555, -105.691), "max_m": 4420, "columns": 640}}
+           "swcolorado": {"box": (37.193, 39.44, -108.555, -105.691), "max_m": 4420, "columns": 640},
+           # The fourth collector's regions.
+           # Western Idaho: a 267 km square around the circle, 134 km in radius about 44.392 N 117.129 W, that holds
+           # every mountain (109 km from its middle at the furthest) with 25 km to spare.
+           "westidaho": {"box": (43.192, 45.592, -118.809, -115.45), "max_m": 3050, "columns": 640},
+           # Wyoming: a 517 km square around the circle, 258 km in radius about 42.859 N 108.159 W, that holds
+           # every mountain (233 km from its middle at the furthest) with 25 km to spare.
+           "wyoming": {"box": (40.538, 45.181, -111.325, -104.992), "max_m": 4250, "columns": 640},
+           # Southern Utah: a 136 km square around the circle, 68 km in radius about 38.027 N 112.612 W, that holds
+           # every mountain (43 km from its middle at the furthest) with 25 km to spare.
+           "southutah": {"box": (37.419, 38.636, -113.384, -111.839), "max_m": 3760, "columns": 347},
+           # Arizona: a 298 km square around the circle, 149 km in radius about 34.653 N 110.630 W, that holds
+           # every mountain (124 km from its middle at the furthest) with 25 km to spare.
+           "arizona": {"box": (33.313, 35.993, -112.259, -109.001), "max_m": 3900, "columns": 640},
+           # Las Vegas: a 90 km square around the circle, 45 km in radius about 36.300 N 115.682 W, that holds
+           # every mountain (0 km from its middle at the furthest) with 25 km to spare.
+           "lasvegas": {"box": (35.896, 36.704, -116.184, -115.18), "max_m": 3680, "columns": 231},
+           # Southern California: a 128 km square around the circle, 64 km in radius about 34.296 N 117.277 W, that holds
+           # every mountain (39 km from its middle at the furthest) with 25 km to spare.
+           "socal": {"box": (33.721, 34.871, -117.973, -116.58), "max_m": 3550, "columns": 328},
+           # Juneau: a 90 km square around the circle, 45 km in radius about 58.266 N 134.511 W, that holds
+           # every mountain (1 km from its middle at the furthest) with 25 km to spare.
+           "juneau": {"box": (57.861, 58.67, -135.279, -133.742), "max_m": 2700, "columns": 231},
+           # Valdez: a 90 km square around the circle, 45 km in radius about 61.160 N 145.726 W, that holds
+           # every mountain (3 km from its middle at the furthest) with 25 km to spare.
+           "valdez": {"box": (60.756, 61.564, -146.564, -144.888), "max_m": 3600, "columns": 231},
+           # Inland Northwest: a 218 km square around the circle, 109 km in radius about 47.873 N 116.632 W, that holds
+           # every mountain (84 km from its middle at the furthest) with 25 km to spare.
+           "inlandnw": {"box": (46.894, 48.852, -118.091, -115.173), "max_m": 2750, "columns": 559},
+           # Northwest Montana: a 364 km square around the circle, 182 km in radius about 47.096 N 114.153 W, that holds
+           # every mountain (157 km from its middle at the furthest) with 25 km to spare.
+           "nwmontana": {"box": (45.461, 48.73, -116.553, -111.753), "max_m": 3350, "columns": 640}}
 
 
 def stem(region: str) -> str:

@@ -20,15 +20,15 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, bigsky, bigwhite, blackmountain, bolton,
+from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, bachelor, bigsky, bigwhite, blackmountain, bolton,
                                 brettonwoods, brighton, bromley, bromont, burke, cannon, cooperspur, copper,
-                                cranmore, cypress, dollar, fernie, grouse, hoodmeadows, jacksonhole, jaypeak,
+                                cranmore, cypress, dollar, fernie, grouse, hoodmeadows, hoodoo, jacksonhole, jaypeak,
                                 kickinghorse, kimberley, lakelouise, lemassif, loveland, madriverglen, magic,
                                 marmot, monarch, montblanc, montsainteanne, mtwashington, nakiska, norquay, orford,
                                 owlshead, pajarito, panorama, powdermountain, purgatory, redmountain, redriver, revelstoke,
-                                saddleback, saintsauveur, seymour, shastaskipark, silverstar, sipapu, skisantafe,
+                                saddleback, saintsauveur, seymour, shastaskipark, silverstar, sipapu, skibowl, skisantafe,
                                 smugglers, snowbasin, snowbird, stoneham, sundance, sunpeaks, sunshine, sunvalley,
-                                sutton, taos, targhee, telluride, waterville, whitewater, willamettepass)
+                                sutton, taos, targhee, telluride, timberline, waterville, whitewater, willamettepass)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -54,7 +54,9 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "hoodmeadows": hoodmeadows, "cooperspur": cooperspur, "willamettepass": willamettepass,
            "taos": taos, "redriver": redriver, "sipapu": sipapu, "skisantafe": skisantafe, "pajarito": pajarito,
            "alyeska": alyeska, "arcticvalley": arcticvalley,
-           "telluride": telluride, "monarch": monarch, "purgatory": purgatory}
+           "telluride": telluride, "monarch": monarch, "purgatory": purgatory,
+           # Hoodoo's page gives each lift's hours for the day, not a live status: a lift reads open inside them.
+           "timberline": timberline, "skibowl": skibowl, "hoodoo": hoodoo, "bachelor": bachelor}
 # Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
 GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
