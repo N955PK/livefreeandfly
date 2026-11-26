@@ -108,6 +108,8 @@ BOXES = {"cascades": ("WA", SEATTLE_BBOX, 600.0), "tetonbox": (("WY", "ID"), TET
          "newmexicobox": ("NM", config.NEWMEXICO_BBOX, 2000.0),
          "alaskabox": ("AK", config.ALASKA_BBOX, 0.0),
          "swcoloradobox": ("CO", config.SWCOLORADO_BBOX, 2000.0)}
+BOXES.update({f"{region}box": (states, config.MORE_BBOX[region], lowest)
+              for region, (states, lowest) in config.FIT_BOXES.items()})
 
 
 def pull_box(name: str, end: str, start: str = "2023-10-01") -> pd.DataFrame:

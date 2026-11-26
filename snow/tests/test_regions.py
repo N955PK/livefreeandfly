@@ -20,7 +20,8 @@ def test_the_home_regions_cost_what_the_ledger_measured():
 
 def test_avalanche_centers_come_from_the_regions_without_repeats():
     assert config.avalanche_centers() == ("SAC", "ESAC", "BAC", "MWAC", "NWAC", "BTAC", "UAC", "CAIC", "MSAC",
-                                          "GNFAC", "SNFAC", "COAA", "TAC", "CNFAIC", "HPAC")
+                                          "GNFAC", "SNFAC", "COAA", "TAC", "CNFAIC", "HPAC", "PAC", "WAC", "KPAC",
+                                          "CAAC", "VAC", "IPAC", "FAC", "WCMAC")
 
 
 def test_a_day_is_the_mountains_own_day():

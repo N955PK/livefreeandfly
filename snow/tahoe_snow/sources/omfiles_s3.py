@@ -6,6 +6,7 @@ Columns follow the Open-Meteo API naming, with wind speed in km/h.
 """
 from concurrent.futures import ThreadPoolExecutor
 
+import math
 import fsspec
 import numpy as np
 import omfiles
@@ -40,6 +41,14 @@ OREGON_BLOCK = (43.25, 46.0, -122.5, -121.25)
 NEWMEXICO_BLOCK = (35.5, 37.0, -106.75, -105.0)
 ALASKA_BLOCK = (60.25, 62.0, -150.0, -148.75)
 SWCOLORADO_BLOCK = (37.0, 39.5, -108.25, -106.0)
+
+
+def block_around(bbox: tuple) -> tuple:
+    """The block of the 0.25-degree grid that holds a box (south, north, west, east), its edges moved outward."""
+    south, north, west, east = bbox
+    return (math.floor(south * 4) / 4, math.ceil(north * 4) / 4, math.floor(west * 4) / 4, math.ceil(east * 4) / 4)
+
+
 LEVEL_VARIABLES = ["temperature", "relative_humidity", "wind_u_component", "wind_v_component", "geopotential_height"]
 PRECIP_SHAPE = (1536, 3072)
 GRID_WIDTH = {"ncep_gfs025": 1440, "ncep_gfs013": 3072}

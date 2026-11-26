@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import clone
 
+from tahoe_snow import config
 from tahoe_snow.config import MM_PER_IN, MODELS, REPORTS, STATIONS, TABLES, levels_for
 from tahoe_snow.snow import dataset, features, observations, phase, ratio
 from tahoe_snow.snow.model import SnowModel
@@ -132,7 +133,9 @@ REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("
                 "eastkootenays": ("eastkootenaysbox", omfiles_s3.EASTKOOTENAYS_BLOCK),
                 "rockies": ("rockiesbox", omfiles_s3.ROCKIES_BLOCK),
                 **{region: (f"{region}box", getattr(omfiles_s3, f"{region.upper()}_BLOCK"))
-                   for region in ("montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado")}}
+                   for region in ("montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado")},
+                **{region: (f"{region}box", omfiles_s3.block_around(config.MORE_BBOX[region]))
+                   for region in config.FIT_BOXES}}
 # Canada's regions are here for their rain/snow splits alone. Their snow ratio is the Sierra's and cannot be checked
 # on these boxes' hand-measured days: Canada's climate stations report snowfall and its water at exactly 10 to 1
 # (78% of 1,156 snow days at 37 stations, 2023 to 2026, Whistler Roundhouse, Sun Peaks and Mt. Fidelity among them),

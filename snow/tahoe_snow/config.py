@@ -500,9 +500,113 @@ SWCOLORADO_STATIONS = {
         Station("1141:CO:SNTL", "Upper Taylor", 38.99071, -106.74504, _ft(10710)),
     ]
 }
+# The regions added after the third collector's first six keep their sensors in one table, by region: the SNOTEL
+# stations paired with a region's mountains first, then every other within 25 km of one that has reported since
+# before 2022 (NRCS AWDB, active 2026-11-26). Every state's stations but Alaska's keep the Pacific standard clock.
+MORE_STATIONS = {
+    # Western Idaho: Bogus Basin above Boise, Brundage and Tamarack by McCall, and Anthony Lakes across the Snake
+    # in Oregon's Elkhorns.
+    "westidaho": {s.triplet: s for s in [
+        Station("978:ID:SNTL", "Bogus Basin", 43.76377, -116.09685, _ft(6370)),
+        Station("370:ID:SNTL", "Brundage Reservoir", 45.04315, -116.13253, _ft(6280)),
+        Station("319:ID:SNTL", "Bear Basin", 44.95222, -116.14293, _ft(5350)),
+        Station("1016:ID:SNTL", "Long Valley", 44.78835, -116.08878, _ft(4890)),
+        Station("782:ID:SNTL", "Puhi Flat", 44.77091, -116.24805, _ft(6240)),
+        Station("740:ID:SNTL", "Secesh Summit", 45.18848, -115.97152, _ft(6530)),
+        Station("855:ID:SNTL", "West Branch", 45.07220, -116.45413, _ft(5590)),
+        Station("331:OR:SNTL", "Beaver Reservoir", 45.14532, -118.21900, _ft(5140)),
+        Station("361:OR:SNTL", "Bourne", 44.83052, -118.18787, _ft(5850)),
+        Station("464:OR:SNTL", "Eilertson Meadows", 44.86887, -118.11387, _ft(5510)),
+        Station("494:OR:SNTL", "Gold Center", 44.76380, -118.31170, _ft(5400)),
+        Station("873:OR:SNTL", "Wolf Creek", 45.06704, -118.15185, _ft(5730)),
+    ]},
+    # Wyoming outside Jackson: the Snowy Range, Casper Mountain, the Bighorns, Cody's Sleeping Giant, Pinedale's
+    # White Pine and Cokeville's Pine Creek.
+    "wyoming": {s.triplet: s for s in [
+        Station("367:WY:SNTL", "Brooklyn Lake", 41.36038, -106.23038, _ft(10250)),
+        Station("807:WY:SNTL", "Sylvan Road", 44.47825, -110.03808, _ft(7140)),
+        Station("468:WY:SNTL", "Elkhart Park G.S.", 43.00657, -109.75893, _ft(9410)),
+        Station("389:WY:SNTL", "Casper Mtn.", 42.73362, -106.31789, _ft(7940)),
+        Station("703:WY:SNTL", "Powder River Pass", 44.16188, -107.12622, _ft(9480)),
+        Station("358:WY:SNTL", "Bone Springs Div", 44.67881, -107.58110, _ft(9340)),
+        Station("350:WY:SNTL", "Blackwater", 44.37667, -109.79333, _ft(9830)),
+        Station("377:WY:SNTL", "Burgess Junction", 44.78765, -107.52917, _ft(7910)),
+        Station("1046:WY:SNTL", "Cinnabar Park", 41.23843, -106.23101, _ft(9670)),
+        Station("451:WY:SNTL", "Dome Lake", 44.57462, -107.29537, _ft(8890)),
+        Station("472:WY:SNTL", "Evening Star", 44.65258, -109.78422, _ft(9030)),
+        Station("509:WY:SNTL", "Hams Fork", 42.14600, -110.67833, _ft(7860)),
+        Station("512:WY:SNTL", "Hanson Sawmill", 44.25602, -106.97983, _ft(8360)),
+        Station("554:WY:SNTL", "Kelley R.S.", 42.26554, -110.80181, _ft(8240)),
+        Station("1196:WY:SNTL", "Med Bow", 41.37833, -106.34697, _ft(10500)),
+        Station("661:WY:SNTL", "New Fork Lake", 43.11265, -109.94947, _ft(8380)),
+        Station("668:WY:SNTL", "North French Creek", 41.33087, -106.37558, _ft(10150)),
+        Station("731:WY:SNTL", "Sand Lake", 41.46250, -106.28100, _ft(10080)),
+        Station("751:WY:SNTL", "Shell Creek", 44.50012, -107.42947, _ft(9570)),
+        Station("798:WY:SNTL", "Sucker Creek", 44.72279, -107.40035, _ft(8840)),
+        Station("806:WY:SNTL", "Sylvan Lake", 44.47764, -110.15651, _ft(8440)),
+        Station("818:WY:SNTL", "Tie Creek", 44.81243, -107.41017, _ft(7050)),
+    ]},
+    # Southern Utah: Brian Head, and Eagle Point and Delano Peak in the Tushars.
+    "southutah": {s.triplet: s for s in [
+        Station("1154:UT:SNTL", "Brian Head", 37.67994, -112.85674, _ft(10040)),
+        Station("339:UT:SNTL", "Big Flat", 38.30183, -112.35672, _ft(10320)),
+        Station("390:UT:SNTL", "Castle Valley", 37.66098, -112.74093, _ft(9600)),
+        Station("557:UT:SNTL", "Kimberly Mine", 38.48383, -112.39273, _ft(9110)),
+        Station("621:UT:SNTL", "Merchant Valley", 38.30285, -112.43637, _ft(8710)),
+        Station("626:UT:SNTL", "Midway Valley", 37.56933, -112.83849, _ft(9830)),
+        Station("1148:UT:SNTL", "Panguitch Lake RS", 37.70463, -112.65037, _ft(8300)),
+        Station("1248:UT:SNTL", "Suu Ranch", 37.59711, -112.92949, _ft(8050)),
+        Station("853:UT:SNTL", "Webster Flat", 37.57500, -112.90155, _ft(9150)),
+        Station("1197:UT:SNTL", "Yankee Reservoir", 37.74797, -112.77495, _ft(8680)),
+    ]},
+    # Arizona: Snowbowl and Humphreys Peak on the San Francisco Peaks, and Sunrise in the White Mountains, 250 km
+    # south-east.
+    "arizona": {s.triplet: s for s in [
+        Station("927:AZ:SNTL", "Snowslide Canyon", 35.34179, -111.65084, _ft(9720)),
+        Station("310:AZ:SNTL", "Baldy", 33.97845, -109.50357, _ft(9210)),
+        Station("1121:AZ:SNTL", "Fort Valley", 35.26773, -111.74479, _ft(7360)),
+        Station("1271:AZ:SNTL", "Hawley Lake", 33.97121, -109.76531, _ft(8290)),
+        Station("617:AZ:SNTL", "Maverick Fork", 33.92123, -109.45872, _ft(9210)),
+    ]},
+    # Lee Canyon in the Spring Mountains above Las Vegas.
+    "lasvegas": {s.triplet: s for s in [
+        Station("1350:NV:SNTL", "Lee Canyon Upper", 36.29604, -115.68430, _ft(9390)),
+        Station("1111:NV:SNTL", "Bristlecone Trail", 36.31575, -115.69543, _ft(8900)),
+        Station("1112:NV:SNTL", "Lee Canyon", 36.30537, -115.67508, _ft(8620)),
+        Station("1110:NV:SNTL", "Rainbow Canyon", 36.24930, -115.62972, _ft(7840)),
+    ]},
+    # Valdez: Thompson Pass's backcountry, the Odyssey side from the pass summit and Girls Mountain across the
+    # highway. The Upper Tsaina River sensor, 6 km off and 600 m below, is shown but corrects nothing.
+    "valdez": {s.triplet: s for s in [
+        Station("1055:AK:SNTL", "Upper Tsaina River", 61.19112, -145.64807, _ft(1730)),
+    ]},
+    # Inland Northwest.
+    "inlandnw": {s.triplet: s for s in [
+        Station("738:ID:SNTL", "Schweitzer Basin", 48.37428, -116.63917, _ft(6090)),
+        Station("594:ID:SNTL", "Lookout", 47.45749, -115.70457, _ft(5180)),
+        Station("707:WA:SNTL", "Quartz Peak", 47.87927, -117.08938, _ft(4710)),
+        Station("535:ID:SNTL", "Humboldt Gulch", 47.53178, -115.77643, _ft(4260)),
+        Station("1081:ID:SNTL", "Ragged Mountain", 47.85583, -117.03667, _ft(4210)),
+        Station("803:ID:SNTL", "Sunset", 47.55545, -115.82422, _ft(5570)),
+    ]},
+    # Northwest Montana.
+    "nwmontana": {s.triplet: s for s in [
+        Station("1144:MT:SNTL", "Blacktail Mtn", 47.98317, -114.35443, _ft(5660)),
+        Station("901:MT:SNTL", "Stuart Mountain", 46.99521, -113.92667, _ft(7270)),
+        Station("850:MT:SNTL", "Warm Springs", 46.27368, -113.16400, _ft(7840)),
+        Station("727:MT:SNTL", "Saddle Mtn.", 45.69259, -113.96828, _ft(7890)),
+        Station("664:MT:SNTL", "Noisy Basin", 48.15668, -113.94630, _ft(6070)),
+        Station("313:MT:SNTL", "Barker Lakes", 46.09713, -113.13038, _ft(8250)),
+        Station("349:MT:SNTL", "Black Pine", 46.41400, -113.43095, _ft(7170)),
+        Station("930:MT:SNTL", "Peterson Meadows", 46.12588, -113.30792, _ft(7190)),
+        Station("638:ID:SNTL", "Moose Creek", 45.67008, -113.95315, _ft(6170)),
+    ]},
+}
+
 ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
                 **WASATCH_STATIONS, **COLORADO_STATIONS, **SHASTA_STATIONS, **CANADA_STATIONS, **MONTANA_STATIONS,
-                **SUNVALLEY_STATIONS, **OREGON_STATIONS, **NEWMEXICO_STATIONS, **ALASKA_STATIONS, **SWCOLORADO_STATIONS}
+                **SUNVALLEY_STATIONS, **OREGON_STATIONS, **NEWMEXICO_STATIONS, **ALASKA_STATIONS, **SWCOLORADO_STATIONS,
+                **{triplet: station for stations in MORE_STATIONS.values() for triplet, station in stations.items()}}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -1046,6 +1150,119 @@ ALL_RESORTS = {
                region="swcolorado", kind="backcountry", weak_match=True),
         Resort("marble", "Marble", 39.04500, -107.18900, _ft(7984), _ft(11314), "669:CO:SNTL", "Backcountry",
                region="swcolorado", kind="backcountry"),
+        # Western Idaho: Bogus Basin above Boise, Brundage and Tamarack by McCall, and Anthony Lakes across
+        # the Snake in Oregon's Elkhorns.
+        Resort("bogusbasin", "Bogus Basin", 43.75920, -116.09950, _ft(5800), _ft(7582), "978:ID:SNTL", "Independent",
+               region="westidaho"),
+        Resort("brundage", "Brundage", 45.00530, -116.14500, _ft(5882), _ft(7604), "370:ID:SNTL", "Indy",
+               region="westidaho"),
+        Resort("tamarack", "Tamarack", 44.67780, -116.13590, _ft(4900), _ft(7700), None, "Indy",
+               region="westidaho"),
+        Resort("anthonylakes", "Anthony Lakes", 44.96120, -118.23970, _ft(7100), _ft(8000), None, "Independent",
+               region="westidaho"),
+        Resort("jughandle", "Jughandle Mountain", 44.84800, -115.96000, _ft(6220), _ft(8309), None, "Backcountry",
+               region="westidaho", kind="backcountry"),
+        Resort("granitemountain", "Granite Mountain", 45.09850, -116.19500, _ft(6449), _ft(8474), "370:ID:SNTL",
+               "Backcountry",
+               region="westidaho", kind="backcountry", weak_match=True),
+        # Wyoming outside Jackson: the Snowy Range, Casper Mountain, the Bighorns, Cody's Sleeping Giant,
+        # Pinedale's White Pine and Cokeville's Pine Creek. Sleeping Giant may not run its lifts this winter;
+        # it is kept until that is known.
+        Resort("snowyrange", "Snowy Range", 41.33800, -106.18550, _ft(8798), _ft(9663), "367:WY:SNTL", "Independent",
+               region="wyoming"),
+        Resort("sleepinggiant", "Sleeping Giant", 44.49080, -109.94650, _ft(6619), _ft(7428), "807:WY:SNTL",
+               "Independent",
+               region="wyoming"),
+        Resort("whitepine", "White Pine", 42.97260, -109.75310, _ft(8400), _ft(9334), "468:WY:SNTL", "Indy",
+               region="wyoming"),
+        Resort("hogadon", "Hogadon", 42.74740, -106.34110, _ft(7400), _ft(8000), "389:WY:SNTL", "Independent",
+               region="wyoming"),
+        Resort("meadowlark", "Meadowlark", 44.16160, -107.22000, _ft(8500), _ft(9267), "703:WY:SNTL", "Indy",
+               region="wyoming"),
+        Resort("antelopebutte", "Antelope Butte", 44.60660, -107.51430, _ft(8400), _ft(9400), "358:WY:SNTL", "Indy",
+               region="wyoming"),
+        Resort("pinecreek", "Pine Creek", 42.09880, -110.82340, _ft(6801), _ft(8225), None, "Independent",
+               region="wyoming"),
+        # Southern Utah: Brian Head, and Eagle Point and Delano Peak in the Tushars.
+        Resort("brianhead", "Brian Head", 37.68825, -112.84146, _ft(9600), _ft(10920), "1154:UT:SNTL", "Independent",
+               region="southutah"),
+        Resort("eaglepoint", "Eagle Point", 38.31669, -112.38052, _ft(9330), _ft(10600), "339:UT:SNTL", "Indy",
+               region="southutah"),
+        Resort("delano", "Delano Peak", 38.36500, -112.38300, _ft(9940), _ft(12169), "339:UT:SNTL", "Backcountry",
+               region="southutah", kind="backcountry", weather_from="eaglepoint"),
+        # Arizona: Snowbowl and Humphreys Peak on the San Francisco Peaks, and Sunrise in the White Mountains,
+        # 250 km south-east. Mt. Lemmon, 330 km further south and open a handful of days a winter, is left
+        # out.
+        Resort("azsnowbowl", "Snowbowl", 35.32828, -111.69541, _ft(9200), _ft(11500), "927:AZ:SNTL", "Independent",
+               region="arizona"),
+        Resort("humphreys", "Humphreys Peak", 35.33800, -111.69300, _ft(9275), _ft(12633), "927:AZ:SNTL", "Backcountry",
+               region="arizona", kind="backcountry", weak_match=True, weather_from="azsnowbowl"),
+        Resort("sunrisepark", "Sunrise", 33.96413, -109.56131, _ft(9360), _ft(10900), "310:AZ:SNTL", "Indy",
+               region="arizona"),
+        # Lee Canyon in the Spring Mountains above Las Vegas.
+        Resort("leecanyon", "Lee Canyon", 36.29983, -115.68207, _ft(8660), _ft(9370), "1350:NV:SNTL", "Independent",
+               region="lasvegas"),
+        # Southern California: Bear Mountain, Snow Summit and Snow Valley in the San Bernardinos, and Mountain
+        # High and Mt. Baldy in the San Gabriels. There are no snow sensors here, so none has a station. Mt.
+        # Baldy's point is on Chair 1, the lift from the road.
+        Resort("bearmountain", "Bear Mountain", 34.22016, -116.86398, _ft(7140), _ft(8805), None, "Ikon",
+               region="socal"),
+        Resort("snowsummit", "Snow Summit", 34.22829, -116.88971, _ft(7000), _ft(8200), None, "Ikon",
+               region="socal", weather_from="bearmountain"),
+        Resort("snowvalley", "Snow Valley", 34.21767, -117.03523, _ft(6800), _ft(7841), None, "Ikon",
+               region="socal"),
+        Resort("mountainhigh", "Mountain High", 34.37188, -117.69132, _ft(6600), _ft(8200), None, "Indy",
+               region="socal"),
+        Resort("mtbaldy", "Mt. Baldy", 34.27213, -117.61611, _ft(6500), _ft(8600), None, "Independent",
+               region="socal"),
+        # Juneau: Eaglecrest on Douglas Island and the two peaks toured from it, Mt. Troy and Mt. Ben Stewart.
+        # No snow sensor is within 40 km.
+        Resort("eaglecrest", "Eaglecrest", 58.26788, -134.51230, _ft(1200), _ft(2600), None, "Indy",
+               region="juneau"),
+        Resort("mttroy", "Mt. Troy", 58.26740, -134.48750, _ft(1195), _ft(3005), None, "Backcountry",
+               region="juneau", kind="backcountry", weather_from="eaglecrest"),
+        Resort("benstewart", "Mt. Ben Stewart", 58.26400, -134.53400, _ft(1195), _ft(3438), None, "Backcountry",
+               region="juneau", kind="backcountry", weather_from="eaglecrest"),
+        # Valdez: Thompson Pass's backcountry, the Odyssey side from the pass summit and Girls Mountain across
+        # the highway. The Upper Tsaina River sensor, 6 km off and 600 m below, is shown but corrects nothing.
+        Resort("thompsonpass", "Thompson Pass", 61.14000, -145.70500, _ft(2669), _ft(4565), "1055:AK:SNTL",
+               "Backcountry",
+               region="valdez", kind="backcountry", weak_match=True, corrected=False),
+        Resort("girlsmountain", "Girls Mountain", 61.18021, -145.74712, _ft(2117), _ft(6134), "1055:AK:SNTL",
+               "Backcountry",
+               region="valdez", kind="backcountry", weak_match=True, corrected=False, weather_from="thompsonpass"),
+        # The Inland Northwest: Schweitzer above Sandpoint, 49 Degrees North and Mt. Spokane in Washington,
+        # and Silver Mountain, Lookout Pass and Stevens Peak along I-90 in the Silver Valley. Lookout Pass's
+        # pass could not be confirmed and is given as Independent.
+        Resort("schweitzer", "Schweitzer", 48.37459, -116.62898, _ft(4000), _ft(6400), "738:ID:SNTL", "Ikon",
+               region="inlandnw"),
+        Resort("lookoutpass", "Lookout Pass", 47.45523, -115.70152, _ft(4500), _ft(6150), "594:ID:SNTL", "Independent",
+               region="inlandnw"),
+        Resort("silvermountain", "Silver Mountain", 47.49234, -116.12317, _ft(4100), _ft(6300), None, "Indy",
+               region="inlandnw"),
+        Resort("fortyninenorth", "49 Degrees North", 48.29298, -117.56779, _ft(3923), _ft(5774), None, "Indy",
+               region="inlandnw"),
+        Resort("mtspokane", "Mt. Spokane", 47.91948, -117.10592, _ft(3818), _ft(5889), "707:WA:SNTL", "Independent",
+               region="inlandnw"),
+        Resort("stevenspeak", "Stevens Peak", 47.42620, -115.76400, _ft(4725), _ft(6838), "594:ID:SNTL", "Backcountry",
+               region="inlandnw", kind="backcountry", weather_from="lookoutpass"),
+        # Northwest Montana: Whitefish and Blacktail by Flathead Lake, Jewel Basin in the Swan Range, Snowbowl
+        # above Missoula, Discovery by Anaconda, and Lost Trail and Gash Point in the Bitterroot. Discovery's
+        # pass could not be confirmed and is given as Independent.
+        Resort("whitefish", "Whitefish", 48.49326, -114.34774, _ft(4464), _ft(6817), None, "Independent",
+               region="nwmontana"),
+        Resort("blacktail", "Blacktail", 48.02026, -114.36619, _ft(5236), _ft(6780), "1144:MT:SNTL", "Indy",
+               region="nwmontana"),
+        Resort("montanasnowbowl", "Snowbowl", 47.02142, -114.00132, _ft(5000), _ft(7600), "901:MT:SNTL", "Indy",
+               region="nwmontana"),
+        Resort("discovery", "Discovery", 46.25631, -113.24395, _ft(5770), _ft(8158), "850:MT:SNTL", "Independent",
+               region="nwmontana"),
+        Resort("losttrail", "Lost Trail", 45.69076, -113.95704, _ft(6400), _ft(8200), "727:MT:SNTL", "Indy",
+               region="nwmontana"),
+        Resort("jewelbasin", "Jewel Basin", 48.15150, -113.93000, _ft(5742), _ft(7528), "664:MT:SNTL", "Backcountry",
+               region="nwmontana", kind="backcountry"),
+        Resort("gashpoint", "Gash Point", 46.42450, -114.29800, _ft(5781), _ft(8886), None, "Backcountry",
+               region="nwmontana", kind="backcountry"),
     ]
 }
 
@@ -1120,11 +1337,49 @@ ALL_REGIONS = {
         # Colorado's clocks and center. The lowest ground is Buttermilk's base at 2,399 m: no lower levels are read.
         Region("swcolorado", "Southwest Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21),
                collector="west"),
+        # The fourth collector's regions (see COLLECTOR), built at the West's hours on each region's own
+        # clock. Western Idaho: the Payette center forecasts McCall's mountains and the Wallowa center the
+        # Elkhorns. Tamarack's base, the lowest, is at 1,494 m, above the lowest level every pull reads.
+        Region("westidaho", "Western Idaho", "America/Boise", 8, 8, ("PAC", "WAC"), at=(5, 13, 21), collector="north"),
+        # Wyoming's seven are spread over 380 km. The Eastern Wyoming Avalanche Information Center covers the
+        # Snowy Range and the Bighorns but posts no rated forecast, so no center is named. The lowest base is
+        # Sleeping Giant's at 2,017 m.
+        Region("wyoming", "Wyoming", "America/Denver", 8, 8, (), at=(5, 13, 21), collector="north"),
+        # Southern Utah is the Utah center's Southwest zone. The lowest ground is Eagle Point's lowest lift at
+        # 2,844 m.
+        Region("southutah", "Southern Utah", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21), collector="north"),
+        # Arizona keeps Mountain standard time all year. The Kachina Peaks center forecasts the San Francisco
+        # Peaks. The lowest base is Snowbowl's at 2,804 m.
+        Region("arizona", "Arizona", "America/Phoenix", 8, 8, ("KPAC",), at=(5, 13, 21), collector="north"),
+        # Las Vegas is Lee Canyon alone, base 2,640 m; no avalanche center covers the Spring Mountains.
+        Region("lasvegas", "Las Vegas", "America/Los_Angeles", 8, 8, (), at=(5, 13, 21), collector="north"),
+        # Southern California has no snow sensors and no avalanche center. The lowest base is Mt. Baldy's at
+        # 1,981 m.
+        Region("socal", "Southern California", "America/Los_Angeles", 8, 8, (), at=(5, 13, 21), collector="north"),
+        # Juneau is the Coastal Alaska center's Douglas Island zone. Eaglecrest's base is at 366 m, which 975
+        # hPa (near 320 m) covers; Alaska's sensors keep Alaska standard time.
+        Region("juneau", "Juneau", "America/Juneau", 9, 8, ("CAAC",), low_levels=(975, 950, 925, 900), at=(5, 13,
+               21), collector="north"),
+        # Valdez is the Valdez center's Intermountain zone. Girls Mountain's trailhead is at 645 m, which 950
+        # hPa (near 540 m) covers.
+        Region("valdez", "Valdez", "America/Anchorage", 9, 8, ("VAC",), low_levels=(950, 925, 900), at=(5, 13, 21),
+               collector="north"),
+        # The Inland Northwest keeps Pacific time (Lookout Pass sits on the Montana line). The Idaho Panhandle
+        # center forecasts the Selkirks and the Silver Valley. Mt. Spokane's base is at 1,164 m, under 850
+        # hPa, so 900 hPa (near 990 m) is read.
+        Region("inlandnw", "Inland Northwest", "America/Los_Angeles", 8, 8, ("IPAC",), low_levels=(900,), at=(5, 13,
+               21), collector="north"),
+        # Northwest Montana is the Flathead center's ground in the north and the West Central Montana center's
+        # around Missoula and the Bitterroot. Whitefish's base is at 1,361 m, under 850 hPa, so 900 hPa is
+        # read.
+        Region("nwmontana", "Northwest Montana", "America/Denver", 8, 8, ("FAC", "WCMAC"), low_levels=(900,), at=(5,
+               13, 21), collector="north"),
     ]
 }
 
 # Which collector this process is. Each collector is a workflow of its own (snow-collect.yml is "main",
-# snow-collect-canada.yml is "canada", snow-collect-west.yml is "west"): it builds only its own regions, publishes
+# snow-collect-canada.yml is "canada", snow-collect-west.yml is "west", snow-collect-north.yml is "north",
+# snow-collect-east.yml is "east"): it builds only its own regions, publishes
 # them on a data branch of its own
 # with its own index, and keeps its own ledger of calls. Everything that walks REGIONS or RESORTS therefore sees one
 # collector's share; ALL_REGIONS and ALL_RESORTS are every region and mountain there is.
@@ -1198,3 +1453,27 @@ ALASKA_BBOX = (60.46, 61.94, -149.88, -148.86)
 # Around southwest Colorado: the Elk Mountains, the Sawatch at Monarch and the San Juans: its mountains and the
 # sensors its correction is fitted to.
 SWCOLORADO_BBOX = (37.23, 39.47, -108.22, -106.14)
+# The later regions' boxes, by region: each holds the region's mountains and the sensors its correction is fitted to.
+MORE_BBOX = {
+    "westidaho": (43.61, 45.34, -118.51, -115.76),
+    "wyoming": (41.09, 44.96, -111.02, -105.99),
+    "southutah": (37.42, 38.63, -113.13, -112.16),
+    "arizona": (33.77, 35.49, -111.94, -109.26),
+    "lasvegas": (36.1, 36.47, -115.9, -115.43),
+    "socal": (34.07, 34.52, -117.89, -116.66),
+    "juneau": (58.11, 58.42, -134.73, -134.29),
+    "valdez": (60.99, 61.34, -145.95, -145.45),
+    "inlandnw": (47.28, 48.52, -117.77, -115.5),
+    "nwmontana": (45.52, 48.64, -114.57, -112.93),
+}
+# The later regions that have sensors to fit to: the states its SNOTEL stations are listed under, and the lowest
+# hand-measured station (m) taken for its snow ratio.
+FIT_BOXES = {
+    "westidaho": (("ID", "OR"), 1200.0),
+    "wyoming": ("WY", 1500.0),
+    "southutah": ("UT", 1500.0),
+    "arizona": ("AZ", 1500.0),
+    "lasvegas": ("NV", 1500.0),
+    "inlandnw": (("ID", "WA", "MT"), 600.0),
+    "nwmontana": (("MT", "ID"), 900.0),
+}

@@ -5633,7 +5633,7 @@ function chooseMountain(key, open) {
 const REPO = "N955PK/livefreeandfly", DATA_BRANCH = "snow-data", COMMIT_KEEP_MS = 10 * 60 * 1000;
 // Each collector publishes its regions on a branch of its own, with its own index. The first collector's is
 // DATA_BRANCH; the others are named here with the folder their files sit in when developing (data/<folder>/).
-const MORE_BRANCHES = {"snow-data-canada": "canada", "snow-data-west": "west"};
+const MORE_BRANCHES = {"snow-data-canada": "canada", "snow-data-west": "west", "snow-data-north": "north", "snow-data-east": "east"};
 // The branch each region's forecast is on, where that is not DATA_BRANCH: filled in as the indexes are read.
 const branchOf = {};
 // On a weak signal a request can hang for minutes without ever failing, and the saved copy is only used once it does.

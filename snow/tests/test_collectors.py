@@ -15,7 +15,7 @@ def test_this_process_is_the_first_collector_and_sees_only_its_regions():
 
 def test_every_mountain_belongs_to_a_region_some_collector_builds():
     assert {resort.region for resort in config.ALL_RESORTS.values()} <= set(config.ALL_REGIONS)
-    assert all(region.collector in ("main", "canada", "west") for region in config.ALL_REGIONS.values())
+    assert all(region.collector in ("main", "canada", "west", "north", "east") for region in config.ALL_REGIONS.values())
     # A region outside the USA says so, and Canada's are the second collector's.
     assert all((region.country == "Canada") == (region.collector == "canada") for region in config.ALL_REGIONS.values())
 

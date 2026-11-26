@@ -8,4 +8,6 @@ data/forecast/
 data/index.json
 data/canada/
 data/west/
+data/north/
+data/east/
 data/independents.json

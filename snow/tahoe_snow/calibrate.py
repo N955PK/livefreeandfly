@@ -43,7 +43,10 @@ REGIONS = {"tahoe": (STATIONS, TAHOE_BBOX, "snotel_daily"),
            # The third collector's six, each fitted to the SNOTEL stations within 25 km of its mountains.
            **{region: (getattr(config, f"{region.upper()}_STATIONS"), getattr(config, f"{region.upper()}_BBOX"),
                        f"{region}_daily")
-              for region in ("montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado")}}
+              for region in ("montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado")},
+           # The later regions that have sensors, from the configuration's own tables.
+           **{region: (config.MORE_STATIONS[region], config.MORE_BBOX[region], f"{region}_daily")
+              for region in config.FIT_BOXES}}
 # Hours behind UTC of the clock a region's sensors stamp their daily values on, where it is not the Pacific
 # standard clock: Alaska's SNOTEL stations keep Alaska standard time.
 SENSOR_OFFSET_H = {"alaska": 9}
