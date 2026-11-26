@@ -14,7 +14,8 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] The mountains are chosen: every resort in the area on any pass, and the backcountry spots people ski there
       (volcano summits, passes, the classic lines). Ask Sean only if the area's edges are unclear.
 - [ ] The plan's total is worked out (step 0), with close neighbours sharing weather. (M)
-- [ ] The collector is settled: the first for the USA, the second for Canada (step 0).
+- [ ] The collector is settled: the third (`west`) for a new USA region, since the first's plan is full; the second
+      for Canada (step 0).
 
 **The forecast (first push)**
 - [ ] Each mountain's point, base, summit and pass are looked up, not remembered, and the source is in the comment
@@ -84,13 +85,14 @@ gives. Tell him the plan's total and how far over it is when a region ships.
 Adding mountains makes the collector rebuild that region straight away, outside its hours, which costs one extra
 run that day. That is fine; do not hold a push back for the day's count.
 
-**Which collector.** There are two, each a workflow of its own with its own data branch, index and ledger of
+**Which collector.** There are three, each a workflow of its own with its own data branch, index and ledger of
 calls:
 
 | Collector | Workflow | Regions | Data branch | Preview folder |
 |---|---|---|---|---|
 | `main` | `snow-collect.yml` | the USA's | `snow-data` | `snow/data/` |
 | `canada` | `snow-collect-canada.yml` | Canada's (`collector="canada", country="Canada"`) | `snow-data-canada` | `snow/data/canada/` |
+| `west` | `snow-collect-west.yml` | the USA's added once the first's plan was full (`collector="west"`): Montana, Sun Valley, Oregon, New Mexico, Alaska, Southwest Colorado | `snow-data-west` | `snow/data/west/` |
 
 A region's `collector` decides who builds it: under `SNOW_COLLECTOR=canada` the code's `REGIONS` and `RESORTS` are
 Canada's alone (`ALL_REGIONS` and `ALL_RESORTS` are everything), so `due`, the index, the ledger and

@@ -350,8 +350,159 @@ ROCKIES_STATIONS = {
 }
 CANADA_STATIONS = {**OKANAGAN_STATIONS, **BCCOAST_STATIONS, **POWDERHIGHWAY_STATIONS, **EASTKOOTENAYS_STATIONS,
                    **ROCKIES_STATIONS}
+# SNOTEL stations around southwest Montana: Big Sky and the Gallatin, Bridger, Little Belt and Beartooth ranges (NRCS
+# AWDB, active 2026-11-26): the ones paired
+# with the region's mountains first, then every other within 25 km of one that has reported since before 2022,
+# which the region's water correction is also fitted to. The station list gives every one a data time zone of UTC-8.
+MONTANA_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("590:MT:SNTL", "Lone Mountain", 45.27412, -111.42692, _ft(8820)),
+        Station("929:MT:SNTL", "Sacajawea", 45.87395, -110.92783, _ft(6610)),
+        Station("781:MT:SNTL", "Spur Park", 46.77962, -110.62165, _ft(8080)),
+        Station("754:MT:SNTL", "Shower Falls", 45.40125, -110.95758, _ft(8060)),
+        Station("480:MT:SNTL", "Fisher Creek", 45.06235, -109.94488, _ft(9110)),
+        Station("365:MT:SNTL", "Brackett Creek", 45.89107, -110.93851, _ft(7370)),
+        Station("437:MT:SNTL", "Deadman Creek", 46.79279, -110.67545, _ft(6440)),
+        Station("578:MT:SNTL", "Lick Creek", 45.50410, -110.96625, _ft(6880)),
+        Station("670:MT:SNTL", "Northeast Entrance", 45.00568, -110.01411, _ft(7420)),
+        Station("1008:MT:SNTL", "Onion Park", 46.91348, -110.85360, _ft(7420)),
+        Station("1009:MT:SNTL", "Stringer Creek", 46.92690, -110.90198, _ft(6550)),
+        Station("862:MT:SNTL", "White Mill", 45.04575, -109.90987, _ft(8730)),
+    ]
+}
+# SNOTEL stations around Sun Valley, the Soldier Mountains and the Sawtooths (NRCS AWDB, active 2026-11-26): the ones
+# paired
+# with the region's mountains first, then every other within 25 km of one that has reported since before 2022,
+# which the region's water correction is also fitted to. The station list gives every one a data time zone of UTC-8.
+SUNVALLEY_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("769:ID:SNTL", "Soldier R.S.", 43.48407, -114.82692, _ft(5780)),
+        Station("490:ID:SNTL", "Galena Summit", 43.87497, -114.71363, _ft(8790)),
+        Station("312:ID:SNTL", "Banner Summit", 44.30342, -115.23447, _ft(7040)),
+        Station("895:ID:SNTL", "Chocolate Gulch", 43.76850, -114.41812, _ft(6310)),
+        Station("1306:ID:SNTL", "Couch Summit", 43.51762, -114.80214, _ft(6780)),
+        Station("450:ID:SNTL", "Dollarhide Summit", 43.60250, -114.67417, _ft(8390)),
+        Station("489:ID:SNTL", "Galena", 43.87722, -114.67250, _ft(7470)),
+        Station("537:ID:SNTL", "Hyndman", 43.71077, -114.15894, _ft(7590)),
+        Station("601:ID:SNTL", "Lost-Wood Divide", 43.82441, -114.26404, _ft(7870)),
+        Station("792:ID:SNTL", "Stickney Mill", 43.86117, -114.20902, _ft(7440)),
+        Station("845:ID:SNTL", "Vienna Mine", 43.79942, -114.85273, _ft(8930)),
+    ]
+}
+# SNOTEL stations around Oregon's Cascades, Mt. Hood to Willamette Pass (NRCS AWDB, active 2026-11-26): the ones paired
+# with the region's mountains first, then every other within 25 km of one that has reported since before 2022,
+# which the region's water correction is also fitted to. The station list gives every one a data time zone of UTC-8.
+OREGON_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("651:OR:SNTL", "Mt Hood Test Site", 45.32097, -121.71580, _ft(5380)),
+        Station("655:OR:SNTL", "Mud Ridge", 45.25362, -121.73673, _ft(4070)),
+        Station("712:OR:SNTL", "Red Hill", 45.46430, -121.70428, _ft(4410)),
+        Station("526:OR:SNTL", "Hogg Pass", 44.42042, -121.85655, _ft(4800)),
+        Station("388:OR:SNTL", "Cascade Summit", 43.59042, -122.06010, _ft(5100)),
+        Station("1166:OR:SNTL", "Bear Grass", 44.32530, -122.09380, _ft(4720)),
+        Station("351:OR:SNTL", "Blazed Alder", 45.42870, -121.85605, _ft(3660)),
+        Station("398:OR:SNTL", "Clackamas Lake", 45.09658, -121.75443, _ft(3400)),
+        Station("401:OR:SNTL", "Clear Lake", 45.18832, -121.69160, _ft(3810)),
+        Station("434:OR:SNTL", "Daly Lake", 44.52147, -122.08718, _ft(3690)),
+        Station("504:OR:SNTL", "Greenpoint", 45.62237, -121.70415, _ft(3320)),
+        Station("545:OR:SNTL", "Irish Taylor", 43.80368, -121.94793, _ft(5540)),
+        Station("552:OR:SNTL", "Jump Off Joe", 44.38605, -122.16683, _ft(3530)),
+        Station("614:OR:SNTL", "Marion Forks", 44.59397, -121.97365, _ft(2590)),
+        Station("619:OR:SNTL", "Mckenzie", 44.21030, -121.87292, _ft(4770)),
+        Station("660:OR:SNTL", "New Crescent Lake", 43.51185, -121.97982, _ft(4910)),
+        Station("710:OR:SNTL", "Railroad Overpass", 43.65887, -122.21272, _ft(2680)),
+        Station("729:OR:SNTL", "Salt Creek Falls", 43.61193, -122.11758, _ft(4220)),
+        Station("733:OR:SNTL", "Santiam Jct.", 44.43503, -121.94502, _ft(3740)),
+        Station("1167:OR:SNTL", "Smith Ridge", 44.30325, -122.04053, _ft(3270)),
+        Station("801:OR:SNTL", "Summit Lake", 43.44907, -122.13808, _ft(5610)),
+        Station("815:OR:SNTL", "Three Creeks Meadow", 44.14425, -121.64095, _ft(5680)),
+    ]
+}
+# SNOTEL stations around northern New Mexico: the Sangre de Cristo and Jemez mountains (NRCS AWDB, active 2026-11-26):
+# the ones paired
+# with the region's mountains first, then every other within 25 km of one that has reported since before 2022,
+# which the region's water correction is also fitted to. The station list gives every one a data time zone of UTC-8.
+NEWMEXICO_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("1168:NM:SNTL", "Taos Powderhorn", 36.58195, -105.45617, _ft(11020)),
+        Station("715:NM:SNTL", "Red River Pass #2", 36.69935, -105.34145, _ft(9840)),
+        Station("1170:NM:SNTL", "Palo", 36.40869, -105.33038, _ft(9330)),
+        Station("1083:NM:SNTL", "Tres Ritos", 36.12790, -105.52706, _ft(8740)),
+        Station("922:NM:SNTL", "Santa Fe", 35.77154, -105.78487, _ft(11480)),
+        Station("708:NM:SNTL", "Quemazon", 35.92195, -106.39179, _ft(9500)),
+        Station("921:NM:SNTL", "Elk Cabin", 35.70730, -105.80584, _ft(8220)),
+        Station("491:NM:SNTL", "Gallegos Peak", 36.19418, -105.55742, _ft(9460)),
+        Station("1173:NM:SNTL", "Garita Peak", 36.00469, -106.54805, _ft(10100)),
+        Station("1254:NM:SNTL", "Rio Santa Barbara", 36.07196, -105.62949, _ft(10640)),
+        Station("1169:NM:SNTL", "Shuree", 36.78765, -105.23920, _ft(10070)),
+        Station("1307:NM:SNTL", "Taos Pueblo", 36.54099, -105.35944, _ft(10990)),
+        Station("934:NM:SNTL", "Tolby", 36.47498, -105.19534, _ft(10210)),
+        Station("854:NM:SNTL", "Wesner Springs", 35.77584, -105.54337, _ft(11110)),
+    ]
+}
+# SNOTEL stations around Southcentral Alaska: Girdwood, Turnagain Pass, Summit Lake, Anchorage and Hatcher Pass (NRCS
+# AWDB, active 2026-11-26): the ones paired
+# with the region's mountains first, then every other within 25 km of one that has reported since before 2022,
+# which the region's water correction is also fitted to. Alaska stamps its daily values an hour later than the other
+# states, on its own standard clock (a data time zone of UTC-9 in the station list).
+ALASKA_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("1103:AK:SNTL", "Mt. Alyeska", 60.95842, -149.08858, _ft(1500)),
+        Station("641:AK:SNTL", "Frostbite Bottom", 61.74699, -149.26769, _ft(2690)),
+        Station("954:AK:SNTL", "Turnagain Pass", 60.78043, -149.18325, _ft(1860)),
+        Station("955:AK:SNTL", "Summit Creek", 60.61713, -149.53128, _ft(1340)),
+        Station("1091:AK:SNTL", "Independence Mine", 61.79001, -149.28390, _ft(3450)),
+        Station("1070:AK:SNTL", "Anchorage Hillside", 61.11315, -149.68345, _ft(1910)),
+        Station("956:AK:SNTL", "Grandview", 60.60832, -149.06313, _ft(1070)),
+        Station("946:AK:SNTL", "Indian Pass", 61.06577, -149.48543, _ft(2400)),
+        Station("2044:AK:SNTL", "Spring Creek", 61.65653, -149.12926, _ft(590)),
+    ]
+}
+# SNOTEL stations around southwest Colorado: the Elk Mountains, the Sawatch at Monarch and the San Juans (NRCS AWDB,
+# active 2026-11-26): the ones paired
+# with the region's mountains first, then every other within 25 km of one that has reported since before 2022,
+# which the region's water correction is also fitted to. The station list gives every one a data time zone of UTC-8.
+SWCOLORADO_STATIONS = {
+    s.triplet: s
+    for s in [
+        Station("380:CO:SNTL", "Butte", 38.89435, -106.95327, _ft(10190)),
+        Station("701:CO:SNTL", "Porphyry Creek", 38.48864, -106.33967, _ft(10790)),
+        Station("1344:CO:SNTL", "Alta Lakes", 37.88929, -107.84484, _ft(11290)),
+        Station("713:CO:SNTL", "Red Mountain Pass", 37.89168, -107.71389, _ft(11060)),
+        Station("387:CO:SNTL", "Cascade #2", 37.65751, -107.80287, _ft(8990)),
+        Station("874:CO:SNTL", "Wolf Creek Summit", 37.47903, -106.80234, _ft(10930)),
+        Station("780:CO:SNTL", "Spud Mountain", 37.69883, -107.77841, _ft(10660)),
+        Station("669:CO:SNTL", "North Lost Trail", 39.07818, -107.14388, _ft(9190)),
+        Station("327:CO:SNTL", "Beartown", 37.71433, -107.51240, _ft(11580)),
+        Station("1101:CO:SNTL", "Chapman Tunnel", 39.26210, -106.62944, _ft(10090)),
+        Station("465:CO:SNTL", "El Diente Peak", 37.78607, -108.02235, _ft(10210)),
+        Station("1058:CO:SNTL", "Grayback", 37.47051, -106.53790, _ft(11620)),
+        Station("538:CO:SNTL", "Idarado", 37.93389, -107.67620, _ft(9780)),
+        Station("542:CO:SNTL", "Independence Pass", 39.07543, -106.61154, _ft(10570)),
+        Station("556:CO:SNTL", "Kiln", 39.31720, -106.61501, _ft(9610)),
+        Station("580:CO:SNTL", "Lily Pond", 37.38028, -106.54823, _ft(11070)),
+        Station("586:CO:SNTL", "Lizard Head Pass", 37.79895, -107.92475, _ft(10190)),
+        Station("618:CO:SNTL", "Mc Clure Pass", 39.12899, -107.28834, _ft(8760)),
+        Station("629:CO:SNTL", "Mineral Creek", 37.84737, -107.72657, _ft(10030)),
+        Station("632:CO:SNTL", "Molas Lake", 37.74929, -107.68933, _ft(10610)),
+        Station("658:CO:SNTL", "Nast Lake", 39.29695, -106.60786, _ft(8710)),
+        Station("1100:CO:SNTL", "Saint Elmo", 38.69985, -106.36805, _ft(10420)),
+        Station("1128:CO:SNTL", "Sargents Mesa", 38.28560, -106.37085, _ft(11490)),
+        Station("737:CO:SNTL", "Schofield Pass", 39.01467, -107.04933, _ft(10640)),
+        Station("739:CO:SNTL", "Scotch Creek", 37.64562, -108.00833, _ft(9160)),
+        Station("797:CO:SNTL", "Stump Lakes", 37.47647, -107.63348, _ft(11230)),
+        Station("840:CO:SNTL", "Upper San Juan", 37.48563, -106.83528, _ft(10140)),
+        Station("1141:CO:SNTL", "Upper Taylor", 38.99071, -106.74504, _ft(10710)),
+    ]
+}
 ALL_STATIONS = {**STATIONS, **MAMMOTH_STATIONS, **NEWENGLAND_STATIONS, **SEATTLE_STATIONS, **TETONS_STATIONS,
-                **WASATCH_STATIONS, **COLORADO_STATIONS, **SHASTA_STATIONS, **CANADA_STATIONS}
+                **WASATCH_STATIONS, **COLORADO_STATIONS, **SHASTA_STATIONS, **CANADA_STATIONS, **MONTANA_STATIONS,
+                **SUNVALLEY_STATIONS, **OREGON_STATIONS, **NEWMEXICO_STATIONS, **ALASKA_STATIONS, **SWCOLORADO_STATIONS}
 
 # Resort elevations from OpenSkiMap statistics (ODbL), Mammoth and June from the resorts' published figures;
 # resort coordinates are mid-mountain. For backcountry spots the summit is the peak and the base is the usual
@@ -398,7 +549,8 @@ ALL_RESORTS = {
                region="mammoth", kind="backcountry"),
         Resort("whitney", "Mt. Whitney", 36.5786, -118.2922, 2548, 4421, None, "Backcountry",
                region="mammoth", kind="backcountry"),
-        # New England has no snow sensors, so none of these has a station (Tuckerman's, below, is shown only). Elevations are from each resort's own
+        # New England has no snow sensors, so none of these has a station (Tuckerman's, below, is shown only).
+        # Elevations are from each resort's own
         # mountain-stats page where it could be read, and otherwise from the secondary source the research names
         # (Sunday River, Stratton's base and Crotched). Each point is the midpoint of the mountain's main lift in
         # OpenStreetMap, checked against the USGS elevation service (looked up 2026-11-23). Three rulings: Sugarbush
@@ -773,6 +925,127 @@ ALL_RESORTS = {
                region="rockies", kind="backcountry"),
         Resort("parkerridge", "Parker Ridge", 52.186, -117.10894, 2020, 2350, None, "Backcountry",
                region="rockies", kind="backcountry"),
+        # ---- The third collector's regions (see COLLECTOR): the USA's regions added once the first
+        # collector's plan was
+        # full. Each point is the midpoint of the mountain's main lift in OpenStreetMap (a point on the skied slope
+        # for a backcountry spot), checked against the USGS elevation service; bases and summits are the resorts'
+        # published figures, or the USGS height at the lift's end where the two disagree; passes are for 2026-27 from
+        # search results of the passes' lists, which could not be opened directly (looked up 2026-11-26).
+        # Southwest Montana: Big Sky and the Gallatin, Bridger, Little Belt and Beartooth ranges.
+        Resort("bigsky", "Big Sky", 45.27922, -111.41698, _ft(6800), _ft(11166), "590:MT:SNTL", "Ikon",
+               region="montana"),
+        Resort("bridger", "Bridger Bowl", 45.81606, -110.91982, _ft(6100), _ft(8700), "929:MT:SNTL", "Independent",
+               region="montana"),
+        Resort("showdown", "Showdown", 46.83705, -110.70830, _ft(6800), _ft(8200), "781:MT:SNTL", "Indy",
+               region="montana"),
+        Resort("blackmore", "Mt. Blackmore", 45.44675, -110.98957, _ft(6725), _ft(10156), "754:MT:SNTL", "Backcountry",
+               region="montana", kind="backcountry"),
+        Resort("beehive", "Beehive Basin", 45.34399, -111.39733, _ft(7926), _ft(10742), "590:MT:SNTL", "Backcountry",
+               region="montana", kind="backcountry", weather_from="bigsky"),
+        Resort("lulupass", "Lulu Pass", 45.06200, -109.95000, _ft(7590), _ft(10308), "480:MT:SNTL", "Backcountry",
+               region="montana", kind="backcountry"),
+        # Sun Valley, the Soldier Mountains and the Sawtooths.
+        Resort("sunvalley", "Sun Valley", 43.67186, -114.40345, _ft(5750), _ft(9150), None, "Ikon",
+               region="sunvalley"),
+        Resort("dollar", "Dollar Mountain", 43.68628, -114.34653, _ft(5943), _ft(6582), None, "Ikon",
+               region="sunvalley", weather_from="sunvalley"),
+        Resort("soldier", "Soldier Mountain", 43.48434, -114.83576, _ft(5798), _ft(7177), "769:ID:SNTL", "Indy",
+               region="sunvalley"),
+        Resort("galena", "Galena Summit", 43.85200, -114.71200, _ft(8706), _ft(10112), "490:ID:SNTL", "Backcountry",
+               region="sunvalley", kind="backcountry"),
+        Resort("banner", "Banner Summit", 44.32750, -115.20610, _ft(7050), _ft(8976), "312:ID:SNTL", "Backcountry",
+               region="sunvalley", kind="backcountry"),
+        Resort("williams", "Williams Peak", 44.15290, -114.98760, _ft(6400), _ft(10635), None, "Backcountry",
+               region="sunvalley", kind="backcountry"),
+        # Oregon's Cascades, Mt. Hood to Willamette Pass.
+        Resort("hoodmeadows", "Mt. Hood Meadows", 45.33849, -121.66854, _ft(4523), _ft(7300), "651:OR:SNTL", "Indy",
+               region="oregon"),
+        Resort("timberline", "Timberline", 45.32425, -121.71875, _ft(4850), _ft(7000), "651:OR:SNTL", "Independent",
+               region="oregon"),
+        Resort("skibowl", "Mt. Hood Skibowl", 45.29648, -121.77463, _ft(3600), _ft(5027), "655:OR:SNTL", "Independent",
+               region="oregon"),
+        Resort("cooperspur", "Cooper Spur", 45.41067, -121.60668, _ft(3931), _ft(4265), "712:OR:SNTL", "Indy",
+               region="oregon"),
+        Resort("hoodoo", "Hoodoo", 44.40548, -121.87731, _ft(4668), _ft(5703), "526:OR:SNTL", "Indy",
+               region="oregon"),
+        Resort("bachelor", "Mt. Bachelor", 43.99621, -121.68242, _ft(5700), _ft(9065), None, "Ikon",
+               region="oregon"),
+        Resort("willamettepass", "Willamette Pass", 43.60369, -122.02757, _ft(5120), _ft(6683), "388:OR:SNTL",
+               "Independent",
+               region="oregon"),
+        Resort("hoodsouth", "Mt. Hood", 45.36000, -121.70450, _ft(5884), _ft(11243), "651:OR:SNTL", "Backcountry",
+               region="oregon", kind="backcountry", weak_match=True),
+        Resort("tillyjane", "Tilly Jane", 45.39150, -121.65500, _ft(3899), _ft(8489), "651:OR:SNTL", "Backcountry",
+               region="oregon", kind="backcountry"),
+        Resort("tumalo", "Tumalo Mountain", 44.00350, -121.64800, _ft(6349), _ft(7779), None, "Backcountry",
+               region="oregon", kind="backcountry", weather_from="bachelor"),
+        Resort("southsister", "South Sister", 44.08500, -121.76700, _ft(5453), _ft(10354), None, "Backcountry",
+               region="oregon", kind="backcountry"),
+        # Northern New Mexico: the Sangre de Cristo and Jemez mountains.
+        Resort("taos", "Taos Ski Valley", 36.58925, -105.45102, _ft(9350), _ft(12481), "1168:NM:SNTL", "Ikon",
+               region="newmexico"),
+        Resort("redriver", "Red River", 36.70140, -105.40923, _ft(8645), _ft(10275), "715:NM:SNTL", "Independent",
+               region="newmexico"),
+        Resort("angelfire", "Angel Fire", 36.38130, -105.25470, _ft(8554), _ft(10677), "1170:NM:SNTL", "Independent",
+               region="newmexico"),
+        Resort("sipapu", "Sipapu", 36.15059, -105.55122, _ft(8200), _ft(9255), "1083:NM:SNTL", "Independent",
+               region="newmexico"),
+        Resort("skisantafe", "Ski Santa Fe", 35.79074, -105.79884, _ft(10350), _ft(12075), "922:NM:SNTL", "Independent",
+               region="newmexico"),
+        Resort("pajarito", "Pajarito", 35.89118, -106.39400, _ft(9000), _ft(10440), "708:NM:SNTL", "Independent",
+               region="newmexico"),
+        Resort("wheelerpeak", "Wheeler Peak", 36.55700, -105.42350, _ft(10217), _ft(13159), "1168:NM:SNTL",
+               "Backcountry",
+               region="newmexico", kind="backcountry", weather_from="taos"),
+        Resort("goldhill", "Gold Hill", 36.62250, -105.44900, _ft(9468), _ft(12703), "1168:NM:SNTL", "Backcountry",
+               region="newmexico", kind="backcountry", weather_from="taos"),
+        Resort("lakepeak", "Lake Peak", 35.79850, -105.77450, _ft(10271), _ft(12372), "922:NM:SNTL", "Backcountry",
+               region="newmexico", kind="backcountry"),
+        # Southcentral Alaska: Girdwood, Turnagain Pass, Summit Lake, Anchorage and Hatcher Pass.
+        Resort("alyeska", "Alyeska", 60.96596, -149.08792, _ft(250), _ft(2750), "1103:AK:SNTL", "Ikon",
+               region="alaska"),
+        Resort("arcticvalley", "Arctic Valley", 61.24805, -149.51985, _ft(2500), _ft(3900), None, "Indy",
+               region="alaska"),
+        Resort("skeetawk", "Skeetawk", 61.74265, -149.23781, _ft(1450), _ft(1750), "641:AK:SNTL", "Indy",
+               region="alaska"),
+        Resort("tincan", "Tincan", 60.78805, -149.16976, _ft(1043), _ft(3810), "954:AK:SNTL", "Backcountry",
+               region="alaska", kind="backcountry"),
+        Resort("sunburst", "Sunburst", 60.75880, -149.19400, _ft(810), _ft(3780), "954:AK:SNTL", "Backcountry",
+               region="alaska", kind="backcountry", weather_from="tincan"),
+        Resort("manitoba", "Manitoba Mountain", 60.68400, -149.43300, _ft(1285), _ft(3668), "955:AK:SNTL",
+               "Backcountry",
+               region="alaska", kind="backcountry", weak_match=True),
+        Resort("hatcherpass", "Hatcher Pass", 61.77312, -149.25781, _ft(2700), _ft(4694), "1091:AK:SNTL", "Backcountry",
+               region="alaska", kind="backcountry"),
+        # Southwest Colorado: the Elk Mountains, the Sawatch at Monarch and the San Juans.
+        Resort("aspen", "Aspen Mountain", 39.16887, -106.81882, _ft(7945), _ft(11212), None, "Ikon",
+               region="swcolorado"),
+        Resort("highlands", "Aspen Highlands", 39.16983, -106.86064, _ft(8040), _ft(11574), None, "Ikon",
+               region="swcolorado", weather_from="aspen"),
+        Resort("buttermilk", "Buttermilk", 39.19401, -106.86787, _ft(7870), _ft(9900), None, "Ikon",
+               region="swcolorado", weather_from="aspen"),
+        Resort("snowmass", "Snowmass", 39.19799, -106.96113, _ft(8104), _ft(12510), None, "Ikon",
+               region="swcolorado"),
+        Resort("crestedbutte", "Crested Butte", 38.89317, -106.95461, _ft(9375), _ft(11879), "380:CO:SNTL", "Epic",
+               region="swcolorado"),
+        Resort("monarch", "Monarch", 38.50790, -106.33519, _ft(10790), _ft(11804), "701:CO:SNTL", "Independent",
+               region="swcolorado"),
+        Resort("telluride", "Telluride", 37.93005, -107.83809, _ft(8725), _ft(12515), "1344:CO:SNTL", "Epic",
+               region="swcolorado"),
+        Resort("silverton", "Silverton", 37.88062, -107.65989, _ft(10400), _ft(12072), "713:CO:SNTL", "Independent",
+               region="swcolorado"),
+        Resort("purgatory", "Purgatory", 37.62329, -107.82267, _ft(8793), _ft(10822), "387:CO:SNTL", "Independent",
+               region="swcolorado"),
+        Resort("wolfcreek", "Wolf Creek", 37.46726, -106.79799, _ft(10300), _ft(11763), "874:CO:SNTL", "Independent",
+               region="swcolorado"),
+        Resort("redmountainpass", "Red Mountain Pass", 37.90050, -107.69800, _ft(11018), _ft(12890), "713:CO:SNTL",
+               "Backcountry",
+               region="swcolorado", kind="backcountry"),
+        Resort("coalbankpass", "Coal Bank Pass", 37.69950, -107.79500, _ft(10640), _ft(12968), "780:CO:SNTL",
+               "Backcountry",
+               region="swcolorado", kind="backcountry", weak_match=True),
+        Resort("marble", "Marble", 39.04500, -107.18900, _ft(7984), _ft(11314), "669:CO:SNTL", "Backcountry",
+               region="swcolorado", kind="backcountry"),
     ]
 }
 
@@ -825,11 +1098,33 @@ ALL_REGIONS = {
         # Nakiska's base, the lowest, is at 1,525 m, above the lowest level every pull already reads.
         Region("rockies", "Canadian Rockies", "America/Edmonton", 7, 8, (), at=(5, 13, 21),
                collector="canada", country="Canada"),
+        # ---- The third collector's: the USA's regions added once the first collector's plan was full. Built at the
+        # West's hours on each region's own clock. Every state's SNOTEL stations but Alaska's keep the Pacific
+        # standard clock, so the sensor offset is 8; Alaska's keep Alaska standard time, 9.
+        # The lowest ground is Bridger Bowl's base at 1,859 m, well above 850 hPa: no lower levels are read.
+        Region("montana", "Montana", "America/Denver", 8, 8, ("GNFAC",), at=(5, 13, 21), collector="west"),
+        # Ketchum keeps Mountain time. The lowest ground is Sun Valley's River Run base at 1,753 m.
+        Region("sunvalley", "Sun Valley", "America/Boise", 8, 8, ("SNFAC",), at=(5, 13, 21), collector="west"),
+        # Mt. Hood is the Northwest Avalanche Center's (the Cascades' center, named there already) and the central
+        # Cascades the Central Oregon Avalanche Center's, "COAA" on avalanche.org. Skibowl's base is at 1,097 m and
+        # Tilly Jane's trailhead at 1,188 m, under 850 hPa, so 900 hPa (near 990 m) is read.
+        Region("oregon", "Oregon", "America/Los_Angeles", 8, 8, ("NWAC", "COAA"), low_levels=(900,), at=(5, 13, 21),
+               collector="west"),
+        # The lowest ground is Sipapu's base at 2,499 m: no lower levels are read.
+        Region("newmexico", "New Mexico", "America/Denver", 8, 8, ("TAC",), at=(5, 13, 21), collector="west"),
+        # Alyeska's tram starts at 76 m and Turnagain Pass's lots are near 300 m: every level down to 1000 hPa is
+        # read, as in New England.
+        Region("alaska", "Alaska", "America/Anchorage", 9, 8, ("CNFAIC", "HPAC"),
+               low_levels=(1000, 975, 950, 925, 900), at=(5, 13, 21), collector="west"),
+        # Colorado's clocks and center. The lowest ground is Buttermilk's base at 2,399 m: no lower levels are read.
+        Region("swcolorado", "Southwest Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21),
+               collector="west"),
     ]
 }
 
 # Which collector this process is. Each collector is a workflow of its own (snow-collect.yml is "main",
-# snow-collect-canada.yml is "canada", snow-collect-west.yml is "west"): it builds only its own regions, publishes them on a data branch of its own
+# snow-collect-canada.yml is "canada", snow-collect-west.yml is "west"): it builds only its own regions, publishes
+# them on a data branch of its own
 # with its own index, and keeps its own ledger of calls. Everything that walks REGIONS or RESORTS therefore sees one
 # collector's share; ALL_REGIONS and ALL_RESORTS are every region and mountain there is.
 COLLECTOR = os.environ.get("SNOW_COLLECTOR", "main")
@@ -886,3 +1181,19 @@ BCCOAST_BBOX = (49.3, 50.9, -125.8, -122.1)
 POWDERHIGHWAY_BBOX = (49.0, 51.7, -118.5, -116.6)
 EASTKOOTENAYS_BBOX = (49.0, 51.3, -117.3, -114.8)
 ROCKIES_BBOX = (50.9, 53.0, -118.7, -115.0)
+# Around southwest Montana: Big Sky and the Gallatin, Bridger, Little Belt and Beartooth ranges: its mountains and the
+# sensors its correction is fitted to.
+MONTANA_BBOX = (44.86, 47.08, -111.63, -109.71)
+# Around Sun Valley, the Soldier Mountains and the Sawtooths: its mountains and the sensors its correction is fitted to.
+SUNVALLEY_BBOX = (43.33, 44.48, -115.43, -113.96)
+# Around Oregon's Cascades, Mt. Hood to Willamette Pass: its mountains and the sensors its correction is fitted to.
+OREGON_BBOX = (43.3, 45.77, -122.41, -121.41)
+# Around northern New Mexico: the Sangre de Cristo and Jemez mountains: its mountains and the sensors its correction
+# is fitted to.
+NEWMEXICO_BBOX = (35.56, 36.94, -106.75, -105.0)
+# Around Southcentral Alaska: Girdwood, Turnagain Pass, Summit Lake, Anchorage and Hatcher Pass: its mountains and the
+# sensors its correction is fitted to.
+ALASKA_BBOX = (60.46, 61.94, -149.88, -148.86)
+# Around southwest Colorado: the Elk Mountains, the Sawatch at Monarch and the San Juans: its mountains and the
+# sensors its correction is fitted to.
+SWCOLORADO_BBOX = (37.23, 39.47, -108.22, -106.14)
