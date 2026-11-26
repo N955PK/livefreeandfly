@@ -1740,7 +1740,15 @@ const REGIONS = {
   tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897, pick: "palisades",
     lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
     avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/", state: "CA"}]},
-  mammoth: {name: "Central & Eastern Sierra", short: "Sierra", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.34, -118.84], rev: "?v=3", discKm: 115, look: [37.72, -119.02], waterM: 1945, zoom: 0.62, turnDeg: 72, pick: "mammoth",
+  mammoth: {name: "Central & Eastern Sierra", short: "Sierra", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.537, -119.173], rev: "?v=4", waterM: 1945, pick: "mammoth",
+    // Since the Sierra's west slope joined the region (2026-11-26) the disc is 154 km in radius, a kilometre inside
+    // the terrain's shorter side: Bear Valley in the north-west and Mt. Whitney in the south-east are each 132 km
+    // from its middle. The Mammoth pill opens the view the region used to open on.
+    discKm: 154, zoom: 3.1, turnDeg: 0,
+    areas: [{key: "passes", name: "Sonora & Ebbetts", short: "Passes", mountains: ["ebbettspass", "sonorapass"]},
+      {key: "westslope", name: "West Slope", mountains: ["bearvalley", "dodgeridge", "badgerpass", "chinapeak"]},
+      {key: "mammoth", name: "Mammoth", mountains: ["matterhorn", "danaplateau", "june", "carsonpeak", "mammoth", "sherwins"]},
+      {key: "whitney", name: "Whitney", mountains: ["whitney"]}],
     lake: {name: "Mono Lake", lat: 38.01, lon: -119.01}, chainFeeds: [CALTRANS(9)], closureFeeds: [CALTRANS_CLOSURES(9)],
     // East of the crest the low ground is sagebrush, not forest.
     land: [[1300, [0.72, 0.66, 0.48]], [2000, [0.62, 0.60, 0.42]], [2350, [0.36, 0.44, 0.30]], [2800, [0.27, 0.40, 0.30]],
@@ -1823,8 +1831,8 @@ const REGIONS = {
     // The disc is a kilometre inside the terrain's shorter side (175.75 km), so its edge is the circle's own.
     discKm: 87, zoom: 1.7, turnDeg: 0,
     areas: [{key: "steamboat", name: "Steamboat", mountains: ["steamboat"]},
-      {key: "winterpark", name: "Winter Park", mountains: ["winterpark", "berthoud"]},
-      {key: "summit", name: "Summit", mountains: ["loveland", "lovelandpass", "abasin", "keystone", "copper", "breckenridge"]},
+      {key: "winterpark", name: "Winter Park", mountains: ["eldora", "winterpark", "berthoud"]},
+      {key: "summit", name: "Summit", mountains: ["loveland", "lovelandpass", "abasin", "keystone", "copper", "breckenridge", "skicooper"]},
       {key: "vail", name: "Vail", mountains: ["vail", "beavercreek", "vailpass"]}],
     // Sagebrush in the low valleys, forest to treeline near 3,500 m, then tundra and rock.
     land: [[1700, [0.66, 0.63, 0.46]], [2300, [0.58, 0.58, 0.42]], [2600, [0.33, 0.43, 0.29]], [3300, [0.26, 0.39, 0.29]],
@@ -1921,13 +1929,15 @@ const REGIONS = {
     lake: {name: "Turnagain Arm", lat: 60.96, lon: -149.6},
     avalanche: [{id: "CNFAIC", name: "Chugach National Forest Avalanche Center", url: "https://www.cnfaic.org/", state: "AK"},
       {id: "HPAC", name: "Hatcher Pass Avalanche Center", url: "https://hpavalanche.org/", state: "AK"}]},
-  swcolorado: {name: "Southwest Colorado", short: "SW Colorado", terrain: "data/terrain-swcolorado", roads: "data/roads-swcolorado.json", center: [38.316, -107.123], pick: "aspen",
+  swcolorado: {name: "Southwest Colorado", short: "SW Colorado", terrain: "data/terrain-swcolorado", roads: "data/roads-swcolorado.json", center: [38.41, -107.202], rev: "?v=2", pick: "aspen",
     // Aspen in the north and Wolf Creek in the south-east are each about 100 km from the middle. The lowest ground
     // is near 1,400 m, on the Colorado River at the box's north-west corner. Blue Mesa and the other reservoirs
     // are level ground above that, drawn as water the way Tahoe's lake is.
     waterM: 1350, floorM: 1350, lowlandM: 1350, plainStateRoutes: true,
-    discKm: 123, zoom: 2.5, turnDeg: 0,
-    areas: [{key: "elks", name: "Elk Mountains", short: "Elks", mountains: ["snowmass", "buttermilk", "highlands", "aspen", "marble", "crestedbutte"]},
+    // Rebuilt wider when Sunlight and Powderhorn joined (2026-11-26).
+    discKm: 133, zoom: 2.7, turnDeg: 0,
+    areas: [{key: "north", name: "Glenwood & Grand Mesa", short: "Glenwood", mountains: ["sunlight", "powderhorn"]},
+      {key: "elks", name: "Elk Mountains", short: "Elks", mountains: ["snowmass", "buttermilk", "highlands", "aspen", "marble", "crestedbutte"]},
       {key: "monarch", name: "Monarch", mountains: ["monarch"]},
       {key: "sanjuans", name: "San Juans", mountains: ["telluride", "redmountainpass", "silverton", "coalbankpass", "purgatory", "wolfcreek"]}],
     // Sagebrush in the low valleys, forest to treeline near 3,500 m, then tundra and rock.
@@ -2175,14 +2185,17 @@ const REGIONS = {
       [2200, [0.55, 0.53, 0.48]], [2600, [0.72, 0.70, 0.67]]],
     lake: {name: "Okanagan Lake", lat: 49.95, lon: -119.5},
     avalanche: [{id: "AVCAN", name: "Avalanche Canada", url: "https://avalanche.ca/", state: "CAN", source: "avcan", near: [-119.055, 50.364]}]},
-  bccoast: {name: "BC Coast", country: "Canada", terrain: "data/terrain-bccoast", roads: "data/roads-bccoast.json", center: [50.06, -123.88], pick: "cypress",
+  bccoast: {name: "BC Coast", country: "Canada", terrain: "data/terrain-bccoast", roads: "data/roads-bccoast.json", center: [49.41, -123.101], rev: "?v=2", pick: "cypress",
     // Mt. Washington on Vancouver Island in the west and Duffey Lake in the north-east are each about 107 km from
     // the middle: the disc is 131 km in radius, a kilometre inside the terrain's shorter side (264.04 km), so its
     // edge is the circle's own. The land reaches the sea, so no ground is raised to a floor, and level ground at
     // any height is water.
     waterM: 0, floorM: 0, lowlandM: 0,
-    discKm: 131, zoom: 2.7, turnDeg: 0,
+    // Rebuilt wider when Manning Park and Sasquatch joined (2026-11-26): Mt. Washington and Manning Park are each
+    // 163 km from the middle.
+    discKm: 186, zoom: 3.7, turnDeg: 0,
     areas: [{key: "vancouver", name: "Vancouver", mountains: ["cypress", "grouse", "seymour"]},
+      {key: "fraser", name: "Fraser Valley", short: "Fraser", mountains: ["sasquatch", "manning"]},
       {key: "seatosky", name: "Sea to Sky", mountains: ["paulridge", "whistler", "spearhead", "duffey"]},
       {key: "island", name: "Island", mountains: ["mtwashington"]}],
     // Rainforest green to about 1,500 m, then meadow and rock, and the Coast Mountains' glaciers above about
@@ -2190,13 +2203,16 @@ const REGIONS = {
     land: [[0, [0.42, 0.50, 0.32]], [300, [0.26, 0.42, 0.28]], [1000, [0.20, 0.36, 0.25]], [1500, [0.27, 0.40, 0.30]],
       [1850, [0.52, 0.51, 0.46]], [2300, [0.68, 0.68, 0.67]], [2700, [0.86, 0.88, 0.91]]],
     avalanche: [{id: "AVCAN", name: "Avalanche Canada", url: "https://avalanche.ca/", state: "CAN", source: "avcan", near: [-122.95, 50.091]}]},
-  quebec: {name: "Quebec", country: "Canada", terrain: "data/terrain-quebec", roads: "data/roads-quebec.json", center: [46.54, -72.47], pick: "tremblant",
+  quebec: {name: "Quebec", country: "Canada", terrain: "data/terrain-quebec", roads: "data/roads-quebec.json", center: [46.934, -72.025], rev: "?v=2", pick: "tremblant",
     // Tremblant in the west and Le Massif in the north-east are each about 165 km from the middle: the disc is
     // 188 km in radius, a kilometre inside the terrain's shorter side (379.79 km), so its edge is the circle's own.
     // The land reaches the St. Lawrence, so no ground is raised to a floor, and level ground at any height is water.
     waterM: 0, floorM: 0, lowlandM: 0,
-    discKm: 188, zoom: 3.8, turnDeg: 0,
-    areas: [{key: "laurentians", name: "Laurentians", mountains: ["tremblant", "montblanc", "saintsauveur"]},
+    // Rebuilt wider when the Saguenay's two joined (2026-11-26): Tremblant and Le Valinouët are each 209 km from
+    // the middle.
+    discKm: 231, zoom: 4.6, turnDeg: 0,
+    areas: [{key: "saguenay", name: "Saguenay", mountains: ["valinouet", "montedouard"]},
+      {key: "laurentians", name: "Laurentians", mountains: ["tremblant", "montblanc", "saintsauveur"]},
       {key: "townships", name: "Townships", mountains: ["bromont", "sutton", "orford", "owlshead"]},
       {key: "quebeccity", name: "Quebec City", short: "Quebec", mountains: ["stoneham", "montsainteanne", "lemassif"]}],
     // Farmland along the river, forest above it to the few summits near 1,000 m.
@@ -2215,12 +2231,13 @@ const REGIONS = {
       [2300, [0.55, 0.53, 0.48]], [2700, [0.72, 0.71, 0.70]], [3100, [0.86, 0.88, 0.91]]],
     lake: {name: "Kootenay Lake", lat: 49.75, lon: -116.85},
     avalanche: [{id: "AVCAN", name: "Avalanche Canada", url: "https://avalanche.ca/", state: "CAN", source: "avcan", near: [-118.143, 50.96]}]},
-  eastkootenays: {name: "East Kootenays", country: "Canada", terrain: "data/terrain-eastkootenays", roads: "data/roads-eastkootenays.json", center: [50.369, -116.078], pick: "panorama",
+  eastkootenays: {name: "East Kootenays", country: "Canada", terrain: "data/terrain-eastkootenays", roads: "data/roads-eastkootenays.json", center: [50.299, -115.74], rev: "?v=2", pick: "panorama",
     // Kicking Horse in the north and Fernie in the south are each about 124 km from the middle: the disc is 148 km
     // in radius, a kilometre inside the terrain's shorter side (298.08 km), so its edge is the circle's own. The
     // lowest ground is 396 m; level ground above 380 m is water (Kootenay Lake, Lake Koocanusa, Columbia Lake).
     waterM: 0, floorM: 0, lowlandM: 380,
-    discKm: 148, zoom: 3.0, turnDeg: 0,
+    // Rebuilt wider when Castle Mountain joined (2026-11-26).
+    discKm: 167, zoom: 3.3, turnDeg: 0,
     // Cedar and hemlock in the valleys, forest to about 2,100 m, then rock and the icefields above about 2,700 m.
     land: [[0, [0.40, 0.49, 0.31]], [600, [0.27, 0.42, 0.28]], [1400, [0.22, 0.37, 0.26]], [2000, [0.28, 0.40, 0.30]],
       [2300, [0.55, 0.53, 0.48]], [2700, [0.72, 0.71, 0.70]], [3100, [0.86, 0.88, 0.91]]],

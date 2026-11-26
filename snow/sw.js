@@ -4,11 +4,11 @@
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v17';
+const VERSION = 'sierra-snow-v18';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icons/mark-white.svg', 'icons/icon-192.png',
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
-  'data/terrain-mammoth.json?v=3', 'data/terrain-mammoth.bin?v=3', 'data/roads-mammoth.json?v=3',
+  'data/terrain-mammoth.json?v=4', 'data/terrain-mammoth.bin?v=4', 'data/roads-mammoth.json?v=4',
   'data/terrain-newengland.json?v=2', 'data/terrain-newengland.bin?v=2', 'data/roads-newengland.json?v=2',
   'data/terrain-seattle.json?v=2', 'data/terrain-seattle.bin?v=2', 'data/terrain-seattle.water.bin?v=2', 'data/roads-seattle.json?v=2',
   'data/terrain-tetons.json', 'data/terrain-tetons.bin', 'data/terrain-tetons.water.bin', 'data/roads-tetons.json',
@@ -16,17 +16,17 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icon
   'data/terrain-colorado.json', 'data/terrain-colorado.bin', 'data/roads-colorado.json',
   'data/terrain-shasta.json', 'data/terrain-shasta.bin', 'data/roads-shasta.json',
   'data/terrain-okanagan.json', 'data/terrain-okanagan.bin', 'data/roads-okanagan.json',
-  'data/terrain-bccoast.json', 'data/terrain-bccoast.bin', 'data/roads-bccoast.json',
-  'data/terrain-quebec.json', 'data/terrain-quebec.bin', 'data/roads-quebec.json',
+  'data/terrain-bccoast.json?v=2', 'data/terrain-bccoast.bin?v=2', 'data/roads-bccoast.json?v=2',
+  'data/terrain-quebec.json?v=2', 'data/terrain-quebec.bin?v=2', 'data/roads-quebec.json?v=2',
   'data/terrain-powderhighway.json', 'data/terrain-powderhighway.bin', 'data/roads-powderhighway.json',
-  'data/terrain-eastkootenays.json', 'data/terrain-eastkootenays.bin', 'data/roads-eastkootenays.json',
+  'data/terrain-eastkootenays.json?v=2', 'data/terrain-eastkootenays.bin?v=2', 'data/roads-eastkootenays.json?v=2',
   'data/terrain-rockies.json', 'data/terrain-rockies.bin', 'data/roads-rockies.json',
   'data/terrain-montana.json', 'data/terrain-montana.bin', 'data/roads-montana.json',
   'data/terrain-sunvalley.json', 'data/terrain-sunvalley.bin', 'data/roads-sunvalley.json',
   'data/terrain-oregon.json', 'data/terrain-oregon.bin', 'data/roads-oregon.json',
   'data/terrain-newmexico.json', 'data/terrain-newmexico.bin', 'data/roads-newmexico.json',
   'data/terrain-alaska.json', 'data/terrain-alaska.bin', 'data/roads-alaska.json',
-  'data/terrain-swcolorado.json', 'data/terrain-swcolorado.bin', 'data/roads-swcolorado.json',
+  'data/terrain-swcolorado.json?v=2', 'data/terrain-swcolorado.bin?v=2', 'data/roads-swcolorado.json?v=2',
   'data/terrain-westidaho.json', 'data/terrain-westidaho.bin', 'data/roads-westidaho.json',
   'data/terrain-wyoming.json', 'data/terrain-wyoming.bin', 'data/roads-wyoming.json',
   'data/terrain-southutah.json', 'data/terrain-southutah.bin', 'data/roads-southutah.json',

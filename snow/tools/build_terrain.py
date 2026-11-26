@@ -34,7 +34,10 @@ ZOOM = 10
 # Box (south, north, west, east), a ceiling just above the highest real peak inside it, and the grid's width
 # (about 0.39 km a cell in both). Mammoth's box runs from Matterhorn Peak to Mt. Whitney.
 REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "columns": 420},
-           "mammoth": {"box": (36.22, 38.46, -120.24, -117.44), "max_m": 4450, "columns": 640},
+           # A 314 km square around the circle, 157 km in radius about 37.537 N 119.173 W, that holds
+           # Bear Valley in the north-west and Mt. Whitney in the south-east (each 132 km from its
+           # middle) with 25 km to spare, since the Sierra's west slope joined the region (2026-11-26).
+           "mammoth": {"box": (36.128, 38.945, -120.949, -117.396), "max_m": 4450, "columns": 640},
            # Taller than the 2.24 degrees the guide advises: Sugarloaf to Mount Snow. Mount Washington is 1,917 m.
            "newengland": {"box": (42.28, 45.73, -74.015, -69.215), "max_m": 1950, "columns": 640},
            # A 355 km square around the circle holding Mt. Baker to Mt. Adams and Hurricane Ridge to Mission Ridge.
@@ -69,11 +72,18 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # A 264 km square around the circle, 132 km in radius about 50.06 N 123.88 W, that holds Mt. Washington
            # on Vancouver Island and the Duffey (each 107 km from its middle) with 25 km to spare. Wedge Mountain is
            # 2,892 m. The Strait of Georgia and Howe Sound are sea level, clipped to 0 and drawn as level ground.
-           "bccoast": {"box": (48.866, 51.254, -125.729, -122.031), "max_m": 3000, "columns": 640},
+           # A 377 km square around the circle, 188 km in radius about 49.41 N 123.101 W, that holds Mt.
+           # Washington on Vancouver Island and Manning Park in the Cascades (each 163 km from its
+           # middle) with 25 km to spare, since Manning Park and Sasquatch joined the region
+           # (2026-11-26). Mt. Baker, now inside the box, is 3,286 m.
+           "bccoast": {"box": (47.717, 51.102, -125.703, -120.5), "max_m": 3350, "columns": 640},
            # A 380 km square around the circle, 190 km in radius about 46.54 N 72.47 W, that holds Tremblant in the
            # west and Le Massif in the east (each 165 km from its middle) with 25 km to spare: New England's size.
            # Nothing in it passes 1,200 m. The St. Lawrence is tidal below Québec and near sea level above it.
-           "quebec": {"box": (44.822, 48.258, -74.95, -69.99), "max_m": 1350, "columns": 640},
+           # A 469 km square around the circle, 234 km in radius about 46.934 N 72.025 W, that holds
+           # Tremblant in the west and Le Valinouët in the north (each 209 km from its middle) with 25
+           # km to spare, since the Saguenay's two joined the region (2026-11-26).
+           "quebec": {"box": (44.828, 49.04, -75.109, -68.94), "max_m": 1350, "columns": 640},
            # A 302 km square around the circle, 151 km in radius about 50.181 N 117.321 W, that holds Rogers Pass in
            # the north and Kootenay Pass in the south (each about 126 km from its middle) with 25 km to spare. Mt.
            # Dawson is 3,377 m.
@@ -81,7 +91,10 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # A 298 km square around the circle, 149 km in radius about 50.369 N 116.078 W, that holds Kicking Horse
            # in the north and Fernie in the south (each about 124 km from its middle) with 25 km to spare. Mt.
            # Assiniboine is 3,618 m.
-           "eastkootenays": {"box": (49.021, 51.717, -118.177, -113.979), "max_m": 3700, "columns": 640},
+           # A 339 km square around the circle, 170 km in radius about 50.299 N 115.74 W, that holds
+           # Kicking Horse in the north and Castle Mountain in the south-east (each 145 km from its
+           # middle) with 25 km to spare, since Castle Mountain joined the region (2026-11-26).
+           "eastkootenays": {"box": (48.777, 51.822, -118.123, -113.356), "max_m": 3700, "columns": 640},
            # A 340 km square around the circle, 170 km in radius about 51.874 N 116.632 W, that holds Marmot Basin
            # in the north-west and Nakiska in the south-east (each about 145 km from its middle) with 25 km to
            # spare. Mt. Columbia is 3,747 m.
@@ -105,7 +118,10 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            "alaska": {"box": (60.458, 62.004, -150.951, -147.739), "max_m": 4050, "columns": 441},
            # Southwest Colorado: 250 km, 100 km in radius about 38.316 N 107.123 W, Aspen to Wolf Creek. Mt. Elbert
            # is 4,401 m and Uncompahgre Peak 4,365 m. Blue Mesa and the other reservoirs are drawn as level ground.
-           "swcolorado": {"box": (37.193, 39.44, -108.555, -105.691), "max_m": 4420, "columns": 640},
+           # A 271 km square around the circle, 136 km in radius about 38.41 N 107.202 W, that holds
+           # Powderhorn in the north-west and Wolf Creek in the south-east (each 111 km from its middle)
+           # with 25 km to spare, since Sunlight and Powderhorn joined the region (2026-11-26).
+           "swcolorado": {"box": (37.192, 39.628, -108.757, -105.648), "max_m": 4420, "columns": 640},
            # The fourth collector's regions.
            # Western Idaho: a 267 km square around the circle, 134 km in radius about 44.392 N 117.129 W, that holds
            # every mountain (109 km from its middle at the furthest) with 25 km to spare.
