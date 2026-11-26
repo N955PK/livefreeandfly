@@ -52,7 +52,7 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] Short names (`SHORT`, and the region's `short`) where a name is long for a table row (2c). (M)
 - [ ] Lift status, trail counts and the resort's snow report for every resort that publishes them (step 3). (M)
 - [ ] The resort's reported base depth feeds the map where the region has no sensors (`STAKES`) (step 3). (M)
-- [ ] "How the forecast is made" has the region's paragraph, "How it is tested" has its results under each topic,
+- [ ] "How we made the forecast" has the region's paragraph, "How we tested it" has its results under each topic,
       and the Status paragraph says which resorts' lifts are read and which cannot be (2f).
 - [ ] The scorecard has the region's sections (`verify.py`) if anything was fitted (2f).
 - [ ] The page's description (`og:description`) names the region (2f).
@@ -500,10 +500,10 @@ anything you change.
 
 ### 2f. The words
 
-- **How the forecast is made:** a paragraph for the region beside Tahoe's, Eastern Sierra's and the others',
+- **How we made the forecast:** a paragraph for the region beside Tahoe's, Eastern Sierra's and the others',
   saying what is fitted there and what is borrowed from the Sierra, and anything read differently (lower pressure
   levels). The Status paragraph says which of the region's resorts have their lifts read and which cannot be.
-- **How it is tested:** under each topic (snow ratio, rain or snow, water), a heading for the region with its
+- **How we tested it:** under each topic (snow ratio, rain or snow, water), a heading for the region with its
   held-out results, or one line under "What is not tested yet" if nothing was fitted. Say what was tried and did
   not win; do not recount errors that were made and fixed along the way.
 - **`og:description`** in the page's head names the region.
