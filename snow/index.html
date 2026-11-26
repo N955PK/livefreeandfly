@@ -666,6 +666,7 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
 #favSheet,#favSheet *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* A favorite in a region's own list carries a small star after its name. */
+.cls{display:inline-block;font-style:normal;font-weight:700;font-size:.62em;line-height:1;padding:2px 3px;margin-left:4px;border:1px solid currentColor;border-radius:3px;vertical-align:.3em;opacity:.65;font-variant-numeric:tabular-nums}
 .heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
 .heat.lifting tr[data-key]{transform:translate3d(0,0,0);transition:transform .15s ease-out}
 .heat.lifting tr.lifted{position:relative;z-index:2;transition:none;filter:drop-shadow(0 6px 10px rgba(15,23,32,.22))}
@@ -2649,7 +2650,7 @@ function renderHeat() {
    for (const r of list) {
     const el = r.elevations[elevation], byDate = Object.fromEntries(el.days.map((d) => [d.date, d]));
     const total = lastThreeDays(r, el);
-    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${region !== FAVORITES && isFavorite(r.key) ? '<em role="img" aria-label="Favorite">★</em>' : ""}</b><span>${height(el.elevation_ft)}${region === FAVORITES ? ` · ${esc(REGIONS[regionOf(r)].short || REGIONS[regionOf(r)].name)}` : ""}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
+    html += `<tr class="${selected === r.key ? "on" : ""}" data-key="${r.key}"><td class="name" title="${esc(r.name)}"><b>${esc(SHORT[r.key] || r.name)}${classicTag(r.key)}${region !== FAVORITES && isFavorite(r.key) ? '<em role="img" aria-label="Favorite">★</em>' : ""}</b><span>${height(el.elevation_ft)}${region === FAVORITES ? ` · ${esc(REGIONS[regionOf(r)].short || REGIONS[regionOf(r)].name)}` : ""}${r.kind === "backcountry" ? `<span data-avy="${r.key}" data-form="mini"></span>` : ""}</span></td>
       <td class="total">${inches(total)} ${LEN()}</td>`;
     // Each box is a little gauge: it fills from the bottom as the day's snow goes from 0 to 24 inches, in the
     // color of the snow type. The day is the same 24 hours to 4 pm as the ski-day rows.
@@ -4065,7 +4066,7 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
+  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}${classicTag(resort.key)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
       <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
@@ -4159,6 +4160,12 @@ const TAB_ORDER = ["map", "forecast", "mountain", "avalanche"];
 // (the chooser that opens from it still lists every name in full), and a long pass name is abbreviated.
 const HEAD_SHORT = {"Mammoth Mountain": "Mammoth", "June Mountain": "June", "Matterhorn Peak": "Matterhorn", "Sherwin Ridge": "Sherwins", "Mountain Collective": "Mtn Collective"};
 const headName = (name) => HEAD_SHORT[name] || name;
+// The fifty classic ski descents of North America (the 2010 book's list), numbered 1 to 50 in the order the lists
+// of them run: Alaska, Canada, the Pacific Northwest, California and Nevada, Idaho and Montana, Wyoming, Utah,
+// Colorado, New Hampshire. The book itself was not seen, so the order inside each part is the lists', not checked
+// against its pages. A mountain that holds two lines carries both numbers.
+const CLASSICS = {denali: [[1, "Messner Couloir"]], universitypeak: [[2, "South Face"]], stelias: [[3, "Mira Face"]], pontoon: [[4, "Southeast Ridge"]], sphinx: [[5, "Southeast Ridge"]], meteorite: [[6, "The Ramp"]], robson: [[7, "North Face"]], aemmer: [[8, "Aemmer Couloir"]], mtcolumbia: [[9, "Southeast Face"]], skyladder: [[10, "Skyladder"]], combatant: [[11, "Combatant Couloir"]], mtcurrie: [[12, "Pencil and Central Couloirs"]], joffre: [[13, "Northwest Face"]], comstock: [[14, "Comstock Couloir"]], sevensteps: [[15, "Seven Steps to Paradise"]], rogerspass: [[16, "Rogers / Swiss Peaks Uber Tour"], [19, "Rogers Pass to Bugaboos Traverse"]], polarstar: [[17, "Polar Star Couloir"]], spearhead: [[18, "Spearhead Traverse"]], shuksan: [[20, "Northwest Couloir"]], eldorado: [[21, "Eldorado Glacier"]], newtonclark: [[22, "Newton-Clark Headwall"]], mtbaker: [[23, "Watson's Traverse"]], rainier: [[24, "Fuhrer Finger"]], terminalcancer: [[25, "Terminal Cancer Couloir"]], giantsteps: [[26, "Giant Steps Couloir"]], splitcouloir: [[27, "Split Couloir"]], bloodycouloir: [[28, "Bloody Couloir"]], shasta: [[29, "Avalanche Gulch"]], whitney: [[30, "Mountaineer's Route"]], sickle: [[31, "The Sickle"]], devilsbedstead: [[32, "North Face"]], castlepeakid: [[33, "South Face"]], mcgown: [[34, "North Couloir"]], stimson: [[35, "Southwest Face"]], patriarch: [[36, "The Patriarch"]], grandteton: [[37, "Ford-Stettner Couloirs"]], skillet: [[38, "The Skillet"]], middleteton: [[39, "East Face Glacier Route"]], hypodermicneedle: [[40, "Hypodermic Needle"]], coldfusion: [[41, "Cold Fusion Couloir"]], tukuhnikivatz: [[42, "Mount Tukuhnikivatz"]], superior: [[43, "South Face"]], landryline: [[44, "Landry Line"]], northmaroon: [[45, "North Face"]], crosscouloir: [[46, "Cross Couloir"]], wilsonpeak: [[47, "Northeast Face"]], silvercouloir: [[48, "Silver Couloir"]], tuckerman: [[49, "Tuckerman Ravine"], [50, "Huntington Ravine"]]};
+const classicTag = (key) => !CLASSICS[key] ? "" : `<i class="cls" role="img" aria-label="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}, ${line}`).join("; "))}" title="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}: ${line}`).join(" · "))}">${CLASSICS[key].map(([n]) => n).join("·")}</i>`;
 const PANES = {map: () => $("mapPanel"), forecast: () => document.querySelector(".panel.summary"), mountain: () => $("detail"), avalanche: () => $("avalanche")};
 let pager = null;
 const paneTop = {};
@@ -5709,20 +5716,16 @@ function paragraphs(html) {
 function renderAvalanche() { drawAvalanche(); fillJump("avyJump", $("avalanche")); }
 function drawAvalanche() {
   const at = place(), state = avy[at], home = REGIONS[at].avalanche[0];
-  if (!home) {
-    const top = '<div class="ahead"><div><h2>Avalanche danger</h2></div></div>';
-    $("avalanche").innerHTML = `${tabbed() ? `<div class="dtop">${top}</div>` : top}<p class="anotice">No avalanche center forecasts this area.</p>`;
-    avyShown = selected;
-    return;
-  }
-  const main = state && state.zones.find((z) => z.center === home);
+  // Where no center forecasts (home is undefined) the pane says so, and its title is still the zone picker, so
+  // another area's forecast is one choice away.
+  const main = home && state && state.zones.find((z) => z.center === home);
   // Every zone the app's regions cover, region by region in the region menu's order, without repeats where two
   // regions share a center.
   const seen = new Set(), byRegion = [...new Set([...regionKeys(), ...regionsByName()])]
     .map((key) => ((avy[key] && avy[key].zones.length ? avy[key].zones : avyElsewhere[key]) || [])
       .filter((z) => !seen.has(zoneKey(z)) && seen.add(zoneKey(z))));
   const all = byRegion.flat();
-  if (state && state.loaded && !avyAsked.has("elsewhere")) {
+  if ((!home || (state && state.loaded)) && !avyAsked.has("elsewhere")) {
     avyAsked.add("elsewhere");
     Promise.all(Object.keys(REGIONS).filter((key) => key !== at && !(avy[key] && avy[key].zones.length)).map(async (key) => { avyElsewhere[key] = await zonesFrom(REGIONS[key].avalanche); })).then(renderAvalanche);
   }
@@ -5757,7 +5760,13 @@ function drawAvalanche() {
   const areaOf = (z) => avyAreaOf(z) || "Other";
   const areas = [...AVY_AREAS, "Other"].filter((area) => listed.some((z) => areaOf(z) === area));
   const option = (z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`;
-  const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(ZONE_SHORT[zone.name] || zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${areas.map((area) => `<optgroup label="${esc(area)}">${listed.filter((z) => areaOf(z) === area).sort((a, b) => midLat(b) - midLat(a)).map(option).join("")}</optgroup>`).join("")}</select></label>`;
+  const nowhere = !home && !zone;
+  const title = !zone && !(nowhere && listed.length) ? "Avalanche danger" : `<label class="mtnpick">${nowhere ? "No forecast here" : esc(ZONE_SHORT[zone.name] || zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${nowhere ? '<option value="" selected disabled>No forecast here</option>' : ""}${areas.map((area) => `<optgroup label="${esc(area)}">${listed.filter((z) => areaOf(z) === area).sort((a, b) => midLat(b) - midLat(a)).map(option).join("")}</optgroup>`).join("")}</select></label>`;
+  if (nowhere) {
+    const top = `<div class="ahead"><div><h2>${title}</h2></div></div>`;
+    $("avalanche").innerHTML = `${tabbed() ? `<div class="dtop">${top}</div>` : top}<p class="anotice">No avalanche center forecasts this area.${listed.length ? " Choose a zone from the title to read another area's forecast." : ""}</p>`;
+    return;
+  }
   const clock = (iso) => new Date(iso).toLocaleString("en-US", clockOpts({timeZone: tz, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}));
   // In tabs the heading reads like the Mountain tab's: the zone under the title, then who issued it and when.
   // A time more than six days away (an off-season forecast from the spring) also gives its date, so it is not read as this week's.
