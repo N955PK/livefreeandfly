@@ -98,7 +98,10 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # A 340 km square around the circle, 170 km in radius about 51.874 N 116.632 W, that holds Marmot Basin
            # in the north-west and Nakiska in the south-east (each about 145 km from its middle) with 25 km to
            # spare. Mt. Columbia is 3,747 m.
-           "rockies": {"box": (50.345, 53.403, -119.105, -114.159), "max_m": 4000, "columns": 640},
+           # Rebuilt 2026-11-26 for the classic descents: a 414 km square around the circle, 207 km in radius
+           # about 52.084 N 117.059 W, that holds Mt. Robson in the north-west and Nakiska in the south-east
+           # (each 182 km from its middle) with 25 km to spare. Mt. Robson is 3,954 m.
+           "rockies": {"box": (50.223, 53.946, -120.088, -114.030), "max_m": 4000, "columns": 720},
            # The third collector's regions. Each is a square around the circle that holds every mountain with
            # 25 km to spare. Montana: 259 km, 104 km in radius about 45.931 N 110.462 W, Showdown in the north to
            # Lulu Pass in the south-east; Granite Peak in the Beartooths is 3,904 m.
@@ -146,7 +149,10 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            "juneau": {"box": (57.861, 58.67, -135.279, -133.742), "max_m": 2700, "columns": 231},
            # Valdez: a 90 km square around the circle, 45 km in radius about 61.160 N 145.726 W, that holds
            # every mountain (3 km from its middle at the furthest) with 25 km to spare.
-           "valdez": {"box": (60.756, 61.564, -146.564, -144.888), "max_m": 3600, "columns": 231},
+           # Rebuilt 2026-11-26 for the classic descents: a 118 km square around the circle, 59 km in radius
+           # about 60.919 N 145.420 W, that holds The Sphinx in the south and Girls Mountain in the north (each
+           # 34 km from its middle) with 25 km to spare.
+           "valdez": {"box": (60.389, 61.449, -146.511, -144.328), "max_m": 3600, "columns": 302},
            # Inland Northwest: a 218 km square around the circle, 109 km in radius about 47.873 N 116.632 W, that holds
            # every mountain (84 km from its middle at the furthest) with 25 km to spare.
            "inlandnw": {"box": (46.894, 48.852, -118.091, -115.173), "max_m": 2750, "columns": 559},

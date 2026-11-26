@@ -22,7 +22,8 @@ def km(a, b) -> float:
 
 
 def test_the_five_eastern_regions_are_the_fifth_collectors():
-    assert {key for key, region in ALL_REGIONS.items() if region.collector == "east"} == set(EAST)
+    # The Tetons and Quebec are the fifth collector's too, moved from the first and second on 2026-11-26.
+    assert {key for key, region in ALL_REGIONS.items() if region.collector == "east"} == set(EAST) | {"tetons", "quebec"}
     for key, count in EAST.items():
         region = ALL_REGIONS[key]
         # Built twice a day at New England's hours, on the region's own clock.
@@ -70,6 +71,6 @@ def test_the_fifth_collector_sees_its_regions_and_plans_only_them():
             "sum(usage.pulls(r) for r in config.REGIONS), round(usage.planned()))")
     out = subprocess.run([sys.executable, "-c", code], env={**os.environ, "SNOW_COLLECTOR": "east"}, text=True,
                          capture_output=True, check=True).stdout.strip()
-    assert out.startswith(f"east {sorted(EAST)} 33 31 ")
-    # 31 pulls twice a day; four of the five regions read five lower levels.
-    assert 3700 < int(out.rsplit(" ", 1)[1]) < 4300
+    assert out.startswith(f"east {sorted([*EAST, 'quebec', 'tetons'])} 53 49 ")
+    # 42 pulls twice a day and the Tetons' seven three times; five of the seven regions read five lower levels.
+    assert 6200 < int(out.rsplit(" ", 1)[1]) < 6800

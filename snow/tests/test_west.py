@@ -10,14 +10,15 @@ from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, MODELS
 from tahoe_snow.snow import observations, phase, ratio, train
 from tahoe_snow.sources import omfiles_s3
 
-WEST = {"montana": 6, "sunvalley": 6, "oregon": 11, "newmexico": 9, "alaska": 7, "swcolorado": 15}
+WEST = {"montana": 7, "sunvalley": 10, "oregon": 12, "newmexico": 9, "alaska": 7, "swcolorado": 18}
 # Where each region's mountains lie: south, north, west, east.
-BOXES = {"montana": (44.9, 46.9, -111.5, -109.9), "sunvalley": (43.4, 44.4, -115.3, -114.3),
+BOXES = {"montana": (44.9, 46.9, -111.5, -109.8), "sunvalley": (43.4, 44.4, -115.3, -114.1),
          "oregon": (43.5, 45.5, -122.1, -121.5), "newmexico": (35.7, 36.8, -106.5, -105.2),
          "alaska": (60.6, 61.8, -149.6, -149.0), "swcolorado": (37.4, 39.4, -108.2, -106.3)}
 SHARED = {"abasin": "keystone", "lovelandpass": "loveland", "vailpass": "copper", "berthoud": "winterpark",
           "beehive": "bigsky", "dollar": "sunvalley", "tumalo": "bachelor", "wheelerpeak": "taos", "goldhill": "taos",
-          "sunburst": "tincan", "highlands": "aspen", "buttermilk": "aspen"}
+          "sunburst": "tincan", "highlands": "aspen", "buttermilk": "aspen",
+          "newtonclark": "hoodmeadows", "northmaroon": "landryline", "sickle": "williams"}
 STATIONS = {"montana": config.MONTANA_STATIONS, "sunvalley": config.SUNVALLEY_STATIONS,
             "oregon": config.OREGON_STATIONS, "newmexico": config.NEWMEXICO_STATIONS,
             "alaska": config.ALASKA_STATIONS, "swcolorado": config.SWCOLORADO_STATIONS}
@@ -36,10 +37,12 @@ def km(a, b) -> float:
 
 def test_the_six_regions_are_the_third_collectors_and_in_the_usa():
     # Colorado is the third collector's too, moved from the first on 2026-11-26 (see test_colorado.py).
-    assert {key for key, region in ALL_REGIONS.items() if region.collector == "west"} == set(WEST) | {"colorado"}
+    assert {key for key, region in ALL_REGIONS.items() if region.collector == "west"} == set(WEST) - {"alaska"} | {"colorado"}
     for key in WEST:
         region = ALL_REGIONS[key]
         assert (region.country, region.at, region.every_h) == ("USA", (5, 13, 21), 8), key
+    # Alaska went on to the fourth collector the same day, when the classic descents filled the third one's plan.
+    assert ALL_REGIONS["alaska"].collector == "north"
     # None of them is the first collector's, whose plan was full.
     assert not set(WEST) & set(config.REGIONS)
 
@@ -101,9 +104,9 @@ def test_the_third_collector_sees_its_six_regions_and_plans_only_them():
             "sum(usage.pulls(r) for r in config.REGIONS), round(usage.planned()))")
     out = subprocess.run([sys.executable, "-c", code], env={**os.environ, "SNOW_COLLECTOR": "west"}, text=True,
                          capture_output=True, check=True).stdout.strip()
-    assert out.startswith(f"west {sorted([*WEST, 'colorado'])} 68 56 ")
-    # 56 pulls three times a day, with Oregon's one and Alaska's five lower levels: inside the day's 10,000.
-    assert 8700 < int(out.rsplit(" ", 1)[1]) < 9300
+    assert out.startswith(f"west {sorted(set(WEST) - {'alaska'} | {'colorado'})} 72 58 ")
+    # 58 pulls three times a day, with Oregon's one lower level: inside the day's 10,000.
+    assert 8800 < int(out.rsplit(" ", 1)[1]) < 9400
 
 
 def test_each_region_has_its_own_correction_weights_and_split():
@@ -130,7 +133,8 @@ def test_each_region_has_its_own_correction_weights_and_split():
 
 
 def test_only_the_summit_climb_with_a_low_sensor_is_left_uncorrected():
-    assert [r.key for key in WEST for r in mountains(key) if r.station and not r.corrected] == ["hoodsouth"]
+    assert [r.key for key in WEST for r in mountains(key) if r.station and not r.corrected] == [
+        "devilsbedstead", "hoodsouth", "newtonclark"]
 
 
 def test_three_regions_have_their_own_snow_ratio_and_three_keep_the_sierras():

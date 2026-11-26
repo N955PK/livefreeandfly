@@ -64,15 +64,14 @@ def test_the_most_overdue_region_is_due_first(tmp_path, stubbed):
     for key in config.REGIONS:
         pipeline.run(key, NOW)
     # NOW is 4 am Pacific, 5 am Mountain and 7 am Eastern. The West's next build hour, and Shasta's, is 5 am Pacific, an hour on;
-    # the Tetons' and the Wasatch's is 1 pm Mountain, eight hours on; New England's is 4 pm Eastern, nine hours on.
+    # the Wasatch's is 1 pm Mountain, eight hours on; New England's is 4 pm Eastern, nine hours on.
     assert pipeline.due(NOW + timedelta(minutes=59)) is None
     assert pipeline.due(NOW + timedelta(hours=1, minutes=1)) in ("tahoe", "mammoth", "seattle", "shasta")
     for key in ("tahoe", "mammoth", "seattle", "shasta"):
         pipeline.run(key, NOW + timedelta(hours=1, minutes=1))
     assert pipeline.due(NOW + timedelta(hours=7, minutes=59)) is None           # nothing until noon Pacific
-    assert pipeline.due(NOW + timedelta(hours=8, minutes=1)) in ("tetons", "wasatch")   # 1 pm Mountain
-    for key in ("tetons", "wasatch"):
-        pipeline.run(key, NOW + timedelta(hours=8, minutes=1))
+    assert pipeline.due(NOW + timedelta(hours=8, minutes=1)) == "wasatch"   # 1 pm Mountain
+    pipeline.run("wasatch", NOW + timedelta(hours=8, minutes=1))
     assert pipeline.due(NOW + timedelta(hours=8, minutes=59)) is None           # nothing until 1 pm Pacific
     assert pipeline.due(NOW + timedelta(hours=9, minutes=1)) in config.REGIONS  # 1 pm Pacific and 4 pm Eastern
     pipeline.run("newengland", NOW + timedelta(hours=9, minutes=1))

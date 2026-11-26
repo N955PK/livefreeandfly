@@ -9,7 +9,7 @@ from tahoe_snow.sources import omfiles_s3
 
 def test_the_colorado_mountains_are_where_they_should_be():
     found = [r for r in ALL_RESORTS.values() if r.region == "colorado"]
-    assert len(found) == 14
+    assert len(found) == 16
     for r in found:
         assert r.base_m < r.summit_m, r.key
         # Ski Cooper in the south to Steamboat in the north, Beaver Creek in the west to Eldora in the east.
@@ -17,11 +17,12 @@ def test_the_colorado_mountains_are_where_they_should_be():
         assert r.station is None or r.station in config.COLORADO_STATIONS, r.key
         # Every base is far above the 850 hPa level, so the region reads no lower ones.
         assert r.base_m > 2000, r.key
-    assert {r.key for r in found if r.kind == "backcountry"} == {"berthoud", "lovelandpass", "vailpass"}
+    assert {r.key for r in found if r.kind == "backcountry"} == {"berthoud", "lovelandpass", "vailpass", "crosscouloir",
+                                                              "silvercouloir"}
     assert all(r.pass_group == "Backcountry" for r in found if r.kind == "backcountry")
     # Breckenridge's only sensor within reach is across the Tenmile Range, and the Lake Eldora sensor is not one
     # the region's correction was fitted to.
-    assert [r.key for r in found if r.station is None] == ["breckenridge", "eldora"]
+    assert [r.key for r in found if r.station is None] == ["breckenridge", "eldora", "crosscouloir", "silvercouloir"]
     assert config.levels_for("colorado") == config.PRESSURE_LEVELS
 
 
@@ -29,11 +30,11 @@ def test_eight_of_the_twelve_ask_for_weather():
     found = [r for r in ALL_RESORTS.values() if r.region == "colorado"]
     assert {r.key for r in found if r.weather_from is None} == {
         "vail", "beavercreek", "breckenridge", "keystone", "loveland", "copper", "winterpark", "steamboat",
-        "eldora", "skicooper"}
+        "eldora", "skicooper", "crosscouloir", "silvercouloir"}
     # Colorado is built by the third collector, so the first's plan no longer counts it.
     assert ALL_REGIONS["colorado"].collector == "west" and "colorado" not in config.REGIONS
     assert round(usage.planned({"colorado": ALL_REGIONS["colorado"]}, {r.key: r for r in found})) == round(
-        10 * 3 * usage.CALLS_PER_RESORT_RUN)
+        12 * 3 * usage.CALLS_PER_RESORT_RUN)
 
 
 def test_colorado_is_built_at_the_tetons_hours_and_reads_its_sensors_on_the_pacific_clock():

@@ -14,7 +14,8 @@ SHARED = {"pico": "killington", "tuckerman": "wildcat", "mountsnow": "stratton",
           "bromley": "stratton", "magic": "stratton", "cannon": "loon", "waterville": "loon",
           "cranmore": "attitash", "blackmountain": "attitash",
           "snowbird": "alta", "superior": "alta", "cardiff": "alta", "solitude": "brighton",
-          "deervalley": "parkcity", "timpanogos": "sundance"}
+          "deervalley": "parkcity", "timpanogos": "sundance",
+          "hypodermicneedle": "alta", "shuksan": "bakerskiarea"}
 
 
 def km(a, b) -> float:
@@ -99,4 +100,4 @@ def test_a_shared_mountain_costs_no_calls():
     assert usage.pulls("newengland") == len(config.resorts_in("newengland")) - 13 == 16
     assert round(usage.planned(newengland)) == round(16 * 2 * usage.resort_run_calls("newengland"))
     assert usage.estimate([], "newengland") == round(16 * usage.resort_run_calls("newengland"), 1)
-    assert (usage.pulls("tahoe"), usage.pulls("mammoth"), usage.pulls("seattle")) == (9, 11, 12)
+    assert (usage.pulls("tahoe"), usage.pulls("mammoth"), usage.pulls("seattle")) == (9, 14, 13)

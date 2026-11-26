@@ -1437,6 +1437,79 @@ ALL_RESORTS = {
                region="quebec"),
         Resort("valinouet", "Le Valinouët", 48.65017, -70.88923, 440, 789, None, "Independent",
                region="quebec"),
+        # ---- The fifty classic ski descents of North America (the list of the 2010 book) that fall inside a region
+        # already here. Each is its own backcountry spot at a point on the line, its base the usual winter start.
+        # Nine more of the fifty are mountains listed above (Whitney, Shasta, Rainier, Baker, Superior, Tuckerman,
+        # the Spearhead and Rogers Pass, where the Uber Tour starts too).
+        Resort("pontoon", "Pontoon Peak", 60.87300, -145.51500, _ft(3641), _ft(6965), None, "Backcountry",
+               region="valdez", kind="backcountry"),
+        Resort("sphinx", "The Sphinx", 60.67000, -145.07030, _ft(4736), _ft(6291), None, "Backcountry",
+               region="valdez", kind="backcountry"),
+        Resort("meteorite", "Meteorite Mountain", 60.98250, -145.96600, _ft(4348), _ft(6565), None, "Backcountry",
+               region="valdez", kind="backcountry"),
+        Resort("robson", "Mt. Robson", 53.12200, -119.15300, 849, 3954, None, "Backcountry",
+               region="rockies", kind="backcountry"),
+        Resort("aemmer", "Aemmer Couloir", 51.35900, -116.19300, 1662, 3545, None, "Backcountry",
+               region="rockies", kind="backcountry"),
+        Resort("mtcolumbia", "Mt. Columbia", 52.14100, -117.42700, 1978, 3741, None, "Backcountry",
+               region="rockies", kind="backcountry"),
+        Resort("skyladder", "Skyladder", 52.18000, -117.23800, 1978, 3450, None, "Backcountry",
+               region="rockies", kind="backcountry"),
+        Resort("mtcurrie", "Mt. Currie", 50.26800, -122.77400, 213, 2591, None, "Backcountry",
+               region="bccoast", kind="backcountry"),
+        Resort("joffre", "Joffre Peak", 50.34700, -122.46200, 1240, 2721, None, "Backcountry",
+               region="bccoast", kind="backcountry", weather_from="duffey"),
+        Resort("comstock", "Comstock Couloir", 51.15444, -117.42605, 1256, 3377, None, "Backcountry",
+               region="powderhighway", kind="backcountry"),
+        Resort("sevensteps", "Seven Steps", 51.21232, -117.45829, 1256, 2815, None, "Backcountry",
+               region="powderhighway", kind="backcountry"),
+        Resort("shuksan", "Mt. Shuksan", 48.83939, -121.60808, _ft(3630), _ft(9134), None, "Backcountry",
+               region="seattle", kind="backcountry", weather_from="bakerskiarea"),
+        Resort("eldorado", "Eldorado Peak", 48.51400, -121.12700, _ft(2154), _ft(8868), None, "Backcountry",
+               region="seattle", kind="backcountry"),
+        Resort("newtonclark", "Newton Clark", 45.36750, -121.68200, _ft(5332), _ft(11250), "651:OR:SNTL", "Backcountry",
+               region="oregon", kind="backcountry", weak_match=True, corrected=False, weather_from="hoodmeadows"),
+        Resort("giantsteps", "Giant Steps", 36.67100, -118.30500, _ft(5886), _ft(14380), None, "Backcountry",
+               region="mammoth", kind="backcountry"),
+        Resort("splitcouloir", "Split Couloir", 37.02350, -118.41000, _ft(6636), _ft(14006), None, "Backcountry",
+               region="mammoth", kind="backcountry"),
+        Resort("bloodycouloir", "Bloody Couloir", 37.56550, -118.90620, _ft(7314), _ft(12549), None, "Backcountry",
+               region="mammoth", kind="backcountry"),
+        Resort("sickle", "The Sickle", 44.11550, -114.99800, _ft(6568), _ft(10470), None, "Backcountry",
+               region="sunvalley", kind="backcountry", weather_from="williams"),
+        Resort("devilsbedstead", "Devil's Bedstead", 43.80500, -114.15200, _ft(7915), _ft(11865), "792:ID:SNTL",
+               "Backcountry",
+               region="sunvalley", kind="backcountry", weak_match=True, corrected=False),
+        Resort("castlepeakid", "Castle Peak", 44.03200, -114.58700, _ft(6809), _ft(11820), None, "Backcountry",
+               region="sunvalley", kind="backcountry"),
+        Resort("mcgown", "McGown Peak", 44.21800, -115.08100, _ft(6538), _ft(9749), None, "Backcountry",
+               region="sunvalley", kind="backcountry"),
+        Resort("stimson", "Mt. Stimson", 48.49800, -113.63800, _ft(3426), _ft(10141), None, "Backcountry",
+               region="nwmontana", kind="backcountry"),
+        Resort("patriarch", "The Patriarch", 45.15450, -109.84900, _ft(7586), _ft(12343), None, "Backcountry",
+               region="montana", kind="backcountry"),
+        Resort("grandteton", "Grand Teton", 43.73200, -110.79600, _ft(6632), _ft(13776), None, "Backcountry",
+               region="tetons", kind="backcountry"),
+        Resort("skillet", "Skillet Glacier", 43.83630, -110.76300, _ft(6855), _ft(12582), None, "Backcountry",
+               region="tetons", kind="backcountry"),
+        Resort("middleteton", "Middle Teton", 43.73050, -110.80000, _ft(6632), _ft(12805), None, "Backcountry",
+               region="tetons", kind="backcountry", weather_from="grandteton"),
+        Resort("hypodermicneedle", "Hypodermic Needle", 40.54370, -111.72550, _ft(7675), _ft(11155), "766:UT:SNTL",
+               "Backcountry",
+               region="wasatch", kind="backcountry", weather_from="alta"),
+        Resort("coldfusion", "Cold Fusion", 40.42600, -111.67300, _ft(6462), _ft(11441), "820:UT:SNTL", "Backcountry",
+               region="wasatch", kind="backcountry"),
+        Resort("landryline", "Landry Line", 39.07135, -106.93538, _ft(8472), _ft(14025), None, "Backcountry",
+               region="swcolorado", kind="backcountry"),
+        Resort("northmaroon", "North Maroon Peak", 39.08601, -106.97972, _ft(8472), _ft(14020), "737:CO:SNTL",
+               "Backcountry",
+               region="swcolorado", kind="backcountry", weather_from="landryline"),
+        Resort("wilsonpeak", "Wilson Peak", 37.86450, -107.97900, _ft(8952), _ft(14022), "586:CO:SNTL", "Backcountry",
+               region="swcolorado", kind="backcountry", weak_match=True),
+        Resort("crosscouloir", "Cross Couloir", 39.47037, -106.47313, _ft(8109), _ft(14011), None, "Backcountry",
+               region="colorado", kind="backcountry"),
+        Resort("silvercouloir", "Silver Couloir", 39.62405, -106.13635, _ft(9764), _ft(12780), None, "Backcountry",
+               region="colorado", kind="backcountry"),
     ]
 }
 
@@ -1458,7 +1531,7 @@ ALL_REGIONS = {
         # Wyoming's SNOTEL stations keep the Pacific standard clock (see TETONS_STATIONS), so the sensor offset is
         # 8, not Mountain time's 7. The lowest ground is Snow King's base at 1,901 m, well above 850 hPa: no lower
         # levels are read.
-        Region("tetons", "Tetons", "America/Denver", 8, 8, ("BTAC",), at=(5, 13, 21)),
+        Region("tetons", "Tetons", "America/Denver", 8, 8, ("BTAC",), at=(5, 13, 21), collector="east"),
         # The Tetons' hours and clocks: Utah's SNOTEL stations keep the Pacific standard clock too (see
         # WASATCH_STATIONS). The lowest ground is Sundance's base at 1,859 m: no lower levels are read.
         Region("wasatch", "Wasatch", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21)),
@@ -1475,12 +1548,12 @@ ALL_REGIONS = {
         Region("okanagan", "Okanagan", "America/Vancouver", 8, 8, (), low_levels=(900,), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # Whistler's Creekside base is at 653 m, which 950 hPa (near 540 m) covers.
-        Region("bccoast", "BC Coast", "America/Vancouver", 8, 8, (), low_levels=(950, 925, 900), at=(5, 13, 21),
+        Region("bccoast", "BC Coast", "America/Vancouver", 8, 8, (), low_levels=(1000, 975, 950, 925, 900), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # Like New England, every lift-served metre is below 850 hPa (Le Massif's gondola starts at 36 m), and it is
         # built at New England's hours on the same clock.
         Region("quebec", "Quebec", "America/Toronto", 5, 12, (), low_levels=(1000, 975, 950, 925, 900), at=(4, 16),
-               collector="canada", country="Canada"),
+               collector="east", country="Canada"),
         # Revelstoke's base is at 512 m, just under the 950 hPa level, so 975 hPa (near 320 m) is read too.
         Region("powderhighway", "Powder Highway", "America/Vancouver", 8, 8, (), low_levels=(975, 950, 925, 900),
                at=(5, 13, 21), collector="canada", country="Canada"),
@@ -1488,7 +1561,7 @@ ALL_REGIONS = {
         Region("eastkootenays", "East Kootenays", "America/Edmonton", 7, 8, (), low_levels=(900,), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # Nakiska's base, the lowest, is at 1,525 m, above the lowest level every pull already reads.
-        Region("rockies", "Canadian Rockies", "America/Edmonton", 7, 8, (), at=(5, 13, 21),
+        Region("rockies", "Canadian Rockies", "America/Edmonton", 7, 8, (), low_levels=(925, 900), at=(5, 13, 21),
                collector="canada", country="Canada"),
         # ---- The third collector's: the USA's regions added once the first collector's plan was full. Built at the
         # West's hours on each region's own clock. Every state's SNOTEL stations but Alaska's keep the Pacific
@@ -1507,7 +1580,7 @@ ALL_REGIONS = {
         # Alyeska's tram starts at 76 m and Turnagain Pass's lots are near 300 m: every level down to 1000 hPa is
         # read, as in New England.
         Region("alaska", "Alaska", "America/Anchorage", 9, 8, ("CNFAIC", "HPAC"),
-               low_levels=(1000, 975, 950, 925, 900), at=(5, 13, 21), collector="west"),
+               low_levels=(1000, 975, 950, 925, 900), at=(5, 13, 21), collector="north"),
         # Colorado's clocks and center. The lowest ground is Buttermilk's base at 2,399 m: no lower levels are read.
         Region("swcolorado", "Southwest Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21),
                collector="west"),
@@ -1672,7 +1745,7 @@ MORE_BBOX = {
     "lasvegas": (36.1, 36.47, -115.9, -115.43),
     "socal": (34.07, 34.52, -117.89, -116.66),
     "juneau": (58.11, 58.42, -134.73, -134.29),
-    "valdez": (60.99, 61.34, -145.95, -145.45),
+    "valdez": (60.52, 61.33, -146.17, -144.87),
     "inlandnw": (47.28, 48.52, -117.77, -115.5),
     "nwmontana": (45.52, 48.64, -114.57, -112.93),
     "newyork": (41.98, 44.5, -78.88, -73.53),

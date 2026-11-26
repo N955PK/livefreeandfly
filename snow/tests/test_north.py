@@ -10,7 +10,7 @@ from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, FIT_BOXES,
 from tahoe_snow.snow import observations, phase, train
 
 NORTH = {'westidaho': 6, 'wyoming': 7, 'southutah': 3, 'arizona': 3, 'lasvegas': 1, 'socal': 5, 'juneau': 3, 'valdez':
-         2, 'inlandnw': 6, 'nwmontana': 7}
+         5, 'inlandnw': 6, 'nwmontana': 8}
 SHARED = {"delano": "eaglepoint", "humphreys": "azsnowbowl", "snowsummit": "bearmountain", "mttroy": "eaglecrest",
           "benstewart": "eaglecrest", "girlsmountain": "thompsonpass", "stevenspeak": "lookoutpass"}
 
@@ -25,7 +25,8 @@ def km(a, b) -> float:
 
 
 def test_the_ten_regions_are_the_fourth_collectors_and_in_the_usa():
-    assert {key for key, region in ALL_REGIONS.items() if region.collector == "north"} == set(NORTH)
+    # Alaska is the fourth collector's too, moved from the third on 2026-11-26 (see test_west.py).
+    assert {key for key, region in ALL_REGIONS.items() if region.collector == "north"} == set(NORTH) | {"alaska"}
     for key, count in NORTH.items():
         region = ALL_REGIONS[key]
         assert (region.country, region.at, region.every_h) == ("USA", (5, 13, 21), 8), key
@@ -74,7 +75,7 @@ def test_the_regions_with_sensors_are_wired_for_fitting():
         assert box == f"{key}box" and block[0] <= MORE_BBOX[key][0] and block[1] >= MORE_BBOX[key][1]
     # Southern California and Juneau have no sensors, and Valdez's one corrects nothing.
     assert not {"socal", "juneau", "valdez"} & set(FIT_BOXES)
-    assert [r.key for r in mountains("valdez") if r.corrected] == []
+    assert [r.key for r in mountains("valdez") if r.station and r.corrected] == []
 
 
 def test_the_fourth_collector_sees_its_regions_and_plans_only_them():
@@ -83,8 +84,8 @@ def test_the_fourth_collector_sees_its_regions_and_plans_only_them():
             "sum(usage.pulls(r) for r in config.REGIONS), round(usage.planned()))")
     out = subprocess.run([sys.executable, "-c", code], env={**os.environ, "SNOW_COLLECTOR": "north"}, text=True,
                          capture_output=True, check=True).stdout.strip()
-    assert out.startswith(f"north {sorted(NORTH)} 43 36 ")
-    assert 5400 < int(out.rsplit(" ", 1)[1]) < 6100
+    assert out.startswith(f"north {sorted([*NORTH, 'alaska'])} 54 46 ")
+    assert 7300 < int(out.rsplit(" ", 1)[1]) < 7900
 
 
 def test_each_fitted_region_has_its_correction_weights_and_split_and_two_have_their_own_ratio():

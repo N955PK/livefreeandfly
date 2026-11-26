@@ -92,9 +92,9 @@ calls:
 |---|---|---|---|---|
 | `main` | `snow-collect.yml` | the USA's | `snow-data` | `snow/data/` |
 | `canada` | `snow-collect-canada.yml` | Canada's (`collector="canada", country="Canada"`) | `snow-data-canada` | `snow/data/canada/` |
-| `west` | `snow-collect-west.yml` | the USA's added once the first's plan was full (`collector="west"`): Montana, Sun Valley, Oregon, New Mexico, Alaska, Southwest Colorado | `snow-data-west` | `snow/data/west/` |
-| `north` | `snow-collect-north.yml` | the USA's western regions added after the third's plan filled (`collector="north"`): the Inland Northwest, Northwest Montana, Western Idaho, Wyoming, Southern Utah, Arizona, Las Vegas, Southern California, Juneau, Valdez | `snow-data-north` | `snow/data/north/` |
-| `east` | `snow-collect-east.yml` | the East and Midwest outside New England (`collector="east"`), built twice a day: New York, the Mid-Atlantic, Lake Superior, Michigan, the Black Hills | `snow-data-east` | `snow/data/east/` |
+| `west` | `snow-collect-west.yml` | the USA's added once the first's plan was full (`collector="west"`): Montana, Sun Valley, Oregon, New Mexico, Southwest Colorado, and Colorado | `snow-data-west` | `snow/data/west/` |
+| `north` | `snow-collect-north.yml` | the USA's western regions added after the third's plan filled (`collector="north"`): the Inland Northwest, Northwest Montana, Western Idaho, Wyoming, Southern Utah, Arizona, Las Vegas, Southern California, Alaska, Juneau, Valdez | `snow-data-north` | `snow/data/north/` |
+| `east` | `snow-collect-east.yml` | the East and Midwest outside New England (`collector="east"`), built twice a day: New York, the Mid-Atlantic, Lake Superior, Michigan, the Black Hills, and since the classic descents filled the first two plans the Tetons (three times a day) and Quebec | `snow-data-east` | `snow/data/east/` |
 
 A region's `collector` decides who builds it: under `SNOW_COLLECTOR=canada` the code's `REGIONS` and `RESORTS` are
 Canada's alone (`ALL_REGIONS` and `ALL_RESORTS` are everything), so `due`, the index, the ledger and
@@ -298,6 +298,9 @@ pass, and they are kept differently from the first sixteen:
 - Colorado moved from the first collector to the third to make room for the Sierra's west slope, which joined the
   Eastern Sierra's region, now the Central Sierras. Moving a region is its `collector` alone: restart the
   collector that gains it first, so its file is published before the old one drops it from its index.
+- The fifty classic ski descents (the 2010 book's list) were added as backcountry spots on 2026-11-26, each at a
+  point on its line. They pushed three plans past 10,000 calls a day, so the Tetons and Quebec moved to the fifth
+  collector and Alaska to the fourth. The Valdez and Rockies maps were rebuilt wider for The Sphinx and Mt. Robson.
 - Mountains added to a region whose correction is already fitted take a station only where it is one the fit used;
   otherwise they have none until the fit is run again (Eldora, Powderhorn and the Sierra's west slope).
 - A map whose new mountains fall outside its disc is rebuilt around the new circle and given a `rev`, with a pill

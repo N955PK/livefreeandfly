@@ -14,9 +14,9 @@ def test_the_configured_regions_fit_the_daily_allowance():
 
 def test_the_home_regions_cost_what_the_ledger_measured():
     # 21 mountains cost 1,089 calls a run when each asked for its own weather; 14 of them ask now, and the six
-    # added on the Sierra's west slope each ask too: 20 pulls, 3 runs a day
+    # added on the Sierra's west slope and the three classic descents each ask too: 23 pulls, 3 runs a day
     home = {key: config.REGIONS[key] for key in ("tahoe", "mammoth")}
-    assert round(usage.planned(home)) == round(20 * 3 * 51.9)
+    assert round(usage.planned(home)) == round(23 * 3 * 51.9)
 
 
 def test_avalanche_centers_come_from_the_regions_without_repeats():
@@ -65,14 +65,15 @@ def test_the_new_england_mountains_are_where_they_should_be():
 
 def test_the_seattle_mountains_are_where_they_should_be():
     found = config.resorts_in("seattle")
-    assert len(found) == 13
+    assert len(found) == 15
     for r in found:
         assert r.base_m < r.summit_m, r.key
         # From Mt. Baker in the north to Mt. Adams and Mt. St. Helens in the south, Hurricane Ridge in the west.
         assert 46.1 < r.lat < 48.9 and -123.6 < r.lon < -120.3, r.key
         assert r.station is None or r.station in config.ALL_STATIONS, r.key
     volcanoes = {"rainier", "mtbaker", "glacierpeak", "adams", "sthelens"}
-    assert {r.key for r in found if r.kind == "backcountry"} == volcanoes
+    # Two of the fifty classic descents are in the North Cascades.
+    assert {r.key for r in found if r.kind == "backcountry"} == volcanoes | {"shuksan", "eldorado"}
     assert all(r.pass_group == "Backcountry" for r in found if r.kind == "backcountry")
     # Mid on Mt. Rainier is about Camp Muir, 10,188 ft, the top of the Muir Snowfield.
     assert abs(config.RESORTS["rainier"].mid_m - 3105) < 100

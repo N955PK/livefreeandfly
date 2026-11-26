@@ -1,16 +1,20 @@
-"""The Tetons: five places, their sensors, and the models fitted there instead of the Sierra's."""
+"""The Tetons: eight places, their sensors, and the models fitted there instead of the Sierra's."""
 import json
 
-from tahoe_snow import calibrate, config, pipeline, usage
-from tahoe_snow.config import ALL_STATIONS, MODELS, REGIONS, TETONS_BBOX, TETONS_STATIONS
+from tahoe_snow import biascorrect, calibrate, config, pipeline, usage
+from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, MODELS, TETONS_BBOX, TETONS_STATIONS
 from tahoe_snow.snow import observations, phase, ratio, train
 from tahoe_snow.sources import omfiles_s3
 
 
-def test_the_tetons_are_three_mountains_and_two_passes():
-    places = {r.key: r for r in config.resorts_in("tetons")}
-    assert set(places) == {"jacksonhole", "targhee", "snowking", "tetonpass", "togwotee"}
-    assert {k for k, r in places.items() if r.kind == "backcountry"} == {"tetonpass", "togwotee"}
+def test_the_tetons_are_three_mountains_two_passes_and_three_classic_descents():
+    places = {r.key: r for r in ALL_RESORTS.values() if r.region == "tetons"}
+    classics = {"grandteton", "skillet", "middleteton"}
+    assert set(places) == {"jacksonhole", "targhee", "snowking", "tetonpass", "togwotee"} | classics
+    assert {k for k, r in places.items() if r.kind == "backcountry"} == {"tetonpass", "togwotee"} | classics
+    # No sensor is within reach of the range's own peaks, and the Middle Teton shares the Grand's weather.
+    assert all(places[key].station is None for key in classics)
+    assert places["middleteton"].weather_from == "grandteton"
     for place in places.values():
         assert place.base_m < place.summit_m and place.base_m > 1450, place.key      # all above 850 hPa
     # Snow King has no sensor within reach; Teton Pass's sits below the pass, so it is a low sensor.
@@ -20,8 +24,10 @@ def test_the_tetons_are_three_mountains_and_two_passes():
 
 
 def test_the_tetons_are_built_at_the_wests_hours_on_their_own_clock_and_read_no_low_levels():
-    region = REGIONS["tetons"]
-    assert region.tz == "America/Denver" and region.at == REGIONS["tahoe"].at and region.low_levels == ()
+    region = ALL_REGIONS["tetons"]
+    assert region.tz == "America/Denver" and region.at == ALL_REGIONS["tahoe"].at and region.low_levels == ()
+    # The fifth collector builds them since the classic descents filled the first one's plan.
+    assert region.collector == "east" and "tetons" not in config.REGIONS
     # Wyoming's SNOTEL days are stamped on the Pacific standard clock.
     assert region.std_offset_h == 8
 
@@ -52,7 +58,7 @@ def test_a_box_takes_its_sensors_from_every_state_it_names(monkeypatch):
 
 
 def test_the_tetons_use_their_own_correction_weights_split_and_ratio():
-    correction = pipeline.load_corrections()["tetons"]
+    correction = biascorrect.from_json(json.loads((MODELS / "bias_tetons.json").read_text()))
     for triplet in ("1082:WY:SNTL", "689:WY:SNTL", "822:WY:SNTL"):
         assert correction.fitted(triplet), triplet
     weights = pipeline.load_weights("tetons")
