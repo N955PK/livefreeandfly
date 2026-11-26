@@ -1,0 +1,991 @@
+{
+ "name": "projects/showdown-task/databases/(default)/documents/trailstatus/current",
+ "fields": {
+  "id": {
+   "stringValue": "current"
+  },
+  "liftsTotal": {
+   "integerValue": "4"
+  },
+  "liftsOpen": {
+   "integerValue": "0"
+  },
+  "at": {
+   "integerValue": "1795207920028"
+  },
+  "openCount": {
+   "integerValue": "0"
+  },
+  "groomedCount": {
+   "integerValue": "0"
+  },
+  "total": {
+   "integerValue": "38"
+  },
+  "lifts": {
+   "arrayValue": {
+    "values": [
+     {
+      "mapValue": {
+       "fields": {
+        "id": {
+         "stringValue": "prospector"
+        },
+        "name": {
+         "stringValue": "Prospector"
+        },
+        "vertical": {
+         "stringValue": "1,400 ft"
+        },
+        "travel": {
+         "stringValue": "12.5 min"
+        },
+        "length": {
+         "stringValue": "6,700 ft"
+        },
+        "close": {
+         "stringValue": "3:30 pm"
+        },
+        "open": {
+         "booleanValue": false
+        }
+       }
+      }
+     },
+     {
+      "mapValue": {
+       "fields": {
+        "id": {
+         "stringValue": "payload"
+        },
+        "name": {
+         "stringValue": "Payload"
+        },
+        "vertical": {
+         "stringValue": "1,100 ft"
+        },
+        "travel": {
+         "stringValue": "9 min"
+        },
+        "length": {
+         "stringValue": "4,400 ft"
+        },
+        "close": {
+         "stringValue": "4:00 pm"
+        },
+        "open": {
+         "booleanValue": false
+        }
+       }
+      }
+     },
+     {
+      "mapValue": {
+       "fields": {
+        "id": {
+         "stringValue": "caboose"
+        },
+        "name": {
+         "stringValue": "Caboose"
+        },
+        "vertical": {
+         "stringValue": "650 ft"
+        },
+        "travel": {
+         "stringValue": "7.5 min"
+        },
+        "length": {
+         "stringValue": "3,150 ft"
+        },
+        "close": {
+         "stringValue": "4:00 pm"
+        },
+        "open": {
+         "booleanValue": false
+        }
+       }
+      }
+     },
+     {
+      "mapValue": {
+       "fields": {
+        "id": {
+         "stringValue": "learning-conveyor"
+        },
+        "name": {
+         "stringValue": "Learning Conveyor"
+        },
+        "vertical": {
+         "stringValue": "95 ft"
+        },
+        "travel": {
+         "stringValue": "3.5 min"
+        },
+        "length": {
+         "stringValue": "400 ft"
+        },
+        "close": {
+         "stringValue": "4:00 pm"
+        },
+        "open": {
+         "booleanValue": false
+        }
+       }
+      }
+     }
+    ]
+   }
+  },
+  "areas": {
+   "arrayValue": {
+    "values": [
+     {
+      "mapValue": {
+       "fields": {
+        "name": {
+         "stringValue": "Northside"
+        },
+        "runs": {
+         "arrayValue": {
+          "values": [
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "prentice"
+              },
+              "name": {
+               "stringValue": "Prentice"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "golden-goose"
+              },
+              "name": {
+               "stringValue": "Golden Goose"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "teds-tumble"
+              },
+              "name": {
+               "stringValue": "Teds Tumble"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "yogo"
+              },
+              "name": {
+               "stringValue": "Yogo"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "molly"
+              },
+              "name": {
+               "stringValue": "Molly"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "sourdough-hill"
+              },
+              "name": {
+               "stringValue": "Sourdough Hill"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "quicksilver"
+              },
+              "name": {
+               "stringValue": "Quicksilver"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "sluice-box"
+              },
+              "name": {
+               "stringValue": "Sluice Box"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "meadows"
+              },
+              "name": {
+               "stringValue": "Meadows"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "upper-quick"
+              },
+              "name": {
+               "stringValue": "Upper Quick"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "speculation"
+              },
+              "name": {
+               "stringValue": "Speculation"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "muley"
+              },
+              "name": {
+               "stringValue": "Muley"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "bovey"
+              },
+              "name": {
+               "stringValue": "Bovey"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "poma-line"
+              },
+              "name": {
+               "stringValue": "Poma Line"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           }
+          ]
+         }
+        }
+       }
+      }
+     },
+     {
+      "mapValue": {
+       "fields": {
+        "name": {
+         "stringValue": "Main Face"
+        },
+        "runs": {
+         "arrayValue": {
+          "values": [
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "brown-eyed-queen"
+              },
+              "name": {
+               "stringValue": "Brown Eyed Queen"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "arkansas-traveler"
+              },
+              "name": {
+               "stringValue": "Arkansas Traveler"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "pinski-pass"
+              },
+              "name": {
+               "stringValue": "Pinski Pass"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "hallo"
+              },
+              "name": {
+               "stringValue": "Hallo"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "the-george"
+              },
+              "name": {
+               "stringValue": "The George"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "throck-s-mile"
+              },
+              "name": {
+               "stringValue": "Throck’s Mile"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "ripley"
+              },
+              "name": {
+               "stringValue": "Ripley"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "mizpah"
+              },
+              "name": {
+               "stringValue": "Mizpah"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "ski-bums-way"
+              },
+              "name": {
+               "stringValue": "Ski Bums Way"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           }
+          ]
+         }
+        }
+       }
+      }
+     },
+     {
+      "mapValue": {
+       "fields": {
+        "name": {
+         "stringValue": "Ruby Bowl"
+        },
+        "runs": {
+         "arrayValue": {
+          "values": [
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "cumberland"
+              },
+              "name": {
+               "stringValue": "Cumberland"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "last-chance-gulch"
+              },
+              "name": {
+               "stringValue": "Last Chance Gulch"
+              },
+              "level": {
+               "stringValue": "g"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "kings-ridge"
+              },
+              "name": {
+               "stringValue": "Kings Ridge"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "panhandle"
+              },
+              "name": {
+               "stringValue": "Panhandle"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "second-thought"
+              },
+              "name": {
+               "stringValue": "Second Thought"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "frisco"
+              },
+              "name": {
+               "stringValue": "Frisco"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "ruby-gulch"
+              },
+              "name": {
+               "stringValue": "Ruby Gulch"
+              },
+              "level": {
+               "stringValue": "b"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "ruby"
+              },
+              "name": {
+               "stringValue": "Ruby"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "dynamite"
+              },
+              "name": {
+               "stringValue": "Dynamite"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "gun-barrel"
+              },
+              "name": {
+               "stringValue": "Gun Barrel"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "glory-hole"
+              },
+              "name": {
+               "stringValue": "Glory Hole"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "geronimo"
+              },
+              "name": {
+               "stringValue": "Geronimo"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "good-luck"
+              },
+              "name": {
+               "stringValue": "Good Luck"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "james-bond"
+              },
+              "name": {
+               "stringValue": "James Bond"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           },
+           {
+            "mapValue": {
+             "fields": {
+              "id": {
+               "stringValue": "dicks-ditch"
+              },
+              "name": {
+               "stringValue": "Dicks Ditch"
+              },
+              "level": {
+               "stringValue": "k"
+              },
+              "open": {
+               "booleanValue": false
+              },
+              "groomed": {
+               "booleanValue": false
+              }
+             }
+            }
+           }
+          ]
+         }
+        }
+       }
+      }
+     }
+    ]
+   }
+  }
+ },
+ "createTime": "2026-11-17T13:13:20.240915Z",
+ "updateTime": "2026-11-20T20:52:00.405296Z"
+}

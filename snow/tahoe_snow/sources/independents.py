@@ -28,9 +28,10 @@ from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowm
                                 loveland, lutsen, madriverglen, magic, marmot, monarch, montblanc, montsainteanne,
                                 mountainhigh, mtwashington, nakiska, norquay, orford, owlshead, pajarito, panorama,
                                 powdermountain, purgatory, redmountain, redriver, revelstoke, saddleback, saintsauveur,
-                                seymour, shastaskipark, silverstar, sipapu, skibowl, skisantafe, smugglers, snowbasin,
-                                snowbird, stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos,
-                                targhee, telluride, timberline, waterville, whitefish, whitewater, willamettepass)
+                                seymour, shastaskipark, showdown, silverstar, sipapu, skibowl, skisantafe, smugglers,
+                                snowbasin, snowbird, stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton,
+                                tamarack, taos, targhee, telluride, timberline, waterville, whitefish, whitewater,
+                                willamettepass)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -63,7 +64,7 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "boynemountain": boynemountain, "boynehighlands": boynehighlands, "eldora": eldora,
            "brianhead": brianhead, "azsnowbowl": azsnowbowl, "leecanyon": leecanyon,
            "whitefish": whitefish, "bogusbasin": bogusbasin, "brundage": brundage, "tamarack": tamarack,
-           "lutsen": lutsen, "mountainhigh": mountainhigh}
+           "lutsen": lutsen, "mountainhigh": mountainhigh, "showdown": showdown}
 # Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
 GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.

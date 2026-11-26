@@ -1,0 +1,79 @@
+{
+ "name": "projects/showdown-task/databases/(default)/documents/snowreport/current",
+ "fields": {
+  "base": {
+   "stringValue": "5"
+  },
+  "open": {
+   "booleanValue": false
+  },
+  "trailsOpen": {
+   "stringValue": "0"
+  },
+  "date": {
+   "stringValue": "2026-11-25"
+  },
+  "liftsOpen": {
+   "stringValue": "0"
+  },
+  "overnight": {
+   "stringValue": "0"
+  },
+  "ytd": {
+   "stringValue": "42"
+  },
+  "liftsTotal": {
+   "stringValue": "4"
+  },
+  "forecastAuto": {
+   "stringValue": "Mostly cloudy. High near 32, with temperatures falling to around 26 in the afternoon. Southwest wind around 7 mph."
+  },
+  "forecastName": {
+   "stringValue": "Today"
+  },
+  "closer": {
+   "stringValue": "SKI YOU ON THE SLOPES"
+  },
+  "events": {
+   "stringValue": "Nov-Opening Day: Showup Card on sale at $200\nDec. 11: Opening Day! (Snow permitting)\nDec. 12: Canned Food Drive · 15 cans of food & $15 for a lift ticket!\nDec. 13: Open"
+  },
+  "id": {
+   "stringValue": "current"
+  },
+  "happening": {
+   "stringValue": "Opening day coming December 11th! Pray for snow!\n\nCheck out our Black Friday Sale! Two lift tickets for $100. Skiing doesn't get much better than that! Sale goes 11/23 - 11/30.\n\nCelebrate our 90th season with us!"
+  },
+  "summit": {
+   "stringValue": "5"
+  },
+  "schedule": {
+   "stringValue": "Opening Day December 11th, conditions permitting."
+  },
+  "last24": {
+   "stringValue": "0"
+  },
+  "trailsTotal": {
+   "stringValue": "38"
+  },
+  "secondary": {
+   "stringValue": "Variable"
+  },
+  "last7": {
+   "stringValue": "9"
+  },
+  "storm": {
+   "stringValue": "0"
+  },
+  "at": {
+   "integerValue": "1795625795445"
+  },
+  "primary": {
+   "stringValue": "Powder"
+  },
+  "forecastCustom": {
+   "stringValue": ""
+  }
+ },
+ "createTime": "2026-11-17T05:50:29.134443Z",
+ "updateTime": "2026-11-25T16:56:35.912920Z"
+}

@@ -4,7 +4,7 @@
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v29';
+const VERSION = 'sierra-snow-v30';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icons/mark-white.svg', 'icons/icon-192.png',
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
