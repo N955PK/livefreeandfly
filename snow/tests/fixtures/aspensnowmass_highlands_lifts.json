@@ -1,0 +1,55 @@
+{
+  "lastUpdated": null,
+  "liftStatuses": [
+    {
+      "status": "Closed",
+      "liftName": "Exhibition",
+      "type": "4",
+      "area": "Lower Mountain",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "1,950",
+      "elevationGainMeters": "594",
+      "time": "9"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Thunderbowl",
+      "type": "3",
+      "area": "Lower Mountain",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "1,478",
+      "elevationGainMeters": "450",
+      "time": "8"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Cloud Nine",
+      "type": "4",
+      "area": "Mid Mountain",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "1,116",
+      "elevationGainMeters": "340",
+      "time": "5"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Deep Temerity",
+      "type": "3",
+      "area": "Temerity",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "1,690",
+      "elevationGainMeters": "515",
+      "time": "7"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Loge Peak",
+      "type": "4",
+      "area": "Upper Mountain",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "1,800",
+      "elevationGainMeters": "549",
+      "time": "8"
+    }
+  ]
+}

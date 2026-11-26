@@ -1,0 +1,49 @@
+{
+  "lastUpdated": "06:44 AM Nov 26, 2026",
+  "today": "<p class=\"MsoNormal\"><span class=\"NormalTextRun SCXW170800156 BCX0\">Aspen Mountain opens for the 2026-2027 winter season on November 26</span></p>",
+  "status": "Open",
+  "todayInsider": null,
+  "todaySafety": null,
+  "snow24Hours": {
+    "centimeters": "0",
+    "inches": "0"
+  },
+  "snow48Hours": {
+    "centimeters": "5",
+    "inches": "2"
+  },
+  "snow72Hours": {
+    "centimeters": "5",
+    "inches": "2"
+  },
+  "snow7Days": {
+    "centimeters": "18",
+    "inches": "7"
+  },
+  "snowBase": {
+    "centimeters": "33",
+    "inches": "13"
+  },
+  "trails": {
+    "open": "4",
+    "total": "104",
+    "openCount": 4,
+    "totalCount": 104
+  },
+  "lifts": {
+    "open": "0",
+    "total": "6",
+    "openCount": 0,
+    "totalCount": 6
+  },
+  "acres": {
+    "open": "43",
+    "total": "828",
+    "openCount": 43,
+    "totalCount": 828
+  },
+  "percentBeginnerTerrainOpen": "0",
+  "percentIntermediateTerrainOpen": "10",
+  "percentAdvancedTerrainOpen": "0",
+  "percentExpertTerrainOpen": "0"
+}

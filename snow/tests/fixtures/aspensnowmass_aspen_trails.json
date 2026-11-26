@@ -1,0 +1,1495 @@
+{
+  "noonGroom": "",
+  "areas": [
+    {
+      "name": "Ajax Express",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Bellissimo (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Bellissimo (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Blazing Star",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Blondie's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Buckhorn (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Buckhorn (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Buckhorn Cutoff",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Deer Park",
+          "isOpen": true,
+          "isDayOpen": true,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": true
+        },
+        {
+          "name": "Dipsy Doodle (Lower)",
+          "isOpen": true,
+          "isDayOpen": true,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": true
+        },
+        {
+          "name": "Dipsy Doodle (Upper)",
+          "isOpen": true,
+          "isDayOpen": true,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": true
+        },
+        {
+          "name": "Easy Chair",
+          "isOpen": true,
+          "isDayOpen": true,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": true
+        },
+        {
+          "name": "Midnight",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Midnight Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Midway Road",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "North American",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Pumphouse Hill",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Pussyfoot Flats",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Pussyfoot Steeps",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Silver Bell",
+          "isOpen": true,
+          "isDayOpen": true,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": true
+        },
+        {
+          "name": "Silver Dip",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Summit",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "F.I.S.",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Bear Paw",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cone 1",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cone 2",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "FIS Trail",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "International (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "International (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Last Dollar",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Perry's Prowl",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Rayburn’s",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "S1",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Schiller Road",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Short Snort",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Silver Queen",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Zaugg Dump",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Gated Areas",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": true,
+      "hasOpenMessage": false,
+      "isGatedClass": "is-gated",
+      "trails": [
+        {
+          "name": "Bingo Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Bonnie Bell",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Silver Queen Ridge",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Traynor Ridge",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Hero's",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Buddy System (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Buddy System (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cory-Bob",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "D'Kine Bowl",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "E.E.K.!",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "E=MSKI2 Glade",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "El Avalanchero Glade",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Elli's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Fat City",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "First Tracks",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Harris's Wall",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Here's to...",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hero's Chutes #1",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hero's Chutes #2",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hodge Podge",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hyrup's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Jim's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Jim's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Kristi",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Legal Tender",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lens Cap",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Loushin's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lower Kristi",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lower Walsh’s",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Mike Drop",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ollie's Yot",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Pancake House Glade",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Papa Bear",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Powerline",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Rewrite",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Rideout",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Starwalk",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Walsh's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Lower Mountain",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Franklin Dump",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Kleenex Corner",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Little Nell",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Niagara",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Ruthie's",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Aztec",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Gene Reardon's Run",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Gretl's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Percy",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Red's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Roch Run",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Roch Run (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ruthie's Run",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tourtelotte Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Shadow Mountain",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "1A Lift Line",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "5th Avenue (West)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Beattie Way",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Corkscrew",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Corkscrew Gully",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "FIS Slalom Hill",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lazy 8 Gully",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lower Corkscrew",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Magnifico",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Magnifico Road",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Normandy",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Norway",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Roch Run (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Schuss Gully",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Silver Rush",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Spring Pitch",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Strawpile",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Summer Road",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Super 8",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "T1",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "T2",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "T3",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "T4",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "T5",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "T6",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tower 7 Road",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tower Ten Road",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Silver Queen",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Back of Bell #1",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Back of Bell #2",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Bell Meadow",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Copper (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Copper (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Copper Bowl",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Copper Connector",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Face of Bell",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Gent's Flats",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Gentleman's Ridge",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Glade #1",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Glade #2",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Glade #3",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Jackpot",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Keith Glen",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Knowlton's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lazy Boy",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lud's Lane",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Northstar (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Northstar Steeps",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Nose of Bell",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "One And Two Leaf",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ridge of Bell",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Seibert's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Shoulder of Bell",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Spar Gulch",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sunrise/Sunset",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Uphill Routes",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": true,
+      "hasOpenMessage": false,
+      "isGatedClass": "is-gated",
+      "trails": [
+        {
+          "name": "Aspen Mountain Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,575 @@
+{
+  "noonGroom": "",
+  "areas": [
+    {
+      "name": "Main",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Baby Doe",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Bear",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Columbine",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Friedl's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Homestead Road",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lover's Lane",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lower Savio ",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Midway Avenue",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "No Problem",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Northeast Passage",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Panda Hill",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ridge Trail",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ridge Trail",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Savio (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Spruce (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sterner Catwalk",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Pipes/Parks",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": true,
+      "hasOpenMessage": false,
+      "isGatedClass": "is-gated",
+      "trails": [
+        {
+          "name": "Alex's Alley (formerly Jacob's ladder)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Family Cross",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Government",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Mini Pipe",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Panda Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Red's Rover",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Spruce Face",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Super Pipe",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Teaser Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tiehack Snow Cross",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Uncle Chucks Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Tiehack",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Buckskin",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Eagle Hill",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Javelin",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Klaus' Way",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Magic Carpet",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Oregon Trail",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ptarmigan",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Rabbit Run",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Racer's Edge",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sterner",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sterner Gulch",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tiehack Trail",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Timberdoodle Glad",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "West Buttermilk",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Big Face Hollow",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Blue Grouse",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Camp Bird",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Larkspur",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Little Teaser",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lower Larkspur",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Teaser",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tom's Thumb",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Westward Ho",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": true,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Uphill Routes",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": true,
+      "hasOpenMessage": false,
+      "isGatedClass": "is-gated",
+      "trails": [
+        {
+          "name": "Main Buttermilk Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tiehack Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "West Buttermilk Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    }
+  ]
+}

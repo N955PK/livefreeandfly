@@ -1,0 +1,65 @@
+{
+  "lastUpdated": null,
+  "liftStatuses": [
+    {
+      "status": "Closed",
+      "liftName": "Hero's",
+      "type": "4",
+      "area": "Hero's",
+      "hoursOfOperation": "9:00 AM - 2:30 PM",
+      "elevationGainFeet": "1,220",
+      "elevationGainMeters": "372",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Nell Bell",
+      "type": "4",
+      "area": "Lower Mountain",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "550",
+      "elevationGainMeters": "168",
+      "time": "5"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Silver Queen Gondola",
+      "type": "6",
+      "area": "Lower Mountain",
+      "hoursOfOperation": "8:55 AM - 3:00 PM",
+      "elevationGainFeet": "3,267",
+      "elevationGainMeters": "996",
+      "time": "14"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Ajax Express",
+      "type": "4",
+      "area": "Upper Mountain",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "1,102",
+      "elevationGainMeters": "336",
+      "time": "5"
+    },
+    {
+      "status": "Closed",
+      "liftName": "F.I.S.",
+      "type": "2",
+      "area": "Upper Mountain",
+      "hoursOfOperation": "9:00 AM - 3:00 PM",
+      "elevationGainFeet": "591",
+      "elevationGainMeters": "180",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Ruthies",
+      "type": "3",
+      "area": "Upper Mountain",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "1,364",
+      "elevationGainMeters": "416",
+      "time": "5"
+    }
+  ]
+}

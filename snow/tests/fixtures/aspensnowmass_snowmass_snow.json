@@ -1,0 +1,49 @@
+{
+  "lastUpdated": "06:47 AM Nov 26, 2026",
+  "today": "<div dir=\"ltr\">\n<p data-olk-copy-source=\"MessageBody\">Snowmass opens for the 2026-2027 winter season on Thursday November 26, 2026</p>\n</div>\n<p> </p>\n<p> </p>\n<p> </p>\n<p> </p>\n<p> </p>\n<p> </p>\n<p> </p>",
+  "status": "Open",
+  "todayInsider": null,
+  "todaySafety": null,
+  "snow24Hours": {
+    "centimeters": "0",
+    "inches": "0"
+  },
+  "snow48Hours": {
+    "centimeters": "5",
+    "inches": "2"
+  },
+  "snow72Hours": {
+    "centimeters": "5",
+    "inches": "2"
+  },
+  "snow7Days": {
+    "centimeters": "28",
+    "inches": "11"
+  },
+  "snowBase": {
+    "centimeters": "48",
+    "inches": "19"
+  },
+  "trails": {
+    "open": "0",
+    "total": "98",
+    "openCount": 0,
+    "totalCount": 98
+  },
+  "lifts": {
+    "open": "0",
+    "total": "20",
+    "openCount": 0,
+    "totalCount": 20
+  },
+  "acres": {
+    "open": "0",
+    "total": "3342",
+    "openCount": 0,
+    "totalCount": 3342
+  },
+  "percentBeginnerTerrainOpen": "0",
+  "percentIntermediateTerrainOpen": "0",
+  "percentAdvancedTerrainOpen": "0",
+  "percentExpertTerrainOpen": "0"
+}

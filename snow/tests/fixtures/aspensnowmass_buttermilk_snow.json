@@ -1,0 +1,49 @@
+{
+  "lastUpdated": "06:44 AM Nov 26, 2026",
+  "today": "<p>Buttermilk opens for the 2026-2027 winter season on December 12</p>",
+  "status": "Closed",
+  "todayInsider": null,
+  "todaySafety": null,
+  "snow24Hours": {
+    "centimeters": "0",
+    "inches": "0"
+  },
+  "snow48Hours": {
+    "centimeters": "3",
+    "inches": "1"
+  },
+  "snow72Hours": {
+    "centimeters": "3",
+    "inches": "1"
+  },
+  "snow7Days": {
+    "centimeters": "20",
+    "inches": "8"
+  },
+  "snowBase": {
+    "centimeters": "0",
+    "inches": "0"
+  },
+  "trails": {
+    "open": "0",
+    "total": "44",
+    "openCount": 0,
+    "totalCount": 44
+  },
+  "lifts": {
+    "open": "0",
+    "total": "5",
+    "openCount": 0,
+    "totalCount": 5
+  },
+  "acres": {
+    "open": "0",
+    "total": "472",
+    "openCount": 0,
+    "totalCount": 472
+  },
+  "percentBeginnerTerrainOpen": "0",
+  "percentIntermediateTerrainOpen": "0",
+  "percentAdvancedTerrainOpen": "0",
+  "percentExpertTerrainOpen": "0"
+}

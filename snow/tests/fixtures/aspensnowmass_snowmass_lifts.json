@@ -1,0 +1,205 @@
+{
+  "lastUpdated": null,
+  "liftStatuses": [
+    {
+      "status": "Closed",
+      "liftName": "Alpine Springs",
+      "type": "4",
+      "area": "Alpine Springs",
+      "hoursOfOperation": "9:15 AM - 3:30 PM",
+      "elevationGainFeet": "1,529",
+      "elevationGainMeters": "466",
+      "time": "8"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Big Burn",
+      "type": "6",
+      "area": "Big Burn",
+      "hoursOfOperation": "9:15 AM - 3:30 PM",
+      "elevationGainFeet": "1,992",
+      "elevationGainMeters": "607",
+      "time": "8"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Cirque T-Bar",
+      "type": "2",
+      "area": "Big Burn",
+      "hoursOfOperation": "10:00 AM - 2:15 PM",
+      "elevationGainFeet": "806",
+      "elevationGainMeters": "246",
+      "time": "5"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Sheer Bliss",
+      "type": "4",
+      "area": "Big Burn",
+      "hoursOfOperation": "9:15 AM - 4:00 PM",
+      "elevationGainFeet": "2,212",
+      "elevationGainMeters": "674",
+      "time": "9"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Campground",
+      "type": "2",
+      "area": "Campground",
+      "hoursOfOperation": "10:00 AM - 2:30 PM",
+      "elevationGainFeet": "1,427",
+      "elevationGainMeters": "435",
+      "time": "8"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Coney Express",
+      "type": "4",
+      "area": "Coney Express",
+      "hoursOfOperation": "9:00 AM - 2:00 PM",
+      "elevationGainFeet": "1,549",
+      "elevationGainMeters": "472",
+      "time": "8"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Scooper Surface Lift",
+      "type": "1",
+      "area": "Coney Express",
+      "hoursOfOperation": "10:00 AM - 2:00 PM",
+      "elevationGainFeet": "232",
+      "elevationGainMeters": "71",
+      "time": "3"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Sky Cab Gondola",
+      "type": "6",
+      "area": "Coney Express",
+      "hoursOfOperation": "8:00 AM - 9:00 PM",
+      "elevationGainFeet": "160",
+      "elevationGainMeters": "49",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Treehouse Carpet",
+      "type": "1",
+      "area": "Coney Express",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "5",
+      "elevationGainMeters": "2",
+      "time": "1"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Village Express",
+      "type": "6",
+      "area": "Coney Express",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "2,173",
+      "elevationGainMeters": "662",
+      "time": "10"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Assay Hill",
+      "type": "4",
+      "area": "Elk Camp",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "215",
+      "elevationGainMeters": "66",
+      "time": "6"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Assay Hill Carpet",
+      "type": "1",
+      "area": "Elk Camp",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "18",
+      "elevationGainMeters": "5",
+      "time": "8"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Bear Bottom Carpet",
+      "type": "1",
+      "area": "Elk Camp",
+      "hoursOfOperation": "10:00 AM - 3:30 PM",
+      "elevationGainFeet": "54",
+      "elevationGainMeters": "16",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Elk Camp Chairlift",
+      "type": "6",
+      "area": "Elk Camp",
+      "hoursOfOperation": "9:15 AM - 3:30 PM",
+      "elevationGainFeet": "1,554",
+      "elevationGainMeters": "474",
+      "time": "7"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Elk Camp Gondola",
+      "type": "8",
+      "area": "Elk Camp",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "1,368",
+      "elevationGainMeters": "417",
+      "time": "8"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Meadows Carpet",
+      "type": "1",
+      "area": "Elk Camp",
+      "hoursOfOperation": "9:15 AM - 3:30 PM",
+      "elevationGainFeet": "25",
+      "elevationGainMeters": "8",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Meadows Chairlift",
+      "type": "4",
+      "area": "Elk Camp",
+      "hoursOfOperation": "9:15 AM - 3:30 PM",
+      "elevationGainFeet": "125",
+      "elevationGainMeters": "38",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "High Alpine",
+      "type": "4",
+      "area": "High Alpine",
+      "hoursOfOperation": "9:15 AM - 3:30 PM",
+      "elevationGainFeet": "1,666",
+      "elevationGainMeters": "508",
+      "time": "6"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Sam's Knob",
+      "type": "4",
+      "area": "Sam's Knob",
+      "hoursOfOperation": "9:15 AM - 3:30 PM",
+      "elevationGainFeet": "1,200",
+      "elevationGainMeters": "366",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Two Creeks",
+      "type": "4",
+      "area": "Two Creeks",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "1,711",
+      "elevationGainMeters": "522",
+      "time": "9"
+    }
+  ]
+}

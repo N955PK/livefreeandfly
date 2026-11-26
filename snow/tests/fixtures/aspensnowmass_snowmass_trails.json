@@ -1,0 +1,1475 @@
+{
+  "noonGroom": "",
+  "areas": [
+    {
+      "name": "Alpine Springs",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Coffee Pot (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Coffee Pot (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Galavant",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Granite",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Green Cabin (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lodgepole",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Log Deck",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lunkerville",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Naked Lady",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Slider (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Slider (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Tom's Trace",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Turkey Trot",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Big Burn",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Camp Three",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Coyote Hollow",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Dallas Freeway",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Free Fall",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Free Fall Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Garrett Gulch",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Glissade",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Jack of Hearts",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Max Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Mick's Gully",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Powerline",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Rocky Mountain High",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sheer Bliss",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sneaky's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sneaky's Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Timberline",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Trestle",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "West Face",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "West Garrett",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Whispering Jesse",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Wineskin",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Campground",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Bear Claw",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Campground (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Powderhorn",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Slot (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Wildcat (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Cirque",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "A.M.F.",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Buckskin",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Buckskin Cliffs",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Burn Cliffs",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cirque Cornice",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cirque Dikes",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cirque Headwall",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "East Wall",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Gowdy's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hang On Halvin's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "High Pass",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "K.T. Gully",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Little Headwall",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ptarmigan",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Rock Island",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sunkiss Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Coney Express",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Banzai (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Blue Grouse (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Blue Grouse (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cabin",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cabin Cut Off",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Coney Glade",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Dawdler",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Fanny Hill",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hal's Hollow (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hal's Hollow (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lunchline (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lunchline (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Monkshood",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Nor Way",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Scooper (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Scooper (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Velvet Falls (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Velvet Falls (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Elk Camp",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Adam's Avenue (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Adam's Avenue (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Assay Hill",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Bear Bottom",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Bottoms Up",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Bull Run",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Burnt Mountain Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Drumstick",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Elk Camp Meadows (Beginner)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Funnel",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Funnel Bypass",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "beginner",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Grey Wolf",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Gunner's View",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Long Shot",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "No Name",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sandy Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Hanging Valley",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Baby Ruth",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hanging Vly Glades",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Hanging Vly Headwall",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "High Pass (Lower BD)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Lower Ladder",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "expert",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Possible",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Roberto's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "West 1 & 2",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "High Alpine",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Cookies",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Green Cabin (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Grinder",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Reidar's",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Rock Band Chute",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "extreme",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Showcase",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "The Edge",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Pipes/Parks",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": true,
+      "hasOpenMessage": false,
+      "isGatedClass": "is-gated",
+      "trails": [
+        {
+          "name": "13' Pipe",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Fanny Hill Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Low Down Mini Pipe",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Low Down Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Makaha Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Snowmass Park",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "terrain-park",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Sam's Knob",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Banzai Ridge",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Campground (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Fast Draw",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Howler",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Moonshine",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Mousetrap",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Pipeline",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Promenade",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Slot (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sunnyside",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Ute Chute",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Wildcat (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Zugspitze",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "advanced",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Two Creeks",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": false,
+      "hasOpenMessage": false,
+      "isGatedClass": "not-gated",
+      "trails": [
+        {
+          "name": "Cascade (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Cascade (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Creekside (Lower)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Creekside (Upper)",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "East Branch",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Eddy Out",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "West Fork",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    },
+    {
+      "name": "Uphill Routes",
+      "isOpen": false,
+      "openMessage": "",
+      "isGatedTerrain": true,
+      "hasOpenMessage": false,
+      "isGatedClass": "is-gated",
+      "trails": [
+        {
+          "name": "Campground Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Elk Camp Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "High Alpine Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Sam's Knob Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        },
+        {
+          "name": "Two Creeks Uphill Route",
+          "isOpen": false,
+          "isDayOpen": false,
+          "isGroomed": false,
+          "difficulty": "intermediate",
+          "statusIcon": null,
+          "showOpen": false,
+          "showDayOpen": false
+        }
+      ]
+    }
+  ]
+}

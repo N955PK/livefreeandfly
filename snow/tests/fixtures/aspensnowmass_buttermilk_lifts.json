@@ -1,0 +1,55 @@
+{
+  "lastUpdated": null,
+  "liftStatuses": [
+    {
+      "status": "Closed",
+      "liftName": "Magic Carpet",
+      "type": "1",
+      "area": "Main",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "5",
+      "elevationGainMeters": "2",
+      "time": "0"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Panda Peak",
+      "type": "2",
+      "area": "Main",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "113",
+      "elevationGainMeters": "34",
+      "time": "4"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Summit Express",
+      "type": "4",
+      "area": "Main",
+      "hoursOfOperation": "0:00 - 0:00",
+      "elevationGainFeet": "1,834",
+      "elevationGainMeters": "559",
+      "time": "9"
+    },
+    {
+      "status": "Closed",
+      "liftName": "Tiehack Express",
+      "type": "4",
+      "area": "Tiehack",
+      "hoursOfOperation": "9:00 AM - 2:30 PM",
+      "elevationGainFeet": "1,660",
+      "elevationGainMeters": "506",
+      "time": "6"
+    },
+    {
+      "status": "Closed",
+      "liftName": "West Buttermilk Express",
+      "type": "4",
+      "area": "West Buttermilk",
+      "hoursOfOperation": "9:00 AM - 3:30 PM",
+      "elevationGainFeet": "1,180",
+      "elevationGainMeters": "360",
+      "time": "5"
+    }
+  ]
+}
