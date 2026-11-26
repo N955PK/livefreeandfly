@@ -3608,7 +3608,32 @@ function insights(resort) {
   const stake = stakeDepth(resort.key, "mid"), ground = stake ?? (resort.observed && resort.observed.depth_in);
   if (ground != null && ground < 40) notes.push(["Cover", `Cover is thin, with ${inches(ground)} ${LEN()} on the ground. Watch for rocks and stumps off the groomers.`]);
   return `<div class="ilevels">${levels.map((l) => `<div><b>${LEVEL_NAMES[l.level]}</b><small>${height(l.ft)}</small></div><div><b>${l.type}</b><span>${l.text}</span></div>`).join("")}</div>
-    <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li>${notes.slice(0, 3).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul>`;
+    <ul class="ilist"><li><b>Skiing best</b>${skiingBest(levels, best, wild)}</li><li><b>Skis</b>${skisFor(best, ground, wild)}</li>${notes.slice(0, 3).map(([title, text]) => `<li><b>${title}</b>${text}</li>`).join("")}</ul>`;
+}
+// Which skis suit the day, from the surface where the skiing is best: a kind of ski and how wide it is underfoot.
+// The widths are the ones ski makers' and shops' buying guides agree on (Volkl, REI, Backcountry.com, The Outbound;
+// read 2026-11-26): narrow skis of 60 to 85 mm for groomed and hard snow, all-mountain skis of about 85 to 105 mm
+// (the narrower half for harder snow, the wider for soft or cut-up snow), 100 to 115 mm for cut-up and heavy snow
+// and for a powder day at a resort, and 115 mm and wider only for deep powder. No guide says how many inches of new
+// snow call for a powder ski, so those steps (3, 6 and 10 in) are this page's own judgment, as is the note on thin
+// cover. For a backcountry peak the skis are touring skis of the same widths, with ski crampons named where the
+// snow is frozen for the climb, which is when the touring guides say to carry them.
+function skisFor(best, ground, wild) {
+  const kind = best.type.split(",")[0], heavy = best.slr != null && best.slr < 10, pair = wild ? "touring skis" : "skis";
+  const Pair = (words) => words.charAt(0).toUpperCase() + words.slice(1);
+  let pick, why;
+  if (best.q < 1.5) [pick, why] = [`Any all-mountain ${pair}`, "It is raining on the snow at every elevation, so no ski will make it good."];
+  else if (kind === "Powder" && best.fresh >= 10) [pick, why] = [`Powder ${pair}, 110 mm or wider underfoot`, `${Pair(inches(best.fresh))} ${LEN()} of new snow is deep enough to want the float.`];
+  else if (kind === "Powder" && best.fresh >= 6) [pick, why] = [`Wide all-mountain ${pair}, 100 to 110 mm underfoot`, heavy ? "The new snow is dense, so choose the wider end." : "They float in the new snow and still hold on the packed snow under it."];
+  else if (kind === "Powder") [pick, why] = [`All-mountain ${pair}, 95 to 105 mm underfoot`, "The new snow is not deep enough to need more."];
+  else if (kind === "Wet snow") [pick, why] = [`Wide all-mountain ${pair}, 100 to 110 mm underfoot`, "Heavy, wet snow is easier on a wider ski."];
+  else if (kind === "Packed powder") [pick, why] = [`All-mountain ${pair}, 90 to 100 mm underfoot`, "The snow is soft but packed, so there is nothing to float in."];
+  else if (kind === "Corn") [pick, why] = [`All-mountain ${pair}, 90 to 100 mm underfoot, waxed for warm snow`, wild ? "Carry ski crampons for the frozen snow on the climb." : "They hold while it is firm early and stay easy once it softens."];
+  else if (kind === "Spring conditions" || kind === "Wet granular" || kind === "Wet packed snow") [pick, why] = [`Wide all-mountain ${pair}, 95 to 105 mm underfoot, waxed for warm, wet snow`, "A wider ski rides over the slush."];
+  else if (kind === "Machine groomed") [pick, why] = [`${wild ? "Narrow touring skis" : "Carving or narrow all-mountain skis"}, 80 to 90 mm underfoot`, "The base is firm under a little new snow."];
+  else [pick, why] = [`${wild ? "Narrow touring skis" : "Narrow carving skis"}, under 85 mm underfoot, with sharp edges`, wild ? "The snow is hard, so carry ski crampons for the climb." : "The snow is hard, and a narrow ski grips it best."];
+  const thin = ground != null && ground < 40 ? " Take an old pair while cover is thin." : "";
+  return `${pick}. ${why}${thin}`;
 }
 // A pill opens its card, or closes it if it is open. Only one card shows at a time: opening one puts the other away.
 document.addEventListener("click", (e) => {
