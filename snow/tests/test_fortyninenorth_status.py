@@ -55,12 +55,14 @@ def test_the_snow_report_gives_the_base_and_the_summit_and_when_it_was_updated()
 
 
 def test_a_depth_and_a_surface_are_read_when_the_page_has_them():
-    pages = snow_page("<h4>Snow Depth</h4>\n", "<h4>Snow Depth</h4>\n<!--")
+    assert PAGES["snow"].count('<h3>"</h3>') == 2
     filled = PAGES["snow"].replace('<h3>"</h3>', '<h3>38"</h3>', 1).replace('<h3>"</h3>', '<h3>61.5"</h3>', 1)
-    assert filled != PAGES["snow"] and pages
-    filled = filled.replace("<h4>Surface Condition</h4>\n", "<h4>Surface Condition</h4>\n", 1)
+    assert "<h4>Surface Condition</h4>\n\t\t\t\t\t\t\t\t\t<h3></h3>" in filled
+    filled = filled.replace("<h4>Surface Condition</h4>\n\t\t\t\t\t\t\t\t\t<h3></h3>",
+                            "<h4>Surface Condition</h4><h3>Packed Powder</h3>")
     snow = fortyninenorth.parse({**PAGES, "snow": filled}, NOW)["SnowReport"]
     assert snow["BaseArea"]["BaseIn"] == 38 and snow["SummitArea"]["BaseIn"] == 61.5
+    assert snow["BaseConditions"] == "Packed Powder"
 
 
 def test_open_lifts_and_groomed_trails_are_read():
@@ -85,11 +87,11 @@ def test_a_page_that_has_changed_is_refused():
     with pytest.raises(ValueError, match="list of lifts and trails was not found"):
         fortyninenorth.parse(lifts_page(">Lifts</h3>", ">Chairs</h3>"), NOW)
     with pytest.raises(ValueError, match="not a name, a dash and a status"):
-        fortyninenorth.parse(lifts_page("<h4>Payday #3 - ", "<h4>Payday #3 "), NOW)
+        fortyninenorth.parse(lifts_page("<h4>Payday #3 -", "<h4>Payday #3"), NOW)
     with pytest.raises(ValueError, match="each part of the mountain once"):
         fortyninenorth.parse(lifts_page(">West Basin</h3>", ">Central Basin</h3>"), NOW)
     with pytest.raises(ValueError, match="lists a lift twice"):
-        fortyninenorth.parse(lifts_page("<h4>Payday #3 - ", "<h4>Silver Lode #4 - "), NOW)
+        fortyninenorth.parse(lifts_page("<h4>Payday #3 -", "<h4>Silver Lode #4 -"), NOW)
     with pytest.raises(ValueError):
         fortyninenorth.parse({**PAGES, "lifts": "<html><body>Not the page</body></html>"}, NOW)
 
