@@ -5481,8 +5481,8 @@ function badges() {
   const zoneOf = (key) => { const spot = spotOf(key); return spot && zonesOf(spot).find((z) => inRings(z.rings, avyAt(spot).lon, avyAt(spot).lat)); };
   // A region no center forecasts at all needs no zones to say so.
   const uncovered = (key) => { const spot = spotOf(key); return !!spot && (!(REGIONS[regionOf(spot)].avalanche || []).length || (zonesOf(spot).length > 0 && !zoneOf(key))); };
-  const bare = (extra = "") => `<img class="avyicon${extra}" src="${NO_FORECAST_ICON}" alt="No avalanche forecast covers this peak" title="No avalanche forecast covers this peak">`;
-  const icon = (zone, extra = "", by = zone.center.name) => { const said = zone.stale ? notYet(zone) : `Avalanche danger: ${danger(zone.level)[0]}, ${by}`; return `<img class="avyicon${extra}" src="${dangerIcon(zone.level)}" alt="${esc(said)}" title="${esc(said)}" onerror="this.remove()">`; };
+  const bare = (extra = "") => `<img class="avyicon${extra}" src="${NO_FORECAST_ICON}" alt="No avalanche forecast covers this peak" title="No avalanche forecast covers this peak" onload="fitHead()">`;
+  const icon = (zone, extra = "", by = zone.center.name) => { const said = zone.stale ? notYet(zone) : `Avalanche danger: ${danger(zone.level)[0]}, ${by}`; return `<img class="avyicon${extra}" src="${dangerIcon(zone.level)}" alt="${esc(said)}" title="${esc(said)}" onload="fitHead()" onerror="this.remove()">`; };
   // The peaks in the grid share one icon beside the group's name when every forecast that covers them gives the same
   // rating; otherwise each peak carries its own. A peak no forecast covers carries none.
   const rated = [...document.querySelectorAll('[data-form="mini"]')].map((slot) => zoneOf(slot.dataset.avy)).filter(Boolean);
