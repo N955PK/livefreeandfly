@@ -76,6 +76,10 @@ html.hosted #heat{touch-action:pan-y}
    So the opening screen is the page's own color at the very top and runs into its blue below: the strip is the
    page's color from the first frame and has nothing to change to when the opening screen goes. */
 #splash.done{opacity:0;visibility:hidden;pointer-events:none}
+/* While another region's forecast is on its way the old region's figures step back (after a moment, so a forecast
+   that arrives at once changes nothing), and the new ones come up to full strength when they land. */
+#heat,#detail,#avalanche{transition:opacity .2s ease}
+html.regionwait :is(#heat,#detail,#avalanche){opacity:.4;pointer-events:none;transition:opacity .2s ease .12s}
 body{background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
   -webkit-font-smoothing:antialiased}
 main{max-width:1040px;margin:0 auto;padding:calc(12px + var(--sat)) 16px calc(48px + var(--sab))}
@@ -4951,6 +4955,7 @@ let regionMiss = null, regionAsked = null, regionPending = null;
 const showPending = (key) => {
   if (regionPending === key) return;
   regionPending = key;
+  document.documentElement.classList.toggle("regionwait", !!key);
   for (const step of [renderRegion, renderHeadline]) {
     try { step(); } catch (error) { console.error(error); }
   }
@@ -4965,6 +4970,7 @@ async function setRegion(key) {
   // A later choice made while this one loaded wins.
   if (regionAsked !== key) return;
   regionPending = null;
+  document.documentElement.classList.remove("regionwait");
   if (!loaded) {
     regionMiss = key;
     for (const step of [renderRegion, renderHeadline]) {
@@ -5000,6 +5006,12 @@ async function setRegion(key) {
 document.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-region]");
   if (b) setRegion(b.dataset.region);
+});
+// A region's forecast is asked for the moment a finger comes down on its name, so it is on its way before the tap is
+// over. A finger that only scrolls the list past costs one quiet fetch of a region the phone was shown.
+document.addEventListener("pointerdown", (e) => {
+  const b = e.target.closest && e.target.closest("button[data-region]"), key = b && b.dataset.region;
+  if (key && index && REGIONS[key] && key !== region && navigator.onLine) loadRegion(key, {ahead: true});
 });
 $("regionPick").addEventListener("change", (e) => setRegion(e.target.value));
 // Search: the magnifier beside the pin finds a region or a mountain by name, in any region that has a forecast. A
