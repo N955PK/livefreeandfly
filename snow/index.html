@@ -730,6 +730,9 @@ html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!
 .dhead h2{font-size:22px;line-height:1.15}
 /* The name is the mountain picker: the phone's own menu opens from a select laid invisibly over it. */
 .mtnpick{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+/* In the title the name and its menu arrow sit in a row, where a raised number has to be lifted by hand: it goes to
+   the top of the row and tucks in against the name. */
+.mtnpick .cls{align-self:flex-start;margin:.12em 0 0 -4px;font-size:.5em}
 .mtnpick svg{flex:none;width:12px;height:8px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mtnpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
 /* With one region, or inside another page (which has its own region bar), the summary's title is plain words. */
