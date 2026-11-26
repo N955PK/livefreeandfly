@@ -1143,7 +1143,7 @@ dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden
 .gpage h5{margin:18px 0 6px;font-size:14px;font-weight:650;color:var(--mark)}
 .gpage p b{color:var(--ink)}
 .gpage a{color:var(--accent)}
-/* Every paragraph of "How the forecast is made" opens the same way: its subject on a line of its own, in the accent,
+/* Every paragraph of "How we made the forecast" opens the same way: its subject on a line of its own, in the accent,
    at the size of the text under it. */
 #how p > b:first-child{display:block;margin-bottom:2px;font-size:13.5px;font-weight:650;color:var(--accent)}
 #how p{margin-bottom:13px}
@@ -1564,9 +1564,9 @@ if (HOSTED) {
   </div>
   <h4 class="ghead">The forecast</h4>
   <div class="gnav">
-    <button data-page-to="how"><b>How the forecast is made</b><span>Models, snow ratio, wind, powder score</span></button>
+    <button data-page-to="how"><b>How we made the forecast</b><span>Models, snow ratio, wind, powder score</span></button>
     <button data-page-to="quality"><b>Sensor corrections</b><span id="qualitySum">Which mountains have a snow sensor</span></button>
-    <button data-page-to="score"><b>How it is tested</b><span>Scored on winters it never saw</span></button>
+    <button data-page-to="score"><b>How we tested it</b><span>Scored on winters it never saw</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
     <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, the resorts' own lift, trail and snow reports, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, Mount Washington, and Northwest avalanche centers through avalanche.org.</p>
@@ -1575,7 +1575,7 @@ if (HOSTED) {
   <div class="gpage" id="where" data-page="where" data-title="Coverage map" hidden><div id="whereBody"></div></div>
   <div class="gpage" id="classics" data-page="classics" data-title="Fifty classic descents" hidden><div id="classicsBody"></div></div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
-  <div class="gpage" id="score" data-page="score" data-title="How it is tested" hidden>
+  <div class="gpage" id="score" data-page="score" data-title="How we tested it" hidden>
     <p>Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
     <h4 class="ghead">The scorecard</h4>
     <div id="scoreBody"></div>
@@ -1741,7 +1741,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <h5>Everywhere</h5>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
   </div>
-  <div class="gpage" id="how" data-page="how" data-title="How the forecast is made" hidden>
+  <div class="gpage" id="how" data-page="how" data-title="How we made the forecast" hidden>
     <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each mountain. Mountains a few miles apart are forecast from one reading of the weather, each at its own heights. <span id="biasNote"></span></p>
     <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> What each step is fitted to depends on the region.</p>
     <p><b>Tahoe</b> Everything is fitted here: the correction to 22 snow sensors around the lake, the rain-or-snow curve to the same sensors, the fluffiness model to snowfall measured by hand at Sierra stations, and the weights that blend the four models.</p>
@@ -6105,7 +6105,7 @@ function renderQuality() {
   const listed = everyMountain().filter((r) => regions.includes(regionOf(r)));
   const count = (cls) => listed.filter((r) => grade(r)[0] === cls).length;
   const KEY = [["good", "Corrected", "Corrected against a sensor near the mountain's own height."], ["rough", "Low sensor", "Corrected against a sensor well below the mountain, so the fit is looser."], ["none", "Uncorrected", "Not corrected against a sensor: the models are used as they are."]];
-  $("qualityBody").innerHTML = `<p>Where a mountain has a snow sensor nearby, its forecast is corrected against years of that sensor's readings. This page says which sensor each mountain uses. It does not grade the forecast: what the correction is worth, measured, is under How it is tested.</p>
+  $("qualityBody").innerHTML = `<p>Where a mountain has a snow sensor nearby, its forecast is corrected against years of that sensor's readings. This page says which sensor each mountain uses. It does not grade the forecast: what the correction is worth, measured, is under How we tested it.</p>
     <div class="qkey">${KEY.map(([cls, word, text]) => `<div><span class="q ${cls}">${word}</span><b>${count(cls)}</b><span>${text}</span></div>`).join("")}</div>
     ${regions.map((key) => `<h4 class="ghead">${esc(REGIONS[key].name)}</h4><div class="qlist">${listed.filter((r) => regionOf(r) === key).map(row).join("")}</div>`).join("")}`;
   $("qualitySum").textContent = `${count("good")} corrected, ${count("rough")} low sensor, ${count("none")} not`;
