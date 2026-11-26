@@ -7,7 +7,7 @@ import sys
 from tahoe_snow import config
 from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, MORE_BBOX
 
-EAST = {'newyork': 9, 'midatlantic': 10, 'lakesuperior': 7, 'michigan': 6, 'blackhills': 1}
+EAST = {'newyork': 9, 'midatlantic': 15, 'lakesuperior': 7, 'michigan': 6, 'blackhills': 1}
 CANADA = {'northbc': 4, 'ontario': 4, 'gaspesie': 7, 'newfoundland': 2, 'yukon': 2}
 SHARED = {"canaanvalley": "timberlinewv", "nubsnob": "boynehighlands", "champsdemars": "hogsback"}
 
@@ -71,6 +71,6 @@ def test_the_fifth_collector_sees_its_regions_and_plans_only_them():
             "sum(usage.pulls(r) for r in config.REGIONS), round(usage.planned()))")
     out = subprocess.run([sys.executable, "-c", code], env={**os.environ, "SNOW_COLLECTOR": "east"}, text=True,
                          capture_output=True, check=True).stdout.strip()
-    assert out.startswith(f"east {sorted([*EAST, 'quebec', 'tetons'])} 53 49 ")
-    # 42 pulls twice a day and the Tetons' seven three times; five of the seven regions read five lower levels.
-    assert 6200 < int(out.rsplit(" ", 1)[1]) < 6800
+    assert out.startswith(f"east {sorted([*EAST, 'quebec', 'tetons'])} 58 54 ")
+    # 47 pulls twice a day and the Tetons' seven three times; five of the seven regions read five lower levels.
+    assert 6800 < int(out.rsplit(" ", 1)[1]) < 7400

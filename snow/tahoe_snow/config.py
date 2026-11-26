@@ -1292,7 +1292,7 @@ ALL_RESORTS = {
         Resort("bristol", "Bristol", 42.74416, -77.41239, _ft(1000), _ft(2200), None, "Independent",
                region="newyork"),
         # The Mid-Atlantic: Snowshoe, Timberline and Canaan Valley in West Virginia, Wisp in Maryland, Seven
-        # Springs, Blue Mountain, Camelback and Elk Mountain in Pennsylvania, and Wintergreen and Massanutten
+        # Springs, Blue Mountain, Camelback, Elk Mountain and the Poconos' five others in Pennsylvania, and Wintergreen and Massanutten
         # in Virginia.
         Resort("snowshoe", "Snowshoe", 38.41300, -79.98915, _ft(3261), _ft(4786), None, "Ikon",
                region="midatlantic"),
@@ -1309,6 +1309,19 @@ ALL_RESORTS = {
         Resort("camelback", "Camelback", 41.04750, -75.34796, _ft(1250), _ft(2047), None, "Ikon",
                region="midatlantic"),
         Resort("elkmountain", "Elk Mountain", 41.72038, -75.55945, _ft(1690), _ft(2690), None, "Independent",
+               region="midatlantic"),
+        # The Poconos. Base and summit are the resorts' published figures; each point was checked against the
+        # terrain tiles' elevations (2026-11-26) and sits on the slope between the two. Big Boulder is just over
+        # 8 km from Jack Frost, past the distance at which eastern mountains share weather, so it has its own.
+        Resort("jackfrost", "Jack Frost", 41.10860, -75.65470, _ft(1400), _ft(2000), None, "Epic",
+               region="midatlantic"),
+        Resort("bigboulder", "Big Boulder", 41.04830, -75.60000, _ft(1700), _ft(2175), None, "Epic",
+               region="midatlantic"),
+        Resort("shawnee", "Shawnee Mountain", 41.03750, -75.07780, _ft(650), _ft(1350), None, "Indy",
+               region="midatlantic"),
+        Resort("montage", "Montage Mountain", 41.35280, -75.65940, _ft(960), _ft(1960), None, "Indy",
+               region="midatlantic"),
+        Resort("skibigbear", "Ski Big Bear", 41.52250, -75.01030, _ft(600), _ft(1250), None, "Indy",
                region="midatlantic"),
         Resort("wintergreen", "Wintergreen", 37.92220, -78.94044, _ft(2512), _ft(3515), None, "Indy",
                region="midatlantic"),
@@ -1796,7 +1809,7 @@ MORE_BBOX = {
     "inlandnw": (47.28, 48.52, -117.77, -115.5),
     "nwmontana": (45.52, 48.64, -114.57, -112.93),
     "newyork": (41.98, 44.5, -78.88, -73.53),
-    "midatlantic": (37.77, 41.87, -80.19, -75.15),
+    "midatlantic": (37.77, 41.87, -80.19, -74.85),
     "lakesuperior": (44.78, 47.8, -92.41, -87.82),
     "michigan": (44.09, 45.62, -86.2, -84.7),
     "blackhills": (44.06, 44.48, -104.03, -103.59),
