@@ -1899,8 +1899,10 @@ const everyMountain = () => index ? index.resorts : data.resorts;
 const mountain = (key) => (data && data.resorts.find((r) => r.key === key)) || (index && index.resorts.find((r) => r.key === key));
 // The regions this page can draw that the data has: the index's that have been published at least once (one not
 // built yet has nothing to show), or with no index the forecast's own.
-// Regions are listed by name, A to Z, wherever the page lists them.
-const regionsByName = () => Object.keys(REGIONS).sort((a, b) => REGIONS[a].name.localeCompare(REGIONS[b].name));
+// Regions are listed with the USA's above Canada's, each A to Z by name, wherever the page lists them.
+const COUNTRY_ORDER = ["USA", "Canada"];
+const countryRank = (country) => { const n = COUNTRY_ORDER.indexOf(country || "USA"); return n < 0 ? COUNTRY_ORDER.length : n; };
+const regionsByName = () => Object.keys(REGIONS).sort((a, b) => countryRank(REGIONS[a].country) - countryRank(REGIONS[b].country) || REGIONS[a].name.localeCompare(REGIONS[b].name));
 const regionKeys = () => regionsByName().filter((key) => index ? index.regions[key] && index.regions[key].published_utc : data.resorts.some((r) => regionOf(r) === key));
 // Everything about the weather is told in the time at the mountain; data published before mountains carried their
 // time zone is all Pacific.
@@ -4101,7 +4103,7 @@ function renderRegion() {
   const countries = {};
   for (const key of keys.filter((k) => k !== FAVORITES)) (countries[REGIONS[key].country || "USA"] ||= []).push(key);
   $("regionPick").innerHTML = keys.filter((k) => k === FAVORITES).map(option).join("")
-    + Object.keys(countries).sort().map((country) => `<optgroup label="${esc(country)}">${countries[country].map(option).join("")}</optgroup>`).join("");
+    + Object.keys(countries).sort((a, b) => countryRank(a) - countryRank(b) || a.localeCompare(b)).map((country) => `<optgroup label="${esc(country)}">${countries[country].map(option).join("")}</optgroup>`).join("");
   // The summary's title is a second way to the same choice, as the Mountain and Avalanche titles choose theirs.
   $("sumPick").innerHTML = $("regionPick").innerHTML;
   $("sumPickWrap").classList.toggle("solo", keys.length < 2);
