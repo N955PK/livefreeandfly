@@ -16,12 +16,12 @@ Sources, and the parts each gives:
         stations, its snow report (figures and words)
     the resort status files the lifts job writes (Heavenly, Northstar, Kirkwood, Homewood, Boreal): lifts, trails
     Sierra-at-Tahoe's feed: lifts, trails, weather;  Mt. Rose's and Sugar Bowl's status pages: lifts (and trails)
-    Caltrans chain controls (districts 3, 10, 9) and full closures (district 9);  the Nevada roads file
+    Caltrans chain controls (districts 3, 10, 9) and full closures (district 9)
     the avalanche centers' zones and danger, and each zone's forecast
     the published forecast
 
-Standard library only. The resort status and Nevada files are written by their own modules first and passed in.
-python -m tahoe_snow.collect HISTORY_DIR [--lifts DIR] [--nevada FILE]
+Standard library only. The resort status files are written by their own modules first and passed in.
+python -m tahoe_snow.collect HISTORY_DIR [--lifts DIR]
 """
 import argparse
 import gzip
@@ -170,13 +170,6 @@ def closures(district: int) -> dict:
     return {f"caltrans{district}.closures": sorted(found, key=lambda c: (c["route"] or "", c["from"]))}
 
 
-def nevada(path: str) -> dict:
-    with open(path) as handle:
-        status = json.load(handle)
-    status.pop("updated", None)
-    return {"nevada.roads": status}
-
-
 def avalanche(center: str) -> dict:
     zones, out = {}, {}
     for feature in get(f"{AVALANCHE}/products/map-layer/{center}").get("features") or []:
@@ -217,7 +210,7 @@ def digest(content) -> str:
     return hashlib.sha1(json.dumps(content, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
-def collect(history: str, lifts_dir: str | None, nevada_file: str | None, now: datetime) -> dict:
+def collect(history: str, lifts_dir: str | None, now: datetime) -> dict:
     """One pass. Returns the line written to the day's runs file."""
     readers = {**{IKON[feed_id]: (lambda feed_id=feed_id: ikon(feed_id)) for feed_id in IKON},
                "sierra": sierra, "mtrose": mt_rose, "sugarbowl": sugar_bowl,
@@ -228,8 +221,6 @@ def collect(history: str, lifts_dir: str | None, nevada_file: str | None, now: d
         path = os.path.join(lifts_dir or "", f"{name}.json")
         if lifts_dir and os.path.exists(path):
             readers[name] = lambda path=path: published(path)
-    if nevada_file and os.path.exists(nevada_file):
-        readers["nevada"] = lambda: nevada(nevada_file)
 
     state_path = os.path.join(history, "state.json")
     try:
@@ -280,9 +271,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("history")
     parser.add_argument("--lifts")
-    parser.add_argument("--nevada")
     args = parser.parse_args()
-    run = collect(args.history, args.lifts, args.nevada, datetime.now(timezone.utc))
+    run = collect(args.history, args.lifts, datetime.now(timezone.utc))
     print(f"{len(run['read'])} parts read, {len(run['changed'])} changed" + (f"; failed: {', '.join(run['failed'])}" if run["failed"] else ""))
     return 0
 

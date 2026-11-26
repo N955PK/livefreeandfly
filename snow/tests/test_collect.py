@@ -26,8 +26,8 @@ def test_a_part_that_reads_the_same_is_written_once(tmp_path, monkeypatch):
         raise OSError("offline")
     monkeypatch.setattr(collect, "fetch", offline)
     history = tmp_path / "history"
-    first = collect.collect(str(history), str(lifts), None, NOW)
-    second = collect.collect(str(history), str(lifts), None, NOW)
+    first = collect.collect(str(history), str(lifts), NOW)
+    second = collect.collect(str(history), str(lifts), NOW)
     assert "homewood.lifts" in first["changed"] and second["changed"] == [] and "homewood.lifts" in second["read"]
     assert "ikon61" in first["failed"] and "forecast" in first["failed"]
     day = history / "2026-11-22"
@@ -44,7 +44,7 @@ def test_the_new_england_lift_files_are_kept_like_the_others(tmp_path, monkeypat
     (lifts / "killington.json").write_text(json.dumps({"updated": "2026-11-22T19:00:00Z", "resorts": {"pico": feed("Summit Express", "49er")}}))
     monkeypatch.setattr(collect, "fetch", lambda url: (_ for _ in ()).throw(OSError("offline")))
     history = tmp_path / "history"
-    run = collect.collect(str(history), str(lifts), None, NOW)
+    run = collect.collect(str(history), str(lifts), NOW)
     assert {"loon.lifts", "loon.trails", "pico.lifts", "pico.trails"} <= set(run["changed"])
     assert "boyne" not in run["failed"] and "killington" not in run["failed"]
     day = history / "2026-11-22"
@@ -59,7 +59,7 @@ def test_the_seattle_lift_files_are_kept_like_the_others(tmp_path, monkeypatch):
     (lifts / "missionridge.json").write_text(json.dumps({"updated": "2026-11-22T19:00:00Z", "resorts": {"missionridge": feed("Chair 2")}}))
     (lifts / "boyne.json").write_text(json.dumps({"updated": "2026-11-22T19:00:00Z", "resorts": {"alpental": feed("Armstrong Express")}}))
     monkeypatch.setattr(collect, "fetch", lambda url: (_ for _ in ()).throw(OSError("offline")))
-    run = collect.collect(str(tmp_path / "history"), str(lifts), None, NOW)
+    run = collect.collect(str(tmp_path / "history"), str(lifts), NOW)
     assert {"missionridge.lifts", "alpental.lifts"} <= set(run["changed"]) and "missionridge" not in run["failed"]
 
 
@@ -70,8 +70,8 @@ def test_a_new_forecast_is_kept_once_cut_to_the_hours_around_now(tmp_path, monke
                              "elevations": {"summit": {"days": [{"date": "2026-11-22"}], "hourly": {"wind_mph": list(range(len(hours)))}}}}]}
     monkeypatch.setattr(collect, "fetch", lambda url: json.dumps(forecast).encode() if url == collect.FORECAST else (_ for _ in ()).throw(OSError("offline")))
     history = tmp_path / "history"
-    assert "forecast" in collect.collect(str(history), None, None, NOW)["changed"]
-    assert "forecast" not in collect.collect(str(history), None, None, NOW)["changed"]
+    assert "forecast" in collect.collect(str(history), None, NOW)["changed"]
+    assert "forecast" not in collect.collect(str(history), None, NOW)["changed"]
     kept = json.load(gzip.open(history / "forecast" / "2026-11-22T17-52-11Z.json.gz", "rt"))
     resort = kept["resorts"][0]
     assert "season_curves" not in kept and resort["elevations"]["summit"]["days"] == [{"date": "2026-11-22"}]

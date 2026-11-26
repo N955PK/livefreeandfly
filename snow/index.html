@@ -1624,7 +1624,7 @@ if (HOSTED) {
     <p>Snow sensors: USDA NRCS SNOTEL, the California Data Exchange Center (its readings are provisional), Alberta's river and snow stations, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, and British Columbia's automated snow stations. Contains information licensed under the Open Government Licence – British Columbia.</p>
     <p>Avalanche forecasts: the United States' avalanche centers through avalanche.org and the National Avalanche Center, and Avalanche Canada, which carries Parks Canada's and Kananaskis Country's. Each forecast is its center's own; this app shows a summary and links to the full forecast.</p>
     <p>Maps: roads © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>. Terrain from the Terrain Tiles on AWS: United States 3DEP and global SRTM and GMTED2010 terrain data courtesy of the U.S. Geological Survey; Canada's terrain data contains information licensed under the Open Government Licence – Canada. Lakes and resort elevations from OpenStreetMap and OpenSkiMap (ODbL). Country and lake outlines from Natural Earth. Radar from the Iowa Environmental Mesonet.</p>
-    <p>Roads and lifts: Caltrans and Nevada 511 for road conditions, and each resort's own lift, trail and snow report. Resort and pass names belong to their owners; this app is not affiliated with any of them.</p>
+    <p>Roads and lifts: Caltrans for road conditions, and each resort's own lift, trail and snow report. Resort and pass names belong to their owners; this app is not affiliated with any of them.</p>
     <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, British Columbia's snow stations, and model archives from Open-Meteo.</p>
     <p>The fifty classic descents are the lines of <i>Fifty Classic Ski Descents of North America</i> by Chris Davenport, Art Burrows and Penn Newhard (2010).</p></details>
   </div>
@@ -4626,22 +4626,12 @@ function fullClosures(feed) {
   return out;
 }
 const BOUND = {North: "northbound", South: "southbound", East: "eastbound", West: "westbound"};
-// Nevada's feed needs a key, so a scheduled job reads it and publishes the result; anything older than
-// NEVADA_FRESH_MIN is treated as missing rather than shown out of date.
-const NEVADA_FRESH_MIN = 45;
-async function nevadaRoads() {
-  const url = DEVELOPING ? "data/nevada.json" : `https://raw.githubusercontent.com/${REPO}/snow-roads/nevada.json`;
-  try {
-    const status = await fetch(url, {cache: "no-store"}).then((r) => (r.ok ? r.json() : null));
-    return status && Date.now() - new Date(status.updated) < NEVADA_FRESH_MIN * 6e4 ? status : null;
-  } catch (error) { return null; }
-}
 async function loadRoads() {
   // A region with no road feeds has no Roads button (see startMap).
   if (!REGIONS[place()].chainFeeds) return;
   const asked = place(), {chainFeeds, closureFeeds = []} = REGIONS[asked], center = REGIONS[asked].look || REGIONS[asked].center, kmPerLon = 111.32 * Math.cos(center[0] * Math.PI / 180), tz = tzOf(mountain(selected));
   try {
-    const [nevada, shut, ...feeds] = await Promise.all([nevadaRoads(),
+    const [shut, ...feeds] = await Promise.all([
       Promise.all(closureFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()).catch(() => null))).then((list) => list.flatMap(fullClosures)),
       ...chainFeeds.map((url) => fetch(url, {cache: "no-store"}).then((r) => r.json()))]);
     if (asked !== place() || !map) return;
@@ -4658,7 +4648,7 @@ async function loadRoads() {
       const steps = Math.max(1, Math.ceil(Math.hypot((lat1 - lat0) * 111, (lon1 - lon0) * kmPerLon) / CLOSURE_STEP_KM));
       return Array.from({length: steps + 1}, (_, n) => ({route, lat: lat0 + (lat1 - lat0) * n / steps, lon: lon0 + (lon1 - lon0) * n / steps, status: "closed", name: names[0], sign: n === 0}));
     });
-    map.setRoadStatus(points.concat(stretches, nevada ? nevada.points : []));
+    map.setRoadStatus(points.concat(stretches));
     const km = (p) => Math.hypot((p.lat - center[0]) * 111, (p.lon - center[1]) * kmPerLon);
     const near = points.filter((p) => km(p) <= ROADS_WITHIN_KM), number = (route) => route.replace(/^[A-Z]+-/, "");
     const since = (list) => {
@@ -4713,13 +4703,6 @@ async function loadRoads() {
       chains.push(`<li>${roadLabel(number(route))} ${parts.join("; ")}</li>`);
     }
     const chainRoutes = byRoute("chains").map(([route]) => number(route));
-    // Nevada reports whole stretches in its own words, so its rows are written out as given.
-    for (const row of (nevada ? nevada.rows : []).filter((r) => km(r) <= ROADS_WITHIN_KM)) {
-      const words = row.text === "Closed" ? row.where.slice(0, 140) : `${row.text.toLowerCase()} ${row.where}`;
-      const html = `<li><b>${esc(number(row.route))}</b> ${esc(words.trim())} (Nevada)</li>`;
-      if (row.status === "closed") closures.push({recent: row.since && Date.now() - row.since * 1000 < 2 * 864e5, route: number(row.route), html});
-      else { chains.push(html); chainRoutes.push(number(row.route)); }
-    }
     const levels = [...new Set(near.filter((p) => p.status === "chains").map((p) => p.level))].sort();
     const when = localClock(new Date());
     const fresh = closures.filter((c) => c.recent), older = closures.filter((c) => !c.recent);
@@ -4740,7 +4723,7 @@ async function loadRoads() {
         (fresh.length ? `<ul>${fresh.map((c) => c.html).join("")}</ul>` : "") + olderList, fresh.length > 0) +
       section("#f0a80d", "Chains", chains.length ? [...new Set(chainRoutes)].sort((a, b) => a - b).join(", ") : "none",
         `<ul>${chains.join("")}</ul><p>${levels.map((level) => `${level}: ${CHAIN_MEANING[level] || ""}`).join(" · ")}</p>`, false) +
-      `<span class="src">Caltrans, ${when} · ${nevada ? `Nevada 511, ${localClock(new Date(nevada.updated))}` : "California roads only"}</span>`;
+      `<span class="src">Caltrans, ${when}</span>`;
   } catch (error) { if (asked === place()) { $("roadNote").textContent = navigator.onLine ? "Road status is unavailable right now." : "Road status needs a signal."; $("roadPill").innerHTML = ROAD_ICON; $("roadPill").setAttribute("aria-label", "Roads"); $("roadPill").style.removeProperty("--dot"); delete $("roadPill").dataset.count; $("roadPill").hidden = false; railReady(); } }
 }
 const ROAD_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 5 21M15 3l4 18M12 4v3M12 10.500v3M12 17v3"/></svg>';

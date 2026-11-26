@@ -414,7 +414,7 @@ saltlake: {name: "Salt Lake", terrain: "data/terrain-saltlake", roads: "data/roa
 | `floorM`, `lowlandM` (optional) | The map raises all ground below 1,150 m to that height, and only counts level ground above 400 m as a lake: right for the Sierra, wrong anywhere low. A region with summits near or under 1,500 m, or one that reaches the sea, sets both to 0 |
 | `rev` (optional) | `"?v=2"`; bump it whenever the terrain or road files are rebuilt, so phones fetch the new ones |
 
-Leave out `chainFeeds` and `closureFeeds`: there is no road status outside California and Nevada. A state whose
+Leave out `chainFeeds` and `closureFeeds`: there is no road status outside California. A state whose
 route numbers are not California's takes `plainStateRoutes: true`.
 
 Also in `index.html`, all part of the job:

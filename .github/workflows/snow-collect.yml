@@ -1,13 +1,13 @@
 name: Snow collect
 
 # GitHub fires a scheduled workflow on this repository hours apart, however often the schedule asks, so the live
-# status the page shows (lifts at the resorts a browser cannot read, Nevada's roads) went stale and the records kept
+# status the page shows (lifts at the resorts a browser cannot read) went stale and the records kept
 # for checking the page's predictions had one line a day. This workflow does not wait to be fired: one job runs for
 # most of six hours, doing a pass every five minutes by day and every fifteen at night, then starts the next run
 # itself. The schedule below only restarts the chain if it ever breaks; while a run is going, a second one waits.
 #
 # Each pass:
-#   1. reads the resorts' lift pages and Nevada's roads and publishes them for the page (snow-lifts, snow-roads);
+#   1. reads the resorts' lift pages and publishes them for the page (snow-lifts);
 #   2. appends everything live the page reads and shows to the history branch (see tahoe_snow/collect.py);
 #   3. builds the forecast a region at a time, the most overdue first, each on its own interval, and publishes every
 #      region's file together (snow-data);
@@ -48,13 +48,12 @@ jobs:
 
       - name: Collect until the job is nearly out of time
         env:
-          NV511_KEY: ${{ secrets.NV511_KEY }}
           REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         run: |
           set -u +e   # a pass that fails in one place carries on to the next; nothing here should end the job
           echo "COLLECT_BEGAN=$(date +%s)" >> "$GITHUB_ENV"
           code="$PWD/snow" work="$RUNNER_TEMP/collect"
-          mkdir -p "$work/lifts" "$work/roads" "$work/logs" "$work/avy"
+          mkdir -p "$work/lifts" "$work/logs" "$work/avy"
           git config --global user.name "snow-collect"
           git config --global user.email "actions@users.noreply.github.com"
 
@@ -145,12 +144,10 @@ jobs:
             python3 -m tahoe_snow.sources.killington "$work/lifts/killington.json" || echo "::warning::Killington's and Pico's lift and trail pages could not be read"
             python3 -m tahoe_snow.sources.missionridge "$work/lifts/missionridge.json" || echo "::warning::Mission Ridge's mountain report could not be read"
             python3 -m tahoe_snow.sources.independents "$work/lifts/independents.json" || echo "::warning::The independent New England mountains' reports could not be read"
-            python3 -m tahoe_snow.sources.nv511 "$work/roads/nevada.json" || echo "::warning::Nevada 511 could not be read"
             cd ..
             publish snow-lifts "$work/lifts" "Lift status $(date -u +%Y-%m-%dT%H:%MZ)" || echo "::warning::Lift status was not published"
-            if [ -s "$work/roads/nevada.json" ]; then publish snow-roads "$work/roads" "Nevada road status $(date -u +%Y-%m-%dT%H:%MZ)" || echo "::warning::Nevada roads were not published"; fi
 
-            (cd "$code" && python3 -m tahoe_snow.collect "$work/history" --lifts "$work/lifts" --nevada "$work/roads/nevada.json") || echo "::warning::The history pass failed"
+            (cd "$code" && python3 -m tahoe_snow.collect "$work/history" --lifts "$work/lifts") || echo "::warning::The history pass failed"
             (cd "$work/history" && git add -A && git commit -q -m "History $(date -u +%Y-%m-%dT%H:%MZ)" && git push -q origin snow-history) || echo "::warning::The history was not pushed"
 
             forecast

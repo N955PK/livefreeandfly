@@ -87,7 +87,7 @@ All five avalanche centers answer on the same public service the page already re
 | Measured snow and season totals | Where a SNOTEL sensor is near (Washington, Utah, Wyoming, Alaska). New England has none: those mountains read "Uncorrected" and show no measured snow, as June Mountain does now |
 | Forecast corrected against the sensor | No. A correction has to be fitted per region from years of sensor record (`calibrate.py`). Until then the models are used as they are |
 | Lift and trail status, resort report | Not at launch. Each resort's feed has to be found and wired one at a time; the guide says how |
-| Road and chain status | No. That comes from Caltrans and Nevada 511 only |
+| Road and chain status | No. That comes from Caltrans only |
 | Wind-hold outlook | Uses the default tier until holds are logged |
 
 Two known weaknesses to say plainly on the About sheet when the regions ship:
