@@ -1138,9 +1138,13 @@ dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden
 .namap .dot.on{fill:var(--mark);fill-opacity:1}
 .namap .here{fill:none;stroke:var(--mark);stroke-width:2.5}
 .wheresum{margin:2px 0 12px;font-size:13.5px;line-height:1.45;color:var(--mark-dull)}
-.wherego{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;margin:12px 0 4px;padding:0 22px;border:0;border-radius:999px;background:var(--mark);color:var(--surface);font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.wherego b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wherego span{flex:none;font-weight:500;opacity:.8;white-space:nowrap}
+/* The region touched on the map, as a button that opens it: its whole name, with how many mountains it has on a
+   line beneath, and an arrow at the right. The name is never cut short; a very long one runs onto a second line. */
+.wherego{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;margin:12px 0 4px;padding:8px 20px 8px 22px;border:0;border-radius:28px;background:var(--mark);color:var(--surface);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wherego > div{min-width:0;display:flex;flex-direction:column;gap:1px}
+.wherego b{font-size:16px;font-weight:700;line-height:1.2}
+.wherego span{font-size:12.5px;font-weight:500;opacity:.8}
+.wherego svg{flex:none;width:9px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .wherego[disabled]{background:var(--wash);color:var(--mark-dull);cursor:default}
 .gnav button{position:relative;display:block;width:100%;text-align:left;padding:11px 46px 12px 26px;border:0;border-radius:999px;background:var(--wash);font:inherit;color:var(--mark);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .gnav button b{display:block;font-size:14.5px;font-weight:650}
@@ -5110,7 +5114,7 @@ function renderWhere() {
   body.innerHTML = `<p class="wheresum">${mountainsOf(total)} in ${keys.length} regions of the USA and Canada. Touch a region to name it, then open it.</p>
     <svg class="namap" id="whereMap" viewBox="0 0 ${NA_MAP.w} ${NA_MAP.h}" role="img" aria-label="Map of North America with a dot for each region">
       <path class="land far" d="${NA_MAP.paths.mx}"/><path class="land" d="${NA_MAP.paths.ca}"/><path class="land" d="${NA_MAP.paths.us}"/><path class="lake" fill-rule="evenodd" d="${NA_MAP.paths.lakes}"/>${dots}${ring}</svg>
-    <button class="wherego" id="whereGo"${picked ? "" : " disabled"}>${picked ? `<b>${picked.key === shown ? "" : "Open "}${esc(REGIONS[picked.key].name)}</b><span>${picked.key === shown ? "on screen · " : ""}${mountainsOf(picked.count)}</span>` : "<b>Touch a region</b>"}</button>`;
+    <button class="wherego" id="whereGo"${picked ? "" : " disabled"}>${picked ? `<div><b>${esc(REGIONS[picked.key].name)}</b><span>${mountainsOf(picked.count)}${picked.key === shown ? " · on screen now" : ""}</span></div>${picked.key === shown ? "" : '<svg viewBox="0 0 9 15" aria-hidden="true"><path d="M1.500 1.500 7.500 7.500 1.500 13.500"/></svg>'}` : "<div><b>Touch a region</b></div>"}</button>`;
   $("whereSum").textContent = `${mountainsOf(total)} in ${keys.length} regions`;
   $("whereMap").addEventListener("click", (e) => {
     const box = e.currentTarget.getBoundingClientRect(), scale = NA_MAP.w / box.width;
