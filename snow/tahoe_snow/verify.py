@@ -3,7 +3,8 @@ import json
 
 import pandas as pd
 
-from tahoe_snow.config import DATA, MODELS, TABLES
+from tahoe_snow import config
+from tahoe_snow.config import ALL_RESORTS, DATA, MODELS, TABLES
 from tahoe_snow.snow import phase
 
 RATIO_ROWS = {"fixed 10:1": "Flat 10:1", "Kuchera": "Kuchera (the common free method)",
@@ -267,6 +268,86 @@ def canada_sections() -> list:
     return out
 
 
+# The third collector's regions: the name each goes by, where its sensors are, and what its snow days are called.
+WEST = {
+    "montana": ("Montana", "southwest Montana, from the Little Belts to the Beartooths", "Montana"),
+    "sunvalley": ("Sun Valley", "the Sawtooths and the mountains around Sun Valley", "Idaho"),
+    "oregon": ("Oregon", "Oregon's Cascades, from Mt. Hood to Willamette Pass", "Oregon"),
+    "newmexico": ("New Mexico", "the Sangre de Cristo and Jemez mountains", "New Mexico"),
+    "alaska": ("Alaska", "the Chugach, the Kenai and the Talkeetna mountains", "Alaska"),
+    "swcolorado": ("Southwest Colorado", "the Elk Mountains, the Sawatch and the San Juans", "southwest Colorado"),
+}
+
+
+def _listed(names: list) -> str:
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def west_reach(region: str) -> str:
+    """Which of a region's mountains the correction does not reach, read from the configuration."""
+    mountains = [r for r in ALL_RESORTS.values() if r.region == region]
+    shown = [r.name for r in mountains if r.station and not r.corrected]
+    bare = [r.name for r in mountains if not r.station]
+    said = []
+    if shown:
+        said.append(f"{_listed(shown)} {'is' if len(shown) == 1 else 'are'} shown a sensor but left uncorrected, "
+                    "since it sits far below the mountain")
+    if bare:
+        said.append(f"{_listed(bare)} {'has' if len(bare) == 1 else 'have'} no sensor within reach and "
+                    f"{'is' if len(bare) == 1 else 'are'} left uncorrected")
+    return ("; ".join(said) + ".") if said else "Every mountain there has a sensor within reach."
+
+
+def west_sections() -> list:
+    """Each of the third collector's regions' three tests, each None where its table is not on hand: water against
+    its snow sensors, the rain/snow split against the Sierra's on the same days, and the snow ratio on the
+    region's hand-measured snow days."""
+    out = []
+    for region, (name, where, people) in WEST.items():
+        reach = west_reach(region)
+        water = water_section(
+            f"Water, {name}.",
+            f"The same test against {len(getattr(config, f"{region.upper()}_STATIONS"))} snow sensors in {where}, on the 2024, 2025, "
+            f"and 2026 winters held out in turn. {reach[0].upper() + reach[1:]}",
+            f"bias_methods_{region}.csv", "Corrected to the snow sensors (in use where a sensor is near)")
+        split = ratio = None
+        if (TABLES / f"phase_table_{region}.csv").exists():
+            table = pd.read_csv(TABLES / f"phase_table_{region}.csv", index_col=0)
+            kind, params = phase.load(region)
+            row = table.loc[kind]
+            split = {"title": f"Rain or snow, {name}.",
+                     "note": f"The same test at {int(row['stations'])} snow sensors in {where} over "
+                             f"{int(row['days']):,} held-out days, {int(row['mixed days']):,} of them mixed; calling "
+                             f"everything snow would miss by {float(row['all_snow_error']):.1f} mm. The curve fitted "
+                             f"there is centered at {params['center_c']:g} C of wet-bulb, against the Sierra's "
+                             f"{phase.load()[1]['center_c']:g} C.",
+                     "columns": ["Method", "Error (mm of water)", "On mixed days (mm)"],
+                     "rows": [["The Sierra's wet-bulb curve", f"{row['sierra_error']:.2f}",
+                               f"{row['sierra_mixed_error']:.2f}"],
+                              [f"{name}'s wet-bulb curve (in use)", f"{row['held-out error (mm water)']:.2f}",
+                               f"{row['error on mixed days (mm water)']:.2f}"]]}
+        check = MODELS / f"snow_ratio_check_{region}.json"
+        if check.exists():
+            record = json.loads(check.read_text())
+            on = record["checked_on"]
+            own = (MODELS / f"snow_ratio_{region}.json").exists()
+            rows = {"flat_10_to_1": RATIO_ROWS["fixed 10:1"], "kuchera": RATIO_ROWS["Kuchera"],
+                    "sierra_model": "This site's ratio, trained in the Sierra" + ("" if own else " (in use)"),
+                    "pooled_refit_each_station_held_out":
+                        f"Trained on Sierra and {people} days together" + (" (in use)" if own else "")}
+            ratio = {"title": f"Snow ratio, {name}.",
+                     "note": f"{on['days']:,} hand-measured snow days at {on['stations']} stations in {where}, "
+                             f"{on['first_date'][:4]} to {on['last_date'][:4]}. The ratio trained on both is scored "
+                             "at stations it never saw; "
+                             + ("it did better there than the Sierra's alone and is the one in use."
+                                if own else "it did no better there than the Sierra's alone, which stays in use."),
+                     "columns": ["Method", "Snowfall error (in)", "Average miss (in)"],
+                     "rows": [[label, f"{record[key]['snow_error_in']:.2f}", f"{record[key]['snow_bias_in']:+.2f}"]
+                              for key, label in rows.items()]}
+        out += [(f"Water, {name}.", water), (f"Rain or snow, {name}.", split), (f"Snow ratio, {name}.", ratio)]
+    return out
+
+
 def scorecard() -> dict:
     """The scorecard, rebuilt from the tests on hand. A section whose test is not on this machine is carried over
     from the scorecard already published, so rebuilding one region's tests does not drop another's."""
@@ -301,6 +382,7 @@ def scorecard() -> dict:
         "bias_methods_mammoth.csv", "Corrected to the snow sensors (in use where a sensor is near)"))]
     regional += seattle_sections() + tetons_sections() + wasatch_sections() + colorado_sections()
     regional += canada_sections()
+    regional += west_sections()
     sections += [built or kept[title] for title, built in regional if built or title in kept]
     sections += [
         {"title": "Live forecasts.",
