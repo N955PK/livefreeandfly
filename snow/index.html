@@ -2298,7 +2298,8 @@ const REGIONS = {
   rubymountains: {name: "Ruby Mountains", short: "Rubies", terrain: "data/terrain-rubymountains", roads: "data/roads-rubymountains.json", center: [40.65, -115.419], pick: "terminalcancer",
     // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 1 km from the middle.
     waterM: 1500, floorM: 1500, lowlandM: 4000, plainStateRoutes: true,
-    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // The opening view, tuned 2026-11-26. From the north, into Lamoille Canyon: the couloir is on the canyon's north-facing wall.
+    discKm: 43, zoom: 0.6, turnDeg: 190, look: [40.646, -115.42],
     // Sagebrush in the valleys, aspen and pine in the canyons, and rock above about 3,000 m. Ruby Valley's marshes and dry lake beds are level but are not drawn as lakes.
     land: [[1500, [0.70, 0.64, 0.48]], [1800, [0.62, 0.59, 0.43]], [2200, [0.36, 0.44, 0.30]], [2700, [0.26, 0.39, 0.29]],
       [3000, [0.55, 0.53, 0.48]], [3300, [0.72, 0.70, 0.67]]],
@@ -2306,7 +2307,8 @@ const REGIONS = {
   lasal: {name: "La Sal Mountains", short: "La Sals", terrain: "data/terrain-lasal", roads: "data/roads-lasal.json", center: [38.46, -109.26], pick: "tukuhnikivatz",
     // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 2 km from the middle.
     waterM: 900, floorM: 900, lowlandM: 4000, plainStateRoutes: true,
-    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // The opening view, tuned 2026-11-26. From the north-west, as the range is seen from Moab.
+    discKm: 43, zoom: 0.65, turnDeg: -135, look: [38.44, -109.26],
     // Red desert and canyons low, forest on the range from about 2,400 m, and rock above treeline near 3,500 m. Level desert is not drawn as water.
     land: [[900, [0.70, 0.64, 0.48]], [1700, [0.62, 0.59, 0.43]], [2400, [0.36, 0.44, 0.30]], [3100, [0.26, 0.39, 0.29]],
       [3500, [0.55, 0.53, 0.48]], [3800, [0.72, 0.70, 0.67]]],
@@ -2314,7 +2316,8 @@ const REGIONS = {
   denali: {name: "Denali", terrain: "data/terrain-denali", roads: "data/roads-denali.json", center: [63.07, -151.041], pick: "denali",
     // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 2 km from the middle.
     waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
-    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // The opening view, tuned 2026-11-26. From the south-south-west, onto the face above the 14,200 ft camp.
+    discKm: 43, zoom: 0.65, turnDeg: -30, look: [63.069, -151.006],
     // Spruce and tundra low, then rock, and ice from about 1,500 m to the summit.
     land: [[0, [0.36, 0.46, 0.31]], [200, [0.24, 0.40, 0.27]], [600, [0.36, 0.44, 0.32]], [1000, [0.52, 0.51, 0.46]],
       [1500, [0.72, 0.73, 0.74]], [2100, [0.88, 0.90, 0.93]]],
@@ -2332,7 +2335,8 @@ const REGIONS = {
   waddington: {name: "Waddington Range", short: "Waddington", country: "Canada", terrain: "data/terrain-waddington", roads: "data/roads-waddington.json", center: [51.391, -125.248], pick: "combatant",
     // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 0 km from the middle.
     waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
-    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // The opening view, tuned 2026-11-26. From the south, up the Tiedemann Glacier to the couloir.
+    discKm: 43, zoom: 0.6, turnDeg: 0, look: [51.39, -125.25],
     // Rainforest in the inlets and valleys, then rock, and glaciers above about 2,300 m.
     land: [[0, [0.42, 0.50, 0.32]], [300, [0.26, 0.42, 0.28]], [1000, [0.20, 0.36, 0.25]], [1500, [0.27, 0.40, 0.30]],
       [1850, [0.52, 0.51, 0.46]], [2300, [0.68, 0.68, 0.67]], [2700, [0.86, 0.88, 0.91]]],
@@ -2340,7 +2344,8 @@ const REGIONS = {
   baffin: {name: "Baffin Island", short: "Baffin", country: "Canada", terrain: "data/terrain-baffin", roads: "data/roads-baffin.json", center: [70.558, -71.306], pick: "polarstar",
     // The disc is 43 km in radius, a kilometre inside the terrain's shorter side; the furthest point is 1 km from the middle.
     waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
-    discKm: 43, zoom: 0.9, turnDeg: 0,
+    // The opening view, tuned 2026-11-26. From the south, with the fjord the line drops to in front.
+    discKm: 43, zoom: 0.6, turnDeg: 0, look: [70.56, -71.31],
     // Bare tundra and rock from the fjords up, and ice caps on the plateau.
     land: [[0, [0.50, 0.50, 0.44]], [300, [0.56, 0.55, 0.50]], [700, [0.70, 0.71, 0.71]], [1100, [0.88, 0.90, 0.93]]],
     avalanche: []},
