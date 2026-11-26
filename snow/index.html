@@ -4751,7 +4751,11 @@ async function startMap() {
   if (!list.length || !list[0].lat) return;
   if ((map || mapDue) && !mapShowing()) {
     togglePlay(false);
-    if (map) { if (staleMap) staleMap.dispose(); staleMap = map; map = null; }
+    // Nobody is looking at the map, so the old region's is taken down now, with its area pills: when the Map tab is
+    // next opened the new region's map is drawn onto a clear pane, and the old one is never seen there.
+    if (staleMap) { staleMap.dispose(); staleMap = null; }
+    if (map) { map.dispose(); map = null; }
+    renderAreas();
     mapDue = true;
     return;
   }
