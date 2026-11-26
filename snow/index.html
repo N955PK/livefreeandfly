@@ -3360,7 +3360,7 @@ const STATUS_PAGES = {
   silvermountain: "https://silvermt.com/snow-report/trail-status/", losttrail: "https://losttrail.com/snow-report/",
   camelback: "https://www.camelbackresort.com/snow-report-conditions",
   jackfrost: "https://www.jfbb.com/", bigboulder: "https://www.jfbb.com/", shawnee: "https://www.shawneemt.com/",
-  montage: "https://www.montagemountainresorts.com/", skibigbear: "https://www.ski-bigbear.com/", windham: "https://www.windhammountainclub.com/mountain/",
+  montage: "https://www.montagemountainresorts.com/trails/#trailconditions", skibigbear: "https://www.ski-bigbear.com/conditions-trail-map", windham: "https://www.windhammountainclub.com/mountain/",
   eaglecrest: "https://skieaglecrest.com/conditions/", terrypeak: "https://terrypeak.com/trails-lifts",
   plattekill: "https://plattekill.com/on-the-trail/#trailReport", westmountain: "https://westmountain.com/trail-conditions/",
   elkmountain: "https://www.elkskier.com/conditions/", montanasnowbowl: "https://www.montanasnowbowl.com/trails-report/index.php",
@@ -3470,7 +3470,7 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
     "timberline", "skibowl", "hoodoo", "bachelor",
     // The later regions' first readers.
     "boynemountain", "boynehighlands", "eldora", "brianhead", "azsnowbowl", "leecanyon",
-    "whitefish", "bogusbasin", "brundage", "tamarack", "lutsen", "mountainhigh", "showdown", "lookoutpass", "fortyninenorth", "mtspokane", "discovery", "wisp", "wintergreen", "massanutten", "holidayvalley", "bristol", "nubsnob", "crystalmi", "snowriver", "granitepeak", "whitecap", "caberfae", "timberlinewv", "canaanvalley", "silvermountain", "losttrail", "camelback", "windham", "eaglecrest", "terrypeak", "plattekill", "westmountain", "elkmountain", "powderking", "hudsonbay", "mtbaldy", "sunrisepark", "dodgeridge", "snowyrange", "mountstlouis", "whitehills", "spiritmtn", "chinapeak", "sunlight", "powderhorn", "eaglepoint", "sasquatch", "castlemountain", "horseshoe",
+    "whitefish", "bogusbasin", "brundage", "tamarack", "lutsen", "mountainhigh", "showdown", "lookoutpass", "fortyninenorth", "mtspokane", "discovery", "wisp", "wintergreen", "massanutten", "holidayvalley", "bristol", "nubsnob", "crystalmi", "snowriver", "granitepeak", "whitecap", "caberfae", "timberlinewv", "canaanvalley", "silvermountain", "losttrail", "camelback", "windham", "eaglecrest", "terrypeak", "plattekill", "westmountain", "elkmountain", "powderking", "montage", "skibigbear", "hudsonbay", "mtbaldy", "sunrisepark", "dodgeridge", "snowyrange", "mountstlouis", "whitehills", "spiritmtn", "chinapeak", "sunlight", "powderhorn", "eaglepoint", "sasquatch", "castlemountain", "horseshoe",
     // Park City and Colorado's four Vail mountains, read by the collector from Vail's own pages.
     "parkcity", "vail", "beavercreek", "breckenridge", "keystone", "crestedbutte", "whistler", "hunter", "sevensprings",
     // Shasta's two resorts, each read by the collector from its own page.
@@ -3565,7 +3565,7 @@ const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBo
     "timberline", "skibowl", "hoodoo", "bachelor",
     // The later regions' first readers.
     "boynemountain", "boynehighlands", "eldora", "brianhead", "azsnowbowl", "leecanyon",
-    "whitefish", "bogusbasin", "brundage", "tamarack", "lutsen", "mountainhigh", "showdown", "lookoutpass", "fortyninenorth", "mtspokane", "discovery", "wisp", "wintergreen", "massanutten", "holidayvalley", "bristol", "nubsnob", "crystalmi", "snowriver", "granitepeak", "whitecap", "caberfae", "timberlinewv", "canaanvalley", "silvermountain", "losttrail", "camelback", "windham", "eaglecrest", "terrypeak", "plattekill", "westmountain", "elkmountain", "powderking", "hudsonbay", "mtbaldy", "sunrisepark", "dodgeridge", "snowyrange", "mountstlouis", "whitehills", "spiritmtn", "chinapeak", "sunlight", "powderhorn", "eaglepoint", "sasquatch", "castlemountain", "horseshoe",
+    "whitefish", "bogusbasin", "brundage", "tamarack", "lutsen", "mountainhigh", "showdown", "lookoutpass", "fortyninenorth", "mtspokane", "discovery", "wisp", "wintergreen", "massanutten", "holidayvalley", "bristol", "nubsnob", "crystalmi", "snowriver", "granitepeak", "whitecap", "caberfae", "timberlinewv", "canaanvalley", "silvermountain", "losttrail", "camelback", "windham", "eaglecrest", "terrypeak", "plattekill", "westmountain", "elkmountain", "powderking", "montage", "skibigbear", "hudsonbay", "mtbaldy", "sunrisepark", "dodgeridge", "snowyrange", "mountstlouis", "whitehills", "spiritmtn", "chinapeak", "sunlight", "powderhorn", "eaglepoint", "sasquatch", "castlemountain", "horseshoe",
     "shastaskipark", "ashland", "bigwhite", "silverstar", "sunpeaks",
     "cypress", "grouse", "seymour", "mtwashington",
     "montblanc", "saintsauveur", "bromont", "sutton", "orford", "owlshead", "stoneham", "montsainteanne", "lemassif",
@@ -3937,7 +3937,7 @@ const STAKES = {palisades: [61, ["BaseArea", "MidMountainArea", "SummitArea"]], 
     "timberline", "hoodoo", "bachelor",
     // Boyne Mountain is left out until its report is this season's, and Lee Canyon gives no depth.
     "boynehighlands", "eldora", "brianhead", "azsnowbowl",
-    "whitefish", "bogusbasin", "brundage", "tamarack", "lutsen", "mountainhigh", "showdown", "lookoutpass", "fortyninenorth", "mtspokane", "discovery", "wisp", "wintergreen", "massanutten", "holidayvalley", "bristol", "nubsnob", "crystalmi", "snowriver", "granitepeak", "whitecap", "caberfae", "timberlinewv", "canaanvalley", "silvermountain", "losttrail", "camelback", "windham", "eaglecrest", "terrypeak", "plattekill", "westmountain", "elkmountain", "powderking", "hudsonbay", "mtbaldy", "sunrisepark", "dodgeridge", "snowyrange", "mountstlouis", "whitehills", "spiritmtn", "chinapeak", "sunlight", "powderhorn", "eaglepoint", "sasquatch", "castlemountain", "horseshoe",
+    "whitefish", "bogusbasin", "brundage", "tamarack", "lutsen", "mountainhigh", "showdown", "lookoutpass", "fortyninenorth", "mtspokane", "discovery", "wisp", "wintergreen", "massanutten", "holidayvalley", "bristol", "nubsnob", "crystalmi", "snowriver", "granitepeak", "whitecap", "caberfae", "timberlinewv", "canaanvalley", "silvermountain", "losttrail", "camelback", "windham", "eaglecrest", "terrypeak", "plattekill", "westmountain", "elkmountain", "powderking", "montage", "skibigbear", "hudsonbay", "mtbaldy", "sunrisepark", "dodgeridge", "snowyrange", "mountstlouis", "whitehills", "spiritmtn", "chinapeak", "sunlight", "powderhorn", "eaglepoint", "sasquatch", "castlemountain", "horseshoe",
     "shastaskipark", "ashland", "bigwhite", "silverstar", "sunpeaks",
     "cypress", "grouse", "seymour", "mtwashington",
     "lakelouise", "sunshine", "norquay", "nakiska", "marmot",
