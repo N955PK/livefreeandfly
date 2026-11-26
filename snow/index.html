@@ -1580,7 +1580,6 @@ if (HOSTED) {
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
   <div class="gpage" id="score" data-page="score" data-title="How we tested it" hidden>
     <p>Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
-    <h4 class="ghead">The scorecard</h4>
     <div id="scoreBody"></div>
     
 <h4 class="ghead">How fluffy the snow is</h4>
@@ -6125,7 +6124,51 @@ function renderScore(card) {
     const rows = wide ? s.columns.slice(1).map((name, j) => [name, ...s.rows.map((row) => row[j + 1])]) : s.rows;
     return `<table class="plain"><tr>${head.map((c) => `<th>${esc(c)}</th>`).join("")}</tr>${rows.map((row) => `<tr>${row.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table>`;
   };
-  $("scoreBody").innerHTML = card.sections.map((s) => `<p><b>${esc(s.title)}</b> ${esc(s.note || "")}</p><div class="gridwrap">${table(s)}</div>`).join("");
+  // The page is laid out a region at a time, as the scorecard's tables are: under each region its three tests
+  // (water, rain or snow, snow ratio), each with its table and then what was found. The words are written in the
+  // page by test and then by region; they are lifted out once and set under their regions here.
+  const TESTS = [["water", "How much water", /^Water/], ["split", "Rain or snow", /^Rain or snow/], ["ratio", "How fluffy the snow is", /^Snow ratio/]];
+  const testOf = (title) => (TESTS.find(([, name, starts]) => title === name || starts.test(title)) || [])[0];
+  const regionOfTitle = (title) => { const at = title.indexOf(", "); return at < 0 ? "Tahoe" : title.slice(at + 2).replace(/\.$/, "").replace("Mammoth area", "Central Sierras"); };
+  if (!renderScore.words) {
+    const words = renderScore.words = {intro: {}, by: {}};
+    let test = null, region = null;
+    for (const node of [...$("score").children]) {
+      if (node.id === "scoreBody" || node === $("score").firstElementChild) continue;
+      if (node.tagName === "H4") { test = testOf(node.textContent.trim()); region = null; if (test) node.remove(); continue; }
+      if (!test) continue;
+      if (node.tagName === "H5") { region = node.textContent.trim().replace("Tahoe and the Central Sierras", "Tahoe").replace(/^Canada$/, "Western Canada"); node.remove(); continue; }
+      node.remove();
+      if (!region) (words.intro[test] ||= []).push(node); else ((words.by[region] ||= {})[test] ||= []).push(node);
+    }
+  }
+  const words = renderScore.words, tables = {}, order = [];
+  let live = null;
+  for (const s of card.sections) {
+    if (!testOf(s.title)) { live = s; continue; }
+    const region = regionOfTitle(s.title);
+    if (!tables[region]) { tables[region] = {}; order.push(region); }
+    tables[region][testOf(s.title)] = s;
+  }
+  // Western Canada's words cover its five regions together, so they stand as a section ahead of the first of them.
+  const canadaAt = order.findIndex((name) => Object.values(REGIONS).some((r) => r.name === name && r.country === "Canada"));
+  if (words.by["Western Canada"] && canadaAt >= 0) order.splice(canadaAt, 0, "Western Canada");
+  for (const name of Object.keys(words.by)) if (!order.includes(name)) order.push(name);
+  const body = $("scoreBody"), add = (html) => body.insertAdjacentHTML("beforeend", html);
+  body.textContent = "";
+  add('<h4 class="ghead">What is tested</h4>');
+  for (const [test, name] of TESTS) { add(`<h5>${name}</h5>`); for (const node of words.intro[test] || []) body.append(node); }
+  for (const region of order) {
+    add(`<h4 class="ghead">${esc(region)}</h4>`);
+    for (const [test, name] of TESTS) {
+      const s = (tables[region] || {})[test], said = ((words.by[region] || {})[test]) || [];
+      if (!s && !said.length) continue;
+      add(`<h5>${name}</h5>`);
+      if (s) add(`<p>${esc(s.note || "")}</p><div class="gridwrap">${table(s)}</div>`);
+      for (const node of said) body.append(node);
+    }
+  }
+  if (live) add(`<h4 class="ghead">${esc(live.title.replace(/\.$/, ""))}</h4><p>${esc(live.note || "")}</p>${live.rows && live.rows.length ? `<div class="gridwrap">${table(live)}</div>` : ""}`);
 }
 
 // A tap on the star adds the mountain to the favorites or takes it off, at once. Taking off the last one shown while
