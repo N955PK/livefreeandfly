@@ -276,7 +276,20 @@ WEST = {
     "newmexico": ("New Mexico", "the Sangre de Cristo and Jemez mountains", "New Mexico"),
     "alaska": ("Alaska", "the Chugach, the Kenai and the Talkeetna mountains", "Alaska"),
     "swcolorado": ("Southwest Colorado", "the Elk Mountains, the Sawatch and the San Juans", "southwest Colorado"),
+    # The fourth collector's regions that have sensors.
+    "inlandnw": ("Inland Northwest", "the Selkirks, the Silver Valley and the hills north of Spokane", "Inland Northwest"),
+    "nwmontana": ("Northwest Montana", "northwest Montana, from the Whitefish Range to the Bitterroot", "Montana"),
+    "westidaho": ("Western Idaho", "the mountains around McCall and Boise and Oregon's Elkhorns", "Idaho"),
+    "wyoming": ("Wyoming", "Wyoming's ranges outside Jackson", "Wyoming"),
+    "southutah": ("Southern Utah", "the Tushars and the Markagunt Plateau", "southern Utah"),
+    "arizona": ("Arizona", "the San Francisco Peaks and the White Mountains", "Arizona"),
+    "lasvegas": ("Las Vegas", "the Spring Mountains", "Nevada"),
 }
+
+
+def west_stations(region: str) -> dict:
+    """A region's sensors: the first six regions' own tables, the later ones' shared one."""
+    return config.MORE_STATIONS.get(region) or getattr(config, f"{region.upper()}_STATIONS")
 
 
 def _listed(names: list) -> str:
@@ -307,7 +320,7 @@ def west_sections() -> list:
         reach = west_reach(region)
         water = water_section(
             f"Water, {name}.",
-            f"The same test against {len(getattr(config, f"{region.upper()}_STATIONS"))} snow sensors in {where}, on the 2024, 2025, "
+            f"The same test against {len(west_stations(region))} snow sensors in {where}, on the 2024, 2025, "
             f"and 2026 winters held out in turn. {reach[0].upper() + reach[1:]}",
             f"bias_methods_{region}.csv", "Corrected to the snow sensors (in use where a sensor is near)")
         split = ratio = None
