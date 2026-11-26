@@ -1524,21 +1524,21 @@ if (HOSTED) {
     <div class="setrow"><span>Map controls</span><div class="seg" role="group" aria-label="Map controls"><button data-pref="finger" data-value="spin">Default</button><button data-pref="finger" data-value="pan">Pan</button></div></div>
     <div class="setrow"><span>Theme</span><div class="swatches" role="group" aria-label="Theme"><button data-pref="accent" data-value="blue" aria-label="Blue" style="--sw:var(--snow)"></button><button data-pref="accent" data-value="evergreen" aria-label="Evergreen" style="--sw:#1f8a5b"></button><button data-pref="accent" data-value="alpenglow" aria-label="Alpenglow" style="--sw:#d6456b"></button><button data-pref="accent" data-value="sunrise" aria-label="Sunrise" style="--sw:#e0752a"></button><button data-pref="accent" data-value="teal" aria-label="Glacier teal" style="--sw:#1697a6"></button><button data-pref="accent" data-value="violet" aria-label="Violet" style="--sw:#7a52d6"></button></div></div>
   </div>
+  <h4 class="ghead">Coverage</h4>
+  <div class="gnav">
+    <button data-page-to="where"><b>Coverage map</b><span id="whereSum">A map of every region</span></button>
+  </div>
   <h4 class="ghead">The forecast</h4>
   <div class="gnav">
     <button data-page-to="how"><b>How the forecast is made</b><span>Models, snow ratio, wind, powder score</span></button>
     <button data-page-to="quality"><b>Sensor corrections</b><span id="qualitySum">Which mountains have a snow sensor</span></button>
     <button data-page-to="score"><b>How it is tested</b><span>Scored on winters it never saw</span></button>
   </div>
-  <h4 class="ghead">Coverage</h4>
-  <div class="gnav">
-    <button data-page-to="where"><b>Where Turbo Snow covers</b><span id="whereSum">A map of every region</span></button>
-  </div>
   <details class="gcredit"><summary>Data sources</summary>
     <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, the resorts' own lift, trail and snow reports, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, Mount Washington, and Northwest avalanche centers through avalanche.org.</p>
     <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
   </div>
-  <div class="gpage" id="where" data-page="where" data-title="Where Turbo Snow covers" hidden><div id="whereBody"></div></div>
+  <div class="gpage" id="where" data-page="where" data-title="Coverage map" hidden><div id="whereBody"></div></div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
   <div class="gpage" id="score" data-page="score" data-title="How it is tested" hidden>
     <p>Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
