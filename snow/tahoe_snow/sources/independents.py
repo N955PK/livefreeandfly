@@ -20,7 +20,7 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
+from tahoe_snow.sources import ((alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
                                 bigwhite, blackmountain, bogusbasin, bolton, boynehighlands, boynemountain,
                                 brettonwoods, brianhead, brighton, bristol, bromley, bromont, brundage, burke, caberfae,
                                 camelback, canaanvalley, cannon, cooperspur, copper, cranmore, crystalmi, cypress,
@@ -29,12 +29,12 @@ from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowm
                                 kimberley, lakelouise, leecanyon, lemassif, lookoutpass, losttrail, loveland, lutsen,
                                 madriverglen, magic, marmot, massanutten, monarch, montblanc, montsainteanne,
                                 mountainhigh, mtspokane, mtwashington, nakiska, norquay, nubsnob, orford, owlshead,
-                                pajarito, panorama, powderking, plattekill, powdermountain, purgatory, redmountain, redriver,
-                                revelstoke, saddleback, saintsauveur, seymour, shastaskipark, showdown, silvermountain,
-                                silverstar, sipapu, skibowl, skisantafe, smugglers, snowbasin, snowbird, snowriver,
-                                stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos, targhee,
-                                telluride, terrypeak, timberline, timberlinewv, waterville, westmountain, whitecap,
-                                whitefish, whitewater, willamettepass, windham, wintergreen, wisp)
+                                pajarito, panorama, plattekill, powderking, powdermountain, purgatory, redmountain,
+                                redriver, revelstoke, saddleback, saintsauveur, seymour, shastaskipark, showdown,
+                                silvermountain, silverstar, sipapu, skibowl, skisantafe, smugglers, snowbasin, snowbird,
+                                snowriver, stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos,
+                                targhee, telluride, terrypeak, timberline, timberlinewv, waterville, westmountain,
+                                whitecap, whitefish, whitewater, willamettepass, windham, wintergreen, wisp)
 
 TIMEOUT = 20
 STALE_DAYS = 14
