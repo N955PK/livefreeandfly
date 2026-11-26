@@ -387,7 +387,8 @@ Also in `index.html`, all part of the job:
 - **`pick`**: the mountain the region opens on. The pass group that holds it is listed first in the Summary, so
   pick an Ikon resort where the region has one (Colorado opens on Copper, so Ikon comes before Epic).
 - **`country`**: `country: "Canada"` on a region outside the USA. The region menu lists regions under their
-  country, countries A to Z, with Favorites above.
+  country, the USA's above Canada's (`COUNTRY_ORDER`; a new country goes after them, A to Z), with Favorites above.
+  Within a country, and wherever else regions are listed, they run A to Z by name (`regionsByName`).
 
 **The avalanche maps.** A frame in `LOCATORS` serves two maps: the small one beside the title and the large one a
 tap on it opens (`bigLocator`), which shows every zone of the frame in its danger color. What a frame can say:
@@ -433,7 +434,7 @@ other frame's box takes the new zones. Then:
 - Star one of the new mountains: it appears in Favorites next to mountains from other regions.
 - **Sub-area pills:** each frames its mountains with every name showing; where two names would collide one sits to
   the side of its stake.
-- **Menus:** the region is in A-to-Z order in the region menu (Favorites first), in the Sensor corrections list and
+- **Menus:** the region is in the region menu in its country's group, USA above Canada and A to Z within each (Favorites first), in the Sensor corrections list and
   in the explanations; its avalanche zones are under their group.
 - **Lifts:** each resort with a reader shows its lift and trail counts and its report; one without says so plainly.
 - **Large avalanche map:** tap the small map. Every zone is named with nothing overlapping, lakes are their real
