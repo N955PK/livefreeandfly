@@ -1221,6 +1221,7 @@ dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavio
 .pickhint{display:flex;flex-direction:column;gap:2px;padding:8px 14px 6px;color:var(--mark)}
 .pickhint b{font-weight:550;font-size:15px}
 .pickhint span{font-size:.82em;opacity:.75}
+.pickopt > span > small{margin-left:8px;font-size:12.5px;font-weight:400;opacity:.62;white-space:nowrap}
 .pickopt svg{flex:none;width:15px;height:12px;fill:none;stroke:var(--surface);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
 .pickopt[aria-current="true"]{background:var(--mark);color:var(--surface);font-weight:700}
 .pickopt[aria-current="true"] svg{visibility:visible}
@@ -5079,7 +5080,10 @@ $("settingsSheet").addEventListener("click", (e) => { if (e.target === $("settin
 // group names where it has groups); a touch on one sets the chooser and tells the page, as picking from the list would.
 let pickFor = null;
 function openPicker(select) {
-  const row = (o) => `<button class="pickopt" data-value="${esc(o.value)}"${o.selected ? ' aria-current="true"' : ""}><span>${esc(o.textContent)}</span><svg viewBox="0 0 15 12" aria-hidden="true"><path d="M1.500 6.500 5.500 10.500 13.500 1.500"/></svg></button>`;
+  // In the region menus a region whose name does not say where it is has its state or province beside it.
+  // It is left off where the heading the region stands under already names it (Alaska, British Columbia, Utah).
+  const regional = select.id === "regionPick" || select.id === "sumPick";
+  const row = (o) => `<button class="pickopt" data-value="${esc(o.value)}"${o.selected ? ' aria-current="true"' : ""}><span>${esc(o.textContent)}${regional && REGION_IN[o.value] && !partName(o.value).includes(REGION_IN[o.value]) ? `<small>${esc(REGION_IN[o.value])}</small>` : ""}</span><svg viewBox="0 0 15 12" aria-hidden="true"><path d="M1.500 6.500 5.500 10.500 13.500 1.500"/></svg></button>`;
   const groups = [...select.querySelectorAll("optgroup")];
   pickFor = select;
   $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
