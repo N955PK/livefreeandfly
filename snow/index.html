@@ -1827,6 +1827,10 @@ const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
 const BUILD = "289";
+// The map's code is asked for now, alongside the forecast, so it is in hand by the time the map is built.
+for (const href of [`./map3d.js?v=${BUILD}`, "./vendor/three/build/three.module.min.js", "./vendor/three/examples/jsm/controls/OrbitControls.js"]) {
+  document.head.appendChild(Object.assign(document.createElement("link"), {rel: "modulepreload", href}));
+}
 // Each visitor can star their own mountains (see Favorites); the choices are kept in their browser on that device.
 // HOME_KEY is where a home mountain was kept before favorites existed (see the move to favorites below).
 const HOME_KEY = "tahoe-snow.home";
@@ -3973,13 +3977,18 @@ function groundToMap() {
   map.setGround(Object.fromEntries(keys.map((key) => [key, stakeDepth(key, elevation)]).filter(([, inches]) => inches != null)));
   map.setReportedGround(reportedGround());
 }
+// The map's depths and the Mountain tab's lifts can want the same feed in the same instant: it is fetched once.
+const feedAsked = {};
+function liftFeed(id) {
+  return feedAsked[id] ||= (FEED_LOADERS[id] ? FEED_LOADERS[id]() : getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`)).finally(() => { delete feedAsked[id]; });
+}
 async function stakeDepths() {
   if (!map || !navigator.onLine) return;
   const asked = map, keys = Object.keys(STAKES).filter((key) => data.resorts.some((r) => r.key === key && regionOf(r) === place()));
   await Promise.all([...new Set(keys.map((key) => STAKES[key][0]))].map(async (id) => {
     const held = liftFeeds[id];
     if (held && Date.now() - held.at < 5 * 60 * 1000) return;
-    try { liftFeeds[id] = {at: Date.now(), data: await (FEED_LOADERS[id] ? FEED_LOADERS[id]() : getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`))}; }
+    try { liftFeeds[id] = {at: Date.now(), data: await liftFeed(id)}; }
     catch (error) { if (!held) liftFeeds[id] = {at: Date.now(), failed: true, notPosted: !!error.notPosted}; }
   }));
   if (map !== asked) return;
@@ -4048,7 +4057,7 @@ async function loadLifts(resort) {
   if (!spec || !navigator.onLine) return;
   const [id] = spec, held = liftFeeds[id];
   if (!held || Date.now() - held.at > 5 * 60 * 1000) {
-    try { liftFeeds[id] = {at: Date.now(), data: await (FEED_LOADERS[id] ? FEED_LOADERS[id]() : getJsonLive(`https://mtnpowder.com/feed?resortId=${id}`))}; }
+    try { liftFeeds[id] = {at: Date.now(), data: await liftFeed(id)}; }
     catch (error) { liftFeeds[id] = {at: Date.now(), failed: true, notPosted: !!error.notPosted}; }
   }
   if (STAKES[resort.key]) groundToMap();
@@ -5154,6 +5163,11 @@ function guidePage(name) {
   $("guideBack").hidden = name === "root";
   $("guideBody").scrollTop = 0;
   if (name === "where") renderWhere();
+  // The test tables are read when their page is first opened, not at launch.
+  if (name === "score" && !guidePage.scored) {
+    guidePage.scored = true;
+    fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => { guidePage.scored = false; renderScore(null); });
+  }
   if (name === "classics") renderClassics();
   placeSegs(true);
 }
@@ -5467,8 +5481,18 @@ function avcanForecast(found) {
     }),
     media: [], forecast_zone: [{url: found.url}]};
 }
+// A center's zones are asked for once however many regions share the center, and not again inside ten minutes. A
+// failed read is not kept, so the next asking tries again.
+const layerAsked = {};
+function centerLayer(id) {
+  const held = layerAsked[id];
+  if (held && Date.now() - held.at < 10 * 60 * 1000) return held.reply;
+  const reply = avyJson(`${AVY_API}/products/map-layer/${id}`).catch(() => { if (layerAsked[id] && layerAsked[id].reply === reply) delete layerAsked[id]; return null; });
+  layerAsked[id] = {at: Date.now(), reply};
+  return reply;
+}
 async function zonesFrom(centers) {
-  const layers = await Promise.all(centers.map((center) => center.source === "avcan" ? null : avyJson(`${AVY_API}/products/map-layer/${center.id}`).catch(() => null)));
+  const layers = await Promise.all(centers.map((center) => center.source === "avcan" ? null : centerLayer(center.id)));
   const zones = (await Promise.all(centers.filter((center) => center.source === "avcan").map((center) => avcanZones(center).catch(() => [])))).flat();
   layers.forEach((layer, n) => {
     for (const feature of (layer && layer.features) || []) {
@@ -5994,6 +6018,9 @@ function paragraphs(html) {
   return parts.length ? parts : [body.textContent.replace(/\s+/g, " ").trim()].filter(Boolean);
 }
 function renderAvalanche() { drawAvalanche(); fillJump("avyJump", $("avalanche")); }
+const avyShowing = () => !tabbed() || document.documentElement.dataset.view === "avalanche";
+new MutationObserver(() => { if (data && !avyAsked.has("elsewhere") && avyShowing()) renderAvalanche(); })
+  .observe(document.documentElement, {attributes: true, attributeFilter: ["data-view", "class"]});
 function drawAvalanche() {
   const at = place(), state = avy[at], home = REGIONS[at].avalanche[0];
   // Where no center forecasts (home is undefined) the pane says so, and its title is still the zone picker, so
@@ -6005,7 +6032,9 @@ function drawAvalanche() {
     .map((key) => ((avy[key] && avy[key].zones.length ? avy[key].zones : avyElsewhere[key]) || [])
       .filter((z) => !seen.has(zoneKey(z)) && seen.add(zoneKey(z))));
   const all = byRegion.flat();
-  if ((!home || (state && state.loaded)) && !avyAsked.has("elsewhere")) {
+  // They are only wanted for the pane's zone picker, so they are read when the pane is first on screen and not at
+  // launch (see the watch on the tab below).
+  if ((!home || (state && state.loaded)) && !avyAsked.has("elsewhere") && avyShowing()) {
     avyAsked.add("elsewhere");
     Promise.all(Object.keys(REGIONS).filter((key) => key !== at && !(avy[key] && avy[key].zones.length)).map(async (key) => { avyElsewhere[key] = await zonesFrom(REGIONS[key].avalanche); })).then(renderAvalanche);
   }
@@ -6733,7 +6762,6 @@ openForecast().then(async () => {
   $("retryLoad").addEventListener("click", () => location.reload());
   reveal();
 });
-fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
 </body>
 </html>
