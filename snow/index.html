@@ -1794,7 +1794,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Shasta</b> Its forecast is made twice a day, at 5 am and 5 pm, where the other western regions' are made three times. Its snow pillows' readings are shown but correct nothing: they are low and miss the rain.</p>
     <p><b>The fifty classic descents</b> Each line of the book <i>Fifty Classic Ski Descents of North America</i> is a backcountry spot, forecast at a point on the line from the usual winter start to the summit. Where a line's exact place is not mapped it was set on the right face by its height, so it can be a few hundred metres off.</p>
     <p><b>Avalanche zones</b> Colorado's and Canada's centers redraw their zones with each forecast, so a zone there is named after the range it mostly covers and may cover different ground tomorrow. Canada's forecasts are Avalanche Canada's, which carries Parks Canada's and Kananaskis's too.</p>
-    <p><b>The ±</b> One standard deviation across about 140 alternate forecasts (ensemble members) run through the same steps. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
+    <p><b>The ±</b> How far about 140 alternate runs of the same forecast spread around it: roughly two in three of them land inside the ±. Days past the fifth are shown greyed or faded: at that range the numbers are a rough guide to whether a storm is coming, not to how much, and past day 10 only two of the four models still run.</p>
     <p><b>One water amount per resort</b> Summit and base differ only by snow level and fluffiness, not by extra precipitation up high.</p>
     <p><b>Wet, medium, dry</b> The standard classes used by forecasters everywhere, not Tahoe's own scale: wet is under 9 inches of snow per inch of water, dry is over 15, medium is between. Dry snow is uncommon in the Sierra.</p>
     <p><b>Rain</b> Snow is mostly air: an inch of water makes about ten inches of snow on an ordinary day, as little as five or six when the snow is wet and heavy, and fifteen to twenty or more when it is cold and dry. When the snow level is above the elevation you are looking at while it is snowing higher up, what falls there is rain. The hourly chart, the daily bars and the summary show that rain as a hatched bar, drawn as tall as the snow it would have been higher up, so ten inches of hatch is about an inch of rain, and the same storm that leaves an inch of rain at the base can leave ten inches or more at the summit. The number beside the bar is still the snow expected at that elevation, and the daily rows give the rain in inches of water.</p>
@@ -3614,6 +3614,11 @@ function statusDay(resort) {
 // is if anything less than what fell. Null with no depth sensor, or before that night has begun.
 // A wall-clock hour at the mountain is one of the US offsets (standard or daylight, Hawaii to Atlantic); keep the
 // one that reads back as that hour in the mountain's own time zone.
+// A date and time written on California's clock, as a moment: standard or daylight time, whichever was in force.
+const pacificTime = (day, time) => {
+  const tried = ["-08:00", "-07:00"].map((zone) => new Date(`${day}T${time}${zone}`));
+  return tried.find((d) => d.toLocaleString("en-US", {timeZone: "America/Los_Angeles", hour: "2-digit", hourCycle: "h23"}).slice(0, 2) === time.slice(0, 2)) || tried[0];
+};
 const wallClock = (day, hour, tz) => ["-10:00", "-09:00", "-08:00", "-07:00", "-06:00", "-05:00", "-04:00"].map((zone) => new Date(`${day}T${String(hour).padStart(2, "0")}:00:00${zone}`))
   .find((d) => +d.toLocaleString("en-US", {timeZone: tz, hour: "numeric", hour12: false}) % 24 === hour);
 const dayBefore = (date) => new Date(new Date(`${date}T12:00:00Z`).getTime() - 864e5).toISOString().slice(0, 10);
@@ -4621,7 +4626,7 @@ async function loadRoads() {
       if (!status || cc.inService !== "true") continue;
       const t = cc.statusData.statusTimestamp || {};
       points.push({route: cc.location.route, lat: +cc.location.latitude, lon: +cc.location.longitude, status, level, name: cc.location.locationName,
-        direction: cc.location.direction, mile: +cc.location.milepost || +cc.location.postmile || 0, since: t.statusDate ? new Date(`${t.statusDate}T${t.statusTime || "00:00:00"}-08:00`) : null});
+        direction: cc.location.direction, mile: +cc.location.milepost || +cc.location.postmile || 0, since: t.statusDate ? pacificTime(t.statusDate, t.statusTime || "00:00:00") : null});
     }
     // A closed stretch is painted from points strung between its gates, with one sign at its start.
     const stretches = shut.flatMap(({route, ends: [[lat0, lon0], [lat1, lon1]], names}) => {
@@ -4935,6 +4940,14 @@ async function setRegion(key) {
   if (regionAsked !== key) return;
   regionPending = null;
   if (!loaded) {
+    regionMiss = key;
+    for (const step of [renderRegion, renderHeadline]) {
+      try { step(); } catch (error) { console.error(error); }
+    }
+    return;
+  }
+  // A forecast file that arrived with no mountain of the region in it is treated as one that did not arrive.
+  if (key !== FAVORITES && !data.resorts.some((r) => regionOf(r) === key)) {
     regionMiss = key;
     for (const step of [renderRegion, renderHeadline]) {
       try { step(); } catch (error) { console.error(error); }

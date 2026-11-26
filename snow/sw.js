@@ -4,7 +4,7 @@
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v82';
+const VERSION = 'sierra-snow-v83';
 // The map library is served with the page (vendor/three, MIT), not from another site.
 const THREE = 'vendor/three/';
 // The page itself and what it cannot start without. These are fetched afresh with every VERSION.
@@ -111,9 +111,10 @@ async function pageFirst(req) {
   const net = fetch(req).then((res) => { if (res.ok) c.put('./', res.clone()); return res; });
   const timeout = new Promise((ok) => setTimeout(ok, PAGE_TIMEOUT_MS));
   const fast = await Promise.race([net.catch(() => null), timeout]);
-  if (fast) return fast;
+  if (fast && fast.ok) return fast;
+  // No answer in time, or the server answered with an error: the saved page is better than either.
   const saved = await c.match('./');
-  return saved || net;
+  return saved || fast || net;
 }
 
 // A file whose address carries a version (map3d.js?v=84) must match the page that asked for it, so only that exact
