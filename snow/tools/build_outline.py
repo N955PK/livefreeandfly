@@ -1,7 +1,7 @@
 """North America's outline for the coverage map in the About sheet (NA_MAP in index.html): Canada, the USA and
 Mexico from Natural Earth's 1:50m countries, in an Albers conic projection, simplified, as SVG paths in a box
 1,000 wide. Run it in a folder that holds world-atlas's ``package/countries-50m.json`` (``npm pack world-atlas@2``
-and unpack); it writes ``na.json``, whose figures and paths are pasted into the page as NA_MAP."""
+and unpack) and ``lakes50.geojson``; it writes ``na.json``, whose figures and paths are pasted into the page as NA_MAP."""
 import json, math
 import numpy as np
 T = json.load(open('package/countries-50m.json'))
@@ -55,5 +55,28 @@ for g in T['objects']['countries']['geometries']:
         if len(s) < 4: continue
         d += 'M' + 'L'.join(f'{x:.0f} {y:.0f}' for x, y in s) + 'Z'
     out[name] = d
+# The lakes large enough to see at this size, from Natural Earth's 1:50m lakes (``ne_50m_lakes.geojson`` from the
+# natural-earth-vector repository, beside the countries file): the Great Lakes, the Great Salt Lake, Lake Winnipeg,
+# the big northern lakes and the like, each with its islands left as land.
+lakes, named = '', []
+for f in json.load(open('lakes50.geojson'))['features']:
+    g = f['geometry']
+    for poly in (g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]):
+        lon, lat = poly[0][0]
+        if not (-170 < lon < -50 and 22 < lat < 73): continue
+        rings = [[((proj(x, y)[0] - x0) * k, (proj(x, y)[1] - y0) * k) for x, y in r] for r in poly]
+        outer = rings[0]
+        area = abs(sum(outer[i][0] * outer[i + 1][1] - outer[i + 1][0] * outer[i][1] for i in range(len(outer) - 1))) / 2
+        if area < 9: continue
+        xs = [p[0] for p in outer]; ys = [p[1] for p in outer]
+        if max(xs) < 0 or min(xs) > 1000 or max(ys) < 0 or min(ys) > H: continue
+        for n_, r in enumerate(rings):
+            ra = abs(sum(r[i][0] * r[i + 1][1] - r[i + 1][0] * r[i][1] for i in range(len(r) - 1))) / 2
+            if n_ and ra < 4: continue                          # islands too small to see
+            s_ = dp(r, 0.7)
+            if len(s_) >= 4: lakes += 'M' + 'L'.join(f'{x:.0f} {y:.0f}' for x, y in s_) + 'Z'
+        named.append((f['properties'].get('name'), round(area)))
+out['lakes'] = lakes
+print(len(named), 'lakes', len(lakes), 'characters', sorted(named, key=lambda t: -t[1])[:40])
 json.dump({'w': 1000, 'h': H, 'x0': x0, 'y0': y0, 'k': k, 'n': n, 'C': C, 'R0': R0, 'L0': -100, 'paths': out}, open('na.json', 'w'))
 print('H', H, {k_: len(v) for k_, v in out.items()}, 'k', k, 'x0', x0, 'y0', y0, 'n', n, 'C', C, 'R0', R0)
