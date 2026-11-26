@@ -43,10 +43,12 @@ def words(markup: str) -> str:
 
 
 def tables(page: str) -> dict:
-    """The page's tables, each under the words that head its columns, as rows of cells."""
+    """The tables that are read, each under the words that head its columns, as rows of cells."""
     found = {}
     for body in TABLE.findall(page):
         heads = tuple(words(head).lower() for head in HEAD.findall(body))
+        if heads not in (LIFTS, TRAILS, GATES, SNOW):
+            continue
         rows = [[words(cell) for cell in CELL.findall(row)] for row in ROW.findall(body)]
         if heads in found:
             raise ValueError(f"the page has two tables headed {heads}")

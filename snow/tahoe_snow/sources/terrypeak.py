@@ -32,8 +32,8 @@ SNOWFALL = {"New Snow (24H)": "Last24HoursIn", "Last 48hr": "Last48HoursIn", "La
 # In the page: the heading of a column of trails, or one lift or trail.
 PART = re.compile(r"<div class=\"dor-status-display__column-heading dor-status-display__column-heading--([a-z-]+)\">"
                   r"|<div class=\"dor-status-display__item\">\s*<span class=\"dor-status-display__badge "
-                  r"dor-status-display__badge--([a-z-]+)\">(.*?)</span>\s*"
-                  r"<span class=\"dor-status-display__name\">(.*?)</span>", re.S)
+                  r"dor-status-display__badge--([a-z-]+)\">([^<]*)</span>\s*"
+                  r"<span class=\"dor-status-display__name\">([^<]*)</span>")
 HEADING = re.compile(r"<h3 class=\"dor-status-display__heading\">(.*?)</h3>", re.S)
 GROOMED = re.compile(r"title=\"Groom", re.I)
 UPDATED = re.compile(r"<div class=\"dor-status-display__timestamp\">\s*Updated:\s*(\d{1,2}:\d{2} [AP]M) ([A-Z][a-z]+), "

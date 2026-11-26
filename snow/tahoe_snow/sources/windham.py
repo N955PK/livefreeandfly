@@ -35,8 +35,8 @@ SCRIPT = re.compile(r"<script\b.*?</script>", re.S)
 MARKER = re.compile(r"<div class=\"marker-icon\"[^>]*>\s*<img[^>]*\ssrc=\"svg/([\w-]+)\.svg\"\s*/>\s*</div>\s*"
                     r"<div class=\"ouvertures-marker-popover\"[^>]*>\s*<div class=\"marker-title\">\s*"
                     r"<img src=\"images/markers/([\w-]+)\.svg\"\s*/>([^<]*)<div class=\"toggle-marker\"></div>\s*</div>"
-                    r"\s*<div class=\"marker-content\">\s*<div class=\"marker-title [a-z-]+\">\s*<img[^>]*/>([^<]*)</div>",
-                    re.S)
+                    r"\s*<div class=\"marker-content\">\s*<div class=\"marker-title [a-z-]+\">\s*<img[^>]*/>"
+                    r"([^<]*)</div>", re.S)
 
 
 def words(markup: str) -> str:
