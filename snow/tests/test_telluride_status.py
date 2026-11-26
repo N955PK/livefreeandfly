@@ -44,7 +44,8 @@ def test_the_preseason_mountain_reads_each_lift_with_the_trails_under_it():
                          "Difficulty": "Green", "Grooming": "No"}
     assert {trail["Difficulty"] for trail in trails} == {"Green", "Blue", "Black", "Double black"}
     by_name = {trail["Name"]: trail for trail in trails}
-    assert by_name["Jello’s Bowl"]["Difficulty"] == "Double black" and by_name["Misty Maiden – Upper"]["Difficulty"] == "Blue"
+    assert by_name["Jello’s Bowl"]["Difficulty"] == "Double black"
+    assert by_name["Misty Maiden – Upper"]["Difficulty"] == "Blue"
 
 
 def test_the_snow_report_gives_the_depth_the_snowfall_the_surface_and_when_it_was_updated():

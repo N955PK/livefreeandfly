@@ -1073,7 +1073,8 @@ ALL_REGIONS = {
         Region("wasatch", "Wasatch", "America/Denver", 8, 8, ("UAC",), at=(5, 13, 21)),
         # The same hours and clocks again: Colorado's SNOTEL stations keep the Pacific standard clock (see
         # COLORADO_STATIONS). The lowest ground is Steamboat's base at 2,103 m: no lower levels are read.
-        Region("colorado", "Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21)),
+        # Built by the third collector since 2026-11-26, to leave the first room for the Sierra's west slope.
+        Region("colorado", "Colorado", "America/Denver", 8, 8, ("CAIC",), at=(5, 13, 21), collector="west"),
         # Built twice a day, at 5 am and 5 pm Pacific, to keep the day's calls under the service's limit (Sean's
         # choice, 2026-11-24). The lowest ground is Castle Lake's lot at 1,659 m: no lower levels are read.
         Region("shasta", "Shasta", "America/Los_Angeles", 8, 12, ("MSAC",), at=(5, 17)),

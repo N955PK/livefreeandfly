@@ -25,7 +25,8 @@ MOUNTAIN_TIME = ZoneInfo("America/Denver")
 # The report's snowfall labels, by the names the Ikon feed gives them (the app reads those).
 SNOWFALL = {"24 hours": "Last24HoursIn", "48 hours": "Last48HoursIn", "72 hours": "Last72HoursIn",
             "7 days": "Last7DaysIn", "Latest Storm": "StormTotalIn"}
-REPORT = re.compile(r"class=\"ct-div-block snow-report-parent\"(.*?)class=\"ct-div-block snow-report-footer-div\"", re.S)
+REPORT = re.compile(r"class=\"ct-div-block snow-report-parent\"(.*?)class=\"ct-div-block snow-report-footer-div\"",
+                    re.S)
 UPDATED = re.compile(r"Updated:\s*([A-Z][a-z]{2} \d{1,2}, \d{4}) - (\d{1,2}:\d{2})")
 PAIR = re.compile(r"class=\"ct-text-block snow-report-left-text\"[^>]*>((?:(?!</div>).)*)</div>\s*"
                   r"<div[^>]*class=\"ct-text-block snow-report-right-text\"[^>]*>((?:(?!</div>).)*)</div>", re.S)

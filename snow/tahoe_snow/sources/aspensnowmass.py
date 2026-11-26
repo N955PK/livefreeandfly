@@ -31,8 +31,8 @@ FEEDS = "https://www.aspensnowmass.com/AspenSnowmass"
 # Mountain: (its name, the name its pages ask the reports for).
 MOUNTAINS = {"aspen": ("Aspen Mountain", "AspenMountain"), "highlands": ("Aspen Highlands", "AspenHighlands"),
              "buttermilk": ("Buttermilk", "Buttermilk"), "snowmass": ("Snowmass", "Snowmass")}
-KINDS = {"lifts": "LiftStatus/Feed?mountain={code}&areas=&isSummer=False", "trails": "GroomingReport/Feed?mountain={code}",
-         "snow": "SnowReport/Feed?mountain={code}"}
+KINDS = {"lifts": "LiftStatus/Feed?mountain={code}&areas=&isSummer=False",
+         "trails": "GroomingReport/Feed?mountain={code}", "snow": "SnowReport/Feed?mountain={code}"}
 URLS = {f"{key}_{kind}": f"{FEEDS}/{path.format(code=code)}"
         for key, (_, code) in MOUNTAINS.items() for kind, path in KINDS.items()}
 STAMP = "%Y-%m-%dT%H:%M:%SZ"

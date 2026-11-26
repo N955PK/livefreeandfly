@@ -70,8 +70,8 @@ def test_the_most_overdue_region_is_due_first(tmp_path, stubbed):
     for key in ("tahoe", "mammoth", "seattle", "shasta"):
         pipeline.run(key, NOW + timedelta(hours=1, minutes=1))
     assert pipeline.due(NOW + timedelta(hours=7, minutes=59)) is None           # nothing until noon Pacific
-    assert pipeline.due(NOW + timedelta(hours=8, minutes=1)) in ("tetons", "wasatch", "colorado")   # 1 pm Mountain
-    for key in ("tetons", "wasatch", "colorado"):
+    assert pipeline.due(NOW + timedelta(hours=8, minutes=1)) in ("tetons", "wasatch")   # 1 pm Mountain
+    for key in ("tetons", "wasatch"):
         pipeline.run(key, NOW + timedelta(hours=8, minutes=1))
     assert pipeline.due(NOW + timedelta(hours=8, minutes=59)) is None           # nothing until 1 pm Pacific
     assert pipeline.due(NOW + timedelta(hours=9, minutes=1)) in config.REGIONS  # 1 pm Pacific and 4 pm Eastern

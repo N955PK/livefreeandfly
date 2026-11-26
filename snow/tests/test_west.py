@@ -15,7 +15,8 @@ WEST = {"montana": 6, "sunvalley": 6, "oregon": 11, "newmexico": 9, "alaska": 7,
 BOXES = {"montana": (44.9, 46.9, -111.5, -109.9), "sunvalley": (43.4, 44.4, -115.3, -114.3),
          "oregon": (43.5, 45.5, -122.1, -121.5), "newmexico": (35.7, 36.8, -106.5, -105.2),
          "alaska": (60.6, 61.8, -149.6, -149.0), "swcolorado": (37.4, 39.3, -107.9, -106.3)}
-SHARED = {"beehive": "bigsky", "dollar": "sunvalley", "tumalo": "bachelor", "wheelerpeak": "taos", "goldhill": "taos",
+SHARED = {"abasin": "keystone", "lovelandpass": "loveland", "vailpass": "copper", "berthoud": "winterpark",
+          "beehive": "bigsky", "dollar": "sunvalley", "tumalo": "bachelor", "wheelerpeak": "taos", "goldhill": "taos",
           "sunburst": "tincan", "highlands": "aspen", "buttermilk": "aspen"}
 STATIONS = {"montana": config.MONTANA_STATIONS, "sunvalley": config.SUNVALLEY_STATIONS,
             "oregon": config.OREGON_STATIONS, "newmexico": config.NEWMEXICO_STATIONS,
@@ -34,7 +35,8 @@ def km(a, b) -> float:
 
 
 def test_the_six_regions_are_the_third_collectors_and_in_the_usa():
-    assert {key for key, region in ALL_REGIONS.items() if region.collector == "west"} == set(WEST)
+    # Colorado is the third collector's too, moved from the first on 2026-11-26 (see test_colorado.py).
+    assert {key for key, region in ALL_REGIONS.items() if region.collector == "west"} == set(WEST) | {"colorado"}
     for key in WEST:
         region = ALL_REGIONS[key]
         assert (region.country, region.at, region.every_h) == ("USA", (5, 13, 21), 8), key
@@ -70,12 +72,13 @@ def test_low_ground_reads_lower_pressure_levels():
 
 
 def test_close_neighbours_share_weather_within_their_region():
-    west = {r.key: r for key in WEST for r in mountains(key)}
+    west = {r.key: r for key in [*WEST, "colorado"] for r in mountains(key)}
     assert {key: r.weather_from for key, r in west.items() if r.weather_from} == SHARED
     for key, neighbour in SHARED.items():
         mine, theirs = west[key], west[neighbour]
         assert theirs.weather_from is None and theirs.region == mine.region
-        assert km(mine, theirs) < 8, key
+        # The six new regions share only under 8 km; Colorado's pairs were set earlier, some a little further.
+        assert km(mine, theirs) < (20 if mine.region == "colorado" else 8), key
 
 
 def test_each_fitting_box_holds_the_regions_sensors_and_mountains():
@@ -98,9 +101,9 @@ def test_the_third_collector_sees_its_six_regions_and_plans_only_them():
             "sum(usage.pulls(r) for r in config.REGIONS), round(usage.planned()))")
     out = subprocess.run([sys.executable, "-c", code], env={**os.environ, "SNOW_COLLECTOR": "west"}, text=True,
                          capture_output=True, check=True).stdout.strip()
-    assert out.startswith(f"west {sorted(WEST)} 52 44 ")
-    # 44 pulls three times a day, with Oregon's one and Alaska's five lower levels: inside the day's 10,000.
-    assert 6800 < int(out.rsplit(" ", 1)[1]) < 7500
+    assert out.startswith(f"west {sorted([*WEST, 'colorado'])} 64 52 ")
+    # 52 pulls three times a day, with Oregon's one and Alaska's five lower levels: inside the day's 10,000.
+    assert 8000 < int(out.rsplit(" ", 1)[1]) < 8800
 
 
 def test_each_region_has_its_own_correction_weights_and_split():

@@ -33,7 +33,8 @@ def test_the_early_season_mountain_reads_its_lifts_and_trails_by_part_of_the_mou
         ("Columbine Beginner Area", ["Graduate Triple #7", "Columbine Triple #9", "Columbine Magic Carpet #11"], 6),
         ("Backside", ["Hermosa Park Express #3", "Grizzly Double #5", "Legends Express #8"], 52),
         # The lifts no part of the mountain names.
-        ("Purgatory", ["Twilight Double #4", "Needles Triple #6", "Ski School Magic Carpet #10", "Colorado Couloir"], 0)]
+        ("Purgatory", ["Twilight Double #4", "Needles Triple #6", "Ski School Magic Carpet #10", "Colorado Couloir"],
+         0)]
     lifts, trails = rows(feed, "Lifts"), rows(feed, "Trails")
     assert len(lifts) == 12
     assert [lift["Name"] for lift in lifts if lift["StatusEnglish"] == "open"] == [
@@ -81,7 +82,7 @@ def test_a_page_that_has_changed_is_refused():
     with pytest.raises(ValueError, match="the trails tab was not found"):
         purgatory.parse(page('id="m-tab-terrain"', 'id="tab-terrain"'), NOW)
     with pytest.raises(ValueError, match="lists no lifts"):
-        purgatory.parse({**PAGES, "report": PAGES["report"].replace('<li class="m-lift-status-', '<li class="lift-')}, NOW)
+        purgatory.parse(page('<li class="m-lift-status-', '<li class="lift-', -1), NOW)
     with pytest.raises(ValueError, match="not in the shape expected, or is listed twice"):
         purgatory.parse(page(OPEN_LIFT, "<p>Open</p>"), NOW)
     with pytest.raises(ValueError, match="Purgatory Express #1 has no status"):

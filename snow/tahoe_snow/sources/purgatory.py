@@ -39,17 +39,18 @@ TAB = "id=\"m-tab-{name}\""
 LIFT = re.compile(r"<li class=\"m-lift-status-[a-z-]+\">.*?<h3 class=\"[^\"]*m-lift-header\">(.*?)</h3>.*?"
                   r"<div class=\"[^\"]*m-status-[a-z-]+\">(.*?)</div>\s*</div>\s*</li>", re.S)
 PART = re.compile(r"<li class=\"m-accordion\">")
-PART_HEAD = re.compile(r"<h3 class=\"[^\"]*m-lift-header\"[^>]*>(.*?)</h3>(.*?)</div>.*?<div>\s*(\d+)\s*/\s*\d+ Trails Open",
-                       re.S)
-TRAIL = re.compile(r"<li class=\"m-filter-target m-filter-value-[a-z-]+ m-filter-value-((?:not-)?groomed) m-filter-status "
-                   r"m-filter-value-([a-z-]+)\">.*?<h4[^>]*>(.*?)</h4>.*?<div class=\"m-status m-status-[a-z-]+\">(.*?)</div>",
-                   re.S)
+PART_HEAD = re.compile(r"<h3 class=\"[^\"]*m-lift-header\"[^>]*>(.*?)</h3>(.*?)</div>.*?"
+                       r"<div>\s*(\d+)\s*/\s*\d+ Trails Open", re.S)
+TRAIL = re.compile(r"<li class=\"m-filter-target m-filter-value-[a-z-]+ m-filter-value-((?:not-)?groomed) "
+                   r"m-filter-status m-filter-value-([a-z-]+)\">.*?<h4[^>]*>(.*?)</h4>.*?"
+                   r"<div class=\"m-status m-status-[a-z-]+\">(.*?)</div>", re.S)
 TOTALS = re.compile(r"<div class=\"m-snow-totals-table m-snow-totals-table-header[^\"]*\">(.*?)"
                     r"<div class=\"m-js-conditions-table-updated", re.S)
-FIGURE = re.compile(r"<div class=\"m-snow-totals-top[^\"]*\">(.*?)</div>\s*<div class=\"m-snow-totals-label[^\"]*\">(.*?)"
-                    r"</div>", re.S)
+FIGURE = re.compile(r"<div class=\"m-snow-totals-top[^\"]*\">(.*?)</div>\s*"
+                    r"<div class=\"m-snow-totals-label[^\"]*\">(.*?)</div>", re.S)
 INCHES = re.compile(r"(\d+(?:\.\d+)?)\s*(?:\"|″|”)")
-REPORT = re.compile(r"<div class=\"m-js-todays-report-updated[^\"]*\">.*?</div>\s*<div class=\"[^\"]*\">(.*?)</div>", re.S)
+REPORT = re.compile(r"<div class=\"m-js-todays-report-updated[^\"]*\">.*?</div>\s*<div class=\"[^\"]*\">(.*?)</div>",
+                    re.S)
 TAG = re.compile(r"<[^>]+>")
 
 

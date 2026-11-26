@@ -14,8 +14,7 @@ SHARED = {"pico": "killington", "tuckerman": "wildcat", "mountsnow": "stratton",
           "bromley": "stratton", "magic": "stratton", "cannon": "loon", "waterville": "loon",
           "cranmore": "attitash", "blackmountain": "attitash",
           "snowbird": "alta", "superior": "alta", "cardiff": "alta", "solitude": "brighton",
-          "deervalley": "parkcity", "timpanogos": "sundance",
-          "abasin": "keystone", "lovelandpass": "loveland", "vailpass": "copper", "berthoud": "winterpark"}
+          "deervalley": "parkcity", "timpanogos": "sundance"}
 
 
 def km(a, b) -> float:

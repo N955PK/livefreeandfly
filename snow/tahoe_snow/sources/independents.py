@@ -2,8 +2,8 @@
 Jackson Hole and Grand Targhee in the Tetons, six of the Wasatch's resorts, Copper and Loveland in Colorado, the Mt. Shasta Ski Park and Mt. Ashland,
 Big White, SilverStar and Sun Peaks in the Okanagan, and Cypress, Grouse, Mt. Seymour and Mount Washington on
 British Columbia's coast, nine of Quebec's, five in the Canadian Rockies,
-seven along the Powder Highway and in the East Kootenays, and thirteen in Montana, Sun Valley, Oregon, New Mexico
-and Alaska.
+seven along the Powder Highway and in the East Kootenays, thirteen in Montana, Sun Valley, Oregon, New Mexico
+and Alaska, and seven in Southwest Colorado (Aspen Snowmass's four from one site).
 
 Each mountain has a module of its own that knows its page (``URL``, or ``URLS`` where it takes more than one request)
 and reads it (``parse``). This runs them all and writes one file the page reads, in the shape of the Ikon feed the
@@ -20,15 +20,15 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, bigsky, bigwhite, blackmountain, bolton,
+from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, bigsky, bigwhite, blackmountain, bolton,
                                 brettonwoods, brighton, bromley, bromont, burke, cannon, cooperspur, copper,
                                 cranmore, cypress, dollar, fernie, grouse, hoodmeadows, jacksonhole, jaypeak,
                                 kickinghorse, kimberley, lakelouise, lemassif, loveland, madriverglen, magic,
-                                marmot, montblanc, montsainteanne, mtwashington, nakiska, norquay, orford,
-                                owlshead, pajarito, panorama, powdermountain, redmountain, redriver, revelstoke,
+                                marmot, monarch, montblanc, montsainteanne, mtwashington, nakiska, norquay, orford,
+                                owlshead, pajarito, panorama, powdermountain, purgatory, redmountain, redriver, revelstoke,
                                 saddleback, saintsauveur, seymour, shastaskipark, silverstar, sipapu, skisantafe,
                                 smugglers, snowbasin, snowbird, stoneham, sundance, sunpeaks, sunshine, sunvalley,
-                                sutton, taos, targhee, waterville, whitewater, willamettepass)
+                                sutton, taos, targhee, telluride, waterville, whitewater, willamettepass)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -53,7 +53,10 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "bigsky": bigsky, "sunvalley": sunvalley, "dollar": dollar,
            "hoodmeadows": hoodmeadows, "cooperspur": cooperspur, "willamettepass": willamettepass,
            "taos": taos, "redriver": redriver, "sipapu": sipapu, "skisantafe": skisantafe, "pajarito": pajarito,
-           "alyeska": alyeska, "arcticvalley": arcticvalley}
+           "alyeska": alyeska, "arcticvalley": arcticvalley,
+           "telluride": telluride, "monarch": monarch, "purgatory": purgatory}
+# Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
+GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
 RANGED = ("Base", "Last24Hours")
 
@@ -127,6 +130,22 @@ def main(out_path: str) -> int:
             print(f"{key}: no lifts posted yet")
             continue
         resorts[key] = feed
+    for name, module in GROUPS.items():
+        try:
+            feeds = read(module, now)
+        except Exception as error:
+            print(f"{name}: {error}")
+            continue
+        for key, feed in feeds.items():
+            try:
+                feed = settled(feed, now)
+            except Exception as error:
+                print(f"{key}: {error}")
+                continue
+            if not posted(feed):
+                print(f"{key}: no lifts posted yet")
+                continue
+            resorts[key] = feed
     if not resorts:
         return 1
     with open(out_path, "w") as handle:

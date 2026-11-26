@@ -1,14 +1,14 @@
 """Colorado: nine resorts along I-70, at Winter Park and at Steamboat, and three passes, eight asking for weather."""
 import json
 
-from tahoe_snow import calibrate, config, pipeline, usage
-from tahoe_snow.config import COLORADO_BBOX, COLORADO_STATIONS, MODELS, RESORTS
+from tahoe_snow import biascorrect, calibrate, config, pipeline, usage
+from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, COLORADO_BBOX, COLORADO_STATIONS, MODELS
 from tahoe_snow.snow import observations, phase, ratio, train
 from tahoe_snow.sources import omfiles_s3
 
 
 def test_the_colorado_mountains_are_where_they_should_be():
-    found = config.resorts_in("colorado")
+    found = [r for r in ALL_RESORTS.values() if r.region == "colorado"]
     assert len(found) == 12
     for r in found:
         assert r.base_m < r.summit_m, r.key
@@ -25,16 +25,19 @@ def test_the_colorado_mountains_are_where_they_should_be():
 
 
 def test_eight_of_the_twelve_ask_for_weather():
-    assert usage.pulls("colorado") == 8
-    assert {r.key for r in config.resorts_in("colorado") if r.weather_from is None} == {
+    found = [r for r in ALL_RESORTS.values() if r.region == "colorado"]
+    assert {r.key for r in found if r.weather_from is None} == {
         "vail", "beavercreek", "breckenridge", "keystone", "loveland", "copper", "winterpark", "steamboat"}
-    assert round(usage.planned({"colorado": config.REGIONS["colorado"]})) == round(8 * 3 * usage.CALLS_PER_RESORT_RUN)
+    # Colorado is built by the third collector, so the first's plan no longer counts it.
+    assert ALL_REGIONS["colorado"].collector == "west" and "colorado" not in config.REGIONS
+    assert round(usage.planned({"colorado": ALL_REGIONS["colorado"]}, {r.key: r for r in found})) == round(
+        8 * 3 * usage.CALLS_PER_RESORT_RUN)
 
 
 def test_colorado_is_built_at_the_tetons_hours_and_reads_its_sensors_on_the_pacific_clock():
-    region, tetons = config.REGIONS["colorado"], config.REGIONS["tetons"]
+    region, tetons = ALL_REGIONS["colorado"], ALL_REGIONS["tetons"]
     assert (region.tz, region.at, region.every_h) == (tetons.tz, tetons.at, tetons.every_h)
-    assert pipeline.snotel_offset_h(RESORTS["vail"]) == 8
+    assert region.std_offset_h == 8
     assert region.avalanche == ("CAIC",)
 
 
@@ -50,7 +53,7 @@ def test_the_fitting_box_holds_every_colorado_sensor():
 
 
 def test_colorado_uses_its_own_correction_weights_split_and_ratio():
-    correction = pipeline.load_corrections()["colorado"]
+    correction = biascorrect.from_json(json.loads((MODELS / "bias_colorado.json").read_text()))
     # Every sensor has its own curve, the four above Steamboat among them.
     for triplet in COLORADO_STATIONS:
         assert correction.fitted(triplet), triplet

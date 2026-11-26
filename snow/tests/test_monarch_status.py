@@ -10,7 +10,8 @@ PAGE = (Path(__file__).parent / "fixtures" / "monarch.html").read_text()
 NOW = datetime(2026, 11, 26, 14, 0, tzinfo=timezone.utc)
 CLOSED = '<span style="color: red; font-weight: normal;">Closed</span>'
 GREEN = '<circle cx="15" cy="15" r="14" fill="#4CAF50"/>'
-NOT_GROOMED = '<td class="td_center_data" data-label="Groomed">\n                                                    </td>'
+NOT_GROOMED = ('<td class="td_center_data" data-label="Groomed">\n'
+               '                                                    </td>')
 
 
 def page(old: str, new: str, count: int = 1) -> str:
@@ -27,9 +28,9 @@ def test_the_preseason_mountain_reads_its_lifts_and_trails_by_part_of_the_mounta
     assert feed["Name"] == "Monarch Mountain" and feed["LastUpdate"] == "2026-11-26T14:00:00Z"
     assert [(area["Name"], [lift["Name"] for lift in area["Lifts"]], len(area["Trails"]))
             for area in feed["MountainAreas"]] == [
-        ("Frontside Terrain", ["Garfield", "Pioneer", "Tumbelina"], 32), ("Learning Areas", ["Caterpillar", "Safari"], 3),
-        ("Panorama Ridge", ["Panorama"], 15), ("Breezeway Terrain", ["Breezeway"], 10), ("No Name Basin", ["Tomichi"], 12),
-        ("Mirkwood Basin", [], 8)]
+        ("Frontside Terrain", ["Garfield", "Pioneer", "Tumbelina"], 32),
+        ("Learning Areas", ["Caterpillar", "Safari"], 3), ("Panorama Ridge", ["Panorama"], 15),
+        ("Breezeway Terrain", ["Breezeway"], 10), ("No Name Basin", ["Tomichi"], 12), ("Mirkwood Basin", [], 8)]
     lifts, trails = rows(feed, "Lifts"), rows(feed, "Trails")
     # The page counts nine lifts; the ninth is the tubing park's, which is left out.
     assert len(lifts) == 8 and not [lift for lift in lifts if "Tubing" in lift["Name"]]
@@ -57,7 +58,8 @@ def test_the_snow_report_gives_the_base_depth_the_snowfall_and_when_it_was_updat
 
 def test_an_open_lift_and_an_open_groomed_trail_take_the_page_s_words():
     opened = PAGE.replace(CLOSED, '<span style="color: green; font-weight: normal;">Open</span>', 10)
-    opened = opened.replace(NOT_GROOMED, '<td class="td_center_data" data-label="Groomed">\n<span>&#10003;</span></td>', 1)
+    groomed = '<td class="td_center_data" data-label="Groomed">\n<span>&#10003;</span></td>'
+    opened = opened.replace(NOT_GROOMED, groomed, 1)
     opened = opened.replace("Lifts Open:\n            0 of", "Lifts Open:\n            9 of")
     opened = opened.replace("Trails Open:\n            0 of", "Trails Open:\n            1 of")
     feed = monarch.parse(opened, NOW)
