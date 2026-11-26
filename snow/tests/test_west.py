@@ -7,7 +7,7 @@ import sys
 
 from tahoe_snow import biascorrect, calibrate, config
 from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, MODELS
-from tahoe_snow.snow import observations, phase, train
+from tahoe_snow.snow import observations, phase, ratio, train
 from tahoe_snow.sources import omfiles_s3
 
 WEST = {"montana": 6, "sunvalley": 6, "oregon": 11, "newmexico": 9, "alaska": 7, "swcolorado": 13}
@@ -126,3 +126,15 @@ def test_each_region_has_its_own_correction_weights_and_split():
 
 def test_only_the_summit_climb_with_a_low_sensor_is_left_uncorrected():
     assert [r.key for key in WEST for r in mountains(key) if r.station and not r.corrected] == ["hoodsouth"]
+
+
+def test_three_regions_have_their_own_snow_ratio_and_three_keep_the_sierras():
+    for key in WEST:
+        check = json.loads((MODELS / f"snow_ratio_check_{key}.json").read_text())
+        pooled = check["pooled_refit_each_station_held_out"]["snow_error_in"]
+        sierra = check["sierra_model"]["snow_error_in"]
+        own = (MODELS / f"snow_ratio_{key}.joblib").exists()
+        # A region's own ratio is kept only where it beat the Sierra's at stations left out of the fit.
+        assert own == (key in ("montana", "alaska", "swcolorado")), key
+        assert (pooled < sierra - 0.03) == own, key
+        assert ratio.model_files(key)[0] == MODELS / (f"snow_ratio_{key}.joblib" if own else "snow_ratio.joblib")
