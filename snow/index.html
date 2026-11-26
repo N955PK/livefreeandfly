@@ -6,10 +6,11 @@
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
 <meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, the Cascades, the Tetons, the Wasatch, Colorado, Mt. Shasta, New England, and Canada.">
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="preload" as="image" href="icons/mark-white.png?v=3">
+<link rel="preload" as="image" href="icons/mark-white.svg">
 <meta name="apple-mobile-web-app-title" content="Turbo Snow">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161a1f" media="(prefers-color-scheme: dark)">
@@ -57,6 +58,8 @@
 @media (prefers-color-scheme:dark){:root{--splash-mid:#12386c;--splash-low:#2a78d6;--splash-glow:rgba(90,150,235,.34)}}
 /* The mark sits at the optical center, a little above the measured one, where a lone mark reads as centered. */
 #splash img{width:min(38vw,170px);height:auto;transform:translateY(-4vh)}
+/* The logo is a picture, not text or a link: it cannot be selected, dragged or long-pressed. */
+#splash img,.setbtn img{-webkit-user-select:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:none}
 /* Inside ski/lease the page is in a frame, and a phone lets a framed page slide both ways at once, where the page on
    its own slides one way per drag. So there the summary table is told to take only up-and-down drags from the
    phone, and its sideways slide is done by the page (see "hosted table"): each drag is one way or the other. */
@@ -1457,9 +1460,9 @@ if (HOSTED) {
 <dialog id="avySheet" class="sheet"><div class="grab"><b id="avyMapTitle" tabindex="-1" autofocus></b><button id="avyMapClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="amap" id="avyMapBody"></div></dialog>
 <dialog id="favSheet" class="sheet"><div class="grab"><b id="favTitle" tabindex="-1" autofocus></b><button id="favClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist"><button class="pickopt" id="favGo"></button></div></dialog>
 <div id="topTint" aria-hidden="true"></div>
-<div id="splash" aria-hidden="true"><img src="icons/mark-white.png?v=3" alt="" width="170" height="170"></div>
+<div id="splash" aria-hidden="true"><img src="icons/mark-white.svg" alt="" width="170" height="170" draggable="false"></div>
 <main>
-  <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.png" alt="" width="26" height="26"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
+  <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.svg" alt="" width="26" height="26" draggable="false"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
   <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
