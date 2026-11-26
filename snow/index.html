@@ -4116,7 +4116,7 @@ let freshNote = "";
 // Beside the elevations there is less room than over the summary, so the Mountain tab's line drops "Forecasts".
 const freshShort = () => freshNote.replace("Forecasts updated ", "Updated ").replace("Forecasts from ", "From ");
 // The Mountain tab's title and the line under it stop short of the elevations beside them: a name too long for the
-// phone it is on is set smaller, half a pixel at a time, until it clears them (never under 14px), and the line
+// phone it is on is set smaller, half a pixel at a time, until it clears them (never under 12px), and the line
 // under it likewise (never under 10.5px).
 function fitHead() {
   const head = $("detail").querySelector(".dhead"), h2 = head && head.querySelector("h2"), levels = head && [...head.querySelectorAll(".lvlft span")];
@@ -4131,7 +4131,7 @@ function fitHead() {
     // Still too long at the smallest size: the line is cut short with an ellipsis where the elevations begin.
     if (edge(el, "right") > edge(level, "left") - 4 && cut) { el.style.maxWidth = `${Math.max(40, edge(level, "left") - 4 - el.getBoundingClientRect().left)}px`; el.style.overflow = "hidden"; el.style.textOverflow = "ellipsis"; }
   };
-  fit(h2, levels[0], 14);
+  fit(h2, levels[0], 12);
   fit(head.querySelector(".dfresh"), levels[1], 10.5);
   fit(head.querySelector(".who > span:not(.dfresh)"), levels[2], 10.5, true);
 }
