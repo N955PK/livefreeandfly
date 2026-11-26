@@ -556,6 +556,8 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   compass.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 15.2 12H8.8z" fill="#d6322f"/><path d="M12 21.5 8.8 12h6.4z" fill="#8a929b"/><circle cx="12" cy="12" r="1.3" fill="#fff"/></svg>';
   container.appendChild(compass);
   const needle = compass.firstChild;
+  // Unseen until the page calls arrive().
+  for (const el of [canvas, overlay, compass]) el.style.opacity = "0";
   const roadPoints = [];
   const roadPositions = [], roadIndex = [], roadSides = [];
   const roadLines = [];
@@ -1225,6 +1227,15 @@ export async function createMap(container, data, {region, onSelect, elevation = 
     setFlat(on) { flat = on; if (part) { if (visible) flyTo(partView()); else framePending = true; return; } glideTo(on ? {polar: FLAT_POLAR, turn: 0} : {polar: HOME_POLAR}); },
     // Shows one part of the region ({mountains: [keys], look?, zoom?, turnDeg?}), or all of it (null), moving the view there.
     setArea(next) { showPart(next); },
+    // A new map is built unseen (see the end of createMap) and fades in when the page calls arrive(); the map it
+    // replaces lets its labels and compass fade out with leave(), its terrain staying under the new one meanwhile.
+    arrive() {
+      requestAnimationFrame(() => {
+        for (const el of [canvas, overlay, compass]) { el.style.transition = "opacity .24s ease"; el.style.opacity = ""; }
+        setTimeout(() => { for (const el of [canvas, overlay, compass]) el.style.transition = ""; }, 320);
+      });
+    },
+    leave() { for (const el of [overlay, compass]) { el.style.transition = "opacity .2s ease"; el.style.opacity = "0"; el.style.pointerEvents = "none"; } },
     dispose() {
       running = false;
       for (const watcher of watchers) watcher.disconnect();

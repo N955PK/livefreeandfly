@@ -1052,7 +1052,7 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 #mapPanel{margin-top:22px;overflow:hidden;display:none}
 #map3d{position:relative;isolation:isolate;height:min(68vh,620px);min-height:400px;background:radial-gradient(ellipse at 50% 38%,#eef4f9 0,#cfdfec 55%,#b3c8da 100%);touch-action:pan-y;cursor:grab}
 #map3d:active{cursor:grabbing}
-#map3d canvas{display:block;width:100%;height:100%}
+#map3d canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
 .map-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .map-label,.map-shield,.map-closed,.map-lake{will-change:transform;backface-visibility:hidden}
 .map-label{position:absolute;left:0;top:0;pointer-events:auto;border:0;cursor:pointer;font:inherit;white-space:nowrap;text-align:center;
@@ -1826,7 +1826,7 @@ const MODEL_NAMES = {gfs_seamless: "GFS/HRRR", ecmwf_ifs025: "ECMWF", icon_seaml
 const BAR_FULL_IN = 24;
 const BINS = [[0.5, 0, "under ½"], [2, 1, "½–2"], [4, 2, "2–4"], [8, 3, "4–8"], [12, 4, "8–12"], [18, 5, "12–18"], [Infinity, 6, "18+"]];
 // Bumped whenever map3d.js changes, so browsers fetch the new copy.
-const BUILD = "289";
+const BUILD = "290";
 // The map's code is asked for now, alongside the forecast, so it is in hand by the time the map is built.
 for (const href of [`./map3d.js?v=${BUILD}`, "./vendor/three/build/three.module.min.js", "./vendor/three/examples/jsm/controls/OrbitControls.js"]) {
   document.head.appendChild(Object.assign(document.createElement("link"), {rel: "modulepreload", href}));
@@ -4436,6 +4436,8 @@ function goTo(el) {
   el.scrollIntoView({behavior: "smooth", block: "start"});
 }
 $("tabbar").addEventListener("click", (e) => { const b = e.target.closest("button[data-view]"); if (b) switchTab(b.dataset.view); });
+// A map waiting to be built starts the moment a finger comes down on the Map tab, not when the tab has opened.
+$("tabbar").addEventListener("pointerdown", (e) => { const b = e.target.closest('button[data-view="map"]'); if (b && mapDue && data) startMap(true); });
 // The dip under a press: any button, chooser, link button or fold-out heading that is touched dips and stays down
 // until the finger lifts (the tap itself counts on the lift, as taps do) or wanders off into a scroll or a drag. A
 // choice in a pill dips the whole pill. The map's name labels are left out, since the map places them by the same means.
@@ -4745,16 +4747,19 @@ let mapPlace = null;
 // does not build the new map there and then: the old one is put aside and the new one is built when the tab opens
 // (mapDue, declared with detailDue).
 const mapShowing = () => !tabbed() || document.documentElement.dataset.view === "map" || (pager && pager.to === "map");
-async function startMap() {
+// early: the build is wanted although the Map tab is not showing yet (a finger has come down on its button).
+async function startMap(early = false) {
   mapPlace = place();
   const list = inPlace(), build = ++mapBuild;
   if (!list.length || !list[0].lat) return;
-  if ((map || mapDue) && !mapShowing()) {
+  if ((map || mapDue) && !mapShowing() && !early) {
     togglePlay(false);
     // Nobody is looking at the map, so the old region's is taken down now, with its area pills: when the Map tab is
     // next opened the new region's map is drawn onto a clear pane, and the old one is never seen there.
     if (staleMap) { staleMap.dispose(); staleMap = null; }
     if (map) { map.dispose(); map = null; }
+    // The new region's area pills are put up now, so they are there the moment the tab opens.
+    mapArea = openingArea(mapPlace);
     renderAreas();
     mapDue = true;
     return;
@@ -4774,13 +4779,17 @@ async function startMap() {
     if (!roadFeeds) $("roadPill").hidden = true;
     $("mapPanel").style.display = "block";
     mapArea = openingArea(mapPlace);
+    // The area pills go up before the map is built: the pane has its furniture while the terrain is on its way.
+    renderAreas();
     const made = await createMap($("map3d"), {...data, resorts: list.map(markedAt)}, {region: REGIONS[mapPlace], elevation, selected, depth: mapDepth(), freeTouch: () => tabbed() && document.documentElement.dataset.view === "map", finger: () => prefs.finger, globe: new URLSearchParams(location.search).has("globe"),
       area: areaFor(mapPlace, mapArea), framePad,
       // A tap on a mountain's label does what a tap on its row of the summary does: it opens the mountain's tab.
       onSelect: (key) => { if (map) chooseMountain(key, true); }});
     if (build !== mapBuild) { made.dispose(); return; }
-    if (staleMap) { staleMap.dispose(); staleMap = null; }
+    // The new map fades in over the one it replaces, whose labels fade out; the old one goes once it is covered.
+    if (staleMap) { const old = staleMap; staleMap = null; old.leave(); setTimeout(() => old.dispose(), 300); }
     map = made;
+    made.arrive();
     renderAreas();
     stakesIn = stakeDepths();
     $("flatToggle").hidden = false; $("flatToggle").textContent = "2D";
@@ -4833,7 +4842,7 @@ function framePad() {
   return {top: row.hidden ? 12 : row.getBoundingClientRect().bottom - box.top + 10, bottom: bar.height ? Math.max(12, box.bottom - bar.top + 10) : 12, left: 10, right: 10, avoid};
 }
 function renderAreas() {
-  const areas = map && areasOf(mapPlace);
+  const areas = areasOf(mapPlace);
   $("mapAreasWrap").hidden = !areas;
   if (!areas) return;
   $("mapAreas").innerHTML = [...areas, {key: "all", name: "All"}].map((a) => `<button data-area="${a.key}" aria-pressed="${a.key === mapArea}"${a.short ? ` aria-label="${esc(a.name)}"` : ""}>${a.short ? `<span class="full">${esc(a.name)}</span><span class="short" aria-hidden="true">${esc(a.short)}</span>` : esc(a.name)}</button>`).join("");
