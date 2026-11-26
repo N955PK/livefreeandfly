@@ -286,9 +286,23 @@ records how each was done for the Cascades and what it cost; the Tetons, the Was
    The refit is the Sierra's days with the region's added. Where the Sierra's days still pull it off (the Wasatch,
    where it ran an inch deep), give the region's days more weight in `train.REGION_DAY_WEIGHT` and check again.
 
+**The third collector's six (2026-11-26).** Montana, Sun Valley, Oregon, New Mexico, Alaska and Southwest Colorado
+were fitted in one pass, and three things about that are worth knowing before the next:
+- Alaska's SNOTEL stations stamp their days on Alaska standard time (a data time zone of UTC-9 in the station list),
+  so its `Region.std_offset_h` is 9 and `calibrate.SENSOR_OFFSET_H` and `train.SENSOR_OFFSET_H` name it.
+- The Sierra's table of snow days (`events.parquet`) is not in the repository, and its first two winters came from
+  the metered API. Rebuilt from the unmetered archive alone (`dataset.build(end)` after `observations.pull_manual`
+  and `pull_snotel`) it holds the Sierra's days from November 2023 on, 483 hand-measured ones. The three ratio
+  models refitted that day (Montana, Alaska, Southwest Colorado) pool their region's days with those, not with the
+  1,197 the Sierra's own model was trained on.
+- The Overpass servers could not be reached, so none of the six has road lines or a water mask; their `ROUTES` are
+  in `build_roads.py`, ready to run. No lift reader was written and no status page linked: the resorts' sites could
+  not be opened from the session that added them, and the pass and elevation figures came from search results.
+
 Sean wants each file saved even where it barely differs from the Sierra's, as the record that it was fitted there.
 Write the results into the testing page (2f) and add the region's sections to the scorecard (`verify.py`, beside
-`seattle_sections`, `tetons_sections`, `wasatch_sections`, `colorado_sections` and `canada_sections`). Push, and restart the collector so the next build uses them. The Sensor
+`seattle_sections`, `tetons_sections`, `wasatch_sections`, `colorado_sections`, `canada_sections` and `west_sections`,
+whose `WEST` table takes a new third-collector region as one line). Push, and restart the collector so the next build uses them. The Sensor
 corrections list on the page follows the published index, so it reads Corrected as soon as the index is rebuilt.
 
 ## 2. Second push: the page
