@@ -5506,6 +5506,8 @@ function badges() {
       : slot.dataset.form === "icon" ? icon(zone) : shared ? "" : icon(zone, " mini");
   }
   for (const slot of document.querySelectorAll("[data-avy-group]")) slot.innerHTML = shared ? icon(shared, " group", centers) : "";
+  // An icon beside the Mountain tab's title makes it longer, so the title is fitted again.
+  fitHead();
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-goto]");
