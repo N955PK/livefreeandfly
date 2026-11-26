@@ -81,7 +81,8 @@ def test_a_lift_on_hold_and_an_open_groomed_trail_take_the_report_s_words():
         areas_of(report)[0]["lifts"]["lift"][0]["status"] = "On Hold"
         areas_of(report)[0]["trails"]["trail"][0].update(status="Open", groomed=True)
     area = bigsky.parse(changed(turn), NOW)["MountainAreas"][0]
-    assert area["Lifts"][0] == {"Name": "Cascade 3", "Status": "On hold", "StatusEnglish": "on hold", "Difficulty": None}
+    assert area["Lifts"][0] == {"Name": "Cascade 3", "Status": "On hold", "StatusEnglish": "on hold",
+                                "Difficulty": None}
     assert area["Trails"][0] == {"Name": "Middle River", "Status": "Open", "StatusEnglish": "open",
                                  "Difficulty": "Green", "Grooming": "Yes"}
 

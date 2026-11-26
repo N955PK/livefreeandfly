@@ -2,7 +2,8 @@
 Jackson Hole and Grand Targhee in the Tetons, six of the Wasatch's resorts, Copper and Loveland in Colorado, the Mt. Shasta Ski Park and Mt. Ashland,
 Big White, SilverStar and Sun Peaks in the Okanagan, and Cypress, Grouse, Mt. Seymour and Mount Washington on
 British Columbia's coast, nine of Quebec's, five in the Canadian Rockies,
-and seven along the Powder Highway and in the East Kootenays.
+seven along the Powder Highway and in the East Kootenays, and thirteen in Montana, Sun Valley, Oregon, New Mexico
+and Alaska.
 
 Each mountain has a module of its own that knows its page (``URL``, or ``URLS`` where it takes more than one request)
 and reads it (``parse``). This runs them all and writes one file the page reads, in the shape of the Ikon feed the
@@ -19,14 +20,15 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import (alta, ashland, bigwhite, blackmountain, bolton, brettonwoods, brighton,
-                                bromley, bromont, burke, cannon, copper, cranmore, cypress, fernie, grouse,
-                                jacksonhole, jaypeak, kickinghorse, kimberley, lakelouise, lemassif, loveland,
-                                madriverglen, magic, marmot, montblanc, montsainteanne, mtwashington, nakiska,
-                                norquay, orford, owlshead, panorama, powdermountain, redmountain, revelstoke,
-                                saddleback, saintsauveur, seymour, shastaskipark, silverstar, smugglers,
-                                snowbasin, snowbird, stoneham, sundance, sunpeaks, sunshine, sutton, targhee,
-                                waterville, whitewater)
+from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, bigsky, bigwhite, blackmountain, bolton,
+                                brettonwoods, brighton, bromley, bromont, burke, cannon, cooperspur, copper,
+                                cranmore, cypress, dollar, fernie, grouse, hoodmeadows, jacksonhole, jaypeak,
+                                kickinghorse, kimberley, lakelouise, lemassif, loveland, madriverglen, magic,
+                                marmot, montblanc, montsainteanne, mtwashington, nakiska, norquay, orford,
+                                owlshead, pajarito, panorama, powdermountain, redmountain, redriver, revelstoke,
+                                saddleback, saintsauveur, seymour, shastaskipark, silverstar, sipapu, skisantafe,
+                                smugglers, snowbasin, snowbird, stoneham, sundance, sunpeaks, sunshine, sunvalley,
+                                sutton, taos, targhee, waterville, whitewater, willamettepass)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -46,7 +48,12 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "owlshead": owlshead, "stoneham": stoneham, "montsainteanne": montsainteanne, "lemassif": lemassif,
            "lakelouise": lakelouise, "sunshine": sunshine, "norquay": norquay, "nakiska": nakiska, "marmot": marmot,
            "revelstoke": revelstoke, "redmountain": redmountain, "whitewater": whitewater, "kickinghorse": kickinghorse,
-           "panorama": panorama, "kimberley": kimberley, "fernie": fernie}
+           "panorama": panorama, "kimberley": kimberley, "fernie": fernie,
+           # The third collector's regions. Sun Valley's page holds Dollar Mountain too, and is read once for each.
+           "bigsky": bigsky, "sunvalley": sunvalley, "dollar": dollar,
+           "hoodmeadows": hoodmeadows, "cooperspur": cooperspur, "willamettepass": willamettepass,
+           "taos": taos, "redriver": redriver, "sipapu": sipapu, "skisantafe": skisantafe, "pajarito": pajarito,
+           "alyeska": alyeska, "arcticvalley": arcticvalley}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
 RANGED = ("Base", "Last24Hours")
 

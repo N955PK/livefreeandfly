@@ -1,0 +1,5582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Mountain Report: Weather, Trail Status &amp; More | Sun Valley</title>
+ <meta content="Stay informed with Sun Valley&#x27;s up-to-date mountain reports. Get weather updates and trail status to be ready for an exhilarating mountain experience." name="description" />
+ <link rel="canonical" href="https://app-sunvalley-prod.azurewebsites.net/The-Mountain/Mountain-Report" />
+ <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png">
+ <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
+ <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png">
+ <link rel="manifest" href="/images/favicons/site.webmanifest">
+ <!-- Critical Above the fold styles -->
+ <!--PROD Google Tag Manager -->
+ <!-- End Google Tag Manager -->
+ <meta property="og:title" content="Mountain Report: Weather, Trail Status &amp; More" />
+ <meta property="og:description" content="Stay informed with Sun Valley&#x27;s up-to-date mountain reports. Get weather updates and trail status to be ready for an exhilarating mountain experience." />
+ <link rel="stylesheet" type="text/css" href="//js.prismcam.com/luma.css" />
+</head>
+<body class="-winter-season">
+ <header data-ktc-search-exclude class="header js-header">
+ <div class="header__group-l">
+ <button type="button" class="header__menu-btn js-header__menu-btn" id="nav-btn" data-target="#site-nav-dropdown">
+ <span class="header__hamburger"><span class="sr-only">Toggle Main Menu</span></span>
+ <span class="header__menu-text">Menu</span>
+ </button>
+ <nav class="main-nav js-main-nav" style="visibility: hidden;">
+<div class="main-nav__container">
+ <div class="main-nav__container-wrapper">
+ <ul class="main-nav__list">
+ <li class="main-nav__list-item -toggle js-season-toggle">
+ <a href="#" class="main-nav__list-item-link js-toggle -winter">
+ <span class="main-nav__list-item-link-text">Winter</span>
+ </a>
+ <span class="main-nav__switch js-main-nav__switch">
+ <span class="main-nav__switch-indicator"></span>
+ </span>
+ <a href="#" class="main-nav__list-item-link js-toggle -summer">
+ <span class="main-nav__list-item-link-text">Summer</span>
+ </a>
+ </li>
+ <li class="main-nav__list-item -summer-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Explore Sun Valley</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Mountain Info</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Bald Mountain" href="/the-mountain/bald-mountain/" target="_self" class="main-nav__subnav-list-item-link">Bald Mountain</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Mountain Report" href="/the-mountain/mountain-report" target="_self" class="main-nav__subnav-list-item-link">Mountain Report</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Web Cams" href="/the-mountain/web-cams" target="_self" class="main-nav__subnav-list-item-link">Web Cams</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Maps &amp; Guides" href="/the-mountain/maps-guides" target="_self" class="main-nav__subnav-list-item-link">Maps & Guides</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Mountain Safety" href="/the-mountain/mountain-safety" target="_self" class="main-nav__subnav-list-item-link">Mountain Safety</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Future of Sun Valley" href="https://www.futureofsunvalley.com" target="_blank" class="main-nav__subnav-list-item-link">The Future of Sun Valley</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Discover Winter</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Visitors Guide" href="/explore/your-guide-to-sun-valley/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Visitors Guide</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Two Mountains" href="/the-mountain/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Two Mountains</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Winter Activities" href="/things-to-do/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Winter Activities</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Plan Your Trip" href="/plan-your-trip/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Plan Your Trip</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Audi FIS Ski World Cup" href="/events/audi-fis-ski-world-cup/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Audi FIS Ski World Cup</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>About</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="The Resort" href="/about/" target="_self" class="main-nav__subnav-list-item-link">The Resort</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Discover Summer" href="/explore/your-guide-to-sun-valley" target="_self" class="main-nav__subnav-list-item-link">Discover Summer</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Plan Your Trip" href="/plan-your-trip" target="_self" class="main-nav__subnav-list-item-link">Plan Your Trip</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Getting Here" href="/about/getting-here" target="_self" class="main-nav__subnav-list-item-link">Getting Here</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley&#x27;s Dark Sky" href="/explore/dark-sky/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley's Dark Sky</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sustainability" href="/about/sustainability/" target="_self" class="main-nav__subnav-list-item-link">Sustainability</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -summer-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Tickets, Lessons &amp; Rentals</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Tickets & Passes</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Lift Tickets" href="/tickets-passes/lift-tickets" target="_self" class="main-nav__subnav-list-item-link">Lift Tickets</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Summer Season Passes" href="/tickets-passes/season-passes" target="_self" class="main-nav__subnav-list-item-link">Summer Season Passes</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Golf Passes" href="/tickets-passes/golf-passes/" target="_self" class="main-nav__subnav-list-item-link">Golf Passes</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Clinics & Camps</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Kids Summer Camp" href="/explore/kids-programs/kids-camps/" target="_self" class="main-nav__subnav-list-item-link">Kids Summer Camp</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Summer Skating School" href="/things-to-do/summer-skating-school/" target="_self" class="main-nav__subnav-list-item-link">Summer Skating School</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Pickleball" href="/things-to-do/tennis-pickleball-center/pickleball-instruction-clinics/" target="_self" class="main-nav__subnav-list-item-link">Pickleball</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Tennis" href="/things-to-do/tennis-pickleball-center/tennis-instruction-clinics-camps/" target="_self" class="main-nav__subnav-list-item-link">Tennis</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Golf" href="/things-to-do/golf/golf-instruction-at-sun-valley-resort/" target="_self" class="main-nav__subnav-list-item-link">Golf</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Rentals</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Bike Rentals" href="/rentals" target="_self" class="main-nav__subnav-list-item-link">Bike Rentals</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Pete Lane&#x27;s" href="/shopping/pete-lanes/" target="_self" class="main-nav__subnav-list-item-link">Pete Lane's</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Winter 26/27</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Winter Tickets &amp; Passes" href="/tickets-passes/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Winter Tickets & Passes</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Winter Season Passes" href="/tickets-passes/season-passes/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Winter Season Passes</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Ikon Pass" href="/tickets-passes/ikon-pass/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Ikon Pass</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Ski &amp; Ride School" href="/lessons/?season=winter" target="_self" class="main-nav__subnav-list-item-link">Ski & Ride School</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -summer-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Lodging</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Properties</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Lodge" href="/lodging/sun-valley-lodge/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Lodge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Inn" href="/lodging/sun-valley-inn/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Inn</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Cottages" href="/lodging/cottages/" target="_self" class="main-nav__subnav-list-item-link">Cottages</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Condos" href="/lodging/condos/" target="_self" class="main-nav__subnav-list-item-link">Condos</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Townhomes" href="/lodging/townhomes/" target="_self" class="main-nav__subnav-list-item-link">Townhomes</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="View All" href="/lodging" target="_self" class="main-nav__subnav-list-item-link">View All</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Resort Amenities</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Dining" href="/dining/" target="_self" class="main-nav__subnav-list-item-link">Dining</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Lodging Amenities" href="/lodging/amenities-overview/" target="_self" class="main-nav__subnav-list-item-link">Lodging Amenities</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Shopping" href="/shopping/" target="_self" class="main-nav__subnav-list-item-link">Shopping</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Village" href="/explore/sun-valley-village" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Village</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Spa at Sun Valley" href="/the-spa/" target="_self" class="main-nav__subnav-list-item-link">The Spa at Sun Valley</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Specials & Promotions</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Current Offers" href="/lodging/specials-packages" target="_self" class="main-nav__subnav-list-item-link">Current Offers</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -summer-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Dining</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Signature Experiences</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="The Ram" href="/dining/the-ram/" target="_self" class="main-nav__subnav-list-item-link">The Ram</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Roundhouse" href="/dining/the-roundhouse/" target="_self" class="main-nav__subnav-list-item-link">The Roundhouse</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Elkhorn Grille" href="/dining/elkhorn-clubhouse-grill/" target="_self" class="main-nav__subnav-list-item-link">Elkhorn Grille</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Club" href="/dining/sun-valley-club/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Club</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="All Dining Experiences" href="/dining/" target="_self" class="main-nav__subnav-list-item-link">All Dining Experiences</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Village Dining</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Duchin Lounge" href="/dining/duchin-lounge/" target="_self" class="main-nav__subnav-list-item-link">Duchin Lounge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Gretchen&#x27;s" href="/dining/gretchens/" target="_self" class="main-nav__subnav-list-item-link">Gretchen's</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Konditorei" href="/dining/konditorei/" target="_self" class="main-nav__subnav-list-item-link">Konditorei</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Chocolate Foundry" href="/dining/the-chocolate-foundry/" target="_self" class="main-nav__subnav-list-item-link">The Chocolate Foundry</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Ram" href="/dining/the-ram/" target="_self" class="main-nav__subnav-list-item-link">The Ram</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Village Station" href="/dining/village-station/" target="_self" class="main-nav__subnav-list-item-link">Village Station</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -summer-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Things to Do</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Events</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Calendar" href="/events/" target="_self" class="main-nav__subnav-list-item-link">Calendar</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Holidays" href="/explore/holidays/" target="_self" class="main-nav__subnav-list-item-link">Holidays</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley On Ice" href="/things-to-do/sun-valley-on-ice/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley On Ice</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Live Music" href="/events/live-music/" target="_self" class="main-nav__subnav-list-item-link">Live Music</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Activities</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Ride the Gondola" href="/things-to-do/scenic-gondola-rides/" target="_self" class="main-nav__subnav-list-item-link">Ride the Gondola</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Horseback Riding" href="/things-to-do/horseback-riding/" target="_self" class="main-nav__subnav-list-item-link">Horseback Riding</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Tennis &amp; Pickleball" href="/things-to-do/tennis-pickleball-center/" target="_self" class="main-nav__subnav-list-item-link">Tennis & Pickleball</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Biking" href="/things-to-do/biking/" target="_self" class="main-nav__subnav-list-item-link">Biking</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Hiking" href="/things-to-do/hiking-running/" target="_self" class="main-nav__subnav-list-item-link">Hiking</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="View All" href="/things-to-do/" target="_self" class="main-nav__subnav-list-item-link">View All</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Golf</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Courses &amp; Information" href="/things-to-do/golf" target="_self" class="main-nav__subnav-list-item-link">Courses & Information</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Practice Facilities" href="/things-to-do/golf/practice-facilities/" target="_self" class="main-nav__subnav-list-item-link">Practice Facilities</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Golf Instruction" href="/things-to-do/golf/golf-instruction-at-sun-valley-resort/" target="_self" class="main-nav__subnav-list-item-link">Golf Instruction</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Season Passes" href="/tickets-passes/golf-passes" target="_self" class="main-nav__subnav-list-item-link">Season Passes</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Green Fees" href="/things-to-do/golf/green-fees-course-policies/" target="_self" class="main-nav__subnav-list-item-link">Green Fees</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Resort Amenities</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Village" href="/explore/sun-valley-village" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Village</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Spa at Sun Valley" href="/the-spa/" target="_self" class="main-nav__subnav-list-item-link">The Spa at Sun Valley</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Shopping" href="/shopping/" target="_self" class="main-nav__subnav-list-item-link">Shopping</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Kids Programs" href="/explore/kids-programs/" target="_self" class="main-nav__subnav-list-item-link">Kids Programs</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -summer-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Groups &amp; Weddings</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Groups &amp; Conventions" href="/groups-weddings/groups-conventions/" target="_self" class="main-nav__subnav-list-item-link">Groups & Conventions</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Weddings" href="/groups-weddings/weddings/" target="_self" class="main-nav__subnav-list-item-link">Weddings</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Catering" href="/groups-weddings/catering/" target="_self" class="main-nav__subnav-list-item-link">Catering</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -summer-only js-main-nav__list-item -pill">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Book Now</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Activities" href="/things-to-do" target="_self" class="main-nav__subnav-list-item-link">Activities</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Bike Rentals" href="/rentals" target="_self" class="main-nav__subnav-list-item-link">Bike Rentals</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Dining" href="/dining" target="_self" class="main-nav__subnav-list-item-link">Dining</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Events" href="/events" target="_self" class="main-nav__subnav-list-item-link">Events</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Golf" href="/things-to-do/golf/" target="_self" class="main-nav__subnav-list-item-link">Golf</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Lodging" href="/lodging" target="_self" class="main-nav__subnav-list-item-link">Lodging</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Tickets &amp; Passes" href="/tickets-passes" target="_self" class="main-nav__subnav-list-item-link">Tickets & Passes</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -winter-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Explore Sun Valley</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Two Mountains</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Discover" href="/the-mountain/" target="_self" class="main-nav__subnav-list-item-link">Discover</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Bald Mountain" href="/the-mountain/bald-mountain/" target="_self" class="main-nav__subnav-list-item-link">Bald Mountain</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Dollar Mountain" href="/the-mountain/dollar-mountain/" target="_self" class="main-nav__subnav-list-item-link">Dollar Mountain</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Mountain Info</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Mountain Report" href="/the-mountain/mountain-report" target="_self" class="main-nav__subnav-list-item-link">Mountain Report</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Web Cams" href="/the-mountain/web-cams" target="_self" class="main-nav__subnav-list-item-link">Web Cams</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Maps &amp; Guides" href="/the-mountain/maps-guides" target="_self" class="main-nav__subnav-list-item-link">Maps & Guides</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Mountain Safety" href="/the-mountain/mountain-safety" target="_self" class="main-nav__subnav-list-item-link">Mountain Safety</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Uphill Access" href="/the-mountain/uphill-access/" target="_self" class="main-nav__subnav-list-item-link">Uphill Access</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Future of Sun Valley" href="https://www.futureofsunvalley.com" target="_blank" class="main-nav__subnav-list-item-link">The Future of Sun Valley</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>About</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="The Resort" href="/about/" target="_self" class="main-nav__subnav-list-item-link">The Resort</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Discover Winter" href="/explore/your-guide-to-sun-valley" target="_self" class="main-nav__subnav-list-item-link">Discover Winter</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Getting Here" href="/about/getting-here" target="_self" class="main-nav__subnav-list-item-link">Getting Here</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Plan Your Trip" href="/plan-your-trip" target="_self" class="main-nav__subnav-list-item-link">Plan Your Trip</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley&#x27;s Dark Sky" href="/explore/dark-sky/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley's Dark Sky</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sustainability" href="/about/sustainability/" target="_self" class="main-nav__subnav-list-item-link">Sustainability</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Discover Summer</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Visitors Guide" href="/explore/your-guide-to-sun-valley/?season=summer" target="_self" class="main-nav__subnav-list-item-link">Visitors Guide</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Bald Mountain" href="/the-mountain/bald-mountain/?season=summer" target="_self" class="main-nav__subnav-list-item-link">Bald Mountain</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Summer Activities" href="/things-to-do/?season=summer" target="_self" class="main-nav__subnav-list-item-link">Summer Activities</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Golf at Sun Valley" href="/things-to-do/golf/?season=summer" target="_self" class="main-nav__subnav-list-item-link">Golf at Sun Valley</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Plan Your Trip" href="/plan-your-trip?season=summer" target="_self" class="main-nav__subnav-list-item-link">Plan Your Trip</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -winter-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Tickets, Lessons &amp; Rentals</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Tickets & Passes</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Lift Tickets" href="/tickets-passes/lift-tickets" target="_self" class="main-nav__subnav-list-item-link">Lift Tickets</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Season Passes" href="/tickets-passes/season-passes" target="_self" class="main-nav__subnav-list-item-link">Season Passes</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Ikon Pass" href="/tickets-passes/ikon-pass" target="_self" class="main-nav__subnav-list-item-link">Ikon Pass</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Mountain Collective" href="/tickets-passes/mountain-collective/" target="_self" class="main-nav__subnav-list-item-link">Mountain Collective</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="View All" href="/tickets-passes" target="_self" class="main-nav__subnav-list-item-link">View All</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Lessons</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Ski &amp; Ride School" href="/lessons/" target="_self" class="main-nav__subnav-list-item-link">Ski & Ride School</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Child" href="/lessons/children/" target="_self" class="main-nav__subnav-list-item-link">Child</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Adult" href="/lessons/adult-lessons/" target="_self" class="main-nav__subnav-list-item-link">Adult</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Private" href="/lessons/private-lessons/" target="_self" class="main-nav__subnav-list-item-link">Private</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Rentals</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Rentals" href="/rentals" target="_self" class="main-nav__subnav-list-item-link">Rentals</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Pete Lane&#x27;s" href="/shopping/pete-lanes/" target="_self" class="main-nav__subnav-list-item-link">Pete Lane's</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -winter-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Lodging</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Properties</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Condos" href="/lodging/condos/" target="_self" class="main-nav__subnav-list-item-link">Condos</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Cottages" href="/lodging/cottages/" target="_self" class="main-nav__subnav-list-item-link">Cottages</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Inn" href="/lodging/sun-valley-inn/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Inn</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Lodge" href="/lodging/sun-valley-lodge/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Lodge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Townhomes" href="/lodging/townhomes/" target="_self" class="main-nav__subnav-list-item-link">Townhomes</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="View All" href="/lodging" target="_self" class="main-nav__subnav-list-item-link">View All</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Resort Amenities</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Lodging Amenities" href="/lodging/amenities-overview/" target="_self" class="main-nav__subnav-list-item-link">Lodging Amenities</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Village" href="/explore/sun-valley-village" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Village</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Spa at Sun Valley" href="/the-spa/" target="_self" class="main-nav__subnav-list-item-link">The Spa at Sun Valley</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Shopping" href="/shopping/" target="_self" class="main-nav__subnav-list-item-link">Shopping</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Dining" href="/dining/" target="_self" class="main-nav__subnav-list-item-link">Dining</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Specials & Promotions</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Current Offers" href="/lodging/specials-packages" target="_self" class="main-nav__subnav-list-item-link">Current Offers</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -winter-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Dining</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Signature Experiences</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="The Ram" href="/dining/the-ram/" target="_self" class="main-nav__subnav-list-item-link">The Ram</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Roundhouse" href="/dining/the-roundhouse/" target="_self" class="main-nav__subnav-list-item-link">The Roundhouse</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Trail Creek Cabin" href="/dining/trail-creek-cabin/" target="_self" class="main-nav__subnav-list-item-link">Trail Creek Cabin</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Club" href="/dining/sun-valley-club/" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Club</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="All Dining Experiences" href="/dining/" target="_self" class="main-nav__subnav-list-item-link">All Dining Experiences</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Village Dining</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="The Ram" href="/dining/the-ram/" target="_self" class="main-nav__subnav-list-item-link">The Ram</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Village Station" href="/dining/village-station/" target="_self" class="main-nav__subnav-list-item-link">Village Station</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Duchin Lounge" href="/dining/duchin-lounge/" target="_self" class="main-nav__subnav-list-item-link">Duchin Lounge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Gretchen&#x27;s" href="/dining/gretchens/" target="_self" class="main-nav__subnav-list-item-link">Gretchen's</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Konditorei" href="/dining/konditorei/" target="_self" class="main-nav__subnav-list-item-link">Konditorei</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Chocolate Foundry" href="/dining/the-chocolate-foundry/" target="_self" class="main-nav__subnav-list-item-link">The Chocolate Foundry</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>On Mountain Dining</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="The Roundhouse" href="/dining/the-roundhouse/" target="_self" class="main-nav__subnav-list-item-link">The Roundhouse</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Lookout Lodge" href="/dining/lookout-day-lodge/" target="_self" class="main-nav__subnav-list-item-link">Lookout Lodge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Seattle Ridge Lodge" href="/dining/seattle-ridge-day-lodge/" target="_self" class="main-nav__subnav-list-item-link">Seattle Ridge Lodge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="River Run Lodge" href="/dining/river-run-day-lodge/" target="_self" class="main-nav__subnav-list-item-link">River Run Lodge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Warm Springs Lodge" href="/dining/warm-springs-lodge/" target="_self" class="main-nav__subnav-list-item-link">Warm Springs Lodge</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Dollar Mountain Lodge" href="/dining/carols-dollar-mountain-lodge/" target="_self" class="main-nav__subnav-list-item-link">Dollar Mountain Lodge</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -winter-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Things to Do</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Activities</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Skiing &amp; Riding" href="/things-to-do/skiing-riding/" target="_self" class="main-nav__subnav-list-item-link">Skiing & Riding</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Nordic &amp; Snowshoe" href="/things-to-do/nordic-skiing/" target="_self" class="main-nav__subnav-list-item-link">Nordic & Snowshoe</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Ice Skating" href="/things-to-do/ice-skating/" target="_self" class="main-nav__subnav-list-item-link">Ice Skating</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Sleigh Rides" href="/things-to-do/winter-sleigh-rides/" target="_self" class="main-nav__subnav-list-item-link">Sleigh Rides</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="View All" href="/things-to-do/" target="_self" class="main-nav__subnav-list-item-link">View All</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Events</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Calendar" href="/events/" target="_self" class="main-nav__subnav-list-item-link">Calendar</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Holidays" href="/explore/holidays/" target="_self" class="main-nav__subnav-list-item-link">Holidays</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Live Music" href="/events/live-music/" target="_self" class="main-nav__subnav-list-item-link">Live Music</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Winter Wonderland" href="/explore/holidays/winter-wonderland/" target="_self" class="main-nav__subnav-list-item-link">Winter Wonderland</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Audi FIS Ski World Cup" href="/events/audi-fis-ski-world-cup/" target="_self" class="main-nav__subnav-list-item-link">Audi FIS Ski World Cup</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Nordic Center</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Nordic Skiing" href="/things-to-do/nordic-skiing/" target="_self" class="main-nav__subnav-list-item-link">Nordic Skiing</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Trail Report" href="/the-mountain/nordic-report/" target="_self" class="main-nav__subnav-list-item-link">Trail Report</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Nordic Season Passes" href="/tickets-passes/nordic-snowshoe-passes/" target="_self" class="main-nav__subnav-list-item-link">Nordic Season Passes</a>
+ </li>
+ </ul>
+ </div>
+ <div class="main-nav__subnav-group">
+ <a href="#" class="main-nav__subnav-group-heading js-main-nav__subnav-group-heading-link">
+ <span>Resort Amenities</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Sun Valley Village" href="/explore/sun-valley-village" target="_self" class="main-nav__subnav-list-item-link">Sun Valley Village</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="The Spa at Sun Valley" href="/the-spa/" target="_self" class="main-nav__subnav-list-item-link">The Spa at Sun Valley</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Kids Programs" href="/explore/kids-programs/" target="_self" class="main-nav__subnav-list-item-link">Kids Programs</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Shopping" href="/shopping/" target="_self" class="main-nav__subnav-list-item-link">Shopping</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -winter-only js-main-nav__list-item ">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Groups &amp; Weddings</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Catering" href="/groups-weddings/catering/" target="_self" class="main-nav__subnav-list-item-link">Catering</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Groups &amp; Conventions" href="/groups-weddings/groups-conventions/" target="_self" class="main-nav__subnav-list-item-link">Groups & Conventions</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Weddings" href="/groups-weddings/weddings/" target="_self" class="main-nav__subnav-list-item-link">Weddings</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -winter-only js-main-nav__list-item -pill">
+ <a href="#" class="main-nav__list-item-link js-main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Book Now</span>
+ <span class="main-nav__link-plus"></span>
+ </a>
+ <div class="main-nav__subnav js-main-nav__subnav" style="visibility: hidden;">
+ <div class="main-nav__subwrapper js-main-nav__subwrapper">
+ <div class="main-nav__subnav-group">
+ <ul class="main-nav__subnav-list">
+ <li class="main-nav__subnav-list-item">
+ <a title="Dining Reservations" href="/dining" target="_self" class="main-nav__subnav-list-item-link">Dining Reservations</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Events" href="/events" target="_self" class="main-nav__subnav-list-item-link">Events</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Groups &amp; Weddings" href="/groups-weddings" target="_self" class="main-nav__subnav-list-item-link">Groups & Weddings</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Lessons" href="/lessons" target="_self" class="main-nav__subnav-list-item-link">Lessons</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Lodging" href="/lodging" target="_self" class="main-nav__subnav-list-item-link">Lodging</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Ski &amp; Board Rentals" href="/rentals" target="_self" class="main-nav__subnav-list-item-link">Ski & Board Rentals</a>
+ </li>
+ <li class="main-nav__subnav-list-item">
+ <a title="Tickets &amp; Passes" href="/tickets-passes" target="_self" class="main-nav__subnav-list-item-link">Tickets & Passes</a>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="main-nav__list-item -small -double-link -summer-only">
+ <a href="/my-account" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">My Account</span>
+ </a>
+ <span class="main-nav__link-separator"></span>
+ <a href="https://auth.sunvalley.com/authorize?client_id=tmCuvv0DHkoGwddg2ImiqizdTUMnRVI7&amp;redirect_uri=https://www.sunvalley.com&amp;response_type=code%20id_token&amp;scope=openid%20profile%20email&amp;nonce=101" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Sign in</span>
+ </a>
+ </li>
+ <li class="main-nav__list-item -small -summer-only">
+ <a href="https://shop.sunvalley.com" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Cart</span>
+ </a>
+ </li>
+ <li class="main-nav__list-item -small -summer-only">
+ <a href="/about/contact-us/" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Contact Us</span>
+ </a>
+ </li>
+ <li class="main-nav__list-item -small -double-link -winter-only">
+ <a href="/my-account" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">My Account</span>
+ </a>
+ <span class="main-nav__link-separator"></span>
+ <a href="https://auth.sunvalley.com/authorize?client_id=tmCuvv0DHkoGwddg2ImiqizdTUMnRVI7&amp;redirect_uri=https://www.sunvalley.com&amp;response_type=code%20id_token&amp;scope=openid%20profile%20email&amp;nonce=101" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Sign in</span>
+ </a>
+ </li>
+ <li class="main-nav__list-item -small -winter-only">
+ <a href="https://shop.sunvalley.com" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Cart</span>
+ </a>
+ </li>
+ <li class="main-nav__list-item -small -winter-only">
+ <a href="/about/contact-us/" class="main-nav__list-item-link">
+ <span class="main-nav__list-item-link-text">Contact Us</span>
+ </a>
+ </li>
+ </ul>
+ </div>
+</div>
+<img srcset="/azure/sunvalley/media/sunvalley/activities/golf/svr_summer_golf_white_clouds.jpg?ext=.jpg&w=1500&h=1500&mode=crop&scale=both&quality=65, /azure/sunvalley/media/sunvalley/activities/golf/svr_summer_golf_white_clouds.jpg?ext=.jpg&w=2000&h=2000&mode=crop&scale=both&quality=65 1.5x, /azure/sunvalley/media/sunvalley/activities/golf/svr_summer_golf_white_clouds.jpg?ext=.jpg&w=2500&h=2500&mode=crop&scale=both&quality=65 2x" src="/azure/sunvalley/media/sunvalley/activities/golf/svr_summer_golf_white_clouds.jpg?ext=.jpg&w=1500&h=1500&mode=crop&scale=both&quality=65" alt="svr_summer_golf_white_clouds.jpg" class="main-nav__img -summer-only">
+<img srcset="/azure/sunvalley/media/sunvalley/scenic/winter/gadd_ray_j969a2564.jpeg?ext=.jpeg&w=1500&h=1500&mode=crop&scale=both&quality=65, /azure/sunvalley/media/sunvalley/scenic/winter/gadd_ray_j969a2564.jpeg?ext=.jpeg&w=2000&h=2000&mode=crop&scale=both&quality=65 1.5x, /azure/sunvalley/media/sunvalley/scenic/winter/gadd_ray_j969a2564.jpeg?ext=.jpeg&w=2500&h=2500&mode=crop&scale=both&quality=65 2x" src="/azure/sunvalley/media/sunvalley/scenic/winter/gadd_ray_j969a2564.jpeg?ext=.jpeg&w=1500&h=1500&mode=crop&scale=both&quality=65" alt="gadd_ray_j969a2564.jpeg" class="main-nav__img -winter-only">
+ </nav>
+ <a href="/" class="header__branding-link" title="Logo">
+ <SVG/>
+ <SVG/>
+ </a>
+ </div>
+ <div class="header__group-r">
+ <nav class="header__utility-nav">
+ <ul class="header__utility-nav-list">
+ <li class="header__utility-nav-list-item">
+ <div class="header__utility-weather">
+ <span class="header__utility-weather-widget">
+ <SVG/>
+ <span class="header__utility-weather-widget-text">
+ 21&deg;F
+ </span>
+ </span>
+ <button class="header__utility-weather-toggle js-header__utility-weather-toggle" aria-label="Current Weather Conditions">
+ <SVG/>
+ </button>
+ <div class="mountain-report-dropdown js-mountain-report-dropdown" style="visibility: hidden;">
+ <div class="mountain-report-dropdown__wrapper">
+ <div class="mountain-report-dropdown__content">
+ <div class="mc-weather">
+ <div class="mc-weather__wrap">
+ <nav class="mc__nav-tabs">
+ <ul class="mc__ctrls js-mc__ctrls mc__ctrls-tabs js-mc__ctrls-tabs">
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="report-bald">Bald Mountain</button>
+ </li>
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="report-dollar">Dollar Mountain</button>
+ </li>
+ </ul>
+ </nav>
+ <!--winter-->
+ <div class="mc__tabs -winter-only">
+ <div class="mc__tab js-mc__tab -active" data-tab="report-bald">
+ <div class="mc__row mc__row-up5 ha-b">
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Current</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Top of Bald Mountain</p>
+ <p class="mc__num mc__num-md">21&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Bottom of Bald Mountain</p>
+ <p class="mc__num mc__num-md">27&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Wind: 4 mph SW</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div id="webcam__bald-winter" class="webcam__delay-load" data-webcamtype="hdrelay" data-webcamid="fd6ee8bb-c858-4ffc-949b-12d1e18bda7f"></div>
+ <a href="/the-mountain/web-cams" class="triangle">Watch Live Webcams</a>
+ <a href="/the-mountain/mountain-report" class="mc__btn mc__btn-fill">Full Mountain Report</a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack-md">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Trails Open</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num"><span class="mc__num-lg">2 /</span> 109</p>
+ <ul class="mc__keys">
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">2</p>
+ <p class="mc__heading mc__h4">Easiest</p>
+ </li>
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0</p>
+ <p class="mc__heading mc__h4">Moderate</p>
+ </li>
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0</p>
+ <p class="mc__heading mc__h4">Difficult</p>
+ </li>
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0</p>
+ <p class="mc__heading mc__h4">Most Difficult</p>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Lifts Open</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num"><span class="mc__num-lg">2 /</span> 12</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">November 26, 2026</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__heading mc__h4">High</p>
+ <p class="mc__num mc__num-md">34&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Low</p>
+ <p class="mc__num mc__num-md">21&#176;F</p>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Wind</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num mc__num-sm">4 mph SW</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Snowfall</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">Overnight</p>
+ </div>
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">24 hours</p>
+ </div>
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">6&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">7 days</p>
+ </div>
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">24&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">Base</p>
+ </div>
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">26&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">Season</p>
+ </div>
+ <p class="mc__timestamp mc__timestamp-light">Last Updated: Nov 26, 5:32 AM MT</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__tab js-mc__tab" data-tab="report-dollar">
+ <div class="mc__row mc__row-up5 ha-b">
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Current</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Dollar</p>
+ <p class="mc__num mc__num-md">25&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Wind: 4 mph NE</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div id="webcam__dollar-winter" class="webcam__delay-load" data-webcamtype="hdrelay" data-webcamid="3f0f18fd-16ca-45ab-9241-672535255f7e"></div>
+ <a href="/the-mountain/web-cams" class="triangle">Watch Live Webcams</a>
+ <a href="/the-mountain/mountain-report" class="mc__btn mc__btn-fill">Full Mountain Report</a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack-md">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Trails Open</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num"><span class="mc__num-lg">0 /</span> 22</p>
+ <ul class="mc__keys">
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0</p>
+ <p class="mc__heading mc__h4">Easiest</p>
+ </li>
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0</p>
+ <p class="mc__heading mc__h4">Moderate</p>
+ </li>
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0</p>
+ <p class="mc__heading mc__h4">Difficult</p>
+ </li>
+ <li class="mc__key mc__key-fw">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0</p>
+ <p class="mc__heading mc__h4">Most Difficult</p>
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Lifts Open</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num"><span class="mc__num-lg">0 /</span> 5</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">November 26, 2026</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__heading mc__h4">High</p>
+ <p class="mc__num mc__num-md">43&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Low</p>
+ <p class="mc__num mc__num-md">25&#176;F</p>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Wind</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num mc__num-sm">4 mph SW</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Snowfall</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">Overnight</p>
+ </div>
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">24 hours</p>
+ </div>
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">7 days</p>
+ </div>
+ <div class="mc__cell mc__cell-fw">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__num mc__num-sm">0&#8221;</p>
+ </div>
+ <p class="mc__heading mc__h4">Season</p>
+ </div>
+ <p class="mc__timestamp mc__timestamp-light">Last Updated: Nov 26, 5:32 AM MT</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <!--summer-->
+ <div class="mc__tabs -summer-only">
+ <div class="mc__tab js-mc__tab -active" data-tab="report-bald">
+ <div class="mc__row mc__row-up5 ha-b">
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Current</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num mc__num-xl">21&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Wind: 4 mph SW</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <a href="/the-mountain/mountain-report-summer" class="mc__btn mc__btn-fill">Full Mountain Report</a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack-md">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Trails and Lifts</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class=Bald"mc__heading mc__h4">Biking Trails</p>
+ <p class="mc__num mc__num-md">0 /<span class="mc__num-sm">0</span></p>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Hiking Trails</p>
+ <p class="mc__num mc__num-md">0 /<span class="mc__num-sm">0</span></p>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Lifts Open</p>
+ <p class="mc__num mc__num-md"><span class="mc__num-lg">2 /</span> 12</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack-lg">
+ <div class="mc__cell mc__cell-fw">
+ <p class="mc__heading mc__h3">November 26, 2026</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">High</p>
+ <p class="mc__num mc__num-md">34&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Low</p>
+ <p class="mc__num mc__num-md">21&#176;F</p>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg">
+ <p class="mc__heading mc__h3">Wind</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num mc__num-sm">4 mph SW</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div id="webcam__bald-mountain-summer-one" class="webcam__delay-load" data-webcamtype="hdrelay" data-webcamid="96c45c9e-7d23-4c62-a366-9e6991ff2599"></div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div id="webcam__bald-mountain-summer-two" class="webcam__delay-load" data-webcamtype="hdrelay" data-webcamid="a786b634-06e1-47dc-bef3-36b476a3ceab"></div>
+ <a href="/the-mountain/web-cams" class="triangle">Watch Live Webcams</a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__tab js-mc__tab" data-tab="report-dollar">
+ <div class="mc__row mc__row-up5 ha-b">
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Current</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num mc__num-xl">25&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Wind: 4 mph NE</p>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <a href="/the-mountain/mountain-report-summer" class="mc__btn mc__btn-fill">Full Mountain Report</a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack-md">
+ <div class="mc__cell">
+ <p class="mc__heading mc__h3">Trails and Lifts</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Biking Trails</p>
+ <p class="mc__num mc__num-md">0 /<span class="mc__num-sm">0</span></p>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Hiking Trails</p>
+ <p class="mc__num mc__num-md">0 /<span class="mc__num-sm">0</span></p>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Lifts Open</p>
+ <p class="mc__num mc__num-md"><span class="mc__num-lg">0 /</span> 5</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack-lg">
+ <div class="mc__cell mc__cell-fw">
+ <p class="mc__heading mc__h3">November 26, 2026</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">High</p>
+ <p class="mc__num mc__num-md">43&#176;F</p>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg mc__cell-compact-y">
+ <p class="mc__heading mc__h4">Low</p>
+ <p class="mc__num mc__num-md">25&#176;F</p>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell mc__cell-hw mc__cell-fw-lg">
+ <p class="mc__heading mc__h3">Wind</p>
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <p class="mc__num mc__num-sm">4 mph SW</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__cell">
+ <div class="mc__row mc__row-stack">
+ <div class="mc__cell">
+ <div class="mc__row">
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div id="webcam__dollar-mountain-summer-one" class="webcam__delay-load" data-webcamtype="hdrelay" data-webcamid="3f0f18fd-16ca-45ab-9241-672535255f7e"></div>
+ </div>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div id="webcam__dollar-mountain-summer-two" class="webcam__delay-load" data-webcamtype="hdrelay" data-webcamid="646c7726-a1f4-44de-84c1-023950a74789"></div>
+ <a href="/the-mountain/web-cams" class="triangle">Watch Live Webcams</a>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <button class="mountain-report-dropdown__close-btn js-mountain-report-dropdown__close-btn">
+ <SVG/>
+ <span class="mountain-report-dropdown__close-btn-text">Close</span>
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="header__utility-nav-list-item">
+ <div class="header__utility-nav-list-dropdown">
+ <button class="header__utility-alerts js-header__utility-alerts" aria-label="Current Notifications">
+ <SVG/>
+ <SVG/>
+ </button>
+ <div class="alert__dropdown js-alert__dropdown" style="visibility: hidden;">
+ <div class="alert__dropdown-wrapper js-alert__dropdown-wrapper">
+ <ul class="alert__dropdown-list">
+ <li class="alert__dropdown-list-item js-alert__dropdown-list-item -not-needed" style="height: 0px">
+ <div class="alert__dropdown-icon">
+ <SVG/>
+ </div>
+ <div class="alert__dropdown-content">
+ <div class="alert__dropdown-content-copy">
+ <p>
+ <strong>No Notification(s)</strong><br />
+ You are up to date
+ </p>
+ </div>
+ </div>
+ </li>
+ </ul>
+ <div class="alert__dropdown-ctrls">
+ <button class="alert__dropdown-ctrl-clear-btn js-alert__dropdown-ctrl-clear-btn">Clear All</button>
+ <button class="alert__dropdown-ctrl-close-btn js-alert__dropdown-ctrl-close-btn">Close</button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </li>
+ <li class="header__utility-nav-list-item">
+ <a href="https://shop.sunvalley.com" class="header__utility-cart">
+ <SVG/>
+ <span class="header__utility-cart-count">0</span>
+ </a>
+ </li>
+ <li class="header__utility-nav-list-item">
+ <div class="header__utility-nav-list-item-group">
+ <button class="header__utility-search js-header__utility-search">
+ <SVG/>
+ <span class="sr-only">Search Site</span>
+ </button>
+ </div>
+ <form id="searchForm" method="get" action="/Search">
+ <div class="search js-search" style="visibility: hidden;">
+ <div class="search__wrapper">
+ <div class="search__input-group">
+ <div class="search__input-field">
+ <label for="searchTerm" class="sr-only">Search</label>
+ <input type="text" class="search__form-input" id="searchTerm" title="Search" />
+ <input type="submit" class="search__form-input-submit" id="txtSearch" onclick="return Search();" Value="Search" />
+ </div>
+ <button class="search__close js-search__close">
+ <SVG/>
+ <span class="search__close-text">Close</span>
+ </button>
+ </div>
+ </div>
+ </div>
+ </form>
+ </li>
+ <li class="header__utility-nav-list-item">
+ <div class="header__utility-nav-list-item-group -standalone">
+ <button class="header__utility-booknow js-header__utility-booknow">
+ Book Now
+ </button>
+<div class="header__utility-booknow-dropdown js-header__utility-booknow-dropdown" style="visibility: hidden;">
+ <div class="header__utility-booknow-dropdown-wrapper js-header__utility-booknow-dropdown-wrapper">
+ <ul class="header__utility-booknow-list -summer-only">
+<li class="header__utility-booknow-list-item">
+ <a href="/things-to-do" class="header__utility-booknow-list-item-link" target="_self">Activities</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/rentals" class="header__utility-booknow-list-item-link" target="_self">Bike Rentals</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/dining" class="header__utility-booknow-list-item-link" target="_self">Dining</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/events" class="header__utility-booknow-list-item-link" target="_self">Events</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/things-to-do/golf/" class="header__utility-booknow-list-item-link" target="_self">Golf</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/lodging" class="header__utility-booknow-list-item-link" target="_self">Lodging</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/tickets-passes" class="header__utility-booknow-list-item-link" target="_self">Tickets &amp; Passes</a>
+</li>
+ </ul>
+ <ul class="header__utility-booknow-list -winter-only">
+<li class="header__utility-booknow-list-item">
+ <a href="/dining" class="header__utility-booknow-list-item-link" target="_self">Dining Reservations</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/events" class="header__utility-booknow-list-item-link" target="_self">Events</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/groups-weddings" class="header__utility-booknow-list-item-link" target="_self">Groups &amp; Weddings</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/lessons" class="header__utility-booknow-list-item-link" target="_self">Lessons</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/lodging" class="header__utility-booknow-list-item-link" target="_self">Lodging</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/rentals" class="header__utility-booknow-list-item-link" target="_self">Ski &amp; Board Rentals</a>
+</li>
+<li class="header__utility-booknow-list-item">
+ <a href="/tickets-passes" class="header__utility-booknow-list-item-link" target="_self">Tickets &amp; Passes</a>
+</li>
+ </ul>
+ </div>
+</div>
+ </div>
+ </li>
+ <li class="header__utility-nav-list-item">
+ <div class="header__utility-nav-list-item-group">
+ <a href="https://auth.sunvalley.com/authorize?client_id=tmCuvv0DHkoGwddg2ImiqizdTUMnRVI7&amp;redirect_uri=https://www.sunvalley.com&amp;response_type=code%20id_token&amp;scope=openid%20profile%20email&amp;nonce=101" class="header__utility-account">
+ <SVG/>
+ <span class="sr-only">Your Account</span>
+ </a>
+ </div>
+ </li>
+ </ul>
+ </nav>
+ </div>
+ </header>
+ <div class="hero mc-hero js-hero">
+ <picture class="hero__media">
+ <source media="(min-width: 1440px)"
+ srcset="/azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=3840&amp;h=2592&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 2x, /azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=1920&amp;h=1296&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 1x" />
+ <source media="(min-width: 1000px)"
+ srcset="/azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=2880&amp;h=2106&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 2x, /azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=1440&amp;h=1053&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 1x" />
+ <source media="(min-width: 475px)"
+ srcset="/azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=2000&amp;h=2000&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 2x, /azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=1000&amp;h=1000&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 1x" />
+ <source srcset="/azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=950&amp;h=1494&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 2x, /azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=475&amp;h=747&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 1x" />
+ <img class="hero__img js-hero__img" src="/azure/sunvalley/media/sunvalley/scenic/winter/svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3.jpg?w=475&amp;h=747&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75" alt="svr_winter_skiing_powday_scenic_12-20_v2_soss_treatment_-3" />
+ </picture>
+ <div class="hero__hgroup">
+ <h1 class="hero__heading">Mountain Report</h1>
+ </div>
+ <div class="hero__logo">
+<SVG/> </div>
+ </div>
+ <div>
+<nav class="local-nav js-local-nav -desktop ">
+ <button class="local-nav__mobile-toggle js-local-nav__mobile-toggle">
+ <span class="local-nav__link-text">Explore</span>
+ <span class="local-nav__link-plus"></span>
+ </button>
+ <div class="local-nav__wrapper js-local-nav__wrapper">
+ <div class="local-nav__slider js-local-nav__slider">
+ <ul class="local-nav__list">
+<li class="local-nav__item js-local-nav__item">
+ <a href="/the-mountain/web-cams" target="_self" class="local-nav__link js-local-nav__link">
+ <span class="local-nav__link-text">Webcams</span>
+ </a>
+</li>
+<li class="local-nav__item js-local-nav__item">
+ <a href="/the-mountain/maps-guides" target="_self" class="local-nav__link js-local-nav__link">
+ <span class="local-nav__link-text">Trail Maps</span>
+ </a>
+</li>
+<li class="local-nav__item js-local-nav__item">
+ <a href="/the-mountain/after-hours-access" target="_self" class="local-nav__link js-local-nav__link">
+ <span class="local-nav__link-text">Uphill</span>
+ </a>
+</li>
+<li class="local-nav__item js-local-nav__item">
+ <a href="/the-mountain/mountain-safety" target="_self" class="local-nav__link js-local-nav__link">
+ <span class="local-nav__link-text">Safety</span>
+ </a>
+</li>
+ </ul>
+ </div>
+ </div>
+</nav>
+ </div>
+ <div>
+ <div class="rich-text ">
+ <div class="rich-text__wrapper">
+ <div class="rich-text__content rich-text-content">
+ <div style="margin-bottom: -125px"><!--div removes padding between Rich Text and Mountain Commentary component. DO NOT REMOVE. !--><h2>Opening Day is November 26th</h2><h3>Operating Hours: 9:00 am – 4:00 pm</h3></div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc-weather">
+ <div class="mc__callout">
+ <div class="mc__row ha-c va-c">
+ <div class="mc__cell mc__cell-forecast-1 forecast-text">
+ <p><p><strong>Happy Thanksgiving and welcome back for the start of Sun Valley’s 91st winter season!</strong> On today’s menu: a steamy mug of delicious hot cocoa (in a commemorative 91st season Opening Day mug) followed by some tasty top-to-mid-mountain skiing and riding on Bald Mountain. Don’t wait for leftovers. Join us for a day of family fun. <strong>Remember, you can’t ski or ride every day this season if you don’t start today!</strong></p>
+<p class="MsoNormal">The weather forecast for the valley floor calls for a mostly sunny day, with a high near 45. Calm wind becoming east southeast around 6 mph in the afternoon.</p>
+<p>Lifts open at 9 a.m. with The Roundhouse Gondola and the new Christmas Lift running and Upper College and Roundhouse Lane open for skiing and riding. New terrian may open today as conditions permit. Lower River Run will remain closed to allow for additional snowmaking, and skiers and riders will download on the Gondola at the end of the day.</p>
+<p><strong>River Run Ticket Windows</strong> are open daily 9am–4pm for 2026–2027 Season Pass pick-up.</p>
+<p><strong>Black Friday 3-Pack: </strong>Unlock three days of skiing or riding, all for<strong> $399</strong>! Valid for any three days on Bald or Dollar Mountain during the 2026–2027 season, excluding blackout dates. Offer ends December 1! <span style="text-decoration: underline;"><a href="https://www.sunvalley.com/Tickets-Passes/Black-Friday-3-Pack">Buy Now</a></span> &gt;</p>
+<p><span style="text-decoration: underline;"><strong>Bald Mountain Closures:</strong></span></p>
+<p>Construction crews are working across the mountain to finalize the <a href="https://www.futureofsunvalley.com/projects/lookoutchristmaslifts"><span style="text-decoration: underline;">Lookout &amp; Christmas Lift Projects</span></a> and get ready for winter.</p>
+<p><strong><span style="color: #e03e2d;">Bald Mountain and Dollar Mountain are <span style="text-decoration: underline;">closed</span> to all uphill travel. Uphill access will <span style="text-decoration: underline;">remain closed until further notice</span>, as snowmaking, grooming, and lift construction work continues. Thank you for respecting all posted closures.</span></strong></p></p>
+ <p class="mc__timestamp mc__timestamp-gray">Last Updated Nov 26, 5:51 AM MT</p>
+ </div>
+ </div>
+ </div>
+ <div class="mc-weather__wrap">
+ <p class="mc__timestamp mc__timestamp-light">Last Updated: Nov 26, 5:32 AM MT</p>
+ <nav class="mc__nav-tabs">
+ <ul class="mc__ctrls js-mc__ctrls mc__ctrls-tabs">
+ <li class="mc__ctrl mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="weather-bald">Bald Mountain</button>
+ </li>
+ <li class="mc__ctrl mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="weather-dollar">Dollar Mountain</button>
+ </li>
+ </ul>
+ </nav>
+ <div class="mc__tabs">
+ <div class="mc__tab js-mc__tab -active" data-tab="weather-bald">
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-grow">
+ <h2 class="mc__heading mc__h2">Snow Report</h2>
+ <ul class="mc__row">
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Overnight</h3>
+ <p class="mc__num mc__num-lg">0&#8221;</p>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Base</h3>
+ <p class="mc__num mc__num-lg">24&#8221;</p>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">24 hours</h3>
+ <p class="mc__num mc__num-lg">0&#8221;</p>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Season</h3>
+ <p class="mc__num mc__num-lg">26&#8221;</p>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">7 days</h3>
+ <p class="mc__num mc__num-lg">6&#8221;</p>
+ </li>
+ </ul>
+ </li>
+ <li class="mc__cell mc__cell-grow">
+ <h2 class="mc__heading mc__h2">Conditions</h2>
+ <ul class="mc__row">
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Top of Bald Mountain</h3>
+ <p class="mc__num mc__num-lg">21&deg;F</p>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-fw mc__cell-reverse">
+ <h4 class="mc__heading mc__h4">Mostly Cloudy</h4>
+ <SVG/>
+ </li>
+ <li class="mc__cell mc__cell-fw mc__cell-reverse">
+ <h4 class="mc__heading mc__h4">Wind 4 mph SW</h4>
+ <SVG/>
+ </li>
+ </ul>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Bottom of Bald Mountain</h3>
+ <p class="mc__num mc__num-lg">27&deg;F</p>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-fw mc__cell-reverse">
+ <h4 class="mc__heading mc__h4">Mostly Cloudy</h4>
+ <SVG/>
+ </li>
+ <li class="mc__cell mc__cell-fw mc__cell-reverse">
+ <h4 class="mc__heading mc__h4">Wind 4 mph NW</h4>
+ <SVG/>
+ </li>
+ </ul>
+ </li>
+ </ul>
+ </li>
+ </ul>
+ </div>
+ <div class="mc__tab js-mc__tab -active" data-tab="weather-dollar">
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-grow">
+ <h2 class="mc__heading mc__h2">Snow Report</h2>
+ <ul class="mc__row">
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Overnight</h3>
+ <p class="mc__num mc__num-lg">0&#8221;</p>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">24 hours</h3>
+ <p class="mc__num mc__num-lg">0&#8221;</p>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Season</h3>
+ <p class="mc__num mc__num-lg">0&#8221;</p>
+ </li>
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">7 days</h3>
+ <p class="mc__num mc__num-lg">0&#8221;</p>
+ </li>
+ </ul>
+ </li>
+ <li class="mc__cell mc__cell-grow">
+ <h2 class="mc__heading mc__h2">Conditions</h2>
+ <ul class="mc__row">
+ <li class="mc__cell">
+ <h3 class="mc__heading mc__h3">Dollar Mountain</h3>
+ <p class="mc__num mc__num-lg">25&deg;F</p>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-fw mc__cell-reverse">
+ <h4 class="mc__heading mc__h4">Mostly Cloudy</h4>
+ <SVG/>
+ </li>
+ <li class="mc__cell mc__cell-fw mc__cell-reverse">
+ <h4 class="mc__heading mc__h4">Wind 4 mph NE</h4>
+ <SVG/>
+ </li>
+ </ul>
+ </li>
+ </ul>
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div>
+ </div>
+ <div class="mc-forecast js-mc-forecast">
+ <div class="mc-forecast__wrap">
+ <h2 class="mc__heading mc__h2">Forecast</h2>
+ <nav class="mc__nav-tabs">
+ <ul class="mc__ctrls js-mc__ctrls mc__ctrls-tabs js-mc__ctrls-tabs">
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="forecast-bald">Bald Mountain</button>
+ </li>
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="forecast-dollar">Dollar Mountain</button>
+ </li>
+ </ul>
+ </nav>
+ <div class="mc__tabs">
+ <div class="mc__tab js-mc__tab -active" data-tab="forecast-bald">
+ <div class="mc-forecast__slider js-mc-forecast__slider swiper">
+ <div class="mc__ctrls mc__ctrls-slides js-mc_ctrls-slides">
+ <button class="mc__ctrl-btn mc__ctrl-slide-btn mc__ctrl-slide-btn-prev" data-glide-dir="<">
+ <SVG/>
+ <span class="sr-only">Previous Day</span>
+ </button>
+ <button class="mc__ctrl-btn mc__ctrl-slide-btn mc__ctrl-slide-btn-next" data-glide-dir=">">
+ <SVG/>
+ <span class="sr-only">Next Day</span>
+ </button>
+ </div>
+ <div class="mc__btns">
+ <a href="https://forecast.weather.gov/MapClick.php?lat=43.667871610117&amp;lon=-114.33471679688" target="_blank" rel="noopener noreferrer" class="mc__btn mc__btn-fill">Extended Forecast (NOAA)</a>
+ </div>
+ <div class="swiper-wrapper">
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Today</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">34&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">21&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ <li class="mc__cell mc__cell-fw">
+ <h4 class="mc__heading mc__h3">Wind</h4>
+ <p class="mc__num mc__num-sm">4 mph SW</p>
+ </li>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Friday 27th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">34&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">28&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Saturday 28th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">34&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">21&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Sunny</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Sunday 29th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">30&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">19&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Monday 30th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">30&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">28&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Cloudy with Moderate/Heavy Snowfall</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Tuesday 1st</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">28&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">25&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Cloudy with Moderate/Heavy Snowfall</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Wednesday 2nd</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">28&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">23&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Cloudy with Moderate/Heavy Snowfall</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__tab js-mc__tab -active" data-tab="forecast-dollar">
+ <div class="mc-forecast__slider js-mc-forecast__slider swiper">
+ <div class="mc__ctrls mc__ctrls-slides js-mc_ctrls-slides">
+ <button class="mc__ctrl-btn mc__ctrl-slide-btn mc__ctrl-slide-btn-prev" data-glide-dir="<">
+ <SVG/>
+ <span class="sr-only">Previous Day</span>
+ </button>
+ <button class="mc__ctrl-btn mc__ctrl-slide-btn mc__ctrl-slide-btn-next" data-glide-dir=">">
+ <SVG/>
+ <span class="sr-only">Next Day</span>
+ </button>
+ </div>
+ <div class="mc__btns">
+ <a href="https://forecast.weather.gov/MapClick.php?lat=43.667871610117&amp;lon=-114.33471679688" target="_blank" rel="noopener noreferrer" class="mc__btn mc__btn-fill">Extended Forecast (NOAA)</a>
+ </div>
+ <div class="swiper-wrapper">
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Today</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">43&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">25&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ <li class="mc__cell mc__cell-fw">
+ <h4 class="mc__heading mc__h3">Wind</h4>
+ <p class="mc__num mc__num-sm">4 mph NE</p>
+ </li>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Friday 27th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">41&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">28&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Saturday 28th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">37&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">25&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Partly Cloudy</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Sunday 29th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">37&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">21&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Mostly Cloudy</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Monday 30th</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">37&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">28&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Cloudy with Moderate/Heavy Snowfall</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Tuesday 1st</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">37&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">27&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Cloudy with Moderate/Heavy Snowfall</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ <div class="swiper-slide">
+ <h3 class="mc__heading mc__h3">Wednesday 2nd</h3>
+ <ul class="mc__row">
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">High</h4>
+ <p class="mc__num mc__num-sm">37&#176;F</p>
+ </li>
+ <li class="mc__cell mc__cell-hw">
+ <h4 class="mc__heading mc__h3">Low</h4>
+ <p class="mc__num mc__num-sm">25&#176;F</p>
+ </li>
+ <div class="mc__cell mc__cell-fw mc__cell-compact-y">
+ <div class="mc__num-icon">
+ <SVG/>
+ <p class="mc__heading mc__h4">Cloudy with Moderate/Heavy Snowfall</p>
+ </div>
+ </div>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc-lifts">
+ <div class="mc__flood mc-lifts__flood mc__flood-primary">
+ <div class="mc-lifts__wrap">
+ <h2 class="mc__heading mc__h2">Lifts</h2>
+ <nav class="mc__nav-tabs">
+ <ul class="mc__ctrls js-mc__ctrls mc__ctrls-tabs js-mc__ctrls-tabs">
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="lifts-bald">Bald Mountain</button>
+ </li>
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="lifts-dollar">Dollar Mountain</button>
+ </li>
+ </ul>
+ </nav>
+ </div>
+ </div>
+ <div class="mc__tabs">
+ <div class="mc__tab js-mc__tab -active" data-tab="lifts-bald">
+ <div class="mc-lifts__wrap">
+ <div class="mc__graph mc-lifts__graph mc__graph-bar mc-lifts__graph-bar">
+ <div>
+ <canvas class="mc__graph-bar-canvas js-mc__graph-bar-canvas" data-values='[2, 10]'></canvas>
+ </div>
+ <div class="mc-lifts__graph-values">
+ <p class="mc-lifts__graph-values-p"><span class="mc-lifts__graph-value">2 / 12</span> Lifts Open</p>
+ </div>
+ </div>
+ <div class="mc__callout mc__callout-keys mc__callout-collapsible js-mc__callout-collapsible" tabindex="0">
+ <div class="mc__callout-collapsible-indicator"></div>
+ <div class="mc__row ha-b">
+ <div class="mc__cell mc__cell-fw mr-auto">
+ <h3 class="mc__heading">Lift Key</h3>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-open"></span>
+ Open
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-closed"></span>
+ Closed
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-hold"></span>
+ On Hold
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-scheduled"></span>
+ Scheduled
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-delayed"></span>
+ Delayed
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-gondola"></span>
+ Gondola
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-chair"></span>
+ Chair
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-magic-carpet"></span>
+ Conveyor Lift
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div class="ptc-two-col__main ptc-two-col__main-fw">
+ <div class="ptc-two-col__group">
+ <div class="accordion js-accordion -active -open">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle">Bowls <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <table class="mc__table mc-lifts__table">
+ <thead>
+ <tr>
+ <th>Lift Name</th>
+ <th>Lift Type</th>
+ <th>Status</th>
+ <th>Hours</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ Broadway
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 2:45 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Lookout
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Chair</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 2:45 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Mayday
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Chair</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 3:00 PM </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle">Frenchman&#x27;s <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <table class="mc__table mc-lifts__table">
+ <thead>
+ <tr>
+ <th>Lift Name</th>
+ <th>Lift Type</th>
+ <th>Status</th>
+ <th>Hours</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ Frenchman&#x27;s
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 3:30 PM </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle">River Run <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <table class="mc__table mc-lifts__table">
+ <thead>
+ <tr>
+ <th>Lift Name</th>
+ <th>Lift Type</th>
+ <th>Status</th>
+ <th>Hours</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ Roundhouse Express
+ <span style="font-size: 0.9rem; color: black;"><br />Early season: Last up 3:30</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-gondola">&nbsp;</span>
+ <span class="sr-only">Gondola</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-scheduled"></span>
+ <span class="sr-only">Lift Scheduled</span>
+ </td>
+ <td>
+9:00 AM &ndash; 3:30 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Christmas
+ <span style="font-size: 0.9rem; color: black;"><br />Gondola download to base</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-scheduled"></span>
+ <span class="sr-only">Lift Scheduled</span>
+ </td>
+ <td>
+9:00 AM &ndash; 3:45 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Lookout Express
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 3:45 PM </td>
+ </tr>
+ <tr>
+ <td>
+ River Run
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 4:00 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Kinderspielplatz
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-magic-carpet">&nbsp;</span>
+ <span class="sr-only">Conveyor Lift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 4:00 PM </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle">Seattle Ridge <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <table class="mc__table mc-lifts__table">
+ <thead>
+ <tr>
+ <th>Lift Name</th>
+ <th>Lift Type</th>
+ <th>Status</th>
+ <th>Hours</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ Seattle Ridge
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 2:45 PM </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle">Warm Springs <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <table class="mc__table mc-lifts__table">
+ <thead>
+ <tr>
+ <th>Lift Name</th>
+ <th>Lift Type</th>
+ <th>Status</th>
+ <th>Hours</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ Challenger
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 3:45 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Flying Squirrel
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 4:00 PM </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__tab js-mc__tab -active" data-tab="lifts-dollar">
+ <div class="mc-lifts__wrap">
+ <div class="mc__graph mc-lifts__graph mc__graph-bar mc-lifts__graph-bar">
+ <div>
+ <canvas class="mc__graph-bar-canvas js-mc__graph-bar-canvas" data-values='[0, 5]'></canvas>
+ </div>
+ <div class="mc-lifts__graph-values">
+ <p class="mc-lifts__graph-values-p"><span class="mc-lifts__graph-value">0 / 5</span> Lifts Open</p>
+ </div>
+ </div>
+ <div class="mc__callout mc__callout-keys mc__callout-collapsible js-mc__callout-collapsible" tabindex="0">
+ <div class="mc__callout-collapsible-indicator"></div>
+ <div class="mc__row ha-b">
+ <div class="mc__cell mc__cell-fw mr-auto">
+ <h3 class="mc__heading">Lift Key</h3>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-open"></span>
+ Open
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-closed"></span>
+ Closed
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-hold"></span>
+ On Hold
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-scheduled"></span>
+ Scheduled
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-delayed"></span>
+ Delayed
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-gondola"></span>
+ Gondola
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-chair"></span>
+ Chair
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-magic-carpet"></span>
+ Conveyor Lift
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div class="ptc-two-col__main ptc-two-col__main-fw">
+ <div class="ptc-two-col__group">
+ <div class="accordion js-accordion -active -open">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle -active">Dollar Mountain <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <table class="mc__table mc-lifts__table">
+ <thead>
+ <tr>
+ <th>Lift Name</th>
+ <th>Lift Type</th>
+ <th>Status</th>
+ <th>Hours</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>
+ Dollar
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 4:00 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Quarter Dollar
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Detachable Chairlift</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 4:00 PM </td>
+ </tr>
+ <tr>
+ <td>
+ Elkhorn
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Chair</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+ </td>
+ </tr>
+ <tr>
+ <td>
+ Half Dollar
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-chair">&nbsp;</span>
+ <span class="sr-only">Chair</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 4:00 PM </td>
+ </tr>
+ <tr>
+ <td>
+ The Accelerator
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-rope-tow">&nbsp;</span>
+ <span class="sr-only">Rope Tow</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Lift Closed</span>
+ </td>
+ <td>
+9:00 AM &ndash; 4:00 PM </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc-trails">
+ <div class="mc__flood mc-trails__flood mc__flood-primary">
+ <div class="mc-trails__wrap">
+ <h2 class="mc__heading mc__h2">Trails</h2>
+ <nav class="mc__nav-tabs">
+ <ul class="mc__ctrls js-mc__ctrls mc__ctrls-tabs js-mc__ctrls-tabs">
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="trails-bald">Bald Mountain</button>
+ </li>
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="trails-dollar">Dollar Mountain</button>
+ </li>
+ </ul>
+ </nav>
+ </div>
+ </div>
+ <div class="mc__tabs">
+ <div class="mc__tab js-mc__tab -active" data-tab="trails-bald">
+ <div class="mc-trails__wrap">
+ <div class="mc__graph mc-lifts__graph mc__graph-bar mc-lifts__graph-bar">
+ <div>
+ <canvas class="mc__graph-bar-canvas js-mc__graph-bar-canvas" data-values='[2, 107]'></canvas>
+ </div>
+ <div class="mc-lifts__graph-values">
+ <p class="mc-lifts__graph-values-p"><span class="mc-lifts__graph-value">2 / 109</span> Open</p>
+ </div>
+ </div>
+ <div class="mc__callout mc__callout-keys mc__callout-collapsible js-mc__callout-collapsible" tabindex="0">
+ <div class="mc__callout-collapsible-indicator"></div>
+ <div class="mc__row ha-b">
+ <div class="mc__cell mc__cell-fw mr-auto">
+ <h3 class="mc__heading">Trail Key</h3>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-open"></span>
+ Open
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-closed"></span>
+ Closed
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-expected"></span>
+ Expected
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-delayed"></span>
+ Delayed
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-easy"></span>
+ Easiest
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-moderate"></span>
+ Moderate
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-difficult"></span>
+ Difficult
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-most-difficult"></span>
+ Most Difficult
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-groomed"></span>
+ Groomed
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-snow"></span>
+ Snowmaking in Effect
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ Terrain Park
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div class="ptc-two-col__main ptc-two-col__main-fw">
+ <div class="ptc-two-col__group">
+ <div class="accordion js-accordion -active -open">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading">
+ <a href="#" class="accordion__toggle js-accordion__toggle">Bowls <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a>
+ </h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc__table ">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ <th aria-hidden="true">Trail Name</th>
+ <th aria-hidden="true" colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Bowl Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Broadway Face
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Cold Springs Cut Off
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Easter Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Gun Tower Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-most-difficult"></span>
+ <span>
+ Inhibition
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Kaitlyn&#x27;s Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Lefty Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Little Easter Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Lookout Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Lookout Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Lower Christmas Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Mayday Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Mid Christmas Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Mid Inhibition
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Sigi&#x27;s Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-most-difficult"></span>
+ <span>
+ Three Bears
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading">
+ <a href="#" class="accordion__toggle js-accordion__toggle">Frenchman&#x27;s <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a>
+ </h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc__table ">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ <th aria-hidden="true">Trail Name</th>
+ <th aria-hidden="true" colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Aujus
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ French Connection
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Graduate
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Lilly Marlane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Can-Can
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Lower French Dip
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Janss Pass
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Under Graduate
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Upper Can-Can
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Upper French Dip
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Upper Janss Pass
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading">
+ <a href="#" class="accordion__toggle js-accordion__toggle">River Run <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a>
+ </h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc__table ">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ <th aria-hidden="true">Trail Name</th>
+ <th aria-hidden="true" colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Roundhouse Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-expected"></span>
+ <span class="sr-only">Trail Expected</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-groomed"></span>
+ <span class="sr-only">Groomed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Upper College
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-expected"></span>
+ <span class="sr-only">Trail Expected</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-groomed"></span>
+ <span class="sr-only">Groomed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ 42nd Street
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Bear Den
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Blue Grouse
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Christmas Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Christmas Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Christmas Ridge
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Cut Off
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Exhibition
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Kinderspielplatz
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Canyon
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Lower College
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Lower Holiday
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Olympic
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Lower River Run
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Mid Holiday
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Mid River Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Mid River Run
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Olympic
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Olympic Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Olympic Ridge
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Pioneer Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Ridge
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Ridge S. Slopes
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Rock Garden
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Roundhouse Slope
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Sheep Camp
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Sleeping Bear
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Sunny Side Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Sunset Strip
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Tim&#x27;s
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Upper Canyon
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Upper Holiday
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Upper River Run
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Wolverton
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading">
+ <a href="#" class="accordion__toggle js-accordion__toggle">Seattle Ridge <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a>
+ </h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc__table ">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ <th aria-hidden="true">Trail Name</th>
+ <th aria-hidden="true" colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Broadway
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Byron&#x27;s Park
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Christin&#x27;s Silver
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Fire Trail
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Gretchen&#x27;s Gold
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Hour Glass
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Leigh Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Lower Broadway
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Muffy&#x27;s Medals
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading">
+ <a href="#" class="accordion__toggle js-accordion__toggle">Sunrise <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a>
+ </h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc__table js-mc__table-short">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ 29 Turns
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-most-difficult"></span>
+ <span>
+ Cold Springs Chutes
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Numbers
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Sunrise Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ The Glades
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading">
+ <a href="#" class="accordion__toggle js-accordion__toggle">Terrain Park <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a>
+ </h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc__table js-mc__table-short">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Broadway Family Cross Course
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ College Hike Park
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Saddle Up Park
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Showtime Park
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading">
+ <a href="#" class="accordion__toggle js-accordion__toggle">Warm Springs <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a>
+ </h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc__table ">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ <th aria-hidden="true">Trail Name</th>
+ <th aria-hidden="true" colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Arnold&#x27;s Run
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Brick&#x27;s Island
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ I-80
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ International
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Kenny&#x27;s
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Little Scorpion
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Cozy
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Lower Flying Squirrel
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Lower Greyhawk
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Hemingway
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Limelight
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Lower Picabo&#x27;s Street
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Lower Warm Springs
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Machine RD
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Maiden Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Mid Cozy
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Mid Greyhawk
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Mid Hemingway
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Mid Limelight
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Mid Picabo&#x27;s Street
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Mid Warm Springs
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Pete&#x27;s Lane
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Race Arena
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Upper Cozy
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Upper Flying Squirrel
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Upper Greyhawk
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Upper Hemingway
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Upper Limelight
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Upper Picabo&#x27;s Street
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Upper Warm Springs
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Warm Springs Face
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="mc__tab js-mc__tab -active" data-tab="trails-dollar">
+ <div class="mc-trails__wrap">
+ <div class="mc__graph mc-lifts__graph mc__graph-bar mc-lifts__graph-bar">
+ <div>
+ <canvas class="mc__graph-bar-canvas js-mc__graph-bar-canvas" data-values='[0, 22]'></canvas>
+ </div>
+ <div class="mc-lifts__graph-values">
+ <p class="mc-lifts__graph-values-p"><span class="mc-lifts__graph-value">0 / 22</span> Open</p>
+ </div>
+ </div>
+ <div class="mc__callout mc__callout-keys mc__callout-collapsible js-mc__callout-collapsible" tabindex="0">
+ <div class="mc__callout-collapsible-indicator"></div>
+ <div class="mc__row ha-b">
+ <div class="mc__cell mc__cell-fw mr-auto">
+ <h3 class="mc__heading">Trail Key</h3>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-open"></span>
+ Open
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-closed"></span>
+ Closed
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-expected"></span>
+ Expected
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-delayed"></span>
+ Delayed
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-easy"></span>
+ Easiest
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-moderate"></span>
+ Moderate
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-difficult"></span>
+ Difficult
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-most-difficult"></span>
+ Most Difficult
+ </li>
+ </ul>
+ </div>
+ <div class="mc__cell mc__cell-25 py-0 show-on-expand">
+ <ul class="mc__keys">
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-groomed"></span>
+ Groomed
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-snow"></span>
+ Snowmaking in Effect
+ </li>
+ <li class="mc__key">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ Terrain Park
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ <div class="ptc-two-col__main ptc-two-col__main-fw">
+ <div class="ptc-two-col__group">
+ <div class="accordion js-accordion -active -open">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle -active">Dollar Mountain <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc-trails__table js-mc__table ">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ <th aria-hidden="true">Trail Name</th>
+ <th aria-hidden="true" colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Arrowhead Way
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Bitterroot Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Cabin Practice
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Dollar Face
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-difficult"></span>
+ <span>
+ Dragon&#x27;s Back
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Elkhorn Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Elkhorn Face
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Forbidden Fruit
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Hidden Valley
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Joint Venture
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ New Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Old Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-moderate"></span>
+ <span>
+ Otto&#x27;s Run
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Poverty Flats
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-easy"></span>
+ <span>
+ Sepp&#x27;s Bowl
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="accordion js-accordion -active">
+ <div class="accordion__wrapper">
+ <div class="accordion__header">
+ <h3 class="accordion__heading"><a href="#" class="accordion__toggle js-accordion__toggle -active">Terrain Park <span class="accordion__toggle-indicator"><span class="sr-only">Toggle accordion</span></span></a></h3>
+ </div>
+ <div class="accordion__content js-accordion__content">
+ <div class="accordion__content-container js-accordion__content-container">
+ <div class="mc__table-wrap">
+ <table class="mc__table mc-trails__table js-mc-trails__table js-mc__table ">
+ <thead>
+ <tr>
+ <th>Trail Name</th>
+ <th colspan="3" class="mc__table-col-svg">Status</th>
+ <th aria-hidden="true">Trail Name</th>
+ <th aria-hidden="true" colspan="3" class="mc__table-col-svg">Status</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Mineshaft
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Motherlode
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Name Dropper
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Sluice Box
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Sunny&#x27;s Adventure Park
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Train Yard
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ <tr>
+ <td class="mc__table-cell">
+ <span class="mc__icon mc__icon-terrain-park"></span>
+ <span>
+ Trestles
+ </span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ <span class="mc__icon mc__icon-closed"></span>
+ <span class="sr-only">Trail Closed</span>
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ <td class="mc__table-cell mc__table-cell-svg">
+ </td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div>
+ </div>
+ <div class="mc-uphill">
+ <div class="mc-uphill__wrap">
+ <div class="mc__callout mc-uphill__callout">
+ <h2 class="mc__heading mc__h2">Uphill Status</h2>
+ <nav class="mc__nav-tabs">
+ <ul class="mc__ctrls js-mc__ctrls mc__ctrls-tabs js-mc__ctrls-tabs">
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="status-bald">Bald Mountain</button>
+ </li>
+ <li class="mc__ctrl mc__ctrl-tab js-mc__ctrl-tab">
+ <button class="mc__ctrl-btn js-mc__ctrl-btn mc__ctrl-tab-btn js-mc__ctrl-tab-btn" type="button" data-tab="status-dollar">Dollar Mountain</button>
+ </li>
+ </ul>
+ </nav>
+ <p class="mc_p"><a class="cta-btn" href="/the-mountain/uphill-access/">After Hours Routes &amp; Policies</a></p>
+ <div class="mc__tabs">
+ <div class="mc__tab js-mc__tab -active" data-tab="status-bald">
+ <table class="mc__table mc__table-lg">
+ <tbody>
+ <tr>
+ <th><span class="mc__table-route">River Run</span></th>
+ <td><span class="mc__table-status mc__table-status-full">CLOSED</span></td>
+ </tr>
+ <tr>
+ <th><span class="mc__table-route">Warm Springs</span></th>
+ <td><span class="mc__table-status mc__table-status-full">CLOSED</span></td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ <div class="mc__tab js-mc__tab -active" data-tab="status-dollar">
+ <table class="mc__table mc__table-lg">
+ <tbody>
+ <tr>
+ <th><span class=mc__table-route>Dollar Uphill Route</span></th>
+ <td><span class="mc__table-status mc__table-status-full">CLOSED</span></td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div>
+<div class="webcam-carousel-widget js-webcam-carousel-widget ">
+ <div class="webcam-carousel-widget__copy">
+ <h2 class="js-webcam-carousel-widget__title">&nbsp;</h2>
+ <div class="webcam-carousel-widget__ctrl">
+ <div class="webcam-carousel-widget__ctrl-btn-group">
+ <div class="webcam-carousel-widget__ctrls js-webcam-carousel-widget__ctrl-arrows">
+ <button class="webcam-carousel-widget__ctrl-btn -prev js-ctrl-prev-main-slider">
+ <SVG/>
+ <span class="sr-only">Previous Slide</span>
+ </button>
+ <button class="webcam-carousel-widget__ctrl-btn -next js-ctrl-next-main-slider">
+ <SVG/>
+ <span class="sr-only">Next Slide</span>
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="webcam-carousel-widget__slider-container">
+ <div class="js-webcam-carousel-widget__main-slider swiper">
+ <ul class="swiper-wrapper">
+ <li class="webcam js-webcam swiper-slide" data-title="Warm Springs">
+ <div class="webcam__hdrelay">
+ <div id="webcam__ef2ec212-b2fa-4bcb-a1d8-ee14ba45065a"></div>
+ </div>
+ </li>
+ <li class="webcam js-webcam swiper-slide" data-title="Bowls">
+ <div class="webcam__hdrelay">
+ <div id="webcam__2964e7b5-0755-4302-9063-aa32d9cb31c6"></div>
+ </div>
+ </li>
+ <li class="webcam js-webcam swiper-slide" data-title="River Run">
+ <div class="webcam__hdrelay">
+ <div id="webcam__2a2dd72d-4ab1-455a-90d7-e25d7b6a135f"></div>
+ </div>
+ </li>
+ <li class="webcam js-webcam swiper-slide" data-title="Sun Valley Club">
+ <div class="webcam__hdrelay">
+ <div id="webcam__04faacd4-6483-4c61-a4ee-db822b21aed0"></div>
+ </div>
+ </li>
+ <li class="webcam js-webcam swiper-slide" data-title="Quarter Dollar">
+ <div class="webcam__hdrelay">
+ <div id="webcam__6a372c80-0608-47c8-bddb-11f10a58f537"></div>
+ </div>
+ </li>
+ </ul>
+ </div>
+ <div class="js-webcam-carousel-widget__control-slider swiper">
+ <ul class="swiper-wrapper">
+ <li class="webcam-thumb js-webcam-thumb swiper-slide" tabindex="0" role="button">
+ <div class="webcam-thumb__img js-webcam-thumb__img">&nbsp;</div>
+ <div class="webcam-thumb__title">
+ Warm Springs
+ </div>
+ </li>
+ <li class="webcam-thumb js-webcam-thumb swiper-slide" tabindex="0" role="button">
+ <div class="webcam-thumb__img js-webcam-thumb__img">&nbsp;</div>
+ <div class="webcam-thumb__title">
+ Bowls
+ </div>
+ </li>
+ <li class="webcam-thumb js-webcam-thumb swiper-slide" tabindex="0" role="button">
+ <div class="webcam-thumb__img js-webcam-thumb__img">&nbsp;</div>
+ <div class="webcam-thumb__title">
+ River Run
+ </div>
+ </li>
+ <li class="webcam-thumb js-webcam-thumb swiper-slide" tabindex="0" role="button">
+ <div class="webcam-thumb__img js-webcam-thumb__img">&nbsp;</div>
+ <div class="webcam-thumb__title">
+ Sun Valley Club
+ </div>
+ </li>
+ <li class="webcam-thumb js-webcam-thumb swiper-slide" tabindex="0" role="button">
+ <div class="webcam-thumb__img js-webcam-thumb__img">&nbsp;</div>
+ <div class="webcam-thumb__title">
+ Quarter Dollar
+ </div>
+ </li>
+ </ul>
+ </div>
+ </div>
+ <div class="webcam-carousel-widget__copy">
+ <div class="webcam-carousel-widget__ctrl">
+ <div class="webcam-carousel-widget__ctrl-btn-group">
+ <div class="webcam-carousel-widget__ctrls js-webcam-carousel-widget__ctrl-arrows">
+ <button class="webcam-carousel-widget__ctrl-btn -prev js-ctrl-prev-control-slider">
+ <SVG/>
+ <span class="sr-only">Previous Slide</span>
+ </button>
+ <button class="webcam-carousel-widget__ctrl-btn -next js-ctrl-next-control-slider">
+ <SVG/>
+ <span class="sr-only">Next Slide</span>
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+</div>
+ <div class="rich-text -winter-only -three-quarter">
+ <div class="rich-text__wrapper">
+ <div class="rich-text__content rich-text-content">
+ <h2>Bald Mountain Grooming Map</h2><p>Click the toggle to adjust view preferences.</p><p><iframe style="border: none" src="https://mountain.live/interactive-map/SunValley-BaldMountain/us" name="trail-map" width="100%" height="600" scrolling="no" align="bottom"></iframe></p><p><br></p>
+ </div>
+ </div>
+ </div>
+ <div class="rich-text -winter-only -three-quarter">
+ <div class="rich-text__wrapper">
+ <div class="rich-text__content rich-text-content">
+ <h2>Dollar Mountain Grooming Map</h2><p>Click the toggle to adjust view preferences.</p><p><iframe style="border: none" src="https://mountain.live/interactive-map/SunValley-DollarMountain/us" name="trail-map" width="100%" height="600" scrolling="no" align="bottom"></iframe></p><p><br></p>
+ </div>
+ </div>
+ </div>
+ <div class="rich-text ">
+ <div class="rich-text__wrapper">
+ <div class="rich-text__content rich-text-content">
+ <h3 style="text-align: center">Stay In The Know</h3><p style="text-align: center">Subscribe to receive emails and/or text messages from Sun Valley Resort. Sign up for Powder Alerts to be the first to know when there is fresh snow.</p><p style="text-align: center"><a class="cta-btn" href="https://signup.grandamericahotelsandresorts.com/sunvalley" rel="noopener noreferrer" target="_blank">Sign Up</a></p>
+ </div>
+ </div>
+ </div>
+<div class="featured-item -caption-left-top ">
+ <picture class="featured-item__media">
+ <source media="(min-width: 2000px)"
+ srcset="/azure/sunvalley/media/sunvalley/activities/skiing%20and%20riding/bald/harpermallet_sunvalley-1239_new.jpg?w=2400&amp;h=1400&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75" />
+ <source media="(min-width: 1400px)"
+ srcset="/azure/sunvalley/media/sunvalley/activities/skiing%20and%20riding/bald/harpermallet_sunvalley-1239_new.jpg?w=1900&amp;h=1100&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75" />
+ <source media="(min-width: 1000px)"
+ srcset="/azure/sunvalley/media/sunvalley/activities/skiing%20and%20riding/bald/harpermallet_sunvalley-1239_new.jpg?w=1400&amp;h=800&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75" />
+ <source media="(min-width: 675px)"
+ srcset="/azure/sunvalley/media/sunvalley/activities/skiing%20and%20riding/bald/harpermallet_sunvalley-1239_new.jpg?w=1000&amp;h=1000&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75" />
+ <source srcset="/azure/sunvalley/media/sunvalley/activities/skiing%20and%20riding/bald/harpermallet_sunvalley-1239_new.jpg?w=1200&amp;h=1600&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 2x,
+ /azure/sunvalley/media/sunvalley/activities/skiing%20and%20riding/bald/harpermallet_sunvalley-1239_new.jpg?w=600&amp;h=800&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75 1x" />
+ <img class="featured-item__img" src="/azure/sunvalley/media/sunvalley/activities/skiing%20and%20riding/bald/harpermallet_sunvalley-1239_new.jpg?w=600&amp;h=800&amp;mode=crop&amp;scale=both&amp;anchor=middle-center&amp;quality=75" alt="HarperMallet_SunValley-1239_new" />
+ </picture>
+ <div class="featured-item__caption">
+ <a href="/tickets-passes/season-passes" class="featured-item__caption-link" target="_self">
+ <div class="feature-item__caption-content">
+ <h2 class="featured-item__caption-heading">2026&#x2013;2027 Season Passes On Sale Now</h2>
+ <p class="featured-item__caption-text">Find the perfect season pass for a winter packed with powder, endless fun, and unforgettable times on the slopes at Sun Valley.</p>
+ </div>
+ <div class="featured-item__caption-arrow">
+ <SVG/>
+ </div>
+ </a>
+ </div>
+</div>
+ </div>
+ <footer data-ktc-search-exclude>
+ <!-- ONLY Cache header partial widget page if the widgets / content of the header have no personalization!! -->
+ <inlinewidgetpage documentid="46" initialize-document-prior="true">
+<footer class="footer">
+ <div class="footer__wrapper">
+ <div class="footer__group1">
+ <div class="footer__loc-info">
+ <a href="/" class="footer__loc-info-brand" title="Logo">
+ <SVG/>
+ </a>
+ <div class="footer__loc-info-links">
+ <a href="https://goo.gl/maps/HSrgZm6j8QEkC7gy8" class="footer__loc-info-map-link">
+ <SVG/>
+ <span class="footer__loc-info-map-link-text">Driving Directions</span>
+ </a>
+ </div>
+ <div class="footer__loc-info-address">
+ <span class="footer__location-address-line">1 Sun Valley Rd</span><span class="footer__location-address-line">Sun Valley, Idaho 83353</span>
+ </div>
+ <p class="footer__loc-info-phone">Hotel Reservations:&nbsp;<a href="tel:(800) 786-8259">(800) 786-8259</a></p>
+ <p class="footer__loc-info-phone">Tickets:&nbsp;<a href="tel:(888) 490-5950">(888) 490-5950</a></p>
+ <div class="footer__loc-info-social">
+ <a href="https://www.facebook.com/sunvalley" title="Facebook" class="footer__loc-info-social-link">
+ <SVG/>
+ </a>
+ <a href="https://www.instagram.com/sunvalley/" title="Instagram" class="footer__loc-info-social-link">
+ <SVG/>
+ </a>
+ <a href="https://twitter.com/sunvalley" title="Twitter" class="footer__loc-info-social-link">
+ <SVG/>
+ </a>
+ <a href="https://www.youtube.com/sunvalleyresort" title="YouTube" class="footer__loc-info-social-link">
+ <SVG/>
+ </a>
+ </div>
+ </div>
+ </div>
+ <div class="footer__group2">
+ <ul class="footer__util-nav">
+ <li class="footer__util-nav-item"><a href="/about/contact-us" title="Contact Us" class="footer__util-nav-item-link" target="_self">Contact Us</a></li>
+ <li class="footer__util-nav-item"><a href="/about/jobs" title="Employment" class="footer__util-nav-item-link" target="_self">Employment</a></li>
+ <li class="footer__util-nav-item"><a href="/about/media" title="Media" class="footer__util-nav-item-link" target="_blank">Media</a></li>
+ <li class="footer__util-nav-item"><a href="/blog/news" title="News" class="footer__util-nav-item-link" target="_self">News</a></li>
+ <li class="footer__util-nav-item"><a href="/blog" title="Blog" class="footer__util-nav-item-link" target="_self">Blog</a></li>
+ <li class="footer__util-nav-item"><a href="/about/legal" title="Legal" class="footer__util-nav-item-link" target="_self">Legal</a></li>
+ <li class="footer__util-nav-item"><a href="/about/website-accessibility-statement" title="Accessibility" class="footer__util-nav-item-link" target="_self">Accessibility</a></li>
+ <li class="footer__util-nav-item"><a href="https://signup.grandamericahotelsandresorts.com/sunvalley" title="Subscribe" class="footer__util-nav-item-link" target="_blank">Subscribe</a></li>
+ <li class="footer__util-nav-item"><a href="/about/partners/" title="Partners" class="footer__util-nav-item-link" target="_self">Partners</a></li>
+ </ul>
+ <div class="footer__nav-col-group">
+ </div>
+ </div>
+ </div>
+ <div class="footer__copyright">©2026 Sun Valley Resort. All Rights Reserved.</div>
+</footer>
+ </inlinewidgetpage>
+ </footer>
+ <link href="/css/styles.css" rel="stylesheet" />
+</body>
+</html>
