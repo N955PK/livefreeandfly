@@ -2607,7 +2607,8 @@ const PASS_ORDER = ["Ikon", "Epic", "Mountain Collective", "Indy", "Independent"
 const PASSES = [["Ikon", ["palisades", "alpine", "sierra"]], ["Epic", ["northstar", "heavenly", "kirkwood"]],
   ["Mountain Collective", ["sugarbowl"]], ["Independent", ["homewood", "boreal", "mtrose"]]];
 const passOf = (r) => r.pass || (PASSES.find(([, keys]) => keys.includes(r.key)) || ["Independent"])[0];
-const SHORT = {palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June", sunapee: "Sunapee",
+const SHORT = {sevensteps: "Seven Steps", newtonclark: "Newton Clark", giantsteps: "Giant Steps", polarstar: "Polar Star", coldfusion: "Cold Fusion",
+  palisades: "Palisades", alpine: "Alpine", sierra: "Sierra", mammoth: "Mammoth", june: "June", sunapee: "Sunapee",
   snoqualmie: "Snoqualmie", bakerskiarea: "Baker Ski Area", abasin: "A-Basin", copper: "Copper", shastaskipark: "Shasta Ski Park"};
 function byPass() {
   if (region === FAVORITES) return [["", sorted()]];
@@ -4123,7 +4124,7 @@ function renderDetail() {
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}${classicTag(resort.key)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
-      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}${classicLines(resort).length ? ` · ${esc(classicLines(resort).join(" and "))}` : ""}</span></div>
+      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}${classicLines(resort).length ? ` · ${esc(classicLines(resort).join(" · "))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     <nav class="jump" id="jump" aria-label="Sections"></nav></div>
     ${outlook(resort)}
@@ -4213,7 +4214,9 @@ function placeTabInd(jump) {
 const TAB_ORDER = ["map", "forecast", "mountain", "avalanche"];
 // A pane's title has one line beside the elevation picker, so the long names are cut to what people call the place
 // (the chooser that opens from it still lists every name in full), and a long pass name is abbreviated.
-const HEAD_SHORT = {"Mammoth Mountain": "Mammoth", "June Mountain": "June", "Matterhorn Peak": "Matterhorn", "Sherwin Ridge": "Sherwins", "Mountain Collective": "Mtn Collective"};
+const HEAD_SHORT = {"Mammoth Mountain": "Mammoth", "June Mountain": "June", "Matterhorn Peak": "Matterhorn", "Sherwin Ridge": "Sherwins", "Mountain Collective": "Mtn Collective",
+  "Seven Steps to Paradise": "Seven Steps", "Newton Clark Headwall": "Newton Clark", "Giant Steps Couloir": "Giant Steps",
+  "Polar Star Couloir": "Polar Star", "Cold Fusion Couloir": "Cold Fusion"};
 const headName = (name) => HEAD_SHORT[name] || name;
 // The fifty classic ski descents of North America (the 2010 book's list), numbered 1 to 50 in the book's order:
 // the East and Baffin, Colorado, Utah, Wyoming, Idaho and Montana, California and Nevada, the Northwest, Canada's
@@ -4228,9 +4231,9 @@ const CLASSIC_PARTS = [[1, "The Northeast and Baffin"], [4, "Colorado"], [9, "Ut
 // mountain and region it is found under in the app.
 function renderClassics() {
   const lines = Object.entries(CLASSICS).flatMap(([key, list]) => list.map(([n, line]) => ({n, line, key}))).sort((a, b) => a.n - b.n);
-  // The mountain's name is left out where the line's own name already is it ("Landry Line", "Polar Star Couloir")
-  // or the region's is (Denali).
-  const named = (x) => { const m = everyMountain().find((r) => r.key === x.key); if (!m || !REGIONS[regionOf(m)]) return ""; const where = mountainWhere(m); return `${bareName(x.line).startsWith(bareName(m.name)) || m.name === REGIONS[regionOf(m)].name ? "" : `${m.name} · `}${where}`; };
+  // Under each line: the mountain it is under here where that is not the line's own name, the peak where the
+  // mountain is named for the line, then the region.
+  const named = (x) => { const m = everyMountain().find((r) => r.key === x.key); if (!m || !REGIONS[regionOf(m)]) return ""; return [sameName(x.line, m.name) || m.name === REGIONS[regionOf(m)].name ? "" : m.name, CLASSIC_PEAK[x.key] || "", mountainWhere(m)].filter(Boolean).join(" · "); };
   const row = (x) => `<div class="qrow crow"><i class="cnum">${x.n}</i><div><b>${esc(x.line)}</b>${named(x) ? `<small>${esc(named(x))}</small>` : ""}</div></div>`;
   $("classicsBody").innerHTML = `<p class="gnote">The lines of <i>Fifty Classic Ski Descents of North America</i> (2010), numbered in the book's order. Each is listed with the mountain and region it is under in this app.</p>`
     + CLASSIC_PARTS.map(([from, title], k) => { const to = (CLASSIC_PARTS[k + 1] || [51])[0]; return `<h4 class="ghead">${esc(title)}</h4><div class="qlist">${lines.filter((x) => x.n >= from && x.n < to).map(row).join("")}</div>`; }).join("");
@@ -4896,7 +4899,7 @@ document.addEventListener("click", (e) => {
 });
 $("regionPick").addEventListener("change", (e) => setRegion(e.target.value));
 // Search: the magnifier beside the pin finds a region or a mountain by name, in any region that has a forecast. A
-// classic descent is found by its line's name too ("Messner" finds Denali). Names that start with what was typed
+// classic descent is found by its line's name and its peak's too ("Messner" finds Denali, "Moran" The Skillet). Names that start with what was typed
 // come first, then names with a word that starts with it, then names that only contain it.
 // The state or province a region is in, where its name does not already say so: shown under its name in the search.
 const REGION_IN = {tahoe: "California & Nevada", mammoth: "California", shasta: "California & Oregon", lasvegas: "Nevada", rubymountains: "Nevada",
@@ -4922,9 +4925,18 @@ const STATE_OF = Object.fromEntries(Object.entries({
 }).flatMap(([state, keys]) => keys.split(" ").map((key) => [key, state])));
 // Where a mountain is, in the app's terms: its region, then its state or province unless the region's name says it.
 const mountainWhere = (m) => { const key = regionOf(m), state = STATE_OF[m.key] || REGION_IN[key]; return `${REGIONS[key].name}${state ? `, ${state}` : ""}`; };
-// The classic lines a mountain holds, by name, leaving out one the mountain itself is named for ("Landry Line").
-const bareName = (s) => plain(s).replace(/^(mt|mount) /, "");
-const classicLines = (m) => (CLASSICS[m.key] || []).map(([, line]) => line).filter((line) => !bareName(line).startsWith(bareName(m.name)));
+// A classic descent goes by whichever name skiers know it by, the line's or the peak's, and the line under it gives
+// the other. Where the mountain here is named for the line, this is the peak the line is on.
+const CLASSIC_PEAK = {giantsteps: "Mt. Williamson", splitcouloir: "Split Mountain", bloodycouloir: "Bloody Mountain", skillet: "Mt. Moran",
+  hypodermicneedle: "Thunder Mountain", coldfusion: "Mt. Timpanogos", crosscouloir: "Mt. of the Holy Cross", silvercouloir: "Buffalo Mountain",
+  landryline: "Pyramid Peak", sickle: "Horstmann Peak", patriarch: "Glacier Peak", newtonclark: "Mt. Hood", aemmer: "Mt. Temple",
+  skyladder: "Mt. Andromeda", comstock: "Mt. Dawson", sevensteps: "Youngs Peak", combatant: "Mt. Combatant", polarstar: "Beluga Mountain",
+  terminalcancer: "Lamoille Canyon", tuckerman: "Mt. Washington"};
+const bareName = (s) => plain(s).replace(/^(mt|mount|the) /, "");
+const sameName = (a, b) => bareName(a).startsWith(bareName(b)) || bareName(b).startsWith(bareName(a));
+// The other names a classic goes by: its lines where the mountain is named for the peak, and the peak where it is
+// named for the line.
+const classicLines = (m) => [...(CLASSICS[m.key] || []).map(([, line]) => line).filter((line) => !sameName(line, m.name)), ...(CLASSIC_PEAK[m.key] ? [CLASSIC_PEAK[m.key]] : [])];
 const plain = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 function findMatches(typed) {
   const q = plain(typed);
@@ -4934,10 +4946,10 @@ function findMatches(typed) {
   for (const key of keys) { const at = rank(REGIONS[key].name); if (at >= 0) found.push({at, kind: "region", key, name: REGIONS[key].name, under: `Region${REGION_IN[key] ? ` · ${REGION_IN[key]}` : ""}`}); }
   for (const m of everyMountain()) {
     if (!keys.includes(regionOf(m))) continue;
-    const lines = (CLASSICS[m.key] || []).map(([, line]) => line);
+    const lines = [...(CLASSICS[m.key] || []).map(([, line]) => line), ...(CLASSIC_PEAK[m.key] ? [CLASSIC_PEAK[m.key]] : [])];
     const ranks = [rank(m.name), ...lines.map(rank)].filter((at) => at >= 0);
     if (!ranks.length) continue;
-    const named = classicLines(m).join(" and ");
+    const named = classicLines(m).join(" · ");
     found.push({at: Math.min(...ranks) + 0.5, kind: "mountain", key: m.key, name: m.name, under: `${named ? `${named} · ` : ""}${mountainWhere(m)}`});
   }
   return found.sort((a, b) => a.at - b.at || a.name.localeCompare(b.name)).slice(0, 40);
