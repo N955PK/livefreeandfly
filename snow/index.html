@@ -1574,8 +1574,13 @@ if (HOSTED) {
     <button data-page-to="score"><b>How we tested it</b><span>Scored on winters it never saw</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
-    <p>Forecast and maps: Open-Meteo (CC BY 4.0), NOAA, ECMWF, DWD, Environment Canada, USDA SNOTEL, the California Data Exchange Center, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, Caltrans, the resorts' own lift, trail and snow reports, OpenStreetMap, OpenSkiMap, and the Sierra, Eastern Sierra, Bridgeport, Mount Washington, and Northwest avalanche centers through avalanche.org.</p>
-    <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
+    <p>Weather: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0), which carries the models of NOAA, ECMWF, DWD and Environment and Climate Change Canada.</p>
+    <p>Snow sensors: USDA NRCS SNOTEL, the California Data Exchange Center (its readings are provisional), Alberta's river and snow stations, the Mount Washington summit's record through the Regional Climate Centers (ACIS) and the National Weather Service, and British Columbia's automated snow stations. Contains information licensed under the Open Government Licence – British Columbia.</p>
+    <p>Avalanche forecasts: the United States' avalanche centers through avalanche.org and the National Avalanche Center, and Avalanche Canada, which carries Parks Canada's and Kananaskis Country's. Each forecast is its center's own; this app shows a summary and links to the full forecast.</p>
+    <p>Maps: roads © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>. Terrain from the Terrain Tiles on AWS: United States 3DEP and global SRTM and GMTED2010 terrain data courtesy of the U.S. Geological Survey; Canada's terrain data contains information licensed under the Open Government Licence – Canada. Lakes and resort elevations from OpenStreetMap and OpenSkiMap (ODbL). Country and lake outlines from Natural Earth. Radar from the Iowa Environmental Mesonet.</p>
+    <p>Roads and lifts: Caltrans and Nevada 511 for road conditions, and each resort's own lift, trail and snow report. Resort and pass names belong to their owners; this app is not affiliated with any of them.</p>
+    <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, British Columbia's snow stations, and model archives from Open-Meteo.</p>
+    <p>The fifty classic descents are the lines of <i>Fifty Classic Ski Descents of North America</i> by Chris Davenport, Art Burrows and Penn Newhard (2010).</p></details>
   </div>
   <div class="gpage" id="where" data-page="where" data-title="Coverage map" hidden><div id="whereBody"></div></div>
   <div class="gpage" id="classics" data-page="classics" data-title="Fifty classic descents" hidden><div id="classicsBody"></div></div>
@@ -3484,7 +3489,7 @@ async function sugarBowlFeed() {
 // file past the live window is still shown, plainly marked "As of <time>", up to STATUS_OLDEST_MIN old.
 const STATUS_FRESH_MIN = 30, STATUS_OLDEST_MIN = 12 * 60;
 const publishedFeed = (file, key) => async () => {
-  const url = location.hostname === "localhost" ? `data/${file}` : `https://raw.githubusercontent.com/${REPO}/snow-lifts/${file}`;
+  const url = DEVELOPING ? `data/${file}` : `https://raw.githubusercontent.com/${REPO}/snow-lifts/${file}`;
   const status = await getJsonLive(url);
   const age = Date.now() - new Date(status.updated);
   if (age > STATUS_OLDEST_MIN * 6e4) throw new Error("No recent status");
@@ -4560,7 +4565,7 @@ const BOUND = {North: "northbound", South: "southbound", East: "eastbound", West
 // NEVADA_FRESH_MIN is treated as missing rather than shown out of date.
 const NEVADA_FRESH_MIN = 45;
 async function nevadaRoads() {
-  const url = location.hostname === "localhost" ? "data/nevada.json" : `https://raw.githubusercontent.com/${REPO}/snow-roads/nevada.json`;
+  const url = DEVELOPING ? "data/nevada.json" : `https://raw.githubusercontent.com/${REPO}/snow-roads/nevada.json`;
   try {
     const status = await fetch(url, {cache: "no-store"}).then((r) => (r.ok ? r.json() : null));
     return status && Date.now() - new Date(status.updated) < NEVADA_FRESH_MIN * 6e4 ? status : null;
@@ -6447,13 +6452,20 @@ const branchOf = {};
 // On a weak signal a request can hang for minutes without ever failing, and the saved copy is only used once it does.
 // So every forecast request has a deadline (one budget shared by the steps of a published file), after which the
 // last copy saved on this phone is shown instead.
+// The page reads its files from the working folder only when it is being developed, served from a port on this
+// machine. An app that wraps the page serves it from "localhost" with no port, and must read the published files.
+const DEVELOPING = location.hostname === "localhost" && location.port !== "";
+// A request given this signal is given up after so long.
+const within = (ms) => (AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined);
+const COMMIT_DEADLINE_MS = 3000;
 const loadForecast = (url, signal) => fetch(url, {cache: "no-store", signal}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
 const commitAsk = {}, commitAskedAt = {};
 function dataCommit(branch = DATA_BRANCH) {
   if (!commitAsk[branch] || Date.now() - commitAskedAt[branch] > COMMIT_KEEP_MS) {
     commitAskedAt[branch] = Date.now();
     // A failed ask is forgotten, so the next file asks again rather than failing for ten minutes.
-    const ask = loadForecast(`https://api.github.com/repos/${REPO}/branches/${branch}`).then((found) => found.commit.sha)
+    // The ask has a short deadline of its own: left to hang, it would hold up every file behind it.
+    const ask = loadForecast(`https://api.github.com/repos/${REPO}/branches/${branch}`, within(COMMIT_DEADLINE_MS)).then((found) => found.commit.sha)
       .catch((error) => { if (commitAsk[branch] === ask) commitAsk[branch] = null; throw error; });
     commitAsk[branch] = ask;
   }
@@ -6462,12 +6474,13 @@ function dataCommit(branch = DATA_BRANCH) {
 // One published file: index.json, forecast/<region>.json, or (data published before regions had files of their
 // own) forecast.json.
 async function published(path, branch = DATA_BRANCH) {
-  if (location.hostname === "localhost") return loadForecast(`data/${branch === DATA_BRANCH ? "" : `${MORE_BRANCHES[branch]}/`}${path}`);
-  const deadline = AbortSignal.timeout ? AbortSignal.timeout(FORECAST_DEADLINE_MS) : undefined;
+  if (DEVELOPING) return loadForecast(`data/${branch === DATA_BRANCH ? "" : `${MORE_BRANCHES[branch]}/`}${path}`);
+  // Each request has its own deadline, counted from when it starts, so the second is not already spent by the first.
   try {
-    return await loadForecast(`https://raw.githubusercontent.com/${REPO}/${await dataCommit(branch)}/${path}`, deadline);
+    const commit = await dataCommit(branch);
+    return await loadForecast(`https://raw.githubusercontent.com/${REPO}/${commit}/${path}`, within(FORECAST_DEADLINE_MS));
   } catch (error) {
-    return loadForecast(`https://raw.githubusercontent.com/${REPO}/${branch}/${path}`, deadline);
+    return loadForecast(`https://raw.githubusercontent.com/${REPO}/${branch}/${path}`, within(FORECAST_DEADLINE_MS));
   }
 }
 // The last copy of each file this device loaded is kept on it, so the page still has something to show with no signal.

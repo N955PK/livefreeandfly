@@ -1,12 +1,18 @@
-// Turbo Snow offline support. Keeps the page, the map code, and every region's terrain on the phone so the page still
+// Turbo Snow offline support. Keeps the page, the map code, and every region's map on the phone so the page still
 // opens with no signal. The page is fetched fresh whenever there's signal (falling back to the saved copy after a
 // few seconds on a weak one). The forecast itself isn't cached here: the page keeps its own copy of the index and of
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v77';
+const VERSION = 'sierra-snow-v78';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
-const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icons/mark-white.svg', 'icons/icon-192.png',
+// The page itself and what it cannot start without. These are fetched afresh with every VERSION.
+const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icons/mark-white.svg', 'icons/icon-192.png'];
+// Every region's map: its terrain and roads, as the page asks for them (a rebuilt map carries a ?v= so the old copy
+// is not served for it). They are large (about 27 MB in all) and seldom change, so they are kept in a store of their
+// own that outlives VERSION: a new version of the page fetches only the maps the phone does not have yet.
+// The list is checked against the page's REGIONS by tests/test_service_worker.py.
+const MAPS = [
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
   'data/terrain-mammoth.json?v=4', 'data/terrain-mammoth.bin?v=4', 'data/roads-mammoth.json?v=4',
   'data/terrain-newengland.json?v=2', 'data/terrain-newengland.bin?v=2', 'data/roads-newengland.json?v=2',
@@ -15,12 +21,6 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icon
   'data/terrain-wasatch.json?v=2', 'data/terrain-wasatch.bin?v=2', 'data/terrain-wasatch.water.bin?v=2', 'data/roads-wasatch.json?v=2',
   'data/terrain-colorado.json', 'data/terrain-colorado.bin', 'data/roads-colorado.json',
   'data/terrain-shasta.json', 'data/terrain-shasta.bin', 'data/roads-shasta.json',
-  'data/terrain-okanagan.json', 'data/terrain-okanagan.bin', 'data/roads-okanagan.json',
-  'data/terrain-bccoast.json?v=2', 'data/terrain-bccoast.bin?v=2', 'data/roads-bccoast.json?v=2',
-  'data/terrain-quebec.json?v=2', 'data/terrain-quebec.bin?v=2', 'data/roads-quebec.json?v=2',
-  'data/terrain-powderhighway.json', 'data/terrain-powderhighway.bin', 'data/roads-powderhighway.json',
-  'data/terrain-eastkootenays.json?v=2', 'data/terrain-eastkootenays.bin?v=2', 'data/roads-eastkootenays.json?v=2',
-  'data/terrain-rockies.json', 'data/terrain-rockies.bin', 'data/roads-rockies.json',
   'data/terrain-montana.json', 'data/terrain-montana.bin', 'data/roads-montana.json',
   'data/terrain-sunvalley.json', 'data/terrain-sunvalley.bin', 'data/roads-sunvalley.json',
   'data/terrain-oregon.json', 'data/terrain-oregon.bin', 'data/roads-oregon.json',
@@ -34,7 +34,7 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icon
   'data/terrain-lasvegas.json', 'data/terrain-lasvegas.bin', 'data/roads-lasvegas.json',
   'data/terrain-socal.json', 'data/terrain-socal.bin', 'data/roads-socal.json',
   'data/terrain-juneau.json', 'data/terrain-juneau.bin', 'data/roads-juneau.json',
-  'data/terrain-valdez.json', 'data/terrain-valdez.bin', 'data/roads-valdez.json',
+  'data/terrain-valdez.json?v=2', 'data/terrain-valdez.bin?v=2', 'data/roads-valdez.json?v=2',
   'data/terrain-inlandnw.json', 'data/terrain-inlandnw.bin', 'data/roads-inlandnw.json',
   'data/terrain-nwmontana.json', 'data/terrain-nwmontana.bin', 'data/roads-nwmontana.json',
   'data/terrain-newyork.json', 'data/terrain-newyork.bin', 'data/roads-newyork.json',
@@ -46,7 +46,21 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icon
   'data/terrain-ontario.json', 'data/terrain-ontario.bin', 'data/roads-ontario.json',
   'data/terrain-gaspesie.json', 'data/terrain-gaspesie.bin', 'data/roads-gaspesie.json',
   'data/terrain-newfoundland.json', 'data/terrain-newfoundland.bin', 'data/roads-newfoundland.json',
-  'data/terrain-yukon.json', 'data/terrain-yukon.bin', 'data/roads-yukon.json'];
+  'data/terrain-yukon.json', 'data/terrain-yukon.bin', 'data/roads-yukon.json',
+  'data/terrain-rubymountains.json', 'data/terrain-rubymountains.bin', 'data/roads-rubymountains.json',
+  'data/terrain-lasal.json', 'data/terrain-lasal.bin', 'data/roads-lasal.json',
+  'data/terrain-denali.json', 'data/terrain-denali.bin', 'data/roads-denali.json',
+  'data/terrain-wrangellstelias.json', 'data/terrain-wrangellstelias.bin', 'data/roads-wrangellstelias.json',
+  'data/terrain-waddington.json', 'data/terrain-waddington.bin', 'data/roads-waddington.json',
+  'data/terrain-baffin.json', 'data/terrain-baffin.bin', 'data/roads-baffin.json',
+  'data/terrain-okanagan.json', 'data/terrain-okanagan.bin', 'data/roads-okanagan.json',
+  'data/terrain-bccoast.json?v=2', 'data/terrain-bccoast.bin?v=2', 'data/roads-bccoast.json?v=2',
+  'data/terrain-quebec.json?v=2', 'data/terrain-quebec.bin?v=2', 'data/roads-quebec.json?v=2',
+  'data/terrain-powderhighway.json', 'data/terrain-powderhighway.bin', 'data/roads-powderhighway.json',
+  'data/terrain-eastkootenays.json?v=2', 'data/terrain-eastkootenays.bin?v=2', 'data/roads-eastkootenays.json?v=2',
+  'data/terrain-rockies.json?v=2', 'data/terrain-rockies.bin?v=2', 'data/roads-rockies.json?v=2'];
+const MAP_STORE = 'sierra-snow-maps';
+const isMap = (url) => /\/data\/(terrain|roads)[^/]*$/.test(new URL(url, location.href).pathname);
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale
@@ -63,8 +77,18 @@ self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const c = await caches.open(VERSION);
     // One missing file must not stop the rest from being saved.
+    const missed = [];
     await Promise.all([...SHELL, ...MODULES.map((url) => new Request(url, { mode: 'cors' }))]
-      .map((item) => c.add(item).catch(() => {})));
+      .map((item) => c.add(item).catch(() => { missed.push(item); })));
+    // A file that could not be fetched now (a weak signal) is carried over from the version before, so an update
+    // never leaves the phone with less than it had.
+    for (const item of missed) {
+      const kept = await caches.match(item, { ignoreSearch: false });
+      if (kept) await c.put(item, kept.clone());
+    }
+    // The maps: only the ones not on the phone yet.
+    const maps = await caches.open(MAP_STORE);
+    await Promise.all(MAPS.map(async (item) => { if (!(await maps.match(item))) await maps.add(item).catch(() => {}); }));
     // Another site's pictures can be saved but not read, so they are stored as they come (c.add would refuse them).
     await Promise.all(ARTWORK.map((url) => fetch(new Request(url, { mode: 'no-cors' })).then((res) => c.put(url, res)).catch(() => {})));
     await self.skipWaiting();
@@ -74,6 +98,9 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
     for (const k of await caches.keys()) if (k.startsWith('sierra-snow-v') && k !== VERSION) await caches.delete(k);
+    // A map the page no longer asks for (rebuilt under a new ?v=, or a region removed) is dropped.
+    const maps = await caches.open(MAP_STORE), wanted = new Set(MAPS.map((item) => new URL(item, self.registration.scope).href));
+    for (const req of await maps.keys()) if (!wanted.has(req.url)) await maps.delete(req);
     await self.clients.claim();
   })());
 });
@@ -92,7 +119,7 @@ async function pageFirst(req) {
 // copy is served from the phone; with no signal, any saved copy is better than none. Files without a version are
 // served from the phone and refreshed in the background.
 async function savedFirst(req) {
-  const c = await caches.open(VERSION);
+  const c = await caches.open(isMap(req.url) ? MAP_STORE : VERSION);
   const versioned = new URL(req.url).search !== '';
   const saved = await c.match(req);
   const net = fetch(req).then((res) => { if (res.ok) c.put(req, res.clone()); return res; });
