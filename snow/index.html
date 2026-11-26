@@ -4311,7 +4311,8 @@ const seasonStart = () => { const now = new Date(); return Date.UTC(now.getUTCFu
 const lastSeason = (iso) => !!iso && new Date(iso).getTime() < seasonStart();
 const notYet = (zone) => `The ${zone.center.name} has not issued a forecast yet this season.`;
 function leftOver(zone) { Object.assign(zone, {stale: true, level: -1, advice: null, warning: null, offSeason: false}); }
-const getJson = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+const FORECAST_DEADLINE_MS = 8000;   // a request on a weak signal gives up after this, and the saved copy is shown
+const getJson = (url) => fetch(url, {cache: "no-store", signal: AbortSignal.timeout ? AbortSignal.timeout(FORECAST_DEADLINE_MS) : undefined}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
 // The avalanche centers' answers are kept on the phone as they arrive, so with no signal the last forecast read is
 // still there. It says when it was issued and when it expires, and the pane says plainly that it is a saved copy.
 const AVY_SAVED = "sierra-snow-avy";
@@ -5431,7 +5432,10 @@ const REPO = "N955PK/livefreeandfly", DATA_BRANCH = "snow-data", COMMIT_KEEP_MS 
 const MORE_BRANCHES = {"snow-data-canada": "canada"};
 // The branch each region's forecast is on, where that is not DATA_BRANCH: filled in as the indexes are read.
 const branchOf = {};
-const loadForecast = (url) => fetch(url, {cache: "no-store"}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+// On a weak signal a request can hang for minutes without ever failing, and the saved copy is only used once it does.
+// So every forecast request has a deadline (one budget shared by the steps of a published file), after which the
+// last copy saved on this phone is shown instead.
+const loadForecast = (url, signal) => fetch(url, {cache: "no-store", signal}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
 const commitAsk = {}, commitAskedAt = {};
 function dataCommit(branch = DATA_BRANCH) {
   if (!commitAsk[branch] || Date.now() - commitAskedAt[branch] > COMMIT_KEEP_MS) {
@@ -5447,10 +5451,11 @@ function dataCommit(branch = DATA_BRANCH) {
 // own) forecast.json.
 async function published(path, branch = DATA_BRANCH) {
   if (location.hostname === "localhost") return loadForecast(`data/${branch === DATA_BRANCH ? "" : `${MORE_BRANCHES[branch]}/`}${path}`);
+  const deadline = AbortSignal.timeout ? AbortSignal.timeout(FORECAST_DEADLINE_MS) : undefined;
   try {
-    return await loadForecast(`https://raw.githubusercontent.com/${REPO}/${await dataCommit(branch)}/${path}`);
+    return await loadForecast(`https://raw.githubusercontent.com/${REPO}/${await dataCommit(branch)}/${path}`, deadline);
   } catch (error) {
-    return loadForecast(`https://raw.githubusercontent.com/${REPO}/${branch}/${path}`);
+    return loadForecast(`https://raw.githubusercontent.com/${REPO}/${branch}/${path}`, deadline);
   }
 }
 // The last copy of each file this device loaded is kept on it, so the page still has something to show with no signal.
