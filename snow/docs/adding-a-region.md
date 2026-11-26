@@ -53,7 +53,7 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] Lift status, trail counts and the resort's snow report for every resort that publishes them (step 3). (M)
 - [ ] The resort's reported base depth feeds the map where the region has no sensors (`STAKES`) (step 3). (M)
 - [ ] "How we made the forecast" has the region's row under What is fitted where, "How we tested it" has its results under each topic,
-      and the Status paragraph says which resorts' lifts are read and which cannot be (2f).
+      (the Lifts and trails paragraph names no resorts: a mountain with no count links to its resort's page) (2f).
 - [ ] The scorecard has the region's sections (`verify.py`) if anything was fitted (2f).
 - [ ] The page's description (`og:description`) names the region (2f).
 - [ ] Checked in the preview, light and dark, at phone size (2d); pushed.
@@ -502,7 +502,7 @@ anything you change.
 
 - **How we made the forecast:** a row for the region under "What is fitted where" saying which of the four it has of its own (correction with its sensor count, curve, weights, fluffiness); a region with none is named under "Everywhere else". Results and which mountains are corrected are not repeated there: they belong to How we tested it and Sensor corrections.
   saying what is fitted there and what is borrowed from the Sierra, and anything read differently (lower pressure
-  levels). The Status paragraph says which of the region's resorts have their lifts read and which cannot be.
+  levels). The Lifts and trails paragraph says in general why a mountain may have no count; it does not list resorts.
 - **How we tested it:** under each topic (snow ratio, rain or snow, water), a heading for the region with its
   held-out results, or one line under "What is not tested yet" if nothing was fitted. Say what was tried and did
   not win; do not recount errors that were made and fixed along the way.
@@ -536,7 +536,7 @@ Part of adding a region: do it for every resort. A mountain's lift status comes 
    until they open). A new region can have a runner of its own beside it; then add its line to the collector's pass
    in `snow-collect.yml` and its name to the list in `collect.py`. A mountain whose page lists no lifts yet (closed for the season, an empty sheet)
    is left out by the runner and reads on the page as not posted. If the site sits behind a bot check, stop there:
-   the app does not work around those, and the Status paragraph says the resort has none.
+   the app does not work around those; the mountain simply links to the resort's page.
 
 Finding the source: look at the resort's conditions page for the request it makes or the JSON in its HTML
 (`__NEXT_DATA__`, a `wp-admin/admin-ajax.php` call, a framed page on another host). The Liftie project's
