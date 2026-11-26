@@ -296,7 +296,7 @@ pass, and they are kept differently from the first sixteen:
   are filled from them, and the block of upper air is worked out from the box (`omfiles_s3.block_around`), so a new
   fitted region is three table entries. `verify.WEST` takes its name for the scorecard.
 - Colorado moved from the first collector to the third to make room for the Sierra's west slope, which joined the
-  Eastern Sierra's region as the Central & Eastern Sierra. Moving a region is its `collector` alone: restart the
+  Eastern Sierra's region, now the Central Sierras. Moving a region is its `collector` alone: restart the
   collector that gains it first, so its file is published before the old one drops it from its index.
 - Mountains added to a region whose correction is already fitted take a station only where it is one the fit used;
   otherwise they have none until the fit is run again (Eldora, Powderhorn and the Sierra's west slope).

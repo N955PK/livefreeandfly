@@ -1546,7 +1546,7 @@ if (HOSTED) {
     <div id="scoreBody"></div>
     
 <h4 class="ghead">How fluffy the snow is</h4>
-<h5>Tahoe and the Eastern Sierra</h5>
+<h5>Tahoe and the Central Sierras</h5>
 <p>The snow ratio is inches of snow per inch of water. It is the hardest part to predict and the part most forecasts guess at.
 The raw material is 13,124 days of snowfall measured by hand at Sierra stations since 1979. Colder storms make lighter snow, but with a lot of scatter.</p>
 <figure class="plot"><img loading="lazy" src="report/ratio_vs_temperature.png" alt="Median snow ratio falls from about 14 to 7 as temperature rises from −12 to +3 °C"><figcaption>The line is the middle day at each temperature; the band holds the middle half of days.</figcaption></figure>
@@ -1595,11 +1595,11 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>It is not even across the range: west of the crest and at it (Paradise, Snoqualmie Pass) it runs a little fluffy, and east of the crest it runs dense. Refitting it with the Cascade days added did no better at a station left out of the fit, so the Sierra's model is kept as it is.</p>
 
 <h4 class="ghead">Rain or snow</h4>
-<h5>Tahoe and the Eastern Sierra</h5>
+<h5>Tahoe and the Central Sierras</h5>
 <p>At 5,405 wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
 <figure class="plot"><img loading="lazy" src="report/rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about 1.25 °C.</figcaption></figure>
 <p>Three methods were tried and came out tied: about 2.4 mm of water miscalled per wet day, half the 4.9 mm you get by calling everything snow.</p>
-<p>The curve is fitted at Tahoe and used in the Eastern Sierra as well.</p>
+<p>The curve is fitted at Tahoe and used in the Central Sierras as well.</p>
 <h5>Cascades</h5>
 <p>The Cascades have their own curve, fitted the same way to 16,508 wet days at 64 Cascade and Olympic snow sensors over three winters. Half the water falls as snow at a wet-bulb temperature of about 0.75 °C, half a degree colder than at Tahoe, so more of a storm near freezing is rain.</p>
 <h5>Tetons</h5>
@@ -1646,8 +1646,8 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
 <p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. One model delivers 13% of the measured water at Mt Rose, so its correction there is a large multiple, and these guards keep it from running away. They apply in every region.</p>
 
-<h5>Eastern Sierra</h5>
-<p>The Eastern Sierra gets its own correction, fitted to 10 snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
+<h5>Central Sierras</h5>
+<p>The Central Sierras get their own correction, fitted to 10 snow sensors along the crest from Virginia Lakes to Bishop Creek and tested the same way on the 2024, 2025, and 2026 winters. The Tahoe correction is not used there: on these sensors it did worse than no correction.</p>
 <p><b>Mammoth Mountain and Sherwin Ridge</b> use the Mammoth Pass sensor, 2 km south of the summit. The models' shares of its measured water: GEM 69%, ECMWF 88%, ICON 101%, GFS 133%. Those misses offset, so at this one sensor the corrected blend only ties the raw one; the correction is kept because it makes each model right on its own.</p>
 <p><b>Matterhorn Peak and Dana Plateau</b> use the sensors nearest them: Slide Canyon, 4 km west across the crest, and Dana Meadows, 5 km southwest.</p>
 <p><b>June Mountain, Carson Peak, and Mt. Whitney</b> have no working sensor nearby and are left uncorrected. The record of a sensor that has since gone quiet (Gem Pass) says a correction borrowed from Mammoth Pass would make them worse.</p>
@@ -1714,7 +1714,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each mountain. Mountains a few miles apart are forecast from one reading of the weather, each at its own heights. <span id="biasNote"></span></p>
     <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span> What each step is fitted to depends on the region.</p>
     <p><b>Tahoe</b> Everything is fitted here: the correction to 22 snow sensors around the lake, the rain-or-snow curve to the same sensors, the fluffiness model to snowfall measured by hand at Sierra stations, and the weights that blend the four models.</p>
-    <p><b>Eastern Sierra</b> Its own correction, fitted to 10 snow sensors along the crest. The rain-or-snow curve, the fluffiness model, and the blend weights are Tahoe's.</p>
+    <p><b>Central Sierras</b> Its own correction, fitted to 10 snow sensors along the eastern crest. The west-slope mountains added later (Bear Valley, Dodge Ridge, China Peak, Badger Pass, and Sonora and Ebbetts passes) are far from those sensors and are left uncorrected. The rain-or-snow curve, the fluffiness model, and the blend weights are Tahoe's.</p>
     <p><b>Cascades</b> Its own correction, fitted to 10 snow sensors, and its own rain-or-snow curve, which turns to rain half a degree colder than Tahoe's. Its blend weights were fitted there too and came out equal. The fluffiness model is the Sierra's, checked against snowfall measured by hand in the Cascades and kept. Because the passes are low, the air is read closer to the ground than in the Sierra.</p>
     <p><b>Tetons</b> Its own correction, fitted to 10 snow sensors, its own blend weights, its own rain-or-snow curve and a fluffiness model trained on Sierra and Teton snowfall together. The correction is the one that matters: the other three come out close to the Sierra's.</p>
     <p><b>Wasatch</b> Its own correction, fitted to 10 snow sensors, its own blend weights, its own rain-or-snow curve, which turns to rain three quarters of a degree colder than Tahoe's, and a fluffiness model trained on Sierra and Wasatch snowfall together, with the Wasatch's counted more. All of them matter here: the models bring little more than half the water the sensors measure, and the Sierra's fluffiness model alone runs an inch deep on Utah snow. Snowbasin has no sensor within reach and is left uncorrected. Every base is high enough that the air is read as it is in the Sierra.</p>
@@ -1816,7 +1816,7 @@ const REGIONS = {
   tahoe: {name: "Tahoe", terrain: "data/terrain", roads: "data/roads.json", center: [39.05, -120.04], waterM: 1897, pick: "palisades",
     lake: {name: "Lake Tahoe", lat: 39.09, lon: -120.04}, chainFeeds: [CALTRANS(3), CALTRANS(10)],
     avalanche: [{id: "SAC", name: "Sierra Avalanche Center", url: "https://www.sierraavalanchecenter.org/", state: "CA"}]},
-  mammoth: {name: "Central & Eastern Sierra", short: "Sierra", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.537, -119.173], rev: "?v=4", waterM: 1945, pick: "mammoth",
+  mammoth: {name: "Central Sierras", terrain: "data/terrain-mammoth", roads: "data/roads-mammoth.json", center: [37.537, -119.173], rev: "?v=4", waterM: 1945, pick: "mammoth",
     // Since the Sierra's west slope joined the region (2026-11-26) the disc is 154 km in radius, a kilometre inside
     // the terrain's shorter side: Bear Valley in the north-west and Mt. Whitney in the south-east are each 132 km
     // from its middle. The Mammoth pill opens the view the region used to open on.

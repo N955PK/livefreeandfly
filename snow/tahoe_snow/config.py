@@ -1446,7 +1446,7 @@ ALL_REGIONS = {
         # The three western regions are built together at 5 am, 1 pm and 9 pm Pacific: before the ski day, at midday and
         # in the evening. New England is built at 4 am and 4 pm Eastern; the afternoon one falls with the West's 1 pm.
         Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 8, ("SAC",), at=(5, 13, 21)),
-        Region("mammoth", "Central & Eastern Sierra", "America/Los_Angeles", 8, 8, ("ESAC", "BAC"), at=(5, 13, 21)),
+        Region("mammoth", "Central Sierras", "America/Los_Angeles", 8, 8, ("ESAC", "BAC"), at=(5, 13, 21)),
         # Every lift-served foot of New England is below 850 hPa (near 1,450 m): the highest summit is Killington's
         # 1,293 m and the lowest base Attitash's 183 m, which 1000 hPa (near 110 m) covers.
         Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",),
