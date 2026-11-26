@@ -829,7 +829,7 @@ ALL_REGIONS = {
 }
 
 # Which collector this process is. Each collector is a workflow of its own (snow-collect.yml is "main",
-# snow-collect-canada.yml is "canada"): it builds only its own regions, publishes them on a data branch of its own
+# snow-collect-canada.yml is "canada", snow-collect-west.yml is "west"): it builds only its own regions, publishes them on a data branch of its own
 # with its own index, and keeps its own ledger of calls. Everything that walks REGIONS or RESORTS therefore sees one
 # collector's share; ALL_REGIONS and ALL_RESORTS are every region and mountain there is.
 COLLECTOR = os.environ.get("SNOW_COLLECTOR", "main")
@@ -847,8 +847,9 @@ def weather_point(resort: Resort) -> Resort:
 
 
 def avalanche_centers() -> tuple[str, ...]:
-    """Every region's avalanche centers, in region order, each once."""
-    return tuple(dict.fromkeys(center for region in REGIONS.values() for center in region.avalanche))
+    """Every region's avalanche centers, in region order, each once. Every collector's regions are here: the
+    avalanche file is the first collector's work whoever forecasts the region."""
+    return tuple(dict.fromkeys(center for region in ALL_REGIONS.values() for center in region.avalanche))
 
 
 # Open-Meteo model identifiers.
