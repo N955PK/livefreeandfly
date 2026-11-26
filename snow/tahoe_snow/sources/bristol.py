@@ -68,7 +68,8 @@ def areas_of(page: str) -> list:
         elif fits(rows[0], TRAIL_COLUMNS) and heading in LEVELS:
             if any(len(cells) != len(TRAIL_COLUMNS) for cells in rows[1:]):
                 raise ValueError(f"a row under {heading} is not a trail, a status, a surface and a comment")
-            areas.append({"Name": heading, "Lifts": [], "Trails": [row_of(cells, LEVELS[heading]) for cells in rows[1:]]})
+            areas.append({"Name": heading, "Lifts": [],
+                          "Trails": [row_of(cells, LEVELS[heading]) for cells in rows[1:]]})
         elif not (fits(rows[0], TRAIL_COLUMNS) and heading == NORDIC):
             raise ValueError(f"the table under {heading!r} with the columns {rows[0]} is not one the reader knows")
     if len({area["Name"] for area in areas}) != len(areas):

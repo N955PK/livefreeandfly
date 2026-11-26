@@ -34,8 +34,8 @@ LIFTS = "Lifts"
 UPHILL = "Uphill Routes"
 NOT_ALPINE = re.compile(r"Cross Country|Walking Trail")
 SECTION = re.compile(r"<(?:h3|span) class=\"label-accord\">([^<]*)</(?:h3|span)>\s*<span class=\"[^\"]*\bms-auto\">"
-                     r"\s*(\d+)\s+of\s+(\d+) OPEN[A-Z ]*</span>\s*</button>\s*</h2>(.*?)(?=<h2 class=\"accordion-header|\Z)",
-                     re.S)
+                     r"\s*(\d+)\s+of\s+(\d+) OPEN[A-Z ]*</span>\s*</button>\s*</h2>(.*?)"
+                     r"(?=<h2 class=\"accordion-header|\Z)", re.S)
 ROW = re.compile(r"<div class=\"grid-item\">(.*?)</div>", re.S)
 PICTURE = re.compile(r"<img[^>]*\ssrc=\"[^\"]*/([^\"/]+)\.(?:png|svg)\"[^>]*>")
 TAG = re.compile(r"<[^>]+>")

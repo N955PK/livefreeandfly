@@ -22,16 +22,17 @@ from datetime import datetime, timedelta, timezone
 
 from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
                                 bigwhite, blackmountain, bogusbasin, bolton, boynehighlands, boynemountain,
-                                brettonwoods, brianhead, brighton, bromley, bromont, brundage, burke, cannon,
-                                cooperspur, copper, cranmore, cypress, discovery, dollar, eldora, fernie,
-                                fortyninenorth, grouse, hoodmeadows, hoodoo, jacksonhole, jaypeak, kickinghorse,
-                                kimberley, lakelouise, leecanyon, lemassif, lookoutpass, loveland, lutsen, madriverglen,
-                                magic, marmot, monarch, montblanc, montsainteanne, mountainhigh, mtspokane,
-                                mtwashington, nakiska, norquay, orford, owlshead, pajarito, panorama, powdermountain,
-                                purgatory, redmountain, redriver, revelstoke, saddleback, saintsauveur, seymour,
-                                shastaskipark, showdown, silverstar, sipapu, skibowl, skisantafe, smugglers, snowbasin,
-                                snowbird, stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos,
-                                targhee, telluride, timberline, waterville, whitefish, whitewater, willamettepass)
+                                brettonwoods, brianhead, brighton, bristol, bromley, bromont, brundage, burke, cannon,
+                                cooperspur, copper, cranmore, crystalmi, cypress, discovery, dollar, eldora, fernie,
+                                fortyninenorth, grouse, holidayvalley, hoodmeadows, hoodoo, jacksonhole, jaypeak,
+                                kickinghorse, kimberley, lakelouise, leecanyon, lemassif, lookoutpass, loveland, lutsen,
+                                madriverglen, magic, marmot, massanutten, monarch, montblanc, montsainteanne,
+                                mountainhigh, mtspokane, mtwashington, nakiska, norquay, nubsnob, orford, owlshead,
+                                pajarito, panorama, powdermountain, purgatory, redmountain, redriver, revelstoke,
+                                saddleback, saintsauveur, seymour, shastaskipark, showdown, silverstar, sipapu, skibowl,
+                                skisantafe, smugglers, snowbasin, snowbird, stoneham, sundance, sunpeaks, sunshine,
+                                sunvalley, sutton, tamarack, taos, targhee, telluride, timberline, waterville,
+                                whitefish, whitewater, willamettepass, wintergreen, wisp)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -66,15 +67,18 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "whitefish": whitefish, "bogusbasin": bogusbasin, "brundage": brundage, "tamarack": tamarack,
            "lutsen": lutsen, "mountainhigh": mountainhigh, "showdown": showdown,
            "lookoutpass": lookoutpass, "fortyninenorth": fortyninenorth, "mtspokane": mtspokane,
-           "discovery": discovery}
+           "discovery": discovery,
+           # Massanutten's statuses answer only a POST (see ``read``).
+           "wisp": wisp, "wintergreen": wintergreen, "massanutten": massanutten, "holidayvalley": holidayvalley,
+           "bristol": bristol, "nubsnob": nubsnob, "crystalmi": crystalmi}
 # Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
 GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
 RANGED = ("Base", "Last24Hours")
 
 
-def fetch(url: str) -> str:
-    request = urllib.request.Request(url, headers={"User-Agent": "sierra-snow"})
+def fetch(url: str, method: str = "GET") -> str:
+    request = urllib.request.Request(url, headers={"User-Agent": "sierra-snow"}, method=method)
     with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
         return response.read().decode("utf-8")
 
@@ -123,7 +127,10 @@ def posted(feed: dict) -> bool:
 
 def read(module, now: datetime) -> dict:
     if hasattr(module, "URLS"):
-        return module.parse({name: fetch(url) for name, url in module.URLS.items()}, now)
+        # A module's ``POST`` names the requests its site answers only as a POST with no body.
+        post = getattr(module, "POST", ())
+        return module.parse({name: fetch(url, "POST" if name in post else "GET")
+                             for name, url in module.URLS.items()}, now)
     return module.parse(fetch(module.URL), now)
 
 
