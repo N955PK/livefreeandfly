@@ -93,7 +93,7 @@ a{color:inherit}
 /* The magnifier beside the pin opens the search for a mountain or a region by name. Both sit in the header's last
    column, the magnifier a button's width in from the pin. */
 .brand .regionpick,.brand .findbtn{grid-column:3;grid-row:1}
-.findbtn{justify-self:end;display:flex;border:0;background:none;padding:4px;margin:-4px 30px -4px -4px;border-radius:10px;cursor:pointer}
+.findbtn{justify-self:end;display:flex;border:0;background:none;padding:4px;margin:-4px 32px -4px -4px;border-radius:10px;cursor:pointer}
 .findbtn svg{fill:none;stroke:var(--mark);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .brand:has(.regionpick[hidden]) .findbtn{margin-right:-4px}
 .hosted .brand .findbtn{margin-right:66px}
@@ -1504,7 +1504,7 @@ if (HOSTED) {
 <div id="topTint" aria-hidden="true"></div>
 <div id="splash" aria-hidden="true" oncontextmenu="return false"><img src="icons/mark-white.svg" alt="" width="170" height="170" draggable="false"></div>
 <main>
-  <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.svg" alt="" width="26" height="26" draggable="false"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><button class="findbtn" id="findBtn" aria-label="Search for a mountain or a region"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.500 15.500 21 21"/></svg></button><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
+  <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.svg" alt="" width="26" height="26" draggable="false"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><button class="findbtn" id="findBtn" aria-label="Search for a mountain or a region"><svg viewBox="2.9 2.9 19.2 19.2" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.500 15.500 21 21"/></svg></button><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
   <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
