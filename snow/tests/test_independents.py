@@ -22,7 +22,7 @@ def test_every_reader_is_a_mountain_of_new_england_the_tetons_the_wasatch_or_col
         assert config.ALL_RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado", "shasta", "okanagan", "bccoast", "quebec", "rockies", "powderhighway", "eastkootenays",
                                                   "montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado",
                                                   "michigan", "southutah", "arizona", "lasvegas",
-                                                  "nwmontana", "westidaho", "lakesuperior", "socal"), key
+                                                  "nwmontana", "westidaho", "lakesuperior", "socal", "inlandnw"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
     assert len(independents.MODULES) == 90
