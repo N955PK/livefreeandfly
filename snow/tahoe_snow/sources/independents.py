@@ -21,16 +21,16 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
-                                bigwhite, blackmountain, bolton, boynehighlands, boynemountain, brettonwoods, brianhead,
-                                brighton, bromley, bromont, burke, cannon, cooperspur, copper, cranmore, cypress,
-                                dollar, eldora, fernie, grouse, hoodmeadows, hoodoo, jacksonhole, jaypeak, kickinghorse,
-                                kimberley, lakelouise, leecanyon, lemassif, loveland, madriverglen, magic, marmot,
-                                monarch, montblanc, montsainteanne, mtwashington, nakiska, norquay, orford, owlshead,
-                                pajarito, panorama, powdermountain, purgatory, redmountain, redriver, revelstoke,
-                                saddleback, saintsauveur, seymour, shastaskipark, silverstar, sipapu, skibowl,
-                                skisantafe, smugglers, snowbasin, snowbird, stoneham, sundance, sunpeaks, sunshine,
-                                sunvalley, sutton, taos, targhee, telluride, timberline, waterville, whitewater,
-                                willamettepass)
+                                bigwhite, blackmountain, bogusbasin, bolton, boynehighlands, boynemountain,
+                                brettonwoods, brianhead, brighton, bromley, bromont, brundage, burke, cannon,
+                                cooperspur, copper, cranmore, cypress, dollar, eldora, fernie, grouse, hoodmeadows,
+                                hoodoo, jacksonhole, jaypeak, kickinghorse, kimberley, lakelouise, leecanyon, lemassif,
+                                loveland, lutsen, madriverglen, magic, marmot, monarch, montblanc, montsainteanne,
+                                mountainhigh, mtwashington, nakiska, norquay, orford, owlshead, pajarito, panorama,
+                                powdermountain, purgatory, redmountain, redriver, revelstoke, saddleback, saintsauveur,
+                                seymour, shastaskipark, silverstar, sipapu, skibowl, skisantafe, smugglers, snowbasin,
+                                snowbird, stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos,
+                                targhee, telluride, timberline, waterville, whitefish, whitewater, willamettepass)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -61,7 +61,9 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "timberline": timberline, "skibowl": skibowl, "hoodoo": hoodoo, "bachelor": bachelor,
            # The later regions' first readers.
            "boynemountain": boynemountain, "boynehighlands": boynehighlands, "eldora": eldora,
-           "brianhead": brianhead, "azsnowbowl": azsnowbowl, "leecanyon": leecanyon}
+           "brianhead": brianhead, "azsnowbowl": azsnowbowl, "leecanyon": leecanyon,
+           "whitefish": whitefish, "bogusbasin": bogusbasin, "brundage": brundage, "tamarack": tamarack,
+           "lutsen": lutsen, "mountainhigh": mountainhigh}
 # Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
 GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
