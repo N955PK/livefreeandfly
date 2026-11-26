@@ -83,7 +83,7 @@ a{color:inherit}
 .brand{display:flex;align-items:center;gap:10px}
 /* The header is one short row: the snowflake opens the settings, the name sits in the middle, the region is picked at the right. */
 .brand{display:grid;grid-template-columns:1fr auto 1fr;gap:8px}
-.brand h1{font-size:19px;letter-spacing:-.01em;text-align:center}
+.brand h1{font-size:1.1875rem;letter-spacing:-.01em;text-align:center}
 .regions{display:none}
 /* The header's three controls are small marks; each answers a touch 8px beyond its edge, for a target of about 44px. */
 .setbtn,.findbtn,.regionpick{position:relative}
@@ -102,11 +102,11 @@ a{color:inherit}
 .hosted .brand .findbtn{margin-right:66px}
 .hosted .brand:has(.regionpick[hidden]) .findbtn{margin-right:30px}
 .findbox{flex:none;padding:2px 14px 8px}
-.findbox input{box-sizing:border-box;width:100%;height:44px;padding:0 16px;border:1px solid var(--border);border-radius:999px;background:var(--wash);color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+.findbox input{box-sizing:border-box;width:100%;height:44px;padding:0 16px;border:1px solid var(--border);border-radius:999px;background:var(--wash);color:var(--ink);font:inherit;font-size:1rem;outline:none;-webkit-appearance:none;appearance:none}
 .findbox input:focus-visible{border-color:var(--accent)}
 .pickopt.findopt{flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-height:50px;border-radius:14px}
-.pickopt.findopt small{font-size:12.5px;font-weight:400;color:var(--mark-dull)}
-.findnote{margin:6px 14px 12px;font-size:14px;color:var(--mark-dull)}
+.pickopt.findopt small{font-size:0.7812rem;font-weight:400;color:var(--mark-dull)}
+.findnote{margin:6px 14px 12px;font-size:0.875rem;color:var(--mark-dull)}
 /* Every button you can press wears the snowflake's navy (near-white in the dark): the pin, the roads, 2D, play, and back. */
 :root{--mark:#0d366b;--mark-dull:#5f7591}
 /* The screen's safe edges (the status strip, the home bar). A page shown inside another (see "hosted") is told
@@ -123,32 +123,32 @@ a{color:inherit}
 .hosted .brand:has(.regionpick[hidden]) .setbtn{margin-right:-3px}
 @media (prefers-color-scheme:dark){:root{--mark:#ebebeb;--mark-dull:#8a929b}}
 .regionpick svg{fill:none;stroke:var(--mark);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
-.regionpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.regionpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:1rem}
 /* On a phone the snowflake and the pin sit over the map's two columns of buttons, centered 32px in from each edge. */
 @media (max-width:720px){html.tabs .setbtn{margin-left:-3px}html.tabs .regionpick{margin-right:3.5px}}
 @media (prefers-color-scheme:dark){.brand img{filter:brightness(0) invert(.92)}}
-.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.eyebrow{font-size:0.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
 h1{font-size:clamp(26px,4vw,34px);line-height:1.1;font-weight:700;letter-spacing:-.02em;margin:0}
 .lede{font-size:clamp(15px,2vw,18px);color:var(--ink2);max-width:60ch;margin-top:10px}
 .lede b{color:var(--ink);font-weight:650}
 .pm{font-size:.62em;font-weight:500;color:var(--ink2);letter-spacing:0;white-space:nowrap}
 .lede .pm,.amt .pm{font-size:.85em}
-.meta{font-size:13px;color:var(--muted);margin-top:4px}
+.meta{font-size:0.8125rem;color:var(--muted);margin-top:4px}
 .meta .warn,.anotice .warn{color:#b3541e}
 /* The Avalanche tab's "Offline." is the same word as the Summary's and the Mountain tab's: same color, weight and size. */
-.anotice .warn{font-weight:400;font-size:12.5px}
+.anotice .warn{font-weight:400;font-size:0.7812rem}
 .meta .late{color:#9a6b00;font-weight:600}
 .meta .stale{color:#c8161d;font-weight:600}
 @media (prefers-color-scheme:dark){.meta .late{color:#e3b341}.meta .stale{color:#ff6b6b}}
 .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:26px 0 12px}
-h2{font-size:18px;font-weight:650;letter-spacing:-.01em}
+h2{font-size:1.125rem;font-weight:650;letter-spacing:-.01em}
 .seg{margin-left:auto;display:inline-flex;background:var(--wash);border-radius:10px;padding:3px}
-.seg button{border:0;background:none;color:var(--ink2);font:inherit;font-size:13px;font-weight:550;padding:6px 14px;border-radius:8px;cursor:pointer}
+.seg button{border:0;background:none;color:var(--ink2);font:inherit;font-size:0.8125rem;font-weight:550;padding:6px 14px;border-radius:8px;cursor:pointer}
 .seg button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 /* Summit, mid and base are three stacked tabs whose left ends are cut to one slope, so the control is half a mountain
    with a name at each height. The chosen row is navy. */
 .seg.tri{display:flex;flex-direction:column;gap:2px;flex:none;width:106px;height:65px;padding:0;background:none;border-radius:0}
-.seg.tri button{position:relative;flex:1;height:auto;display:flex;align-items:center;padding:0 0 0 44px!important;border-radius:0 10px 10px 0;box-shadow:none;text-align:left;font-size:12px;font-weight:600;line-height:1;color:var(--mark);
+.seg.tri button{position:relative;flex:1;height:auto;display:flex;align-items:center;padding:0 0 0 44px!important;border-radius:0 10px 10px 0;box-shadow:none;text-align:left;font-size:0.75rem;font-weight:600;line-height:1;color:var(--mark);
   background:linear-gradient(90deg,color-mix(in srgb,var(--mark) 24%,var(--surface)) 0 36px,color-mix(in srgb,var(--mark) 7%,var(--surface)) 36px)}
 .seg.tri button::before{content:"";position:absolute;left:-1px;top:-1px;width:37px;height:calc(100% + 2px);background:var(--surface)}
 .seg.tri button[data-el=summit]::before{clip-path:polygon(0 0,37px 0,25px 100%,0 100%)}
@@ -256,10 +256,10 @@ html.tabs .jump button[aria-current=true]{background:none;color:var(--mark)}
 .gridwrap > .gridnote,.gridwrap > .legend{position:sticky;left:0}
 html.tabs .jump{display:flex;gap:6px;margin:10px 0 0;padding:0 0 9px;overflow-x:auto;scrollbar-width:none}
 html.tabs .jump::-webkit-scrollbar{display:none}
-.jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:12.5px;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
+.jump button{flex:1;border:0;border-radius:999px;padding:6px 4px;font:inherit;font-size:0.7812rem;font-weight:600;color:var(--mark-dull);background:var(--wash);cursor:pointer}
 .jump button[aria-current=true]{background:var(--mark);color:var(--surface)}
 html.tabs #detail [data-sec],html.tabs #avalanche [data-sec],html.tabs .panel.summary [data-sec]{scroll-margin-top:calc(136px + var(--sat))}
-html.tabs #detail h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:15.5px;color:var(--accent)}
+html.tabs #detail h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:0.9688rem;color:var(--accent)}
 html.tabs #detail h3::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 html.tabs #detail h3 span{color:var(--mark-dull)}
 html.tabs #detail .hhead{margin-top:30px}
@@ -271,14 +271,14 @@ html.tabs #detail .hhead .seg.tri{display:none}
 /* The Mountain tab's pickers have fully round ends, like the map's controls. */
 html.tabs #detail .seg:not(.tri),html.tabs #detail .seg:not(.tri) button{border-radius:999px}
 html.tabs #detail .season{margin-top:30px}
-html.tabs #detail .season .swhat{font-size:12.5px;margin-top:6px}
+html.tabs #detail .season .swhat{font-size:0.7812rem;margin-top:6px}
 html.tabs #detail .sub.one{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html.tabs #detail .camhead{margin-top:30px;font-size:15.5px;font-weight:650;color:var(--accent)}
+html.tabs #detail .camhead{margin-top:30px;font-size:0.9688rem;font-weight:650;color:var(--accent)}
 html.tabs #detail .cams{margin-top:10px;padding:0 0 14px;border-top:0;gap:8px 14px}
 html.tabs #detail .cams .shot img{width:104px;height:78px;border-radius:10px;display:block}
 html.tabs #detail .cams.big .shot img{width:100%;height:auto}
 html.tabs #detail .cams .what a{margin-top:4px}
-html.tabs #detail .season .shead b{font-size:15.5px;font-weight:650;color:var(--accent)}
+html.tabs #detail .season .shead b{font-size:0.9688rem;font-weight:650;color:var(--accent)}
 /* Daily in tabs, on a phone: beside the day is a box with the total and, under it, the night and day amounts; the
    spread runs to its right; under both are four fixed columns for weather, temperature, wind and powder score.
    There is no header row. The snow type is told by the color of the spread, not in words. */
@@ -289,10 +289,10 @@ html.tabs #detail .season .shead b{font-size:15.5px;font-weight:650;color:var(--
   /* The day: the weekday large across the top, and under it the weather icon beside the date's number. */
   /* It is set so the weekday is level with the weather line and the icon and date are level with the bar. */
   html.tabs .srow .d.cal{display:grid;width:58px;align-self:end;margin-bottom:11px;grid-template-columns:26px auto;column-gap:5px;row-gap:1px;align-items:center;justify-content:center;line-height:1.1}
-  html.tabs .srow .d.cal span{grid-column:1 / span 2;grid-row:1;display:block;text-align:center;font-size:23px;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--mark-dull)}
+  html.tabs .srow .d.cal span{grid-column:1 / span 2;grid-row:1;display:block;text-align:center;font-size:1.4375rem;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--mark-dull)}
   html.tabs .srow .d.cal .wx{grid-column:1;grid-row:2;line-height:0}
   html.tabs .srow .d.cal .wx svg{width:26px;height:22px;color:var(--mark)}
-  html.tabs .srow .d.cal b{grid-column:2;grid-row:2;display:block;font-size:17px;font-weight:600;color:var(--mark-mid)}
+  html.tabs .srow .d.cal b{grid-column:2;grid-row:2;display:block;font-size:1.0625rem;font-weight:600;color:var(--mark-mid)}
   /* The total is a card: the number large with its unit and ± small beside it, centered, and under it a white strip
      split into the night and the day amounts. */
   html.tabs .srow .tot{grid-column:3;grid-row:1 / span 2;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:7px 3px 3px;border-radius:11px;background:var(--wash)}
@@ -300,12 +300,12 @@ html.tabs #detail .season .shead b{font-size:15.5px;font-weight:650;color:var(--
   html.tabs .srow .tot{min-height:66px;box-sizing:border-box}
   html.tabs .srow.head + .srow{border-top:1px solid transparent}
   html.tabs .srow .tot.none{padding-bottom:7px}
-  html.tabs .srow .tot .amt{text-align:center;white-space:nowrap;font-size:21px;font-weight:650;line-height:1;letter-spacing:-.01em}
-  html.tabs .srow .tot .amt .unit{font-size:11.5px;font-weight:500;letter-spacing:0;color:var(--mark-dull)}
+  html.tabs .srow .tot .amt{text-align:center;white-space:nowrap;font-size:1.3125rem;font-weight:650;line-height:1;letter-spacing:-.01em}
+  html.tabs .srow .tot .amt .unit{font-size:0.7188rem;font-weight:500;letter-spacing:0;color:var(--mark-dull)}
   html.tabs .srow .tot.none .amt{color:var(--mark-dull);font-weight:600}
   html.tabs .srow .tot .num{display:inline-block;width:2ch;text-align:center;font-variant-numeric:tabular-nums}
   html.tabs .srow .tot .amt > .num{width:auto;min-width:1.150em}
-  html.tabs .srow .tot .split{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0;border-radius:8px;background:var(--surface);font-size:12px}
+  html.tabs .srow .tot .split{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0;border-radius:8px;background:var(--surface);font-size:0.75rem}
   html.tabs .srow .tot .split span{justify-content:center;margin:0;padding:3px 0;gap:2px}
   html.tabs .srow .tot .split span + span{border-left:1px solid var(--border)}
   /* The foot of the bar's scale is level with the foot of the total card, and the weather line sits just above the bar. */
@@ -319,12 +319,12 @@ html.tabs #detail .season .shead b{font-size:15.5px;font-weight:650;color:var(--
   .track.zero .mdl{position:absolute;top:5px;width:8px;height:8px;margin-left:-4px;box-sizing:border-box;border-radius:50%;background:var(--surface);border:1.5px solid var(--mark)}
   .track.zero .rainfill{position:absolute;left:0;top:0;width:100%;height:18px;overflow:visible;pointer-events:none}
   .track.zero .notch{position:absolute;top:0;width:1px;height:18px;background:var(--border)}
-  .track.zero em{position:absolute;top:21px;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:10px;color:var(--mark-dull);font-variant-numeric:tabular-nums}
+  .track.zero em{position:absolute;top:21px;transform:translateX(-50%);font-style:normal;font-size:0.5938rem;line-height:10px;color:var(--mark-dull);font-variant-numeric:tabular-nums}
   .track.zero em:first-of-type{transform:none}
   .track.zero em:last-of-type{transform:translateX(-100%)}
   /* Fixed columns, so the temperatures, winds and scores each start at the same place on every row. The weather's
      icon is above the date, not on this line. */
-  html.tabs .srow .cond{grid-column:2;grid-row:1;align-self:end;grid-template-columns:54px 64px 46px;column-gap:0;justify-content:space-between;font-size:12.5px;line-height:16px}
+  html.tabs .srow .cond{grid-column:2;grid-row:1;align-self:end;grid-template-columns:54px 64px 46px;column-gap:0;justify-content:space-between;font-size:0.7812rem;line-height:16px}
   html.tabs .srow .cond .sky{display:none}
   html.tabs .srow .cond .wind svg{flex:none;width:18px}
   /* Beside the spread there is room for the weather's icon but not its word. */
@@ -352,18 +352,18 @@ html.tabs .panel.summary .cell:not(.none){color:var(--true-ink)}
   html.tabs .panel.summary .seg.tri{right:14px}
   html.tabs .legend{padding:2px 14px 12px}
   html.tabs table.heat{border-spacing:2px;padding:4px 2px 8px}
-  html.tabs .cell{min-width:29px;height:40px;border-radius:6px;font-size:13px}
+  html.tabs .cell{min-width:29px;height:40px;border-radius:6px;font-size:0.8125rem}
   html.tabs .heat td.name{padding:4px 4px 4px 10px}
   /* The name and its elevation sit close, as one label; the row keeps the height it had. */
   html.tabs .heat td.name{height:51px;box-sizing:border-box}
-  html.tabs .heat td.name b{font-size:13.5px;line-height:1.15}
-  html.tabs .heat td.name span{display:block;font-size:11px;line-height:1.2;margin-top:2px}
+  html.tabs .heat td.name b{font-size:0.8438rem;line-height:1.15}
+  html.tabs .heat td.name span{display:block;font-size:0.6875rem;line-height:1.2;margin-top:2px}
   /* The danger sign stays on the line with the height and the region, not on one of its own. */
   html.tabs .heat td.name span [data-avy]{display:inline;margin-top:0}
-  html.tabs .heat td.total{padding:0 5px 0 2px;font-size:14px}
-  html.tabs .heat th.day b{font-size:12.5px}
+  html.tabs .heat td.total{padding:0 5px 0 2px;font-size:0.875rem}
+  html.tabs .heat th.day b{font-size:0.7812rem}
   /* Each pass heads its mountains with its name in the accent blue (the mountains are navy) and a thin rule running to the right edge. */
-  html.tabs .heat tr.pass td{padding:12px 0 2px;text-transform:none;letter-spacing:0;font-size:15.5px;font-weight:650;color:var(--accent)}
+  html.tabs .heat tr.pass td{padding:12px 0 2px;text-transform:none;letter-spacing:0;font-size:0.9688rem;font-weight:650;color:var(--accent)}
   html.tabs .heat tr.pass td > span{display:flex;align-items:center;gap:10px;left:14px;width:calc(100vw - 28px)}
   html.tabs .heat tr.pass td > span::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
 }
@@ -392,10 +392,10 @@ html.tabs .map-compass svg{width:28px;height:28px}
 html.tabs .map-compass{top:auto;bottom:calc(var(--rail) + 52px);left:10px;right:auto;width:44px;height:44px;background:color-mix(in srgb,var(--surface) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 html.tabs #map3d .map-toggle{top:auto;right:10px;left:auto;width:44px;height:44px;padding:0;justify-content:center;gap:0;font-size:0;
   background:color-mix(in srgb,var(--surface) 84%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 5px rgba(15,23,32,.2)}
-.flatbtn{position:absolute;z-index:400000;right:54px;bottom:10px;width:34px;height:34px;border:0;border-radius:50%;padding:0;font:inherit;font-size:12px;font-weight:700;letter-spacing:.02em;
+.flatbtn{position:absolute;z-index:400000;right:54px;bottom:10px;width:34px;height:34px;border:0;border-radius:50%;padding:0;font:inherit;font-size:0.75rem;font-weight:700;letter-spacing:.02em;
   color:#0d366b;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 4px rgba(15,23,32,.2);cursor:pointer}
 .flatbtn[hidden]{display:none}
-html.tabs .flatbtn{left:10px;right:auto;bottom:var(--rail);width:44px;height:44px;font-size:14px;color:var(--mark);background:color-mix(in srgb,var(--surface) 84%,transparent)}
+html.tabs .flatbtn{left:10px;right:auto;bottom:var(--rail);width:44px;height:44px;font-size:0.875rem;color:var(--mark);background:color-mix(in srgb,var(--surface) 84%,transparent)}
 /* The map's buttons are one block on the right, top to bottom: what is marked on the map (names, highway shields, road
    conditions), then what is laid over it (radar, avalanche danger). A button that is not showing leaves no gap. */
 html.tabs #map3d .maprail:not(.ready){visibility:hidden}
@@ -413,7 +413,7 @@ html.tabs #map3d .maprail #shieldsToggle:has(+ #roadPill[hidden]):has(~ #radarTo
 html.tabs .mapareas{display:block;top:14px;height:var(--mapbar-h,56px)}
 html.tabs .mapareas[hidden]{display:none}
 html.tabs .mapareas .seg{display:flex;width:100%;height:100%;margin:0;padding:0;background:none;border-radius:999px}
-html.tabs .mapareas .seg button{flex:1 1 0;min-width:0;height:100%;padding:0 2px;border-radius:999px;white-space:nowrap;color:var(--mark-mid);font-size:13px;font-weight:600;text-align:center}
+html.tabs .mapareas .seg button{flex:1 1 0;min-width:0;height:100%;padding:0 2px;border-radius:999px;white-space:nowrap;color:var(--mark-mid);font-size:0.8125rem;font-weight:600;text-align:center}
 html.tabs .mapareas .seg button[aria-pressed=true]{background:none;box-shadow:none;color:var(--mark)}
 html.tabs .mapareas .segind{top:0;bottom:0;background:color-mix(in srgb,var(--mark) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mark) 10%,transparent)}
 .mapareas .short{display:none}
@@ -458,14 +458,14 @@ html.tabs #toNow::before{display:none}
 html.tabs #backNow{display:grid;place-items:center;grid-column:3;grid-row:1 / 3;align-self:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--wash);color:var(--mark-dull);padding:0;cursor:pointer}
 html.tabs #backNow.away{color:var(--mark)}
 #backNow svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-html.tabs .mapbar .cap{grid-column:2;margin-top:5px;font-size:12px;line-height:15px;color:var(--mark-dull);display:flex;align-items:baseline;gap:10px}
+html.tabs .mapbar .cap{grid-column:2;margin-top:5px;font-size:0.75rem;line-height:15px;color:var(--mark-dull);display:flex;align-items:baseline;gap:10px}
 html.tabs .mapbar .cap b{margin-right:0;white-space:nowrap;color:var(--mark)}
 html.tabs .mapbar .cap span{margin-left:auto;text-align:right}
 html.tabs .roadpill[hidden]{display:none}
 .roadpill svg{width:24px;height:24px;fill:none;stroke:#0d366b;stroke-width:1.8;stroke-linecap:round}
 /* A badge on the corner counts the closed roads (red), or the roads with chain controls when none is closed (amber). */
 #roadPill::before{content:attr(data-count);width:auto;position:absolute;right:-5px;top:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;box-sizing:border-box;
-  display:grid;place-items:center;font-size:11px;font-weight:700;line-height:1;color:#fff;background:var(--dot,#8a929b);border:1.5px solid #fff}
+  display:grid;place-items:center;font-size:0.6875rem;font-weight:700;line-height:1;color:#fff;background:var(--dot,#8a929b);border:1.5px solid #fff}
 #roadPill:not([data-count])::before{display:none}
 /* The roads popup is a floating card in the map controls' own style: frosted, rounded like the storm slider, navy for
    what matters and dull blue for the rest. Each road is a row with its number in a chip. */
@@ -473,28 +473,28 @@ html.tabs .roadsheet{position:absolute;z-index:400002;left:4px;right:4px;bottom:
   background:color-mix(in srgb,var(--surface) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   box-shadow:0 2px 14px rgba(15,23,32,.24);transform:translateY(calc(100% + 22px));transition:transform .22s ease}
 html.tabs .roadsheet.open{transform:none}
-html.tabs .roadsheet .grab{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:16px;color:var(--mark)}
+html.tabs .roadsheet .grab{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:1rem;color:var(--mark)}
 html.tabs .roadsheet .grab b{font-weight:700;letter-spacing:-.01em;color:var(--accent)}
 .roadsheet .grab button{border:1px solid var(--border);width:44px;height:44px;border-radius:50%;background:var(--wash);color:var(--mark);display:grid;place-items:center;padding:0;cursor:pointer}
 .roadsheet .grab button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 html.tabs .roadsheet .roadnote{display:block;padding:0 18px 14px}
 html.tabs .roadsheet details.roads:not(.older){border-top:1px solid var(--border);padding:6px 0 4px}
-html.tabs .roadsheet details.roads summary{padding:5px 0;font-size:14px;color:var(--mark-dull)}
+html.tabs .roadsheet details.roads summary{padding:5px 0;font-size:0.875rem;color:var(--mark-dull)}
 html.tabs .roadsheet details.roads summary .sw{gap:8px}
 html.tabs .roadsheet details.roads summary .sw i{width:10px;height:10px;border-radius:50%}
-html.tabs .roadsheet details.roads summary .sw b{font-size:14px;font-weight:700;color:var(--mark)}
-html.tabs .roadsheet details.roads summary::after{color:var(--mark-dull);font-size:18px}
+html.tabs .roadsheet details.roads summary .sw b{font-size:0.875rem;font-weight:700;color:var(--mark)}
+html.tabs .roadsheet details.roads summary::after{color:var(--mark-dull);font-size:1.125rem}
 html.tabs .roadsheet .roads ul{margin:2px 0 6px}
-html.tabs .roadsheet .roads li{display:grid;grid-template-columns:38px minmax(0,1fr);column-gap:10px;align-items:start;font-size:13px;line-height:1.45;margin:0;padding:6px 0;color:var(--ink2)}
-html.tabs .roadsheet .roads li > b{justify-self:start;min-width:38px;box-sizing:border-box;text-align:center;padding:1px 6px;border-radius:6px;background:var(--wash);border:1px solid var(--border);color:var(--mark);font-size:12.5px;font-weight:700}
+html.tabs .roadsheet .roads li{display:grid;grid-template-columns:38px minmax(0,1fr);column-gap:10px;align-items:start;font-size:0.8125rem;line-height:1.45;margin:0;padding:6px 0;color:var(--ink2)}
+html.tabs .roadsheet .roads li > b{justify-self:start;min-width:38px;box-sizing:border-box;text-align:center;padding:1px 6px;border-radius:6px;background:var(--wash);border:1px solid var(--border);color:var(--mark);font-size:0.7812rem;font-weight:700}
 html.tabs .roadsheet details.roads.older{margin:0}
-html.tabs .roadsheet details.roads.older summary{font-size:13px;color:var(--mark-dull)}
-html.tabs .roadsheet details.roads p{margin:0 0 4px;font-size:12px;color:var(--mark-dull)}
-html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-top:4px;padding-top:9px;font-size:12.5px;color:var(--mark-dull)}
+html.tabs .roadsheet details.roads.older summary{font-size:0.8125rem;color:var(--mark-dull)}
+html.tabs .roadsheet details.roads p{margin:0 0 4px;font-size:0.75rem;color:var(--mark-dull)}
+html.tabs .roadsheet .roadnote .src{border-top:1px solid var(--border);margin-top:4px;padding-top:9px;font-size:0.7812rem;color:var(--mark-dull)}
 @media (max-width:720px){html.tabs #mapPanel{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0;border-bottom:0}}
 .tabbar div{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
-@media (max-width:460px){.tabbar button{font-size:12px;letter-spacing:0}}
-.tabbar button{border:0;border-top:2px solid transparent;background:none;color:var(--mark-dull);font:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;height:50px;padding:0 4px;cursor:pointer}
+@media (max-width:460px){.tabbar button{font-size:0.75rem;letter-spacing:0}}
+.tabbar button{border:0;border-top:2px solid transparent;background:none;color:var(--mark-dull);font:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:.02em;height:50px;padding:0 4px;cursor:pointer}
 .tabbar button[aria-current="page"]{color:var(--mark);border-top-color:var(--accent)}
 /* The tab bar is a floating glass pill: clear enough for the page to show through blurred, lifted off the bottom edge
    (a little into the home-indicator strip on a phone that has one), with the open tab as a tinted capsule inside it.
@@ -544,7 +544,7 @@ html.tabs .roadsheet:not(.open){transform:translateY(calc(100% + 36px + var(--ta
 }
 .panel.summary{margin-top:26px}
 .panel.summary .bar{margin:0;padding:16px 16px 0;flex-wrap:nowrap}
-.panel.summary h2{font-size:22px;line-height:1.15;white-space:nowrap}
+.panel.summary h2{font-size:1.375rem;line-height:1.15;white-space:nowrap}
 /* The level picker hangs at the right of the heading and the lines under it, its top level with the heading and its foot with the last line, so it adds no height. */
 .sumhead{position:relative}
 /* (Measured to the letters, not their boxes: the top of the heading's capitals and the baseline of the last line.) */
@@ -552,30 +552,30 @@ html.tabs .roadsheet:not(.open){transform:translateY(calc(100% + 36px + var(--ta
 .panel.summary .gridfresh,.panel.summary .gridcap{padding-right:128px}
 .gridwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table.heat{border-collapse:separate;border-spacing:3px;width:100%;font-variant-numeric:tabular-nums;padding:4px 10px 8px}
-.heat th{font-size:11px;font-weight:600;color:var(--muted);text-align:center;padding:2px 0 4px;white-space:nowrap}
+.heat th{font-size:0.6875rem;font-weight:600;color:var(--muted);text-align:center;padding:2px 0 4px;white-space:nowrap}
 /* In tabs the forecast's age sits under the Summary heading; the one-page layout has it at the top of the page. */
-.gridfresh{display:none;font-size:12.5px;color:var(--muted);padding:4px 16px 0;margin-top:0}
+.gridfresh{display:none;font-size:0.7812rem;color:var(--muted);padding:4px 16px 0;margin-top:0}
 html.tabs .gridfresh{display:block}
-.gridcap{font-size:11.5px;color:var(--ink2);padding:12px 16px 0}
+.gridcap{font-size:0.7188rem;color:var(--ink2);padding:12px 16px 0}
 .gridcap span{color:var(--muted)}
 /* The line saying what the numbers are is retired; the element stays because the page still writes to it. */
 #gridCap,#gridCap + br{display:none}
 .heat th.corner{position:sticky;left:0;background:var(--surface);z-index:2}
 .gridwrap.scrolled .heat td.name,.gridwrap.scrolled .heat th.corner{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
 .gridwrap.scrolled .heat tr.on td.name{box-shadow:6px 0 6px -6px rgba(0,0,0,.35)}
-.heat th.day b{display:block;color:var(--ink);font-size:13px;font-weight:650}
+.heat th.day b{display:block;color:var(--ink);font-size:0.8125rem;font-weight:650}
 .heat th.sep,.heat td.sep{display:none}
 .heat td.name{position:sticky;left:0;background:var(--surface);text-align:left;padding:4px 10px 4px 6px;white-space:nowrap;cursor:pointer;border-radius:8px;z-index:1}
-.heat td.name b{display:block;font-size:14.5px;font-weight:650}
-.heat td.name span{font-size:12px;color:var(--muted)}
+.heat td.name b{display:block;font-size:0.9062rem;font-weight:650}
+.heat td.name span{font-size:0.75rem;color:var(--muted)}
 /* The open mountain: its name and total sit on one grey pill. Grey, because blue in this table means snow. */
 .heat{--pick:color-mix(in oklab,var(--ink) 11%,var(--surface))}
 .heat tr.on td.name{background:var(--pick);border-radius:10px 0 0 10px;box-shadow:3px 0 0 var(--pick)}
 .heat tr.on td.total{background:var(--pick);border-radius:0 10px 10px 0}
 @media(hover:hover){.heat tr:not(.on):hover td.name b{text-decoration:underline}}
-.heat td.total{text-align:right;padding:0 8px;white-space:nowrap;font-size:15px;font-weight:700}
-.heat td.total span{display:block;font-size:11px;font-weight:400;color:var(--muted)}
-.cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;cursor:pointer;
+.heat td.total{text-align:right;padding:0 8px;white-space:nowrap;font-size:0.9375rem;font-weight:700}
+.heat td.total span{display:block;font-size:0.6875rem;font-weight:400;color:var(--muted)}
+.cell{height:44px;min-width:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.875rem;font-weight:650;cursor:pointer;
   color:var(--ink);background:linear-gradient(to top,color-mix(in oklab,var(--c) 62%,var(--surface)) var(--fill),var(--wash) var(--fill))}
 .cell.none{color:var(--muted);font-weight:400}
 /* A day's rain rises hatched above its snow in the box (see rainAsSnow); the number stays over it. */
@@ -584,33 +584,33 @@ html.tabs .gridfresh{display:block}
 .cell .rainfill{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;pointer-events:none}
 svg.defs{position:absolute;width:0;height:0;overflow:hidden}
 .legend .sw svg.hatchsw,.key .sw svg.hatchsw{width:16px;height:12px;flex:none}
-.srow .rainamt{text-align:center;font-size:11.5px;line-height:1.2;color:var(--mark-dull);white-space:nowrap}
+.srow .rainamt{text-align:center;font-size:0.7188rem;line-height:1.2;color:var(--mark-dull);white-space:nowrap}
 /* In the summary the days run evenly with no gap; after day 5 they are greyed, since that far out the numbers are a rough guide. */
 .cell.far{filter:grayscale(1);opacity:.55}
 .heat th.day.far{opacity:.55}
-.heat tr.pass td{padding:9px 6px 1px;font-size:11px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);cursor:default}
+.heat tr.pass td{padding:9px 6px 1px;font-size:0.6875rem;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);cursor:default}
 .heat tr.pass span{display:inline-block;position:sticky;left:16px}
 .legend .blocks{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .legend .blocks > span{display:inline-flex;border-radius:5px;overflow:hidden}
-.legend .blocks b{font-weight:600;font-size:11px;padding:2px 6px;color:#fff}
+.legend .blocks b{font-weight:600;font-size:0.6875rem;padding:2px 6px;color:#fff}
 .legend .blocks b.dark{color:#0f1720}
 /* Rain's place in the bar: the hatch the charts draw rain with, over the page's wash. */
 .legend .blocks b.rainb,.key .blocks b.rainb{color:var(--ink);background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--mark-dull) 55%,transparent) 0 1.4px,transparent 1.4px 4px),var(--wash)}
 .legend .sw i.gauge{width:14px;height:16px;border-radius:4px;background:linear-gradient(to top,color-mix(in oklab,var(--q1) 62%,var(--surface)) 45%,var(--wash) 45%)}
 .chance{height:44px;min-width:40px;border-radius:8px;border:1px solid var(--border);position:relative;overflow:hidden;display:flex;
-  align-items:center;justify-content:center;font-size:12.5px;color:var(--ink2);cursor:pointer}
+  align-items:center;justify-content:center;font-size:0.7812rem;color:var(--ink2);cursor:pointer}
 .chance i{position:absolute;left:0;bottom:0;height:4px;background:var(--snow);border-radius:0 2px 0 0}
 .chance.none{color:var(--muted)}
-.legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:2px 16px 12px;font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:2px 16px 12px;font-size:0.75rem;color:var(--muted)}
 #legend{margin:6px 16px 0;padding:10px 0 12px;border-top:1px solid var(--border)}
 .legend .sw{display:inline-flex;align-items:center;gap:3px}
 .legend .sw i{width:16px;height:12px;border-radius:3px;display:inline-block}
 #detail{margin-top:14px;padding:18px 18px 8px}
-.outlook .hhead h3 span{font-weight:500;color:var(--muted);font-size:13px;margin-left:4px}
+.outlook .hhead h3 span{font-weight:500;color:var(--muted);font-size:0.8125rem;margin-left:4px}
 /* Every row shares one grid: label, content, and a slot on the right that holds the lift list's plus, so the
    lift and trail bars come out the same width. */
-.orow{display:grid;grid-template-columns:58px minmax(0,1fr) 18px;column-gap:10px;align-items:center;padding:7px 0;font-size:13.5px;color:var(--ink2)}
-.orow .k{color:var(--muted);font-size:12.5px}
+.orow{display:grid;grid-template-columns:58px minmax(0,1fr) 18px;column-gap:10px;align-items:center;padding:7px 0;font-size:0.8438rem;color:var(--ink2)}
+.orow .k{color:var(--muted);font-size:0.7812rem}
 .orow b{color:var(--ink);font-weight:650}
 .orow .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:#3fa34d}
 .orow .dot.warn{background:var(--w1)}.orow .dot.bad{background:var(--w2)}
@@ -618,7 +618,7 @@ svg.defs{position:absolute;width:0;height:0;overflow:hidden}
 .orow .meter span{display:block}
 .s-open{background:#3fa34d}.s-groomed{background:#1b6e33}.s-hold{background:var(--w1)}.s-soon{background:#6da7ec}.s-closed{background:var(--axis)}
 .orow .held{color:var(--ink);font-weight:650}
-.orow small{font-size:11px;color:var(--muted);margin-left:4px}
+.orow small{font-size:0.6875rem;color:var(--muted);margin-left:4px}
 .orow small.live{color:#2f8a3c;font-weight:650}
 .orow em{font-style:normal}
 .orow em::before{content:", "}
@@ -627,8 +627,8 @@ svg.defs{position:absolute;width:0;height:0;overflow:hidden}
    one block with the resort's own report linked under it. */
 html.tabs .outlook{display:flex;flex-direction:column}
 html.tabs .outlook .hhead h3 span{display:none}
-html.tabs .outlook .hhead #statusSrc{flex:none;margin:0;font-size:12.5px}
-html.tabs .orow.verdict{display:block;margin:10px 0 8px;padding:9px 12px;border-radius:10px;font-size:13.5px;background:color-mix(in srgb,#3fa34d 14%,var(--surface));color:var(--mark-mid)}
+html.tabs .outlook .hhead #statusSrc{flex:none;margin:0;font-size:0.7812rem}
+html.tabs .orow.verdict{display:block;margin:10px 0 8px;padding:9px 12px;border-radius:10px;font-size:0.8438rem;background:color-mix(in srgb,#3fa34d 14%,var(--surface));color:var(--mark-mid)}
 html.tabs .orow.verdict.warn{background:color-mix(in srgb,var(--w1) 22%,var(--surface))}
 html.tabs .orow.verdict.bad{background:color-mix(in srgb,var(--w2) 20%,var(--surface))}
 html.tabs .orow.verdict[data-avy]{background:var(--wash)}
@@ -636,28 +636,28 @@ html.tabs .orow.verdict[hidden]{display:none}
 html.tabs .orow.verdict .k,html.tabs .orow.verdict .dot{display:none}
 html.tabs .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 html.tabs .orow.stat{display:block;padding:8px 11px;border-radius:10px;background:var(--wash)}
-html.tabs .orow.stat .k{display:block;font-size:11.5px}
-html.tabs .orow.stat b{display:block;font-size:19px;line-height:1.25;letter-spacing:-.01em}
-html.tabs .orow.stat em{display:inline;font-size:12.5px;color:var(--mark-dull)}
+html.tabs .orow.stat .k{display:block;font-size:0.7188rem}
+html.tabs .orow.stat b{display:block;font-size:1.1875rem;line-height:1.25;letter-spacing:-.01em}
+html.tabs .orow.stat em{display:inline;font-size:0.7812rem;color:var(--mark-dull)}
 html.tabs .orow.stat em::before{content:none}
 /* Whether the reading is live from the mountain or from the forecast is said in the block's top right corner. */
 html.tabs .orow.stat{position:relative}
-html.tabs .orow.stat small{position:absolute;top:8px;right:11px;margin:0;font-size:11.5px;font-weight:600;color:var(--mark-dull)}
+html.tabs .orow.stat small{position:absolute;top:8px;right:11px;margin:0;font-size:0.7188rem;font-weight:600;color:var(--mark-dull)}
 html.tabs .orow.stat small.live{color:var(--accent);font-weight:650}
 html.tabs details.both > summary.orow{display:block;padding:4px 0 2px}
 html.tabs details.both > summary.orow::after{content:none}
 html.tabs details.both .pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px;text-align:center}
-html.tabs details.both .extra{display:block;margin-top:5px;font-size:12.5px;color:var(--mark-dull)}
+html.tabs details.both .extra{display:block;margin-top:5px;font-size:0.7812rem;color:var(--mark-dull)}
 html.tabs details.both .list{padding:4px 0 6px}
-html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacing:0;text-transform:none;color:var(--accent)}
+html.tabs details.both .area.head{margin-top:10px;font-size:0.7812rem;letter-spacing:0;text-transform:none;color:var(--accent)}
 /* Insights and the resort's report: two half-width pills side by side (they can be pressed, so they are round-ended),
    each opening a squared card the full width of the page beneath the pair. A pill that is open is marked by its
    minus and a firmer fill. */
 .duo{margin:12px 0 0}
 .duopills{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .duopills.solo{grid-template-columns:1fr}
-.duopill{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:10px 16px;border:0;border-radius:999px;background:var(--wash);font:inherit;font-size:14px;font-weight:650;line-height:1.3;color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.duopill::after{content:"+";flex:none;width:12px;text-align:center;font-size:18px;line-height:1;font-weight:400;color:var(--mark-dull)}
+.duopill{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:10px 16px;border:0;border-radius:999px;background:var(--wash);font:inherit;font-size:0.875rem;font-weight:650;line-height:1.3;color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.duopill::after{content:"+";flex:none;width:12px;text-align:center;font-size:1.125rem;line-height:1;font-weight:400;color:var(--mark-dull)}
 /* Open, a pill and its card are one shape: the pill keeps its rounded top, runs straight down into the card, and the card's corner under it is square. */
 .duopill[aria-expanded="true"]{margin-bottom:-8px;padding-bottom:18px;border-radius:20px 20px 0 0;position:relative}
 /* The inside corner, where the pill's side meets the card's top, is rounded too. */
@@ -686,7 +686,7 @@ html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!
 #favSheet,#favSheet *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* A favorite in a region's own list carries a small star after its name. */
 .qrow.crow{justify-content:flex-start;align-items:flex-start;gap:10px}
-.cnum{flex:none;width:1.9em;text-align:right;font-style:normal;font-weight:700;font-size:13px;line-height:1.35;color:var(--accent);font-variant-numeric:tabular-nums}
+.cnum{flex:none;width:1.9em;text-align:right;font-style:normal;font-weight:700;font-size:0.8125rem;line-height:1.35;color:var(--accent);font-variant-numeric:tabular-nums}
 .cls{font-style:normal;font-weight:600;font-size:.6em;line-height:1;margin-left:2px;vertical-align:super;opacity:.7;font-variant-numeric:tabular-nums}
 .heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
 .heat.lifting tr[data-key]{transform:translate3d(0,0,0);transition:transform .15s ease-out}
@@ -694,34 +694,34 @@ html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!
 .heat.lifting tr.lifted:not(.on) td{background:var(--surface)}
 .heat.lifting tr.lifted.settle{transition:transform .15s ease-out}
 @media (prefers-reduced-motion:reduce){.heat.lifting tr[data-key]{transition:none}}
-.rby{font-size:12.5px;color:var(--mark-dull)}
+.rby{font-size:0.7812rem;color:var(--mark-dull)}
 .rby + .rfacts{margin-top:10px}
-.ralert{margin:12px 0 0;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--w1) 22%,var(--surface));font-size:13px;line-height:1.4;color:var(--mark-mid)}
+.ralert{margin:12px 0 0;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--w1) 22%,var(--surface));font-size:0.8125rem;line-height:1.4;color:var(--mark-mid)}
 .rwords{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
-.rwords p{margin:0 0 9px;font-size:13.5px;line-height:1.45;color:var(--mark-mid);text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.rwords p{margin:0 0 9px;font-size:0.8438rem;line-height:1.45;color:var(--mark-mid);text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 .rwords p:last-child{margin-bottom:0}
-.ilevels{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-size:13.5px;line-height:1.35;color:var(--mark-mid)}
+.ilevels{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-size:0.8438rem;line-height:1.35;color:var(--mark-mid)}
 .ilevels b{display:block;font-weight:650;color:var(--mark)}
 .ilevels span{display:block;color:var(--mark-mid)}
-.ilevels small{display:block;font-size:11.5px;color:var(--mark-dull);font-variant-numeric:tabular-nums}
-.ilist{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border);display:grid;gap:10px;font-size:13.5px;line-height:1.45;color:var(--mark-mid)}
-.ilist b{display:block;margin-bottom:1px;font-size:12px;font-weight:650;color:var(--accent)}
+.ilevels small{display:block;font-size:0.7188rem;color:var(--mark-dull);font-variant-numeric:tabular-nums}
+.ilist{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--border);display:grid;gap:10px;font-size:0.8438rem;line-height:1.45;color:var(--mark-mid)}
+.ilist b{display:block;margin-bottom:1px;font-size:0.75rem;font-weight:650;color:var(--accent)}
 .outlook details.all{padding:0;margin:0;border:0;background:none}
-.outlook details.all > summary{font-size:13.5px;font-weight:400;line-height:inherit}
-.outlook details.all > summary::after{margin:0;justify-self:end;font-size:18px;line-height:1}
+.outlook details.all > summary{font-size:0.8438rem;font-weight:400;line-height:inherit}
+.outlook details.all > summary::after{margin:0;justify-self:end;font-size:1.125rem;line-height:1}
 .all .list{padding:0 28px 6px 68px}
-.all .area{margin:6px 0 2px;font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.all .lift{display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-size:13px;color:var(--ink2)}
+.all .area{margin:6px 0 2px;font-size:0.6875rem;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.all .lift{display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-size:0.8125rem;color:var(--ink2)}
 .all .lift span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .all .lift span:last-child{flex:none;display:flex;align-items:center;gap:6px;color:var(--muted)}
 .all .lift i{width:8px;height:8px;border-radius:50%}
-.all .lift em{display:inline-block;width:20px;font-style:normal;font-size:10px;color:var(--ink)}
+.all .lift em{display:inline-block;width:20px;font-style:normal;font-size:0.625rem;color:var(--ink)}
 .all .lift em.ci{color:#3fa34d}.all .lift em.sq{color:#2a78d6}
 /* A groomed run says so before its status: a small squared tag, since it is not something to press. */
 .outlook .hhead{margin-bottom:0}
-.outlook .src{display:block;font-size:12.5px;line-height:1.4;color:var(--muted);margin:1px 0 6px}
+.outlook .src{display:block;font-size:0.7812rem;line-height:1.4;color:var(--muted);margin:1px 0 6px}
 .outlook a{color:var(--accent);font-weight:600;text-decoration:none;white-space:nowrap}
-.cams{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--grid);font-size:13px;color:var(--ink2)}
+.cams{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--grid);font-size:0.8125rem;color:var(--ink2)}
 .cams .shot{flex:none;border:0;padding:0;background:none;cursor:zoom-in;line-height:0}
 .cams .shot img{width:76px;height:57px;object-fit:cover;border-radius:8px}
 .cams .what{flex:1 1 0;min-width:0}
@@ -732,27 +732,34 @@ html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!
 .cams.big .shot img{width:100%;max-width:420px;height:auto}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dhead .who{min-width:0}
-.retry{margin-left:8px;padding:8px 16px;border:0;border-radius:999px;background:var(--mark);color:var(--surface);font:inherit;font-size:14px;font-weight:650;cursor:pointer}
-.dhead h2{font-size:22px;line-height:1.15}
+/* A reader who has asked for less motion gets none: every transition and animation ends at once, those the
+   script starts included, and nothing scrolls smoothly. */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+/* The Favorite star and the menus in the titles answer a touch a little beyond their edges. */
+.dhead .setmine{position:relative}
+.dhead .setmine::after{content:"";position:absolute;inset:-9px -4px}
+label.mtnpick::after{content:"";position:absolute;inset:-10px -6px}
+.retry{margin-left:8px;padding:8px 16px;border:0;border-radius:999px;background:var(--mark);color:var(--surface);font:inherit;font-size:0.875rem;font-weight:650;cursor:pointer}
+.dhead h2{font-size:1.375rem;line-height:1.15}
 /* The name is the mountain picker: the phone's own menu opens from a select laid invisibly over it. */
 .mtnpick{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
 /* In the title the name and its menu arrow sit in a row, where a raised number has to be lifted by hand: it goes to
    the top of the row and tucks in against the name. */
 .mtnpick .cls{align-self:flex-start;margin:.12em 0 0 -4px;font-size:.5em}
 .mtnpick svg{flex:none;width:12px;height:8px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.mtnpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.mtnpick select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:1rem}
 /* With one region, or inside another page (which has its own region bar), the summary's title is plain words. */
 .sumpick.solo{pointer-events:none;cursor:default}
 .sumpick.solo svg,.sumpick.solo select{display:none}
-.dhead .who > span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-.dhead .who > .dfresh{display:none;font-size:12.5px}
+.dhead .who > span{display:block;color:var(--muted);font-size:0.8125rem;margin-top:2px}
+.dhead .who > .dfresh{display:none;font-size:0.7812rem}
 html.tabs .dhead .who > .dfresh{display:block}
 /* The level picker sits where it does on the Region tab: its top at the top of the name's capitals, its bottom on the
    baseline of the last line beside it, with the lines between spaced evenly. */
 html.tabs .dhead{align-items:flex-start}
 html.tabs .dhead .seg.tri{margin-top:4px}
 /* Each level's height stands beside its row of the picker, the chosen one in navy. */
-.lvlft{flex:none;display:flex;flex-direction:column;gap:2px;height:65px;margin:4px -4px 0 auto;text-align:right;font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--mark-dull)}
+.lvlft{flex:none;display:flex;flex-direction:column;gap:2px;height:65px;margin:4px -4px 0 auto;text-align:right;font-size:0.7188rem;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--mark-dull)}
 .lvlft span{flex:1;display:flex;align-items:center;justify-content:flex-end}
 .lvlft span.on{font-weight:700;color:var(--mark)}
 /* Their right ends step in along the triangle's slanted side (12px a row), each the same short gap from it. */
@@ -763,56 +770,56 @@ html.tabs .dhead .seg.tri{margin-top:4px}
 html.tabs .dhead .who > span{margin-top:7px}
 html.tabs .dhead .who > .dfresh{margin-top:6.5px}
 .dhead .seg{margin-left:0;flex:none}
-.dhead .setmine{border:0;background:none;padding:4px 8px;margin:-4px -8px;font:inherit;font-size:16px;line-height:1;color:var(--accent);cursor:pointer}
+.dhead .setmine{border:0;background:none;padding:4px 8px;margin:-4px -8px;font:inherit;font-size:1rem;line-height:1;color:var(--accent);cursor:pointer}
 /* In tabs the star says what it is, and the mountain's pass follows it. */
-.dhead .setmine i{font-style:normal;font-size:13px;font-weight:600;margin-left:5px;vertical-align:1px}
+.dhead .setmine i{font-style:normal;font-size:0.8125rem;font-weight:600;margin-left:5px;vertical-align:1px}
 html.tabs .dhead .who > span{white-space:nowrap}
 /* The three lines of a pane's header are the same on every tab: a title that never wraps, then two lines of small
    dull text, each level with a row of the elevation picker beside them. */
 html.tabs .dhead h2,html.tabs .ahead h2,html.tabs .sumhead h2{white-space:nowrap}
-html.tabs .dhead .who > span:not(.dfresh){font-size:12.5px;line-height:18px;margin-top:3.5px;color:var(--mark-dull)}
-html.tabs .dhead .setmine{font-size:14px;line-height:18px;vertical-align:baseline}
-html.tabs .dhead .setmine i{font-size:12.5px;vertical-align:0}
-.tag{white-space:nowrap;font-size:11px;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
+html.tabs .dhead .who > span:not(.dfresh){font-size:0.7812rem;line-height:18px;margin-top:3.5px;color:var(--mark-dull)}
+html.tabs .dhead .setmine{font-size:0.875rem;line-height:18px;vertical-align:baseline}
+html.tabs .dhead .setmine i{font-size:0.7812rem;vertical-align:0}
+.tag{white-space:nowrap;font-size:0.6875rem;font-weight:600;color:#b3541e;border:1px solid rgba(179,84,30,.35);border-radius:999px;padding:1px 8px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
 .tile{background:var(--wash);border-radius:12px;padding:12px 14px}
-.tile .k{font-size:12px;color:var(--ink2);font-weight:550}
-.tile .v{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-top:2px}
-.tile .v small{font-size:14px;font-weight:500;color:var(--ink2);letter-spacing:0}
-.tile .r{font-size:12.5px;color:var(--muted)}
-h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
-.sub{font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.tile .k{font-size:0.75rem;color:var(--ink2);font-weight:550}
+.tile .v{font-size:1.875rem;font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-top:2px}
+.tile .v small{font-size:0.875rem;font-weight:500;color:var(--ink2);letter-spacing:0}
+.tile .r{font-size:0.7812rem;color:var(--muted)}
+h3{font-size:1.0625rem;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
+.sub{font-size:0.7812rem;color:var(--muted);margin-bottom:6px}
 .chart{position:relative}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
-.chart text{font-size:11px;fill:var(--muted);font-family:inherit}
+.chart text{font-size:0.6875rem;fill:var(--muted);font-family:inherit}
 .chart text.lab{fill:var(--ink2);font-weight:550}
 #tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  box-shadow:0 6px 20px rgba(0,0,0,.14);padding:8px 10px;font-size:12px;min-width:150px;display:none;z-index:5;font-variant-numeric:tabular-nums}
-#tip b{display:block;font-size:12.5px;margin-bottom:4px}
+  box-shadow:0 6px 20px rgba(0,0,0,.14);padding:8px 10px;font-size:0.75rem;min-width:150px;display:none;z-index:5;font-variant-numeric:tabular-nums}
+#tip b{display:block;font-size:0.7812rem;margin-bottom:4px}
 #tip.steady{width:min(250px,calc(100% - 8px))}
 #tip div{display:flex;justify-content:space-between;gap:14px;color:var(--ink2)}
 #tip div span:last-child{color:var(--ink);font-weight:600}
 .days{margin-top:4px}
-.srow{display:grid;grid-template-columns:56px minmax(120px,1fr) 96px 262px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--grid);font-size:13px}
-.srow.head{border-top:0;padding:2px 0;font-size:11.5px;color:var(--muted)}
+.srow{display:grid;grid-template-columns:56px minmax(120px,1fr) 96px 262px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--grid);font-size:0.8125rem}
+.srow.head{border-top:0;padding:2px 0;font-size:0.7188rem;color:var(--muted)}
 .srow.head + .srow{border-top:0}
-.srow .d b{display:block;font-size:14px}
-.srow .d span{color:var(--muted);font-size:12px}
-.srow .amt{font-size:17px;font-weight:700;white-space:nowrap}
-.srow .amt small{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
+.srow .d b{display:block;font-size:0.875rem}
+.srow .d span{color:var(--muted);font-size:0.75rem}
+.srow .amt{font-size:1.0625rem;font-weight:700;white-space:nowrap}
+.srow .amt small{display:block;font-size:0.7188rem;font-weight:400;color:var(--muted)}
 .srow.far{opacity:.62}
 .track{position:relative;height:14px;margin:0 7px}
 .track::before{content:"";position:absolute;left:-7px;right:-7px;top:6px;height:2px;border-radius:2px;background:var(--grid)}
 .track .band{position:absolute;top:3px;height:8px;border-radius:4px;opacity:.35;min-width:6px}
 .track .tick{position:absolute;top:1px;height:12px;width:1.5px;margin-left:-.75px;background:var(--ink2);opacity:.6}
 .track .dot{position:absolute;top:0;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--surface)}
-.split{display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;font-size:12px;color:var(--ink2);margin-top:4px}
+.split{display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;font-size:0.75rem;color:var(--ink2);margin-top:4px}
 .split svg{width:13px;height:13px;color:var(--muted)}
 .split span{display:inline-flex;align-items:center;gap:3px;margin-right:8px;font-variant-numeric:tabular-nums}
 .split em{font-style:normal;color:var(--muted)}
-.cond{display:grid;grid-template-columns:86px 50px 64px auto;justify-content:start;column-gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.cond{display:grid;grid-template-columns:86px 50px 64px auto;justify-content:start;column-gap:8px;align-items:center;font-size:0.7812rem;color:var(--ink2);font-variant-numeric:tabular-nums}
 .cond .temp{white-space:nowrap}
-.cond .temp small{color:var(--muted);font-size:11.5px}
+.cond .temp small{color:var(--muted);font-size:0.7188rem}
 .cond .sky{display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap}
 .cond .sky svg{width:17px;height:14px;color:var(--muted)}
 .cond .wind{display:flex;align-items:center;gap:6px}
@@ -822,9 +829,9 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .srow .pw{text-align:right}
 .cond .pscore{white-space:nowrap}
 .cond .wind{white-space:nowrap}
-.cond .wind small{font-size:11px;color:var(--muted);margin-left:1px}
+.cond .wind small{font-size:0.6875rem;color:var(--muted);margin-left:1px}
 .cond .pscore b{color:var(--ink);font-weight:700}
-.srow .pw b{font-size:15px}
+.srow .pw b{font-size:0.9375rem}
 .srow .pw span{color:var(--muted)}
 .tl{position:relative;margin-top:6px}
 /* Hourly in tabs: day chips, then a strip that reads the hour under the chart's fixed line in numbers. */
@@ -833,8 +840,8 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .hchips{overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;margin:8px -14px 0;padding:0 14px}
 .hchips::-webkit-scrollbar{display:none}
 .htrack{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--wash);vertical-align:top}
-.hchips button{position:relative;z-index:1;flex:none;width:42px;height:42px;border:0;border-radius:50%;padding:0;font:inherit;font-size:15px;font-weight:650;line-height:1.1;color:var(--mark-mid);background:none;cursor:pointer;font-variant-numeric:tabular-nums;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.hchips button small{display:block;font-size:11px;font-weight:600;color:var(--mark-dull)}
+.hchips button{position:relative;z-index:1;flex:none;width:42px;height:42px;border:0;border-radius:50%;padding:0;font:inherit;font-size:0.9375rem;font-weight:650;line-height:1.1;color:var(--mark-mid);background:none;cursor:pointer;font-variant-numeric:tabular-nums;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.hchips button small{display:block;font-size:0.6875rem;font-weight:600;color:var(--mark-dull)}
 .hchips button.past{color:var(--mark-dull);font-weight:600}
 .hchips button[aria-current=true]{color:var(--mark)}
 .hchips button.past[aria-current=true]{color:var(--mark-mid)}
@@ -845,21 +852,21 @@ h3{font-size:17px;font-weight:650;letter-spacing:-.01em;margin:24px 0 4px}
 .hchips button.today[aria-current=true]{color:var(--accent)}
 .hread{margin-top:8px;padding:8px 11px 9px;border-radius:11px;background:var(--wash)}
 .hread .when{display:flex;align-items:baseline;gap:8px}
-.hread .when b{font-size:14px;font-weight:700;color:var(--mark)}
-.hread .when small{font-size:11.5px;color:var(--mark-dull)}
+.hread .when b{font-size:0.875rem;font-weight:700;color:var(--mark)}
+.hread .when small{font-size:0.7188rem;color:var(--mark-dull)}
 .hread .vals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:6px}
 .hread .vals span{min-width:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0;border-top:1px solid var(--border)}
-.hread .vals small{font-size:11.5px;color:var(--mark-dull);white-space:nowrap}
-.hread .vals b{font-size:13px;font-weight:650;color:var(--mark);white-space:nowrap;font-variant-numeric:tabular-nums}
+.hread .vals small{font-size:0.7188rem;color:var(--mark-dull);white-space:nowrap}
+.hread .vals b{font-size:0.8125rem;font-weight:650;color:var(--mark);white-space:nowrap;font-variant-numeric:tabular-nums}
 /* The line the readout follows is thin, with a knob on top, so it reads as a marker and not as the chart's Now line. */
 .tl-fixed.quarter{left:25%;width:1px;background:var(--mark)}
 /* In tabs the plot runs the full width, edge to edge with the readout above it; its left-hand labels sit on the plot. */
 html.tabs .tl-scroll{margin-left:0}
 html.tabs .tl-axis{z-index:2;pointer-events:none}
 html.tabs .tl-axis text{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
-html.tabs .tl-axis text.in{font-size:11px;font-weight:650;fill:var(--mark);stroke-width:2.5px}
+html.tabs .tl-axis text.in{font-size:0.6875rem;font-weight:650;fill:var(--mark);stroke-width:2.5px}
 .tl-fixed.quarter::before{content:"";position:absolute;left:-4px;top:-10px;width:9px;height:9px;border-radius:50%;background:var(--mark)}
-.tl-scroll text.lvl{font-size:10.5px;font-weight:650;fill:var(--level);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.tl-scroll text.lvl{font-size:0.6562rem;font-weight:650;fill:var(--level);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 html.tabs #tlNow{display:none}
 /* Room after the last hour, so the final day can be brought under the fixed line too. */
 html.tabs .tl-scroll{display:flex}
@@ -868,20 +875,20 @@ html.tabs .tl-scroll::after{content:"";flex:none;width:75%}
 .tl-fixed{position:absolute;z-index:3;left:calc(44px + (100% - 44px) / 2);width:1px;background:var(--ink2);pointer-events:none}
 .tl-fixed[hidden]{display:none}
 .tl-axis{position:absolute;left:0;top:0;width:44px}
-.tl-axis text,.tl-scroll text{font-size:11px;fill:var(--muted);font-family:inherit}
-.tl-scroll text.hr{font-size:10px}
+.tl-axis text,.tl-scroll text{font-size:0.6875rem;fill:var(--muted);font-family:inherit}
+.tl-scroll text.hr{font-size:0.625rem}
 /* In tabs the chart's dates are navy like the tab's other headings; its numbers and strip names are the gray-blue. */
 html.tabs .tl-scroll text.lab{fill:var(--mark);font-weight:650}
 html.tabs details.hlgd{margin-top:6px}
 .tl-axis-r{position:absolute;right:0;top:0;width:40px;z-index:2;pointer-events:none}
-.tl-axis-r text{font-size:10.5px;font-weight:650;fill:var(--snow);font-family:inherit;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.tl-axis-r text{font-size:0.6562rem;font-weight:650;fill:var(--snow);font-family:inherit;paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 .tl-scroll text.lab{fill:var(--ink2);font-weight:550}
 .tl-scroll{margin-left:44px;overflow-x:auto;-webkit-overflow-scrolling:touch;cursor:crosshair}
 .tl-scroll svg{display:block}
 .key{row-gap:6px}
 .key .blocks{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .key .blocks > span{display:inline-flex;border-radius:5px;overflow:hidden}
-.key .blocks b{font-weight:600;font-size:11px;padding:2px 6px;color:#fff}
+.key .blocks b{font-weight:600;font-size:0.6875rem;padding:2px 6px;color:#fff}
 .key .blocks b.dark{color:#0f1720}
 .key .blocks > span{box-sizing:border-box;width:112px}
 .key .blocks > span.four{width:146px}
@@ -900,78 +907,78 @@ html.tabs details.hlgd{margin-top:6px}
 .key:has(.blocks){gap:8px}
 .hhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 6px}
 .hhead h3{margin:0}
-#tlNow{margin-right:auto;border:0;background:none;padding:4px 6px;font:inherit;font-size:12.5px;font-weight:650;color:var(--accent);cursor:pointer}
+#tlNow{margin-right:auto;border:0;background:none;padding:4px 6px;font:inherit;font-size:0.7812rem;font-weight:650;color:var(--accent);cursor:pointer}
 .hhead .seg{margin-left:0}
 .hhead .seg button{padding:5px 10px}
-h3 small{font-size:12px;font-weight:400;color:var(--muted);margin-left:6px}
+h3 small{font-size:0.75rem;font-weight:400;color:var(--muted);margin-left:6px}
 .key .glyph svg{width:13px;height:13px;color:var(--muted)}
 .key .sw i.kdot{width:10px;height:10px;border-radius:50%;background:var(--snow)}
 .key .sw i.kband{width:18px;height:8px;border-radius:4px;background:var(--snow);opacity:.35}
 .key .sw i.ktick{width:1.5px;height:12px;border-radius:0;background:var(--ink2);opacity:.6}
 .key .sw i{width:14px;height:10px;border-radius:3px;display:inline-block}
 #roadNote{display:block}
-.roadnote .src{color:var(--muted);font-size:12px;display:block;margin-top:6px}
+.roadnote .src{color:var(--muted);font-size:0.75rem;display:block;margin-top:6px}
 .roads{margin:0;padding:0}
 .roads ul{list-style:none;margin:4px 0 8px 23px;padding:0}
-.roads li{font-size:13px;line-height:1.45;margin-bottom:3px;color:var(--ink2)}
+.roads li{font-size:0.8125rem;line-height:1.45;margin-bottom:3px;color:var(--ink2)}
 details.roads{margin-top:0;padding:0}
 details.roads.none > summary{pointer-events:none;cursor:default}
 details.roads.none > summary::after{content:none}
-details.roads summary{font-size:13px;line-height:1.4;font-weight:400;padding:3px 0;color:var(--ink2);gap:8px;align-items:center}
+details.roads summary{font-size:0.8125rem;line-height:1.4;font-weight:400;padding:3px 0;color:var(--ink2);gap:8px;align-items:center}
 details.roads summary .sw{flex:none;display:inline-flex;align-items:center;gap:5px;line-height:1.4}
-details.roads summary .sw b{font-size:13px;line-height:1.4}
+details.roads summary .sw b{font-size:0.8125rem;line-height:1.4}
 details.roads summary .sum{flex:1;min-width:0;line-height:1.4}
-details.roads summary::after{font-size:16px;line-height:1;flex:none}
+details.roads summary::after{font-size:1rem;line-height:1;flex:none}
 details.roads.older{margin:0 0 6px 23px}
 details.roads.older ul{margin-left:0}
 details.roads.older summary{color:var(--muted)}
-.roads .sw span{margin-left:6px;color:var(--muted);font-size:13px}
-details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
-.drow{display:grid;grid-template-columns:64px minmax(120px,1fr) 108px 160px 124px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--grid);font-size:13px}
-.drow.head{border-top:0;color:var(--muted);font-size:11.5px;padding:4px 0}
-.drow .d b{display:block;font-size:14px}
-.drow .d span{color:var(--muted);font-size:12px}
-.drow .amt{font-size:17px;font-weight:700;white-space:nowrap}
-.drow .amt small{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
+.roads .sw span{margin-left:6px;color:var(--muted);font-size:0.8125rem}
+details.roads p{font-size:0.75rem;color:var(--muted);margin:0 0 4px 23px}
+.drow{display:grid;grid-template-columns:64px minmax(120px,1fr) 108px 160px 124px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--grid);font-size:0.8125rem}
+.drow.head{border-top:0;color:var(--muted);font-size:0.7188rem;padding:4px 0}
+.drow .d b{display:block;font-size:0.875rem}
+.drow .d span{color:var(--muted);font-size:0.75rem}
+.drow .amt{font-size:1.0625rem;font-weight:700;white-space:nowrap}
+.drow .amt small{display:block;font-size:0.7188rem;font-weight:400;color:var(--muted)}
 .drow .q b{display:block;font-weight:600}
-.drow .q span{color:var(--muted);font-size:12px}
-.drow.far .amt{font-size:13px;font-weight:550;color:var(--ink2)}
+.drow .q span{color:var(--muted);font-size:0.75rem}
+.drow.far .amt{font-size:0.8125rem;font-weight:550;color:var(--ink2)}
 .wh{position:relative;height:22px;margin:0 8px}
 .wh::before{content:"";position:absolute;left:-8px;right:-8px;top:10px;height:2px;border-radius:2px;background:var(--grid)}
 .wh .rng{position:absolute;top:7px;height:8px;min-width:8px;margin-left:-4px;padding-right:8px;box-sizing:content-box;border-radius:4px;background:var(--snow);opacity:.4}
 .wh .rng.far{opacity:.28}
 .wh .tick{position:absolute;top:4px;height:14px;width:1.5px;margin-left:-.75px;background:var(--ink2);opacity:.55}
 .wh .dot{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--snow);border:2px solid var(--surface)}
-.pw span.new{display:block;font-size:12px;color:var(--muted);margin-top:2px}
-.crow{display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--grid);font-size:13.5px;color:var(--ink2)}
+.pw span.new{display:block;font-size:0.75rem;color:var(--muted);margin-top:2px}
+.crow{display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--grid);font-size:0.8438rem;color:var(--ink2)}
 .crow:first-child{border-top:0}
 .crow .k{color:var(--ink);font-weight:650}
-.crow .fz{color:var(--muted);font-size:12px;margin-top:1px}
+.crow .fz{color:var(--muted);font-size:0.75rem;margin-top:1px}
 .crow .cw{display:flex;flex-wrap:wrap;gap:2px 14px}
 .crow .cw b{color:var(--ink);font-weight:650}
 .crow.off{color:var(--muted)}
 .season{margin-top:14px}
-.season .shead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;font-size:13.5px;color:var(--ink2)}
+.season .shead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;font-size:0.8438rem;color:var(--ink2)}
 .season .shead b{color:var(--ink);font-weight:650;margin-right:8px}
 .season .shead > div:first-child{min-width:0}
 .season .seg{margin-left:0}
-.season .seg button{font-size:12.5px;padding:5px 11px}
+.season .seg button{font-size:0.7812rem;padding:5px 11px}
 /* Every view's description sits in the same cell, with only the chosen one visible, so the cell is always as tall
    as the longest and the plot below never moves when the view changes. */
-.season .swhat{display:grid;font-size:12px;color:var(--muted);margin-top:4px}
+.season .swhat{display:grid;font-size:0.75rem;color:var(--muted);margin-top:4px}
 .season .swhat span{grid-area:1/1}
 .season .swhat .ghost{visibility:hidden}
 .schart{position:relative;margin:8px 0 6px;touch-action:pan-y}
 .stip{position:absolute;z-index:2;bottom:calc(100% - 10px);transform:translateX(-50%);display:flex;flex-direction:column;gap:1px;white-space:nowrap;pointer-events:none;box-sizing:border-box;width:200px;font-variant-numeric:tabular-nums;
-  background:var(--ink);color:var(--surface);border-radius:9px;padding:6px 10px;font-size:12px;line-height:1.35;box-shadow:0 3px 10px rgba(15,23,32,.25)}
+  background:var(--ink);color:var(--surface);border-radius:9px;padding:6px 10px;font-size:0.75rem;line-height:1.35;box-shadow:0 3px 10px rgba(15,23,32,.25)}
 .stip[hidden]{display:none}
-.stip > b{font-size:12.5px}
+.stip > b{font-size:0.7812rem}
 .stip span{opacity:.82}.stip span b{opacity:1}
 .stip .c{opacity:1}
 .schart .tdot{fill:var(--surface);stroke:var(--ink2);stroke-width:1.5}
 .schart .cdot{fill:var(--snow);stroke:var(--surface);stroke-width:1.5}
 .schart svg{display:block;max-width:100%}
-.schart text{font-size:10.5px;fill:var(--muted)}
+.schart text{font-size:0.6562rem;fill:var(--muted)}
 .schart .scale{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 .schart .g{stroke:var(--grid);stroke-width:1}
 .schart .g.month{opacity:.5}
@@ -1007,40 +1014,40 @@ details.roads p{font-size:12px;color:var(--muted);margin:0 0 4px 23px}
 @keyframes seasonring{0%,49%{opacity:0;transform:scale(1)}51%{opacity:.7;transform:scale(1)}82%,100%{opacity:0;transform:scale(4.2)}}
 @keyframes seasonhalo{0%,46%{opacity:.18}54%{opacity:.5}70%,100%{opacity:.18}}
 @keyframes seasondot{0%,48%{transform:scale(1)}54%{transform:scale(1.5)}62%{transform:scale(.92)}70%,100%{transform:scale(1)}}
-.schart .nowlab{font-size:12.5px;font-weight:700;fill:var(--ink)}
+.schart .nowlab{font-size:0.7812rem;font-weight:700;fill:var(--ink)}
 .schart .nowlab{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){.schart.inview .now,.schart.inview .nowglow,.schart.inview .nowspark,.schart.inview .nowring,.schart.inview .nowhalo,.schart.inview .nowdot{animation:none}}
 .schart .cur{stroke:var(--ink2);stroke-width:1;opacity:.5}
-.skey{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin:2px 0 8px}
+.skey{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:0.75rem;color:var(--muted);margin:2px 0 8px}
 .skey span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .skey i{display:inline-block;width:20px;height:0;border-top:2.5px solid var(--snow)}
 .skey i.typ{border-top:1.5px dashed var(--ink2)}
 .skey i.old{border-top:1px solid var(--muted);opacity:.6}
-.season .srec{font-size:12px;line-height:1.45;color:var(--muted);margin:-2px 0 8px}
-.season .snote{font-size:12.5px;line-height:1.5;color:var(--muted)}
+.season .srec{font-size:0.75rem;line-height:1.45;color:var(--muted);margin:-2px 0 8px}
+.season .snote{font-size:0.7812rem;line-height:1.5;color:var(--muted)}
 @media(max-width:720px){.season .seg{display:flex;width:100%}.season .seg button{flex:1}}
 .season .snote b{color:var(--ink2);font-weight:650}
 .meter{display:flex;gap:2px;margin-top:3px}
 .meter i{width:7px;height:10px;border-radius:2px;background:var(--grid)}
 .meter i.f{background:var(--snow)}
-.pw b{font-size:15px}
-.key{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0 2px;align-items:center}
+.pw b{font-size:0.9375rem}
+.key{display:flex;gap:16px;flex-wrap:wrap;font-size:0.75rem;color:var(--muted);margin:8px 0 2px;align-items:center}
 .key svg{width:34px;height:12px;vertical-align:-1px;margin-right:4px}
 details{margin-top:14px;padding:0 18px}
-details summary{cursor:pointer;font-size:16px;font-weight:650;padding:16px 0;list-style:none;display:flex;align-items:center}
-details summary::after{content:"+";margin-left:auto;color:var(--muted);font-weight:400;font-size:20px}
+details summary{cursor:pointer;font-size:1rem;font-weight:650;padding:16px 0;list-style:none;display:flex;align-items:center}
+details summary::after{content:"+";margin-left:auto;color:var(--muted);font-weight:400;font-size:1.25rem}
 details[open] > summary::after{content:"–"}
 details.lgd{margin:0 0 8px;padding:0}
-details.lgd summary{font-size:12.5px;font-weight:400;color:var(--muted);padding:0 0 2px;gap:6px}
+details.lgd summary{font-size:0.7812rem;font-weight:400;color:var(--muted);padding:0 0 2px;gap:6px}
 details.lgd summary em{font-style:normal;margin-left:auto;color:var(--ink2)}
-details.lgd summary::after{margin-left:0;font-size:15px;line-height:1}
-details p,details li{font-size:14.5px;color:var(--ink2);margin-bottom:10px;max-width:72ch}
+details.lgd summary::after{margin-left:0;font-size:0.9375rem;line-height:1}
+details p,details li{font-size:0.9062rem;color:var(--ink2);margin-bottom:10px;max-width:72ch}
 details b{color:var(--ink);font-weight:650}
 details ul{padding-left:20px;margin-bottom:10px}
 details .inner{padding-bottom:14px}
-table.plain{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;margin-bottom:12px}
+table.plain{border-collapse:collapse;font-size:0.8125rem;font-variant-numeric:tabular-nums;margin-bottom:12px}
 table.plain th,table.plain td{padding:6px 10px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap}
-table.plain th{color:var(--muted);font-weight:550;font-size:12px}
+table.plain th{color:var(--muted);font-weight:550;font-size:0.75rem}
 table.plain td:first-child,table.plain th:first-child{text-align:left}
 #mapPanel{margin-top:22px;overflow:hidden;display:none}
 #map3d{position:relative;isolation:isolate;height:min(68vh,620px);min-height:400px;background:radial-gradient(ellipse at 50% 38%,#eef4f9 0,#cfdfec 55%,#b3c8da 100%);touch-action:pan-y;cursor:grab}
@@ -1050,15 +1057,15 @@ table.plain td:first-child,table.plain th:first-child{text-align:left}
 .map-label,.map-shield,.map-closed,.map-lake{will-change:transform;backface-visibility:hidden}
 .map-label{position:absolute;left:0;top:0;pointer-events:auto;border:0;cursor:pointer;font:inherit;white-space:nowrap;text-align:center;
   background:rgba(255,255,255,.92);color:#0f1720;border-radius:8px;padding:3px 8px 4px;box-shadow:0 2px 8px rgba(15,23,32,.22);line-height:1.15}
-.map-label b{display:block;font-size:11.5px;font-weight:650}
-.map-label span{font-size:13px;font-weight:700;color:#2a78d6;font-variant-numeric:tabular-nums}
-.map-label em{display:block;font-style:normal;font-size:10.5px;color:#4b5560}
+.map-label b{display:block;font-size:0.7188rem;font-weight:650}
+.map-label span{font-size:0.8125rem;font-weight:700;color:#2a78d6;font-variant-numeric:tabular-nums}
+.map-label em{display:block;font-style:normal;font-size:0.6562rem;color:#4b5560}
 .map-label.on em{color:#c0c6cc}
 .map-label.mini b,.map-label.mini em{display:none}
 .map-shield{position:absolute;left:0;top:0;line-height:0;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
 .map-closed{position:absolute;left:0;top:0;width:22px;height:22px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));pointer-events:auto}
 .map-closed svg{display:block;width:100%;height:100%}
-.roadnote{padding:0 16px 12px;font-size:13px;color:var(--ink2);display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center}
+.roadnote{padding:0 16px 12px;font-size:0.8125rem;color:var(--ink2);display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center}
 .roadnote .sw{display:inline-flex;align-items:center;gap:5px}
 .roadnote .sw i{width:18px;height:5px;border-radius:3px;display:inline-block}
 .roadnote b{color:var(--ink);font-weight:650}
@@ -1080,8 +1087,8 @@ html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 
 /* A name moved to one side of its stake (where two would collide) keeps its pointer near that end, over the stake. */
 .map-label.east::after{left:22px}
 .map-label.west::after{left:auto;right:22px;margin-left:0;margin-right:-5px}
-.map-lake{position:absolute;left:0;top:0;font-size:12px;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
-.map-hint{position:absolute;z-index:400000;left:12px;bottom:10px;font-size:11.5px;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:3px 10px;pointer-events:none}
+.map-lake{position:absolute;left:0;top:0;font-size:0.75rem;font-style:italic;letter-spacing:.12em;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,40,80,.6);white-space:nowrap}
+.map-hint{position:absolute;z-index:400000;left:12px;bottom:10px;font-size:0.7188rem;color:#0f1720;background:rgba(255,255,255,.78);border-radius:999px;padding:3px 10px;pointer-events:none}
 .map-compass{position:absolute;z-index:400000;right:12px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.82);box-shadow:0 1px 4px rgba(15,23,32,.2);display:grid;place-items:center;pointer-events:none}
 .map-compass svg{width:26px;height:26px;will-change:transform}
 @media (hover:none){.map-hint .mouse{display:none}}
@@ -1095,10 +1102,10 @@ html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 
 #scrub::-moz-range-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent) var(--p,0%),var(--grid) var(--p,0%))}
 #scrub::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 #scrub::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.25)}
-#toNow{position:absolute;top:13px;transform:translateX(-50%);border:0;background:none;padding:2px 8px 4px;font:inherit;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);cursor:pointer;white-space:nowrap}
+#toNow{position:absolute;top:13px;transform:translateX(-50%);border:0;background:none;padding:2px 8px 4px;font:inherit;font-size:0.6562rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);cursor:pointer;white-space:nowrap}
 #toNow::before{content:"";position:absolute;left:50%;top:-5px;width:1.5px;height:6px;background:var(--axis);transform:translateX(-50%)}
 #toNow.away{color:var(--accent);font-weight:650}
-.mapbar .cap{grid-column:1 / -1;font-size:12.5px;line-height:1.45;color:var(--muted);margin:0}
+.mapbar .cap{grid-column:1 / -1;font-size:0.7812rem;line-height:1.45;color:var(--muted);margin:0}
 .mapbar .cap b{color:var(--ink);font-weight:650;margin-right:8px}
 @media (prefers-color-scheme:dark){#map3d{background:radial-gradient(ellipse at 50% 38%,#33424f 0,#1f2a34 55%,#141a20 100%)}}
 .regions{white-space:nowrap;font-size:.62em;font-weight:600;letter-spacing:-.01em;margin-left:4px}
@@ -1107,12 +1114,12 @@ html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 
 /* Beside the app name on a phone there is only room for the short form of a long region name. */
 .regions .short{display:none}
 .regions i{font-style:normal;color:var(--axis);margin:0 5px;font-weight:400}
-.map-toggle{position:absolute;z-index:400000;right:12px;top:10px;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:12px;font-weight:600;
+.map-toggle{position:absolute;z-index:400000;right:12px;top:10px;border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:0.75rem;font-weight:600;
   cursor:pointer;background:rgba(255,255,255,.85);color:#0f1720;box-shadow:0 1px 4px rgba(15,23,32,.2);display:inline-flex;align-items:center;gap:6px}
 .map-toggle::before{content:"";width:9px;height:9px;border-radius:50%;border:1.5px solid #4b5560}
 .map-toggle[aria-pressed=true]{background:#0f1720;color:#fff}
 .map-toggle[aria-pressed=true]::before,.map-key i{background:var(--light,#888);border-color:rgba(255,255,255,.75)}
-.map-key{position:absolute;z-index:400000;right:12px;top:44px;border-radius:10px;padding:5px 10px;font-size:11.5px;font-weight:600;line-height:1.7;
+.map-key{position:absolute;z-index:400000;right:12px;top:44px;border-radius:10px;padding:5px 10px;font-size:0.7188rem;font-weight:600;line-height:1.7;
   background:rgba(15,23,32,.82);color:#fff;pointer-events:none}
 .map-key span{display:flex;align-items:center;gap:6px}
 .map-key i{width:9px;height:9px;border-radius:50%;border:1.5px solid;box-sizing:border-box}
@@ -1121,7 +1128,7 @@ html.tabs .heat tr.on td.name::before{content:"";position:absolute;inset:0 -3px 
    section headings (accent, with a rule to the edge); what can be pressed is round-ended, what cannot is squared.
    The three ways in are true pills, half-circle ends however tall the row, with the words set in clear of the curve. */
 .gpage[hidden]{display:none}
-.ghead{display:flex;align-items:center;gap:12px;margin:24px 0 10px;font-size:15.5px;font-weight:650;letter-spacing:-.005em;color:var(--accent)}
+.ghead{display:flex;align-items:center;gap:12px;margin:24px 0 10px;font-size:0.9688rem;font-weight:650;letter-spacing:-.005em;color:var(--accent)}
 .ghead::after{content:"";flex:1;height:1px;background:var(--border)}
 .gpage > .ghead:first-child,.gpage > #qualityBody > .ghead:first-child{margin-top:6px}
 dialog.sheet .grab .gback{margin:0 10px 0 -8px}
@@ -1137,58 +1144,58 @@ dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden
 .namap .dot{fill:var(--accent);fill-opacity:.72;stroke:var(--surface);stroke-width:2;cursor:pointer}
 .namap .dot.on{fill:var(--mark);fill-opacity:1}
 .namap .here{fill:none;stroke:var(--mark);stroke-width:2.5}
-.wheresum{margin:2px 0 12px;font-size:13.5px;line-height:1.45;color:var(--mark-dull)}
+.wheresum{margin:2px 0 12px;font-size:0.8438rem;line-height:1.45;color:var(--mark-dull)}
 /* The region touched on the map, as a button that opens it: its whole name, with how many mountains it has on a
    line beneath, and an arrow at the right. The name is never cut short; a very long one runs onto a second line. */
 .wherego{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;margin:12px 0 4px;padding:8px 20px 8px 22px;border:0;border-radius:28px;background:var(--mark);color:var(--surface);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .wherego > div{min-width:0;display:flex;flex-direction:column;gap:1px}
-.wherego b{font-size:16px;font-weight:700;line-height:1.2}
-.wherego span{font-size:12.5px;font-weight:500;opacity:.8}
+.wherego b{font-size:1rem;font-weight:700;line-height:1.2}
+.wherego span{font-size:0.7812rem;font-weight:500;opacity:.8}
 .wherego svg{flex:none;width:9px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .wherego[disabled]{background:var(--wash);color:var(--mark-dull);cursor:default}
 .gnav button{position:relative;display:block;width:100%;text-align:left;padding:11px 46px 12px 26px;border:0;border-radius:999px;background:var(--wash);font:inherit;color:var(--mark);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.gnav button b{display:block;font-size:14.5px;font-weight:650}
-.gnav button span{display:block;margin-top:1px;font-size:12.5px;line-height:1.35;color:var(--mark-dull)}
+.gnav button b{display:block;font-size:0.9062rem;font-weight:650}
+.gnav button span{display:block;margin-top:1px;font-size:0.7812rem;line-height:1.35;color:var(--mark-dull)}
 .gnav button::after{content:"";position:absolute;right:24px;top:50%;width:7px;height:7px;margin-top:-4px;border-right:2px solid var(--mark-dull);border-bottom:2px solid var(--mark-dull);transform:rotate(-45deg)}
-.gpage p,.gpage li{font-size:13.5px;line-height:1.5;color:var(--ink2)}
+.gpage p,.gpage li{font-size:0.8438rem;line-height:1.5;color:var(--ink2)}
 .gpage p{margin:0 0 10px}
 .gpage ul{margin:0 0 10px;padding-left:18px}
-.gpage h5{margin:18px 0 6px;font-size:14px;font-weight:650;color:var(--mark)}
+.gpage h5{margin:18px 0 6px;font-size:0.875rem;font-weight:650;color:var(--mark)}
 .gpage p b{color:var(--ink)}
 .gpage a{color:var(--accent)}
 /* Every paragraph of "How we made the forecast" opens the same way: its subject on a line of its own, in the accent,
    at the size of the text under it. */
-#how p > b:first-child{display:block;margin-bottom:2px;font-size:13.5px;font-weight:650;color:var(--accent)}
+#how p > b:first-child{display:block;margin-bottom:2px;font-size:0.8438rem;font-weight:650;color:var(--accent)}
 #how p{margin-bottom:13px}
 figure.plot{margin:10px 0 14px;padding:10px;border-radius:11px;background:#fff;border:1px solid var(--border)}
 figure.plot img{display:block;width:100%;height:auto}
-figure.plot figcaption{margin-top:8px;font-size:12px;line-height:1.4;color:#6b7480}
+figure.plot figcaption{margin-top:8px;font-size:0.75rem;line-height:1.4;color:#6b7480}
 /* Tables in the sheet fit its width: cells wrap, and nothing scrolls sideways. */
 .gpage .gridwrap{margin:6px 0 16px;padding:0;overflow:visible}
-.gpage table.plain{width:100%;margin:0;font-size:12.5px;line-height:1.3}
+.gpage table.plain{width:100%;margin:0;font-size:0.7812rem;line-height:1.3}
 .gpage table.plain th,.gpage table.plain td{padding:7px 0 7px 10px;white-space:normal;vertical-align:bottom}
 .gpage table.plain td{vertical-align:top}
 .gpage table.plain th:first-child,.gpage table.plain td:first-child{padding-left:0;width:42%}
-.gpage table.plain th{font-size:11.5px;line-height:1.25}
+.gpage table.plain th{font-size:0.7188rem;line-height:1.25}
 /* The sources are a footnote: small grayed words centered at the foot of the front page, which open in place. */
 details.gcredit{margin:26px 0 2px;padding:0;border:0;background:none;text-align:center}
-details.gcredit > summary{display:block;padding:4px 0;font-size:12px;font-weight:400;color:var(--mark-dull)}
+details.gcredit > summary{display:block;padding:4px 0;font-size:0.75rem;font-weight:400;color:var(--mark-dull)}
 details.gcredit > summary::after{content:none}
-details.gcredit p{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--mark-dull)}
+details.gcredit p{margin:8px 0 0;font-size:0.75rem;line-height:1.5;color:var(--mark-dull)}
 /* One last set of house sizes in tabs: captions at 12.5px, running text at 13.5px, content cards with an 11px corner,
    and the settings card's pickers round-ended like every other thing that can be pressed. */
-html.tabs .panel.summary .gridcap{font-size:12.5px;padding-top:3.6px}
+html.tabs .panel.summary .gridcap{font-size:0.7812rem;padding-top:3.6px}
 /* The forecast time sits the same distance under the title here as on the Mountain tab. */
 html.tabs .panel.summary .gridfresh{padding-top:6.500px}
-html.tabs .panel.summary .legend{font-size:12.5px}
-html.tabs #detail .cams .what{font-size:13.5px}
+html.tabs .panel.summary .legend{font-size:0.7812rem}
+html.tabs #detail .cams .what{font-size:0.8438rem}
 html.tabs #detail .tile,html.tabs #detail .stats > *,html.tabs #detail .orow.verdict{border-radius:11px}
 dialog.sheet .seg,dialog.sheet .seg button{border-radius:999px}
 /* The forecast-quality list: a mountain, its grade, and the sensor it is checked against. The grades are not pressed, so they are squared off. */
-.qkey{display:grid;gap:8px;margin:12px 0 4px;padding:12px 14px;border-radius:11px;background:var(--wash);font-size:12.5px;line-height:1.4;color:var(--ink2)}
+.qkey{display:grid;gap:8px;margin:12px 0 4px;padding:12px 14px;border-radius:11px;background:var(--wash);font-size:0.7812rem;line-height:1.4;color:var(--ink2)}
 .qkey > div{display:grid;grid-template-columns:92px 20px minmax(0,1fr);gap:10px;align-items:start}
-.qkey b{font-size:14px;font-weight:700;color:var(--mark);text-align:right;font-variant-numeric:tabular-nums}
-.q{justify-self:start;flex:none;box-sizing:border-box;min-width:92px;text-align:center;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:700;white-space:nowrap;border:1px solid}
+.qkey b{font-size:0.875rem;font-weight:700;color:var(--mark);text-align:right;font-variant-numeric:tabular-nums}
+.q{justify-self:start;flex:none;box-sizing:border-box;min-width:92px;text-align:center;padding:2px 8px;border-radius:6px;font-size:0.7188rem;font-weight:700;white-space:nowrap;border:1px solid}
 .q.good{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-color:color-mix(in srgb,var(--accent) 32%,transparent)}
 .q.rough{color:#b3541e;background:rgba(179,84,30,.1);border-color:rgba(179,84,30,.35)}
 .q.none{color:var(--mark-dull);background:var(--wash);border-color:var(--border)}
@@ -1196,13 +1203,13 @@ dialog.sheet .seg,dialog.sheet .seg button{border-radius:999px}
 .qlist.fitted{margin:2px 0 14px}
 .qlist.fitted .qrow{padding:7px 0}
 /* A region's name in the list stands below the section headings in weight and size. */
-.qlist.fitted .qrow b{font-size:13px;font-weight:600;color:var(--mark)}
-.qlist.fitted .qrow small{font-size:12.5px}
+.qlist.fitted .qrow b{font-size:0.8125rem;font-weight:600;color:var(--mark)}
+.qlist.fitted .qrow small{font-size:0.7812rem}
 .qrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--border)}
 .qlist > .qrow:first-child{border-top:0;padding-top:2px}
 .qrow > div{min-width:0}
-.qrow b{display:block;font-size:14px;font-weight:650;line-height:1.3;color:var(--ink)}
-.qrow small{display:block;margin-top:1px;font-size:12.5px;line-height:1.3;color:var(--mark-dull)}
+.qrow b{display:block;font-size:0.875rem;font-weight:650;line-height:1.3;color:var(--ink)}
+.qrow small{display:block;margin-top:1px;font-size:0.7812rem;line-height:1.3;color:var(--mark-dull)}
 /* Every popup is one card, in the map's roads-card style: frosted, round-cornered, floating just above the tab bar,
    with its name at the top left and a round close button at the top right. A touch outside it puts it away. The
    mountain, zone and region choosers open in it too, in place of the phone's own picker. */
@@ -1219,7 +1226,7 @@ dialog.sheet.top{margin:calc(var(--headb,48px) + 14px) auto auto;max-height:calc
 dialog.sheet.top[open]{animation-name:sheetdown}
 @keyframes sheetdown{from{transform:translateY(-24px);opacity:0}}
 @media (prefers-reduced-motion:reduce){dialog.sheet[open]{animation:none}}
-dialog.sheet .grab{flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:16px;color:var(--mark)}
+dialog.sheet .grab{flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 6px 4px 18px;font-size:1rem;color:var(--mark)}
 dialog.sheet .grab b{font-weight:700;letter-spacing:-.01em;outline:none;color:var(--accent)}
 dialog.sheet button:focus{outline:none}
 dialog.sheet button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -1238,13 +1245,13 @@ dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavio
 .pinstar{font-style:normal;color:var(--accent);margin-right:8px}
 .pickopt[aria-current="true"] .pinstar{color:inherit}
 .pickpin:empty{display:none}
-.pickgroup{display:flex;align-items:center;gap:10px;margin:10px 10px 2px;font-size:12.5px;font-weight:700;color:var(--accent)}
+.pickgroup{display:flex;align-items:center;gap:10px;margin:10px 10px 2px;font-size:0.7812rem;font-weight:700;color:var(--accent)}
 .pickgroup::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
-.pickopt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;padding:0 12px 0 14px;border:0;border-radius:999px;background:none;color:var(--mark);font:inherit;font-size:15px;font-weight:550;text-align:left;cursor:pointer}
+.pickopt{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;padding:0 12px 0 14px;border:0;border-radius:999px;background:none;color:var(--mark);font:inherit;font-size:0.9375rem;font-weight:550;text-align:left;cursor:pointer}
 .pickhint{display:flex;flex-direction:column;gap:2px;padding:8px 14px 6px;color:var(--mark)}
-.pickhint b{font-weight:550;font-size:15px}
+.pickhint b{font-weight:550;font-size:0.9375rem}
 .pickhint span{font-size:.82em;opacity:.75}
-.pickopt > span > small{margin-left:8px;font-size:12.5px;font-weight:400;opacity:.62;white-space:nowrap}
+.pickopt > span > small{margin-left:8px;font-size:0.7812rem;font-weight:400;opacity:.62;white-space:nowrap}
 .pickopt svg{flex:none;width:15px;height:12px;fill:none;stroke:var(--surface);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
 .pickopt[aria-current="true"]{background:var(--mark);color:var(--surface);font-weight:700}
 .pickopt[aria-current="true"] svg{visibility:visible}
@@ -1253,29 +1260,29 @@ dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavio
 .mtnpick select,.regionpick select{pointer-events:none}
 /* Inside another page there is no snowflake to open them, so the settings sit at the foot of the page as a panel. */
 #settings h3{margin:0 0 6px}
-.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;color:var(--ink2)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-size:0.875rem;color:var(--ink2)}
 .setrow .seg{margin-left:0}
 /* Theme: one round swatch a colour; the chosen one wears a ring. */
 .swatches{display:inline-flex;gap:9px}
 .swatches button{width:28px;height:28px;border-radius:50%;border:0;padding:0;background:var(--sw);cursor:pointer;box-shadow:0 0 0 2px var(--surface)}
 .swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--mark)}
-@media(max-width:460px){.setrow .seg button{padding:6px 9px;font-size:12.5px}}
+@media(max-width:460px){.setrow .seg button{padding:6px 9px;font-size:0.7812rem}}
 .ahead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.ahead h2{font-size:22px;line-height:1.15}
-.ahead .by{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-.dchip{display:inline-block;border-radius:8px;padding:4px 10px;font-size:13px;font-weight:700;white-space:nowrap;text-align:center;border:1px solid rgba(15,23,32,.18)}
-.dchip.big{font-size:16px;padding:7px 14px;flex:none}
-button.dchip{font:inherit;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;cursor:pointer}
+.ahead h2{font-size:1.375rem;line-height:1.15}
+.ahead .by{display:block;color:var(--muted);font-size:0.8125rem;margin-top:2px}
+.dchip{display:inline-block;border-radius:8px;padding:4px 10px;font-size:0.8125rem;font-weight:700;white-space:nowrap;text-align:center;border:1px solid rgba(15,23,32,.18)}
+.dchip.big{font-size:1rem;padding:7px 14px;flex:none}
+button.dchip{font:inherit;font-size:0.6875rem;font-weight:700;padding:1px 8px;border-radius:999px;cursor:pointer}
 .avyicon{height:1.15em;width:auto;vertical-align:-.2em;margin-left:8px}
 .avyicon.group{height:15px;vertical-align:-3px;margin-left:7px}
 .avyicon.mini{height:12px;vertical-align:-2px;margin-left:6px}
 .heat td.name b i{font-style:normal;font-weight:500;color:var(--ink2);margin-left:1px}
-.gridnote{font-size:11.5px;color:var(--muted);padding:6px 16px 0}
-.awarn{margin-top:12px;border-radius:10px;padding:9px 12px;background:#ed1c24;color:#fff;font-size:14px;font-weight:650}
+.gridnote{font-size:0.7188rem;color:var(--muted);padding:6px 16px 0}
+.awarn{margin-top:12px;border-radius:10px;padding:9px 12px;background:#ed1c24;color:#fff;font-size:0.875rem;font-weight:650}
 /* In tabs the avalanche pane is cut into titled parts like the Mountain tab: blue headings with a rule, pill-ended chips and button. */
-html.tabs #avalanche h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:15.5px;color:var(--accent)}
+html.tabs #avalanche h3{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:0.9688rem;color:var(--accent)}
 html.tabs #avalanche h3::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
-html.tabs #avalanche .ahead .by{font-size:12.5px;color:var(--mark-dull)}
+html.tabs #avalanche .ahead .by{font-size:0.7812rem;color:var(--mark-dull)}
 html.tabs #avalanche .ahead .by b{font-weight:650;color:var(--mark-mid)}
 html.tabs #avalanche .dtable{max-width:none;margin-top:6px;gap:6px 8px}
 html.tabs #avalanche .dtable .dchip{border-radius:6px}
@@ -1287,12 +1294,12 @@ html.tabs #avalanche .abtn{margin-top:18px;background:var(--mark)}
 html.tabs #avalanche .probs li{padding:6px 0}
 html.tabs #avalanche .probs li:last-child{padding-bottom:0}
 /* House sizes: running text 13.5px, captions 12.5px in the dull blue, cards with an 11px corner, 10px from a heading to its content. */
-html.tabs #avalanche .abottom p{font-size:13.5px;line-height:1.45}
+html.tabs #avalanche .abottom p{font-size:0.8438rem;line-height:1.45}
 html.tabs #avalanche .abottom p:first-child{margin-top:6px}
-html.tabs #avalanche .ddefs p,html.tabs #avalanche .dsizes > div:not(.lscale){font-size:13.5px}
-html.tabs #avalanche .ddefs > .aby,html.tabs #avalanche .dsizes > .aby,html.tabs #avalanche .anote{font-size:12.5px;color:var(--mark-dull)}
+html.tabs #avalanche .ddefs p,html.tabs #avalanche .dsizes > div:not(.lscale){font-size:0.8438rem}
+html.tabs #avalanche .ddefs > .aby,html.tabs #avalanche .dsizes > .aby,html.tabs #avalanche .anote{font-size:0.7812rem;color:var(--mark-dull)}
 html.tabs #avalanche .dsizes{margin-top:30px}
-html.tabs #avalanche .dsizes h4{font-size:15.5px;margin-bottom:6px}
+html.tabs #avalanche .dsizes h4{font-size:0.9688rem;margin-bottom:6px}
 /* The center's running text (bottom line, discussion, weather, each problem's words) is set flush on both sides, hyphenated so the gaps stay small. */
 html.tabs #avalanche .abottom p,html.tabs #avalanche .pmore p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
 /* Running text is justified wherever it runs to several lines: the pages behind the snowflake, the notes in
@@ -1304,8 +1311,8 @@ html.tabs #avalanche .ahead .by .late{color:#c62828}
 @media (prefers-color-scheme:dark){html.tabs #avalanche .ahead .by .late{color:#ff6b6b}}
 .abanner{display:flex;align-items:center;gap:12px;margin-top:10px;padding:11px 14px 11px 10px;border-radius:11px;background:color-mix(in srgb,var(--d) 20%,var(--surface));border:1px solid color-mix(in srgb,var(--d) 45%,var(--surface))}
 .abanner img{flex:none;width:62px}
-.abanner b{display:block;font-size:16px;font-weight:700;color:var(--ink)}
-.abanner p{margin:2px 0 0;font-size:13.5px;line-height:1.4;color:var(--ink2)}
+.abanner b{display:block;font-size:1rem;font-weight:700;color:var(--ink)}
+.abanner p{margin:2px 0 0;font-size:0.8438rem;line-height:1.4;color:var(--ink2)}
 @media (prefers-color-scheme:dark){.abanner img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
 /* The title and its lines stand exactly where the Mountain tab's do: same top, same left, same line spacing. */
 html.tabs #avalanche .ahead{align-items:flex-start}
@@ -1326,24 +1333,24 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .amap .z.on{stroke:var(--mark);stroke-width:2.2;fill-opacity:.95}
 .amap .water{fill:var(--accent);opacity:.3;pointer-events:none}
 .amap ellipse.water,.amap path.water[fill-rule]{opacity:.9}
-.amap text{font-size:10px;font-weight:600;fill:var(--mark);paint-order:stroke;stroke:var(--surface);stroke-width:2.6px;stroke-linejoin:round;pointer-events:none}
-.amap text.pk{font-size:9px;font-weight:600;fill:var(--accent)}
-.amap text.tn{font-size:9px;font-weight:500;fill:var(--mark-mid)}
+.amap text{font-size:0.625rem;font-weight:600;fill:var(--mark);paint-order:stroke;stroke:var(--surface);stroke-width:2.6px;stroke-linejoin:round;pointer-events:none}
+.amap text.pk{font-size:0.5625rem;font-weight:600;fill:var(--accent)}
+.amap text.tn{font-size:0.5625rem;font-weight:500;fill:var(--mark-mid)}
 .amap path.pk{fill:var(--accent);stroke:var(--surface);stroke-width:.8;pointer-events:none}
 .amap circle{fill:var(--mark-mid);pointer-events:none}
 .amap .anote{margin:10px 2px 0;text-align:left}
-.aloc text{font-size:4px;font-weight:600;fill:var(--mark-mid);paint-order:stroke;stroke:var(--surface);stroke-width:1.1px;stroke-linejoin:round}
+.aloc text{font-size:0.25rem;font-weight:600;fill:var(--mark-mid);paint-order:stroke;stroke:var(--surface);stroke-width:1.1px;stroke-linejoin:round}
 .probs details.prob{flex:1;min-width:0;margin:0;padding:0}
 .probs details.prob > summary{display:flex;gap:12px;align-items:center;padding:0;font-size:inherit;font-weight:400}
-.probs details.prob > summary::after{flex:none;width:12px;text-align:center;margin-left:0;font-size:18px;color:var(--mark-dull)}
+.probs details.prob > summary::after{flex:none;width:12px;text-align:center;margin-left:0;font-size:1.125rem;color:var(--mark-dull)}
 .pmore{margin:8px 0 6px;padding:10px 12px;border-radius:11px;background:var(--wash)}
-.pmore h4{margin:0 0 3px;font-size:12px;font-weight:650;color:var(--accent)}
-.pmore p{margin:0 0 8px;font-size:13.5px;line-height:1.45;color:var(--ink2);max-width:none}
+.pmore h4{margin:0 0 3px;font-size:0.75rem;font-weight:650;color:var(--accent)}
+.pmore p{margin:0 0 8px;font-size:0.8438rem;line-height:1.45;color:var(--ink2);max-width:none}
 .pmore p:last-child{margin-bottom:0}
 /* The forecasters' photographs. One with a problem fills its card's width; the forecast's own sit two to a row. */
 .aphoto{margin:0}
 .aphoto img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:var(--wash)}
-.aphoto figcaption{margin-top:5px;font-size:12px;line-height:1.35;color:var(--mark-dull)}
+.aphoto figcaption{margin-top:5px;font-size:0.75rem;line-height:1.35;color:var(--mark-dull)}
 .pmore .aphoto{margin-top:10px}
 .pmore .aphoto img{aspect-ratio:auto;max-height:260px}
 .aphotos{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:8px}
@@ -1354,45 +1361,45 @@ html.tabs #avalanche .ahead .by{white-space:nowrap}
 .ddefs > details[open]{padding-bottom:12px}
 .ddefs > details.on{background:var(--wash);border-color:var(--mark-dull)}
 .ddefs > details > summary{padding:0;font-size:inherit;font-weight:400}
-.ddefs > details > summary::after{flex:none;width:12px;text-align:center;font-size:18px;color:var(--mark-dull)}
+.ddefs > details > summary::after{flex:none;width:12px;text-align:center;font-size:1.125rem;color:var(--mark-dull)}
 .ddefs > details[open] > summary{margin-bottom:7px}
 .ddefs .dhd{display:flex;align-items:center;gap:10px}
 .ddefs .dhd img{flex:none;height:34px}
 .ddefs .dchip{border-radius:999px}
 @media (prefers-color-scheme:dark){.ddefs .dhd img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
-.ddefs p{margin:0 0 4px;font-size:13px;line-height:1.4;color:var(--ink2)}
+.ddefs p{margin:0 0 4px;font-size:0.8125rem;line-height:1.4;color:var(--ink2)}
 .ddefs p b{font-weight:600;color:var(--ink)}
-.ddefs p i{display:block;font-style:normal;font-size:11px;font-weight:650;color:var(--mark-dull)}
-.ddefs > .aby{margin-top:8px;font-size:12px}
+.ddefs p i{display:block;font-style:normal;font-size:0.6875rem;font-weight:650;color:var(--mark-dull)}
+.ddefs > .aby{margin-top:8px;font-size:0.75rem}
 .lscale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:4px 0 10px}
-.lscale span{padding:5px 0;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:600;text-align:center;white-space:nowrap;color:var(--mark-dull)}
+.lscale span{padding:5px 0;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-size:0.6875rem;font-weight:600;text-align:center;white-space:nowrap;color:var(--mark-dull)}
 .lscale span.on{background:var(--mark);border-color:var(--mark);color:var(--surface)}
 .dsizes .lscale{margin-bottom:6px}
 .dsizes .lscale span{background:var(--wash)}
 .dsizes{margin-top:20px}
-.dsizes h4{margin:0 0 4px;font-size:13.5px;font-weight:650;color:var(--accent)}
-.dsizes > div:not(.lscale){display:flex;align-items:baseline;gap:12px;padding:7px 0;border-top:1px solid var(--border);font-size:13px;line-height:1.4;color:var(--ink2)}
+.dsizes h4{margin:0 0 4px;font-size:0.8438rem;font-weight:650;color:var(--accent)}
+.dsizes > div:not(.lscale){display:flex;align-items:baseline;gap:12px;padding:7px 0;border-top:1px solid var(--border);font-size:0.8125rem;line-height:1.4;color:var(--ink2)}
 .dsizes > div:not(.lscale) > b{flex:none;width:26px;font-weight:700;color:var(--ink)}
 .dsizes span b{font-weight:600;color:var(--ink);margin-right:6px}
-.dsizes > .aby{margin-top:0;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
+.dsizes > .aby{margin-top:0;padding-top:8px;border-top:1px solid var(--border);font-size:0.75rem}
 .dsizes > .lscale + .aby{padding-top:0;border-top:0}
 html.tabs #avalanche .afoot{margin-top:30px;padding:12px;border-radius:11px;background:var(--wash)}
 html.tabs #avalanche .afoot .abtn{margin-top:0}
 html.tabs #avalanche .afoot .anote{margin:8px 2px 0;text-align:center}
 html.tabs #avalanche .afoot .anote span{display:block}
-.anotice{margin-top:12px;border-radius:10px;padding:9px 12px;background:var(--wash);font-size:13.5px;color:var(--ink2)}
-.aadvice{margin-top:10px;font-size:14.5px;color:var(--ink2);max-width:72ch}
-.dtable{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:5px 8px;align-items:center;margin-top:14px;max-width:460px;font-size:13px;color:var(--ink2)}
-.dtable b{font-size:11.5px;font-weight:600;color:var(--muted);text-align:center}
+.anotice{margin-top:12px;border-radius:10px;padding:9px 12px;background:var(--wash);font-size:0.8438rem;color:var(--ink2)}
+.aadvice{margin-top:10px;font-size:0.9062rem;color:var(--ink2);max-width:72ch}
+.dtable{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:5px 8px;align-items:center;margin-top:14px;max-width:460px;font-size:0.8125rem;color:var(--ink2)}
+.dtable b{font-size:0.7188rem;font-weight:600;color:var(--muted);text-align:center}
 .dtable .dchip{display:block}
-.dscale{display:grid;grid-template-columns:1fr 1fr 1.35fr 1fr 1fr;margin-top:16px;font-size:10.5px;font-weight:600;line-height:1.25;text-align:center}
+.dscale{display:grid;grid-template-columns:1fr 1fr 1.35fr 1fr 1fr;margin-top:16px;font-size:0.6562rem;font-weight:600;line-height:1.25;text-align:center}
 .dscale div{min-width:0}
 .dscale img{display:block;height:30px;margin:0 auto 5px;transition:opacity .2s}
 .dscale .dim img{opacity:.3}
 .dscale span{display:block;padding:5px 2px 6px}
 .dscale div:first-child span{border-radius:8px 0 0 8px}
 .dscale div:last-child span{border-radius:0 8px 8px 0}
-.dscale b{display:block;font-size:13px;font-weight:700}
+.dscale b{display:block;font-size:0.8125rem;font-weight:700}
 .dicon{flex:none;width:84px;margin:-4px -4px 0 0}
 @media (prefers-color-scheme:dark){.dicon,.dscale img{filter:drop-shadow(0 0 .7px rgba(255,255,255,.95))}}
 .map-toggle img{height:15px;margin:-2px 0 -2px -2px;filter:drop-shadow(0 0 .6px rgba(255,255,255,.95))}
@@ -1400,18 +1407,18 @@ html.tabs #avalanche .afoot .anote span{display:block}
 .map-toggle.sign[aria-pressed=false]{background:rgba(236,239,242,.72);color:#6a7480;box-shadow:0 1px 3px rgba(15,23,32,.12)}
 .map-toggle[aria-pressed=false] img{filter:grayscale(.75);opacity:.7}
 .probs{list-style:none;padding:0}
-.probs li{display:flex;gap:12px;align-items:center;padding:8px 0;font-size:13.5px;color:var(--ink2)}
+.probs li{display:flex;gap:12px;align-items:center;padding:8px 0;font-size:0.8438rem;color:var(--ink2)}
 .probs li div{flex:1 1 auto;min-width:0}
 .probs .ptype{flex:none;width:46px;height:46px;border-radius:6px;background:#fff}
 .probs .rose{flex:none;width:58px;height:58px}
 .rose path{fill:var(--wash);stroke:var(--surface);stroke-width:1.2}
 .rose path.hit{fill:var(--ink)}
-.rose text{font-size:9px;font-weight:700;fill:var(--muted);text-anchor:middle}
+.rose text{font-size:0.5625rem;font-weight:700;fill:var(--muted);text-anchor:middle}
 .probs li b{display:block;color:var(--ink);font-weight:650}
-.abottom p{font-size:14.5px;color:var(--ink2);margin:4px 0 8px;max-width:72ch}
-.aby{font-size:12.5px;color:var(--muted);margin-top:10px}
-.abtn{display:block;text-align:center;margin-top:14px;background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 16px;font-size:15px;font-weight:650;text-decoration:none}
-.anote{font-size:12px;color:var(--muted);margin-top:10px}
+.abottom p{font-size:0.9062rem;color:var(--ink2);margin:4px 0 8px;max-width:72ch}
+.aby{font-size:0.7812rem;color:var(--muted);margin-top:10px}
+.abtn{display:block;text-align:center;margin-top:14px;background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 16px;font-size:0.9375rem;font-weight:650;text-decoration:none}
+.anote{font-size:0.75rem;color:var(--muted);margin-top:10px}
 .expired .dtable,.expired .probs,.expired .abottom,.expired .aadvice{opacity:.5}
 /* A wide screen: legends gather at the left instead of stretching across, and the avalanche pane's parts are larger. */
 @media(min-width:900px){
@@ -1420,58 +1427,58 @@ html.tabs #avalanche .afoot .anote span{display:block}
   #avalanche{padding:22px 24px 20px}
   .arating:has(.dtable){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:44px;align-items:center;margin-top:14px}
   .arating:has(.dtable) .aadvice,.arating:has(.dtable) .dtable{margin-top:0}
-  .aadvice{font-size:18px;line-height:1.4;color:var(--ink);max-width:none}
-  .dtable{max-width:none;font-size:14px;gap:7px 10px}
-  .dtable b{font-size:12.5px}
-  .dtable .dchip{padding:7px 10px;font-size:14px}
+  .aadvice{font-size:1.125rem;line-height:1.4;color:var(--ink);max-width:none}
+  .dtable{max-width:none;font-size:0.875rem;gap:7px 10px}
+  .dtable b{font-size:0.7812rem}
+  .dtable .dchip{padding:7px 10px;font-size:0.875rem}
   .probs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:44px}
-  .probs li{gap:16px;padding:12px 0;font-size:14.5px}
+  .probs li{gap:16px;padding:12px 0;font-size:0.9062rem}
   .probs .ptype{width:64px;height:64px}
   .probs .rose{width:84px;height:84px}
-  .abottom p{font-size:15px;max-width:none}
-  .dscale{font-size:12px;margin-top:22px}
+  .abottom p{font-size:0.9375rem;max-width:none}
+  .dscale{font-size:0.75rem;margin-top:22px}
   .dscale img{height:40px}
-  .dscale b{font-size:15px}
+  .dscale b{font-size:0.9375rem}
   .abtn{display:table;margin:16px auto 0;padding:12px 44px}
   .anote{text-align:center}
-  .srow{grid-template-columns:76px minmax(140px,300px) 120px minmax(400px,1fr);gap:20px;font-size:14px;padding:12px 0}
-  .srow .d b{font-size:15px}
-  .srow .amt{font-size:19px}
-  .cond{grid-template-columns:minmax(110px,1.3fr) minmax(84px,1fr) minmax(100px,1fr) 60px;justify-content:stretch;column-gap:14px;font-size:14.5px}
-  .cond .temp small,.cond .wind small{font-size:13px}
+  .srow{grid-template-columns:76px minmax(140px,300px) 120px minmax(400px,1fr);gap:20px;font-size:0.875rem;padding:12px 0}
+  .srow .d b{font-size:0.9375rem}
+  .srow .amt{font-size:1.1875rem}
+  .cond{grid-template-columns:minmax(110px,1.3fr) minmax(84px,1fr) minmax(100px,1fr) 60px;justify-content:stretch;column-gap:14px;font-size:0.9062rem}
+  .cond .temp small,.cond .wind small{font-size:0.8125rem}
   .cond .sky svg{width:20px;height:17px}
   .barb{width:23px;height:23px}
   #wx{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0 6px}
-  #wx .orow{display:block;background:var(--wash);border-radius:12px;padding:12px 14px;font-size:15px}
-  #wx .orow .k{display:block;font-size:12.5px;margin-bottom:3px}
+  #wx .orow{display:block;background:var(--wash);border-radius:12px;padding:12px 14px;font-size:0.9375rem}
+  #wx .orow .k{display:block;font-size:0.7812rem;margin-bottom:3px}
   #wx .orow > span:last-child:empty{display:none}
   #lifts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;align-items:start}
-  .orow{font-size:14.5px}
-  .orow .k{font-size:13px}
+  .orow{font-size:0.9062rem}
+  .orow .k{font-size:0.8125rem}
   .orow .meter{height:8px;border-radius:4px;margin-top:6px}
   #roadNote{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;align-items:start}
   #roadNote .src{grid-column:1/-1}
-  .roads li,details.roads summary,details.roads summary .sw b,.roads .sw span{font-size:14px}
-  details.roads p,.roadnote .src{font-size:13px}
-  .gridcap,.gridnote,.legend,.key{font-size:13px}
-  .srow.head{font-size:12.5px}
-  .tile .k,.tile .r{font-size:13px}
-  .aby,.anote{font-size:13px}
-  .season .shead{font-size:14.5px}.season .snote{font-size:13.5px}
-  .heat td.name span{font-size:12.5px}
+  .roads li,details.roads summary,details.roads summary .sw b,.roads .sw span{font-size:0.875rem}
+  details.roads p,.roadnote .src{font-size:0.8125rem}
+  .gridcap,.gridnote,.legend,.key{font-size:0.8125rem}
+  .srow.head{font-size:0.7812rem}
+  .tile .k,.tile .r{font-size:0.8125rem}
+  .aby,.anote{font-size:0.8125rem}
+  .season .shead{font-size:0.9062rem}.season .snote{font-size:0.8438rem}
+  .heat td.name span{font-size:0.7812rem}
 }
-footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+footer{margin-top:22px;font-size:0.75rem;color:var(--muted);text-align:center;line-height:1.7}
 @media(max-width:720px){
   .tiles{grid-template-columns:repeat(2,1fr)}
-  .tile .v{font-size:26px}
+  .tile .v{font-size:1.625rem}
   .tiles.four{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
   .tiles.four .tile{padding:9px 8px;border-radius:10px}
-  .tiles.four .k{font-size:10.5px;white-space:nowrap}
-  .tiles.four .v{font-size:21px;white-space:nowrap}
-  .tiles.four .v small{font-size:11.5px}
-  .tiles.four .r{font-size:11px;white-space:nowrap}
+  .tiles.four .k{font-size:0.6562rem;white-space:nowrap}
+  .tiles.four .v{font-size:1.3125rem;white-space:nowrap}
+  .tiles.four .v small{font-size:0.7188rem}
+  .tiles.four .r{font-size:0.6875rem;white-space:nowrap}
   .srow{grid-template-columns:44px minmax(0,1fr) 84px;row-gap:6px;gap:10px}
-  .srow .amt{text-align:right;font-size:16px}
+  .srow .amt{text-align:right;font-size:1rem}
   .srow .cond{grid-column:2 / span 2}
   .srow.head{display:none}
   .drow{grid-template-columns:52px minmax(90px,1fr) 84px;row-gap:4px}
@@ -1480,20 +1487,20 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
   .meter{margin-top:0}
   #detail{padding:16px 14px 6px}
   #avalanche{padding:16px 14px 14px}
-  .ahead h2{font-size:20px}
-  .dhead h2,.panel.summary h2{font-size:20px}
+  .ahead h2{font-size:1.25rem}
+  .dhead h2,.panel.summary h2{font-size:1.25rem}
   .panel.summary .bar{padding:16px 14px 0}
   .panel.summary .seg button{padding:6px 10px}
   .dhead .seg button{padding:6px 10px}
-  .heat td.name b{font-size:13.5px}
+  .heat td.name b{font-size:0.8438rem}
   .heat td.name{padding-right:6px}
   .heat td.total{padding:0 6px 0 2px}
 }
 @media(max-width:385px){
   .tiles.four{gap:5px}
   .tiles.four .tile{padding:8px 6px}
-  .tiles.four .k{font-size:9.5px}
-  .tiles.four .v{font-size:19px}
+  .tiles.four .k{font-size:0.5938rem}
+  .tiles.four .v{font-size:1.1875rem}
 }
 </style>
 </head>
@@ -1632,12 +1639,12 @@ if (HOSTED) {
 <h5>Tahoe and the Central Sierras</h5>
 <p>The snow ratio is inches of snow per inch of water. It is the hardest part to predict and the part most forecasts guess at.
 The raw material is 13,124 days of snowfall measured by hand at Sierra stations since 1979. Colder storms make lighter snow, but with a lot of scatter.</p>
-<figure class="plot"><img loading="lazy" src="report/ratio_vs_temperature.png" alt="Median snow ratio falls from about 14 to 7 as temperature rises from −12 to +3 °C"><figcaption>The line is the middle day at each temperature; the band holds the middle half of days.</figcaption></figure>
+<figure class="plot"><img loading="lazy" width="1278" height="683" src="report/ratio_vs_temperature.png" alt="Median snow ratio falls from about 14 to 7 as temperature rises from −12 to +3 °C"><figcaption>The line is the middle day at each temperature; the band holds the middle half of days.</figcaption></figure>
 <p>The model in use is fitted on 1,197 hand-measured snow days at 44 stations from the five winters that have detailed upper-air data, using temperature, wind, and humidity aloft plus the amount of water.
 Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, against 2.02 in for Kuchera (the common free method) and 2.07 in for a flat 10:1.</p>
-<figure class="plot"><img loading="lazy" src="report/ratio_predicted_vs_measured.png" alt="Predicted against measured snow ratio for Kuchera and for this site's model"><figcaption>Each dot is one station-day, predicted by a model fitted without that winter. A perfect forecast would sit on the line. Neither does: the ratio is noisy, and the model explains only about 15% of its day-to-day variation.</figcaption></figure>
-<figure class="plot"><img loading="lazy" src="report/ratio_error_by_temperature.png" alt="Average snowfall error by temperature band for three methods"><figcaption>Kuchera does worst in cold storms, where it calls for very light snow that the Sierra rarely delivers.</figcaption></figure>
-<div class="gridwrap"><table class="plain"><tr><th>Winter held out</th><th>Snow days</th><th>Kuchera error (in)</th><th>This site (in)</th></tr><tr><td>2021–22</td><td>231</td><td>2.40</td><td>2.06</td></tr><tr><td>2022–23</td><td>487</td><td>1.93</td><td>1.46</td></tr><tr><td>2023–24</td><td>207</td><td>1.92</td><td>1.61</td></tr><tr><td>2024–25</td><td>131</td><td>1.36</td><td>1.42</td></tr><tr><td>2025–26</td><td>141</td><td>2.47</td><td>1.97</td></tr></table></div>
+<figure class="plot"><img loading="lazy" width="1400" height="737" src="report/ratio_predicted_vs_measured.png" alt="Predicted against measured snow ratio for Kuchera and for this site's model"><figcaption>Each dot is one station-day, predicted by a model fitted without that winter. A perfect forecast would sit on the line. Neither does: the ratio is noisy, and the model explains only about 15% of its day-to-day variation.</figcaption></figure>
+<figure class="plot"><img loading="lazy" width="1260" height="693" src="report/ratio_error_by_temperature.png" alt="Average snowfall error by temperature band for three methods"><figcaption>Kuchera does worst in cold storms, where it calls for very light snow that the Sierra rarely delivers.</figcaption></figure>
+<div class="gridwrap"><table class="plain"><tr><th>Winter left out</th><th>Snow days</th><th>Kuchera error (in)</th><th>This site (in)</th></tr><tr><td>2021–22</td><td>231</td><td>2.40</td><td>2.06</td></tr><tr><td>2022–23</td><td>487</td><td>1.93</td><td>1.46</td></tr><tr><td>2023–24</td><td>207</td><td>1.92</td><td>1.61</td></tr><tr><td>2024–25</td><td>131</td><td>1.36</td><td>1.42</td></tr><tr><td>2025–26</td><td>141</td><td>2.47</td><td>1.97</td></tr></table></div>
 <p><b>What did not work:</b> training on the full 45-year record. Its upper-air data is coarse and does not line up with the forecast models, so it made the forecasts slightly worse, and it is not used.</p>
 <h5>Washington Cascades</h5>
 <p>The Washington Cascades use the Sierra's model. It was checked against 248 all-snow days measured by hand at 9 Cascade stations over three winters. Given the measured water, it misses the snowfall by <b>1.51 in</b> on average, against 2.08 in for Kuchera and 1.72 in for a flat 10:1, with no lean either way overall.</p>
@@ -1680,7 +1687,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <h4 class="ghead">Rain or snow</h4>
 <h5>Tahoe and the Central Sierras</h5>
 <p>At 5,405 wet days across 22 Tahoe snow sensors, the share of water that fell as snow is the snowpack's water gain divided by the precipitation. The curve in use turns the model's wet-bulb temperature into that share.</p>
-<figure class="plot"><img loading="lazy" src="report/rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about 1.25 °C.</figcaption></figure>
+<figure class="plot"><img loading="lazy" width="1261" height="705" src="report/rain_or_snow.png" alt="Measured snow share against wet-bulb temperature with the fitted curve"><figcaption>Gray dots are single days. Half the water falls as snow at a wet-bulb temperature of about 1.25 °C.</figcaption></figure>
 <p>Three methods were tried and came out tied: about 2.4 mm of water miscalled per wet day, half the 4.9 mm you get by calling everything snow.</p>
 <p>The curve is fitted at Tahoe and used in the Central Sierras as well.</p>
 <h5>Washington Cascades</h5>
@@ -1725,7 +1732,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>Weather models are consistently too dry or too wet at particular spots in the mountains, so each model is corrected against the snow sensors of the region it is forecasting. Each region's correction is fitted and tested on its own sensors. Which mountains it reaches is on the Sensor corrections page, where each carries a tag: Corrected, Low sensor or Uncorrected.</p>
 <h5>Tahoe</h5>
 <p>Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,206 model-days).</p>
-<figure class="plot"><img loading="lazy" src="report/water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
+<figure class="plot"><img loading="lazy" width="1500" height="1168" src="report/water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
 <p>Correcting each model to its nearest sensor improves every measure below, most of all the big storms.</p>
 <p><b>Guards:</b> a corrected day is never allowed to exceed the wettest day its sensor has recorded, and the blend takes its amount from the middle models, so one model with a runaway correction cannot carry the total. One model delivers 13% of the measured water at Mt Rose, so its correction there is a large multiple, and these guards keep it from running away. They apply in every region.</p>
 
@@ -1805,7 +1812,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
     <p><b>Temperature</b> The free air at that elevation, averaged over the lift hours for a day.</p>
     <p><b>Feels like</b> The standard wind chill for that temperature and wind; with little wind or above 50°F it is just the temperature.</p>
     <p><b>Wind</b> The free-air wind at that elevation, close to what an exposed ridge sees. The barb points to where it blows from, taken at about 10,000 ft for every elevation, which is near the crest in the Sierra and above the resorts' tops elsewhere; a long feather is 10 knots, a short one 5. Gusts above the base are estimated from the faster air 500 m higher up, the same way at every mountain. The method was checked against five winters of measured gusts at the Palisades snow sensor, the one station in the area that records them; no free ridge-top station exists to check how strong the gusts get.</p>
-    <p><b>The map</b> The land is drawn white where snow is lying, read from the snow sensors in the Sierra and the Cascades and, in New England, where there are none, from the depths the resorts report, which are mostly snow they made on their trails.</p>
+    <p><b>The map</b> The land is drawn white where snow is lying, read from the region's snow sensors where it has them and otherwise from the depths the resorts report, which early in the season are mostly snow they made on their trails.</p>
     <p><b>Storm totals</b> Snowfall added up until a full day passes with none; after that the count starts over, since older snow is no longer new.</p>
     <p><b>A ski day</b> From 4 pm the previous day to 4 pm, so it holds the overnight snow and the snow that falls while the lifts turn.</p>
     <p><b>Status</b> The weather line is our own reading of the forecast for one ski day, not anything the resort has said. It flags wind holds from summit wind by rule of thumb: on an exposed mountain a hold is possible from gusts of 45 mph, expected from 55, and a closure from 75. Those are Palisades' own published figures for its ridgetop gusts with 5 mph taken off each, to err on the side of warning. An average mountain is flagged 5 mph later and a sheltered one 15 mph later, and a mountain counts as average until a record of its real holds is kept. It also flags late openings after 6 in of overnight snow up high, rain down low, and extreme cold (a wind chill of −20°F or lower). Temperature and wind are the resort's own readings when today is showing and it publishes them (marked live), and the forecast otherwise.</p>
@@ -3990,7 +3997,9 @@ function liftsHtml(resort) {
   if (!navigator.onLine) return blank("Needs a signal");
   const [id, mine] = LIFT_FEEDS[resort.key], feed = liftFeeds[id];
   if (!feed || feed.failed) return blank(feed ? (feed.notPosted ? "Not posted by the resort yet" : "Could not be loaded right now") : "Loading…");
-  const areas = (feed.data.MountainAreas || []).filter((a) => mine(a.Name)), lifts = areas.flatMap((a) => a.Lifts || []), trails = areas.flatMap((a) => a.Trails || []);
+  // A feed with no list of lifts in it has changed shape or come back damaged: that is not a mountain yet to open.
+  if (!Array.isArray(feed.data.MountainAreas) || !feed.data.MountainAreas.some((a) => a && Array.isArray(a.Lifts))) return blank("Could not be read right now");
+  const areas = feed.data.MountainAreas.filter((a) => mine(a.Name)), lifts = areas.flatMap((a) => a.Lifts || []), trails = areas.flatMap((a) => a.Trails || []);
   const tally = {open: 0, hold: 0, soon: 0, closed: 0}, held = {}, due = {};
   for (const lift of lifts) {
     const group = liftGroup(lift.StatusEnglish || "");
@@ -4871,6 +4880,9 @@ function pickRegion() {
   const linked = everyMountain().find((r) => r.key === location.hash.slice(1) && has(regionOf(r)));
   const saved = remembered(REGION_KEY);
   region = linked ? regionOf(linked) : saved === FAVORITES && knownFavorites().length ? FAVORITES : saved && has(saved) ? saved : has("tahoe") ? "tahoe" : keys[0];
+  // The region this phone last had open is not on offer (its forecast has not been published): the page opens
+  // another and says which one it could not show.
+  if (!linked && saved && saved !== FAVORITES && REGIONS[saved] && !has(saved)) regionMiss = saved;
   HOME = region === FAVORITES ? knownFavorites()[0].key : homeOf(region);
   if (!linked) selected = HOME;
 }

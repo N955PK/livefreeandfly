@@ -231,6 +231,9 @@ export async function createMap(container, data, {region, onSelect, elevation = 
   // ---------- scene ----------
   const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  // The drawing is a picture to a screen reader; what it shows is in the Summary beside it.
+  renderer.domElement.setAttribute("role", "img");
+  renderer.domElement.setAttribute("aria-label", "Map of the region's mountains, shaded by new snow");
   container.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 1, 1000);

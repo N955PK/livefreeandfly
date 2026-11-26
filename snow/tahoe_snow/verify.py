@@ -37,7 +37,7 @@ def seattle_sections() -> list:
     water = water_section(
         "Water, Washington Cascades.",
         "The same test against 10 snow sensors in the Washington Cascades and Olympics, on the 2024, 2025, and 2026 "
-        "winters held out in turn. Crystal Mountain and White Pass use the curve pooled over all ten, which did "
+        "winters each left out of the fitting in turn. Crystal Mountain and White Pass use the curve pooled over all ten, which did "
         "better there than their own sensor's. Mt. Rainier, Mt. Baker, and Mt. St. Helens are shown their sensor "
         "but left uncorrected, since it sits far below the mountain; Glacier Peak and Mt. Adams have none.",
         "bias_methods_seattle.csv", "Corrected to the snow sensors (in use, except on the volcanoes)")
@@ -68,7 +68,7 @@ def seattle_sections() -> list:
         ratio = {"title": "Snow ratio, Washington Cascades.",
                  "note": f"The Sierra-trained ratio on {on['days']:,} hand-measured snow days at {on['stations']} "
                          f"Washington stations, {on['first_date'][:4]} to {on['last_date'][:4]}, none of which it "
-                         "was trained on. Refitting it with those days added did no better at a station held out "
+                         "was trained on. Refitting it with those days added did no better at a station left out "
                          f"({pooled['snow_error_in']:.2f} in), so the Sierra's is kept. It runs a little fluffy west "
                          "of the crest and dense east of it.",
                  "columns": ["Method", "Snowfall error (in)", "Average miss (in)"],
@@ -83,7 +83,7 @@ def tetons_sections() -> list:
     water = water_section(
         "Water, Tetons.",
         "The same test against 10 snow sensors from the Snake River's headwaters to the Gros Ventre, on the 2024, "
-        "2025, and 2026 winters held out in turn. Grand Targhee and Togwotee Pass use their own sensor and Jackson "
+        "2025, and 2026 winters each left out of the fitting in turn. Grand Targhee and Togwotee Pass use their own sensor and Jackson "
         "Hole and Teton Pass the Phillips Bench one; Snow King has none within reach and is left uncorrected.",
         "bias_methods_tetons.csv", "Corrected to the snow sensors (in use where a sensor is near)")
     split = ratio = None
@@ -126,7 +126,7 @@ def wasatch_sections() -> list:
     water = water_section(
         "Water, Wasatch.",
         "The same test against 10 snow sensors from Timpanogos Divide to Ben Lomond Peak, on the 2024, 2025, and "
-        "2026 winters held out in turn. The models are driest in Little Cottonwood, where they deliver under half "
+        "2026 winters each left out of the fitting in turn. The models are driest in Little Cottonwood, where they deliver under half "
         "of what Snowbird's sensor measures. Snowbasin has no sensor within reach and is left uncorrected.",
         "bias_methods_wasatch.csv", "Corrected to the snow sensors (in use where a sensor is near)")
     split = ratio = None
@@ -170,7 +170,7 @@ def colorado_sections() -> list:
     water = water_section(
         "Water, Northern Colorado.",
         "The same test against 16 snow sensors, twelve along I-70 from Beaver Creek to Berthoud Pass and four in "
-        "the Park Range above Steamboat, on the 2024, 2025, and 2026 winters held out in turn. The models are "
+        "the Park Range above Steamboat, on the 2024, 2025, and 2026 winters each left out of the fitting in turn. The models are "
         "driest above Steamboat, where they deliver under half of what the Tower sensor measures. Breckenridge has "
         "no sensor within reach and is left uncorrected.",
         "bias_methods_colorado.csv", "Corrected to the snow sensors (in use where a sensor is near)")
@@ -245,7 +245,7 @@ def canada_sections() -> list:
     for region, (name, where, stations) in CANADA.items():
         water = water_section(
             f"Water, {name}.",
-            f"The same test against {stations} The 2024, 2025, and 2026 winters are held out in turn.",
+            f"The same test against {stations} The 2024, 2025, and 2026 winters are each left out of the fitting in turn.",
             f"bias_methods_{region}.csv", "Corrected to the snow stations (in use where a station is near)")
         split = None
         if (TABLES / f"phase_table_{region}.csv").exists():
@@ -321,7 +321,7 @@ def west_sections() -> list:
         water = water_section(
             f"Water, {name}.",
             f"The same test against {len(west_stations(region))} snow sensors in {where}, on the 2024, 2025, "
-            f"and 2026 winters held out in turn. {reach[0].upper() + reach[1:]}",
+            f"and 2026 winters each left out of the fitting in turn. {reach[0].upper() + reach[1:]}",
             f"bias_methods_{region}.csv", "Corrected to the snow sensors (in use where a sensor is near)")
         split = ratio = None
         if (TABLES / f"phase_table_{region}.csv").exists():
@@ -384,12 +384,12 @@ def scorecard() -> dict:
          "rows": [[label + (" (in use)" if key == in_use else ""), f"{split.loc[key, 'held-out error (mm water)']:.2f}",
                    f"{split.loc[key, 'error on mixed days (mm water)']:.2f}"] for key, label in PHASE_ROWS.items()]},
         water_section("Water.", "Model water against what 22 snow sensors measured, on the 2025 and 2026 winters "
-                                "held out in turn.", "bias_methods.csv"),
+                                "each left out of the fitting in turn.", "bias_methods.csv"),
     ]
     regional = [("Water, Mammoth area.", water_section(
         "Water, Mammoth area.",
         "The same test against 10 snow sensors along the crest around Mammoth, on the 2024, 2025, and "
-        "2026 winters held out in turn. Mammoth Mountain and Sherwin Ridge use the Mammoth Pass sensor, "
+        "2026 winters each left out of the fitting in turn. Mammoth Mountain and Sherwin Ridge use the Mammoth Pass sensor, "
         "Matterhorn Peak the Slide Canyon one, and Dana Plateau the Dana Meadows one; June Mountain, "
         "Carson Peak, and Mt. Whitney have no working sensor nearby and are left uncorrected.",
         "bias_methods_mammoth.csv", "Corrected to the snow sensors (in use where a sensor is near)"))]
