@@ -59,7 +59,8 @@
 /* The mark sits at the optical center, a little above the measured one, where a lone mark reads as centered. */
 #splash img{width:min(38vw,170px);height:auto;transform:translateY(-4vh)}
 /* The logo is a picture, not text or a link: it cannot be selected, dragged or long-pressed. */
-#splash img,.setbtn img{-webkit-user-select:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none;pointer-events:none}
+#splash,#splash *,.setbtn img{-webkit-user-select:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#splash img,.setbtn img{pointer-events:none}
 /* Inside ski/lease the page is in a frame, and a phone lets a framed page slide both ways at once, where the page on
    its own slides one way per drag. So there the summary table is told to take only up-and-down drags from the
    phone, and its sideways slide is done by the page (see "hosted table"): each drag is one way or the other. */
@@ -1460,7 +1461,7 @@ if (HOSTED) {
 <dialog id="avySheet" class="sheet"><div class="grab"><b id="avyMapTitle" tabindex="-1" autofocus></b><button id="avyMapClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="amap" id="avyMapBody"></div></dialog>
 <dialog id="favSheet" class="sheet"><div class="grab"><b id="favTitle" tabindex="-1" autofocus></b><button id="favClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist"><button class="pickopt" id="favGo"></button></div></dialog>
 <div id="topTint" aria-hidden="true"></div>
-<div id="splash" aria-hidden="true"><img src="icons/mark-white.svg" alt="" width="170" height="170" draggable="false"></div>
+<div id="splash" aria-hidden="true" oncontextmenu="return false"><img src="icons/mark-white.svg" alt="" width="170" height="170" draggable="false"></div>
 <main>
   <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.svg" alt="" width="26" height="26" draggable="false"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
