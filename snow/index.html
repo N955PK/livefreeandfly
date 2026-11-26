@@ -4897,20 +4897,28 @@ $("regionPick").addEventListener("change", (e) => setRegion(e.target.value));
 // Search: the magnifier beside the pin finds a region or a mountain by name, in any region that has a forecast. A
 // classic descent is found by its line's name too ("Messner" finds Denali). Names that start with what was typed
 // come first, then names with a word that starts with it, then names that only contain it.
+// The state or province a region is in, where its name does not already say so: shown under its name in the search.
+const REGION_IN = {tahoe: "California & Nevada", mammoth: "California", shasta: "California & Oregon", lasvegas: "Nevada", rubymountains: "Nevada",
+  inlandnw: "Idaho & Washington", sunvalley: "Idaho", tetons: "Wyoming", wasatch: "Utah", lasal: "Utah", alaska: "Alaska", juneau: "Alaska",
+  valdez: "Alaska", denali: "Alaska", wrangellstelias: "Alaska", blackhills: "South Dakota", lakesuperior: "Minnesota, Wisconsin & Michigan",
+  midatlantic: "Pennsylvania to Virginia", newengland: "Vermont, New Hampshire & Maine", okanagan: "British Columbia",
+  powderhighway: "British Columbia", eastkootenays: "British Columbia & Alberta", waddington: "British Columbia", rockies: "Alberta",
+  gaspesie: "Quebec", baffin: "Nunavut"};
+const regionWhere = (key) => `${REGIONS[key].name}${REGION_IN[key] ? `, ${REGION_IN[key]}` : ""}`;
 const plain = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 function findMatches(typed) {
   const q = plain(typed);
   if (!q) return [];
   const rank = (name) => { const n = plain(name); return n.startsWith(q) ? 0 : n.includes(" " + q) ? 1 : n.includes(q) ? 2 : -1; };
   const keys = regionKeys(), found = [];
-  for (const key of keys) { const at = rank(REGIONS[key].name); if (at >= 0) found.push({at, kind: "region", key, name: REGIONS[key].name, under: "Region"}); }
+  for (const key of keys) { const at = rank(REGIONS[key].name); if (at >= 0) found.push({at, kind: "region", key, name: REGIONS[key].name, under: `Region${REGION_IN[key] ? ` · ${REGION_IN[key]}` : ""}`}); }
   for (const m of everyMountain()) {
     if (!keys.includes(regionOf(m))) continue;
     const lines = (CLASSICS[m.key] || []).map(([, line]) => line);
     const ranks = [rank(m.name), ...lines.map(rank)].filter((at) => at >= 0);
     if (!ranks.length) continue;
     const line = rank(m.name) < 0 ? lines.find((l) => rank(l) >= 0) : null;
-    found.push({at: Math.min(...ranks) + 0.5, kind: "mountain", key: m.key, name: m.name, under: `${line ? `${line} · ` : ""}${REGIONS[regionOf(m)].name}`});
+    found.push({at: Math.min(...ranks) + 0.5, kind: "mountain", key: m.key, name: m.name, under: `${line ? `${line} · ` : ""}${regionWhere(regionOf(m))}`});
   }
   return found.sort((a, b) => a.at - b.at || a.name.localeCompare(b.name)).slice(0, 40);
 }
