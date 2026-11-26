@@ -1213,7 +1213,12 @@ dialog.sheet .sheetbody{padding:2px 18px 16px;overflow-y:auto;overscroll-behavio
    while the rest scrolls under it, so it is in reach however far down the current choice is. */
 /* A choice outside every group (Favorites) stays above the list while the list scrolls under the header: it is not
    part of the scrolling list, so it needs no background of its own and looks like any other row. */
-.pickpin{flex:none;padding:0 8px 2px}
+.pickpin{flex:none;position:relative;z-index:1;margin:0 8px;padding:0 0 6px;border-bottom:1.5px solid var(--border);transition:box-shadow .15s}
+/* Once the list has moved, a soft shadow under the rule shows that it is passing beneath the pinned row. */
+.pickpin.over{box-shadow:0 8px 10px -8px rgba(15,23,32,.28)}
+.pickpin + .picklist{padding-top:4px}
+.pinstar{font-style:normal;color:var(--accent);margin-right:8px}
+.pickopt[aria-current="true"] .pinstar{color:inherit}
 .pickpin:empty{display:none}
 .pickgroup{display:flex;align-items:center;gap:10px;margin:10px 10px 2px;font-size:12.5px;font-weight:700;color:var(--accent)}
 .pickgroup::after{content:"";flex:1;height:1.5px;border-radius:1px;background:var(--border)}
@@ -5119,17 +5124,19 @@ function openPicker(select) {
   // In the region menus a region whose name does not say where it is has its state or province beside it.
   // It is left off where the heading the region stands under already names it (Alaska, British Columbia, Utah).
   const regional = select.id === "regionPick" || select.id === "sumPick";
-  const row = (o) => `<button class="pickopt" data-value="${esc(o.value)}"${o.selected ? ' aria-current="true"' : ""}><span>${esc(o.textContent)}${regional && REGION_IN[o.value] && !partName(o.value).includes(REGION_IN[o.value]) ? `<small>${esc(REGION_IN[o.value])}</small>` : ""}</span><svg viewBox="0 0 15 12" aria-hidden="true"><path d="M1.500 6.500 5.500 10.500 13.500 1.500"/></svg></button>`;
+  const row = (o) => `<button class="pickopt" data-value="${esc(o.value)}"${o.selected ? ' aria-current="true"' : ""}><span>${esc(o.textContent)}${regional && REGION_IN[o.value] && !partName(o.value).endsWith(`· ${REGION_IN[o.value]}`) ? `<small>${esc(REGION_IN[o.value])}</small>` : ""}</span><svg viewBox="0 0 15 12" aria-hidden="true"><path d="M1.500 6.500 5.500 10.500 13.500 1.500"/></svg></button>`;
   const groups = [...select.querySelectorAll("optgroup")];
   pickFor = select;
   $("pickTitle").textContent = select.getAttribute("aria-label") || "Choose";
   // In the menu's own order: a choice outside every group (Favorites, above the countries) is listed where it stands.
   $("pickList").innerHTML = groups.length ? [...select.children].map((node) => node.tagName === "OPTGROUP" ? `<div class="pickgroup">${esc(node.label)}</div>${[...node.children].map(row).join("")}` : "").join("") : [...select.options].map(row).join("");
-  $("pickPin").innerHTML = groups.length ? [...select.children].filter((node) => node.tagName !== "OPTGROUP").map(row).join("") : "";
+  // The pinned choice wears a star and stands over a rule, so it reads as set apart from the list that scrolls under it.
+  $("pickPin").innerHTML = groups.length ? [...select.children].filter((node) => node.tagName !== "OPTGROUP").map((o) => row(o).replace("<span>", '<span><i class="pinstar" aria-hidden="true">★</i>')).join("") : "";
+  $("pickPin").classList.remove("over");
   // The region menu always opens with Favorites pinned on top. With no mountain starred yet the row is not a
   // choice: it says how one gets there.
   if ((select.id === "regionPick" || select.id === "sumPick") && !select.querySelector(`option[value="${FAVORITES}"]`))
-    $("pickPin").innerHTML = ('<div class="pickhint"><b>Favorites</b><span>None yet. Tap the ☆ by a mountain\'s name on the Mountain tab to add it here.</span></div>');
+    $("pickPin").innerHTML = ('<div class="pickhint"><b><i class="pinstar" aria-hidden="true">★</i>Favorites</b><span>None yet. Tap the ☆ by a mountain\'s name on the Mountain tab to add it here.</span></div>');
   markHeader();
   $("pickSheet").showModal();
   const now = $("pickList").querySelector('[aria-current="true"]');
@@ -5148,6 +5155,7 @@ document.addEventListener("keydown", (e) => {
   e.preventDefault();
   openPicker(e.target);
 });
+$("pickList").addEventListener("scroll", () => $("pickPin").classList.toggle("over", $("pickList").scrollTop > 2), {passive: true});
 $("pickSheet").addEventListener("click", (e) => {
   const opt = e.target.closest(".pickopt");
   if (opt && pickFor) {
