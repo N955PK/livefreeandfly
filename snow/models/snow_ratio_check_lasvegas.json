@@ -1,0 +1,35 @@
+{
+  "in_use": "ridge (all), trained in the Sierra",
+  "checked_on": {
+    "days": 12,
+    "stations": 1,
+    "first_date": "2024-01-03",
+    "last_date": "2026-02-20",
+    "sensor_days_not_used": 137
+  },
+  "sierra_model": {
+    "snow_error_in": 1.02,
+    "snow_bias_in": 0.05,
+    "ratio_bias": -0.4
+  },
+  "kuchera": {
+    "snow_error_in": 1.47,
+    "snow_bias_in": -0.1,
+    "ratio_bias": -0.68
+  },
+  "flat_10_to_1": {
+    "snow_error_in": 0.96,
+    "snow_bias_in": -0.91,
+    "ratio_bias": -2.87
+  },
+  "pooled_refit_each_winter_held_out": {
+    "snow_error_in": 0.9,
+    "snow_bias_in": 0.14,
+    "ratio_bias": -0.14
+  },
+  "pooled_refit_each_station_held_out": {
+    "snow_error_in": 0.9,
+    "snow_bias_in": 0.13,
+    "ratio_bias": -0.16
+  }
+}

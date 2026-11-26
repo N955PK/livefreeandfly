@@ -1,12 +1,13 @@
 """The fourth collector's regions: the USA's western regions added after the third collector's plan filled."""
+import json
 import math
 import os
 import subprocess
 import sys
 
 from tahoe_snow import calibrate, config
-from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, FIT_BOXES, MORE_BBOX, MORE_STATIONS
-from tahoe_snow.snow import observations, train
+from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, FIT_BOXES, MODELS, MORE_BBOX, MORE_STATIONS
+from tahoe_snow.snow import observations, phase, train
 
 NORTH = {'westidaho': 6, 'wyoming': 7, 'southutah': 3, 'arizona': 3, 'lasvegas': 1, 'socal': 5, 'juneau': 3, 'valdez':
          2, 'inlandnw': 6, 'nwmontana': 7}
@@ -84,3 +85,21 @@ def test_the_fourth_collector_sees_its_regions_and_plans_only_them():
                          capture_output=True, check=True).stdout.strip()
     assert out.startswith(f"north {sorted(NORTH)} 43 36 ")
     assert 5400 < int(out.rsplit(" ", 1)[1]) < 6100
+
+
+def test_each_fitted_region_has_its_correction_weights_and_split_and_two_have_their_own_ratio():
+    for key in FIT_BOXES:
+        assert (MODELS / f"bias_{key}.json").exists(), key
+        weights = json.loads((MODELS / f"weights_{key}.json").read_text())
+        assert set(weights) == set(config.DET_MODELS) and abs(sum(weights.values()) - 1) < 0.005, key
+        kind, params = phase.load(key)
+        assert kind == "wet-bulb logistic" and 0 <= params["center_c"] <= 2, key
+        assert (MODELS / f"snow_ratio_check_{key}.json").exists(), key
+    # A region's own ratio is kept only where it clearly beat the Sierra's at stations left out of the fit. Las
+    # Vegas's check has twelve days at one station, too few to say anything.
+    own = {key for key in FIT_BOXES if (MODELS / f"snow_ratio_{key}.joblib").exists()}
+    assert own == {"southutah", "arizona"}
+    for key in own:
+        check = json.loads((MODELS / f"snow_ratio_check_{key}.json").read_text())
+        assert check["pooled_refit_each_station_held_out"]["snow_error_in"] < check["sierra_model"]["snow_error_in"] - 0.03
+    assert json.loads((MODELS / "snow_ratio_check_lasvegas.json").read_text())["checked_on"]["days"] < 30
