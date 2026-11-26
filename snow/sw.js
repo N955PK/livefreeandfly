@@ -4,7 +4,7 @@
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v12';
+const VERSION = 'sierra-snow-v13';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icons/mark-white.svg', 'icons/icon-192.png',
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
@@ -21,12 +21,12 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icon
   'data/terrain-powderhighway.json', 'data/terrain-powderhighway.bin', 'data/roads-powderhighway.json',
   'data/terrain-eastkootenays.json', 'data/terrain-eastkootenays.bin', 'data/roads-eastkootenays.json',
   'data/terrain-rockies.json', 'data/terrain-rockies.bin', 'data/roads-rockies.json',
-  'data/terrain-montana.json', 'data/terrain-montana.bin',
-  'data/terrain-sunvalley.json', 'data/terrain-sunvalley.bin',
-  'data/terrain-oregon.json', 'data/terrain-oregon.bin',
-  'data/terrain-newmexico.json', 'data/terrain-newmexico.bin',
-  'data/terrain-alaska.json', 'data/terrain-alaska.bin',
-  'data/terrain-swcolorado.json', 'data/terrain-swcolorado.bin'];
+  'data/terrain-montana.json', 'data/terrain-montana.bin', 'data/roads-montana.json',
+  'data/terrain-sunvalley.json', 'data/terrain-sunvalley.bin', 'data/roads-sunvalley.json',
+  'data/terrain-oregon.json', 'data/terrain-oregon.bin', 'data/roads-oregon.json',
+  'data/terrain-newmexico.json', 'data/terrain-newmexico.bin', 'data/roads-newmexico.json',
+  'data/terrain-alaska.json', 'data/terrain-alaska.bin', 'data/roads-alaska.json',
+  'data/terrain-swcolorado.json', 'data/terrain-swcolorado.bin', 'data/roads-swcolorado.json'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale

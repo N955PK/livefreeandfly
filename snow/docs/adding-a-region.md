@@ -295,9 +295,12 @@ were fitted in one pass, and three things about that are worth knowing before th
   and `pull_snotel`) it holds the Sierra's days from November 2023 on, 483 hand-measured ones. The three ratio
   models refitted that day (Montana, Alaska, Southwest Colorado) pool their region's days with those, not with the
   1,197 the Sierra's own model was trained on.
-- The Overpass servers could not be reached, so none of the six has road lines or a water mask; their `ROUTES` are
-  in `build_roads.py`, ready to run. No lift reader was written and no status page linked: the resorts' sites could
-  not be opened from the session that added them, and the pass and elevation figures came from search results.
+- The Overpass servers could not be reached, so the six have no water mask, and their road lines were built
+  another way: `python tools/build_roads.py <region> --relations` reads each highway's route relation from the main
+  OpenStreetMap API (`RELATIONS` in the tool; a small `map?bbox=` request on the road lists the relations its ways
+  belong to). Use it whenever Overpass is down.
+- No lift reader was written and no status page linked: the resorts' sites could not be opened from the session
+  that added them, and the pass and elevation figures came from search results.
 
 Sean wants each file saved even where it barely differs from the Sierra's, as the record that it was fitted there.
 Write the results into the testing page (2f) and add the region's sections to the scorecard (`verify.py`, beside
@@ -348,7 +351,8 @@ these mountains: the interstates and the canyon or pass roads, ten to fourteen i
 cd snow && python tools/build_roads.py <region>
 ```
 
-Writes `data/roads-<region>.json`; commit it. `CREST` is only for a map that should drop one side of a range; leave
+Writes `data/roads-<region>.json`; commit it. With Overpass down, add the routes' relation ids to `RELATIONS` and run it with
+`--relations` instead. `CREST` is only for a map that should drop one side of a range; leave
 the region out of it. The tool asks the public Overpass servers, which are sometimes at capacity for hours: try
 again later. Until the file exists the map draws no road lines and hides the Shields button, so the page can ship
 without it. A road whose number has a prefix the map has not drawn before (a new state) gets a plain white

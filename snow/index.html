@@ -1617,7 +1617,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <h5>Montana</h5>
 <p>Montana gets its own correction, fitted to 12 snow sensors from the Little Belts to the Beartooths and tested the same way on the 2024, 2025, and 2026 winters. Uncorrected, the four models together deliver 77% of the measured water, and corrected 103%. The average miss over three days falls from 0.25 in of water to 0.20, and in storms of 2 in or more from 1.14 in to 0.69. Corrected beat uncorrected in each of the three winters. Every mountain there has a sensor within reach: Big Sky and Beehive Basin take the Lone Mountain sensor, on the mountain itself.</p>
 <h5>Sun Valley</h5>
-<p>Sun Valley's correction is fitted to 11 snow sensors in the Sawtooths, the Smokies and the Soldier Mountains. The models are closer here than anywhere else it was tried: uncorrected they deliver 90% of the measured water, and corrected 101%. The average miss over three days falls from 0.24 in to 0.22, and in storms of 2 in or more from 0.73 in to 0.57; corrected beat uncorrected over three days in two of the three winters and tied in the third. Soldier Mountain, Galena Summit and Banner Summit each have a sensor. Sun Valley's own two mountains and Williams Peak have none within reach and are left uncorrected.</p>
+<p>Sun Valley's correction is fitted to 11 snow sensors in the Sawtooths, the Smokies and the Soldier Mountains. The models are closer here than anywhere else it was tried: uncorrected they deliver 90% of the measured water, and corrected 102%. The average miss over three days falls from 0.24 in to 0.22, and in storms of 2 in or more from 0.73 in to 0.57; corrected beat uncorrected over three days in two of the three winters and tied in the third. Soldier Mountain, Galena Summit and Banner Summit each have a sensor; Soldier Mountain's takes the curve pooled over the region, which did better there than its own. Sun Valley's own two mountains and Williams Peak have none within reach and are left uncorrected.</p>
 <h5>Oregon</h5>
 <p>Oregon's correction is fitted to 22 snow sensors from Mt. Hood to Willamette Pass. Uncorrected, the models deliver 83% of the measured water, and corrected 100%. The average miss over three days falls from 0.38 in to 0.32, and in storms of 2 in or more from 0.89 in to 0.60, better in each of the three winters. Mt. Hood Meadows, Timberline and Tilly Jane take the Mt. Hood Test Site sensor beside Timberline Lodge, and Skibowl, Cooper Spur, Hoodoo and Willamette Pass each have their own. Mt. Hood's summit climb is shown that sensor but left uncorrected, since it sits far below the mountain. Mt. Bachelor, Tumalo Mountain and South Sister have no sensor within reach and are left uncorrected.</p>
 <h5>New Mexico</h5>
@@ -1707,7 +1707,15 @@ const PEAK_AT = {rainier: [46.85104, -121.76076], mtbaker: [48.77896, -121.81985
   adams: [46.20338, -121.49484], sthelens: [46.18831, -122.18918],
   superior: [40.5921, -111.66703], cardiff: [40.59496, -111.65277], timpanogos: [40.39083, -111.64606],
   shasta: [41.4092, -122.19486], castlelake: [41.21894, -122.38904], lassen: [40.48813, -121.50492],
-  berthoud: [39.79496, -105.76403], lovelandpass: [39.67652, -105.86043], vailpass: [39.55716, -106.19595]};
+  berthoud: [39.79496, -105.76403], lovelandpass: [39.67652, -105.86043], vailpass: [39.55716, -106.19595],
+  // The third collector's backcountry peaks, each summit from OpenStreetMap or, for Alaska's three ridges and
+  // Beehive Peak, the high point the research found.
+  blackmore: [45.4446, -111.00374], beehive: [45.353965, -111.405676], lulupass: [45.07327, -109.95102],
+  galena: [43.87019, -114.71228], banner: [44.33183, -115.20094], williams: [44.15241, -115.00592],
+  hoodsouth: [45.37351, -121.69588], tillyjane: [45.37693, -121.67474], tumalo: [44.00536, -121.6427], southsister: [44.10352, -121.76933],
+  wheelerpeak: [36.57736, -105.40298], goldhill: [36.64308, -105.45584], lakepeak: [35.79642, -105.77113],
+  tincan: [60.782, -149.1424], sunburst: [60.7594, -149.1788], manitoba: [60.6845, -149.416], hatcherpass: [61.78243, -149.25489],
+  redmountainpass: [37.90149, -107.68915], coalbankpass: [37.69916, -107.80701]};
 // Where a mountain is read against the avalanche zones, where its own point falls outside them all: the Salt Lake
 // zone's edge runs through Park City and Deer Valley, whose upper mountains are inside it.
 // Steamboat's base lift is just outside Colorado's zones; the mountain above it is inside.
@@ -1842,8 +1850,7 @@ const REGIONS = {
     avalanche: [{id: "MSAC", name: "Mount Shasta Avalanche Center", url: "https://www.shastaavalanche.org/", state: "CA"}]},
   // The third collector's regions (see MORE_BRANCHES): the USA's regions added once the first collector's plan was
   // full. Each disc is a kilometre inside its terrain's shorter side, so its edge is the circle's own, and every
-  // state's routes here take the plain marker. None has its road lines yet: the Overpass servers did not answer
-  // the day these were built (2026-11-26), so the map draws none and hides the Shields button until they exist.
+  // state's routes here take the plain marker.
   montana: {name: "Montana", terrain: "data/terrain-montana", roads: "data/roads-montana.json", center: [45.931, -110.462], pick: "bigsky",
     // Showdown in the north and Lulu Pass in the south-east are each about 104 km from the middle. The lowest ground
     // is near 1,000 m, on the Missouri below Canyon Ferry, so heights are drawn from there.

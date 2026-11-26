@@ -6,8 +6,11 @@ Route names match the Caltrans chain-control feed (I-80, US-50, SR-89, ...).
 Run once per region, after build_terrain.py; the output is committed.
 """
 import json
+import re
 import sys
+import time
 from pathlib import Path
+from xml.etree import ElementTree
 
 import numpy as np
 import requests
@@ -79,8 +82,8 @@ ROUTES = {
     # Nakiska (40) and the David Thompson (11). British Columbia's side of the map writes "TCH 1" and "BC 93".
     "rockies": {"1": "TCH-1", "TCH 1": "TCH-1", "93": "AB-93", "BC 93": "BC-93", "93A": "AB-93A", "1A": "AB-1A",
                 "16": "AB-16", "40": "AB-40", "11": "AB-11"},
-    # The third collector's regions, each ref as it was seen on OpenStreetMap's ways (2026-11-26). None of these
-    # files is built yet: the Overpass servers did not answer that day.
+    # The third collector's regions, each ref as it was seen on OpenStreetMap's ways (2026-11-26). The Overpass
+    # servers did not answer that day, so these were built from the routes' relations (RELATIONS, ``--relations``).
     # I-90 through Bozeman and Livingston, the Gallatin Canyon (US 191) and the Big Sky spur (MT 64), the roads to
     # Bridger Bowl (MT 86), over Kings Hill to Showdown (US 89) and through Cooke City (US 212).
     "montana": {"I 90": "I-90", "US 191": "US-191", "US 89": "US-89", "US 287": "US-287", "US 20": "US-20",
@@ -112,6 +115,28 @@ ROUTES = {
                    "US 550": "US-550", "CO 62": "CO-62", "CO 145": "CO-145", "US 160": "US-160", "CO 149": "CO-149",
                    "I 70": "I-70"},
 }
+# When no Overpass server answers, a region's roads can be read from the main OpenStreetMap API instead, one route
+# relation at a time: the relations (each one state's stretch of a highway, both directions where they are mapped
+# apart) by the label the route is drawn with. Found by reading a small box of the map on each road
+# (``/api/0.6/map?bbox=``), whose answer lists the route relations its ways belong to.
+RELATIONS = {
+    "montana": {"I-90": [2328611, 2328612], "US-191": [2306279], "US-89": [1298019], "US-287": [1519971], "US-20":
+                [20002033], "US-212": [324710, 2308445], "US-12": [301540], "MT-64": [1264043], "MT-84":
+                [1266469], "MT-85": [5695334], "MT-86": [1266483], "MT-87": [1266574], "MT-287": [1266654]},
+    "sunvalley": {"ID-75": [2512900, 12254153], "ID-21": [3344440, 3367968], "US-20": [406627], "US-93":
+                  [2306282], "US-26": [2308604], "I-84": [402511, 6898994], "ID-46": [12253898]},
+    "oregon": {"US-26": [2308607], "OR-35": [17662931, 17662933], "I-84": [301506, 6898773], "OR-173": [12194531],
+               "US-20": [406017], "OR-126": [146232], "OR-22": [146953], "OR-242": [10554564], "US-97": [2306495],
+               "OR-58": [1862451], "I-5": [2326066], "OR-281": [6714062], "OR-372": [12189406]},
+    "newmexico": {"NM-150": [1485227], "NM-38": [1483000], "NM-522": [1492582], "NM-68": [1483515], "US-64":
+                  [2310348], "NM-434": [1492127], "NM-518": [1492592], "NM-475": [1492140], "NM-502": [1492183],
+                  "NM-501": [1492185], "US-84": [1629690], "US-285": [1628556], "I-25": [2333637, 2333638]},
+    "alaska": {"AK-1": [326212, 16266162], "AK-3": [7636966, 7636967], "AK-9": [536718]},
+    "swcolorado": {"CO-82": [1516311], "CO-133": [1516692], "CO-135": [1516696], "US-50": [6804642, 6804877],
+                   "US-285": [1628545], "US-550": [452017, 7479051, 7479052], "CO-62": [1516090], "CO-145":
+                   [1517027], "US-160": [7470608, 7470640], "CO-149": [1517030], "I-70": [84533, 6894122]},
+}
+OSM_API = "https://api.openstreetmap.org/api/0.6"
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the
 # roads east of it: the page reads road status for the east side alone, and the west-side roads dead-end.
@@ -171,7 +196,48 @@ def chain(ways: list) -> list:
     return lines
 
 
-def main(region: str = "tahoe") -> None:
+def inside_runs(geometry: list, bbox: tuple) -> list:
+    """The runs of a way's (lon, lat) points that lie inside the box (south, west, north, east)."""
+    south, west, north, east = bbox
+    runs, run = [], []
+    for lon, lat in geometry:
+        if south <= lat <= north and west <= lon <= east:
+            run.append((lon, lat))
+        else:
+            if len(run) >= 2:
+                runs.append(run)
+            run = []
+    if len(run) >= 2:
+        runs.append(run)
+    return runs
+
+
+def from_relations(region: str, bbox: tuple) -> dict:
+    """{route label: [ways]} read from the region's route relations, each way cut to the box."""
+    by_route = {}
+    for route, ids in RELATIONS[region].items():
+        for relation in ids:
+            response = requests.get(f"{OSM_API}/relation/{relation}/full", headers={"User-Agent": "roads-builder/0.1"},
+                                    timeout=180)
+            response.raise_for_status()
+            root = ElementTree.fromstring(response.content)
+            nodes = {node.get("id"): (round(float(node.get("lon")), 5), round(float(node.get("lat")), 5))
+                     for node in root.iter("node")}
+            kept = 0
+            for way in root.iter("way"):
+                tags = {tag.get("k"): tag.get("v") for tag in way.iter("tag")}
+                if not re.match(r"^(motorway|trunk|primary|secondary|tertiary)$", tags.get("highway", "")):
+                    continue
+                geometry = [nodes[nd.get("ref")] for nd in way.iter("nd") if nd.get("ref") in nodes]
+                pieces = inside_runs(geometry, bbox)
+                kept += len(pieces)
+                by_route.setdefault(route, []).extend(pieces)
+            print(route, "relation", relation, "->", kept, "ways in the box")
+            time.sleep(1)
+    return by_route
+
+
+def main(region: str = "tahoe", relations: bool = False) -> None:
     suffix = "" if region == "tahoe" else f"-{region}"
     box = json.loads((ROOT / "data" / f"terrain{suffix}.json").read_text())
     BBOX = (box["lat_s"], box["lon_w"], box["lat_n"], box["lon_e"])
@@ -181,7 +247,8 @@ def main(region: str = "tahoe") -> None:
 way["highway"~"^(motorway|trunk|primary|secondary)$"]["ref"~"(^|;) ?({pattern})( ?;|$)"]({BBOX[0]},{BBOX[1]},{BBOX[2]},{BBOX[3]});
 out geom;"""
     response = None
-    for server in SERVERS:
+    # ``--relations`` goes straight to the main API, for a day the Overpass servers are known to be down.
+    for server in [] if relations else SERVERS:
         try:
             response = requests.post(server, data={"data": query}, headers={"User-Agent": "roads-builder/0.1"}, timeout=180)
             response.raise_for_status()
@@ -189,10 +256,10 @@ out geom;"""
         except requests.RequestException as error:
             print(server, "failed:", str(error)[:80])
             response = None
-    if response is None:
+    if response is None and region not in RELATIONS:
         raise SystemExit("no Overpass server answered")
-    by_route = {}
-    for way in response.json()["elements"]:
+    by_route = {} if response is not None else from_relations(region, BBOX)
+    for way in response.json()["elements"] if response is not None else []:
         refs = [ref.strip() for ref in way["tags"]["ref"].split(";")]
         geometry = [(round(p["lon"], 5), round(p["lat"], 5)) for p in way["geometry"]]
         pieces = east_of(geometry, CREST[region]) if region in CREST else [geometry]
@@ -203,10 +270,11 @@ out geom;"""
     for route, ways in sorted(by_route.items()):
         lines = [simplify(np.array(line), TOLERANCE_DEG).round(5).tolist() for line in chain(ways)]
         lines = [line for line in lines if len(line) >= 2]
-        out.append({"route": route, "lines": lines})
+        if lines:   # a route whose relation lies wholly outside the box draws nothing
+            out.append({"route": route, "lines": lines})
         print(route, len(ways), "ways ->", len(lines), "lines,", sum(len(line) for line in lines), "points")
     (ROOT / "data" / f"roads{suffix}.json").write_text(json.dumps(out, separators=(",", ":")))
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:2])
+    main(*[arg for arg in sys.argv[1:] if arg != "--relations"][:1], relations="--relations" in sys.argv)

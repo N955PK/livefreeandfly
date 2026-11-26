@@ -115,13 +115,15 @@ def test_each_region_has_its_own_correction_weights_and_split():
         correction = biascorrect.from_json(json.loads((MODELS / f"bias_{key}.json").read_text()))
         for r in mountains(key):
             if r.station and r.corrected:
-                assert correction.fitted(r.station), r.key
+                # Soldier Mountain's sensor takes the curve pooled over its region, which did better there.
+                assert correction.fitted(r.station) == (r.station not in calibrate.POOLED_ONLY.get(key, ())), r.key
         weights = json.loads((MODELS / f"weights_{key}.json").read_text())
         assert set(weights) == set(config.DET_MODELS) and abs(sum(weights.values()) - 1) < 0.005
         kind, params = phase.load(key)
         assert kind == "wet-bulb logistic" and 0 <= params["center_c"] <= 2, key
     # Alaska's sensors stamp their days on Alaska's clock, an hour behind the Pacific one the rest keep.
     assert calibrate.SENSOR_OFFSET_H == train.SENSOR_OFFSET_H == {"alaska": 9}
+    assert calibrate.POOLED_ONLY["sunvalley"] == (ALL_RESORTS["soldier"].station,)
 
 
 def test_only_the_summit_climb_with_a_low_sensor_is_left_uncorrected():

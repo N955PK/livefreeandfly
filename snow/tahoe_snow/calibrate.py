@@ -63,7 +63,10 @@ PHANTOM_MM, DRY_MM = 25.0, 2.0
 # pooled one. Morse Lake and Pigtail Peak, east of the crest: the models were half as wet as these two in the 2024
 # and 2025 winters and nearly as wet in 2026, so a curve from two winters overshot the third (3-day error on storms
 # of 2 in or more: 1.43 and 1.13 in with their own curves, 1.04 and 1.00 with the pooled one, 1.16 and 1.02 raw).
-POOLED_ONLY = {"seattle": ("642:WA:SNTL", "692:WA:SNTL")}
+# Soldier R.S., at Soldier Mountain's base, where the models are already right (101% of the measured water): its own
+# curve missed three-day storms of 2 in or more by 0.50 in on the held-out winters, the pooled one by 0.28, and
+# over all three-day spans 0.24 in against 0.23 (raw 0.22).
+POOLED_ONLY = {"seattle": ("642:WA:SNTL", "692:WA:SNTL"), "sunvalley": ("769:ID:SNTL",)}
 
 
 def suffix(region: str) -> str:
