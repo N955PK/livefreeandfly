@@ -728,8 +728,6 @@ html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dhead .who{min-width:0}
 .dhead h2{font-size:22px;line-height:1.15}
-/* A name of seventeen letters or more is set a size down, so it stops short of the elevations beside it. */
-.dhead h2.long{font-size:18.5px;line-height:1.37}
 /* The name is the mountain picker: the phone's own menu opens from a select laid invisibly over it. */
 .mtnpick{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
 .mtnpick svg{flex:none;width:12px;height:8px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -2657,7 +2655,7 @@ function renderHeadline() {
   const wait = !regionPending ? "" : regionPending === FAVORITES ? "Loading the forecasts for your favorites…" : `Loading the ${esc(REGIONS[regionPending].name)} forecast…`;
   freshNote = wait || (offlineCopy ? `<span class="warn">Offline.</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
   $("gridFresh").innerHTML = freshNote;
-  if ($("detailFresh")) $("detailFresh").innerHTML = freshNote;
+  if ($("detailFresh")) { $("detailFresh").innerHTML = freshShort(); fitHead(); }
   $("meta").innerHTML = wait || (offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
 }
 
@@ -4112,6 +4110,26 @@ window.addEventListener("resize", () => {
 });
 // The line saying how old the forecast is, as last written by the headline; the Region and Mountain tabs both show it.
 let freshNote = "";
+// Beside the elevations there is less room than over the summary, so the Mountain tab's line drops "Forecasts".
+const freshShort = () => freshNote.replace("Forecasts updated ", "Updated ").replace("Forecasts from ", "From ");
+// The Mountain tab's title and the line under it stop short of the elevations beside them: a name too long for the
+// phone it is on is set smaller, half a pixel at a time, until it clears them (never under 14px), and the line
+// under it likewise (never under 10.5px).
+function fitHead() {
+  const head = $("detail").querySelector(".dhead"), h2 = head && head.querySelector("h2"), levels = head && [...head.querySelectorAll(".lvlft span")];
+  if (!h2 || !h2.offsetParent || !levels.length) return;
+  const edge = (el, side) => { const range = document.createRange(); range.selectNodeContents(el); return range.getBoundingClientRect()[side]; };
+  const fit = (el, level, floor) => {
+    if (!el || !level) return;
+    el.style.fontSize = "";
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (edge(el, "right") > edge(level, "left") - 4 && size > floor) { size -= 0.5; el.style.fontSize = `${size}px`; }
+  };
+  fit(h2, levels[0], 14);
+  fit(head.querySelector(".dfresh"), levels[1], 10.5);
+  fit(head.querySelector(".who > span:not(.dfresh)"), levels[2], 10.5);
+}
+window.addEventListener("resize", fitHead);
 // The star in the mountain's header: filled for a favorite. A tap adds the mountain to the favorites or takes it off.
 const star = (key) => { const on = isFavorite(key); return `<button class="setmine" data-home="${key}" aria-pressed="${on}" title="${on ? "Take this mountain off your favorites." : "Add this mountain to your favorites."}" aria-label="Favorite">${on ? "★" : "☆"}${tabbed() ? "<i>Favorite</i>" : ""}</button>`; };
 // While the Mountain tab is closed it is not drawn: it would find no width there and be drawn again on opening, and
@@ -4132,8 +4150,8 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2${headName(resort.name).length >= 17 ? ' class="long"' : ""}><label class="mtnpick">${esc(headName(resort.name))}${classicTag(resort.key)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
-      <span class="meta dfresh" id="detailFresh">${freshNote}</span>
+  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}${classicTag(resort.key)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
+      <span class="meta dfresh" id="detailFresh">${freshShort()}</span>
       <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     <nav class="jump" id="jump" aria-label="Sections"></nav></div>
@@ -4159,6 +4177,7 @@ function renderDetail() {
     ${measured(resort)}${webcams(resort)}`;
   for (const b of $("detail").querySelectorAll("[data-outlook]")) b.addEventListener("click", () => { outlookShift = +b.dataset.outlook; renderDetail(); });
   fillJump("jump", $("detail"));
+  fitHead();
   loadLifts(resort);
   const cams = $("detail").querySelector(".cams .shot");
   if (cams) cams.addEventListener("click", () => cams.parentNode.classList.toggle("big"));
@@ -4333,6 +4352,8 @@ function switchTab(view) {
 window.addEventListener("resize", () => placeTabInd(true));
 function showView(view) {
   document.documentElement.dataset.view = view;
+  // The Mountain tab's title is fitted once it is on screen: it has no size to measure while another tab shows.
+  requestAnimationFrame(fitHead);
   for (const b of document.querySelectorAll("#tabbar button")) { if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); }
   placeTabInd();
   window.scrollTo(0, 0);
