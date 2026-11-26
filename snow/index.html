@@ -666,6 +666,8 @@ html.tabs details.both .area.head{margin-top:10px;font-size:12.5px;letter-spacin
 html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
 #favSheet,#favSheet *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* A favorite in a region's own list carries a small star after its name. */
+.qrow.crow{justify-content:flex-start;align-items:flex-start;gap:10px}
+.cnum{flex:none;width:1.9em;text-align:right;font-style:normal;font-weight:700;font-size:13px;line-height:1.35;color:var(--accent);font-variant-numeric:tabular-nums}
 .cls{font-style:normal;font-weight:600;font-size:.6em;line-height:1;margin-left:2px;vertical-align:super;opacity:.7;font-variant-numeric:tabular-nums}
 .heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
 .heat.lifting tr[data-key]{transform:translate3d(0,0,0);transition:transform .15s ease-out}
@@ -1537,6 +1539,7 @@ if (HOSTED) {
   <h4 class="ghead">Coverage</h4>
   <div class="gnav">
     <button data-page-to="where"><b>Coverage map</b><span id="whereSum">A map of every region</span></button>
+    <button data-page-to="classics"><b>Fifty classic descents</b><span>The numbered lines and where each is</span></button>
   </div>
   <h4 class="ghead">The forecast</h4>
   <div class="gnav">
@@ -1549,6 +1552,7 @@ if (HOSTED) {
     <p>Tests: NOAA GHCN-Daily and CoCoRaHS hand measurements, USDA SNOTEL sensors, California Data Exchange Center snow pillows, and model archives from Open-Meteo.</p></details>
   </div>
   <div class="gpage" id="where" data-page="where" data-title="Coverage map" hidden><div id="whereBody"></div></div>
+  <div class="gpage" id="classics" data-page="classics" data-title="Fifty classic descents" hidden><div id="classicsBody"></div></div>
   <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
   <div class="gpage" id="score" data-page="score" data-title="How it is tested" hidden>
     <p>Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
@@ -4200,6 +4204,20 @@ const headName = (name) => HEAD_SHORT[name] || name;
 // publisher's site runs its pages in (50classicskidescents.com) and Wikipedia's list of the book's descents
 // repeats, which agree. A mountain that holds two lines carries both numbers.
 const CLASSICS = {polarstar: [[1, "Polar Star Couloir"]], tuckerman: [[2, "Tuckerman Ravine"], [3, "Huntington Ravine"]], landryline: [[4, "Landry Line"]], northmaroon: [[5, "North Face"]], crosscouloir: [[6, "Cross Couloir"]], wilsonpeak: [[7, "Northeast Face"]], silvercouloir: [[8, "Silver Couloir"]], superior: [[9, "South Face"]], hypodermicneedle: [[10, "Hypodermic Needle"]], coldfusion: [[11, "Cold Fusion Couloir"]], tukuhnikivatz: [[12, "Mount Tukuhnikivatz"]], grandteton: [[13, "Ford-Stettner Couloirs"]], skillet: [[14, "The Skillet"]], middleteton: [[15, "East Face Glacier Route"]], sickle: [[16, "The Sickle"]], devilsbedstead: [[17, "North Face"]], castlepeakid: [[18, "South Face"]], mcgown: [[19, "North Couloir"]], stimson: [[20, "Southwest Face"]], patriarch: [[21, "The Patriarch"]], whitney: [[22, "Mountaineer's Route"]], giantsteps: [[23, "Giant Steps Couloir"]], splitcouloir: [[24, "Split Couloir"]], bloodycouloir: [[25, "Bloody Couloir"]], shasta: [[26, "Avalanche Gulch"]], terminalcancer: [[27, "Terminal Cancer Couloir"]], shuksan: [[28, "Northwest Couloir"]], mtbaker: [[29, "Watson's Traverse"]], rainier: [[30, "Fuhrer Finger"]], newtonclark: [[31, "Newton-Clark Headwall"]], eldorado: [[32, "Eldorado Glacier"]], combatant: [[33, "Combatant Couloir"]], mtcurrie: [[34, "Pencil and Central Couloirs"]], joffre: [[35, "Northwest Face"]], spearhead: [[36, "Spearhead Traverse"]], robson: [[37, "North Face"]], aemmer: [[38, "Aemmer Couloir"]], mtcolumbia: [[39, "Southeast Face"]], skyladder: [[40, "Skyladder"]], comstock: [[41, "Comstock Couloir"]], sevensteps: [[42, "Seven Steps to Paradise"]], rogerspass: [[43, "Rogers / Swiss Peaks Uber Tour"], [44, "Rogers Pass to Bugaboos Traverse"]], universitypeak: [[45, "South Face"]], stelias: [[46, "Mira Face"]], pontoon: [[47, "Southeast Ridge"]], sphinx: [[48, "Southeast Ridge"]], meteorite: [[49, "The Ramp"]], denali: [[50, "Messner Couloir"]]};
+// Where each classic line is, by its number: the peak or place, and the state or province.
+const CLASSIC_AT = {"1": ["Beluga Mountain", "Nunavut"], "2": ["Mount Washington", "New Hampshire"], "3": ["Mount Washington", "New Hampshire"], "4": ["Pyramid Peak", "Colorado"], "5": ["North Maroon Peak", "Colorado"], "6": ["Mount of the Holy Cross", "Colorado"], "7": ["Wilson Peak", "Colorado"], "8": ["Buffalo Mountain", "Colorado"], "9": ["Mount Superior", "Utah"], "10": ["North Thunder Mountain", "Utah"], "11": ["North Timpanogos", "Utah"], "12": ["La Sal Mountains", "Utah"], "13": ["Grand Teton", "Wyoming"], "14": ["Mount Moran", "Wyoming"], "15": ["Middle Teton", "Wyoming"], "16": ["Horstmann Peak", "Idaho"], "17": ["Devil's Bedstead", "Idaho"], "18": ["Castle Peak", "Idaho"], "19": ["McGown Peak", "Idaho"], "20": ["Mount Stimson", "Montana"], "21": ["Glacier Peak", "Montana"], "22": ["Mount Whitney", "California"], "23": ["Mount Williamson", "California"], "24": ["Split Mountain", "California"], "25": ["Bloody Mountain", "California"], "26": ["Mount Shasta", "California"], "27": ["Lamoille Canyon, Ruby Mountains", "Nevada"], "28": ["Mount Shuksan", "Washington"], "29": ["Mount Baker", "Washington"], "30": ["Mount Rainier", "Washington"], "31": ["Mount Hood", "Oregon"], "32": ["Eldorado Peak", "Washington"], "33": ["Mount Combatant", "British Columbia"], "34": ["Mount Currie", "British Columbia"], "35": ["Joffre Peak", "British Columbia"], "36": ["Spearhead Range", "British Columbia"], "37": ["Mount Robson", "British Columbia"], "38": ["Mount Temple", "Alberta"], "39": ["Mount Columbia", "Alberta"], "40": ["Mount Andromeda", "Alberta"], "41": ["Mount Dawson", "British Columbia"], "42": ["Youngs Peak", "British Columbia"], "43": ["Mount Rogers and Swiss Peak", "British Columbia"], "44": ["Rogers Pass to the Bugaboos", "British Columbia"], "45": ["University Peak", "Alaska"], "46": ["Mount Saint Elias", "Alaska"], "47": ["Pontoon Peak", "Alaska"], "48": ["The Sphinx", "Alaska"], "49": ["Meteorite Mountain", "Alaska"], "50": ["Denali", "Alaska"]};
+// The book's parts, by the number each starts at.
+const CLASSIC_PARTS = [[1, "The Northeast and Baffin"], [4, "Colorado"], [9, "Utah"], [13, "Wyoming"], [16, "Idaho and Montana"],
+  [22, "California and Nevada"], [28, "The Northwest"], [33, "Canada: the Coast Mountains"], [37, "Canada: the interior and the Rockies"], [45, "Alaska"]];
+// The key to the small numbers beside a mountain's name: every line of the fifty, in the book's order, with the
+// peak it is on and the mountain and region it is found under here.
+function renderClassics() {
+  const lines = Object.entries(CLASSICS).flatMap(([key, list]) => list.map(([n, line]) => ({n, line, key}))).sort((a, b) => a.n - b.n);
+  const named = (key) => { const m = everyMountain().find((r) => r.key === key); return m ? `${m.name}, ${REGIONS[regionOf(m)] ? REGIONS[regionOf(m)].name : ""}` : ""; };
+  const row = (x) => `<div class="qrow crow"><i class="cnum">${x.n}</i><div><b>${esc(x.line)}</b><small>${esc(CLASSIC_AT[x.n].join(", "))}</small>${named(x.key) ? `<small>Here as ${esc(named(x.key))}</small>` : ""}</div></div>`;
+  $("classicsBody").innerHTML = `<p class="gnote">The fifty lines of the book <i>Fifty Classic Ski Descents of North America</i> (2010) are all here as backcountry spots. The small number after a mountain's name is the line's place in the book's running order. The book prints no numbers itself; the order follows its publisher's site.</p>`
+    + CLASSIC_PARTS.map(([from, title], k) => { const to = (CLASSIC_PARTS[k + 1] || [51])[0]; return `<h4 class="ghead">${esc(title)}</h4><div class="qlist">${lines.filter((x) => x.n >= from && x.n < to).map(row).join("")}</div>`; }).join("");
+}
 const classicTag = (key) => !CLASSICS[key] ? "" : `<i class="cls" role="img" aria-label="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}, ${line}`).join("; "))}" title="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}: ${line}`).join(" · "))}">${CLASSICS[key].map(([n]) => n).join("·")}</i>`;
 const PANES = {map: () => $("mapPanel"), forecast: () => document.querySelector(".panel.summary"), mountain: () => $("detail"), avalanche: () => $("avalanche")};
 let pager = null;
@@ -4928,6 +4946,7 @@ function guidePage(name) {
   $("guideBack").hidden = name === "root";
   $("guideBody").scrollTop = 0;
   if (name === "where") renderWhere();
+  if (name === "classics") renderClassics();
   placeSegs(true);
 }
 $("setBtn").addEventListener("click", () => { markHeader(); guidePage("root"); $("settingsSheet").showModal(); placeSegs(true); });
