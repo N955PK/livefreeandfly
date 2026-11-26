@@ -47,7 +47,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none !important}
 /* Opening screen: the logo spins up like a propeller while the forecast and map load, then clears. */
-#splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+/* Its height is the screen's full height, not the part showing at this instant: a phone's bars come and go as a page
+   opens, and a screen sized to what shows would re-center the mark each time (it was seen to slide up). */
+#splash{position:fixed;top:0;left:0;right:0;height:100vh;height:100lvh;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:radial-gradient(circle at 50% 46%,var(--splash-glow),transparent 46%),
     linear-gradient(var(--surface) 0,var(--surface) calc(var(--sat) + 10px),var(--splash-mid) 44%,var(--splash-low));
   color:#fff;transition:opacity .2s ease,visibility .2s}
@@ -69,7 +71,7 @@ html.hosted #heat{touch-action:pan-y}
 .hosted #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 /* There the opening screen starts under the header, so the header (with the way back) is on screen from the first
    moment and the skier never leaves its place as ski/lease hands over. */
-.hosted #splash{top:calc(var(--sat) + 48px)}
+.hosted #splash{top:calc(var(--sat) + 48px);height:auto;bottom:0}
 /* A phone colors its status strip from the top of whatever is showing, and changes it a quarter of a second late.
    So the opening screen is the page's own color at the very top and runs into its blue below: the strip is the
    page's color from the first frame and has nothing to change to when the opening screen goes. */
