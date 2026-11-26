@@ -1785,7 +1785,13 @@ const PEAK_AT = {rainier: [46.85104, -121.76076], mtbaker: [48.77896, -121.81985
   hoodsouth: [45.37351, -121.69588], tillyjane: [45.37693, -121.67474], tumalo: [44.00536, -121.6427], southsister: [44.10352, -121.76933],
   wheelerpeak: [36.57736, -105.40298], goldhill: [36.64308, -105.45584], lakepeak: [35.79642, -105.77113],
   tincan: [60.782, -149.1424], sunburst: [60.7594, -149.1788], manitoba: [60.6845, -149.416], hatcherpass: [61.78243, -149.25489],
-  redmountainpass: [37.90149, -107.68915], coalbankpass: [37.69916, -107.80701]};
+  redmountainpass: [37.90149, -107.68915], coalbankpass: [37.69916, -107.80701],
+  // The later regions' backcountry peaks, each summit as its research found it on OpenStreetMap.
+  benstewart: [58.26787, -134.56173], champsdemars: [48.87843, -66.08357], delano: [38.36914, -112.37132], ebbettspass: [38.52185, -119.78796],
+  gashpoint: [46.43337, -114.32061], girlsmountain: [61.18205, -145.77628], granitemountain: [45.09746, -116.20124], hankinevelyn: [54.86723, -127.51659],
+  hogsback: [48.86096, -66.11139], humphreys: [35.34638, -111.67796], jewelbasin: [48.14837, -113.91955], jughandle: [44.84286, -115.95757],
+  logcabin: [59.74600, -135.00400], montalbert: [48.93515, -66.16668], mttroy: [58.26699, -134.47642], sonorapass: [38.28619, -119.65130],
+  stevenspeak: [47.42548, -115.77238], thompsonpass: [61.14200, -145.69500]};
 // Where a mountain is read against the avalanche zones, where its own point falls outside them all: the Salt Lake
 // zone's edge runs through Park City and Deer Valley, whose upper mountains are inside it.
 // Steamboat's base lift is just outside Colorado's zones; the mountain above it is inside.
@@ -2225,6 +2231,8 @@ const REGIONS = {
     // The disc is 168 km in radius, a kilometre inside the terrain's shorter side; the furthest mountain is 146 km from the middle.
     waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
     discKm: 168, zoom: 3.4, turnDeg: 0,
+    areas: [{key: "cornerbrook", name: "Corner Brook", mountains: ["marblemountain"]},
+      {key: "clarenville", name: "Clarenville", mountains: ["whitehills"]}],
     // Spruce forest and barrens.
     land: [[0, [0.46, 0.52, 0.33]], [200, [0.32, 0.44, 0.28]], [600, [0.22, 0.38, 0.26]], [1000, [0.27, 0.40, 0.30]],
       [1300, [0.55, 0.53, 0.48]]],
@@ -2234,6 +2242,8 @@ const REGIONS = {
     // The disc is 71 km in radius, a kilometre inside the terrain's shorter side; the furthest mountain is 48 km from the middle.
     waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
     discKm: 71, zoom: 1.4, turnDeg: 0,
+    areas: [{key: "whitehorse", name: "Whitehorse", mountains: ["mountsima"]},
+      {key: "whitepass", name: "White Pass", mountains: ["logcabin"]}],
     // Spruce in the valleys, then tundra and rock, and ice on the Coast Mountains.
     land: [[0, [0.36, 0.46, 0.31]], [200, [0.24, 0.40, 0.27]], [600, [0.36, 0.44, 0.32]], [1000, [0.52, 0.51, 0.46]],
       [1500, [0.72, 0.73, 0.74]], [2100, [0.88, 0.90, 0.93]]],

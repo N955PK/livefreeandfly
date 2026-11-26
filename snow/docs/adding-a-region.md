@@ -14,8 +14,8 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] The mountains are chosen: every resort in the area on any pass, and the backcountry spots people ski there
       (volcano summits, passes, the classic lines). Ask Sean only if the area's edges are unclear.
 - [ ] The plan's total is worked out (step 0), with close neighbours sharing weather. (M)
-- [ ] The collector is settled: the third (`west`) for a new USA region, since the first's plan is full; the second
-      for Canada (step 0).
+- [ ] The collector is settled: whichever of the USA's four has room for a new USA region (the first and third
+      are nearly full; `north` takes the West, `east` the East and Midwest), the second for Canada (step 0).
 
 **The forecast (first push)**
 - [ ] Each mountain's point, base, summit and pass are looked up, not remembered, and the source is in the comment
@@ -85,7 +85,7 @@ gives. Tell him the plan's total and how far over it is when a region ships.
 Adding mountains makes the collector rebuild that region straight away, outside its hours, which costs one extra
 run that day. That is fine; do not hold a push back for the day's count.
 
-**Which collector.** There are three, each a workflow of its own with its own data branch, index and ledger of
+**Which collector.** There are five, each a workflow of its own with its own data branch, index and ledger of
 calls:
 
 | Collector | Workflow | Regions | Data branch | Preview folder |
@@ -93,6 +93,8 @@ calls:
 | `main` | `snow-collect.yml` | the USA's | `snow-data` | `snow/data/` |
 | `canada` | `snow-collect-canada.yml` | Canada's (`collector="canada", country="Canada"`) | `snow-data-canada` | `snow/data/canada/` |
 | `west` | `snow-collect-west.yml` | the USA's added once the first's plan was full (`collector="west"`): Montana, Sun Valley, Oregon, New Mexico, Alaska, Southwest Colorado | `snow-data-west` | `snow/data/west/` |
+| `north` | `snow-collect-north.yml` | the USA's western regions added after the third's plan filled (`collector="north"`): the Inland Northwest, Northwest Montana, Western Idaho, Wyoming, Southern Utah, Arizona, Las Vegas, Southern California, Juneau, Valdez | `snow-data-north` | `snow/data/north/` |
+| `east` | `snow-collect-east.yml` | the East and Midwest outside New England (`collector="east"`), built twice a day: New York, the Mid-Atlantic, Lake Superior, Michigan, the Black Hills | `snow-data-east` | `snow/data/east/` |
 
 A region's `collector` decides who builds it: under `SNOW_COLLECTOR=canada` the code's `REGIONS` and `RESORTS` are
 Canada's alone (`ALL_REGIONS` and `ALL_RESORTS` are everything), so `due`, the index, the ledger and
@@ -285,6 +287,23 @@ records how each was done for the Cascades and what it cost; the Tetons, the Was
    save the check (`models/snow_ratio_check_<region>.json`).
    The refit is the Sierra's days with the region's added. Where the Sierra's days still pull it off (the Wasatch,
    where it ran an inch deep), give the region's days more weight in `train.REGION_DAY_WEIGHT` and check again.
+
+**The later regions (2026-11-26).** Twenty more regions and nineteen mountains for earlier ones were added in one
+pass, and they are kept differently from the first sixteen:
+- A later region's sensors and boxes live in tables in `config.py`, not in constants of their own: `MORE_STATIONS`
+  and `MORE_BBOX` by region key, and `FIT_BOXES` for the regions that have sensors to fit to (their SNOTEL states
+  and the lowest hand-measured station taken). `calibrate.REGIONS`, `observations.BOXES` and `train.REGION_BOXES`
+  are filled from them, and the block of upper air is worked out from the box (`omfiles_s3.block_around`), so a new
+  fitted region is three table entries. `verify.WEST` takes its name for the scorecard.
+- Colorado moved from the first collector to the third to make room for the Sierra's west slope, which joined the
+  Eastern Sierra's region as the Central & Eastern Sierra. Moving a region is its `collector` alone: restart the
+  collector that gains it first, so its file is published before the old one drops it from its index.
+- Mountains added to a region whose correction is already fitted take a station only where it is one the fit used;
+  otherwise they have none until the fit is run again (Eldora, Powderhorn and the Sierra's west slope).
+- A map whose new mountains fall outside its disc is rebuilt around the new circle and given a `rev`, with a pill
+  for the new mountains (the Sierra, the BC Coast, Quebec, the East Kootenays and Southwest Colorado).
+- None of the twenty later regions has a lift reader or a status-page link yet, and Northern BC's snow stations
+  are not paired.
 
 **The third collector's six (2026-11-26).** Montana, Sun Valley, Oregon, New Mexico, Alaska and Southwest Colorado
 were fitted in one pass, and three things about that are worth knowing before the next:
