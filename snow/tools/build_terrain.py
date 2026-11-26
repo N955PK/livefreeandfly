@@ -136,7 +136,38 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            "inlandnw": {"box": (46.894, 48.852, -118.091, -115.173), "max_m": 2750, "columns": 559},
            # Northwest Montana: a 364 km square around the circle, 182 km in radius about 47.096 N 114.153 W, that holds
            # every mountain (157 km from its middle at the furthest) with 25 km to spare.
-           "nwmontana": {"box": (45.461, 48.73, -116.553, -111.753), "max_m": 3350, "columns": 640}}
+           "nwmontana": {"box": (45.461, 48.73, -116.553, -111.753), "max_m": 3350, "columns": 640},
+           # The fifth collector's regions and Canada's later ones.
+           # New York: a 504 km square around the circle, 252 km in radius about 43.305 N 76.282 W, that holds
+           # every mountain (227 km from its middle at the furthest) with 25 km to spare.
+           "newyork": {"box": (41.041, 45.568, -79.393, -73.171), "max_m": 1700, "columns": 640},
+           # Mid-Atlantic: a 578 km square around the circle, 289 km in radius about 40.071 N 77.769 W, that holds
+           # every mountain (264 km from its middle at the furthest) with 25 km to spare.
+           "midatlantic": {"box": (37.475, 42.667, -81.161, -74.377), "max_m": 1550, "columns": 640},
+           # Lake Superior: a 403 km square around the circle, 202 km in radius about 46.504 N 89.934 W, that holds
+           # every mountain (177 km from its middle at the furthest) with 25 km to spare.
+           "lakesuperior": {"box": (44.693, 48.316, -92.565, -87.302), "max_m": 750, "columns": 640},
+           # Michigan: a 201 km square around the circle, 101 km in radius about 44.857 N 85.310 W, that holds
+           # every mountain (76 km from its middle at the furthest) with 25 km to spare.
+           "michigan": {"box": (43.953, 45.761, -86.585, -84.034), "max_m": 580, "columns": 516},
+           # Black Hills: a 90 km square around the circle, 45 km in radius about 44.333 N 103.830 W, that holds
+           # every mountain (0 km from its middle at the furthest) with 25 km to spare.
+           "blackhills": {"box": (43.929, 44.737, -104.395, -103.264), "max_m": 2260, "columns": 231},
+           # Northern BC: a 468 km square around the circle, 234 km in radius about 54.928 N 125.783 W, that holds
+           # every mountain (209 km from its middle at the furthest) with 25 km to spare.
+           "northbc": {"box": (52.828, 57.028, -129.438, -122.128), "max_m": 3300, "columns": 640},
+           # Ontario: a 342 km square around the circle, 171 km in radius about 44.883 N 78.555 W, that holds
+           # every mountain (146 km from its middle at the furthest) with 25 km to spare.
+           "ontario": {"box": (43.348, 46.419, -80.723, -76.388), "max_m": 650, "columns": 640},
+           # Gaspé: a 257 km square around the circle, 129 km in radius about 48.715 N 66.847 W, that holds
+           # every mountain (104 km from its middle at the furthest) with 25 km to spare.
+           "gaspesie": {"box": (47.559, 49.87, -68.599, -65.096), "max_m": 1320, "columns": 640},
+           # Newfoundland: a 342 km square around the circle, 171 km in radius about 48.552 N 55.947 W, that holds
+           # every mountain (146 km from its middle at the furthest) with 25 km to spare.
+           "newfoundland": {"box": (47.015, 50.089, -58.269, -53.624), "max_m": 870, "columns": 640},
+           # Yukon: a 146 km square around the circle, 73 km in radius about 60.181 N 135.022 W, that holds
+           # every mountain (48 km from its middle at the furthest) with 25 km to spare.
+           "yukon": {"box": (59.527, 60.835, -136.337, -133.706), "max_m": 3000, "columns": 373}}
 
 
 def stem(region: str) -> str:

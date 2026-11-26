@@ -4,7 +4,7 @@
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v16';
+const VERSION = 'sierra-snow-v17';
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icons/mark-white.svg', 'icons/icon-192.png',
   'data/terrain.json', 'data/terrain.bin', 'data/roads.json',
@@ -26,7 +26,27 @@ const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icon
   'data/terrain-oregon.json', 'data/terrain-oregon.bin', 'data/roads-oregon.json',
   'data/terrain-newmexico.json', 'data/terrain-newmexico.bin', 'data/roads-newmexico.json',
   'data/terrain-alaska.json', 'data/terrain-alaska.bin', 'data/roads-alaska.json',
-  'data/terrain-swcolorado.json', 'data/terrain-swcolorado.bin', 'data/roads-swcolorado.json'];
+  'data/terrain-swcolorado.json', 'data/terrain-swcolorado.bin', 'data/roads-swcolorado.json',
+  'data/terrain-westidaho.json', 'data/terrain-westidaho.bin', 'data/roads-westidaho.json',
+  'data/terrain-wyoming.json', 'data/terrain-wyoming.bin', 'data/roads-wyoming.json',
+  'data/terrain-southutah.json', 'data/terrain-southutah.bin', 'data/roads-southutah.json',
+  'data/terrain-arizona.json', 'data/terrain-arizona.bin', 'data/roads-arizona.json',
+  'data/terrain-lasvegas.json', 'data/terrain-lasvegas.bin', 'data/roads-lasvegas.json',
+  'data/terrain-socal.json', 'data/terrain-socal.bin', 'data/roads-socal.json',
+  'data/terrain-juneau.json', 'data/terrain-juneau.bin', 'data/roads-juneau.json',
+  'data/terrain-valdez.json', 'data/terrain-valdez.bin', 'data/roads-valdez.json',
+  'data/terrain-inlandnw.json', 'data/terrain-inlandnw.bin', 'data/roads-inlandnw.json',
+  'data/terrain-nwmontana.json', 'data/terrain-nwmontana.bin', 'data/roads-nwmontana.json',
+  'data/terrain-newyork.json', 'data/terrain-newyork.bin', 'data/roads-newyork.json',
+  'data/terrain-midatlantic.json', 'data/terrain-midatlantic.bin', 'data/roads-midatlantic.json',
+  'data/terrain-lakesuperior.json', 'data/terrain-lakesuperior.bin', 'data/roads-lakesuperior.json',
+  'data/terrain-michigan.json', 'data/terrain-michigan.bin', 'data/roads-michigan.json',
+  'data/terrain-blackhills.json', 'data/terrain-blackhills.bin', 'data/roads-blackhills.json',
+  'data/terrain-northbc.json', 'data/terrain-northbc.bin', 'data/roads-northbc.json',
+  'data/terrain-ontario.json', 'data/terrain-ontario.bin', 'data/roads-ontario.json',
+  'data/terrain-gaspesie.json', 'data/terrain-gaspesie.bin', 'data/roads-gaspesie.json',
+  'data/terrain-newfoundland.json', 'data/terrain-newfoundland.bin', 'data/roads-newfoundland.json',
+  'data/terrain-yukon.json', 'data/terrain-yukon.bin', 'data/roads-yukon.json'];
 const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale
