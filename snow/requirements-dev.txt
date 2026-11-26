@@ -1,0 +1,8 @@
+# What the tests and the fitting need beyond requirements.txt, which holds only what a collector installs. The
+# collectors never import the fitting code, so these were missing from any clean machine until the tests ran on one.
+fsspec==2026.9.0
+s3fs==2026.9.0
+omfiles==1.2.0
+pyarrow==26.0.1
+curl_cffi==0.15.0
+pytest==9.1.1

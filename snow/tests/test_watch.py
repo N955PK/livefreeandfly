@@ -159,8 +159,10 @@ def python_version(text: str) -> str:
 def test_the_tests_run_on_main_and_on_pull_requests_with_what_the_collector_installs():
     tests, collect = workflow("snow-tests.yml"), workflow("snow-collect.yml")
     assert python_version(tests) == python_version(collect)
-    installed = re.search(r"run: (pip install .+)", collect).group(1)
-    assert f"run: {installed} pytest\n" in tests
+    # What a collector installs, and on top of it what the fitting code and the tests need.
+    assert "run: pip install -r snow/requirements.txt -r snow/requirements-dev.txt\n" in tests
+    pinned = re.search(r"curl_cffi==[\d.]+", collect).group(0)
+    assert pinned in (WORKFLOWS.parent.parent / "snow" / "requirements-dev.txt").read_text().split()
     assert "  push:\n    branches: [main]\n" in tests and '  pull_request:\n    paths:\n      - "snow/**"\n' in tests
     assert "working-directory: snow\n        run: python -m pytest tests -q\n" in tests
     # It only reads: it cannot push, publish or start another workflow.

@@ -38,9 +38,9 @@ jobs:
           cache: pip
           cache-dependency-path: snow/requirements.txt
 
-      # The same line as snow-collect.yml, so the tests run against what the collectors run on, and pytest itself.
-      - name: Install the forecast, the readers and the test runner
-        run: pip install -r snow/requirements.txt curl_cffi==0.15.0 pytest
+      # What a collector installs, then what the fitting code and the tests need on top (requirements-dev.txt).
+      - name: Install the forecast, the readers, the fitting code's needs and the test runner
+        run: pip install -r snow/requirements.txt -r snow/requirements-dev.txt
 
       - name: Run the tests
         working-directory: snow
