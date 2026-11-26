@@ -1493,6 +1493,32 @@ footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;line-
      the summary's day boxes and its legend): fine 45-degree lines in the dull ink, which follows light and dark. -->
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs><pattern id="rainhatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="var(--mark-dull)" stroke-width="1.4"/></pattern></defs></svg>
 <script>
+// Dates are written through formatters that are made once and kept. The page writes thousands of times and days on
+// every redraw, each in its mountain's time zone, and the browser otherwise builds a new formatter for every one,
+// which was most of the wait after a tap. What is written is the same, to the letter, as the built-in methods give.
+(() => {
+  const kept = new Map();
+  const DATE = ["weekday", "year", "month", "day"], TIME = ["dayPeriod", "hour", "minute", "second", "fractionalSecondDigits"];
+  const has = (o, keys) => keys.some((k) => o[k] !== undefined);
+  const filled = (kind, o) => {
+    const date = has(o, DATE), time = has(o, TIME);
+    if (kind === "s" && !date && !time) return {...o, year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric"};
+    if (kind === "d" && !date) return {...o, year: "numeric", month: "numeric", day: "numeric"};
+    if (kind === "t" && !time) return {...o, hour: "numeric", minute: "numeric", second: "numeric"};
+    return o;
+  };
+  const patch = (name, kind) => {
+    const builtIn = Date.prototype[name];
+    Date.prototype[name] = function (locale, options) {
+      if (typeof locale !== "string" || !options || typeof options !== "object" || isNaN(this) || options.dateStyle !== undefined || options.timeStyle !== undefined) return builtIn.call(this, locale, options);
+      const key = kind + locale + JSON.stringify(options);
+      let format = kept.get(key);
+      if (!format) { format = new Intl.DateTimeFormat(locale, filled(kind, options)); kept.set(key, format); }
+      return format.format(this);
+    };
+  };
+  patch("toLocaleString", "s"); patch("toLocaleDateString", "d"); patch("toLocaleTimeString", "t");
+})();
 // Hosted (?host) the page is shown full-screen inside the ski/lease app, with a way back. It follows that app's accent
 // color, including while it changes, and takes the screen's safe edges from it, since a framed page is told nothing
 // about them. (?embed, the old address of the one-page layout that no longer exists, is treated the same.)
