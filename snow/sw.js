@@ -4,8 +4,9 @@
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v79';
-const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
+const VERSION = 'sierra-snow-v80';
+// The map library is served with the page (vendor/three, MIT), not from another site.
+const THREE = 'vendor/three/';
 // The page itself and what it cannot start without. These are fetched afresh with every VERSION.
 const SHELL = ['./', 'map3d.js', 'manifest.webmanifest', 'icons/mark.svg', 'icons/mark-white.svg', 'icons/icon-192.png'];
 // Every region's map: its terrain and roads, as the page asks for them (a rebuilt map carries a ?v= so the old copy
@@ -61,7 +62,7 @@ const MAPS = [
   'data/terrain-rockies.json?v=2', 'data/terrain-rockies.bin?v=2', 'data/roads-rockies.json?v=2'];
 const MAP_STORE = 'sierra-snow-maps';
 const isMap = (url) => /\/data\/(terrain|roads)[^/]*$/.test(new URL(url, location.href).pathname);
-const MODULES = [THREE + 'build/three.module.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
+const MODULES = [THREE + 'build/three.module.min.js', THREE + 'examples/jsm/controls/OrbitControls.js'];
 const PAGE_TIMEOUT_MS = 4000;
 // The avalanche centers' artwork, kept so a saved forecast still shows its signs with no signal: the six danger-scale
 // signs, and the drawing for each kind of avalanche problem. They never change, so the saved copy is always used.
@@ -78,7 +79,7 @@ self.addEventListener('install', (e) => {
     const c = await caches.open(VERSION);
     // One missing file must not stop the rest from being saved.
     const missed = [];
-    await Promise.all([...SHELL, ...MODULES.map((url) => new Request(url, { mode: 'cors' }))]
+    await Promise.all([...SHELL, ...MODULES]
       .map((item) => c.add(item).catch(() => { missed.push(item); })));
     // A file that could not be fetched now (a weak signal) is carried over from the version before, so an update
     // never leaves the phone with less than it had.
@@ -160,7 +161,7 @@ self.addEventListener('fetch', (e) => {
       || url.pathname.startsWith(scope.pathname + 'data/canada/'))) return;
   if (url.href.startsWith(SIGNS) || url.href.startsWith(PROBLEMS)) return e.respondWith(keptPicture(req));
   if (url.href.startsWith(PHOTOS)) return e.respondWith(savedPhoto(req));
-  if ((url.origin === location.origin && url.pathname.startsWith(scope.pathname)) || url.href.startsWith(THREE)) {
+  if ((url.origin === location.origin && url.pathname.startsWith(scope.pathname))) {
     return e.respondWith(savedFirst(req));
   }
 });

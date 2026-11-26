@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#161a1f" media="(prefers-color-scheme: dark)">
 <meta property="og:image" content="https://livefreeandfly.org/snow/icons/icon-512.png">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script>
 <style>
 :root{
   color-scheme:light;
@@ -727,6 +727,7 @@ html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!
 .cams.big .shot img{width:100%;max-width:420px;height:auto}
 .dhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dhead .who{min-width:0}
+.retry{margin-left:8px;padding:8px 16px;border:0;border-radius:999px;background:var(--mark);color:var(--surface);font:inherit;font-size:14px;font-weight:650;cursor:pointer}
 .dhead h2{font-size:22px;line-height:1.15}
 /* The name is the mountain picker: the phone's own menu opens from a select laid invisibly over it. */
 .mtnpick{position:relative;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
@@ -2647,10 +2648,10 @@ function renderHeadline() {
   // While a region chosen is loading, the line says so in place of the time, so the list left showing until it
   // arrives is not taken for it (and nothing under the line moves).
   const wait = !regionPending ? "" : regionPending === FAVORITES ? "Loading the forecasts for your favorites…" : `Loading the ${esc(REGIONS[regionPending].name)} forecast…`;
-  freshNote = wait || (offlineCopy ? `<span class="warn">Offline.</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
+  freshNote = wait || (offlineCopy ? `<span class="warn">${navigator.onLine ? "Not updated." : "Offline."}</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
   $("gridFresh").innerHTML = freshNote;
   if ($("detailFresh")) { $("detailFresh").innerHTML = freshShort(); fitHead(); }
-  $("meta").innerHTML = wait || (offlineCopy ? `<span class="warn">Offline.</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
+  $("meta").innerHTML = wait || (offlineCopy ? `<span class="warn">${navigator.onLine ? "Could not update." : "Offline."}</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
 }
 
 // Favorites with two or more to order can be put in order by holding a mountain and dragging it (see holdToMove).
@@ -6460,17 +6461,21 @@ const DEVELOPING = location.hostname === "localhost" && location.port !== "";
 const within = (ms) => (AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined);
 const COMMIT_DEADLINE_MS = 3000;
 const loadForecast = (url, signal) => fetch(url, {cache: "no-store", signal}).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
-const commitAsk = {}, commitAskedAt = {};
+// One ask covers every data branch: their names all begin "snow-data", and GitHub lists the branches that share a
+// beginning in a single answer. It allows a phone's address sixty asks an hour, so five a launch ran out on shared
+// Wi-Fi; a file whose commit cannot be had is read by its branch's name instead (see published).
+let commitAsk = null, commitAskedAt = 0;
 function dataCommit(branch = DATA_BRANCH) {
-  if (!commitAsk[branch] || Date.now() - commitAskedAt[branch] > COMMIT_KEEP_MS) {
-    commitAskedAt[branch] = Date.now();
-    // A failed ask is forgotten, so the next file asks again rather than failing for ten minutes.
+  if (!commitAsk || Date.now() - commitAskedAt > COMMIT_KEEP_MS) {
+    commitAskedAt = Date.now();
     // The ask has a short deadline of its own: left to hang, it would hold up every file behind it.
-    const ask = loadForecast(`https://api.github.com/repos/${REPO}/branches/${branch}`, within(COMMIT_DEADLINE_MS)).then((found) => found.commit.sha)
-      .catch((error) => { if (commitAsk[branch] === ask) commitAsk[branch] = null; throw error; });
-    commitAsk[branch] = ask;
+    // A failed ask is forgotten, so the next file asks again rather than failing for ten minutes.
+    const ask = loadForecast(`https://api.github.com/repos/${REPO}/git/matching-refs/heads/${DATA_BRANCH}`, within(COMMIT_DEADLINE_MS))
+      .then((refs) => Object.fromEntries(refs.map((ref) => [ref.ref.replace("refs/heads/", ""), ref.object.sha])))
+      .catch((error) => { if (commitAsk === ask) commitAsk = null; throw error; });
+    commitAsk = ask;
   }
-  return commitAsk[branch];
+  return commitAsk.then((commits) => { if (!commits[branch]) throw new Error(`no commit for ${branch}`); return commits[branch]; });
 }
 // One published file: index.json, forecast/<region>.json, or (data published before regions had files of their
 // own) forecast.json.
@@ -6579,7 +6584,8 @@ async function warmRegions() {
     await loadRegion(key, {ahead: true});
   }
 }
-window.addEventListener("online", () => { if (offlineCopy) location.reload(); else { if (avySavedCopy) loadAvalanches(); if (regionMiss) setRegion(regionMiss); } });
+let noForecast = false;
+window.addEventListener("online", () => { if (offlineCopy || noForecast) location.reload(); else { if (avySavedCopy) loadAvalanches(); if (regionMiss) setRegion(regionMiss); } });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
 // The opening screen stays until the page, the map and everything drawn on the map (roads, avalanche zones and so the
 // whole block of buttons, and the resorts' own depths on the labels) are ready, so nothing arrives after it lifts. A slow source holds it up 4 seconds at most
@@ -6632,7 +6638,14 @@ openForecast().then(async () => {
   reveal();
   saveAvyBundle();
   warmRegions();
-}).catch(() => { $("headline").textContent = "The forecast could not be loaded"; reveal(); });
+}).catch(() => {
+  // Nothing to show: no forecast arrived and none is saved on this phone. The page says which it is, offers to try
+  // again, and tries by itself when a signal returns.
+  noForecast = true;
+  $("headline").innerHTML = `${navigator.onLine ? "The forecast could not be loaded." : "No signal, and no forecast is saved on this phone yet."} <button class="retry" id="retryLoad">Try again</button>`;
+  $("retryLoad").addEventListener("click", () => location.reload());
+  reveal();
+});
 fetch("data/scorecard.json", {cache: "no-store"}).then((r) => r.ok ? r.json() : null).then(renderScore).catch(() => renderScore(null));
 </script>
 </body>
