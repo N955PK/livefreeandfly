@@ -159,6 +159,11 @@ ROUTES = {
                      "480": "NL-480"},
     "yukon": {"YK 2": "YT-2", "YK 1": "YT-1", "YK 1;YK 2": "YT-1/2", "AK 98": "AK-98", "YK 8": "YT-8",
               "YK 7": "YT-7"},
+    # The classic descents' two regions with a road in view: Elko's interstate and the Lamoille highway under the
+    # Rubies, and the roads around Moab and over the La Sals' south end into Colorado. Denali, Wrangell-St. Elias,
+    # the Waddington Range and Baffin Island have no numbered road inside their maps.
+    "rubymountains": {"I 80": "I-80", "SR 227": "NV-227", "SR 228": "NV-228"},
+    "lasal": {"US 191": "US-191", "SR 128": "UT-128", "SR 46": "UT-46", "SR 279": "UT-279", "CO 90": "CO-90"},
 }
 # When no Overpass server answers, a region's roads can be read from the main OpenStreetMap API instead, one route
 # relation at a time: the relations (each one state's stretch of a highway, both directions where they are mapped
@@ -233,6 +238,8 @@ RELATIONS = {
                      "NL-450A": [20173164], "NL-480": [5384277]},
     "yukon": {"YT-2": [5385974, 8747347], "YT-1": [5384759], "AK-98": [1324395], "YT-8": [5386017],
               "YT-7": [5386029]},
+    "rubymountains": {"I-80": [69363, 6901301], "NV-227": [1536980], "NV-228": [1536993]},
+    "lasal": {"US-191": [2306280], "UT-128": [1504905], "UT-46": [1504630], "UT-279": [1505287], "CO-90": [1516438]},
 }
 OSM_API = "https://api.openstreetmap.org/api/0.6"
 TOLERANCE_DEG = 0.0004

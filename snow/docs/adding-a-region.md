@@ -306,7 +306,7 @@ pass, and they are kept differently from the first sixteen:
   point on its line. They pushed three plans past 10,000 calls a day, so the Tetons and Quebec moved to the fifth
   collector and Alaska to the fourth. The Valdez and Rockies maps were rebuilt wider for The Sphinx and Mt. Robson.
   Six descents far from any region have regions of their own (the Ruby Mountains, La Sal Mountains, Denali,
-  Wrangell-St. Elias, the Waddington Range, Baffin Island); their road files are empty. A region whose summit
+  Wrangell-St. Elias, the Waddington Range, Baffin Island); the Rubies and the La Sals have road lines from route relations, and the other four have none in view. A region whose summit
   stands over 500 hPa names `high_levels`, the mirror of `low_levels` (Denali and Wrangell-St. Elias read 400 hPa).
 - Mountains added to a region whose correction is already fitted take a station only where it is one the fit used;
   otherwise they have none until the fit is run again (Eldora, Powderhorn and the Sierra's west slope).
