@@ -3344,6 +3344,9 @@ const STATUS_PAGES = {
   montedouard: "https://www.montedouard.com/info-remontee", sleepinggiant: "https://skisg.com/conditions-maps",
   hudsonbay: "https://www.hudsonbaymountain.com/snowreport",
   mtbaldy: "https://mtbaldyresort.com/mountain-report",
+  whistler: "https://www.whistlerblackcomb.com/the-mountain/mountain-conditions/terrain-and-lift-status.aspx",
+  hunter: "https://www.huntermtn.com/the-mountain/mountain-conditions/lift-and-terrain-status.aspx",
+  sevensprings: "https://www.7springs.com/the-mountain/mountain-conditions/lift-and-terrain-status.aspx",
   lookoutpass: "https://skilookout.com/snow-report/", fortyninenorth: "https://www.ski49n.com/mountain-info/trail-status",
   mtspokane: "https://www.mtspokane.com/trail-maps", discovery: "https://www.skidiscovery.com/trail-report/",
   showdown: "https://www.showdownmontana.com/snow-report", sunvalley: "https://www.sunvalley.com/the-mountain/mountain-report",
@@ -3429,7 +3432,7 @@ const LIFT_FEEDS = {palisades: [61, (area) => !ALPINE_AREAS.includes(area)], alp
     "boynemountain", "boynehighlands", "eldora", "brianhead", "azsnowbowl", "leecanyon",
     "whitefish", "bogusbasin", "brundage", "tamarack", "lutsen", "mountainhigh", "showdown", "lookoutpass", "fortyninenorth", "mtspokane", "discovery", "wisp", "wintergreen", "massanutten", "holidayvalley", "bristol", "nubsnob", "crystalmi", "snowriver", "granitepeak", "whitecap", "caberfae", "timberlinewv", "canaanvalley", "silvermountain", "losttrail", "camelback", "windham", "eaglecrest", "terrypeak", "plattekill", "westmountain", "elkmountain", "powderking", "hudsonbay", "mtbaldy", "sunrisepark", "dodgeridge", "snowyrange", "mountstlouis", "whitehills", "spiritmtn", "chinapeak", "sunlight", "powderhorn", "eaglepoint", "sasquatch", "castlemountain", "horseshoe",
     // Park City and Colorado's four Vail mountains, read by the collector from Vail's own pages.
-    "parkcity", "vail", "beavercreek", "breckenridge", "keystone", "crestedbutte",
+    "parkcity", "vail", "beavercreek", "breckenridge", "keystone", "crestedbutte", "whistler", "hunter", "sevensprings",
     // Shasta's two resorts, each read by the collector from its own page.
     "shastaskipark", "ashland",
     // The Okanagan. Apex's site turns readers away, so it has no status here.
@@ -3506,7 +3509,7 @@ const publishedFeed = (file, key) => async () => {
 const FEED_LOADERS = {sierra: sierraFeed, mtrose: mtRoseFeed, sugarbowl: sugarBowlFeed, heavenly: publishedFeed("resort_status.json", "heavenly"), northstar: publishedFeed("resort_status.json", "northstar"),
   kirkwood: publishedFeed("resort_status.json", "kirkwood"), homewood: publishedFeed("homewood.json", "homewood"),
   boreal: publishedFeed("boreal.json", "boreal"),
-  ...Object.fromEntries(["stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched", "parkcity", "vail", "beavercreek", "breckenridge", "keystone", "crestedbutte"].map((key) => [key, publishedFeed("resort_status.json", key)])),
+  ...Object.fromEntries(["stowe", "okemo", "mountsnow", "wildcat", "attitash", "sunapee", "crotched", "parkcity", "vail", "beavercreek", "breckenridge", "keystone", "crestedbutte", "whistler", "hunter", "sevensprings"].map((key) => [key, publishedFeed("resort_status.json", key)])),
   ...Object.fromEntries(["sugarloaf", "sundayriver", "loon"].map((key) => [key, publishedFeed("boyne.json", key)])),
   ...Object.fromEntries(["killington", "pico"].map((key) => [key, publishedFeed("killington.json", key)])),
   ...Object.fromEntries(["jaypeak", "burke", "smugglers", "bolton", "madriverglen", "bromley", "magic", "cannon", "brettonwoods", "waterville", "cranmore", "blackmountain", "saddleback"].map((key) => [key, publishedFeed("independents.json", key)])),

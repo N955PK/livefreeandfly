@@ -36,6 +36,10 @@ RESORTS = {
     "breckenridge": ("Breckenridge", "www.breckenridge.com", TERRAIN_AND_LIFT),
     "keystone": ("Keystone", "www.keystoneresort.com", TERRAIN_AND_LIFT),
     "crestedbutte": ("Crested Butte", "www.skicb.com", LIFT_AND_TERRAIN),
+    # Added 2026-11-26 on the pattern of the rest, their pages not seen from the machine this was written on.
+    "whistler": ("Whistler Blackcomb", "www.whistlerblackcomb.com", TERRAIN_AND_LIFT),
+    "hunter": ("Hunter", "www.huntermtn.com", LIFT_AND_TERRAIN),
+    "sevensprings": ("Seven Springs", "www.7springs.com", LIFT_AND_TERRAIN),
 }
 URL = "https://{host}/the-mountain/mountain-conditions/{page}"
 # Pages read at once, and how long one may take: the collector passes every five minutes, so a pass over all of
