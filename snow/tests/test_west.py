@@ -1,11 +1,14 @@
 """The third collector's regions: Montana, Sun Valley, Oregon, New Mexico, Alaska and Southwest Colorado."""
+import json
 import math
 import os
 import subprocess
 import sys
 
-from tahoe_snow import config
-from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS
+from tahoe_snow import biascorrect, calibrate, config
+from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, MODELS
+from tahoe_snow.snow import observations, phase, train
+from tahoe_snow.sources import omfiles_s3
 
 WEST = {"montana": 6, "sunvalley": 6, "oregon": 11, "newmexico": 9, "alaska": 7, "swcolorado": 13}
 # Where each region's mountains lie: south, north, west, east.
@@ -98,3 +101,28 @@ def test_the_third_collector_sees_its_six_regions_and_plans_only_them():
     assert out.startswith(f"west {sorted(WEST)} 52 44 ")
     # 44 pulls three times a day, with Oregon's one and Alaska's five lower levels: inside the day's 10,000.
     assert 6800 < int(out.rsplit(" ", 1)[1]) < 7500
+
+
+def test_each_region_has_its_own_correction_weights_and_split():
+    for key in WEST:
+        assert calibrate.REGIONS[key] == (STATIONS[key], BBOXES[key], f"{key}_daily")
+        assert observations.BOXES[f"{key}box"][1] == BBOXES[key]
+        block = getattr(omfiles_s3, f"{key.upper()}_BLOCK")
+        assert train.REGION_BOXES[key] == (f"{key}box", block)
+        # The block of upper air holds the whole box.
+        assert block[0] <= BBOXES[key][0] and block[1] >= BBOXES[key][1]
+        assert block[2] <= BBOXES[key][2] and block[3] >= BBOXES[key][3]
+        correction = biascorrect.from_json(json.loads((MODELS / f"bias_{key}.json").read_text()))
+        for r in mountains(key):
+            if r.station and r.corrected:
+                assert correction.fitted(r.station), r.key
+        weights = json.loads((MODELS / f"weights_{key}.json").read_text())
+        assert set(weights) == set(config.DET_MODELS) and abs(sum(weights.values()) - 1) < 0.005
+        kind, params = phase.load(key)
+        assert kind == "wet-bulb logistic" and 0 <= params["center_c"] <= 2, key
+    # Alaska's sensors stamp their days on Alaska's clock, an hour behind the Pacific one the rest keep.
+    assert calibrate.SENSOR_OFFSET_H == train.SENSOR_OFFSET_H == {"alaska": 9}
+
+
+def test_only_the_summit_climb_with_a_low_sensor_is_left_uncorrected():
+    assert [r.key for key in WEST for r in mountains(key) if r.station and not r.corrected] == ["hoodsouth"]

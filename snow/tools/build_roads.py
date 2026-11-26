@@ -79,6 +79,38 @@ ROUTES = {
     # Nakiska (40) and the David Thompson (11). British Columbia's side of the map writes "TCH 1" and "BC 93".
     "rockies": {"1": "TCH-1", "TCH 1": "TCH-1", "93": "AB-93", "BC 93": "BC-93", "93A": "AB-93A", "1A": "AB-1A",
                 "16": "AB-16", "40": "AB-40", "11": "AB-11"},
+    # The third collector's regions, each ref as it was seen on OpenStreetMap's ways (2026-11-26). None of these
+    # files is built yet: the Overpass servers did not answer that day.
+    # I-90 through Bozeman and Livingston, the Gallatin Canyon (US 191) and the Big Sky spur (MT 64), the roads to
+    # Bridger Bowl (MT 86), over Kings Hill to Showdown (US 89) and through Cooke City (US 212).
+    "montana": {"I 90": "I-90", "US 191": "US-191", "US 89": "US-89", "US 287": "US-287", "US 20": "US-20",
+                "US 212": "US-212", "US 12": "US-12", "MT 64": "MT-64", "MT 84": "MT-84", "MT 85": "MT-85",
+                "MT 86": "MT-86", "MT 87": "MT-87", "MT 287": "MT-287"},
+    # The Wood River road over Galena Summit to Stanley (ID 75) and its spur to Sun Valley, the Ponderosa Pine
+    # byway over Banner Summit (ID 21), US 20 across the Camas Prairie to Fairfield, and US 93 and I-84 below.
+    "sunvalley": {"ID 75": "ID-75", "ID 75 Spur": "ID-75", "ID 21": "ID-21", "US 20": "US-20", "US 93": "US-93",
+                  "US 26": "US-26", "I 84": "I-84", "ID 46": "ID-46"},
+    # Mt. Hood's roads (US 26, OR 35, the Timberline Highway OR 173, and I-84 in the Gorge), Santiam Pass
+    # (US 20, OR 126, OR 22), McKenzie Pass (OR 242), US 97 through Bend, the Cascade Lakes Highway to
+    # Mt. Bachelor (OR 372) and Willamette Pass (OR 58).
+    "oregon": {"US 26": "US-26", "OR 35": "OR-35", "I 84": "I-84", "OR 173": "OR-173", "US 20": "US-20",
+               "OR 126": "OR-126", "OR 22": "OR-22", "OR 242": "OR-242", "US 97": "US-97", "OR 372": "OR-372",
+               "OR 58": "OR-58", "I 5": "I-5", "OR 281": "OR-281"},
+    # The road to Taos Ski Valley (NM 150), the Enchanted Circle to Red River and Angel Fire (NM 38, US 64,
+    # NM 434), the High Road and the road to Sipapu (NM 518), the Rio Grande road (NM 68), Hyde Park Road to
+    # Ski Santa Fe (NM 475), and the roads to Los Alamos (NM 502, NM 501).
+    "newmexico": {"NM 150": "NM-150", "NM 38": "NM-38", "NM 522": "NM-522", "NM 68": "NM-68", "US 64": "US-64",
+                  "NM 434": "NM-434", "NM 518": "NM-518", "NM 475": "NM-475", "NM 502": "NM-502",
+                  "NM 501": "NM-501", "US 84": "US-84", "US 285": "US-285", "I 25": "I-25"},
+    # The Seward Highway (AK 1 south of Anchorage, AK 9 to Seward), the Glenn Highway (AK 1 north) and the Parks
+    # (AK 3). The Alyeska Highway and the Hatcher Pass road carry no number.
+    "alaska": {"AK 1": "AK-1", "AK 3": "AK-3", "AK 9": "AK-9"},
+    # The roads to Aspen (CO 82) and Marble (CO 133), Crested Butte (CO 135), Monarch Pass (US 50), the Million
+    # Dollar Highway over Red Mountain, Molas and Coal Bank passes (US 550), Telluride (CO 145, CO 62) and Wolf
+    # Creek Pass (US 160).
+    "swcolorado": {"CO 82": "CO-82", "CO 133": "CO-133", "CO 135": "CO-135", "US 50": "US-50", "US 285": "US-285",
+                   "US 550": "US-550", "CO 62": "CO-62", "CO 145": "CO-145", "US 160": "US-160", "CO 149": "CO-149",
+                   "I 70": "I-70"},
 }
 TOLERANCE_DEG = 0.0004
 # The Sierra crest as (lat, lon), north to south, set a little west of the passes. Mammoth's map keeps only the
