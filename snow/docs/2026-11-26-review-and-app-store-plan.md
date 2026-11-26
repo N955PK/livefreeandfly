@@ -40,7 +40,7 @@ permission. None of that shows on screen, which is why it needs saying.
 2. **No alerting.** Collector failures are logged as warnings and the job ends green. Add a heartbeat: a check that
    fails loudly when a region's forecast is more than a few hours late.
 3. **One failing region can starve its collector** (read). The most overdue region is always tried first, so one
-   that keeps failing is retried every half hour and spends calls each time. Back off after a failure.
+   that keeps failing is retried every half hour ahead of the others. Back off after a failure.
 4. **A failed lift reader makes its mountain's status vanish.** Keep the last good reading with its time.
 5. **First launch with no signal** shows only "The forecast could not be loaded", with no reason and no retry
    (seen).
@@ -72,7 +72,7 @@ permission. None of that shows on screen, which is why it needs saying.
 
 | Matter | Finding | Confidence |
 |---|---|---|
-| Open-Meteo | The free tier is non-commercial; five collectors together plan about 42,800 calls a day against one 10,000 allowance. Paid plans are $29 a month (1 million calls) and $99 a month (5 million). | Medium: prices from its blog, terms page not read |
+| Open-Meteo | The free tier is for non-commercial use, so a store app needs a paid plan: $29 or $99 a month. | Medium: prices from its blog, terms page not read |
 | Lift status | Alterra's terms bar scraping. Apple's guideline 5.2.2 requires that third-party content be "specifically permitted" and may ask for proof. The Vail reader imitates a browser to pass bot checks. | Medium |
 | Avalanche | The US centers' API sets display rules the app already follows, but states no licence for the danger icons. Avalanche Canada's terms require written consent. | Medium (US), low (Canada) |
 | Guideline 4.2 | An app must be more than a repackaged website. A bare wrapper is the likeliest rejection. | High on the text |
@@ -88,7 +88,7 @@ permission. None of that shows on screen, which is why it needs saying.
 Three decisions shape everything after:
 
 - **Free or paid.** Free keeps the Open-Meteo question open but does not settle it: a store app is arguably
-  commercial either way. Recommended: plan for the $99 plan, and cut calls first so $29 may do.
+  commercial either way. Recommended: budget for a paid plan from the start.
 - **Lift status.** Launch without it, link out to each resort, or license a feed. Recommended: launch with the
   forecast, sensors and avalanche summaries, keep lift status for resorts that agree in writing, and link out for
   the rest. Ask OnTheSnow and SnoCountry for prices in parallel.
@@ -101,8 +101,8 @@ Avalanche Center (icons and API in an app), Avalanche Canada (written permission
 ### Phase 1: make it a service (3 to 4 weeks)
 
 - A test workflow and gated deploys. Staging and production as separate branches.
-- One paid Open-Meteo key and one collector, in place of five free allowances. Cut calls: share weather points
-  further, and build remote single-mountain regions twice a day.
+- One paid Open-Meteo key and one collector in place of five. Build remote single-mountain regions twice a day
+  rather than three times.
 - Move the collectors off Actions to a small always-on machine or scheduled cloud jobs, and the published files
   to object storage behind a CDN. Rough cost: $10 to $30 a month.
 - Alerting: a heartbeat per collector and per region, sent to a phone.
