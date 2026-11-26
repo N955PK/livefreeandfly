@@ -23,10 +23,10 @@ def test_every_reader_is_a_mountain_of_new_england_the_tetons_the_wasatch_or_col
                                                   "montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado",
                                                   "michigan", "southutah", "arizona", "lasvegas",
                                                   "nwmontana", "westidaho", "lakesuperior", "socal", "inlandnw", "midatlantic", "newyork", "juneau", "blackhills", "northbc", "ontario",
-                                                  "mammoth"), key
+                                                  "mammoth", "wyoming", "newfoundland"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
-    assert len(independents.MODULES) == 121
+    assert len(independents.MODULES) == 126
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "swcolorado"] == [
         "telluride", "monarch", "purgatory", "sunlight", "powderhorn"]
     # Aspen Snowmass's site gives its four mountains in one read.
