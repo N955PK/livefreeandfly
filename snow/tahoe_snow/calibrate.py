@@ -9,6 +9,7 @@ import omfiles
 import pandas as pd
 
 from tahoe_snow import biascorrect, blend
+from tahoe_snow import config
 from tahoe_snow.config import (BCCOAST_BBOX, BCCOAST_STATIONS, COLORADO_BBOX, COLORADO_STATIONS, EASTKOOTENAYS_BBOX,
                                EASTKOOTENAYS_STATIONS, MAMMOTH_BBOX, MAMMOTH_STATIONS, MODELS, OKANAGAN_BBOX,
                                OKANAGAN_STATIONS, POWDERHIGHWAY_BBOX, POWDERHIGHWAY_STATIONS, RAW, ROCKIES_BBOX,
@@ -38,7 +39,14 @@ REGIONS = {"tahoe": (STATIONS, TAHOE_BBOX, "snotel_daily"),
                                              ("bccoast", BCCOAST_STATIONS, BCCOAST_BBOX),
                                              ("powderhighway", POWDERHIGHWAY_STATIONS, POWDERHIGHWAY_BBOX),
                                              ("eastkootenays", EASTKOOTENAYS_STATIONS, EASTKOOTENAYS_BBOX),
-                                             ("rockies", ROCKIES_STATIONS, ROCKIES_BBOX))}}
+                                             ("rockies", ROCKIES_STATIONS, ROCKIES_BBOX))},
+           # The third collector's six, each fitted to the SNOTEL stations within 25 km of its mountains.
+           **{region: (getattr(config, f"{region.upper()}_STATIONS"), getattr(config, f"{region.upper()}_BBOX"),
+                       f"{region}_daily")
+              for region in ("montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado")}}
+# Hours behind UTC of the clock a region's sensors stamp their daily values on, where it is not the Pacific
+# standard clock: Alaska's SNOTEL stations keep Alaska standard time.
+SENSOR_OFFSET_H = {"alaska": 9}
 # Shasta is here so its test can be run again, not because it has a correction: its pillows are low and measure
 # snow alone, so on the days it rained at them the models look wet (2.7 times the pillows' water on days above
 # freezing, 1.1 times on all-snow days, 2024 to 2026). A curve fitted to them would take the rain out of the water
@@ -95,8 +103,10 @@ def read_chunk(folder: str, chunk: int, info: dict, iy: slice, ix: slice) -> np.
     return block
 
 
-def archived_daily(model: str, stations: dict = STATIONS, bbox: tuple = TAHOE_BBOX) -> pd.DataFrame:
-    """Daily (Pacific Standard Time) model precipitation at each station inside ``bbox``, from the archive."""
+def archived_daily(model: str, stations: dict = STATIONS, bbox: tuple = TAHOE_BBOX,
+                   offset_h: int = PST_OFFSET_H) -> pd.DataFrame:
+    """Daily model precipitation at each station inside ``bbox``, from the archive, on the sensors' clock
+    (Pacific Standard Time unless ``offset_h`` says otherwise)."""
     folder = ARCHIVES[model]
     info = archive_info(folder)
     lat0, lat1, lon0, lon1 = bbox
@@ -115,7 +125,7 @@ def archived_daily(model: str, stations: dict = STATIONS, bbox: tuple = TAHOE_BB
         sy, sx = grid_index(info["shape"], station.lat, station.lon)
         series = pd.Series(cube[sy - iy.start, sx - ix.start], index=times, dtype=float)
         # A value covers the step ending at its timestamp; shift so days run midnight to midnight PST.
-        local_day = (series.index - step - pd.Timedelta(hours=PST_OFFSET_H)).normalize()
+        local_day = (series.index - step - pd.Timedelta(hours=offset_h)).normalize()
         daily = series.groupby(local_day).sum(min_count=int(0.9 * pd.Timedelta(days=1) / step))
         frames.append(pd.DataFrame({"model": model, "station": station.triplet, "date": daily.index,
                                     "forecast_mm": daily.to_numpy(),
@@ -149,7 +159,8 @@ def without_phantoms(table: pd.DataFrame) -> pd.DataFrame:
 
 def pairs(region: str = "tahoe") -> pd.DataFrame:
     stations, bbox, observed = REGIONS[region]
-    forecast = pd.concat([archived_daily(model, stations, bbox) for model in ARCHIVES], ignore_index=True)
+    offset_h = SENSOR_OFFSET_H.get(region, PST_OFFSET_H)
+    forecast = pd.concat([archived_daily(model, stations, bbox, offset_h) for model in ARCHIVES], ignore_index=True)
     table = forecast.merge(observed_daily(observed), on=["station", "date"]).dropna(
         subset=["forecast_mm", "observed_mm"])
     table = table[table["date"].dt.month.isin(WINTER_MONTHS)].copy()

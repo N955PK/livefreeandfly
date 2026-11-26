@@ -68,7 +68,8 @@ def station_hourly(profiles: dataset.Profiles) -> dict:
     return out
 
 
-def sensor_hourly(stations: dict, gains: pd.DataFrame, profiles: dict) -> dict:
+def sensor_hourly(stations: dict, gains: pd.DataFrame, profiles: dict,
+                  offset_h: int = dataset.PST_OFFSET_H) -> dict:
     """Hourly features and observed snow fraction for each of ``stations``, from a table of their daily gains and
     the block of 0.25-degree profiles around them (``omfiles_s3.block_profiles``)."""
     out = {}
@@ -76,7 +77,7 @@ def sensor_hourly(stations: dict, gains: pd.DataFrame, profiles: dict) -> dict:
         node = (round(round(station.lat / 0.25) * 0.25, 3), round(round(station.lon / 0.25) * 0.25, 3))
         hourly = features.hourly_features(profiles[node], station.elev_m).asfreq("h")
         observed = phase.observed(gains[gains["station"] == station.triplet].set_index("date"))
-        observed["end_utc"] = observed.index + pd.Timedelta(days=1, hours=dataset.PST_OFFSET_H)
+        observed["end_utc"] = observed.index + pd.Timedelta(days=1, hours=offset_h)
         observed["season"] = dataset.season_of(observed.index)
         out[station.triplet] = (hourly, observed, station.elev_m)
     return out
@@ -129,7 +130,9 @@ REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("
                 "bccoast": ("bccoastbox", omfiles_s3.BCCOAST_BLOCK),
                 "powderhighway": ("powderhighwaybox", omfiles_s3.POWDERHIGHWAY_BLOCK),
                 "eastkootenays": ("eastkootenaysbox", omfiles_s3.EASTKOOTENAYS_BLOCK),
-                "rockies": ("rockiesbox", omfiles_s3.ROCKIES_BLOCK)}
+                "rockies": ("rockiesbox", omfiles_s3.ROCKIES_BLOCK),
+                **{region: (f"{region}box", getattr(omfiles_s3, f"{region.upper()}_BLOCK"))
+                   for region in ("montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado")}}
 # Canada's regions are here for their rain/snow splits alone. Their snow ratio is the Sierra's and cannot be checked
 # on these boxes' hand-measured days: Canada's climate stations report snowfall and its water at exactly 10 to 1
 # (78% of 1,156 snow days at 37 stations, 2023 to 2026, Whistler Roundhouse, Sun Peaks and Mt. Fidelity among them),
@@ -140,6 +143,9 @@ REGION_BOXES = {"seattle": ("cascades", omfiles_s3.CASCADES_BLOCK), "tetons": ("
 # model ran an inch fluffy on Wasatch snow, and at stations held out a fit with the Wasatch's days at ten times
 # missed by 1.21 in, against 1.32 at equal weight and 1.31 on the Wasatch's days alone.
 REGION_DAY_WEIGHT = {"wasatch": 10.0}
+# Hours behind UTC of the clock a region's sensors stamp their daily values on, where it is not the Pacific
+# standard clock (``calibrate.SENSOR_OFFSET_H`` says the same for the water correction).
+SENSOR_OFFSET_H = {"alaska": 9}
 
 
 def pooled_weights(sierra_days: int, region_days: pd.DataFrame, region: str) -> np.ndarray:
@@ -163,7 +169,8 @@ def fit_region_phase(region: str, end: str, kind: str = "wet-bulb logistic") -> 
     profiles = region_profiles(region, end)
     gains = pd.read_parquet(TABLES / f"{box}_daily.parquet")
     gains = gains[gains["date"].dt.month.isin(SPLIT_MONTHS)]
-    stations = sensor_hourly(observations.box_stations(states, bbox), gains, profiles)
+    stations = sensor_hourly(observations.box_stations(states, bbox), gains, profiles,
+                             SENSOR_OFFSET_H.get(region, dataset.PST_OFFSET_H))
     table, best = fit_phase(stations)
     # For the scorecard: the same days scored with everything called snow, and with the Sierra's curve as it is.
     sierra = phase_errors(stations, *phase.load())

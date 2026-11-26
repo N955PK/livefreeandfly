@@ -33,6 +33,13 @@ BCCOAST_BLOCK = (49.25, 51.0, -126.0, -122.0)
 POWDERHIGHWAY_BLOCK = (49.0, 51.75, -118.5, -116.5)
 EASTKOOTENAYS_BLOCK = (49.0, 51.5, -117.5, -114.75)
 ROCKIES_BLOCK = (50.75, 53.0, -118.75, -115.0)
+# The third collector's regions, each around its stations' box.
+MONTANA_BLOCK = (44.75, 47.25, -111.75, -109.5)
+SUNVALLEY_BLOCK = (43.25, 44.5, -115.5, -113.75)
+OREGON_BLOCK = (43.25, 46.0, -122.5, -121.25)
+NEWMEXICO_BLOCK = (35.5, 37.0, -106.75, -105.0)
+ALASKA_BLOCK = (60.25, 62.0, -150.0, -148.75)
+SWCOLORADO_BLOCK = (37.0, 39.5, -108.25, -106.0)
 LEVEL_VARIABLES = ["temperature", "relative_humidity", "wind_u_component", "wind_v_component", "geopotential_height"]
 PRECIP_SHAPE = (1536, 3072)
 GRID_WIDTH = {"ncep_gfs025": 1440, "ncep_gfs013": 3072}

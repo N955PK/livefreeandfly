@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, viewport-fit=cover">
 <title>Turbo Snow</title>
 <meta property="og:title" content="Turbo Snow">
-<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, the Cascades, the Tetons, the Wasatch, Colorado, Mt. Shasta, New England, and Canada.">
+<meta property="og:description" content="A free snow forecast for ski resorts in the Sierra, the Cascades, the Tetons, the Wasatch, Colorado, Mt. Shasta, New England, Montana, Idaho, Oregon, New Mexico, Alaska, and Canada.">
 <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -1798,6 +1798,98 @@ const REGIONS = {
       [2600, [0.55, 0.53, 0.48]], [3400, [0.72, 0.70, 0.67]]],
     lake: {name: "Lake Shasta", lat: 40.752, lon: -122.395},
     avalanche: [{id: "MSAC", name: "Mount Shasta Avalanche Center", url: "https://www.shastaavalanche.org/", state: "CA"}]},
+  // The third collector's regions (see MORE_BRANCHES): the USA's regions added once the first collector's plan was
+  // full. Each disc is a kilometre inside its terrain's shorter side, so its edge is the circle's own, and every
+  // state's routes here take the plain marker. None has its road lines yet: the Overpass servers did not answer
+  // the day these were built (2026-11-26), so the map draws none and hides the Shields button until they exist.
+  montana: {name: "Montana", terrain: "data/terrain-montana", roads: "data/roads-montana.json", center: [45.931, -110.462], pick: "bigsky",
+    // Showdown in the north and Lulu Pass in the south-east are each about 104 km from the middle. The lowest ground
+    // is near 1,000 m, on the Missouri below Canyon Ferry, so heights are drawn from there.
+    waterM: 1000, floorM: 1000, lowlandM: 1000, plainStateRoutes: true,
+    discKm: 127, zoom: 2.6, turnDeg: 0,
+    areas: [{key: "showdown", name: "Showdown", mountains: ["showdown"]},
+      {key: "bozeman", name: "Bozeman", mountains: ["bridger", "blackmore"]},
+      {key: "bigsky", name: "Big Sky", mountains: ["bigsky", "beehive"]},
+      {key: "cookecity", name: "Cooke City", mountains: ["lulupass"]}],
+    // Grass and sagebrush in the valleys, forest to treeline near 2,900 m, then rock.
+    land: [[1000, [0.66, 0.63, 0.46]], [1500, [0.58, 0.58, 0.42]], [1800, [0.33, 0.43, 0.29]], [2500, [0.26, 0.39, 0.29]],
+      [2950, [0.55, 0.53, 0.48]], [3400, [0.72, 0.70, 0.67]]],
+    lake: {name: "Hebgen Lake", lat: 44.78, lon: -111.25},
+    avalanche: [{id: "GNFAC", name: "Gallatin National Forest Avalanche Center", url: "https://www.mtavalanche.com/", state: "MT"}]},
+  sunvalley: {name: "Sun Valley", terrain: "data/terrain-sunvalley", roads: "data/roads-sunvalley.json", center: [43.938, -114.875], pick: "sunvalley",
+    // Banner Summit in the north-west and Soldier Mountain in the south are each about 51 km from the middle. The
+    // lowest ground is near 940 m, in the Boise River's canyons at the box's west edge.
+    waterM: 900, floorM: 900, lowlandM: 900, plainStateRoutes: true,
+    discKm: 74, zoom: 1.5, turnDeg: 0,
+    areas: [{key: "sawtooths", name: "Sawtooths", mountains: ["banner", "williams", "galena"]},
+      {key: "woodriver", name: "Wood River", mountains: ["sunvalley", "dollar", "soldier"]}],
+    // Sagebrush on the Camas Prairie and the valley floors, forest to treeline near 3,000 m, then rock.
+    land: [[900, [0.66, 0.63, 0.46]], [1700, [0.58, 0.58, 0.42]], [2000, [0.33, 0.43, 0.29]], [2600, [0.26, 0.39, 0.29]],
+      [3000, [0.55, 0.53, 0.48]], [3400, [0.72, 0.70, 0.67]]],
+    lake: {name: "Redfish Lake", lat: 44.1191, lon: -114.933},
+    // The Sawtooth center's zones are in Idaho, as the Bridger-Teton center's western ones are, so the center
+    // says which part of the avalanche menu its zones are listed under.
+    avalanche: [{id: "SNFAC", name: "Sawtooth Avalanche Center", url: "https://www.sawtoothavalanche.com/", state: "ID", area: "Idaho"}]},
+  oregon: {name: "Oregon", terrain: "data/terrain-oregon", roads: "data/roads-oregon.json", center: [44.512, -121.816], pick: "bachelor",
+    // Mt. Hood in the north and Willamette Pass in the south are each about 102 km from the middle. The land runs
+    // down to the Columbia and the Willamette Valley, so no ground is raised to a floor; level ground above 300 m
+    // is water (the Cascade lakes and reservoirs), and the flat valley floors below that are not.
+    waterM: 0, floorM: 0, lowlandM: 300, plainStateRoutes: true,
+    discKm: 125, zoom: 2.6, turnDeg: 0,
+    areas: [{key: "hood", name: "Mt. Hood", mountains: ["tillyjane", "cooperspur", "hoodsouth", "hoodmeadows", "timberline", "skibowl"]},
+      {key: "central", name: "Central Oregon", short: "Central", mountains: ["hoodoo", "southsister", "tumalo", "bachelor", "willamettepass"]}],
+    // Farmland and oak in the western valleys and sagebrush east of the crest, forest to about 1,900 m, then
+    // lava, rock and the volcanoes' snow.
+    land: [[0, [0.50, 0.55, 0.36]], [400, [0.30, 0.44, 0.29]], [1100, [0.22, 0.37, 0.26]], [1900, [0.28, 0.40, 0.30]],
+      [2300, [0.55, 0.53, 0.48]], [2900, [0.80, 0.81, 0.83]]],
+    // Mt. Hood is the Northwest Avalanche Center's southernmost zone; the central Cascades are the Central Oregon
+    // Avalanche Center's, which avalanche.org calls COAA.
+    avalanche: [{id: "COAA", name: "Central Oregon Avalanche Center", url: "https://www.coavalanche.org/", state: "OR"},
+      {id: "NWAC", name: "Northwest Avalanche Center", url: "https://nwac.us/", state: "WA"}]},
+  newmexico: {name: "New Mexico", short: "NM", terrain: "data/terrain-newmexico", roads: "data/roads-newmexico.json", center: [36.294, -105.904], pick: "taos",
+    // Red River in the north and Ski Santa Fe and Pajarito in the south are each about 63 km from the middle. The
+    // lowest ground is near 1,500 m, in the Rio Grande's gorge at the box's south edge.
+    waterM: 1450, floorM: 1450, lowlandM: 1450, plainStateRoutes: true,
+    discKm: 86, zoom: 1.7, turnDeg: 0,
+    areas: [{key: "taos", name: "Taos", mountains: ["redriver", "goldhill", "taos", "wheelerpeak", "angelfire", "sipapu"]},
+      {key: "santafe", name: "Santa Fe", mountains: ["pajarito", "lakepeak", "skisantafe"]}],
+    // Desert scrub and pinyon on the mesas, forest to treeline near 3,600 m, then tundra and rock.
+    land: [[1450, [0.70, 0.64, 0.48]], [2100, [0.62, 0.59, 0.43]], [2500, [0.36, 0.44, 0.30]], [3300, [0.26, 0.39, 0.29]],
+      [3650, [0.55, 0.53, 0.48]], [4000, [0.72, 0.70, 0.67]]],
+    lake: {name: "Eagle Nest Lake", lat: 36.5198, lon: -105.258},
+    avalanche: [{id: "TAC", name: "Taos Avalanche Center", url: "https://taosavalanchecenter.org/", state: "NM"}]},
+  alaska: {name: "Alaska", terrain: "data/terrain-alaska", roads: "data/roads-alaska.json", center: [61.231, -149.345], pick: "alyeska",
+    // Hatcher Pass in the north and Manitoba Mountain in the south are each about 61 km from the middle. The land
+    // reaches the sea, so no ground is raised to a floor, and level ground at any height is water.
+    waterM: 0, floorM: 0, lowlandM: 0, plainStateRoutes: true,
+    discKm: 84, zoom: 1.7, turnDeg: 0,
+    areas: [{key: "hatcher", name: "Hatcher Pass", short: "Hatcher", mountains: ["hatcherpass", "skeetawk"]},
+      {key: "anchorage", name: "Anchorage", mountains: ["arcticvalley"]},
+      {key: "turnagain", name: "Turnagain", mountains: ["alyeska", "tincan", "sunburst", "manitoba"]}],
+    // Spruce and alder to about 600 m, then tundra and rock, and the Chugach's glaciers above about 1,500 m.
+    land: [[0, [0.36, 0.46, 0.31]], [200, [0.24, 0.40, 0.27]], [600, [0.36, 0.44, 0.32]], [1000, [0.52, 0.51, 0.46]],
+      [1500, [0.72, 0.73, 0.74]], [2100, [0.88, 0.90, 0.93]]],
+    lake: {name: "Turnagain Arm", lat: 60.96, lon: -149.6},
+    avalanche: [{id: "CNFAIC", name: "Chugach National Forest Avalanche Center", url: "https://www.cnfaic.org/", state: "AK"},
+      {id: "HPAC", name: "Hatcher Pass Avalanche Center", url: "https://hpavalanche.org/", state: "AK"}]},
+  swcolorado: {name: "Southwest Colorado", short: "SW Colorado", terrain: "data/terrain-swcolorado", roads: "data/roads-swcolorado.json", center: [38.316, -107.123], pick: "aspen",
+    // Aspen in the north and Wolf Creek in the south-east are each about 100 km from the middle. The lowest ground
+    // is near 1,400 m, on the Colorado River at the box's north-west corner. Blue Mesa and the other reservoirs
+    // are level ground above that, drawn as water the way Tahoe's lake is.
+    waterM: 1350, floorM: 1350, lowlandM: 1350, plainStateRoutes: true,
+    discKm: 123, zoom: 2.5, turnDeg: 0,
+    areas: [{key: "elks", name: "Elk Mountains", short: "Elks", mountains: ["snowmass", "buttermilk", "highlands", "aspen", "marble", "crestedbutte"]},
+      {key: "monarch", name: "Monarch", mountains: ["monarch"]},
+      {key: "sanjuans", name: "San Juans", mountains: ["telluride", "redmountainpass", "silverton", "coalbankpass", "purgatory", "wolfcreek"]}],
+    // Sagebrush in the low valleys, forest to treeline near 3,500 m, then tundra and rock.
+    land: [[1350, [0.66, 0.63, 0.46]], [2300, [0.58, 0.58, 0.42]], [2600, [0.33, 0.43, 0.29]], [3300, [0.26, 0.39, 0.29]],
+      [3550, [0.55, 0.53, 0.48]], [4000, [0.72, 0.70, 0.67]]],
+    lake: {name: "Blue Mesa Reservoir", lat: 38.465, lon: -107.21},
+    // Colorado's center and its redrawn zones, named as in the Colorado region.
+    avalanche: [{id: "CAIC", name: "Colorado Avalanche Information Center", url: "https://avalanche.state.co.us/", state: "CO",
+      places: [["Front Range", -105.75, 39.95], ["Vail and Summit", -106.25, 39.55], ["Steamboat", -106.75, 40.5], ["Flat Tops", -107.3, 40.0],
+        ["Grand Mesa", -107.95, 39.05], ["Elk Mountains", -107.0, 39.0], ["Sawatch Range", -106.4, 38.8], ["San Juans", -107.5, 37.7],
+        ["Sangre de Cristo", -105.5, 37.8], ["Southern Mountains", -106.5, 38.2]]}]},
   // Canada's regions are forecast by the second collector (see MORE_BRANCHES). Their avalanche forecasts are
   // Avalanche Canada's (source "avcan", see avcanZones): one center for the whole country, whose zones every region
   // lists; "near" is the spot (lon, lat) whose zone a region opens on. Quebec has none: the only forecast in the
@@ -4404,9 +4496,14 @@ function onTheDay(product, zone) {
 // The states the avalanche zones lie in, by the two letters the centers' map layers give.
 // The part of the country a zone is listed under, by its state. The picker shows them A to Z, as this is written.
 // A zone whose name is too long for the tab's title or the large map is said shorter there.
-const ZONE_SHORT = {"Salt River and Wyoming Ranges": "Salt River & Wyoming"};
-const AVY_AREAS = ["California", "Canada", "Cascades", "Colorado", "New England", "Tetons", "Utah"];
-const AVY_AREA = {CAN: "Canada", CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Cascades", OR: "Cascades", WY: "Tetons", ID: "Tetons", UT: "Utah", CO: "Colorado"};
+const ZONE_SHORT = {"Salt River and Wyoming Ranges": "Salt River & Wyoming", "Northern Gallatin Range": "N. Gallatin", "Southern Gallatin Range": "S. Gallatin",
+  "Northern Madison Range": "N. Madison", "Southern Madison Range": "S. Madison", "Galena Summit & Eastern Mtns": "Galena & Eastern", "Sawtooth & Western Smoky Mtns": "Sawtooth & Smokies",
+  "Soldier & Wood River Valley Mtns": "Soldier & Wood River", "Turnagain Pass and Girdwood": "Turnagain & Girdwood", "Seward and Lost Lake": "Seward & Lost Lake"};
+const AVY_AREAS = ["Alaska", "California", "Canada", "Cascades", "Colorado", "Idaho", "Montana", "New England", "New Mexico", "Tetons", "Utah"];
+const AVY_AREA = {CAN: "Canada", CA: "California", NH: "New England", VT: "New England", ME: "New England", WA: "Cascades", OR: "Cascades", WY: "Tetons", ID: "Tetons", UT: "Utah", CO: "Colorado",
+  AK: "Alaska", MT: "Montana", NM: "New Mexico"};
+// A center whose zones share a state with another part of the menu says its own part (the Sawtooth center, in Idaho).
+const avyAreaOf = (zone) => zone.center.area || AVY_AREA[zone.state];
 // ---------- Avalanche Canada ----------
 // Canada's forecasts come from Avalanche Canada's own feed, not avalanche.org: one list of areas and one of today's
 // forecasts for the whole country (Parks Canada's, Kananaskis's and Quebec's among them), read in the reader's
@@ -4722,6 +4819,32 @@ const LOCATORS = [
   {where: "the mountains around Mt. Shasta", title: "Shasta", lon0: -124.294, lat0: 42.73, kx: 21.0, ky: 28,
     lakes: [[-122.336, 41.281, 0.5, 0.35]], towns: [["Mt. Shasta City", -122.3127, 41.3136, true]], shapes: [SHAPES.siskiyou],
     peaks: {3044: ["Mt. Shasta", -122.19486, 41.4092, "Shasta"]}},
+  // The third collector's regions. Each frame sets its zones left of the middle, with the app's own mountain in each
+  // zone named beside it and two or more towns for scale. They stand before Colorado's so that it takes none of
+  // their zones, and none of them reaches the zones of a frame above.
+  // The Gallatin center's eight zones, the Bridgers to Island Park and east to Cooke City.
+  {where: "the ranges around Bozeman and Big Sky", lon0: -114.373, lat0: 47.5425, kx: 11.27, ky: 16, lakes: [[-111.25, 44.78, 0.9, 0.35]],
+    towns: [["Bozeman", -111.044, 45.6794, true], ["West Yellowstone", -111.1012, 44.6632, true]], more: [["Livingston", -110.5616, 45.6624, true]],
+    peaks: {2819: ["Bridger Bowl", -110.91982, 45.81606, "Bridger"], 2822: ["Big Sky", -111.41698, 45.27922, "Big Sky"],
+      2821: ["Mt. Blackmore", -110.98957, 45.44675, "Blackmore"], 2827: ["Lulu Pass", -109.95000, 45.06200, "Lulu"]}},
+  // The Sawtooth center's four zones, Banner Summit to the Soldier Mountains.
+  {where: "the Sawtooths and the mountains around Sun Valley", title: "Idaho", lon0: -117.588, lat0: 45.846, kx: 13.69, ky: 19, lakes: [],
+    towns: [["Stanley", -114.937852, 44.216141, true], ["Ketchum", -114.363662, 43.680741, true]], more: [["Fairfield", -114.791979, 43.345647, true]],
+    peaks: {2907: ["Banner Summit", -115.20610, 44.32750, "Banner"], 2904: ["Galena Summit", -114.71200, 43.85200, "Galena"],
+      2906: ["Williams Peak", -114.98760, 44.15290, "Williams"], 2905: ["Sun Valley", -114.40345, 43.67186, "Sun Valley"]}},
+  // The Central Oregon center's two zones: the crest from Three Fingered Jack to Mt. Bachelor, and Newberry.
+  {where: "Oregon's central Cascades", title: "Central Oregon", lon0: -123.473, lat0: 45.5, kx: 18.67, ky: 26, lakes: [],
+    towns: [["Sisters", -121.5493, 44.2909, true], ["Bend", -121.3153, 44.0582, true]],
+    peaks: {2470: ["Mt. Bachelor", -121.68242, 43.99621, "Bachelor"]}},
+  // The Taos center's one zone, with Taos, Los Alamos and Santa Fe below it for scale.
+  {where: "the Sangre de Cristo Mountains above Taos", lon0: -107.921, lat0: 37.968, kx: 17.75, ky: 22, lakes: [],
+    towns: [["Taos", -105.573284, 36.4072377, true], ["Santa Fe", -105.938456, 35.6876096, true]], more: [["Los Alamos", -106.298959, 35.88137, true]],
+    peaks: {490: ["Wheeler Peak", -105.42350, 36.55700, "Wheeler"]}},
+  // The Chugach center's four zones and Hatcher Pass's one, Seward to the Talkeetnas, with Anchorage on the inlet.
+  {where: "the Chugach, the Kenai and the Talkeetna mountains", lon0: -154.228, lat0: 63.606, kx: 6.79, ky: 14, lakes: [],
+    towns: [["Anchorage", -149.8949, 61.2163, true], ["Seward", -149.4404, 60.1014, true]], more: [["Palmer", -149.1111, 61.5996, true]],
+    peaks: {2815: ["Alyeska", -149.08792, 60.96596, "Alyeska"], 2816: ["Manitoba Mountain", -149.43300, 60.68400, "Manitoba"],
+      2818: ["Arctic Valley", -149.51985, 61.24805, "Arctic"], 2152: ["Hatcher Pass", -149.25781, 61.77312, "Hatcher"]}},
   {where: "the Colorado Rockies", lon0: -116.3, lat0: 44.73, kx: 5.05, ky: 6.5, towns: [["Denver", -104.99, 39.74, true], ["Durango", -107.877, 37.277, true]], peaks: {},
     // More towns for the large map alone, each drawn only where it and its name sit clear of everything else.
     more: [["Steamboat Springs", -106.832, 40.485, true], ["Aspen", -106.824, 39.191, true], ["Gunnison", -107.06, 38.648, true], ["Telluride", -107.812, 37.937, true], ["Colorado Springs", -104.825, 38.834, true]],
@@ -4931,7 +5054,7 @@ function openAvyMap() {
   const [zone, all] = avyMapFor;
   // Titled by the part of the country, as the zone menu groups them: California, Cascades, Tetons.
   const frame = locatorFrame(zone);
-  $("avyMapTitle").textContent = (frame && frame.title) || AVY_AREA[zone.state] || zone.center.name;
+  $("avyMapTitle").textContent = (frame && frame.title) || avyAreaOf(zone) || zone.center.name;
   $("avyMapBody").innerHTML = bigLocator(zone, all);
   $("avySheet").showModal();
 }
@@ -5005,7 +5128,7 @@ function drawAvalanche() {
   // A center with one zone names it after itself; the title drops the repeat ("Bridgeport").
   const zoneName = (z) => z.name === z.center.name ? z.name.replace(/ Avalanche Center$/, "") : z.name;
   // ...under the part of the country each is in, north to south within it.
-  const areaOf = (z) => AVY_AREA[z.state] || "Other";
+  const areaOf = (z) => avyAreaOf(z) || "Other";
   const areas = [...AVY_AREAS, "Other"].filter((area) => listed.some((z) => areaOf(z) === area));
   const option = (z) => `<option value="${esc(zoneKey(z))}"${z === zone ? " selected" : ""}>${esc(zoneName(z))}</option>`;
   const title = !zone ? "Avalanche danger" : `<label class="mtnpick">${esc(ZONE_SHORT[zone.name] || zoneName(zone))}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="avyPick" aria-label="Avalanche zone">${areas.map((area) => `<optgroup label="${esc(area)}">${listed.filter((z) => areaOf(z) === area).sort((a, b) => midLat(b) - midLat(a)).map(option).join("")}</optgroup>`).join("")}</select></label>`;

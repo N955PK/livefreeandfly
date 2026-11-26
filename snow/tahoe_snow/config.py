@@ -974,7 +974,7 @@ ALL_RESORTS = {
                "Independent",
                region="oregon"),
         Resort("hoodsouth", "Mt. Hood", 45.36000, -121.70450, _ft(5884), _ft(11243), "651:OR:SNTL", "Backcountry",
-               region="oregon", kind="backcountry", weak_match=True),
+               region="oregon", kind="backcountry", weak_match=True, corrected=False),
         Resort("tillyjane", "Tilly Jane", 45.39150, -121.65500, _ft(3899), _ft(8489), "651:OR:SNTL", "Backcountry",
                region="oregon", kind="backcountry"),
         Resort("tumalo", "Tumalo Mountain", 44.00350, -121.64800, _ft(6349), _ft(7779), None, "Backcountry",

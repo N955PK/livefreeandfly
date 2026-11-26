@@ -1,6 +1,7 @@
 """Bulk station tables used to train and test the snow model."""
 import pandas as pd
 
+from tahoe_snow import config
 from tahoe_snow.cache import get_json
 from tahoe_snow.config import (BCCOAST_BBOX, COLORADO_BBOX, COLORADO_STATIONS, EASTKOOTENAYS_BBOX, M_PER_FT,
                                MAMMOTH_STATIONS, OKANAGAN_BBOX, POWDERHIGHWAY_BBOX, ROCKIES_BBOX, SEATTLE_BBOX,
@@ -100,7 +101,13 @@ BOXES = {"cascades": ("WA", SEATTLE_BBOX, 600.0), "tetonbox": (("WY", "ID"), TET
          "wasatchbox": ("UT", WASATCH_BBOX, 1500.0), "coloradobox": ("CO", COLORADO_BBOX, 2000.0),
          "okanaganbox": (BC, OKANAGAN_BBOX, 300.0), "bccoastbox": (BC, BCCOAST_BBOX, 300.0),
          "powderhighwaybox": (BC, POWDERHIGHWAY_BBOX, 300.0), "eastkootenaysbox": (BC, EASTKOOTENAYS_BBOX, 300.0),
-         "rockiesbox": (BC, ROCKIES_BBOX, 300.0)}
+         "rockiesbox": (BC, ROCKIES_BBOX, 300.0),
+         "montanabox": (("MT", "WY"), config.MONTANA_BBOX, 1500.0),
+         "sunvalleybox": ("ID", config.SUNVALLEY_BBOX, 1500.0),
+         "oregonbox": ("OR", config.OREGON_BBOX, 600.0),
+         "newmexicobox": ("NM", config.NEWMEXICO_BBOX, 2000.0),
+         "alaskabox": ("AK", config.ALASKA_BBOX, 0.0),
+         "swcoloradobox": ("CO", config.SWCOLORADO_BBOX, 2000.0)}
 
 
 def pull_box(name: str, end: str, start: str = "2023-10-01") -> pd.DataFrame:

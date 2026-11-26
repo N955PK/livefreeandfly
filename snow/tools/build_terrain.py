@@ -85,7 +85,27 @@ REGIONS = {"tahoe": {"box": (38.33, 39.77, -120.96, -119.12), "max_m": 3400, "co
            # A 340 km square around the circle, 170 km in radius about 51.874 N 116.632 W, that holds Marmot Basin
            # in the north-west and Nakiska in the south-east (each about 145 km from its middle) with 25 km to
            # spare. Mt. Columbia is 3,747 m.
-           "rockies": {"box": (50.345, 53.403, -119.105, -114.159), "max_m": 4000, "columns": 640}}
+           "rockies": {"box": (50.345, 53.403, -119.105, -114.159), "max_m": 4000, "columns": 640},
+           # The third collector's regions. Each is a square around the circle that holds every mountain with
+           # 25 km to spare. Montana: 259 km, 104 km in radius about 45.931 N 110.462 W, Showdown in the north to
+           # Lulu Pass in the south-east; Granite Peak in the Beartooths is 3,904 m.
+           "montana": {"box": (44.768, 47.094, -112.134, -108.79), "max_m": 3950, "columns": 640},
+           # Sun Valley: 152 km, 51 km in radius about 43.938 N 114.875 W, Banner Summit to Soldier Mountain.
+           # Castle Peak in the White Clouds is 3,601 m and Hyndman Peak 3,660 m.
+           "sunvalley": {"box": (43.258, 44.619, -115.821, -113.93), "max_m": 3750, "columns": 389},
+           # Oregon: 255 km, 102 km in radius about 44.512 N 121.816 W, Mt. Hood to Willamette Pass. Mt. Hood is
+           # 3,429 m. The Columbia and the Willamette Valley are the lowest ground and are drawn as level ground.
+           "oregon": {"box": (43.368, 45.656, -123.42, -120.212), "max_m": 3480, "columns": 640},
+           # New Mexico: 177 km, 63 km in radius about 36.294 N 105.904 W, Red River to Ski Santa Fe and Pajarito.
+           # Wheeler Peak is 4,013 m; Culebra Peak, just inside Colorado at the box's north edge, is 4,282 m.
+           "newmexico": {"box": (35.5, 37.088, -106.889, -104.919), "max_m": 4320, "columns": 453},
+           # Alaska: 172 km, 61 km in radius about 61.231 N 149.345 W, Hatcher Pass to Summit Lake. Mt. Marcus Baker
+           # at the box's east edge is 4,016 m. Cook Inlet and its arms are sea level, clipped to 0 and drawn as
+           # level ground.
+           "alaska": {"box": (60.458, 62.004, -150.951, -147.739), "max_m": 4050, "columns": 441},
+           # Southwest Colorado: 250 km, 100 km in radius about 38.316 N 107.123 W, Aspen to Wolf Creek. Mt. Elbert
+           # is 4,401 m and Uncompahgre Peak 4,365 m. Blue Mesa and the other reservoirs are drawn as level ground.
+           "swcolorado": {"box": (37.193, 39.44, -108.555, -105.691), "max_m": 4420, "columns": 640}}
 
 
 def stem(region: str) -> str:
