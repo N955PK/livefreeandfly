@@ -6197,7 +6197,13 @@ function renderScore(card) {
   const body = $("scoreBody"), add = (html) => body.insertAdjacentHTML("beforeend", html);
   body.textContent = "";
   add('<h4 class="ghead">What is tested</h4>');
-  for (const [test, name] of TESTS) { add(`<h5>${name}</h5>`); for (const node of words.intro[test] || []) body.append(node); }
+  // Each test is introduced once here; the page's own words are used where it has them.
+  const ABOUT = {split: "Each hour's water is divided into rain and snow by a curve fitted to the snow sensors. The test is how much water it calls the wrong one, on winters left out of the fitting.",
+    ratio: "How many inches of snow an inch of water makes. The test is how far the forecast snowfall lands from snowfall measured by hand, given the water that fell, on winters the model never saw."};
+  for (const [test, name] of TESTS) {
+    add(`<h5>${name}</h5>`);
+    if ((words.intro[test] || []).length) for (const node of words.intro[test]) body.append(node); else add(`<p>${ABOUT[test] || ""}</p>`);
+  }
   for (const region of order) {
     add(`<h4 class="ghead">${esc(region)}</h4>`);
     for (const [test, name] of TESTS) {
