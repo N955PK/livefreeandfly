@@ -4124,7 +4124,7 @@ function renderDetail() {
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
   $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}${classicTag(resort.key)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshNote}</span>
-      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}${classicLines(resort).length ? ` · ${esc(classicLines(resort).join(" · "))}` : ""}</span></div>
+      <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() ? ` · ${esc(HEAD_SHORT[passOf(resort)] || passOf(resort))}` : ""}${[...classicLines(resort), CLASSIC_PEAK[resort.key]].filter(Boolean).map((name) => ` · ${esc(name)}`).join("")}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
     <nav class="jump" id="jump" aria-label="Sections"></nav></div>
     ${outlook(resort)}
@@ -4233,7 +4233,7 @@ function renderClassics() {
   const lines = Object.entries(CLASSICS).flatMap(([key, list]) => list.map(([n, line]) => ({n, line, key}))).sort((a, b) => a.n - b.n);
   // Under each line: the mountain it is under here where that is not the line's own name, the peak where the
   // mountain is named for the line, then the region.
-  const named = (x) => { const m = everyMountain().find((r) => r.key === x.key); if (!m || !REGIONS[regionOf(m)]) return ""; return [sameName(x.line, m.name) || m.name === REGIONS[regionOf(m)].name ? "" : m.name, CLASSIC_PEAK[x.key] || "", mountainWhere(m)].filter(Boolean).join(" · "); };
+  const named = (x) => { const m = everyMountain().find((r) => r.key === x.key); if (!m || !REGIONS[regionOf(m)]) return ""; return [CLASSIC_PEAK[x.key] || sameName(x.line, m.name) || m.name === REGIONS[regionOf(m)].name ? "" : m.name, placeOf(m)].filter(Boolean).join(" · "); };
   const row = (x) => `<div class="qrow crow"><i class="cnum">${x.n}</i><div><b>${esc(x.line)}</b>${named(x) ? `<small>${esc(named(x))}</small>` : ""}</div></div>`;
   $("classicsBody").innerHTML = `<p class="gnote">The lines of <i>Fifty Classic Ski Descents of North America</i> (2010), numbered in the book's order. Each is listed with the mountain and region it is under in this app.</p>`
     + CLASSIC_PARTS.map(([from, title], k) => { const to = (CLASSIC_PARTS[k + 1] || [51])[0]; return `<h4 class="ghead">${esc(title)}</h4><div class="qlist">${lines.filter((x) => x.n >= from && x.n < to).map(row).join("")}</div>`; }).join("");
@@ -4936,7 +4936,11 @@ const bareName = (s) => plain(s).replace(/^(mt|mount|the) /, "");
 const sameName = (a, b) => bareName(a).startsWith(bareName(b)) || bareName(b).startsWith(bareName(a));
 // The other names a classic goes by: its lines where the mountain is named for the peak, and the peak where it is
 // named for the line.
-const classicLines = (m) => [...(CLASSICS[m.key] || []).map(([, line]) => line).filter((line) => !sameName(line, m.name)), ...(CLASSIC_PEAK[m.key] ? [CLASSIC_PEAK[m.key]] : [])];
+const classicLines = (m) => (CLASSICS[m.key] || []).map(([, line]) => line).filter((line) => !sameName(line, m.name));
+// Where a mountain is, said the short way: one named for a line is placed by its peak and the peak's state ("Mt.
+// Washington, New Hampshire"), with the region only where no state is named apart from it; any other by its region.
+const PEAK_STATE = {swcolorado: "Colorado", colorado: "Colorado", oregon: "Oregon", montana: "Montana"};
+const placeOf = (m) => { const peak = CLASSIC_PEAK[m.key], state = STATE_OF[m.key] || REGION_IN[regionOf(m)] || (peak && PEAK_STATE[regionOf(m)]); return !peak ? mountainWhere(m) : state ? `${peak}, ${state}` : `${peak} · ${REGIONS[regionOf(m)].name}`; };
 const plain = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 function findMatches(typed) {
   const q = plain(typed);
@@ -4950,7 +4954,7 @@ function findMatches(typed) {
     const ranks = [rank(m.name), ...lines.map(rank)].filter((at) => at >= 0);
     if (!ranks.length) continue;
     const named = classicLines(m).join(" · ");
-    found.push({at: Math.min(...ranks) + 0.5, kind: "mountain", key: m.key, name: m.name, under: `${named ? `${named} · ` : ""}${mountainWhere(m)}`});
+    found.push({at: Math.min(...ranks) + 0.5, kind: "mountain", key: m.key, name: m.name, under: `${named ? `${named} · ` : ""}${placeOf(m)}`});
   }
   return found.sort((a, b) => a.at - b.at || a.name.localeCompare(b.name)).slice(0, 40);
 }
