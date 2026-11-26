@@ -20,7 +20,7 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from tahoe_snow.sources import ((alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
+from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
                                 bigwhite, blackmountain, bogusbasin, bolton, boynehighlands, boynemountain,
                                 brettonwoods, brianhead, brighton, bristol, bromley, bromont, brundage, burke, caberfae,
                                 camelback, canaanvalley, cannon, cooperspur, copper, cranmore, crystalmi, cypress,
