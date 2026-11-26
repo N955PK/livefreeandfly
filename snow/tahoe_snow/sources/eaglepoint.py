@@ -5,7 +5,7 @@ The page is built on the server. Under "Lifts & Runs" is a table for each lift: 
 and its status in a word (the status is also in the row's class, and the two have to agree), and each row after
 is a run the lift serves, with its status and its condition in words. Each lift is a mountain area here, holding
 itself and its runs. The table the page heads "Terrain Parks" is not a lift and is an area with no lift. A run's
-difficulty is the symbol before its name (green, blue, black, double black), and a symbol the reader does not
+difficulty is the symbol before its name (green, blue, black: the page has no other), and a symbol the reader does not
 know fails. A run's condition says whether it is groomed ("Groomed", "Ungroomed"); any other condition says
 nothing of the grooming. Above the tables the page lists the lifts again by whether they are open, and that
 list has to name the same lifts as the tables. Every table and every run is one read, so a change in the page's
@@ -27,7 +27,7 @@ STAMP = "%Y-%m-%dT%H:%M:%SZ"
 # The tables that are headed by something other than a lift.
 NOT_LIFTS = frozenset({"Terrain Parks"})
 # The difficulty symbols, in the words the app's difficulty symbols are keyed on.
-LEVELS = {"green": "Green", "blue": "Blue", "black": "Black", "double-black": "Double black"}
+LEVELS = {"green": "Green", "blue": "Blue", "black": "Black"}
 GROOMED = {"groomed": "Yes", "ungroomed": "No"}
 # The snow report's labels, by the names the Ikon feed gives them (the app reads those).
 SNOWFALL = {"24hr Snowfall": "Last24HoursIn", "48hr Snowfall": "Last48HoursIn", "Base": "BaseIn",
@@ -35,11 +35,11 @@ SNOWFALL = {"24hr Snowfall": "Last24HoursIn", "48hr Snowfall": "Last48HoursIn", 
 TABLE = re.compile(r"<table class=\"runs-table\"[^>]*>(.*?)</table>", re.S)
 HEAD = re.compile(r"<tr class=\"label-status-row\">\s*<td[^>]*class=\"label\">(.*?)</td>\s*"
                   r"<td class=\"main-status status-([a-z-]+)\">(.*?)</td>\s*</tr>", re.S)
-RUN = re.compile(r"<tr>\s*<td>\s*<span class=\"difficulty-[a-z]+ difficulty-([a-z-]+)\">\s*</span>(.*?)</td>\s*"
-                 r"<td>(.*?)</td>\s*<td>(.*?)</td>\s*</tr>", re.S)
+RUN = re.compile(r"<tr>\s*<td>\s*<span class=\"difficulty-[a-z-]+ difficulty-([a-z-]+)\">\s*</span>([^<]*)</td>\s*"
+                 r"<td>([^<]*)</td>\s*<td>([^<]*)</td>\s*</tr>")
 RUNS = "<span class=\"difficulty-"
 LISTED = re.compile(r"<div class=\"lift-item\">(.*?)</div>", re.S)
-SNOW = re.compile(r"id=\"snowfall\"(.*?)id=\"mountain-cams\"", re.S)
+SNOW = re.compile(r"id=\"snowfall\"(.*?)<[^<>]*id=\"mountain-cams\"", re.S)
 LABEL = re.compile(r"<p class=\"elementor-heading-title[^\"]*\">(.*?)</p>", re.S)
 INCHES = re.compile(r"(\d+(?:\.\d+)?)\s*(?:″|”|\")?")
 TAG = re.compile(r"<[^>]+>")

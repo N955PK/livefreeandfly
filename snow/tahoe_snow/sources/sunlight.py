@@ -39,7 +39,8 @@ BOX = re.compile(r"<span class=\"elementor-icon-box-title\">(.*?)</span>\s*</spa
 LIFT = re.compile(r"<li>\s*<span class=\"[^\"]*\">(.*?)</span>\s*<span class=\"[^\"]*\">(.*?)</span>\s*</li>", re.S)
 TRAILS = re.compile(r"<div class=\"trl_stuts\">(.*)", re.S)
 GROUP = re.compile(r"<div class=\"stuts_rw\" data-level=\"([A-Z_]*)\">\s*<div class=\"stuts_itm\">\s*"
-                   r"<span class=\"lvl\">(.*?)</span>\s*<span class=\"opn_stus\">\s*(\d+)\s*/\s*(\d+) Open\s*</span>", re.S)
+                   r"<span class=\"lvl\">(.*?)</span>\s*<span class=\"opn_stus\">\s*(\d+)\s*/\s*(\d+) Open\s*</span>",
+                   re.S)
 TRAIL = re.compile(r"<li>\s*<div class=\"trl_nm\">(.*?)<span>\(([A-Z_]*)\)</span>\s*</div>\s*"
                    r"<div class=\"trl_opn[^\"]*\">(.*?)</div>\s*</li>", re.S)
 ROWS = "<div class=\"trl_nm\">"
@@ -51,6 +52,11 @@ TAG = re.compile(r"<[^>]+>")
 def words(markup: str) -> str:
     """The text of a piece of the page: tags out, entities read, spaces run together."""
     return " ".join(html.unescape(TAG.sub(" ", markup)).split())
+
+
+def number(said: str):
+    value = float(said)
+    return int(value) if value.is_integer() else value
 
 
 def status_row(name: str, said: str, difficulty: str | None) -> dict:
@@ -106,13 +112,12 @@ def snow_report(figures: dict) -> dict:
         said = INCHES.fullmatch(figures.get(label, ""))
         if not said:
             raise ValueError(f"the snow report's {label} reads {figures.get(label)!r}, not inches")
-        value = float(said.group(1))
-        area[field] = int(value) if value.is_integer() else value
+        area[field] = number(said.group(1))
     season = INCHES.fullmatch(figures.get("Season Total", ""))
     surface = figures.get("Primary Surface", "")
     return {"LastUpdate": None, "Resortwide": True,
             "BaseConditions": surface.replace("_", " ").capitalize() if surface not in ("", "UNDEF") else None,
-            "SeasonTotalIn": float(season.group(1)) if season else None, "BaseArea": area, "Report": None,
+            "SeasonTotalIn": number(season.group(1)) if season else None, "BaseArea": area, "Report": None,
             "Alert": None}
 
 

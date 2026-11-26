@@ -23,16 +23,17 @@ from datetime import datetime, timedelta, timezone
 from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
                                 bigwhite, blackmountain, bogusbasin, bolton, boynehighlands, boynemountain,
                                 brettonwoods, brianhead, brighton, bristol, bromley, bromont, brundage, burke, caberfae,
-                                camelback, canaanvalley, cannon, cooperspur, copper, cranmore, crystalmi, cypress,
-                                discovery, dollar, eaglecrest, eldora, elkmountain, fernie, fortyninenorth, granitepeak,
-                                grouse, holidayvalley, hoodmeadows, hoodoo, jacksonhole, jaypeak, kickinghorse,
-                                kimberley, lakelouise, leecanyon, lemassif, lookoutpass, losttrail, loveland, lutsen,
-                                madriverglen, magic, marmot, massanutten, monarch, montblanc, montsainteanne,
-                                mountainhigh, mtspokane, mtwashington, nakiska, norquay, nubsnob, orford, owlshead,
-                                pajarito, panorama, plattekill, powderking, powdermountain, purgatory, redmountain,
-                                redriver, revelstoke, saddleback, saintsauveur, seymour, shastaskipark, showdown,
-                                silvermountain, silverstar, sipapu, skibowl, skisantafe, smugglers, snowbasin, snowbird,
-                                snowriver, stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos,
+                                camelback, canaanvalley, cannon, castlemountain, chinapeak, cooperspur, copper,
+                                cranmore, crystalmi, cypress, discovery, dollar, eaglecrest, eaglepoint, eldora,
+                                elkmountain, fernie, fortyninenorth, granitepeak, grouse, holidayvalley, hoodmeadows,
+                                hoodoo, horseshoe, jacksonhole, jaypeak, kickinghorse, kimberley, lakelouise, leecanyon,
+                                lemassif, lookoutpass, losttrail, loveland, lutsen, madriverglen, magic, marmot,
+                                massanutten, monarch, montblanc, montsainteanne, mountainhigh, mtspokane, mtwashington,
+                                nakiska, norquay, nubsnob, orford, owlshead, pajarito, panorama, plattekill, powderhorn,
+                                powderking, powdermountain, purgatory, redmountain, redriver, revelstoke, saddleback,
+                                saintsauveur, sasquatch, seymour, shastaskipark, showdown, silvermountain, silverstar,
+                                sipapu, skibowl, skisantafe, smugglers, snowbasin, snowbird, snowriver, spiritmtn,
+                                stoneham, sundance, sunlight, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos,
                                 targhee, telluride, terrypeak, timberline, timberlinewv, waterville, westmountain,
                                 whitecap, whitefish, whitewater, willamettepass, windham, wintergreen, wisp)
 
@@ -79,7 +80,10 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            # Camelback is refused while its page counts no lifts open but marks some open.
            "silvermountain": silvermountain, "losttrail": losttrail, "camelback": camelback, "windham": windham,
            "eaglecrest": eaglecrest, "terrypeak": terrypeak, "plattekill": plattekill, "westmountain": westmountain,
-           "elkmountain": elkmountain, "powderking": powderking}
+           "elkmountain": elkmountain, "powderking": powderking,
+           "sasquatch": sasquatch, "castlemountain": castlemountain, "horseshoe": horseshoe,
+           "spiritmtn": spiritmtn, "chinapeak": chinapeak, "sunlight": sunlight, "powderhorn": powderhorn,
+           "eaglepoint": eaglepoint}
 # Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
 GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.

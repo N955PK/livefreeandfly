@@ -29,7 +29,7 @@ STATUSES = {"open": "Open", "expected": "Expected", "on hold": "On hold", "stopp
             "closed": "Closed"}
 # The difficulty symbols' names, in the words the app's difficulty symbols are keyed on; terrain parks have none.
 LEVELS = {"green circle": "Green", "blue square": "Blue", "black diamond": "Black",
-          "double black diamond": "Double black", "terrain parks": "", "terrain park": ""}
+          "double black diamond": "Double black", "terrain parks": ""}
 # The snow table's lines, by the names the Ikon feed gives them (the app reads those).
 SNOWFALL = {"Fresh Snow (12 hrs)": "Last12HoursIn", "Fresh Snow (24 hrs)": "Last24HoursIn",
             "Fresh Snow (48 hrs)": "Last48HoursIn", "Fresh Snow (72 hrs)": "Last72HoursIn",
