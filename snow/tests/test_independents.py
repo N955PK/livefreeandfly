@@ -20,10 +20,11 @@ def feed(open_lifts: int, snow: dict | None) -> dict:
 def test_every_reader_is_a_mountain_of_new_england_the_tetons_the_wasatch_or_colorado_and_says_where_its_page_is():
     for key, module in independents.MODULES.items():
         assert config.ALL_RESORTS[key].region in ("newengland", "tetons", "wasatch", "colorado", "shasta", "okanagan", "bccoast", "quebec", "rockies", "powderhighway", "eastkootenays",
-                                                  "montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado"), key
+                                                  "montana", "sunvalley", "oregon", "newmexico", "alaska", "swcolorado",
+                                                  "michigan", "southutah", "arizona", "lasvegas"), key
         assert hasattr(module, "URL") or hasattr(module, "URLS"), key
         assert callable(module.parse), key
-    assert len(independents.MODULES) == 73
+    assert len(independents.MODULES) == 79
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "swcolorado"] == [
         "telluride", "monarch", "purgatory"]
     # Aspen Snowmass's site gives its four mountains in one read.
@@ -35,7 +36,7 @@ def test_every_reader_is_a_mountain_of_new_england_the_tetons_the_wasatch_or_col
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "okanagan"] == [
         "bigwhite", "silverstar", "sunpeaks"]
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "shasta"] == ["shastaskipark", "ashland"]
-    assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "colorado"] == ["copper", "loveland"]
+    assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "colorado"] == ["copper", "loveland", "eldora"]
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "wasatch"] == [
         "alta", "snowbird", "brighton", "snowbasin", "powdermountain", "sundance"]
     assert [key for key in independents.MODULES if config.ALL_RESORTS[key].region == "tetons"] == ["jacksonhole", "targhee"]
