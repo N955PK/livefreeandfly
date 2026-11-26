@@ -10,11 +10,11 @@ from tahoe_snow.config import ALL_REGIONS, ALL_RESORTS, ALL_STATIONS, MODELS
 from tahoe_snow.snow import observations, phase, ratio, train
 from tahoe_snow.sources import omfiles_s3
 
-WEST = {"montana": 6, "sunvalley": 6, "oregon": 11, "newmexico": 9, "alaska": 7, "swcolorado": 13}
+WEST = {"montana": 6, "sunvalley": 6, "oregon": 11, "newmexico": 9, "alaska": 7, "swcolorado": 15}
 # Where each region's mountains lie: south, north, west, east.
 BOXES = {"montana": (44.9, 46.9, -111.5, -109.9), "sunvalley": (43.4, 44.4, -115.3, -114.3),
          "oregon": (43.5, 45.5, -122.1, -121.5), "newmexico": (35.7, 36.8, -106.5, -105.2),
-         "alaska": (60.6, 61.8, -149.6, -149.0), "swcolorado": (37.4, 39.3, -107.9, -106.3)}
+         "alaska": (60.6, 61.8, -149.6, -149.0), "swcolorado": (37.4, 39.4, -108.2, -106.3)}
 SHARED = {"abasin": "keystone", "lovelandpass": "loveland", "vailpass": "copper", "berthoud": "winterpark",
           "beehive": "bigsky", "dollar": "sunvalley", "tumalo": "bachelor", "wheelerpeak": "taos", "goldhill": "taos",
           "sunburst": "tincan", "highlands": "aspen", "buttermilk": "aspen"}
@@ -101,9 +101,9 @@ def test_the_third_collector_sees_its_six_regions_and_plans_only_them():
             "sum(usage.pulls(r) for r in config.REGIONS), round(usage.planned()))")
     out = subprocess.run([sys.executable, "-c", code], env={**os.environ, "SNOW_COLLECTOR": "west"}, text=True,
                          capture_output=True, check=True).stdout.strip()
-    assert out.startswith(f"west {sorted([*WEST, 'colorado'])} 64 52 ")
-    # 52 pulls three times a day, with Oregon's one and Alaska's five lower levels: inside the day's 10,000.
-    assert 8000 < int(out.rsplit(" ", 1)[1]) < 8800
+    assert out.startswith(f"west {sorted([*WEST, 'colorado'])} 68 56 ")
+    # 56 pulls three times a day, with Oregon's one and Alaska's five lower levels: inside the day's 10,000.
+    assert 8700 < int(out.rsplit(" ", 1)[1]) < 9300
 
 
 def test_each_region_has_its_own_correction_weights_and_split():

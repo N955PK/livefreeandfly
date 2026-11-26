@@ -1395,6 +1395,48 @@ ALL_RESORTS = {
                region="yukon"),
         Resort("logcabin", "Log Cabin", 59.75100, -134.98900, 889, 1700, None, "Backcountry",
                region="yukon", kind="backcountry"),
+        # ---- Mountains added to earlier regions on 2026-11-26, looked up the same way as the later regions'.
+        # Colorado's: Eldora and Ski Cooper in the Colorado region and Sunlight and Powderhorn in Southwest
+        # Colorado. Ski Cooper takes the Fremont Pass sensor, 9 km off and at its height; the Lake Eldora
+        # sensor beside Eldora and Mesa Lakes above Powderhorn are not among the stations those regions'
+        # corrections were fitted to, so those mountains have none until the fits are run again.
+        Resort("eldora", "Eldora", 39.93713, -105.59074, _ft(9200), _ft(10600), None, "Ikon",
+               region="colorado"),
+        Resort("skicooper", "Ski Cooper", 39.35553, -106.29276, _ft(10500), _ft(11700), "485:CO:SNTL", "Independent",
+               region="colorado"),
+        Resort("sunlight", "Sunlight", 39.38901, -107.33941, _ft(8141), _ft(9895), None, "Indy",
+               region="swcolorado"),
+        Resort("powderhorn", "Powderhorn", 39.06235, -108.14439, _ft(8200), _ft(9850), None, "Indy",
+               region="swcolorado"),
+        # The Sierra's west slope and its passes, in the Eastern Sierra's region (Sean, 2026-11-26): Bear
+        # Valley, Dodge Ridge, China Peak and Badger Pass, and Sonora and Ebbetts passes. None is paired with
+        # a sensor: the region's correction is fitted to the crest's pillows around Mammoth, 30 km and more
+        # from each, and adding stations would change Mammoth's numbers.
+        Resort("bearvalley", "Bear Valley", 38.48990, -120.04908, _ft(6600), _ft(8500), None, "Indy",
+               region="mammoth"),
+        Resort("dodgeridge", "Dodge Ridge", 38.18543, -119.95259, _ft(6600), _ft(8200), None, "Indy",
+               region="mammoth"),
+        Resort("chinapeak", "China Peak", 37.22813, -119.15464, _ft(7030), _ft(8709), None, "Indy",
+               region="mammoth"),
+        Resort("badgerpass", "Badger Pass", 37.65761, -119.66163, _ft(7200), _ft(7800), None, "Independent",
+               region="mammoth"),
+        Resort("sonorapass", "Sonora Pass", 38.31200, -119.64000, _ft(9624), _ft(11572), None, "Backcountry",
+               region="mammoth", kind="backcountry"),
+        Resort("ebbettspass", "Ebbetts Pass", 38.52700, -119.79200, _ft(8727), _ft(9964), None, "Backcountry",
+               region="mammoth", kind="backcountry"),
+        # Canada's: Manning Park and Sasquatch on the BC Coast, and Castle Mountain, in Alberta, with the East
+        # Kootenays.
+        Resort("manning", "Manning Park", 49.07374, -120.91377, 1357, 1789, None, "Indy",
+               region="bccoast"),
+        Resort("sasquatch", "Sasquatch", 49.38589, -121.93475, 980, 1317, None, "Indy",
+               region="bccoast"),
+        Resort("castlemountain", "Castle Mountain", 49.31749, -114.42278, 1425, 2295, None, "Indy",
+               region="eastkootenays"),
+        # Quebec's: Mont-Édouard and Le Valinouët in the Saguenay.
+        Resort("montedouard", "Mont-Édouard", 48.15963, -70.28602, 182, 628, None, "Indy",
+               region="quebec"),
+        Resort("valinouet", "Le Valinouët", 48.65017, -70.88923, 440, 789, None, "Independent",
+               region="quebec"),
     ]
 }
 
@@ -1404,7 +1446,7 @@ ALL_REGIONS = {
         # The three western regions are built together at 5 am, 1 pm and 9 pm Pacific: before the ski day, at midday and
         # in the evening. New England is built at 4 am and 4 pm Eastern; the afternoon one falls with the West's 1 pm.
         Region("tahoe", "Tahoe", "America/Los_Angeles", 8, 8, ("SAC",), at=(5, 13, 21)),
-        Region("mammoth", "Eastern Sierra", "America/Los_Angeles", 8, 8, ("ESAC", "BAC"), at=(5, 13, 21)),
+        Region("mammoth", "Central & Eastern Sierra", "America/Los_Angeles", 8, 8, ("ESAC", "BAC"), at=(5, 13, 21)),
         # Every lift-served foot of New England is below 850 hPa (near 1,450 m): the highest summit is Killington's
         # 1,293 m and the lowest base Attitash's 183 m, which 1000 hPa (near 110 m) covers.
         Region("newengland", "New England", "America/New_York", 5, 12, ("MWAC",),

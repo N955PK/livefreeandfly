@@ -13,9 +13,10 @@ def test_the_configured_regions_fit_the_daily_allowance():
 
 
 def test_the_home_regions_cost_what_the_ledger_measured():
-    # 21 mountains cost 1,089 calls a run when each asked for its own weather; 14 ask now, 3 runs a day
+    # 21 mountains cost 1,089 calls a run when each asked for its own weather; 14 of them ask now, and the six
+    # added on the Sierra's west slope each ask too: 20 pulls, 3 runs a day
     home = {key: config.REGIONS[key] for key in ("tahoe", "mammoth")}
-    assert round(usage.planned(home)) == round(14 * 3 * 51.9)
+    assert round(usage.planned(home)) == round(20 * 3 * 51.9)
 
 
 def test_avalanche_centers_come_from_the_regions_without_repeats():

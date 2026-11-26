@@ -99,4 +99,4 @@ def test_a_shared_mountain_costs_no_calls():
     assert usage.pulls("newengland") == len(config.resorts_in("newengland")) - 13 == 16
     assert round(usage.planned(newengland)) == round(16 * 2 * usage.resort_run_calls("newengland"))
     assert usage.estimate([], "newengland") == round(16 * usage.resort_run_calls("newengland"), 1)
-    assert (usage.pulls("tahoe"), usage.pulls("mammoth"), usage.pulls("seattle")) == (9, 5, 12)
+    assert (usage.pulls("tahoe"), usage.pulls("mammoth"), usage.pulls("seattle")) == (9, 11, 12)
