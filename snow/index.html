@@ -90,6 +90,20 @@ a{color:inherit}
 /* The pin is the region picker: the phone's own menu opens from a select laid invisibly over it. */
 .regionpick{justify-self:end;position:relative;display:flex;padding:4px;margin:-4px;border-radius:10px;cursor:pointer}
 .regionpick[hidden]{display:none}
+/* The magnifier beside the pin opens the search for a mountain or a region by name. Both sit in the header's last
+   column, the magnifier a button's width in from the pin. */
+.brand .regionpick,.brand .findbtn{grid-column:3;grid-row:1}
+.findbtn{justify-self:end;display:flex;border:0;background:none;padding:4px;margin:-4px 30px -4px -4px;border-radius:10px;cursor:pointer}
+.findbtn svg{fill:none;stroke:var(--mark);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.brand:has(.regionpick[hidden]) .findbtn{margin-right:-4px}
+.hosted .brand .findbtn{margin-right:66px}
+.hosted .brand:has(.regionpick[hidden]) .findbtn{margin-right:30px}
+.findbox{flex:none;padding:2px 14px 8px}
+.findbox input{box-sizing:border-box;width:100%;height:44px;padding:0 16px;border:1px solid var(--border);border-radius:999px;background:var(--wash);color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+.findbox input:focus-visible{border-color:var(--accent)}
+.pickopt.findopt{flex-direction:column;align-items:flex-start;justify-content:center;gap:0;min-height:50px;border-radius:14px}
+.pickopt.findopt small{font-size:12.5px;font-weight:400;color:var(--mark-dull)}
+.findnote{margin:6px 14px 12px;font-size:14px;color:var(--mark-dull)}
 /* Every button you can press wears the snowflake's navy (near-white in the dark): the pin, the roads, 2D, play, and back. */
 :root{--mark:#0d366b;--mark-dull:#7f93ad}
 /* The screen's safe edges (the status strip, the home bar). A page shown inside another (see "hosted") is told
@@ -1483,13 +1497,14 @@ if (HOSTED) {
   follow(); setInterval(follow, 1500);
 }
 </script>
+<dialog id="findSheet" class="sheet top"><div class="grab"><b>Search</b><button id="findClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="findbox"><input id="findInput" type="search" placeholder="Mountain or region" aria-label="Mountain or region" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" autofocus></div><div class="picklist" id="findList"></div></dialog>
 <dialog id="pickSheet" class="sheet top"><div class="grab"><b id="pickTitle" tabindex="-1" autofocus></b><button id="pickClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="pickpin" id="pickPin"></div><div class="picklist" id="pickList"></div></dialog>
 <dialog id="avySheet" class="sheet"><div class="grab"><b id="avyMapTitle" tabindex="-1" autofocus></b><button id="avyMapClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="amap" id="avyMapBody"></div></dialog>
 <dialog id="favSheet" class="sheet"><div class="grab"><b id="favTitle" tabindex="-1" autofocus></b><button id="favClose" aria-label="Close"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button></div><div class="picklist"><button class="pickopt" id="favGo"></button></div></dialog>
 <div id="topTint" aria-hidden="true"></div>
 <div id="splash" aria-hidden="true" oncontextmenu="return false"><img src="icons/mark-white.svg" alt="" width="170" height="170" draggable="false"></div>
 <main>
-  <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.svg" alt="" width="26" height="26" draggable="false"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
+  <div class="brand"><button class="hostback" id="hostBack" aria-label="Back to ski/lease"><i aria-hidden="true"></i></button><button class="setbtn" id="setBtn" aria-label="Settings"><img src="icons/mark.svg" alt="" width="26" height="26" draggable="false"></button><h1><span class="appname">Turbo Snow </span><span class="regions" id="regionBar" hidden><span id="regionSeg" role="group" aria-label="Region"></span></span><span class="regionname" id="regionName"></span></h1><button class="findbtn" id="findBtn" aria-label="Search for a mountain or a region"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.500 15.500 21 21"/></svg></button><label class="regionpick" id="regionPickWrap" hidden><svg viewBox="4.4 2.4 15.2 19.7" width="17" height="22" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.800-6.500 11-6.500 11z"/><circle cx="12" cy="10" r="2.4"/></svg><select id="regionPick" aria-label="Region"></select></label></div>
   <p class="lede" id="headline" data-tab="onepage">Loading the forecast…</p>
   <p class="meta" id="meta" data-tab="onepage"></p>
   <div class="panel" id="mapPanel" data-tab="map">
@@ -2447,7 +2462,8 @@ const REGION_PARTS = [
   ["USA", "California & Nevada", ["tahoe", "mammoth", "shasta", "socal", "lasvegas", "rubymountains"]],
   ["USA", "Pacific Northwest", ["seattle", "oregon", "inlandnw"]],
   ["USA", "Northern Rockies", ["montana", "nwmontana", "sunvalley", "westidaho", "tetons", "wyoming"]],
-  ["USA", "Utah & Colorado", ["wasatch", "southutah", "lasal", "colorado", "swcolorado"]],
+  ["USA", "Utah", ["wasatch", "southutah", "lasal"]],
+  ["USA", "Colorado", ["colorado", "swcolorado"]],
   ["USA", "Southwest", ["arizona", "newmexico"]],
   ["USA", "Alaska", ["alaska", "juneau", "valdez", "denali", "wrangellstelias"]],
   ["USA", "Midwest", ["blackhills", "lakesuperior", "michigan"]],
@@ -4878,6 +4894,48 @@ document.addEventListener("click", (e) => {
   if (b) setRegion(b.dataset.region);
 });
 $("regionPick").addEventListener("change", (e) => setRegion(e.target.value));
+// Search: the magnifier beside the pin finds a region or a mountain by name, in any region that has a forecast. A
+// classic descent is found by its line's name too ("Messner" finds Denali). Names that start with what was typed
+// come first, then names with a word that starts with it, then names that only contain it.
+const plain = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+function findMatches(typed) {
+  const q = plain(typed);
+  if (!q) return [];
+  const rank = (name) => { const n = plain(name); return n.startsWith(q) ? 0 : n.includes(" " + q) ? 1 : n.includes(q) ? 2 : -1; };
+  const keys = regionKeys(), found = [];
+  for (const key of keys) { const at = rank(REGIONS[key].name); if (at >= 0) found.push({at, kind: "region", key, name: REGIONS[key].name, under: "Region"}); }
+  for (const m of everyMountain()) {
+    if (!keys.includes(regionOf(m))) continue;
+    const lines = (CLASSICS[m.key] || []).map(([, line]) => line);
+    const ranks = [rank(m.name), ...lines.map(rank)].filter((at) => at >= 0);
+    if (!ranks.length) continue;
+    const line = rank(m.name) < 0 ? lines.find((l) => rank(l) >= 0) : null;
+    found.push({at: Math.min(...ranks) + 0.5, kind: "mountain", key: m.key, name: m.name, under: `${line ? `${line} · ` : ""}${REGIONS[regionOf(m)].name}`});
+  }
+  return found.sort((a, b) => a.at - b.at || a.name.localeCompare(b.name)).slice(0, 40);
+}
+function renderFind() {
+  const typed = $("findInput").value, found = findMatches(typed);
+  $("findList").innerHTML = !plain(typed) ? '<p class="findnote">Type the name of a mountain or a region.</p>'
+    : !found.length ? '<p class="findnote">Nothing here goes by that name.</p>'
+    : found.map((x) => `<button class="pickopt findopt" data-find="${x.kind}" data-key="${esc(x.key)}"><span>${esc(x.name)}</span><small>${esc(x.under)}</small></button>`).join("");
+}
+async function openFound(kind, key) {
+  if (kind === "region") { await setRegion(key); return; }
+  const m = everyMountain().find((r) => r.key === key);
+  if (!m) return;
+  // A favorite on screen is opened where it stands; any other mountain takes the page to its region first.
+  if (!here().some((r) => r.key === key)) { await setRegion(regionOf(m)); if (region !== regionOf(m)) return; }
+  chooseMountain(key, true);
+}
+$("findBtn").addEventListener("click", () => { markHeader(); $("findInput").value = ""; renderFind(); $("findSheet").showModal(); $("findInput").focus(); });
+$("findInput").addEventListener("input", renderFind);
+$("findInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { const first = $("findList").querySelector(".findopt"); if (first) first.click(); } });
+$("findSheet").addEventListener("click", (e) => {
+  const opt = e.target.closest(".findopt");
+  if (opt) { $("findSheet").close(); openFound(opt.dataset.find, opt.dataset.key); }
+  else if (e.target === $("findSheet") || e.target.closest("#findClose")) $("findSheet").close();
+});
 $("sumPick").addEventListener("change", (e) => setRegion(e.target.value));
 // Where the header ends (the panes start 10px under the title row), for the cards that open beneath it.
 const markHeader = () => { const b = document.querySelector(".brand"); if (b && b.offsetHeight) document.documentElement.style.setProperty("--headb", `${b.offsetTop + b.offsetHeight + 10}px`); };
