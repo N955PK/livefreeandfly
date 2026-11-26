@@ -197,3 +197,83 @@ def test_season_figures_with_no_date_or_an_old_one_are_redrawn_once(tmp_path, st
     assert json.loads(path.read_text())["season_curves"] == {"Sensor": {"depth": [0]}}
     assert pipeline.mend(NOW + timedelta(hours=3)) == [] and len(drawn) == 1           # dated now, and in date
     assert "tahoe" in pipeline.mend(NOW + timedelta(hours=10))                          # its forecast is late
+
+
+def test_a_region_whose_build_failed_waits_while_the_others_that_are_due_go_first(tmp_path, stubbed):
+    assert pipeline.due(NOW) is not None
+    first = pipeline.due(NOW)
+    assert pipeline.record_failure(first, NOW) == pipeline.pd.Timestamp("2026-12-01 12:30")
+    # The failure is kept beside the ledger, in the archive the collector publishes and starts each pass from.
+    assert json.loads((tmp_path / "archive/failures.json").read_text()) == {
+        first: {"failures": 1, "utc": "2026-12-01T12:00:00Z"}}
+    second = pipeline.due(NOW + timedelta(minutes=5))
+    assert second in config.REGIONS and second != first
+    # With every other region built, nothing is due until the failed one's half hour is up.
+    for key in config.REGIONS:
+        if key != first:
+            pipeline.run(key, NOW)
+    assert pipeline.due(NOW + timedelta(minutes=29)) is None
+    assert pipeline.due(NOW + timedelta(minutes=30)) == first
+
+
+def test_the_wait_after_a_failure_doubles_to_four_hours_and_a_build_that_works_clears_it(tmp_path, stubbed):
+    for key in config.REGIONS:
+        if key != "mammoth":
+            pipeline.run(key, NOW)
+    at, waits = NOW, []
+    for _ in range(6):
+        retry = pipeline.record_failure("mammoth", at).tz_localize("UTC")
+        waits.append((retry - at).total_seconds() / 60)
+        assert pipeline.due(retry - timedelta(minutes=1)) != "mammoth" and pipeline.due(retry) == "mammoth"
+        at = retry.to_pydatetime()
+    assert waits == [30, 60, 120, 240, 240, 240]
+    pipeline.run("mammoth", at)
+    assert json.loads((tmp_path / "archive/failures.json").read_text()) == {}
+    # The next failure starts again from half an hour.
+    assert pipeline.record_failure("mammoth", at) == pipeline.pd.Timestamp(at).tz_localize(None) + timedelta(minutes=30)
+
+
+def test_a_failure_record_that_cannot_be_read_holds_no_region_back(tmp_path, stubbed):
+    (tmp_path / "archive").mkdir()
+    first = pipeline.due(NOW)
+    for damaged in ("not json", "[1]", json.dumps({first: {"failures": "many"}}), json.dumps({first: {"utc": "then"}}),
+                    json.dumps({first: {"failures": 1, "utc": "then"}}), json.dumps({first: None})):
+        (tmp_path / "archive/failures.json").write_text(damaged)
+        assert pipeline.due(NOW) == first, damaged
+
+
+def test_the_command_line_notes_a_failed_build(tmp_path, stubbed, monkeypatch, capsys):
+    monkeypatch.setattr("sys.argv", ["tahoe_snow", "failed", "mammoth"])
+    assert cli.main() == 0
+    assert "mammoth will not be tried again before" in capsys.readouterr().out
+    assert json.loads((tmp_path / "archive/failures.json").read_text())["mammoth"]["failures"] == 1
+
+
+def test_one_mountain_failing_in_any_way_is_listed_and_the_rest_of_its_region_is_built(tmp_path, stubbed, monkeypatch,
+                                                                                      capsys):
+    built = pipeline.resort_forecast
+    odd, missing = config.resorts_in("mammoth")[:2]
+
+    def forecast(resort, *args, **kwargs):
+        if resort.key == odd.key:
+            raise KeyError("hourly")
+        if resort.key == missing.key:
+            raise ValueError("could not convert string to float: 'n/a'")
+        return built(resort, *args, **kwargs)
+
+    monkeypatch.setattr(pipeline, "resort_forecast", forecast)
+    made = pipeline.run("mammoth", NOW)
+    assert made["failed_resorts"] == [odd.key, missing.key]
+    assert len(made["resorts"]) == len(config.resorts_in("mammoth")) - 2
+    # The kind of error is printed, so that a fault in the code is not taken for a refusal by the service.
+    out = capsys.readouterr().out
+    assert f"{odd.name}: FAILED KeyError: 'hourly'" in out
+    assert f"{missing.name}: FAILED ValueError: could not convert string to float: 'n/a'" in out
+
+
+def test_a_region_where_every_mountain_fails_in_an_unexpected_way_still_fails_as_a_whole(tmp_path, stubbed,
+                                                                                         monkeypatch):
+    monkeypatch.setattr(pipeline, "resort_forecast", raising(TypeError("unsupported operand")))
+    with pytest.raises(SystemExit):
+        pipeline.run("mammoth", NOW)
+    assert not (tmp_path / "forecast/mammoth.json").exists()

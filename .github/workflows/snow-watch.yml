@@ -1,0 +1,39 @@
+name: Snow watch
+
+# Nothing told anyone when a collector stopped: the page just went on showing an old forecast. Every hour this reads
+# what each collector has published (snow/tools/watch.py) and fails when a region has never been published, a forecast
+# is older than twice its region's interval and an hour, or the lift files are more than half an hour old. The failed
+# run is the alert: GitHub mails the owner of a scheduled workflow when its run fails, and the run's summary names
+# what is late. It asks no weather service for anything and writes nothing.
+#
+# GitHub fires a scheduled workflow on this repository less often than the schedule asks, sometimes hours apart, so
+# an alert can come that much later than the hour; the collectors' own minutes (7, 22, 37, 52) are avoided.
+on:
+  schedule:
+    - cron: "43 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snow-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: snow
+
+      # The script uses the standard library alone, so nothing is installed.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check what the collectors have published
+        working-directory: snow
+        run: python -m tools.watch

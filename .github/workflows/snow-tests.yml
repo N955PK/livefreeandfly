@@ -1,0 +1,47 @@
+name: Snow tests
+
+# The collectors run whatever is on main, so a change that breaks the forecast or a reader was only found out when a
+# collector failed. This runs the test suite on every push to main and on every pull request that touches the snow
+# code, so the break shows as a failed check beside the commit. It publishes nothing and changes nothing: the data
+# branches the collectors push to are not main, so their pushes do not start it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "snow/**"
+      - ".github/workflows/snow-*.yml"
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request makes the older run's answer out of date.
+concurrency:
+  group: snow-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # The workflows are checked out beside the code because some tests read them.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            snow
+            .github/workflows
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: snow/requirements.txt
+
+      # The same line as snow-collect.yml, so the tests run against what the collectors run on, and pytest itself.
+      - name: Install the forecast, the readers and the test runner
+        run: pip install -r snow/requirements.txt curl_cffi==0.15.0 pytest
+
+      - name: Run the tests
+        working-directory: snow
+        run: python -m pytest tests -q

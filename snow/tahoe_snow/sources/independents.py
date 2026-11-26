@@ -7,7 +7,9 @@ and Alaska, and seven in Southwest Colorado (Aspen Snowmass's four from one site
 
 Each mountain has a module of its own that knows its page (``URL``, or ``URLS`` where it takes more than one request)
 and reads it (``parse``). This runs them all and writes one file the page reads, in the shape of the Ikon feed the
-rest of the page uses. A mountain whose page cannot be read is left out without costing the others.
+rest of the page uses. The sites are read a few at a time, and one that cannot be read does not cost the others: its
+mountain keeps the reading of the pass before for up to ``KEEP_MINUTES``, so one failed read does not take it off the
+page, and is left out after that. Every mountain's entry says when it was read ("ReadAt").
 
 Two things are settled here so every mountain's report reads the same way. A depth or snowfall a mountain gives
 only as a range is also given as the middle of it, which is what the map takes. And a mountain with no lift turning
@@ -18,6 +20,7 @@ python -m tahoe_snow.sources.independents out.json
 import json
 import sys
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
@@ -40,6 +43,10 @@ from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowm
                                 wintergreen, wisp)
 
 TIMEOUT = 20
+# How many sites are read at once. Each is a different mountain's own server, so none is asked for more than before.
+WORKERS = 12
+# How long a mountain's last reading is shown while its page cannot be read. Past this it is left out, as before.
+KEEP_MINUTES = 90
 STALE_DAYS = 14
 STAMP = "%Y-%m-%dT%H:%M:%SZ"
 MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton": bolton,
@@ -152,36 +159,80 @@ def read(module, now: datetime) -> dict:
     return module.parse(fetch(module.URL), now)
 
 
+def gather(name: str, module, now: datetime) -> dict:
+    """What one site's read came to, for each mountain it reports: {key: (feed, why)}. A mountain that was read has
+    its feed, stamped with when; one that was read but has posted no lifts has neither a feed nor a reason; one whose
+    read failed has the reason alone, and only that one may be shown from the pass before (see ``carried``).
+
+    Nothing is printed here, because sites are read several at a time and their lines would come out mixed."""
+    # A site of several mountains names them (``MOUNTAINS``), so that each can keep its last reading when the site fails.
+    group = name in GROUPS
+    keys = list(getattr(module, "MOUNTAINS", ())) if group else [name]
+    try:
+        feeds = read(module, now) if group else {name: read(module, now)}
+    except Exception as error:
+        return {key: (None, str(error)) for key in keys}
+    found = {}
+    # A site of several mountains leaves out any it could not read, which is that mountain's failure.
+    for key in keys + [key for key in feeds if key not in keys]:
+        if key not in feeds:
+            found[key] = (None, "could not be read")
+            continue
+        try:
+            feed = settled(feeds[key], now)
+            # A mountain that has posted no lifts yet (the Ski Park's sheet is empty until it opens) is left out,
+            # which the page reads as nothing posted, not as a mountain with no lifts.
+            found[key] = ({**feed, "ReadAt": now.strftime(STAMP)}, None) if posted(feed) else (None, None)
+        except Exception as error:
+            found[key] = (None, str(error))
+    return found
+
+
+def last_file(out_path: str) -> dict:
+    """The file the pass before wrote, or an empty one when there is none or it cannot be read."""
+    try:
+        with open(out_path) as handle:
+            last = json.load(handle)
+    except (OSError, ValueError):
+        return {}
+    return last if isinstance(last, dict) and isinstance(last.get("resorts"), dict) else {}
+
+
+def carried(key: str, last: dict, now: datetime) -> dict | None:
+    """The reading of a mountain from the pass before, to show while its page cannot be read, if it is under
+    ``KEEP_MINUTES`` old. Its age is judged by when it was read, or by the file's own time for a file written
+    before readings were stamped; a reading with no time that can be read is not kept."""
+    feed = (last.get("resorts") or {}).get(key)
+    if not isinstance(feed, dict):
+        return None
+    try:
+        read_at = datetime.strptime(feed.get("ReadAt") or last["updated"], STAMP).replace(tzinfo=timezone.utc)
+    except (KeyError, TypeError, ValueError):
+        return None
+    if now - read_at >= timedelta(minutes=KEEP_MINUTES):
+        return None
+    return {**feed, "ReadAt": read_at.strftime(STAMP)}
+
+
 def main(out_path: str) -> int:
     now = datetime.now(timezone.utc)
+    last = last_file(out_path)
+    # The sites are read a few at a time: one after another, a pass in which many are slow to answer would outlast
+    # the collector's five minutes. The results are taken in the readers' own order, so the file's order holds.
+    sites = {**MODULES, **GROUPS}
+    with ThreadPoolExecutor(WORKERS) as pool:
+        found = list(pool.map(lambda name: gather(name, sites[name], now), sites))
     resorts = {}
-    for key, module in MODULES.items():
-        try:
-            feed = settled(read(module, now), now)
-        except Exception as error:
-            print(f"{key}: {error}")
-            continue
-        # A mountain that has posted no lifts yet (the Ski Park's sheet is empty until it opens) is left out, which
-        # the page reads as nothing posted, not as a mountain with no lifts.
-        if not posted(feed):
-            print(f"{key}: no lifts posted yet")
-            continue
-        resorts[key] = feed
-    for name, module in GROUPS.items():
-        try:
-            feeds = read(module, now)
-        except Exception as error:
-            print(f"{name}: {error}")
-            continue
-        for key, feed in feeds.items():
-            try:
-                feed = settled(feed, now)
-            except Exception as error:
-                print(f"{key}: {error}")
-                continue
-            if not posted(feed):
+    for site in found:
+        for key, (feed, why) in site.items():
+            if feed is None and why is None:
                 print(f"{key}: no lifts posted yet")
                 continue
+            if feed is None:
+                feed = carried(key, last, now)
+                print(f"{key}: {why}" + (f"; showing its reading of {feed['ReadAt']}" if feed else ""))
+                if feed is None:
+                    continue
             resorts[key] = feed
     if not resorts:
         return 1

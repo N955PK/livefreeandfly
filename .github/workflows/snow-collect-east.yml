@@ -61,10 +61,12 @@ jobs:
               && git push -q -f "$REMOTE" "$1"; cd "$code/.."; rm -rf "$out"
           }
 
-          # The forecast, one region a pass: the one most overdue on its own hours, if any is. After a try that fails
-          # nothing is tried again for half an hour; a try that works sets no wait, so regions with no file yet are
-          # built on consecutive passes. The branch holds one commit: every one of this collector's regions' latest
-          # forecast, their index, and the last three weeks of archive, which carries this collector's ledger.
+          # The forecast, one region a pass: the one most overdue on its own hours, if any is. A region whose run fails
+          # waits before it is tried again (half an hour, doubling to four hours: see pipeline.due) and the others are
+          # built meanwhile. When there is no room in the allowance, or nothing can be published, nothing is tried for
+          # half an hour; a try that works sets no wait, so regions with no file yet are built on consecutive passes.
+          # The branch holds one commit: every one of this collector's regions' latest forecast, their index, and the
+          # last three weeks of archive, which carries this collector's ledger and its note of failed runs.
           tried=-1800 mended=-1800
           forecast() {
             local published="" region out
@@ -89,7 +91,14 @@ jobs:
             else
               echo "Forecast due for $region"
               (cd "$code" && python3 -m tahoe_snow budget "$region") || { echo "::warning::Forecast skipped for $region: no room in the Open-Meteo allowance"; tried=$SECONDS; return 0; }
-              (cd "$code" && python3 -m tahoe_snow run "$region" && python3 -m tahoe_snow prune) || { echo "::error::The forecast run failed for $region"; tried=$SECONDS; return 0; }
+              if (cd "$code" && python3 -m tahoe_snow run "$region" && python3 -m tahoe_snow prune); then :; else
+                # The failure is noted beside the ledger, so the region waits (half an hour, then longer each time)
+                # while the others are built, and it is published below so the wait outlasts this job. With nothing
+                # published yet there is nowhere to keep the note, so every region waits half an hour instead.
+                echo "::error::The forecast run failed for $region"
+                (cd "$code" && python3 -m tahoe_snow failed "$region") || true
+                if [ ! -f "$code/data/index.json" ]; then tried=$SECONDS; return 0; fi
+              fi
             fi
             out="$(mktemp -d)"
             cp "$code/data/index.json" "$out/" && cp -r "$code/data/forecast" "$out/forecast" && cp -r "$code/data/archive" "$out/archive" \

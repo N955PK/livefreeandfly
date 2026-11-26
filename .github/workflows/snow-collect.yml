@@ -13,7 +13,8 @@ name: Snow collect
 #      region's file together (snow-data);
 #   4. every third pass, adds to the lift-hold and resort-report records (snow-holds, snow-reports), and gathers every
 #      avalanche zone's forecast into one file for the page to keep for when there is no signal (snow-avy).
-# This is the only workflow: nothing else here runs on a schedule or by hand.
+# The other collectors (snow-collect-*.yml) build the forecasts of their own regions. Beside them, snow-watch.yml
+# checks every hour that all of this is still being published, and snow-tests.yml runs the tests on each push.
 on:
   schedule:
     - cron: "7 * * * *"
@@ -81,11 +82,13 @@ jobs:
             rm -rf "$out"
           }
 
-          # The forecast, one region a pass: the one most overdue on its own interval, if any is. After a try that fails
-          # (no room in the allowance, or the run fails) nothing is tried again for half an hour, so a fault cannot spend
-          # the day's Open-Meteo allowance; a try that works sets no wait, so regions with no file yet are built on
-          # consecutive passes. The data branch holds one commit: every region's latest forecast, the index of
-          # mountains, and the last three weeks of archive, which carries the ledger of what past runs asked Open-Meteo for.
+          # The forecast, one region a pass: the one most overdue on its own interval, if any is. A region whose run
+          # fails waits before it is tried again (half an hour, doubling to four hours: see pipeline.due), and the other
+          # regions are built meanwhile, so a fault in one cannot hold the rest back or spend the day's Open-Meteo
+          # allowance. When there is no room in the allowance, or nothing can be published, nothing is tried for half an
+          # hour; a try that works sets no wait, so regions with no file yet are built on consecutive passes. The data
+          # branch holds one commit: every region's latest forecast, the index of mountains, and the last three weeks of
+          # archive, which carries the ledger of what past runs asked Open-Meteo for and the note of failed runs.
           tried=-1800 mended=-1800
           forecast() {
             local published="" region out
@@ -113,7 +116,14 @@ jobs:
             else
               echo "Forecast due for $region"
               (cd "$code" && python3 -m tahoe_snow budget "$region") || { echo "::warning::Forecast skipped for $region: no room in the Open-Meteo allowance"; tried=$SECONDS; return 0; }
-              (cd "$code" && python3 -m tahoe_snow run "$region" && python3 -m tahoe_snow prune) || { echo "::error::The forecast run failed for $region"; tried=$SECONDS; return 0; }
+              if (cd "$code" && python3 -m tahoe_snow run "$region" && python3 -m tahoe_snow prune); then :; else
+                # The failure is noted beside the ledger, so the region waits (half an hour, then longer each time)
+                # while the others are built, and it is published below so the wait outlasts this job. With nothing
+                # published yet there is nowhere to keep the note, so every region waits half an hour instead.
+                echo "::error::The forecast run failed for $region"
+                (cd "$code" && python3 -m tahoe_snow failed "$region") || true
+                if [ ! -f "$code/data/index.json" ]; then tried=$SECONDS; return 0; fi
+              fi
             fi
             out="$(mktemp -d)"
             cp "$code/data/index.json" "$out/" && cp -r "$code/data/forecast" "$out/forecast" && cp -r "$code/data/archive" "$out/archive" \

@@ -32,6 +32,11 @@ DAILY_RECORD_DAYS = 10
 # The regions the single forecast.json still covers.
 HOME_REGIONS = ("tahoe", "mammoth")
 ENSEMBLE_VARS = ["precipitation", "temperature_2m"]
+# A region whose build failed waits this long before it is tried again, twice as long after each further failure up
+# to the ceiling, so one region that keeps failing cannot hold the others back or spend the day's allowance.
+RETRY_FIRST_MIN = 30
+RETRY_CEILING_MIN = 240
+STAMP = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def load_snow_model(region: str | None = None) -> tuple:
@@ -634,13 +639,65 @@ def last_slot(region, now: pd.Timestamp) -> pd.Timestamp:
     return max(slot for slot in slots if slot <= local).tz_convert("UTC").tz_localize(None)
 
 
+def failures_path():
+    """Where the regions whose last build failed are kept: beside the ledger in the archive, which the collector
+    publishes and starts each pass from, so the record outlasts the collector's own restart."""
+    return DATA / "archive" / "failures.json"
+
+
+def read_failures() -> dict:
+    """Each region whose last build failed, with how many have failed in a row and when the last one did. A record
+    that cannot be read counts as no failures, so a damaged file can only make a region be tried sooner."""
+    path = failures_path()
+    try:
+        failures = json.loads(path.read_text()) if path.exists() else {}
+    except (ValueError, OSError) as error:
+        print(f"{path.name}: unreadable, treated as no failures ({error})", flush=True)
+        return {}
+    kept = {}
+    for region, failure in (failures.items() if isinstance(failures, dict) else ()):
+        try:
+            retry_at(failure)
+            kept[region] = failure
+        except (KeyError, TypeError, ValueError):
+            print(f"{path.name}: the entry for {region} cannot be read and is ignored", flush=True)
+    return kept
+
+
+def retry_at(failure: dict) -> pd.Timestamp:
+    """When a region that failed may be tried again: half an hour after its first failure, doubling to four hours."""
+    wait = min(RETRY_FIRST_MIN * 2 ** (failure["failures"] - 1), RETRY_CEILING_MIN)
+    return pd.Timestamp(failure["utc"]).tz_localize(None) + pd.Timedelta(minutes=wait)
+
+
+def record_failure(region: str, now: datetime | None = None) -> pd.Timestamp:
+    """Note that ``region``'s build has just failed, and return when it may be tried again."""
+    now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC")
+    failures = read_failures()
+    failures[region] = {"failures": failures.get(region, {}).get("failures", 0) + 1, "utc": now.strftime(STAMP)}
+    write_whole(failures_path(), failures)
+    return retry_at(failures[region])
+
+
+def clear_failure(region: str) -> None:
+    """Forget ``region``'s failures once a build of it has worked."""
+    failures = read_failures()
+    if failures.pop(region, None) is not None:
+        write_whole(failures_path(), failures)
+
+
 def due(now: datetime | None = None) -> str | None:
     """The region most overdue for a new forecast: one not built since the latest of its build hours, the longest
     wait first; a region never built is the most overdue, and so is one whose forecast has not tried a mountain
-    added since (one that was tried and failed waits for the next build hour). None when nothing is due."""
+    added since (one that was tried and failed waits for the next build hour). A region whose last build failed is
+    passed over until its wait is up (see ``retry_at``), so the others that are due go first. None when nothing is
+    due."""
     now = pd.Timestamp(now or datetime.now(timezone.utc)).tz_convert("UTC").tz_localize(None)
     late = {}
+    failures = read_failures()
     for key, region in REGIONS.items():
+        if key in failures and now < retry_at(failures[key]):
+            continue
         forecast = read_region(key)
         tried = {payload["key"] for payload in (forecast or {}).get("resorts", [])} | set((forecast or {}).get("failed_resorts", []))
         if forecast is None or not {resort.key for resort in config.resorts_in(key)} <= tried:
@@ -730,9 +787,11 @@ def run(region: str, now: datetime | None = None) -> dict:
             resorts.append(payload)
             archive.extend(rows)
             print(f"{resort.name}: {payload['elevations']['summit']['windows']['next72']}", flush=True)
-        except RuntimeError as error:
+        except Exception as error:
+            # One mountain's odd reply (a missing field is a KeyError, a bad figure a ValueError) must not cost the
+            # region its other mountains. The kind of error is printed so that a fault in the code still shows.
             failed.append(resort.key)
-            print(f"{resort.name}: FAILED {error}", flush=True)
+            print(f"{resort.name}: FAILED {type(error).__name__}: {error}", flush=True)
     stamp = now.to_pydatetime()
     ran = {**usage.of_run(cache.REQUESTS[first_request:]), "region": region}
     ledger_path = DATA / "archive" / "usage.json"
@@ -750,6 +809,7 @@ def run(region: str, now: datetime | None = None) -> dict:
                 "season_curves": season_curves,
                 "usage": usage.summary(usage.record(ran, stamp, ledger_path), stamp)}
     write_whole(DATA / "forecast" / f"{region}.json", forecast)
+    clear_failure(region)
     write_index()
     write_home_forecast()
     folder = DATA / "archive" / now.strftime("%Y/%m")

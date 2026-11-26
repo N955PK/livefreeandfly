@@ -1,4 +1,4 @@
-"""Command line: python -m tahoe_snow run [region] | due | season | prune | usage | budget [region]."""
+"""Command line: python -m tahoe_snow run [region] | due | failed region | season | prune | usage | budget [region]."""
 import argparse
 import sys
 from datetime import datetime, timedelta, timezone
@@ -30,6 +30,8 @@ def main() -> int:
     run = sub.add_parser("run", help="fetch, forecast, and write one region's data file (every region by default)")
     run.add_argument("region", nargs="?", choices=list(REGIONS))
     sub.add_parser("due", help="print the region whose forecast is most overdue, or nothing if none is due")
+    sub.add_parser("failed", help="note that a region's build failed, so it waits before it is tried again"
+                   ).add_argument("region", choices=list(REGIONS))
     sub.add_parser("prune", help="delete archived forecasts that are no longer needed").add_argument(
         "--days", type=int, default=ARCHIVE_DAYS)
     sub.add_parser("season", help="refresh the season figures from the snow sensors, leaving the forecast alone")
@@ -53,6 +55,8 @@ def main() -> int:
         due = pipeline.due()
         if due:
             print(due)
+    elif args.command == "failed":
+        print(f"{args.region} will not be tried again before {pipeline.record_failure(args.region):%Y-%m-%d %H:%M} UTC")
     elif args.command == "season":
         pipeline.refresh_season()
     elif args.command == "mend":
