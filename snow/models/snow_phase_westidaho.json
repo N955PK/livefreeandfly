@@ -1,0 +1,10 @@
+{
+  "kind": "wet-bulb logistic",
+  "params": {
+    "center_c": 1.0,
+    "width_c": 0.2
+  },
+  "held_out_error_mm": 2.2076944239695844,
+  "stations": 21,
+  "days": 3758
+}
