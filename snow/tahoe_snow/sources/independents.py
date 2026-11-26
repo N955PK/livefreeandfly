@@ -23,17 +23,18 @@ from datetime import datetime, timedelta, timezone
 from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowmass, azsnowbowl, bachelor, bigsky,
                                 bigwhite, blackmountain, bogusbasin, bolton, boynehighlands, boynemountain,
                                 brettonwoods, brianhead, brighton, bristol, bromley, bromont, brundage, burke, caberfae,
-                                canaanvalley, cannon, cooperspur, copper, cranmore, crystalmi, cypress, discovery,
-                                dollar, eldora, fernie, fortyninenorth, granitepeak, grouse, holidayvalley, hoodmeadows,
-                                hoodoo, jacksonhole, jaypeak, kickinghorse, kimberley, lakelouise, leecanyon, lemassif,
-                                lookoutpass, loveland, lutsen, madriverglen, magic, marmot, massanutten, monarch,
-                                montblanc, montsainteanne, mountainhigh, mtspokane, mtwashington, nakiska, norquay,
-                                nubsnob, orford, owlshead, pajarito, panorama, powdermountain, purgatory, redmountain,
-                                redriver, revelstoke, saddleback, saintsauveur, seymour, shastaskipark, showdown,
+                                camelback, canaanvalley, cannon, cooperspur, copper, cranmore, crystalmi, cypress,
+                                discovery, dollar, eaglecrest, eldora, elkmountain, fernie, fortyninenorth, granitepeak,
+                                grouse, holidayvalley, hoodmeadows, hoodoo, jacksonhole, jaypeak, kickinghorse,
+                                kimberley, lakelouise, leecanyon, lemassif, lookoutpass, losttrail, loveland, lutsen,
+                                madriverglen, magic, marmot, massanutten, monarch, montblanc, montsainteanne,
+                                mountainhigh, mtspokane, mtwashington, nakiska, norquay, nubsnob, orford, owlshead,
+                                pajarito, panorama, plattekill, powdermountain, purgatory, redmountain, redriver,
+                                revelstoke, saddleback, saintsauveur, seymour, shastaskipark, showdown, silvermountain,
                                 silverstar, sipapu, skibowl, skisantafe, smugglers, snowbasin, snowbird, snowriver,
                                 stoneham, sundance, sunpeaks, sunshine, sunvalley, sutton, tamarack, taos, targhee,
-                                telluride, timberline, timberlinewv, waterville, whitecap, whitefish, whitewater,
-                                willamettepass, wintergreen, wisp)
+                                telluride, terrypeak, timberline, timberlinewv, waterville, westmountain, whitecap,
+                                whitefish, whitewater, willamettepass, windham, wintergreen, wisp)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -74,7 +75,11 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "bristol": bristol, "nubsnob": nubsnob, "crystalmi": crystalmi,
            # Snowriver and Granite Peak are Lutsen's owner's and reuse its reader.
            "snowriver": snowriver, "granitepeak": granitepeak, "whitecap": whitecap, "caberfae": caberfae,
-           "timberlinewv": timberlinewv, "canaanvalley": canaanvalley}
+           "timberlinewv": timberlinewv, "canaanvalley": canaanvalley,
+           # Camelback is refused while its page counts no lifts open but marks some open.
+           "silvermountain": silvermountain, "losttrail": losttrail, "camelback": camelback, "windham": windham,
+           "eaglecrest": eaglecrest, "terrypeak": terrypeak, "plattekill": plattekill, "westmountain": westmountain,
+           "elkmountain": elkmountain}
 # Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
 GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.
