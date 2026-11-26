@@ -26,17 +26,18 @@ from tahoe_snow.sources import (alta, alyeska, arcticvalley, ashland, aspensnowm
                                 camelback, canaanvalley, cannon, castlemountain, chinapeak, cooperspur, copper,
                                 cranmore, crystalmi, cypress, discovery, dodgeridge, dollar, eaglecrest, eaglepoint,
                                 eldora, elkmountain, fernie, fortyninenorth, granitepeak, grouse, holidayvalley,
-                                hoodmeadows, hoodoo, horseshoe, jacksonhole, jaypeak, kickinghorse, kimberley,
-                                lakelouise, leecanyon, lemassif, lookoutpass, losttrail, loveland, lutsen, madriverglen,
-                                magic, marmot, massanutten, monarch, montblanc, montsainteanne, mountainhigh,
-                                mountstlouis, mtspokane, mtwashington, nakiska, norquay, nubsnob, orford, owlshead,
-                                pajarito, panorama, plattekill, powderhorn, powderking, powdermountain, purgatory,
-                                redmountain, redriver, revelstoke, saddleback, saintsauveur, sasquatch, seymour,
-                                shastaskipark, showdown, silvermountain, silverstar, sipapu, skibowl, skisantafe,
-                                smugglers, snowbasin, snowbird, snowriver, snowyrange, spiritmtn, stoneham, sundance,
-                                sunlight, sunpeaks, sunrisepark, sunshine, sunvalley, sutton, tamarack, taos, targhee,
-                                telluride, terrypeak, timberline, timberlinewv, waterville, westmountain, whitecap,
-                                whitefish, whitehills, whitewater, willamettepass, windham, wintergreen, wisp)
+                                hoodmeadows, hoodoo, horseshoe, hudsonbay, jacksonhole, jaypeak, kickinghorse,
+                                kimberley, lakelouise, leecanyon, lemassif, lookoutpass, losttrail, loveland, lutsen,
+                                madriverglen, magic, marmot, massanutten, monarch, montblanc, montsainteanne,
+                                mountainhigh, mountstlouis, mtbaldy, mtspokane, mtwashington, nakiska, norquay, nubsnob,
+                                orford, owlshead, pajarito, panorama, plattekill, powderhorn, powderking,
+                                powdermountain, purgatory, redmountain, redriver, revelstoke, saddleback, saintsauveur,
+                                sasquatch, seymour, shastaskipark, showdown, silvermountain, silverstar, sipapu,
+                                skibowl, skisantafe, smugglers, snowbasin, snowbird, snowriver, snowyrange, spiritmtn,
+                                stoneham, sundance, sunlight, sunpeaks, sunrisepark, sunshine, sunvalley, sutton,
+                                tamarack, taos, targhee, telluride, terrypeak, timberline, timberlinewv, waterville,
+                                westmountain, whitecap, whitefish, whitehills, whitewater, willamettepass, windham,
+                                wintergreen, wisp)
 
 TIMEOUT = 20
 STALE_DAYS = 14
@@ -86,7 +87,8 @@ MODULES = {"jaypeak": jaypeak, "burke": burke, "smugglers": smugglers, "bolton":
            "spiritmtn": spiritmtn, "chinapeak": chinapeak, "sunlight": sunlight, "powderhorn": powderhorn,
            "eaglepoint": eaglepoint,
            "sunrisepark": sunrisepark, "dodgeridge": dodgeridge, "snowyrange": snowyrange, "mountstlouis":
-           mountstlouis, "whitehills": whitehills}
+           mountstlouis, "whitehills": whitehills,
+           "hudsonbay": hudsonbay, "mtbaldy": mtbaldy}
 # Sites that report several mountains at once: ``parse`` gives {mountain key: feed}, leaving out any it cannot read.
 GROUPS = {"aspensnowmass": aspensnowmass}
 # The figures a mountain may give as a low and a high: "BaseIn" beside "BaseMinIn" and "BaseMaxIn", and so on.

@@ -1,0 +1,815 @@
+{
+ "season": "winter",
+ "chairs": [
+  {
+   "n": 1,
+   "name": "Sugar Pine",
+   "winter": "Base area to Top of the Notch",
+   "summer": "Base area to Top of the Notch",
+   "seasons": [
+    "winter",
+    "summer"
+   ]
+  },
+  {
+   "n": 2,
+   "name": "The Gulch",
+   "winter": "Beginner terrain, access to Chair 3",
+   "summer": "",
+   "seasons": [
+    "winter"
+   ]
+  },
+  {
+   "n": 3,
+   "name": "Thunder Mountain",
+   "winter": "Upper mountain, front side",
+   "summer": "",
+   "seasons": [
+    "winter"
+   ]
+  },
+  {
+   "n": 4,
+   "name": "West Side",
+   "winter": "Sun-exposed, opens on deep snow years",
+   "summer": "Easy access to the Devil's Backbone Trail",
+   "seasons": [
+    "winter"
+   ]
+  }
+ ],
+ "hours": {
+  "winter": [
+   [
+    "Weekdays",
+    "See Mountain Report"
+   ],
+   [
+    "Weekends & holidays",
+    "See Mountain Report"
+   ]
+  ],
+  "summer": [
+   [
+    "Monday – Thursday",
+    "Closed"
+   ],
+   [
+    "Friday",
+    "12 – 7 PM"
+   ],
+   [
+    "Saturday & Sunday",
+    "7 AM – 7 PM"
+   ]
+  ]
+ },
+ "report": {
+  "season": "winter",
+  "chairs": {
+   "1": {
+    "status": "scenic",
+    "note": ""
+   },
+   "2": {
+    "status": "open",
+    "note": ""
+   },
+   "3": {
+    "status": "snow",
+    "note": ""
+   },
+   "4": {
+    "status": "snow",
+    "note": ""
+   }
+  },
+  "newSnow": null,
+  "base": null,
+  "surface": "",
+  "roads": "Open, no chains",
+  "text": "Happy Thanksgiving from Mt Baldy! It's our official opening day.\n\nChair 2 is running 9 AM – 5 PM, with Beginner's Gulch, Snowball Point and the freestyle terrain open. Chair 1 is running for scenic rides only. The Snow Play area is open too. The rest of the mountain is closed for now. Pray for snow!\n\nThanksgiving Day: Sunny and mild, with a high near 53° up top and a light northeast breeze.\n\nTickets are still available. See you on the mountain.",
+  "clientTime": "2026-11-26T05:38:51.100Z",
+  "at": "2026-11-26T05:38:51.214Z",
+  "by": "",
+  "id": "2026-11-25_20261126T053851Z1a38",
+  "wx": {
+   "line": "42° at the top · wind 13 mph E, gusts 21 · feels like 35°",
+   "temp": 42,
+   "wind": 13,
+   "dir": "E",
+   "gust": 21,
+   "chill": 35,
+   "lo": 37,
+   "at": "2026-11-26T05:30:01.000Z"
+  },
+  "opensFrom": "2026-11-25"
+ },
+ "runs": [
+  {
+   "id": "beginners-gulch",
+   "name": "Beginner's Gulch",
+   "chair": 2,
+   "level": "beginner",
+   "status": "ungroomed",
+   "note": "",
+   "at": "2026-11-26T05:44:49.301Z",
+   "by": ""
+  },
+  {
+   "id": "snowball-point",
+   "name": "Snowball Point",
+   "chair": 2,
+   "level": "beginner",
+   "status": "ungroomed",
+   "note": "",
+   "at": "2026-11-26T05:44:49.301Z",
+   "by": ""
+  },
+  {
+   "id": "freestyle-terrain",
+   "name": "Freestyle terrain",
+   "chair": 2,
+   "level": "",
+   "status": "ungroomed",
+   "note": "",
+   "at": "2026-11-26T05:44:49.301Z",
+   "by": ""
+  },
+  {
+   "id": "easy-road",
+   "name": "Easy Road",
+   "chair": 3,
+   "level": "beginner",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-12T17:43:31.351Z",
+   "by": ""
+  },
+  {
+   "id": "mullins-mile",
+   "name": "Mullin's Mile",
+   "chair": 3,
+   "level": "beginner",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:24.105Z",
+   "by": ""
+  },
+  {
+   "id": "bonanza",
+   "name": "Bonanza",
+   "chair": 3,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:26.704Z",
+   "by": ""
+  },
+  {
+   "id": "toilet-bowl",
+   "name": "Toilet Bowl",
+   "chair": 3,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:38.089Z",
+   "by": ""
+  },
+  {
+   "id": "shortcut",
+   "name": "Shortcut",
+   "chair": 3,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:52:33.221Z",
+   "by": ""
+  },
+  {
+   "id": "robins-run",
+   "name": "Robin's Run",
+   "chair": 3,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:52:35.216Z",
+   "by": ""
+  },
+  {
+   "id": "skyline",
+   "name": "Skyline",
+   "chair": 3,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:27.793Z",
+   "by": ""
+  },
+  {
+   "id": "goldridge",
+   "name": "Goldridge",
+   "chair": 3,
+   "level": "advanced",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:33.819Z",
+   "by": ""
+  },
+  {
+   "id": "herbs-hollow",
+   "name": "Herb's Hollow",
+   "chair": 3,
+   "level": "advanced",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-12T17:43:34.119Z",
+   "by": ""
+  },
+  {
+   "id": "andys-alley",
+   "name": "Andy's Alley",
+   "chair": 3,
+   "level": "advanced",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-12T17:43:38.820Z",
+   "by": ""
+  },
+  {
+   "id": "emiles",
+   "name": "Emilie's Bowl",
+   "chair": 3,
+   "level": "advanced",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:28.168Z",
+   "by": ""
+  },
+  {
+   "id": "tortilla-flats",
+   "name": "Tortilla Flats",
+   "chair": 3,
+   "level": "advanced",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:25.422Z",
+   "by": ""
+  },
+  {
+   "id": "the-tube",
+   "name": "The Tube",
+   "chair": 3,
+   "level": "advanced",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:36.931Z",
+   "by": ""
+  },
+  {
+   "id": "south-bowl",
+   "name": "South Bowl",
+   "chair": 3,
+   "level": "expert",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:35.602Z",
+   "by": ""
+  },
+  {
+   "id": "southtrees",
+   "name": "Southtrees",
+   "chair": 3,
+   "level": "expert",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-12T17:43:40.854Z",
+   "by": ""
+  },
+  {
+   "id": "south-bowl-chutes",
+   "name": "South Bowl Chutes",
+   "chair": 3,
+   "level": "expert",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-12T17:43:41.888Z",
+   "by": ""
+  },
+  {
+   "id": "catalina-vista-park",
+   "name": "Catalina Vista Park",
+   "chair": 3,
+   "level": "",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-12T17:43:48.153Z",
+   "by": ""
+  },
+  {
+   "id": "roller-coaster",
+   "name": "Roller Coaster",
+   "chair": 4,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:40.061Z",
+   "by": ""
+  },
+  {
+   "id": "spring-ridge",
+   "name": "Spring Ridge",
+   "chair": 4,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-12T17:43:50.185Z",
+   "by": ""
+  },
+  {
+   "id": "turkey-shoot",
+   "name": "Turkey Shoot",
+   "chair": 4,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:41.018Z",
+   "by": ""
+  },
+  {
+   "id": "bifurcate",
+   "name": "Bifurcate",
+   "chair": 4,
+   "level": "intermediate",
+   "status": "closed",
+   "note": "",
+   "at": "2026-10-09T19:53:44.414Z",
+   "by": ""
+  },
+  {
+   "id": "sugarpine",
+   "name": "Sugarpine",
+   "chair": 1,
+   "level": "advanced",
+   "status": "",
+   "note": "",
+   "at": null,
+   "by": "",
+   "never": true
+  },
+  {
+   "id": "windslab",
+   "name": "Windslab",
+   "chair": 1,
+   "level": "expert",
+   "status": "",
+   "note": "",
+   "at": null,
+   "by": "",
+   "never": true
+  },
+  {
+   "id": "chappies-chutes",
+   "name": "Chappie's Chutes",
+   "chair": 1,
+   "level": "expert",
+   "status": "",
+   "note": "",
+   "at": null,
+   "by": "",
+   "never": true
+  },
+  {
+   "id": "nightmare",
+   "name": "Nightmare",
+   "chair": 1,
+   "level": "expert",
+   "status": "",
+   "note": "",
+   "at": null,
+   "by": "",
+   "never": true
+  },
+  {
+   "id": "morgans-grove",
+   "name": "Morgan's Grove",
+   "chair": 1,
+   "level": "expert",
+   "status": "",
+   "note": "",
+   "at": null,
+   "by": "",
+   "never": true
+  },
+  {
+   "id": "bentleys",
+   "name": "Bentley's Dream",
+   "chair": 1,
+   "level": "expert",
+   "status": "",
+   "note": "",
+   "at": null,
+   "by": "",
+   "never": true
+  },
+  {
+   "id": "holumac",
+   "name": "Holumac",
+   "chair": 1,
+   "level": "expert",
+   "status": "",
+   "note": "",
+   "at": null,
+   "by": "",
+   "never": true
+  }
+ ],
+ "weather": {
+  "sky": "Clear",
+  "days": [
+   {
+    "day": "2026-11-26",
+    "hi": 54,
+    "lo": 36,
+    "sky": "Overcast"
+   },
+   {
+    "day": "2026-11-27",
+    "hi": 55,
+    "lo": 45,
+    "sky": "Overcast"
+   },
+   {
+    "day": "2026-11-28",
+    "hi": 48,
+    "lo": 33,
+    "sky": "Overcast"
+   },
+   {
+    "day": "2026-11-29",
+    "hi": 41,
+    "lo": 30,
+    "sky": "Overcast"
+   }
+  ],
+  "source": "station",
+  "at": "2026-11-26T17:50:00.000Z",
+  "mins": 5,
+  "temp": 54,
+  "chill": null,
+  "hi": 54,
+  "lo": 41,
+  "wind": 12,
+  "dir": "E",
+  "gust": 25,
+  "peak": 28
+ },
+ "openHours": {
+  "tz": "America/Los_Angeles",
+  "today": {
+   "date": "2026-11-26",
+   "dow": "thu",
+   "open": true,
+   "from": "09:00",
+   "to": "17:00",
+   "label": "9 AM – 5 PM",
+   "note": "",
+   "special": true
+  },
+  "days": [
+   {
+    "date": "2026-11-26",
+    "dow": "thu",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": true
+   },
+   {
+    "date": "2026-11-27",
+    "dow": "fri",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": true
+   },
+   {
+    "date": "2026-11-28",
+    "dow": "sat",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-11-29",
+    "dow": "sun",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-11-30",
+    "dow": "mon",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": true
+   },
+   {
+    "date": "2026-12-01",
+    "dow": "tue",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-02",
+    "dow": "wed",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-03",
+    "dow": "thu",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-04",
+    "dow": "fri",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-05",
+    "dow": "sat",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-06",
+    "dow": "sun",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-07",
+    "dow": "mon",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-08",
+    "dow": "tue",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   },
+   {
+    "date": "2026-12-09",
+    "dow": "wed",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM",
+    "note": "",
+    "special": false
+   }
+  ],
+  "week": {
+   "sun": {
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM"
+   },
+   "mon": null,
+   "tue": null,
+   "wed": null,
+   "thu": null,
+   "fri": {
+    "from": "12:00",
+    "to": "17:00",
+    "label": "12 – 5 PM"
+   },
+   "sat": {
+    "from": "09:00",
+    "to": "17:00",
+    "label": "9 AM – 5 PM"
+   }
+  },
+  "special": [
+   {
+    "date": "2026-11-26",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "note": "",
+    "label": "9 AM – 5 PM"
+   },
+   {
+    "date": "2026-11-27",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "note": "",
+    "label": "9 AM – 5 PM"
+   },
+   {
+    "date": "2026-11-30",
+    "open": true,
+    "from": "09:00",
+    "to": "17:00",
+    "note": "",
+    "label": "9 AM – 5 PM"
+   }
+  ],
+  "season": {
+   "key": "fall",
+   "name": "Fall",
+   "until": "2026-11-30"
+  },
+  "seasons": {
+   "fall": {
+    "name": "Fall",
+    "from": "09-08",
+    "week": {
+     "sun": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "mon": null,
+     "tue": null,
+     "wed": null,
+     "thu": null,
+     "fri": {
+      "from": "12:00",
+      "to": "17:00",
+      "label": "12 – 5 PM"
+     },
+     "sat": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     }
+    }
+   },
+   "winter": {
+    "name": "Winter",
+    "from": "12-01",
+    "week": {
+     "sun": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "mon": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "tue": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "wed": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "thu": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "fri": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "sat": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     }
+    }
+   },
+   "spring": {
+    "name": "Spring",
+    "from": "03-20",
+    "week": {
+     "sun": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "mon": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "tue": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "wed": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "thu": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "fri": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     },
+     "sat": {
+      "from": "09:00",
+      "to": "17:00",
+      "label": "9 AM – 5 PM"
+     }
+    }
+   },
+   "summer": {
+    "name": "Summer",
+    "from": "05-28",
+    "week": {
+     "sun": {
+      "from": "07:00",
+      "to": "19:00",
+      "label": "7 AM – 7 PM"
+     },
+     "mon": null,
+     "tue": null,
+     "wed": null,
+     "thu": null,
+     "fri": {
+      "from": "12:00",
+      "to": "19:00",
+      "label": "12 – 7 PM"
+     },
+     "sat": {
+      "from": "07:00",
+      "to": "19:00",
+      "label": "7 AM – 7 PM"
+     }
+    }
+   }
+  },
+  "updatedAt": "2026-11-26T04:58:51.689Z",
+  "by": "",
+  "source": "tickets"
+ },
+ "groomedAt": null,
+ "serverTime": "2026-11-26T17:55:06.065Z",
+ "movedAt": "2026-11-01T03:08:35.775Z"
+}
