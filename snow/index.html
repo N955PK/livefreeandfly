@@ -4372,8 +4372,9 @@ const LOGO_MARKS = new Set("abasin alpental alpine alta alyeska angelfire antelo
 // Mountains with no logo of their own take the mark of the resort they belong to: one picture serves them all.
 const LOGO_SHARED = {buttermilk: "aspen", highlands: "aspen", snowmass: "aspen", dollar: "sunvalley", alpental: "snoqualmie", alpine: "palisades"};
 // A mark that does not read when drawn large and run off the corner is placed by hand: left, top and size in px
-// (the usual is -46, -36, 220). Jackson Hole's bronco is tall and narrow, and is shown whole.
-const LOGO_PLACE = {jacksonhole: [136, -12, 118]};
+// (the usual is -46, -36, 220). Jackson Hole's bronco is tall and narrow: it stays behind the name, drawn smaller
+// so the whole figure shows above the row of sections.
+const LOGO_PLACE = {jacksonhole: [-18, -12, 118]};
 const classicTag = (key) => !CLASSICS[key] ? "" : `<i class="cls" role="img" aria-label="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}, ${line}`).join("; "))}" title="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}: ${line}`).join(" · "))}">${CLASSICS[key].map(([n]) => n).join("·")}</i>`;
 const PANES = {map: () => $("mapPanel"), forecast: () => document.querySelector(".panel.summary"), mountain: () => $("detail"), avalanche: () => $("avalanche")};
 let pager = null;
