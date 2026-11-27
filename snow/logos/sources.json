@@ -340,8 +340,8 @@
  },
  "crestedbutte": {
   "source": "https://www.uncovercolorado.com/wp-content/uploads/2013/12/Crested-Butte-Ski-Resort-Logo.png",
-  "kind": "emblem",
-  "note": "peak-and-sunburst roundel; LOW QUALITY: about 90 px source from a third-party page dated 2013, soft and faint, may not be the current logo. skicb.com is behind a bot check and Wikipedia (File:Crested_Butte_logo.png) was rate-limiting - worth redoing from there",
+  "kind": "none",
+  "note": "the only source found was a 90 px roundel on a third-party page, too poor to use; redo from a better copy",
   "shown": false
  },
  "crotched": {
