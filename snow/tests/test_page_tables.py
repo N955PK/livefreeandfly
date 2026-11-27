@@ -62,7 +62,10 @@ def test_every_logo_mark_listed_on_the_page_has_its_picture():
     pictures = {path.stem for path in (root / "logos").glob("*.png")}
     # A picture may wait in the folder unlisted (made, but not judged good enough to show); none may be listed
     # without its picture.
-    assert listed <= pictures
+    # A mountain with no logo of its own is drawn its resort's (LOGO_SHARED), which must have a picture.
+    shared = dict(re.findall(r'(\w+): "(\w+)"', table("LOGO_SHARED")))
+    assert set(shared) <= listed and set(shared.values()) <= pictures and not set(shared) & pictures
+    assert listed - set(shared) <= pictures
     assert all(key in ALL_RESORTS and ALL_RESORTS[key].kind == "resort" for key in pictures)
     # Each is a small picture: the shape only, at most 320 px a side.
-    assert all((root / "logos" / f"{key}.png").stat().st_size < 60_000 for key in listed)
+    assert all((root / "logos" / f"{key}.png").stat().st_size < 60_000 for key in pictures)

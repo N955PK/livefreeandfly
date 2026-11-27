@@ -9,13 +9,15 @@
   "source": "https://cdn.sanity.io/images/8ts88bij/summit/8ab23da956f767381343cf560dc084c729246611-34x60.svg",
   "kind": "emblem",
   "note": "The Summit at Snoqualmie's chevron emblem: Alpental is one of its base areas and has no logo of its own on the site",
-  "shown": true
+  "shown": true,
+  "shares": "snoqualmie"
  },
  "alpine": {
   "source": "https://www.palisadestahoe.com/-/media/palisades-tahoe/footer/logos/pt-mobile.svg",
   "kind": "emblem",
   "note": "Palisades Tahoe eagle (Alpine Meadows is part of Palisades Tahoe; no separate logo)",
-  "shown": true
+  "shown": true,
+  "shares": "palisades"
  },
  "alta": {
   "source": "https://www.alta.com/",
@@ -273,7 +275,8 @@
   "source": "https://www.aspensnowmass.com/public/AspenSnowmassRedesign/images/svgsheet.svg#aspen-leaf",
   "kind": "emblem",
   "note": "Aspen Snowmass aspen leaf (shared by the four mountains)",
-  "shown": true
+  "shown": true,
+  "shares": "aspen"
  },
  "caberfae": {
   "source": "https://caberfaepeaks.com/wp-content/uploads/2024/06/caberfae-logo-340x156-1.png",
@@ -387,7 +390,8 @@
   "source": "https://www.sunvalley.com/ (inline header svg, mobile logo)",
   "kind": "emblem",
   "note": "Sun Valley's sun face; Dollar Mountain is part of Sun Valley resort and has no logo of its own on the site",
-  "shown": true
+  "shown": true,
+  "shares": "sunvalley"
  },
  "eaglecrest": {
   "source": "https://skieaglecrest.com/wp-content/uploads/2019/12/Square-Logo-Outlined-Text-PNG.png",
@@ -453,7 +457,8 @@
   "source": "https://www.aspensnowmass.com/public/AspenSnowmassRedesign/images/svgsheet.svg#aspen-leaf",
   "kind": "emblem",
   "note": "Aspen Snowmass aspen leaf (shared by the four mountains)",
-  "shown": true
+  "shown": true,
+  "shares": "aspen"
  },
  "hogadon": {
   "source": "https://www.casperwy.gov/Images/Explore/Hogadon%20Basin%20Ski%20Area/Round%20HB%20Logo.png",
@@ -1059,7 +1064,8 @@
   "source": "https://www.aspensnowmass.com/public/AspenSnowmassRedesign/images/svgsheet.svg#aspen-leaf",
   "kind": "emblem",
   "note": "Aspen Snowmass aspen leaf (shared by the four mountains)",
-  "shown": true
+  "shown": true,
+  "shares": "aspen"
  },
  "snowriver": {
   "source": "https://www.snowriver.com/themes/custom/snowriver/logo.svg",
