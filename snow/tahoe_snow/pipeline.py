@@ -117,6 +117,18 @@ def local_days(index: pd.DatetimeIndex, tz: str) -> pd.DatetimeIndex:
     return index.tz_localize("UTC").tz_convert(tz).tz_localize(None).normalize()
 
 
+def forecast_hours(today: pd.Timestamp, tz: str, now: pd.Timestamp) -> pd.DatetimeIndex:
+    """The hours a mountain's forecast covers, in UTC: from a week before the local day began (so the page can show
+    recent history and total the storm in progress) to the end of the forecast.
+
+    The models report on the UTC hour. Where the clock is half an hour off it (Newfoundland), local midnight falls
+    on a half hour, and hours counted from it matched none of the models' and the whole forecast came out empty.
+    So the count starts on the hour at or before local midnight.
+    """
+    midnight = today.tz_localize(tz).tz_convert("UTC").tz_localize(None).floor("h")
+    return pd.date_range(midnight - pd.Timedelta(hours=HISTORY_DAYS * 24), now + pd.Timedelta(hours=DAYS * 24 - 1), freq="h")
+
+
 def correcting_station(resort) -> str | None:
     """The station the mountain's forecast is corrected against: its paired station, unless that one is only shown
     or the mountain is left as the models have it."""
@@ -469,10 +481,7 @@ def resort_forecast(resort, snow_model: SnowModel, correction, now: pd.Timestamp
                                                     days=DAYS), parent)
         except RuntimeError:
             continue
-    midnight = today.tz_localize(tz).tz_convert("UTC").tz_localize(None)
-    # A week back, so the page can show recent history and total the storm in progress.
-    hours = pd.date_range(midnight - pd.Timedelta(hours=HISTORY_DAYS * 24), now + pd.Timedelta(hours=DAYS * 24 - 1),
-                          freq="h")
+    hours = forecast_hours(today, tz, now)
     payload = {"key": resort.key, "name": resort.name, "lat": resort.lat, "lon": resort.lon,
                "region": resort.region, "tz": tz, "kind": resort.kind, "pass": resort.pass_group,
                "station": ALL_STATIONS[resort.station].name if resort.station else None,
