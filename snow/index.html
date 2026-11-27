@@ -6830,8 +6830,12 @@ function refreshForecast() {
     try {
       const keys = Object.keys(regionFiles);
       const files = await Promise.all(keys.map((key) => published(`forecast/${key}.json`, branchOf[key] || DATA_BRANCH).then(fixTimes)));
-      const changed = keys.some((key, n) => files[n].published_utc !== regionFiles[key].published_utc);
+      let changed = keys.some((key, n) => files[n].published_utc !== regionFiles[key].published_utc);
       keys.forEach((key, n) => { regionFiles[key] = files[n]; saveCopy(`forecast/${key}`, files[n]); });
+      // A favorite whose region was not on the phone (or would not load) was left off the Favorites list while
+      // still starred. Its region is read now, and the list drawn again with it.
+      const absent = missingFavorites();
+      if (absent.length && (await Promise.all(absent.map((key) => loadRegion(key)))).some(Boolean)) changed = true;
       const was = offlineCopy;
       stale = false; offlineCopy = false;
       if (changed) {
@@ -6853,6 +6857,8 @@ function refreshForecast() {
     } finally { refreshing = null; }
   })();
 }
+// The regions of favorites that are not loaded: each favorite in one of them is starred but missing from Favorites.
+const missingFavorites = () => index ? [...new Set(knownFavorites().map(regionOf))].filter((key) => !regionFiles[key]) : [];
 // The avalanche centers are asked again, past the answers held for ten minutes.
 function freshAvalanches() { for (const id of Object.keys(layerAsked)) delete layerAsked[id]; loadAvalanches(); }
 // While a saved copy is showing, the fresh one is tried for every half minute the page is on screen with a signal.
@@ -6860,7 +6866,7 @@ let rendered = false;
 const RETRY_MS = 30 * 1000;
 function retrySaved() {
   if (!rendered || document.hidden || !navigator.onLine) return;
-  if (stale || offlineCopy) refreshForecast();
+  if (stale || offlineCopy || missingFavorites().length) refreshForecast();
   else if (avySavedCopy) freshAvalanches();
 }
 setInterval(retrySaved, RETRY_MS);
