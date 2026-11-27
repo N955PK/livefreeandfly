@@ -699,6 +699,11 @@ button.cgo > div{flex:1;min-width:0}
 button.cgo:active{opacity:.55}
 button.cgo:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .cgoto{flex:none;align-self:center;width:7px;height:13px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* A resort's logo, as a faint mark behind its name: its shape alone in the accent color, drawn large so that it
+   runs off the corner. It sits under everything in the header and takes no touches. */
+.dtop.marked{overflow:hidden;isolation:isolate}
+html:not(.tabs) .dtop.marked{position:relative}
+.dtop.marked::before{content:"";position:absolute;z-index:-1;left:-46px;top:-36px;width:220px;height:220px;background:var(--accent);opacity:.11;-webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat;pointer-events:none}
 .cnum{flex:none;width:1.9em;text-align:right;font-style:normal;font-weight:700;font-size:0.8125rem;line-height:1.35;color:var(--accent);font-variant-numeric:tabular-nums}
 .cls{font-style:normal;font-weight:600;font-size:.6em;line-height:1;margin-left:2px;vertical-align:super;opacity:.7;font-variant-numeric:tabular-nums}
 .heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
@@ -4236,7 +4241,7 @@ function renderDetail() {
   const tile = (k, x) => `<div class="tile"><div class="k">${k}</div><div class="v">${inches(x.snow_in)} <small>${LEN()}</small></div><div class="r">${x.pm_in == null ? "&nbsp;" : `± ${inches(x.pm_in)} ${LEN()}`}</div></div>`;
   const g = timeline(resort, el);
   const toggle = ["summit", "mid", "base"].map((key) => `<button data-el="${key}" aria-pressed="${key === elevation}">${key[0].toUpperCase() + key.slice(1)}</button>`).join("");
-  $("detail").innerHTML = `<div class="dtop"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}${classicTag(resort.key)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
+  $("detail").innerHTML = `<div class="dtop${LOGO_MARKS.has(resort.key) ? ` marked" style="--logo:url(logos/${resort.key}.png)` : ""}"><div class="dhead"><div class="who"><h2><label class="mtnpick">${esc(headName(resort.name))}${classicTag(resort.key)}<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1.500 1.500 6 6l4.500-4.500"/></svg><select id="mtnPick" aria-label="Mountain">${here().some((r) => r.key === resort.key) ? "" : `<option value="${resort.key}" selected>${esc(resort.name)}</option>`}${byPass().map(([pass, list]) => { const options = list.map((r) => `<option value="${r.key}"${r.key === resort.key ? " selected" : ""}>${esc(r.name)}</option>`).join(""); return pass ? `<optgroup label="${esc(pass)}">${options}</optgroup>` : options; }).join("")}</select></label>${resort.kind === "backcountry" ? `<span data-avy="${resort.key}" data-form="icon"></span>` : ""}</h2>
       <span class="meta dfresh" id="detailFresh">${freshShort()}</span>
       <span>${tabbed() ? "" : `${height(el.elevation_ft)}${resort.kind === "backcountry" && elevation === "base" ? " trailhead" : ""} · `}${star(resort.key)}${tabbed() && underName(resort) ? ` · <span class="under">${esc(underName(resort))}</span>` : ""}</span></div>
       ${tabbed() ? `<div class="lvlft" aria-hidden="true">${["summit", "mid", "base"].map((key) => `<span${key === elevation ? ' class="on"' : ""}>${height(resort.elevations[key].elevation_ft)}</span>`).join("")}</div>` : ""}<div class="seg tri" role="group" aria-label="Elevation">${toggle}</div></div>
@@ -4361,6 +4366,9 @@ document.addEventListener("click", (e) => {
   $("settingsSheet").close();
   openFound("mountain", row.dataset.classic);
 });
+// The resorts with a mark of their logo to draw behind their name on the Mountain tab (snow/logos/<key>.png, made
+// by tools/logo_mark.js). The list is kept in step with the folder by a test.
+const LOGO_MARKS = new Set("alta sugarloaf".split(" "));
 const classicTag = (key) => !CLASSICS[key] ? "" : `<i class="cls" role="img" aria-label="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}, ${line}`).join("; "))}" title="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}: ${line}`).join(" · "))}">${CLASSICS[key].map(([n]) => n).join("·")}</i>`;
 const PANES = {map: () => $("mapPanel"), forecast: () => document.querySelector(".panel.summary"), mountain: () => $("detail"), avalanche: () => $("avalanche")};
 let pager = null;

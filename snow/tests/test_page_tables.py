@@ -47,3 +47,20 @@ def test_the_classics_and_the_place_names_are_keyed_by_mountains_and_regions_tha
 def test_the_short_names_and_the_summit_points_are_keyed_by_mountains_that_exist():
     assert keys(table("SHORT")) <= set(ALL_RESORTS)
     assert set(re.findall(r"(\w+): \[-?\d", table("PEAK_AT"))) <= set(ALL_RESORTS)
+
+
+def test_every_logo_mark_listed_on_the_page_has_its_picture_and_every_picture_is_listed():
+    # The page draws logos/<key>.png behind the name of each resort in LOGO_MARKS; a key with no picture would
+    # draw nothing, and a picture not listed is never shown.
+    import re
+    from pathlib import Path
+
+    from tahoe_snow.config import ALL_RESORTS
+
+    root = Path(__file__).parent.parent
+    listed = set(re.search(r'const LOGO_MARKS = new Set\("([^"]*)"\.split', (root / "index.html").read_text()).group(1).split())
+    pictures = {path.stem for path in (root / "logos").glob("*.png")}
+    assert listed == pictures
+    assert all(key in ALL_RESORTS and ALL_RESORTS[key].kind == "resort" for key in listed)
+    # Each is a small picture: the shape only, at most 320 px a side.
+    assert all((root / "logos" / f"{key}.png").stat().st_size < 60_000 for key in listed)
