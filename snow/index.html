@@ -5338,6 +5338,12 @@ const AVY_SAVED = "sierra-snow-avy";
 const AVY_GALLERY = 8;   // how many of a forecast's own photographs are shown and saved; keep in step with GALLERY in avybundle.py
 let avySavedCopy = false;
 async function avyJson(url) {
+  // While the forecast on screen is still the saved one (stale), the saved avalanche answer is shown too, without
+  // waiting on a weak signal; the fresh one is read as soon as the forecast has updated (see refreshForecast).
+  if (stale && window.caches) {
+    const kept = await (await caches.open(AVY_SAVED)).match(url).catch(() => null);
+    if (kept) { avySavedCopy = true; return kept.json(); }
+  }
   try {
     const fresh = await getJson(url);
     avySavedCopy = false;
@@ -6613,7 +6619,11 @@ function dataCommit(branch = DATA_BRANCH) {
 }
 // One published file: index.json, forecast/<region>.json, or (data published before regions had files of their
 // own) forecast.json.
+// While savedOnly is set nothing is asked of the network, so every reader below falls back to its saved copy at once
+// (see openSavedFirst).
+let savedOnly = false;
 async function published(path, branch = DATA_BRANCH) {
+  if (savedOnly) throw new Error("saved copies first");
   if (DEVELOPING) return loadForecast(`data/${branch === DATA_BRANCH ? "" : `${MORE_BRANCHES[branch]}/`}${path}`);
   // Each request has its own deadline, counted from when it starts, so the second is not already spent by the first.
   try {
@@ -6724,7 +6734,7 @@ async function warmRegions() {
   }
 }
 let noForecast = false;
-window.addEventListener("online", () => { if (offlineCopy || noForecast) location.reload(); else { if (avySavedCopy) loadAvalanches(); if (regionMiss) setRegion(regionMiss); } });
+window.addEventListener("online", () => { if (noForecast) location.reload(); else { retrySaved(); if (regionMiss) setRegion(regionMiss); } });
 if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("sw"))) navigator.serviceWorker.register("sw.js").catch(() => {});
 // The opening screen stays until the page, the map and everything drawn on the map (roads, avalanche zones and so the
 // whole block of buttons, and the resorts' own depths on the labels) are ready, so nothing arrives after it lifts. A slow source holds it up 4 seconds at most
@@ -6760,7 +6770,77 @@ async function openForecast() {
   }
   throw new Error("No region could be loaded");
 }
-openForecast().then(async () => {
+// What the phone has saved is shown at once, and the fresh forecast replaces it when it arrives: a weak signal
+// no longer holds the page on its opening screen while each request runs out its time. stale: what is on screen came
+// from the phone and has not been confirmed or replaced yet.
+let stale = false, refreshing = null;
+async function openSavedFirst() {
+  if (!navigator.onLine || !window.caches || DEVELOPING) return openForecast();
+  savedOnly = true;
+  try {
+    index = await liveIndex();
+    if (index) {
+      pickRegion();
+      if (await loadChoice(region)) {
+        if (region === FAVORITES) { HOME = here()[0].key; selected = HOME; mergeRegions(); }
+        stale = true; offlineCopy = false;
+        return;
+      }
+    }
+  } catch (error) { console.error(error); } finally { savedOnly = false; }
+  // Nothing usable is saved (a first visit, or a region never opened here): the network is asked as before.
+  index = null; data = null;
+  for (const key of Object.keys(regionFiles)) delete regionFiles[key];
+  for (const key of Object.keys(regionLoads)) delete regionLoads[key];
+  return openForecast();
+}
+// Reads every loaded region afresh. True once it has; false when the signal would not carry it, and then the page
+// says its forecasts are not updated and the reading is tried again (see the timer below).
+function refreshForecast() {
+  return refreshing ||= (async () => {
+    try {
+      const keys = Object.keys(regionFiles);
+      const files = await Promise.all(keys.map((key) => published(`forecast/${key}.json`, branchOf[key] || DATA_BRANCH).then(fixTimes)));
+      const changed = keys.some((key, n) => files[n].published_utc !== regionFiles[key].published_utc);
+      keys.forEach((key, n) => { regionFiles[key] = files[n]; saveCopy(`forecast/${key}`, files[n]); });
+      const was = offlineCopy;
+      stale = false; offlineCopy = false;
+      if (changed) {
+        mergeRegions();
+        if (rendered) {
+          for (const step of [renderNotes, renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
+            try { step(); } catch (error) { console.error(error); }
+          }
+          startMap();
+        }
+      } else if (was && rendered) renderHeadline();
+      // The list of regions follows; nothing waits on it.
+      liveIndex().then((fresh) => { if (fresh) index = fresh; }).catch(() => {});
+      if (avySavedCopy && rendered) freshAvalanches();
+      return true;
+    } catch (error) {
+      if (!offlineCopy) { offlineCopy = true; if (rendered) { try { renderHeadline(); } catch (e) { console.error(e); } } }
+      return false;
+    } finally { refreshing = null; }
+  })();
+}
+// The avalanche centers are asked again, past the answers held for ten minutes.
+function freshAvalanches() { for (const id of Object.keys(layerAsked)) delete layerAsked[id]; loadAvalanches(); }
+// While a saved copy is showing, the fresh one is tried for every half minute the page is on screen with a signal.
+let rendered = false;
+const RETRY_MS = 30 * 1000;
+function retrySaved() {
+  if (!rendered || document.hidden || !navigator.onLine) return;
+  if (stale || offlineCopy) refreshForecast();
+  else if (avySavedCopy) freshAvalanches();
+}
+setInterval(retrySaved, RETRY_MS);
+document.addEventListener("visibilitychange", retrySaved);
+openSavedFirst().then(async () => {
+  // A good signal brings the fresh forecast within a moment, and the page is drawn once, with it. Past that
+  // moment the saved one is drawn and the fresh one replaces it when it comes.
+  if (stale) await Promise.race([refreshForecast(), new Promise((resolve) => setTimeout(resolve, 1200))]);
+  rendered = true;
   // Each part renders on its own, so a problem in one never blanks the rest.
   for (const step of [renderNotes, renderRegion, renderHeadline, renderHeat, renderDetail, renderAvalanche]) {
     try { step(); } catch (error) { console.error(error); }
