@@ -1,0 +1,25 @@
+{
+ "snapshots": 1,
+ "first": "2026-11-27T02:10:54Z",
+ "last": "2026-11-27T02:10:54Z",
+ "by_day": {
+  "ours": {},
+  "snow_forecast": {}
+ },
+ "same_days": {
+  "ours": {},
+  "snow_forecast": {}
+ },
+ "five_days": {
+  "d1_5": {
+   "ours": null,
+   "open_snow": null,
+   "snow_forecast": null
+  },
+  "d6_10": {
+   "ours": null,
+   "open_snow": null,
+   "snow_forecast": null
+  }
+ }
+}
