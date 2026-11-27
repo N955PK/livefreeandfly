@@ -1,0 +1,1382 @@
+{
+ "abasin": {
+  "source": "https://upload.wikimedia.org/wikipedia/en/3/34/Arapahoe_Basin_logo.png",
+  "kind": "emblem",
+  "note": "the A lightning mark, taken out of its blue box (Wikipedia infobox logo; the site header only shows an 80th-anniversary 1946 logo, but its share image still carries this A); registration sign blanked",
+  "shown": true
+ },
+ "alpental": {
+  "source": "https://cdn.sanity.io/images/8ts88bij/summit/8ab23da956f767381343cf560dc084c729246611-34x60.svg",
+  "kind": "emblem",
+  "note": "The Summit at Snoqualmie's chevron emblem: Alpental is one of its base areas and has no logo of its own on the site",
+  "shown": true
+ },
+ "alpine": {
+  "source": "https://www.palisadestahoe.com/-/media/palisades-tahoe/footer/logos/pt-mobile.svg",
+  "kind": "emblem",
+  "note": "Palisades Tahoe eagle (Alpine Meadows is part of Palisades Tahoe; no separate logo)",
+  "shown": true
+ },
+ "alta": {
+  "source": "https://www.alta.com/",
+  "kind": "emblem",
+  "note": "snowflake, the name and date cropped off",
+  "shown": true
+ },
+ "alyeska": {
+  "source": "https://www.alyeskaresort.com/wp-content/uploads/2023/05/alyeska-favicon.png",
+  "kind": "initial",
+  "note": "site icon: the script A with a star (173 px source, a little soft)",
+  "shown": true
+ },
+ "angelfire": {
+  "source": "https://www.angelfireresort.com/wp-content/themes/angelfireresort/images/logo-vertical.svg",
+  "kind": "emblem",
+  "note": "peak-and-wing emblem, lettering cropped off",
+  "shown": true
+ },
+ "antelopebutte": {
+  "source": "https://images.squarespace-cdn.com/content/v1/5f91dea6536e5854338fe480/b8885260-3f3b-4e67-b4e3-0554ffe96021/ABMRA+logo-+clear+background.png",
+  "kind": "emblem",
+  "note": "mountain with ski tracks, lettering cropped off (skiantelopebutte.com header logo)",
+  "shown": true
+ },
+ "anthonylakes": {
+  "source": "https://anthonylakes.com/wp-content/uploads/2024/02/anthony-lakes-horizontal-65cf974e9abc7.webp",
+  "kind": "emblem",
+  "note": "A-snowflake, lettering cropped off; source emblem about 150 px, slightly soft",
+  "shown": true
+ },
+ "apex": {
+  "source": "https://indyskipass.com/sites/default/files/2023-11/AMR_Logo_Clr%20-%20Apex%20Mountain.png",
+  "kind": "emblem",
+  "note": "own site returns 403 and Wikipedia has no logo; Apex Mountain Resort's logo as shown on its Indy Pass resort page: the two-leaf peak swoosh, lettering cropped off",
+  "shown": true
+ },
+ "arcticvalley": {
+  "source": "https://arcticvalley.org/wp/wp-content/uploads/2016/11/cropped-arctic-valley.png",
+  "kind": "emblem",
+  "note": "site icon: snowflake with flame swoosh; the header instead shows the Anchorage Ski Club round badge (all small type)",
+  "shown": true
+ },
+ "ashland": {
+  "source": "https://www.mtashland.com/wp-content/uploads/2024/09/Mt.Ashland-Tagline-Website-Logo_2024.png",
+  "kind": "initial",
+  "note": "MtA monogram cropped from the header logo (about 190x250 px source)",
+  "shown": true
+ },
+ "aspen": {
+  "source": "https://www.aspensnowmass.com/public/AspenSnowmassRedesign/images/svgsheet.svg#aspen-leaf",
+  "kind": "emblem",
+  "note": "Aspen Snowmass aspen leaf (the four mountains share it)",
+  "shown": true
+ },
+ "attitash": {
+  "source": "https://www.skinh.com/assets/images/Member-Logos/Attitash-Logo-AttitashBlue_LG-3.jpg",
+  "kind": "emblem",
+  "note": "disc with A-peak mark; resort site blocked, taken from Ski NH member page",
+  "shown": true
+ },
+ "azsnowbowl": {
+  "source": "https://www.snowbowl.ski/wp-content/uploads/sites/9/2022/09/logo-snowbowl-minimal.svg",
+  "kind": "emblem",
+  "note": "AZ triangle peak, header's minimal logo",
+  "shown": true
+ },
+ "bachelor": {
+  "source": "https://www.mtbachelor.com/ (inline header SVG)",
+  "kind": "emblem",
+  "note": "header logo SVG: the round sun-face emblem, lettering removed",
+  "shown": true
+ },
+ "badgerpass": {
+  "source": "",
+  "kind": "none",
+  "note": "no logo found: travelyosemite.com page has only photos and the concessionaire's branding, Wikipedia has no logo, web search found none",
+  "shown": false
+ },
+ "bakerskiarea": {
+  "source": "https://www.mtbaker.us/wp-content/uploads/2026/08/Logo-for-Web-2-scaled.png",
+  "kind": "emblem",
+  "note": "raven silhouette, lettering cropped off",
+  "shown": true
+ },
+ "bearmountain": {
+  "source": "https://www.bigbearmountainresort.com/-/media/big-bear-mountain-resort-media/brand-assets/logos/combined-white-desktop.svg",
+  "kind": "emblem",
+  "note": "Bear Mountain's own bear-head emblem cropped from the combined Big Bear header logo",
+  "shown": true
+ },
+ "bearvalley": {
+  "source": "https://static.wixstatic.com/media/93e5c3_fc3f5c2d57564e58b568e882bd855834~mv2.png",
+  "kind": "emblem",
+  "note": "bear paw in rounded square",
+  "shown": true
+ },
+ "beavercreek": {
+  "source": "https://upload.wikimedia.org/wikipedia/commons/b/b3/BeaverCreekLogo.png",
+  "kind": "badge",
+  "note": "BC monogram oval from Wikipedia infobox logo (site bot-checked); about 150 px source, soft",
+  "shown": true
+ },
+ "belleayre": {
+  "source": "https://www.google.com/s2/favicons?domain=belleayre.com&sz=256",
+  "kind": "initial",
+  "note": "the pair of skis that stand for the LL in the wordmark, from the site's favicon via Google's favicon cache (site returns 403; Wikipedia has only the old logo); reads as two vertical bars",
+  "shown": true
+ },
+ "bigboulder": {
+  "source": "",
+  "kind": "none",
+  "note": "jfbb.com (Vail) serves no usable page to this session; no logo on Wikipedia/Commons, OnTheSnow, PA ski association or search",
+  "shown": false
+ },
+ "bigpowderhorn": {
+  "source": "https://bigpowderhorn.net/wp-content/themes/big-powderhorn/assets/images/logo.png",
+  "kind": "emblem",
+  "note": "mountain with horn swoosh",
+  "shown": true
+ },
+ "bigsky": {
+  "source": "https://cdn.sanity.io/images/8ts88bij/big-sky/af3b4941f0261c97fb19ab7fb40b65ba4293ab7f-80x100.svg",
+  "kind": "emblem",
+  "note": "peak under an arc, lettering cropped off",
+  "shown": true
+ },
+ "bigwhite": {
+  "source": "https://www.bigwhite.com/themes/custom/ht_bigwhite/images/icons/logo/bw-logo-xl@2x.png",
+  "kind": "wordmark",
+  "note": "og:image logo: the 'Big White' lettering in its diamond, lower banners cropped off; logo is lettering only (favicon is a 64px maple leaf, too small)",
+  "shown": false
+ },
+ "blackmountain": {
+  "source": "https://static.wixstatic.com/media/c45c70_38f007479c024a5a975e4c4987c1735e~mv2.png",
+  "kind": "emblem",
+  "note": "sun and triangle slope from the site icon; source only 40 px, enlarged and edge-sharpened, so corners are a little rounded",
+  "shown": true
+ },
+ "blacktail": {
+  "source": "https://blacktailmountain.com/wp-content/uploads/2024/01/cropped-23_BTCircleLogo.png",
+  "kind": "emblem",
+  "note": "site favicon (circle badge): the goggled deer head from its centre, ring lettering removed",
+  "shown": true
+ },
+ "bluemountain": {
+  "source": "https://www.bluemountain.ca/-/media/blue-mountain/logos/blue-mobile.svg",
+  "kind": "emblem",
+  "note": "header logo SVG: the blue escarpment silhouette, lettering cropped off",
+  "shown": true
+ },
+ "bluemountainpa": {
+  "source": "https://www.skibluemt.com/wp-content/uploads/2022/04/Logo-Color.svg",
+  "kind": "emblem",
+  "note": "arc over layered ridge lines, lettering cropped off",
+  "shown": true
+ },
+ "bogusbasin": {
+  "source": "https://media.bogusbasin.org/uploads/2022/02/17192641/BB-white.svg",
+  "kind": "badge",
+  "note": "boxed 'BB' square logo from the site",
+  "shown": true
+ },
+ "bohemia": {
+  "source": "https://www.mtbohemia.com/wp-content/uploads/2020/04/cropped-mount-bohemia-favicon-270x270.png",
+  "kind": "emblem",
+  "note": "snowcapped mountain from the site icon (black background keyed out); the full logo is a busy bear badge with lettering",
+  "shown": true
+ },
+ "bolton": {
+  "source": "https://skivermont.com/client_media/crops/resort_logos/color/bolton-valley-logo.0fae1f59.png",
+  "kind": "emblem",
+  "note": "circle with ridge lines and wind turbine, lettering cropped off; resort site bot-checked, from Ski Vermont member page (same emblem as Wikipedia); source small (86 px tall), enlarged and edge-sharpened; may not be the newest logo",
+  "shown": true
+ },
+ "boreal": {
+  "source": "https://www.rideboreal.com/ (inline footer svg 'Ride Boreal')",
+  "kind": "emblem",
+  "note": "the diamond/peak emblem; lettering cropped off",
+  "shown": true
+ },
+ "boynehighlands": {
+  "source": "https://cdn.sanity.io/images/ud45da4u/the-highlands/bc5b8be5c54758ad0de0f16ae266ec9bf9532afd-235x80.svg",
+  "kind": "emblem",
+  "note": "ring with piper figure, lettering cropped off",
+  "shown": true
+ },
+ "boynemountain": {
+  "source": "https://cdn.sanity.io/images/ud45da4u/boyne-mountain/66115fb708f8afb2b67beed8bf48742fc6a555c0-161x100.svg",
+  "kind": "badge",
+  "note": "lower part of the shield with star-flake and swoosh; name band cropped off, so the shield is cut at the top",
+  "shown": true
+ },
+ "breckenridge": {
+  "source": "https://upload.wikimedia.org/wikipedia/commons/4/48/Breckenridge_Logo.svg",
+  "kind": "initial",
+  "note": "the B mark, from Wikipedia infobox logo (site bot-checked)",
+  "shown": true
+ },
+ "brettonwoods": {
+  "source": "https://www.brettonwoods.com/content/themes/base/assets/img/favicon/android-icon-192x192.png",
+  "kind": "emblem",
+  "note": "tree/arrow mark from the site icon (192 px source, off-white disc removed)",
+  "shown": true
+ },
+ "brianhead": {
+  "source": "https://www.brianhead.com/wp-content/uploads/sites/7/2022/10/BianHead-Logo.svg",
+  "kind": "emblem",
+  "note": "round mountain-and-rays emblem; script lettering cropped off",
+  "shown": true
+ },
+ "bridger": {
+  "source": "https://cdn.sanity.io/images/fkchcud5/production/5b1b50a1af5af43faeefd4f17aef045eef73a1ad-1185x282.svg",
+  "kind": "emblem",
+  "note": "snowflake with B and orbit ring, lettering cropped off; the thin ring's two ends are clipped where they run into the lettering",
+  "shown": true
+ },
+ "brighton": {
+  "source": "https://cdn.sanity.io/images/8ts88bij/brighton/d4e591476cb5eaa68d1fdbaff24b8a0e0e89d64f-1024x1024.svg",
+  "kind": "emblem",
+  "note": "snowflake roundel from the site icon",
+  "shown": true
+ },
+ "bristol": {
+  "source": "https://www.bristolmountain.com/wp-content/uploads/2021/11/Bristol-Mountain-Website-2021.png",
+  "kind": "initial",
+  "note": "the ornate B from the wordmark (logo is lettering only); 340 px source, enlarged and hardened, outline a little wobbly",
+  "shown": true
+ },
+ "bromley": {
+  "source": "https://bromley.com/favicon.svg",
+  "kind": "emblem",
+  "note": "sun with face",
+  "shown": true
+ },
+ "bromont": {
+  "source": "https://www.bromontmontagne.com/wp-content/themes/Bromont/images/logo-mini.svg",
+  "kind": "emblem",
+  "note": "double-peak M mark",
+  "shown": true
+ },
+ "brundage": {
+  "source": "https://brundage.com/wp-content/uploads/2026/05/Brundage-Logo-Black-Orange.png",
+  "kind": "initial",
+  "note": "the triangle-mountain 'A' cropped from the wordmark (same shape as the site favicon, but sharper)",
+  "shown": true
+ },
+ "burke": {
+  "source": "https://www.skiburke.com/images/burke-mtn-primary-horizontal-4c-rgb.png",
+  "kind": "emblem",
+  "note": "bear from the horizontal logo, lettering cropped off",
+  "shown": true
+ },
+ "buttermilk": {
+  "source": "https://www.aspensnowmass.com/public/AspenSnowmassRedesign/images/svgsheet.svg#aspen-leaf",
+  "kind": "emblem",
+  "note": "Aspen Snowmass aspen leaf (shared by the four mountains)",
+  "shown": true
+ },
+ "caberfae": {
+  "source": "https://caberfaepeaks.com/wp-content/uploads/2024/06/caberfae-logo-340x156-1.png",
+  "kind": "emblem",
+  "note": "twin snowcapped peaks, lettering cropped off; small source (340 px logo)",
+  "shown": true
+ },
+ "calabogie": {
+  "source": "https://calabogie.com/wp-content/uploads/2021/11/Calabogie-Peaks-Resort-Logo-White.png",
+  "kind": "emblem",
+  "note": "header logo: top half of the round badge (peaks, sun, trees in an arch), lettering and waves cropped off",
+  "shown": true
+ },
+ "camelback": {
+  "source": "https://assets.milestoneinternet.com/peregrine-hospitality-parent/392939-camelback-resort/logos/apple-touch-icon.png",
+  "kind": "emblem",
+  "note": "disc with camel-hump line from the site icon; source only 48 px, enlarged and edge-sharpened; main logo is a script wordmark",
+  "shown": true
+ },
+ "canaanvalley": {
+  "source": "https://www.canaanresort.com/assets/images/logo.svg",
+  "kind": "emblem",
+  "note": "rhododendron flower, lettering cropped off",
+  "shown": true
+ },
+ "cannon": {
+  "source": "https://admin.cannonmt.com/publicFiles/images/Logos/CannonLogo_White.png",
+  "kind": "wordmark",
+  "note": "brush-script Cannon with underline stroke; logo is lettering only, source 250 px so slightly soft",
+  "shown": false
+ },
+ "castlemountain": {
+  "source": "https://www.skicastle.ca/wp-content/uploads/2026/10/cropped-castle_favicon.png",
+  "kind": "emblem",
+  "note": "ridge line over a winding S run (site icon); thin lines",
+  "shown": true
+ },
+ "chinapeak": {
+  "source": "https://www.skichinapeak.com/Content/images/flake.png",
+  "kind": "emblem",
+  "note": "half snowflake half sun (180 px source)",
+  "shown": true
+ },
+ "cooperspur": {
+  "source": "https://cooperspur.com/wp-content/uploads/2020/10/cropped-CooperSpurMtResort_logo.jpg",
+  "kind": "emblem",
+  "note": "header logo: mountain outline and fir tree, lettering cropped off",
+  "shown": true
+ },
+ "copper": {
+  "source": "https://www.coppercolorado.com/ (inline header svg)",
+  "kind": "emblem",
+  "note": "C disc with snowflake and river, lettering cropped off",
+  "shown": true
+ },
+ "cranmore": {
+  "source": "https://cranmore.com/cpresources/19a92be5/Logo_CMR_TaglineWhite+Gold.png",
+  "kind": "emblem",
+  "note": "C over an arc, lettering cropped off",
+  "shown": true
+ },
+ "crestedbutte": {
+  "source": "https://www.uncovercolorado.com/wp-content/uploads/2013/12/Crested-Butte-Ski-Resort-Logo.png",
+  "kind": "emblem",
+  "note": "peak-and-sunburst roundel; LOW QUALITY: about 90 px source from a third-party page dated 2013, soft and faint, may not be the current logo. skicb.com is behind a bot check and Wikipedia (File:Crested_Butte_logo.png) was rate-limiting - worth redoing from there",
+  "shown": false
+ },
+ "crotched": {
+  "source": "https://www.skinh.com/assets/images/Member-Logos/Crotched_4C_MainLogo_f1.png",
+  "kind": "emblem",
+  "note": "angular CM box mark; resort site blocked, taken from Ski NH member page",
+  "shown": true
+ },
+ "crystal": {
+  "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cc/Crystal_Mountain_WA_logo.svg/960px-Crystal_Mountain_WA_logo.svg.png",
+  "kind": "emblem",
+  "note": "peak emblem, lettering cropped; site was bot-checked so from Wikipedia (Crystal Mountain WA)",
+  "shown": true
+ },
+ "crystalmi": {
+  "source": "https://www.crystalmountain.com/themes/custom/origin/images/favicon/favicon.svg",
+  "kind": "emblem",
+  "note": "lattice dome emblem",
+  "shown": true
+ },
+ "cypress": {
+  "source": "https://cdn.sanity.io/images/8ts88bij/cypress/8511faecb92bbf1d3c5891b3ff96f31a368c86d8-181x70.svg",
+  "kind": "initial",
+  "note": "the y of the wordmark drawn as a tree with maple leaf",
+  "shown": true
+ },
+ "deervalley": {
+  "source": "https://www.deervalley.com/-/media/deer-valley/logos/dv-mobile.svg",
+  "kind": "emblem",
+  "note": "stag head roundel from the mobile header logo",
+  "shown": true
+ },
+ "discovery": {
+  "source": "https://www.skidiscovery.com/wp-content/uploads/2017/10/site-icon-ram.png",
+  "kind": "emblem",
+  "note": "site icon: line-drawn ram's head, square frame cropped off",
+  "shown": true
+ },
+ "dodgeridge": {
+  "source": "https://dodgeridge.b-cdn.net/wp-content/uploads/2023/05/Dodge-Ridge-Mountain-Resort_Logo-edit.png",
+  "kind": "emblem",
+  "note": "wide low ridge shape, lettering cropped off; mark is very flat (320x56)",
+  "shown": true
+ },
+ "dollar": {
+  "source": "https://www.sunvalley.com/ (inline header svg, mobile logo)",
+  "kind": "emblem",
+  "note": "Sun Valley's sun face; Dollar Mountain is part of Sun Valley resort and has no logo of its own on the site",
+  "shown": true
+ },
+ "eaglecrest": {
+  "source": "https://skieaglecrest.com/wp-content/uploads/2019/12/Square-Logo-Outlined-Text-PNG.png",
+  "kind": "emblem",
+  "note": "formline eagle head, lettering cropped off; faint Alaska outline behind it",
+  "shown": true
+ },
+ "eaglepoint": {
+  "source": "https://www.eaglepointresort.com/wp-content/uploads/2023/06/EP-Logo-Blue.png",
+  "kind": "emblem",
+  "note": "peak with eagle head; lettering cropped off",
+  "shown": true
+ },
+ "eldora": {
+  "source": "https://www.eldora.com/ (inline header svg)",
+  "kind": "emblem",
+  "note": "tree in a disc, lettering cropped off",
+  "shown": true
+ },
+ "elkmountain": {
+  "source": "https://www.elkskier.com/wp-content/uploads/2025/12/logo-elkskier-.png",
+  "kind": "emblem",
+  "note": "two pines with elk head cut out",
+  "shown": true
+ },
+ "fernie": {
+  "source": "https://skifernie.com/wp-content/uploads/2018/03/cropped-FAR-favicon-512x512.png",
+  "kind": "emblem",
+  "note": "the mountain outline that sits over the FERNIE lettering, lettering cropped off; thin shape",
+  "shown": true
+ },
+ "fortyninenorth": {
+  "source": "https://www.ski49n.com/images/logo.png",
+  "kind": "emblem",
+  "note": "round mountain emblem, lettering cropped off",
+  "shown": true
+ },
+ "gore": {
+  "source": "https://www.google.com/s2/favicons?domain=goremountain.com&sz=256",
+  "kind": "emblem",
+  "note": "the peaks emblem (sideways G), from the site's favicon via Google's favicon cache (site returns 403; no logo on Wikipedia)",
+  "shown": true
+ },
+ "granitepeak": {
+  "source": "https://www.skigranitepeak.com/themes/custom/granitepeak/logo.svg",
+  "kind": "emblem",
+  "note": "snowflake",
+  "shown": true
+ },
+ "grouse": {
+  "source": "https://www.grousemountain.com/assets/grouse-logo-5c126db2d5e04c7c7ffccfede2e6dbb5cf30c3b478561a7afb3657c21b76e532.svg",
+  "kind": "emblem",
+  "note": "grouse bird in a disc, lettering cropped off",
+  "shown": true
+ },
+ "heavenly": {
+  "source": "https://en.wikipedia.org/wiki/File:Heavenly_Mountain_Resort_logo.png",
+  "kind": "emblem",
+  "note": "the H roundel; lettering cropped off; own site is behind a bot check, so from Wikipedia",
+  "shown": true
+ },
+ "highlands": {
+  "source": "https://www.aspensnowmass.com/public/AspenSnowmassRedesign/images/svgsheet.svg#aspen-leaf",
+  "kind": "emblem",
+  "note": "Aspen Snowmass aspen leaf (shared by the four mountains)",
+  "shown": true
+ },
+ "hogadon": {
+  "source": "https://www.casperwy.gov/Images/Explore/Hogadon%20Basin%20Ski%20Area/Round%20HB%20Logo.png",
+  "kind": "badge",
+  "note": "round HB badge from the City of Casper's Hogadon page; carries small 'EST. 1958 / SKI AREA' type inside the ring",
+  "shown": true
+ },
+ "holidayvalley": {
+  "source": "https://www.holidayvalley.com/img/holidayvalley-logo-mobile.svg",
+  "kind": "emblem",
+  "note": "snowflake-and-globe emblem from the mobile header logo",
+  "shown": true
+ },
+ "homewood": {
+  "source": "https://skihomewood.com/wp-content/uploads/2026/06/HOME_LOGO_MR_CMYK_BLUE_SKY.png",
+  "kind": "emblem",
+  "note": "the bear on skis; lettering cropped off",
+  "shown": true
+ },
+ "hoodmeadows": {
+  "source": "https://www.skihood.com/_next/static/media/MHM_Horizontal_Logo_4Color.13fceb11.svg",
+  "kind": "badge",
+  "note": "header logo SVG: the shield (sun over an M-shaped peak), lettering cropped off",
+  "shown": true
+ },
+ "hoodoo": {
+  "source": "https://hoodoo.com/wp-content/uploads/2022/10/cropped-Hoodoo-H-Favicon-Blue.png",
+  "kind": "initial",
+  "note": "site favicon: the stylised H with a snowflake",
+  "shown": true
+ },
+ "horseshoe": {
+  "source": "https://horseshoeresort.com/wp-content/themes/horseshoe/library/images/logo-no-text-2024-r1.png",
+  "kind": "emblem",
+  "note": "site's no-text logo: the V-shaped horseshoe-valley mark (240px source)",
+  "shown": true
+ },
+ "hudsonbay": {
+  "source": "https://static.wixstatic.com/media/736eb6_666eddb6ca504f65aae7d120519e1e7b~mv2.png",
+  "kind": "emblem",
+  "note": "site favicon: layered peak chevrons",
+  "shown": true
+ },
+ "hunter": {
+  "source": "https://upload.wikimedia.org/wikipedia/en/1/11/Hunter_Mountain_logo.png",
+  "kind": "emblem",
+  "note": "sun over mountain line, lettering cropped off; site is behind a bot check so from Wikipedia (325 px); matches the site's favicon",
+  "shown": true
+ },
+ "hurricaneridge": {
+  "source": "https://www.hurricaneridge.com/wp-content/uploads/2023/12/hurricane_ridge_white_logo.webp",
+  "kind": "badge",
+  "note": "solid silhouette of the shield-and-ribbon badge (inner detail is small type and turned to mush); a plain blob, a bit doubtful",
+  "shown": true
+ },
+ "jackfrost": {
+  "source": "",
+  "kind": "none",
+  "note": "jfbb.com (Vail) serves no usable page to this session; no logo on Wikipedia/Commons, OnTheSnow, PA ski association or search",
+  "shown": false
+ },
+ "jacksonhole": {
+  "source": "https://www.jacksonhole.com/icons/safari-pinned-tab.svg",
+  "kind": "emblem",
+  "note": "bucking bronco and rider, cropped out of the site's pinned-tab icon (read as light on a white backing)",
+  "shown": true
+ },
+ "jaypeak": {
+  "source": "https://jaypeakresort.com/themes/custom/jaypeak/images/favicon/safari-pinned-tab.svg",
+  "kind": "emblem",
+  "note": "Jay leaf/snowflake mark",
+  "shown": true
+ },
+ "june": {
+  "source": "https://www.junemountain.com/-/media/june/logos/june-mobile.svg",
+  "kind": "emblem",
+  "note": "round ram's head seal",
+  "shown": true
+ },
+ "keystone": {
+  "source": "https://upload.wikimedia.org/wikipedia/en/6/6c/Keystone_Resort_Logo.svg",
+  "kind": "emblem",
+  "note": "star-snowflake emblem from Wikipedia infobox logo (site bot-checked), lettering cropped off",
+  "shown": true
+ },
+ "kickinghorse": {
+  "source": "https://kickinghorseresort.com/wp-content/uploads/2018/03/cropped-KHMR-favicon-512x512.png",
+  "kind": "emblem",
+  "note": "the kicking horse, name boxes cropped off",
+  "shown": true
+ },
+ "killington": {
+  "source": "https://www.killington.com/images/favicons/favicon.svg",
+  "kind": "badge",
+  "note": "shield with the chevron peak, from the site's favicon",
+  "shown": true
+ },
+ "kimberley": {
+  "source": "https://skikimberley.com/wp-content/uploads/2018/03/cropped-KAR-favicon-512x512.png",
+  "kind": "emblem",
+  "note": "ridge line with star, lettering cropped off; thin and wide",
+  "shown": true
+ },
+ "kirkwood": {
+  "source": "https://en.wikipedia.org/wiki/File:Kirkwood_Mountain_Resort_logo.png",
+  "kind": "emblem",
+  "note": "peaks with name bar as a solid silhouette (letters filled in); own site is behind a bot check, so from Wikipedia",
+  "shown": true
+ },
+ "lakelouise": {
+  "source": "https://www.skilouise.com/wp-content/uploads/2019/07/cropped-favicon-270x270.png",
+  "kind": "emblem",
+  "note": "the maple leaf from the logo (270 px site icon)",
+  "shown": true
+ },
+ "leecanyon": {
+  "source": "https://www.leecanyonlv.com/wp-content/uploads/sites/14/fbrfg/safari-pinned-tab.svg",
+  "kind": "emblem",
+  "note": "sun ring over pine/peaks",
+  "shown": true
+ },
+ "lemassif": {
+  "source": "https://www.lemassif.com/themes/custom/origin/images/favicon/favicon.svg",
+  "kind": "emblem",
+  "note": "the ribbon-mountain emblem",
+  "shown": true
+ },
+ "lookoutpass": {
+  "source": "https://skilookout.com/wp-content/uploads/2025/08/Lookout-Pass-Logo.png",
+  "kind": "emblem",
+  "note": "snowflake tile that forms the O of the wordmark",
+  "shown": true
+ },
+ "loon": {
+  "source": "https://cdn.sanity.io/images/k8yfdmw9/loon/c7794bff1df543d34138240f9eb1d90570bfc4c4-514x514.svg",
+  "kind": "emblem",
+  "note": "the flying loon from the header logo; orange square and LOON lettering removed",
+  "shown": true
+ },
+ "losttrail": {
+  "source": "https://losttrail.com/wp-content/uploads/Artboard-1_1.png",
+  "kind": "badge",
+  "note": "header logo: top of the tilted sign with the 'LT' initials and snowflake; the 'Lost Trail Ski Area' lettering below is cropped off",
+  "shown": true
+ },
+ "loveland": {
+  "source": "https://skiloveland.com/wp-content/uploads/2018/12/favicon2.png",
+  "kind": "emblem",
+  "note": "skier figure from the logo (site icon, 159 px source)",
+  "shown": true
+ },
+ "lutsen": {
+  "source": "https://www.lutsen.com/themes/custom/lutsen/logo.svg",
+  "kind": "emblem",
+  "note": "gondola over mountain ridge",
+  "shown": true
+ },
+ "madriverglen": {
+  "source": "https://skivermont.com/client_media/crops/resort_logos/color/Snowflake_Logo.81f933ad.png",
+  "kind": "emblem",
+  "note": "top half of the snowflake only: the logo has MAD RIVER GLEN across its middle, so it is cropped above the lettering (Ski Vermont's copy, 1199 px; the site's own is 235 px)",
+  "shown": true
+ },
+ "magic": {
+  "source": "https://static.wixstatic.com/media/e2e7b6_160f5d849ff34745b9a78c56ea6e942d~mv2.png",
+  "kind": "emblem",
+  "note": "M peak with black diamond, site icon",
+  "shown": true
+ },
+ "mammoth": {
+  "source": "https://www.mammothmountain.com/safari-pinned-tab.svg",
+  "kind": "initial",
+  "note": "brushstroke M",
+  "shown": true
+ },
+ "manning": {
+  "source": "https://manningpark.com/wp-content/uploads/2026/03/Favicon-1.png",
+  "kind": "emblem",
+  "note": "bear paw print (site icon)",
+  "shown": true
+ },
+ "marblemountain": {
+  "source": "https://skimarble.com/wp-content/uploads/2023/10/cropped-MARBLE-BW-192x192.png",
+  "kind": "badge",
+  "note": "triangle badge with the Marble script cut out of it (site icon, 192 px); the script shows behind the name",
+  "shown": false
+ },
+ "marmot": {
+  "source": "https://www.skimarmot.com/static/favicon/safari-pinned-tab.7763528f146c.svg",
+  "kind": "emblem",
+  "note": "brushstroke M/mountain",
+  "shown": true
+ },
+ "massanutten": {
+  "source": "https://www.massresort.com/_astro/2-massanutten-logo.Dtp_xkyK_Z1N7lQo.svg",
+  "kind": "emblem",
+  "note": "four-chevron star",
+  "shown": true
+ },
+ "meadowlark": {
+  "source": "",
+  "kind": "none",
+  "note": "no logo found: lodgesofthebighorns.com shows only the parent lodges' banner, meadowlarkskilodge.com does not resolve, nothing on Wikipedia or in search",
+  "shown": false
+ },
+ "missionridge": {
+  "source": "https://www.missionridge.com/wp-content/uploads/2023/09/MR_new_favicon-500x500.png",
+  "kind": "emblem",
+  "note": "striped twin peaks with sun",
+  "shown": true
+ },
+ "monarch": {
+  "source": "https://skimonarch.com/wp-content/uploads/2023/08/cropped-monarch-logo-512-1.png",
+  "kind": "emblem",
+  "note": "round butterfly/M emblem (site icon)",
+  "shown": true
+ },
+ "montage": {
+  "source": "https://www.montagemountainresorts.com/wp-content/uploads/2026/02/montage-logo-big-white-revision1.png",
+  "kind": "emblem",
+  "note": "crossed peak lines, lettering cropped off; wide shallow shape",
+  "shown": true
+ },
+ "montanasnowbowl": {
+  "source": "https://indyskipass.com/sites/default/files/2023-11/Snowbowl-logo.svg",
+  "kind": "badge",
+  "note": "own site has this logo only as a 66x72 gif (trails-report/assets/logo.gif); same logo as SVG from its Indy Pass resort page: the shield with the snowflake cut out, 'snowbowl' word cropped off",
+  "shown": true
+ },
+ "montblanc": {
+  "source": "https://skimontblanc.com/wp-content/uploads/2022/01/MB-WEB-CIRCLE-VI-300x300.avif",
+  "kind": "emblem",
+  "note": "sun disc with mountain outline, from the 300 px site icon; sun comes out faint",
+  "shown": true
+ },
+ "montcomi": {
+  "source": "https://mont-comi.ca/wp-content/uploads/2022/04/mont-comi-logo.png",
+  "kind": "badge",
+  "note": "triangle badge with three wavy peaks, lettering cropped off; source only 235 px",
+  "shown": true
+ },
+ "montedouard": {
+  "source": "https://images.squarespace-cdn.com/content/v1/5ebec2555f0d06531312eeb2/9e4dafeb-8830-414a-a691-22f16439e587/ME-Brand-Noir100-MR150.png?format=1500w",
+  "kind": "badge",
+  "note": "round ME monogram badge cropped from the header logo",
+  "shown": true
+ },
+ "montmiller": {
+  "source": "https://chic-chac.com/wp-content/uploads/2020/11/mont-miller-1000px.jpg",
+  "kind": "emblem",
+  "note": "double zigzag peak glyph cut from the logo printed on the operator's (Chic-Chac) share photo; no standalone logo file found, source ~170 px, thresholded",
+  "shown": true
+ },
+ "montsainteanne": {
+  "source": "https://mont-sainte-anne.com/wp-content/themes/kallyas-child/img/header/msa-logo-mobile-header-white.svg",
+  "kind": "emblem",
+  "note": "brushstroke ring",
+  "shown": true
+ },
+ "mountainhigh": {
+  "source": "https://www.mthigh.com/@@/mh.static/images/logo/mountain_high_footer.svg",
+  "kind": "emblem",
+  "note": "the 'mh' monogram with star from the footer logo; name lettering cropped off",
+  "shown": false
+ },
+ "mountsima": {
+  "source": "https://mountsima.com/wp-content/uploads/2024/09/Mount-Sima-logo.svg",
+  "kind": "emblem",
+  "note": "mountain range cropped from the 'Mt. SIMA' logo; mid-grey fills so it reads lighter, flat cut along the bottom",
+  "shown": true
+ },
+ "mountsnow": {
+  "source": "https://upload.wikimedia.org/wikipedia/en/6/67/Mount_Snow_Logo.svg",
+  "kind": "emblem",
+  "note": "peak-and-stripes emblem, lettering cropped off; site is behind a bot check so from Wikipedia (same logo on skivermont.com)",
+  "shown": true
+ },
+ "mountstlouis": {
+  "source": "https://www.mountstlouis.com/wp-content/themes/MSLM/assets/images/favicon/mstile-310x310.png",
+  "kind": "emblem",
+  "note": "site tile icon: three slanted peaks",
+  "shown": true
+ },
+ "mtbaldy": {
+  "source": "https://files.leadconnectorhq.com/file/6afc84ed6b0928827a2658ff/mt-baldy-logo-white.png",
+  "kind": "emblem",
+  "note": "the snowcapped peak outline from the site header logo; lettering cropped off",
+  "shown": true
+ },
+ "mtrose": {
+  "source": "https://skirose.com/wp-content/uploads/2024/10/logo-mtrose-base.svg",
+  "kind": "emblem",
+  "note": "top of the arch badge with the bird; the 'BASE ELV. 8260' type and name cropped off, so the arch ends in a flat cut",
+  "shown": true
+ },
+ "mtspokane": {
+  "source": "https://irp.cdn-website.com/d9eb3da0/dms3rep/multi/MTONLY_SQ_NAVY-15bba22c.svg",
+  "kind": "emblem",
+  "note": "sunburst over tree/mountain, lettering cropped off",
+  "shown": true
+ },
+ "mtwashington": {
+  "source": "https://www.mountwashington.ca/wp-content/uploads/2026/05/logo.svg",
+  "kind": "emblem",
+  "note": "interlocked diamonds emblem, lettering cropped off",
+  "shown": true
+ },
+ "nakiska": {
+  "source": "https://skinakiska.com/wp-content/uploads/2018/03/NAK-favicon-512x512.png",
+  "kind": "emblem",
+  "note": "the peak line above the wordmark; thin",
+  "shown": true
+ },
+ "norquay": {
+  "source": "https://banffnorquay.com/wp-content/uploads/2020/11/Norquay-Logo-Mark.svg",
+  "kind": "emblem",
+  "note": "triangle peaks mark",
+  "shown": true
+ },
+ "northstar": {
+  "source": "https://vectorseek.com/wp-content/uploads/2023/10/Northstar-At-Tahoe-Logo-Vector.svg-.png",
+  "kind": "emblem",
+  "note": "the sawblade/star spiral; own site behind a bot check and Wikipedia has no logo, so cut from a third-party copy of the older 'Northstar at Tahoe' logo (fake checkerboard background removed) - the emblem should be the one still in use, but unverified",
+  "shown": true
+ },
+ "nubsnob": {
+  "source": "https://www.nubsnob.com/wp-content/uploads/2026/04/Logo-W-Slogan.png",
+  "kind": "emblem",
+  "note": "the peak in the stripe under the wordmark; logo is otherwise lettering, stripe is cut at the left",
+  "shown": true
+ },
+ "okemo": {
+  "source": "https://skivermont.com/client_media/images/resort_logos/color/OkemoLogo2024.png",
+  "kind": "emblem",
+  "note": "round mountain-and-house emblem; site is behind a bot check, only a small copy found (emblem about 65 px), enlarged and hardened to two tones so sky and outline are one solid",
+  "shown": true
+ },
+ "orford": {
+  "source": "https://montorford.com/assets/favicons/safari-pinned-tab.svg",
+  "kind": "emblem",
+  "note": "mountain silhouette from the site icon (header logo is plain lettering)",
+  "shown": true
+ },
+ "owlshead": {
+  "source": "https://owlshead.com/wp-content/uploads/2018/10/owls-head_favicon-1.png",
+  "kind": "emblem",
+  "note": "owl shield",
+  "shown": true
+ },
+ "pajarito": {
+  "source": "https://www.pajarito.ski/wp-content/uploads/sites/8/2022/12/logo-minimal-pajarito.svg",
+  "kind": "emblem",
+  "note": "the bird, from the site's minimal logo",
+  "shown": true
+ },
+ "palisades": {
+  "source": "https://www.palisadestahoe.com/-/media/palisades-tahoe/footer/logos/pt-mobile.svg",
+  "kind": "emblem",
+  "note": "the eagle roundel; lettering cropped off",
+  "shown": true
+ },
+ "panorama": {
+  "source": "https://www.panoramaresort.com/resources/themes/panoramaresort/images/icons/favicon-196x196.png",
+  "kind": "emblem",
+  "note": "peak with dot (site icon, 196 px source)",
+  "shown": true
+ },
+ "parkcity": {
+  "source": "https://www.skiutah.com/files/subblob/service/images.icon/1072140938",
+  "kind": "emblem",
+  "note": "ribbon/infinity mark cropped from the logo on Ski Utah's Park City page; own site unreachable (error page), source only 224 px so the mark is soft",
+  "shown": true
+ },
+ "pico": {
+  "source": "https://www.picomountain.com/images/favicons/favicon.svg",
+  "kind": "initial",
+  "note": "script P from the site's favicon / mobile logo",
+  "shown": true
+ },
+ "pinecreek": {
+  "source": "https://static.wixstatic.com/media/3a61dd_13625c0e1ddb44baa53012b45e5fbee8~mv2.png",
+  "kind": "emblem",
+  "note": "cowboy riding a pine tree, from the site icon (pinecreekskiresort.com, Cokeville WY)",
+  "shown": true
+ },
+ "pinrouge": {
+  "source": "https://static.wixstatic.com/media/889668_7140cfefd4ad46be85fe22033a064eb9~mv2.png",
+  "kind": "emblem",
+  "note": "rounded square with pine tree and slope (site icon)",
+  "shown": true
+ },
+ "plattekill": {
+  "source": "https://plattekill.com/wp-content/uploads/2026/01/plattekill-favicon-26.webp",
+  "kind": "emblem",
+  "note": "site favicon: the spread-eagle skier figure, dark disc removed",
+  "shown": true
+ },
+ "powderhorn": {
+  "source": "https://www.powderhorn.com/wp-content/uploads/2026/05/powderhorn-logo.png",
+  "kind": "emblem",
+  "note": "the horn emblem; lettering cropped off",
+  "shown": true
+ },
+ "powderking": {
+  "source": "https://www.powderking.com/application/files/7516/3354/7627/Logo-PK21.webp",
+  "kind": "wordmark",
+  "note": "header logo is plain type only (POWDER KING / MOUNTAIN RESORT); the only icon is a 57px 'PK' disc, also lettering",
+  "shown": false
+ },
+ "powdermountain": {
+  "source": "https://powdermountain.cdn.prismic.io/powdermountain/ZdXbPy9dUKvm9Qbr_logo.svg",
+  "kind": "wordmark",
+  "note": "logo is plain lettering only (site favicon is just a blue dot); whole wordmark used",
+  "shown": false
+ },
+ "purgatory": {
+  "source": "https://www.purgatory.ski/wp-content/uploads/sites/2/2022/04/logo-purgatory-minimal.svg",
+  "kind": "emblem",
+  "note": "red chevron with snowflake, no lettering",
+  "shown": true
+ },
+ "redmountain": {
+  "source": "https://www.redresort.com/wp-content/uploads/2020/09/RED-logo-white-noweb.svg",
+  "kind": "emblem",
+  "note": "header logo SVG: the red triangle peak with its swoosh, lettering dropped",
+  "shown": true
+ },
+ "redriver": {
+  "source": "https://www.redriverskiarea.com/assets/theme/red/img/logo.png",
+  "kind": "emblem",
+  "note": "the double-R swoosh with sun and snowflake discs, lettering cropped off",
+  "shown": true
+ },
+ "revelstoke": {
+  "source": "https://www.revelstokemountainresort.com/favicons/favicon.svg",
+  "kind": "emblem",
+  "note": "site favicon SVG: brushstroke peak",
+  "shown": true
+ },
+ "saddleback": {
+  "source": "https://www.saddlebackmaine.com/wp-content/themes/sbk2023/assets/build/svg/logo-header.svg",
+  "kind": "emblem",
+  "note": "ridge-line panel above the lettering; a wide flat shape, a little plain",
+  "shown": true
+ },
+ "saintsauveur": {
+  "source": "https://www.sommets.com/assets/favicons/safari-pinned-tab.svg",
+  "kind": "emblem",
+  "note": "Les Sommets tree/chevron emblem: the resort trades as Sommet Saint-Sauveur under this shared brand, it has no separate logo",
+  "shown": true
+ },
+ "sasquatch": {
+  "source": "https://sasquatchmountain.ca/newsite/wp-content/uploads/2025/04/Colour-logo-on-Clear-Small-1-1.png",
+  "kind": "emblem",
+  "note": "sasquatch head among peaks and trees, lettering cropped off; wide and detailed",
+  "shown": true
+ },
+ "schuss": {
+  "source": "https://www.shantycreek.com/wp-content/themes/shantycreek/img/SCR-logo-black.svg",
+  "kind": "emblem",
+  "note": "Shanty Creek Resort emblem (peaks under an arc with pines); Schuss Mountain is part of Shanty Creek, no separate logo",
+  "shown": true
+ },
+ "schweitzer": {
+  "source": "https://www.schweitzer.com/-/media/schweitzer/logos/schweitzer_logo_horz_greenglow.png",
+  "kind": "initial",
+  "note": "brushstroke S emblem",
+  "shown": true
+ },
+ "sevensprings": {
+  "source": "",
+  "kind": "none",
+  "note": "7springs.com (Vail) serves no usable page to this session; no logo on Wikipedia/Commons, OnTheSnow or search",
+  "shown": false
+ },
+ "seymour": {
+  "source": "https://mtseymour.ca/themes/custom/origin/logo.svg",
+  "kind": "emblem",
+  "note": "two-peak mountain, lettering cropped off",
+  "shown": true
+ },
+ "shames": {
+  "source": "https://mymountaincoop.ca/wp-content/uploads/2025/10/MMC-Black-Logo-2025.png",
+  "kind": "emblem",
+  "note": "header logo (My Mountain Co-op / Shames Mountain): peaks and sun, lettering cropped off",
+  "shown": true
+ },
+ "shastaskipark": {
+  "source": "https://images.squarespace-cdn.com/content/v1/5f8deb0fe219602385c17e17/cc7e7542-57e0-4e0b-9237-49b6d337f80f/solid_Black_Logo-transparent+%281%29.png?format=1500w",
+  "kind": "emblem",
+  "note": "twin-peak outline, lettering cropped",
+  "shown": true
+ },
+ "shawnee": {
+  "source": "https://paoutdooradventure.com/wp-content/uploads/2025/07/Shawnee-Mountain-Logo.png",
+  "kind": "badge",
+  "note": "round badge (sun, ridge, lodge); resort site bot-checked, taken from PA ski association page; small lettering at bottom shows faintly",
+  "shown": false
+ },
+ "showdown": {
+  "source": "https://images.squarespace-cdn.com/content/v1/65c91ce8199ea70aa65bcf25/6a2637c0-5a78-4036-a279-faf61da7f596/SHO_11714_Logo_1_Badge_RGB.png?format=1500w",
+  "kind": "badge",
+  "note": "oval badge; ring lettering is part of it and shows faintly",
+  "shown": false
+ },
+ "sierra": {
+  "source": "https://sierraattahoe.com/wp-content/uploads/2025/10/mobile-logo.svg",
+  "kind": "emblem",
+  "note": "S-swoosh roundel from the site's mobile header logo",
+  "shown": true
+ },
+ "silvermountain": {
+  "source": "https://silvermt.com/wp-content/uploads/cropped-silver-snowflake-1-192x192.webp",
+  "kind": "emblem",
+  "note": "snowflake (site icon, 192 px)",
+  "shown": true
+ },
+ "silverstar": {
+  "source": "https://www.skisilverstar.com/ (inline header SVG)",
+  "kind": "emblem",
+  "note": "header wordmark SVG: the star-in-diamond that dots the i, cut out on its own",
+  "shown": true
+ },
+ "silverton": {
+  "source": "https://silvertonmountain.com/wp-content/themes/silverton-mountain/apple-touch-icon.png",
+  "kind": "emblem",
+  "note": "warning-triangle with falling skier (touch icon, 180 px source, a little soft)",
+  "shown": true
+ },
+ "sipapu": {
+  "source": "https://www.sipapu.ski/wp-content/uploads/sites/6/logo-sipapu-diamond-no-reg.svg",
+  "kind": "badge",
+  "note": "the diamond alone, the Sipapu lettering cut-outs removed; a plain diamond",
+  "shown": true
+ },
+ "skeetawk": {
+  "source": "https://skeetawk.com/wp-content/uploads/2025/08/round-logo-1.svg",
+  "kind": "badge",
+  "note": "round badge: peaks over a winding S run",
+  "shown": true
+ },
+ "skibigbear": {
+  "source": "https://www.ski-bigbear.com/logo.svg",
+  "kind": "emblem",
+  "note": "bear, lettering cropped off",
+  "shown": true
+ },
+ "skibowl": {
+  "source": "https://skibowl.com/wp-content/uploads/2023/09/cropped-Mt-Hood-Skibowl-Logo-Square-1.png",
+  "kind": "emblem",
+  "note": "site icon: the twin outlined peaks above the lettering; the lettering overlaps the peaks' base so they are cut flat at the bottom - a bit doubtful",
+  "shown": true
+ },
+ "skicooper": {
+  "source": "https://www.skicooper.com/wp-content/uploads/2024/08/cropped-cooper-512.png",
+  "kind": "badge",
+  "note": "heart badge with snowflake and skull",
+  "shown": true
+ },
+ "skisantafe": {
+  "source": "https://www.skisantafe.com/favicon.svg",
+  "kind": "emblem",
+  "note": "the bear, with the icon's dark tile and red mountain line removed (line shows as a gap)",
+  "shown": true
+ },
+ "sleepinggiant": {
+  "source": "https://images.squarespace-cdn.com/content/v1/64e3d48ecd39ac1a4b9d2598/805befc5-d0dc-42e9-b1f0-22630d6fee2c/favicon.ico",
+  "kind": "initial",
+  "note": "'SG' block initials from the site favicon (300 px); header logo is plain lettering; the G's right edge is tight to the frame",
+  "shown": false
+ },
+ "smugglers": {
+  "source": "https://www.smuggs.com/wp-content/uploads/2024/03/logo-1.svg",
+  "kind": "emblem",
+  "note": "three-peak emblem, lettering cropped off",
+  "shown": true
+ },
+ "snoqualmie": {
+  "source": "https://cdn.sanity.io/images/8ts88bij/summit/8ab23da956f767381343cf560dc084c729246611-34x60.svg",
+  "kind": "emblem",
+  "note": "stacked chevrons emblem",
+  "shown": true
+ },
+ "snowbasin": {
+  "source": "https://www.skiutah.com/files/subblob/service/images.icon/1072140134",
+  "kind": "emblem",
+  "note": "sunburst cropped from the logo on Ski Utah's Snowbasin page (2833 px); own site has only the wordmark inline and a half-cropped sun icon",
+  "shown": true
+ },
+ "snowbird": {
+  "source": "https://www.snowbird.com/ (inline header svg, class 'icon logo')",
+  "kind": "emblem",
+  "note": "wing mark cropped from the inline header logo",
+  "shown": true
+ },
+ "snowking": {
+  "source": "https://www.indyskipass.com/sites/default/files/2023-11/snowkinglogo.png",
+  "kind": "emblem",
+  "note": "SK snowflake burst, lettering cropped off; own site is behind a bot check, so taken from Snow King's logo as shown on its Indy Pass listing page",
+  "shown": false
+ },
+ "snowmass": {
+  "source": "https://www.aspensnowmass.com/public/AspenSnowmassRedesign/images/svgsheet.svg#aspen-leaf",
+  "kind": "emblem",
+  "note": "Aspen Snowmass aspen leaf (shared by the four mountains)",
+  "shown": true
+ },
+ "snowriver": {
+  "source": "https://www.snowriver.com/themes/custom/snowriver/logo.svg",
+  "kind": "initial",
+  "note": "ornate S with snowflake",
+  "shown": true
+ },
+ "snowshoe": {
+  "source": "https://upload.wikimedia.org/wikipedia/en/d/d7/Snowshoe_Mountain_logo.svg",
+  "kind": "emblem",
+  "note": "snowshoe hare in a square, lettering cropped off; resort site bot-checked, from Wikipedia",
+  "shown": true
+ },
+ "snowsummit": {
+  "source": "https://www.bigbearmountainresort.com/-/media/big-bear-mountain-resort-media/brand-assets/logos/combined-white-desktop.svg",
+  "kind": "emblem",
+  "note": "Snow Summit's diamond/ribbon emblem cropped from the Big Bear Mountain Resort combined header logo",
+  "shown": true
+ },
+ "snowvalley": {
+  "source": "https://www.bigbearmountainresort.com/-/media/big-bear-mountain-resort-media/brand-assets/logos/combined-white-desktop.svg",
+  "kind": "emblem",
+  "note": "Snow Valley's peak cropped from its logo in the Big Bear combined header; script lettering cropped off, so the peak's lower left is cut",
+  "shown": true
+ },
+ "snowyrange": {
+  "source": "https://snowyrangeski.com/wp-content/uploads/2022/06/SnowyRangeBlack-01.png",
+  "kind": "emblem",
+  "note": "mountain outline, lettering cropped off; thin line art, so the mark is faint at page strength",
+  "shown": true
+ },
+ "soldier": {
+  "source": "https://www.indyskipass.com/sites/default/files/2023-11/soldier_mountain_logo%20and%20word%20mark%20stacked%20-%20Tucker%20Ray.png",
+  "kind": "emblem",
+  "note": "the chevron pine tree taken from inside the logo's square (square dropped so it is not a box); soldiermountain.com is behind a Cloudflare block, so Soldier's own logo file as hosted on its Indy Pass page",
+  "shown": true
+ },
+ "solitude": {
+  "source": "https://www.solitudemountain.com/-/media/solitude/logos/solitude-mobile.svg",
+  "kind": "emblem",
+  "note": "bird emblem from the mobile header logo",
+  "shown": true
+ },
+ "spiritmtn": {
+  "source": "https://spiritmt.com/wp-content/uploads/2022/07/cropped-SpiritMountain-Favicon-192x192.png",
+  "kind": "emblem",
+  "note": "circle split by an S-curve (site icon, 192 px)",
+  "shown": true
+ },
+ "steamboat": {
+  "source": "https://upload.wikimedia.org/wikipedia/commons/f/f8/Steamboat_Ski_Resort_logo.svg",
+  "kind": "emblem",
+  "note": "cowboy hat and scarf on top of the b, from Wikipedia infobox logo (site bot-checked; 1280 px render); joined to the lettering so the bottom edge is a straight cut",
+  "shown": true
+ },
+ "stevens": {
+  "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Stevens_Pass_logo.svg/960px-Stevens_Pass_logo.svg.png",
+  "kind": "emblem",
+  "note": "the road swoosh under the wordmark; site was bot-checked so from Wikipedia",
+  "shown": true
+ },
+ "stoneham": {
+  "source": "https://ski-stoneham.com/wp-content/uploads/2022/08/logo_sto_montagne_seul.png",
+  "kind": "emblem",
+  "note": "mountain line emblem",
+  "shown": true
+ },
+ "stowe": {
+  "source": "https://skivermont.com/client_media/crops/resort_logos/color/resortlogo_stowe.d5550b03.png",
+  "kind": "initial",
+  "note": "the brush-script S only: logo is all lettering, the other letters and MOUNTAIN RESORT were erased; site is behind a bot check so from Ski Vermont (454 px)",
+  "shown": true
+ },
+ "stratton": {
+  "source": "https://skivermont.com/client_media/crops/resort_logos/color/strattonlogo.03e01ffa.png",
+  "kind": "badge",
+  "note": "the hexagon badge as a solid outline shape (lettering inside dropped, it turned to mush); plain; site is behind a bot check so from Ski Vermont",
+  "shown": false
+ },
+ "sugarbowl": {
+  "source": "https://blog.sugarbowl.com/wp-content/uploads/2024site/graphics/logo_sugar_002.svg",
+  "kind": "emblem",
+  "note": "chevron peak; the slanted 'SugarBowl' lettering path was dropped from the SVG (it runs diagonally, so a rectangular crop could not remove it)",
+  "shown": true
+ },
+ "sugarbush": {
+  "source": "https://www.sugarbush.com/-/media/sugarbush/sugarbush-logos/header-footer/header-v3-logos/sb-desktop.svg",
+  "kind": "emblem",
+  "note": "three brush strokes; the lettering paths removed from the SVG",
+  "shown": true
+ },
+ "sugarloaf": {
+  "source": "https://cdn.sanity.io/images/k8yfdmw9/sugarloaf/6a65e2e04ba012f85588b258302bd69a0f089d00-102x100.svg",
+  "kind": "emblem",
+  "note": "triangle peak, the name cropped off",
+  "shown": true
+ },
+ "sunapee": {
+  "source": "https://www.skinh.com/assets/images/Member-Logos/Sunapee20Primary20250x1261.jpg",
+  "kind": "emblem",
+  "note": "flying goose with sun; site is behind a bot check, only a 250 px copy found (Ski NH), enlarged and hardened, edges slightly soft",
+  "shown": true
+ },
+ "sundance": {
+  "source": "https://www.sundanceresort.com/favicons/favicon.svg",
+  "kind": "emblem",
+  "note": "'S.' in a ring from the site favicon (read as dark)",
+  "shown": true
+ },
+ "sundayriver": {
+  "source": "https://cdn.sanity.io/images/k8yfdmw9/sunday-river/a4634739205e137c6fc0f1fa0a51b40f3dd0e304-172x80.svg",
+  "kind": "emblem",
+  "note": "sun over mountain emblem, lettering cropped off",
+  "shown": true
+ },
+ "sunlight": {
+  "source": "https://sunlightmtn.com/wp-content/uploads/2025/09/ski-sunlight-logo.svg",
+  "kind": "emblem",
+  "note": "the rising sun arc; lettering cropped off",
+  "shown": true
+ },
+ "sunpeaks": {
+  "source": "https://www.sunpeaksresort.com/themes/custom/sunpeaksresort/images/favicon/favicon.svg",
+  "kind": "emblem",
+  "note": "site favicon SVG: sun over peaks in a diamond with its corner squares",
+  "shown": true
+ },
+ "sunrisepark": {
+  "source": "https://sunrise.ski/wp-content/uploads/2024/02/Sunrise_Park_Resort_Logoweb.png",
+  "kind": "emblem",
+  "note": "crown dancer over peaks, lettering cropped off; detailed figure, a bit busy",
+  "shown": true
+ },
+ "sunshine": {
+  "source": "https://www.skibanff.com/themes/custom/origin/images/favicon/favicon.svg",
+  "kind": "emblem",
+  "note": "mountains under the sun arc; sun itself faint",
+  "shown": true
+ },
+ "sunvalley": {
+  "source": "https://www.sunvalley.com/ (inline header svg, mobile logo)",
+  "kind": "emblem",
+  "note": "the sun face",
+  "shown": true
+ },
+ "sutton": {
+  "source": "https://montsutton.com/en/ (inline header SVG)",
+  "kind": "initial",
+  "note": "the S with the fir tree cut out, cropped from the SUTTON wordmark",
+  "shown": true
+ },
+ "tamarack": {
+  "source": "https://tamarackidaho.com/wp-content/themes/Tamarack/img/logo.svg",
+  "kind": "badge",
+  "note": "four-season compass roundel, lettering cropped off; fine inner detail, read as light",
+  "shown": true
+ },
+ "taos": {
+  "source": "https://www.skitaos.com/",
+  "kind": "initial",
+  "note": "the A drawn as a peak, cut from the inline header wordmark TAOS (logo is lettering only)",
+  "shown": true
+ },
+ "targhee": {
+  "source": "https://www.grandtarghee.com/themes/custom/origin/images/favicon/favicon.svg",
+  "kind": "emblem",
+  "note": "peak swoosh from the site favicon",
+  "shown": true
+ },
+ "telluride": {
+  "source": "https://tellurideskiresort.com/wp-content/uploads/2020/08/TSR_bold-200.png",
+  "kind": "emblem",
+  "note": "the red pick head above the wordmark; only its upper part, the handle runs through the lettering",
+  "shown": true
+ },
+ "terrypeak": {
+  "source": "https://terrypeak.com/images/terry_peak_logo_final.svg",
+  "kind": "emblem",
+  "note": "swept peak outline, lettering cropped off",
+  "shown": true
+ },
+ "timberline": {
+  "source": "https://timberlinelodge.com/favicons/favicon.svg",
+  "kind": "emblem",
+  "note": "site favicon SVG: the lodge weathervane-style mark, dark disc removed",
+  "shown": true
+ },
+ "timberlinewv": {
+  "source": "https://timberlinemountain.com/wp-content/uploads/2023/09/TM_favicon.png",
+  "kind": "initial",
+  "note": "brushstroke TM monogram (the logo's emblem)",
+  "shown": true
+ },
+ "tremblant": {
+  "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/1/10/Mont_Tremblant_Resort_logo.svg/960px-Mont_Tremblant_Resort_logo.svg.png",
+  "kind": "initial",
+  "note": "the swooshing A of the wordmark, neighbouring L and N masked off (a stub of the L's foot remains as the A's crossbar); site was bot-checked so from Wikipedia",
+  "shown": true
+ },
+ "vail": {
+  "source": "https://upload.wikimedia.org/wikipedia/en/2/25/Vail_Ski_Resort_Logo.svg",
+  "kind": "emblem",
+  "note": "Vail V diamond, from Wikipedia infobox logo (site blocked)",
+  "shown": true
+ },
+ "valdirene": {
+  "source": "https://valdi.ski/images/icons/safari-pinned-tab.svg",
+  "kind": "emblem",
+  "note": "roof-shaped peak with ski stripes and snow crystal; official site is valdi.ski",
+  "shown": true
+ },
+ "valinouet": {
+  "source": "https://valinouet.qc.ca/wp-content/themes/nubee/assets/favicon/icon.svg",
+  "kind": "emblem",
+  "note": "round mountains-and-chalet emblem; top fades because of the logo's gradient",
+  "shown": true
+ },
+ "waterville": {
+  "source": "https://images.squarespace-cdn.com/content/v1/62503704223b711a550b3e6f/3b532bcd-aaf4-498e-8ecc-5e0017748d83/Waterville+Valley+Resort_Logo_Primary_Black+Text.png?format=2500w",
+  "kind": "emblem",
+  "note": "round W emblem, lettering cropped off",
+  "shown": true
+ },
+ "westmountain": {
+  "source": "https://westmountain.com/wp-content/uploads/2021/08/cropped-cropped-WM_512x512_Favicon-01.png",
+  "kind": "badge",
+  "note": "site favicon: split shield with a W in it",
+  "shown": true
+ },
+ "whistler": {
+  "source": "https://upload.wikimedia.org/wikipedia/en/6/65/WhistlerBlackcomb_Logo.svg",
+  "kind": "emblem",
+  "note": "swoosh from Wikipedia infobox logo (site is bot-checked), lettering cropped off; wide",
+  "shown": true
+ },
+ "whitecap": {
+  "source": "https://www.whitecapresort.com/images/whitecap_mountain_logo_footer.png",
+  "kind": "emblem",
+  "note": "outline peaks from above the script wordmark; source small (360 px logo), edges sharpened by threshold",
+  "shown": true
+ },
+ "whiteface": {
+  "source": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Whiteface_resort_logo.png",
+  "kind": "emblem",
+  "note": "own site is behind a bot check; Wikipedia infobox logo: the peak chevron, lettering cropped off",
+  "shown": true
+ },
+ "whitefish": {
+  "source": "https://skiwhitefish.com/wp-content/uploads/2023/10/stumpy_social_default.png",
+  "kind": "emblem",
+  "note": "og:image version of the header logo: the fish with a mountain on its back; arched name and 'EST. 1947' removed",
+  "shown": true
+ },
+ "whitehills": {
+  "source": "https://cdn.prod.website-files.com/66db24543d6165f14de7f30b/66db3d8ac17b8cda520b2228_favicon-56.png",
+  "kind": "emblem",
+  "note": "the wavy-hills diamond; WHITE HILLS lettering along the lower edges cut away (256 px header logo)",
+  "shown": true
+ },
+ "whitepass": {
+  "source": "https://skiwhitepass.com/ (inline header SVG)",
+  "kind": "initial",
+  "note": "the W of the wordmark with its mountain glyph",
+  "shown": true
+ },
+ "whitepine": {
+  "source": "https://images.squarespace-cdn.com/content/v1/68e7fedd4f7f284bcf519c93/bb72891e-cfe3-4946-85c5-7b230488501b/WhitePine_Logos_Resort_Submark_PowderBlue.png",
+  "kind": "emblem",
+  "note": "pine submark from whitepineresort.com (Pinedale WY)",
+  "shown": true
+ },
+ "whitewater": {
+  "source": "https://whitewatermountainresort.com/safari-pinned-tab.svg",
+  "kind": "initial",
+  "note": "the angular W from the logo's box",
+  "shown": true
+ },
+ "wildcat": {
+  "source": "https://www.google.com/s2/favicons?domain=skiwildcat.com&sz=256",
+  "kind": "emblem",
+  "note": "paw print, the site's favicon via Google's favicon cache (site is behind a bot check; no logo on Wikipedia or Ski NH); 150 px, paw touches the icon's edges",
+  "shown": false
+ },
+ "willamettepass": {
+  "source": "https://www.willamettepass.ski/wp-content/uploads/sites/13/2023/01/willamette-logo-minimal.svg",
+  "kind": "emblem",
+  "note": "header minimal logo SVG: striped mountain",
+  "shown": true
+ },
+ "windham": {
+  "source": "https://www.windhammountainclub.com/wp-content/uploads/2023/11/cropped-favicon.png",
+  "kind": "emblem",
+  "note": "site favicon (Windham Mountain Club seal): the line-drawn fox from its centre, ring lettering cropped off; thin lines, so a light mark",
+  "shown": true
+ },
+ "wintergreen": {
+  "source": "https://www.wintergreenresort.com/wp-content/uploads/2023/08/cropped-Fave_Icon_color.png",
+  "kind": "emblem",
+  "note": "wintergreen leaves and berries",
+  "shown": true
+ },
+ "winterpark": {
+  "source": "https://www.winterparkresort.com/-/media/winter-park/logos/wp-desktop.svg",
+  "kind": "badge",
+  "note": "shield with snowy peak, lettering cropped off",
+  "shown": true
+ },
+ "wisp": {
+  "source": "https://jaypeakresort.com/themes/custom/jaypeak/images/logo-wisp.png",
+  "kind": "emblem",
+  "note": "six-petal snowflake, lettering cropped off; Wisp's own site only has a 59 px copy, so taken from sister resort Jay Peak's footer (320 px) and edge-sharpened",
+  "shown": true
+ },
+ "wolfcreek": {
+  "source": "https://wolfcreekski.com/wp-content/uploads/2021/08/WCS_transparent_full.png",
+  "kind": "emblem",
+  "note": "wolf-over-two-peaks emblem; lettering cropped off",
+  "shown": true
+ }
+}
