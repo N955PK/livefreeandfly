@@ -6672,10 +6672,20 @@ async function savedCopy(name) {
     return saved ? await saved.json() : null;
   } catch (error) { return null; }
 }
+let firstOwn = null;
+// The branch a region's forecast is on, or null while that is not known (its collector's index has not been read).
+const regionBranch = (key) => branchOf[key] || (!firstOwn || firstOwn.has(key) ? DATA_BRANCH : null);
+async function regionFile(key) {
+  const branch = regionBranch(key);
+  if (!branch) throw new Error(`no branch known for ${key}`);
+  return fixTimes(await published(`forecast/${key}.json`, branch));
+}
 // The index, fresh or saved; null when there is neither (an old data branch, or a first visit with no signal).
 async function liveIndex() {
   const one = async (branch) => {
-    const name = branch === DATA_BRANCH ? "index" : `index:${branch}`;
+    // (Not "index:<branch>": a name with a colon is read as an address of another kind, which cannot be saved, so
+    // the other collectors' lists were never kept on the phone.)
+    const name = branch === DATA_BRANCH ? "index" : `index.${branch}`;
     try {
       const fresh = await published("index.json", branch);
       saveCopy(name, fresh);
@@ -6687,6 +6697,9 @@ async function liveIndex() {
   // that has published nothing yet, or no signal and no saved copy) adds nothing.
   const [main, ...more] = await Promise.all([one(DATA_BRANCH), ...Object.keys(MORE_BRANCHES).map((branch) => one(branch).catch(() => null))]);
   if (!main) return null;
+  // The first collector's own regions. A region that has moved to another collector may have left an old file on
+  // the first one's branch, so a region is asked of the first branch only when it is the first collector's.
+  firstOwn = new Set(Object.keys(main.regions));
   Object.keys(MORE_BRANCHES).forEach((branch, n) => {
     const extra = more[n];
     if (!extra || !extra.regions || !Array.isArray(extra.resorts)) return;
@@ -6732,7 +6745,7 @@ function loadRegion(key, {ahead = false} = {}) {
   regionLoads[key] ||= (async () => {
     let file = null;
     try {
-      file = fixTimes(await published(`forecast/${key}.json`, branchOf[key] || DATA_BRANCH));
+      file = await regionFile(key);
       saveCopy(`forecast/${key}`, file);
     } catch (error) {
       if (ahead && !regionWanted.has(key)) return false;
@@ -6828,16 +6841,27 @@ async function openSavedFirst() {
 function refreshForecast() {
   return refreshing ||= (async () => {
     try {
-      const keys = Object.keys(regionFiles);
-      const files = await Promise.all(keys.map((key) => published(`forecast/${key}.json`, branchOf[key] || DATA_BRANCH).then(fixTimes)));
-      let changed = keys.some((key, n) => files[n].published_utc !== regionFiles[key].published_utc);
-      keys.forEach((key, n) => { regionFiles[key] = files[n]; saveCopy(`forecast/${key}`, files[n]); });
+      // Each region is read on its own, so one that will not load does not hold the others back. The list of
+      // regions is read alongside: it says which collector's branch each region is on now, and a region found to
+      // have moved is read again from where it went, never kept from the branch it left.
+      const keys = Object.keys(regionFiles), asked = keys.map(regionBranch);
+      const [fresh, ...got] = await Promise.all([liveIndex().catch(() => null), ...keys.map((key) => regionFile(key).catch(() => null))]);
+      if (fresh) index = fresh;
+      await Promise.all(keys.map(async (key, n) => { if (regionBranch(key) !== asked[n]) got[n] = await regionFile(key).catch(() => null); }));
+      let changed = false;
+      keys.forEach((key, n) => {
+        if (!got[n]) return;
+        if (got[n].published_utc !== regionFiles[key].published_utc) changed = true;
+        regionFiles[key] = got[n]; saveCopy(`forecast/${key}`, got[n]);
+      });
       // A favorite whose region was not on the phone (or would not load) was left off the Favorites list while
       // still starred. Its region is read now, and the list drawn again with it.
       const absent = missingFavorites();
       if (absent.length && (await Promise.all(absent.map((key) => loadRegion(key)))).some(Boolean)) changed = true;
+      const failed = keys.filter((key, n) => !got[n]), here = failed.includes(place());
       const was = offlineCopy;
-      stale = false; offlineCopy = false;
+      // Still to do while any region is unread; the page says "not updated" only for the region on screen.
+      stale = failed.length > 0; offlineCopy = here;
       if (changed) {
         mergeRegions();
         if (rendered) {
@@ -6846,11 +6870,9 @@ function refreshForecast() {
           }
           startMap();
         }
-      } else if (was && rendered) renderHeadline();
-      // The list of regions follows; nothing waits on it.
-      liveIndex().then((fresh) => { if (fresh) index = fresh; }).catch(() => {});
-      if (avySavedCopy && rendered) freshAvalanches();
-      return true;
+      } else if (was !== offlineCopy && rendered) renderHeadline();
+      if (avySavedCopy && rendered && !failed.length) freshAvalanches();
+      return !failed.length;
     } catch (error) {
       if (!offlineCopy) { offlineCopy = true; if (rendered) { try { renderHeadline(); } catch (e) { console.error(e); } } }
       return false;

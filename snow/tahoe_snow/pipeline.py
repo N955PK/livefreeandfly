@@ -622,7 +622,20 @@ def write_index() -> dict:
                for r in RESORTS.values()]
     index = {"regions": regions, "resorts": resorts}
     write_whole(DATA / "index.json", index)
+    drop_moved_forecasts()
     return index
+
+
+def drop_moved_forecasts() -> list:
+    """Remove the forecast file of any region this collector no longer builds. A region moved to another collector
+    left its last file behind here, days old, and a phone that had not yet learned of the move read it from here
+    and showed it as the forecast (the Tetons, 2026-11-27)."""
+    folder, gone = DATA / "forecast", []
+    for path in sorted(folder.glob("*.json")) if folder.is_dir() else []:
+        if path.stem not in REGIONS:
+            path.unlink()
+            gone.append(path.stem)
+    return gone
 
 
 def write_home_forecast() -> dict | None:
