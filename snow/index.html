@@ -2715,10 +2715,11 @@ function renderHeadline() {
   // While a region chosen is loading, the line says so in place of the time, so the list left showing until it
   // arrives is not taken for it (and nothing under the line moves).
   const wait = !regionPending ? "" : regionPending === FAVORITES ? "Loading the forecasts for your favorites…" : `Loading the ${esc(REGIONS[regionPending].name)} forecast…`;
-  freshNote = wait || (offlineCopy ? `<span class="warn">${navigator.onLine ? "Not updated." : "Offline."}</span> Forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
+  // A saved copy says so in a line no longer than the usual one: "Not updated since today 1:13 PM".
+  freshNote = wait || (offlineCopy ? (navigator.onLine ? `<span class="warn">Not updated</span> since ${stamp}` : `<span class="warn">Offline.</span> Forecasts from ${stamp}`) : `Forecasts updated ${stamp}`) + miss;
   $("gridFresh").innerHTML = freshNote;
   if ($("detailFresh")) { $("detailFresh").innerHTML = freshShort(); fitHead(); }
-  $("meta").innerHTML = wait || (offlineCopy ? `<span class="warn">${navigator.onLine ? "Could not update." : "Offline."}</span> Showing the forecasts from ${stamp}` : `Forecasts updated ${stamp}`) + miss;
+  $("meta").innerHTML = freshNote;
 }
 
 // Favorites with two or more to order can be put in order by holding a mountain and dragging it (see holdToMove).
