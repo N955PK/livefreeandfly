@@ -103,8 +103,9 @@ def from_history(daily_in: pd.Series, day: pd.Timestamp) -> dict | None:
     return {**told, "years": int(full.sum())}
 
 
-def history(station, day: pd.Timestamp) -> pd.DataFrame:
-    end, start = day.strftime("%Y-%m-%d"), station.season_from or HISTORY_START
+def history(station, day: pd.Timestamp, start: str | None = None) -> pd.DataFrame:
+    """The station's daily record up to ``day``: all of it, or from ``start`` where only the last weeks are wanted."""
+    end, start = day.strftime("%Y-%m-%d"), start or station.season_from or HISTORY_START
     if station.source == "acis":
         return acis.daily(station.triplet.split(":")[0], start, end, max_age_h=24.0, timeout=60)
     if station.source == "cdec":
@@ -120,13 +121,19 @@ def history(station, day: pd.Timestamp) -> pd.DataFrame:
     return snotel.daily(station.triplet, start, end, max_age_h=24.0)
 
 
-def snowfall_in(frame: pd.DataFrame) -> pd.Series:
-    """Snow fallen so far each winter, in inches: each day's water gain on a day cold enough to snow, times a
-    snow ratio for that day's temperature, added up from October 1."""
+def daily_snowfall_in(frame: pd.DataFrame) -> pd.Series:
+    """Snow fallen on each day, in inches: the day's water gain on a day cold enough to snow, times a snow ratio
+    for that day's temperature. A sensor weighs water; this is how the app turns that into snowfall everywhere."""
     gain = cdec.pillow_gains(frame["swe_mm"]) / MM_PER_IN
     temp = frame["tavg_c"].reindex(gain.index) if "tavg_c" in frame else pd.Series(np.nan, index=gain.index)
     ratio = np.where(temp.isna(), RATIO_UNKNOWN_TEMP, np.interp(temp.fillna(0.0), *RATIO_BY_TEMP_C))
-    new = gain * ratio * (temp.isna() | (temp <= SNOW_BELOW_C))
+    return gain * ratio * (temp.isna() | (temp <= SNOW_BELOW_C))
+
+
+def snowfall_in(frame: pd.DataFrame) -> pd.Series:
+    """Snow fallen so far each winter, in inches: each day's snowfall (``daily_snowfall_in``) added up from
+    October 1."""
+    new = daily_snowfall_in(frame)
     return new.groupby(water_year(new.index)).cumsum()
 
 

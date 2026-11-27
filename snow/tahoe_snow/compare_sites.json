@@ -1,0 +1,403 @@
+{
+"palisades": {
+"sf": "Squaw-Valley-USA",
+"sf_level": "mid",
+"os": "palisadestahoe"
+},
+"alpine": {
+"sf": "Alpine-Meadows",
+"sf_level": "bot",
+"os": "palisades-alpine-summit"
+},
+"homewood": {
+"sf": "Homewood-Mountain-Resort",
+"sf_level": "mid",
+"os": "homewood"
+},
+"sugarbowl": {
+"sf": "Sugar-Bowl",
+"sf_level": "bot",
+"os": "sugarbowl"
+},
+"boreal": {
+"sf": "Boreal-Mountain",
+"sf_level": "bot",
+"os": "boreal"
+},
+"northstar": {
+"sf": "Northstar-at-Tahoe",
+"sf_level": "bot",
+"os": "northstar"
+},
+"mtrose": {
+"os": "mtrose"
+},
+"heavenly": {
+"sf": "Heavenly-Ski",
+"sf_level": "mid",
+"os": "heavenly"
+},
+"sierra": {
+"sf": "Sierra-at-Tahoe",
+"sf_level": "mid",
+"os": "sierraattahoe"
+},
+"kirkwood": {
+"sf": "Kirkwood-Mountain",
+"sf_level": "mid",
+"os": "kirkwood"
+},
+"mammoth": {
+"sf": "Mammoth-Mountain",
+"sf_level": "mid",
+"os": "mammothmountain"
+},
+"crystal": {
+"sf": "Crystal-Mountain",
+"sf_level": "mid",
+"os": "crystalmountain"
+},
+"stevens": {
+"sf": "Stevens-Pass",
+"sf_level": "bot",
+"os": "stevenspass"
+},
+"alpental": {
+"sf": "Alpental-At-The-Summit",
+"sf_level": "mid"
+},
+"bakerskiarea": {
+"sf": "Mount-Baker",
+"sf_level": "mid",
+"os": "mtbaker"
+},
+"whitepass": {
+"sf": "White-Pass",
+"sf_level": "top",
+"os": "whitepass"
+},
+"missionridge": {
+"sf": "Mission-Ridge",
+"sf_level": "mid",
+"os": "missionridge"
+},
+"hurricaneridge": {
+"sf": "HurricaneRidge",
+"sf_level": "bot",
+"os": "hurricaneridge"
+},
+"jacksonhole": {
+"sf": "Jackson-Hole",
+"sf_level": "mid",
+"os": "jacksonhole"
+},
+"targhee": {
+"sf": "Grand-Targhee",
+"sf_level": "mid",
+"os": "grandtarghee"
+},
+"alta": {
+"sf": "Alta",
+"sf_level": "mid",
+"os": "alta"
+},
+"snowbird": {
+"sf": "Snowbird",
+"sf_level": "mid",
+"os": "snowbird"
+},
+"brighton": {
+"sf": "Brighton-Resort",
+"sf_level": "bot",
+"os": "brighton"
+},
+"solitude": {
+"sf": "Solitude",
+"sf_level": "mid",
+"os": "solitude"
+},
+"parkcity": {
+"sf": "Park-City",
+"sf_level": "top",
+"os": "parkcity"
+},
+"deervalley": {
+"sf": "Deer-Valley",
+"sf_level": "top",
+"os": "deervalley"
+},
+"powdermountain": {
+"sf": "Powder-Mountain",
+"sf_level": "mid"
+},
+"sundance": {
+"sf": "Sundance",
+"sf_level": "top",
+"os": "sundance"
+},
+"vail": {
+"sf": "Vail",
+"sf_level": "mid",
+"os": "vail"
+},
+"beavercreek": {
+"sf": "Beaver-Creek",
+"sf_level": "mid",
+"os": "beavercreek"
+},
+"keystone": {
+"sf": "Keystone-Resort",
+"sf_level": "mid",
+"os": "keystone"
+},
+"abasin": {
+"sf": "Arapahoe-Basin",
+"sf_level": "bot",
+"os": "arapahoebasin"
+},
+"loveland": {
+"sf": "Loveland",
+"sf_level": "mid",
+"os": "loveland"
+},
+"copper": {
+"sf": "Copper-Mountain",
+"sf_level": "mid",
+"os": "copper"
+},
+"winterpark": {
+"sf": "Winter-Park",
+"sf_level": "top",
+"os": "winterpark"
+},
+"steamboat": {
+"sf": "Steamboat-Ski",
+"sf_level": "mid",
+"os": "steamboat"
+},
+"shastaskipark": {
+"sf": "Mt-Shasta",
+"sf_level": "top",
+"os": "mtshastaskipark"
+},
+"silverstar": {
+"sf": "Silver-Star",
+"sf_level": "top",
+"os": "casilverstar"
+},
+"grouse": {
+"sf": "Grouse-Mountain",
+"sf_level": "bot",
+"os": "cagrouse"
+},
+"revelstoke": {
+"sf": "Revelstoke",
+"sf_level": "top",
+"os": "carevelstoke"
+},
+"fernie": {
+"sf": "Fernie",
+"sf_level": "top",
+"os": "cafernie"
+},
+"bigsky": {
+"sf": "Big-Sky",
+"sf_level": "mid",
+"os": "bigsky"
+},
+"bridger": {
+"sf": "Bridger-Bowl",
+"sf_level": "bot",
+"os": "bridgerbowl"
+},
+"showdown": {
+"sf": "Showdown-Ski-Area",
+"sf_level": "top"
+},
+"soldier": {
+"sf": "Soldier-Mountain",
+"sf_level": "bot",
+"os": "soldiermountain"
+},
+"hoodmeadows": {
+"sf": "Mt-Hood-Meadows",
+"sf_level": "mid",
+"os": "mthoodmeadows"
+},
+"timberline": {
+"sf": "Timberline",
+"sf_level": "mid",
+"os": "timberline"
+},
+"skibowl": {
+"sf": "Mt-Hood-Ski-Bowl",
+"sf_level": "mid",
+"os": "mthoodskibowl"
+},
+"cooperspur": {
+"sf": "Cooper-Spur",
+"sf_level": "mid",
+"os": "cooperspur"
+},
+"hoodoo": {
+"sf": "Hoodoo-Ski-Area",
+"sf_level": "bot",
+"os": "hoodoo"
+},
+"willamettepass": {
+"sf": "Willamette-pass",
+"sf_level": "bot",
+"os": "willamettepass"
+},
+"redriver": {
+"sf": "Red-River",
+"sf_level": "mid",
+"os": "redriver"
+},
+"angelfire": {
+"sf": "Angel-Fire-Resort",
+"sf_level": "mid",
+"os": "angelfire"
+},
+"sipapu": {
+"sf": "Sipapu-Ski-and-Summer-Resort",
+"sf_level": "mid",
+"os": "sipapu"
+},
+"skisantafe": {
+"sf": "Ski-Santa-Fe",
+"sf_level": "mid",
+"os": "skisantafe"
+},
+"pajarito": {
+"sf": "Pajarito-Mountain-Ski-Area",
+"sf_level": "mid"
+},
+"alyeska": {
+"sf": "Alyeska-Resort",
+"sf_level": "mid",
+"os": "alyeska"
+},
+"skeetawk": {
+"os": "skeetawk"
+},
+"crestedbutte": {
+"sf": "Crested-Butte-Mountain",
+"sf_level": "mid",
+"os": "crestedbutte"
+},
+"monarch": {
+"sf": "Monarch-Ski-Area",
+"sf_level": "bot",
+"os": "monarch"
+},
+"telluride": {
+"sf": "Telluride",
+"sf_level": "mid",
+"os": "telluride"
+},
+"silverton": {
+"sf": "Silverton-Mountain",
+"sf_level": "bot",
+"os": "silverton"
+},
+"purgatory": {
+"sf": "Purgatory-Resort",
+"sf_level": "bot",
+"os": "purgatory"
+},
+"wolfcreek": {
+"sf": "Wolf-Creek-Ski-Area",
+"sf_level": "mid"
+},
+"bogusbasin": {
+"sf": "Bogus-Basin",
+"sf_level": "mid",
+"os": "bogusbasin"
+},
+"brundage": {
+"sf": "Brundage-Mountain-Resort",
+"sf_level": "bot",
+"os": "brundage"
+},
+"snowyrange": {
+"os": "snowyrange"
+},
+"sleepinggiant": {
+"sf": "SleepingGiant",
+"sf_level": "top",
+"os": "sleepinggiant"
+},
+"whitepine": {
+"sf": "WhitePine",
+"sf_level": "top",
+"os": "whitepine"
+},
+"hogadon": {
+"sf": "Hogadon",
+"sf_level": "top",
+"os": "hogadon"
+},
+"meadowlark": {
+"os": "meadowlark"
+},
+"antelopebutte": {
+"sf": "Antelope-Butte",
+"sf_level": "top",
+"os": "antelopebutte"
+},
+"brianhead": {
+"sf": "Brian-Head-Resort",
+"sf_level": "top",
+"os": "brianhead"
+},
+"eaglepoint": {
+"os": "eaglepoint"
+},
+"azsnowbowl": {
+"sf": "Arizona-Snowbowl",
+"sf_level": "bot",
+"os": "arizonasnowbowl"
+},
+"sunrisepark": {
+"sf": "Sunrise-Park-Resort",
+"sf_level": "bot",
+"os": "sunrisepark"
+},
+"leecanyon": {
+"os": "leecanyon"
+},
+"schweitzer": {
+"sf": "Schweitzer",
+"sf_level": "top",
+"os": "schweitzer"
+},
+"lookoutpass": {
+"sf": "LookoutPass",
+"sf_level": "mid",
+"os": "lookoutpass"
+},
+"blacktail": {
+"sf": "Blacktail-Mountain-Ski-Area",
+"sf_level": "mid"
+},
+"montanasnowbowl": {
+"sf": "Montana-Snowbowl",
+"sf_level": "top",
+"os": "montanasnowbowl"
+},
+"discovery": {
+"sf": "Discovery-Ski-Area",
+"sf_level": "top"
+},
+"losttrail": {
+"sf": "Lost-Trail---Powder-Mtn",
+"sf_level": "top",
+"os": "losttrail"
+},
+"skicooper": {
+"sf": "Ski-Cooper",
+"sf_level": "mid",
+"os": "skicooper"
+}
+}

@@ -1,0 +1,62 @@
+name: Snow compare
+
+# Keeps score between three snow forecasts: this app's, OpenSnow's and Snow-Forecast's, each against what the snow
+# sensors measured (snow/tahoe_snow/compare.py). Once a day it saves what all three forecast for every resort whose
+# forecast is corrected to a sensor, reads what the sensors have measured since, and rewrites the score. All of it is
+# kept on the snow-compare branch: forecasts/, observed.json, score.json and score.md, which is the page to read.
+#
+# It reads one page of each site per mountain, a second apart, and only what a visitor with no account is shown. A
+# site that refuses is left out that day. It asks no weather service for anything: this app's figures come from the
+# forecast it has already published.
+#
+# 15:17 UTC is morning across North America, after the day's first forecasts are built, so "today" is the same day
+# on every mountain and on both sites.
+on:
+  schedule:
+    - cron: "17 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snow-compare
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the forecast
+        run: pip install -r snow/requirements.txt
+
+      - name: Save the day's forecasts and score the days that have passed
+        env:
+          REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        run: |
+          set -eu
+          work="$(mktemp -d)"
+          # What has been kept so far. The branch is one commit, rewritten each day, so a day it cannot be read the
+          # run stops here: carrying on would write the branch again without everything kept before.
+          if git ls-remote --exit-code --heads origin snow-compare > /dev/null; then
+            git fetch -q --depth=1 origin snow-compare
+            git archive FETCH_HEAD | tar -x -C "$work"
+          elif [ $? -ne 2 ]; then
+            echo "::error::The snow-compare branch could not be looked up"; exit 1
+          fi
+          (cd snow && python -m tahoe_snow.compare "$work")
+          cat "$work/score.md" >> "$GITHUB_STEP_SUMMARY"
+          cd "$work"
+          git init -q -b snow-compare
+          git config user.name "snow-collect"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Forecasts compared $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "$REMOTE" snow-compare
