@@ -49,9 +49,9 @@ def test_the_short_names_and_the_summit_points_are_keyed_by_mountains_that_exist
     assert set(re.findall(r"(\w+): \[-?\d", table("PEAK_AT"))) <= set(ALL_RESORTS)
 
 
-def test_every_logo_mark_listed_on_the_page_has_its_picture_and_every_picture_is_listed():
+def test_every_logo_mark_listed_on_the_page_has_its_picture():
     # The page draws logos/<key>.png behind the name of each resort in LOGO_MARKS; a key with no picture would
-    # draw nothing, and a picture not listed is never shown.
+    # draw nothing.
     import re
     from pathlib import Path
 
@@ -60,7 +60,9 @@ def test_every_logo_mark_listed_on_the_page_has_its_picture_and_every_picture_is
     root = Path(__file__).parent.parent
     listed = set(re.search(r'const LOGO_MARKS = new Set\("([^"]*)"\.split', (root / "index.html").read_text()).group(1).split())
     pictures = {path.stem for path in (root / "logos").glob("*.png")}
-    assert listed == pictures
-    assert all(key in ALL_RESORTS and ALL_RESORTS[key].kind == "resort" for key in listed)
+    # A picture may wait in the folder unlisted (made, but not judged good enough to show); none may be listed
+    # without its picture.
+    assert listed <= pictures
+    assert all(key in ALL_RESORTS and ALL_RESORTS[key].kind == "resort" for key in pictures)
     # Each is a small picture: the shape only, at most 320 px a side.
     assert all((root / "logos" / f"{key}.png").stat().st_size < 60_000 for key in listed)
