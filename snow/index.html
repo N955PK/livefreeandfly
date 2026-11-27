@@ -693,6 +693,12 @@ html.holding,html.holding *{-webkit-user-select:none!important;user-select:none!
 #favSheet,#favSheet *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* A favorite in a region's own list carries a small star after its name. */
 .qrow.crow{justify-content:flex-start;align-items:flex-start;gap:10px}
+button.cgo{width:100%;border:0;border-top:1px solid var(--border);background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button.cgo:first-child{border-top:0}
+button.cgo > div{flex:1;min-width:0}
+button.cgo:active{opacity:.55}
+button.cgo:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.cgoto{flex:none;align-self:center;width:7px;height:13px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .cnum{flex:none;width:1.9em;text-align:right;font-style:normal;font-weight:700;font-size:0.8125rem;line-height:1.35;color:var(--accent);font-variant-numeric:tabular-nums}
 .cls{font-style:normal;font-weight:600;font-size:.6em;line-height:1;margin-left:2px;vertical-align:super;opacity:.7;font-variant-numeric:tabular-nums}
 .heat td.name b em{font-style:normal;font-size:.78em;color:var(--accent);margin-left:4px;vertical-align:1px}
@@ -4343,10 +4349,18 @@ function renderClassics() {
   // Under each line: the mountain it is under here where that is not the line's own name, the peak where the
   // mountain is named for the line, then the region.
   const named = (x) => { const m = everyMountain().find((r) => r.key === x.key); if (!m || !REGIONS[regionOf(m)]) return ""; return [CLASSIC_PEAK[x.key] || sameName(x.line, m.name) || m.name === REGIONS[regionOf(m)].name ? "" : m.name, placeOf(m)].filter(Boolean).join(" · "); };
-  const row = (x) => `<div class="qrow crow"><i class="cnum">${x.n}</i><div><b>${esc(x.line)}</b>${named(x) ? `<small>${esc(named(x))}</small>` : ""}</div></div>`;
-  $("classicsBody").innerHTML = `<p class="gnote">The lines of <i>Fifty Classic Ski Descents of North America</i> (2010), numbered in the book's order. Each is listed with the mountain and region it is under in this app.</p>`
+  // Each line is a button to its mountain's report; the mark at its end says it goes somewhere.
+  const row = (x) => `<button class="qrow crow cgo" data-classic="${x.key}"><i class="cnum">${x.n}</i><div><b>${esc(x.line)}</b>${named(x) ? `<small>${esc(named(x))}</small>` : ""}</div><svg class="cgoto" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5 6.5 7l-5 5.5"/></svg></button>`;
+  $("classicsBody").innerHTML = `<p class="gnote">The lines of <i>Fifty Classic Ski Descents of North America</i> (2010), numbered in the book's order. Each is listed with the mountain and region it is under in this app; tap one for its mountain's report.</p>`
     + CLASSIC_PARTS.map(([from, title], k) => { const to = (CLASSIC_PARTS[k + 1] || [51])[0]; return `<h4 class="ghead">${esc(title)}</h4><div class="qlist">${lines.filter((x) => x.n >= from && x.n < to).map(row).join("")}</div>`; }).join("");
 }
+// A tap on a line closes About and opens its mountain's report, changing region where the mountain is in another.
+document.addEventListener("click", (e) => {
+  const row = e.target.closest && e.target.closest("button[data-classic]");
+  if (!row) return;
+  $("settingsSheet").close();
+  openFound("mountain", row.dataset.classic);
+});
 const classicTag = (key) => !CLASSICS[key] ? "" : `<i class="cls" role="img" aria-label="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}, ${line}`).join("; "))}" title="${esc(CLASSICS[key].map(([n, line]) => `Classic descent ${n}: ${line}`).join(" · "))}">${CLASSICS[key].map(([n]) => n).join("·")}</i>`;
 const PANES = {map: () => $("mapPanel"), forecast: () => document.querySelector(".panel.summary"), mountain: () => $("detail"), avalanche: () => $("avalanche")};
 let pager = null;
