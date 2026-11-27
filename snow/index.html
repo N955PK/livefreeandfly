@@ -2707,9 +2707,11 @@ function renderHeadline() {
   const missed = age <= every + 1 ? 0 : age <= 2 * every + 1 ? 1 : 2;
   const stamp = `<span class="${["", "late", "stale"][missed]}" title="${missed ? `${Math.round(age)} hours old; a new forecast is due every ${every} hours` : `A new forecast is due every ${every} hours`}">${when}</span>`;
   // A region that could not be opened (see setRegion) is said under the time, until another region opens.
-  const miss = !regionMiss ? "" : `<br><span class="warn">${regionMiss === FAVORITES
-    ? navigator.onLine ? "The forecasts for your favorites could not be loaded just now." : "Your favorites need a signal. Their forecasts have not been saved on this phone yet."
-    : navigator.onLine ? `The ${esc(REGIONS[regionMiss].name)} forecast could not be loaded just now.` : `${esc(REGIONS[regionMiss].name)} needs a signal. Its forecast has not been saved on this phone yet.`}</span>`;
+  // A region that would not load is only worth a word when the phone has no signal: that is something its owner can
+  // do something about. With a signal the page says nothing and stays where it is (Sean, 2026-11-27).
+  const miss = !regionMiss || navigator.onLine ? "" : `<br><span class="warn">${regionMiss === FAVORITES
+    ? "Your favorites need a signal. Their forecasts have not been saved on this phone yet."
+    : `${esc(REGIONS[regionMiss].name)} needs a signal. Its forecast has not been saved on this phone yet.`}</span>`;
   // While a region chosen is loading, the line says so in place of the time, so the list left showing until it
   // arrives is not taken for it (and nothing under the line moves).
   const wait = !regionPending ? "" : regionPending === FAVORITES ? "Loading the forecasts for your favorites…" : `Loading the ${esc(REGIONS[regionPending].name)} forecast…`;
