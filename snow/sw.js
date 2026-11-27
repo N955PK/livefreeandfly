@@ -4,7 +4,7 @@
 // each region it loaded. Road status is never saved, so it is never shown stale. The page keeps the last
 // avalanche forecast it read as well, and marks it as a saved copy when it shows it without a signal.
 // Bump VERSION to drop old copies.
-const VERSION = 'sierra-snow-v108';
+const VERSION = 'sierra-snow-v109';
 // The map library is served with the page (vendor/three, MIT), not from another site.
 const THREE = 'vendor/three/';
 // The page itself and what it cannot start without. These are fetched afresh with every VERSION.
