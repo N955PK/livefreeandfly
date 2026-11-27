@@ -66,7 +66,7 @@
 /* Inside ski/lease the page is in a frame, and a phone lets a framed page slide both ways at once, where the page on
    its own slides one way per drag. So there the summary table is told to take only up-and-down drags from the
    phone, and its sideways slide is done by the page (see "hosted table"): each drag is one way or the other. */
-html.hosted #heat{touch-action:pan-y}
+html.hosted #heat,html.tabs #heat{touch-action:pan-y}
 /* Opened from ski/lease, the opening screen wears that app's accent color in place of Snow's blue. */
 .hosted #splash{background:linear-gradient(var(--host-fill,#2a78d6),color-mix(in oklab,var(--host-fill,#2a78d6) 45%,#000))}
 /* There the opening screen starts under the header, so the header (with the way back) is on screen from the first
@@ -5227,16 +5227,17 @@ function guidePage(name) {
 $("setBtn").addEventListener("click", () => { markHeader(); guidePage("root"); $("settingsSheet").showModal(); placeSegs(true); });
 $("guideBack").addEventListener("click", () => guidePage("root"));
 $("settingsSheet").addEventListener("click", (e) => { const to = e.target.closest("[data-page-to]"); if (to) guidePage(to.dataset.pageTo); });
-// Hosted table: inside ski/lease's frame the summary table's sideways slide is the page's doing (the CSS leaves the
-// phone only the up-and-down drags), so that a drag moves the table one way or the other and never both. A drag that
-// starts sideways slides the table with the finger and coasts to a stop when it lifts; one that starts up or down
-// is the phone's own scroll.
-if (HOSTED) {
+// The summary table's sideways slide is the page's doing on a phone (the CSS leaves the phone only the up-and-down
+// drags), so that a drag moves the table one way or the other and never both. A drag that starts sideways slides
+// the table with the finger and coasts to a stop when it lifts; one that starts up or down is the phone's own
+// scroll. It began for the page inside ski/lease's frame, where a phone slides a page both ways at once; left to
+// the phone, the app on its own did the same on some lists (Favorites was seen to), so every list is done this way.
+{
   let pan = null, coast = 0;
   const limit = () => Math.max(0, document.documentElement.scrollWidth - window.innerWidth);
   $("heat").addEventListener("touchstart", (e) => {
     cancelAnimationFrame(coast);
-    pan = e.touches.length === 1 ? {x: e.touches[0].clientX, y: e.touches[0].clientY, from: window.scrollX, on: null, v: 0, at: e.timeStamp, last: e.touches[0].clientX} : null;
+    pan = e.touches.length === 1 && tabbed() && limit() > 0 ? {x: e.touches[0].clientX, y: e.touches[0].clientY, from: window.scrollX, on: null, v: 0, at: e.timeStamp, last: e.touches[0].clientX} : null;
   }, {passive: true});
   $("heat").addEventListener("touchmove", (e) => {
     if (!pan || pan.on === false || (hold && hold.lifted)) return;
