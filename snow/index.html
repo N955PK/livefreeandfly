@@ -1170,7 +1170,7 @@ dialog.sheet.guide .grab b{flex:1;min-width:0;white-space:nowrap;overflow:hidden
 .gpage h5{margin:18px 0 6px;font-size:0.875rem;font-weight:650;color:var(--mark)}
 .gpage p b{color:var(--ink)}
 .gpage a{color:var(--accent)}
-/* Every paragraph of "How we made the forecast" opens the same way: its subject on a line of its own, in the accent,
+/* Every paragraph of "How we made it" opens the same way: its subject on a line of its own, in the accent,
    at the size of the text under it. */
 #how p > b:first-child{display:block;margin-bottom:2px;font-size:0.8438rem;font-weight:650;color:var(--accent)}
 #how p{margin-bottom:13px}
@@ -1633,8 +1633,8 @@ if ((navigator.standalone || matchMedia("(display-mode: standalone)").matches) &
   </div>
   <h4 class="ghead">The forecast</h4>
   <div class="gnav">
-    <button data-page-to="how"><b>How we made the forecast</b><span>Models, snow ratio, wind, powder score</span></button>
-    <button data-page-to="quality"><b>Sensor corrections</b><span id="qualitySum">Which mountains have a snow sensor</span></button>
+    <button data-page-to="how"><b>How we made it</b><span>Models, snow ratio, wind, powder score</span></button>
+    <button data-page-to="quality"><b>How we corrected it</b><span id="qualitySum">Which mountains have a snow sensor</span></button>
     <button data-page-to="score"><b>How we tested it</b><span>Scored on winters it never saw</span></button>
   </div>
   <details class="gcredit"><summary>Data sources</summary>
@@ -1648,7 +1648,7 @@ if ((navigator.standalone || matchMedia("(display-mode: standalone)").matches) &
   </div>
   <div class="gpage" id="where" data-page="where" data-title="Coverage map" hidden><div id="whereBody"></div></div>
   <div class="gpage" id="classics" data-page="classics" data-title="Fifty classic descents" hidden><div id="classicsBody"></div></div>
-  <div class="gpage" id="quality" data-page="quality" data-title="Sensor corrections" hidden><div id="qualityBody"></div></div>
+  <div class="gpage" id="quality" data-page="quality" data-title="How we corrected it" hidden><div id="qualityBody"></div></div>
   <div class="gpage" id="score" data-page="score" data-title="How we tested it" hidden>
     <p>Every number here comes from winters or stations the model never saw while it was being fitted. Where something did not work, it says so.</p>
     <div id="scoreBody"></div>
@@ -1747,7 +1747,7 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <p>On winters left out of the fit it miscalls 3.00 mm of water per wet day, against 3.27 mm for Tahoe's curve on the same days, and it leans toward snow by 0.66 mm a day where Tahoe's leans by 1.78. It did better in each of the three winters and at every height below 1,600 m; above that the two are about even.</p>
 
 <h4 class="ghead">How much water</h4>
-<p>Weather models are consistently too dry or too wet at particular spots in the mountains, so each model is corrected against the snow sensors of the region it is forecasting. Each region's correction is fitted and tested on its own sensors. Which mountains it reaches is on the Sensor corrections page, where each carries a tag: Corrected, Low sensor or Uncorrected.</p>
+<p>Weather models are consistently too dry or too wet at particular spots in the mountains, so each model is corrected against the snow sensors of the region it is forecasting. Each region's correction is fitted and tested on its own sensors. Which mountains it reaches is on the How we corrected it page, where each carries a tag: Corrected, Low sensor or Uncorrected.</p>
 <h5>Tahoe</h5>
 <p>Each dot below is one model's total water at one sensor as a share of what the sensor measured (52,206 model-days).</p>
 <figure class="plot"><img loading="lazy" width="1500" height="1168" src="report/water_by_station.png" alt="Model water as a percentage of measured water at 22 stations for four models"><figcaption>100% is a perfect total. At Mt Rose every model delivers well under half the measured water.</figcaption></figure>
@@ -1814,10 +1814,10 @@ Given the measured water, it misses the snowfall by <b>1.66 in</b> on average, a
 <h5>Everywhere</h5>
 <p>These are backtests against model archives. Live forecasts made by this site are being saved and will be graded against the sensors by lead day as they come due, including the ± ranges. The correction is fitted on short-range model data and applied to every lead time, which is untested beyond a day or two.</p>
   </div>
-  <div class="gpage" id="how" data-page="how" data-title="How we made the forecast" hidden>
+  <div class="gpage" id="how" data-page="how" data-title="How we made it" hidden>
     <p><b>Water</b> Four weather models (GFS/HRRR, ECMWF, ICON, and GEM) forecast the water at each mountain. Mountains a few miles apart are forecast from one reading of the weather, each at its own heights. <span id="biasNote"></span></p>
     <p><b>Snow</b> Each hour's water becomes snow in two steps: how much falls as snow at that elevation, and how fluffy it is. <span id="ratioNote"></span></p>
-    <p><b>What is fitted where</b> Four things can be fitted to a region: the water correction, against its snow sensors; the rain-or-snow curve; the weights that blend the four models; and the fluffiness model. Each region is listed with the ones it has of its own. Whatever is not listed is Tahoe's, and a region with none uses the models uncorrected. How well each one works is under How we tested it, and which mountains a correction reaches is under Sensor corrections.</p>
+    <p><b>What is fitted where</b> Four things can be fitted to a region: the water correction, against its snow sensors; the rain-or-snow curve; the weights that blend the four models; and the fluffiness model. Each region is listed with the ones it has of its own. Whatever is not listed is Tahoe's, and a region with none uses the models uncorrected. How well each one works is under How we tested it, and which mountains a correction reaches is under How we corrected it.</p>
     <div class="qlist fitted"><div class="qrow"><div><b>Tahoe</b><small>All four, fitted to 22 snow sensors around the lake and to snowfall measured by hand at Sierra stations.</small></div></div><div class="qrow"><div><b>Central Sierras</b><small>The water correction, fitted to 10 sensors along the eastern crest.</small></div></div><div class="qrow"><div><b>Washington Cascades</b><small>Correction (10 sensors), curve (it turns to rain half a degree colder than Tahoe's) and weights (they came out equal).</small></div></div><div class="qrow"><div><b>Tetons</b><small>All four: correction (10 sensors), curve, weights, and fluffiness trained on Sierra and Teton snowfall together.</small></div></div><div class="qrow"><div><b>Wasatch</b><small>All four: correction (10 sensors), curve (three quarters of a degree colder than Tahoe's), weights, and fluffiness trained on Sierra and Wasatch snowfall, the Wasatch's counted more.</small></div></div><div class="qrow"><div><b>Northern Colorado</b><small>All four: correction (16 sensors), curve, weights, and fluffiness trained with Colorado snowfall.</small></div></div><div class="qrow"><div><b>Southwest Montana</b><small>All four: correction (12 sensors), curve, weights, and fluffiness trained with Montana snowfall.</small></div></div><div class="qrow"><div><b>Sun Valley</b><small>Correction (11 sensors), curve and weights.</small></div></div><div class="qrow"><div><b>Oregon Cascades</b><small>Correction (22 sensors), curve (half a degree more of each storm is rain than at Tahoe) and weights.</small></div></div><div class="qrow"><div><b>New Mexico</b><small>Correction (14 sensors), curve and weights.</small></div></div><div class="qrow"><div><b>Anchorage</b><small>All four: correction (9 sensors), curve, weights, and fluffiness trained with Alaska snowfall.</small></div></div><div class="qrow"><div><b>Southwest Colorado</b><small>All four: correction (28 sensors), curve, weights, and fluffiness trained with its own snowfall.</small></div></div><div class="qrow"><div><b>Inland Northwest</b><small>Correction (6 sensors), curve and weights.</small></div></div><div class="qrow"><div><b>Northwest Montana</b><small>Correction (9 sensors), curve and weights.</small></div></div><div class="qrow"><div><b>Western Idaho</b><small>Correction (12 sensors), curve and weights.</small></div></div><div class="qrow"><div><b>Wyoming</b><small>Correction (22 sensors), curve and weights.</small></div></div><div class="qrow"><div><b>Southwest Utah</b><small>All four: correction (10 sensors), curve, weights, and fluffiness trained with southern Utah snowfall.</small></div></div><div class="qrow"><div><b>Arizona</b><small>All four: correction (5 sensors), curve, weights, and fluffiness trained with Arizona snowfall.</small></div></div><div class="qrow"><div><b>Las Vegas</b><small>Correction (4 sensors), curve and weights.</small></div></div><div class="qrow"><div><b>Western Canada</b><small>The Okanagan, BC South Coast, Powder Highway, East Kootenays and Banff & Jasper each have a correction, curve and weights, fitted to British Columbia's snow stations.</small></div></div><div class="qrow"><div><b>Everywhere else</b><small>Nothing is fitted, for want of snow sensors near the mountains: New England, Shasta, Southern California, Juneau, Valdez, New York, the Mid-Atlantic, Lake Superior, Northern Michigan, the Black Hills, Northern BC, Ontario, Southern Quebec, the Gaspé, Newfoundland, the Yukon, and the six regions made for the classic descents.</small></div></div></div>
     <p><b>Low and high ground</b> Where a region's lowest base sits under the lowest weather level the others read, the air is read further down: one level in the Oregon Cascades, the Inland Northwest and Northwest Montana, and to near sea level around Anchorage and in New England, the East, the Midwest, Ontario, the Gaspé and Newfoundland. Denali and Wrangell-St. Elias read one level higher, because their summits stand above the usual top one.</p>
     <p><b>Shasta</b> Its forecast is made twice a day, at 5 am and 5 pm, where the other western regions' are made three times. Its snow pillows' readings are shown but correct nothing: they are low and miss the rain.</p>
@@ -6191,8 +6191,8 @@ function renderNotes() {
     return none.length > 2 && none.length === all.length ? [`the ${REGIONS[key].name} mountains`] : none.map((r) => r.name);
   });
   $("biasNote").textContent = (data.bias_corrected ? "Each is corrected against years of readings from the nearest snow sensor, then they are averaged." : "They are averaged; correction against the nearest snow sensor is not applied yet.") +
-    // Which mountains are corrected is not listed here: each carries its tag on the Sensor corrections page.
-    (unsensed.length ? " A mountain with no working sensor near its height is left uncorrected; the Sensor corrections page tags each one." : "") +
+    // Which mountains are corrected is not listed here: each carries its tag on the How we corrected it page.
+    (unsensed.length ? " A mountain with no working sensor near its height is left uncorrected; the page “How we corrected it” tags each one." : "") +
     (data.bias_corrected && unfitted.length ? ` ${unfitted.map((key, n) => `${n ? "the" : "The"} ${REGIONS[key].name} mountains`).join(" and ")} have sensors, but no correction has been fitted to them yet, so their forecasts are uncorrected and the sensors' readings are only shown.` : "");
   $("ratioNote").textContent = `The fluffiness model is ${data.snow_ratio_model}.`;
   renderQuality();

@@ -52,7 +52,7 @@ key: lower case, no spaces (`saltlake`). To add mountains to a region that exist
 - [ ] Short names (`SHORT`, and the region's `short`) where a name is long for a table row (2c). (M)
 - [ ] Lift status, trail counts and the resort's snow report for every resort that publishes them (step 3). (M)
 - [ ] The resort's reported base depth feeds the map where the region has no sensors (`STAKES`) (step 3). (M)
-- [ ] "How we made the forecast" has the region's row under What is fitted where, "How we tested it" has its results under each topic,
+- [ ] "How we made it" has the region's row under What is fitted where, "How we tested it" has its results under each topic,
       (the Lifts and trails paragraph names no resorts: a mountain with no count links to its resort's page) (2f).
 - [ ] The scorecard has the region's sections (`verify.py`) if anything was fitted (2f).
 - [ ] The page's description (`og:description`) names the region (2f).
@@ -486,7 +486,7 @@ other frame's box takes the new zones. Then:
 - Star one of the new mountains: it appears in Favorites next to mountains from other regions.
 - **Sub-area pills:** each frames its mountains with every name showing; where two names would collide one sits to
   the side of its stake.
-- **Menus:** the region is in the region menu under its part of its country (`REGION_PARTS`; Favorites first), in the Sensor corrections list and
+- **Menus:** the region is in the region menu under its part of its country (`REGION_PARTS`; Favorites first), in the How we corrected it list and
   in the explanations; its avalanche zones are under their group.
 - **Lifts:** each resort with a reader shows its lift and trail counts and its report; one without says so plainly.
 - **Large avalanche map:** tap the small map. Every zone is named with nothing overlapping, lakes are their real
@@ -500,7 +500,7 @@ anything you change.
 
 ### 2f. The words
 
-- **How we made the forecast:** a row for the region under "What is fitted where" saying which of the four it has of its own (correction with its sensor count, curve, weights, fluffiness); a region with none is named under "Everywhere else". Results and which mountains are corrected are not repeated there: they belong to How we tested it and Sensor corrections.
+- **How we made it:** a row for the region under "What is fitted where" saying which of the four it has of its own (correction with its sensor count, curve, weights, fluffiness); a region with none is named under "Everywhere else". Results and which mountains are corrected are not repeated there: they belong to How we tested it and How we corrected it.
   saying what is fitted there and what is borrowed from the Sierra, and anything read differently (lower pressure
   levels). The Lifts and trails paragraph says in general why a mountain may have no count; it does not list resorts.
 - **How we tested it:** under each topic (snow ratio, rain or snow, water), a heading for the region with its
