@@ -4,7 +4,7 @@ Games for two, played over a link. It lives at `livefreeandfly.org/games/`. Gin 
 
 ## The look
 
-Ace has a look of its own (the mark is the ace of spades in a gunsight, in `icons/`; the name is the card and the pilot) and follows the
+Ace has a look of its own (the mark is a spade in outline with a gunsight where its heart would be, drawn in `icons/mark.svg` from the owner's own picture and dressed for the app icon in `icons/icon.svg`; the name is the card and the pilot) and follows the
 same rules as Turbo Snow: the phone's own lettering, a page and its surfaces in the phone's light or dark, one accent
 (green), hairline borders, and everything that can be tapped a pill that dips under the finger and springs back.
 Pop-ups are sheets that rise from the bottom. Copy is plain whole sentences. The one place with colors of its own
