@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.v13.png">
 <link rel="manifest" href="/games/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="../room.css">
+<link rel="stylesheet" href="../room.css?v=3">
 <style>
 :root{--dim:#9fb0a8; --glass:rgba(8,20,17,.62); --panel:#0c2a21; --cw:clamp(60px,18vw,108px);
   /* The table's cloth and the cards' backs; the player's choice of each is set on the page by applyLook(). */
@@ -81,7 +81,7 @@ html.attable,html.attable body{overflow:hidden;overscroll-behavior:none;height:1
 html.attable{background:var(--felt0)}
 #topTint{background:var(--felt0)}
 #table{height:100svh;max-width:780px;margin:0 auto;display:flex;flex-direction:column;
-  padding:calc(8px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom))}
+  padding:calc(16px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom))}
 .bar{display:flex;align-items:center;gap:8px;min-height:34px}
 .strip{margin-left:auto;display:flex;gap:6px;align-items:center;font-family:var(--mono);font-size:12px;
   border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--glass)}
