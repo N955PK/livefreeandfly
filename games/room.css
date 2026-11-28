@@ -71,6 +71,12 @@ h1{font-weight:750;font-size:clamp(28px,7.4vw,36px);letter-spacing:-.02em;line-h
 .av.sm{width:30px;height:30px;font-size:17px}
 .av.empty{background:var(--wash);color:var(--muted);font-size:16px}
 
+/* who you are, in one line */
+.me{display:flex;align-items:center;gap:14px;width:100%;text-align:left}
+.me .t{flex:1;min-width:0}
+.me .t b{display:block;font-size:17px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me .t span{display:block;color:var(--muted);font-size:14px;margin-top:1px}
+
 /* choosing a name, face, and color */
 .who{display:flex;gap:12px;align-items:center}
 .who input,.acctform input,.num{background:var(--field);border:1px solid var(--border);border-radius:14px;color:var(--ink);font:inherit;font-size:16px;

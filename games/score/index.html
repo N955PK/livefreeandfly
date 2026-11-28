@@ -16,7 +16,7 @@
 <link rel="manifest" href="/games/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Ace">
-<link rel="stylesheet" href="../room.css?v=7">
+<link rel="stylesheet" href="../room.css?v=8">
 <style>
 /* The score pad: a gin rummy sheet for a game played with real cards. Nothing here talks to the card room; the
    sheet lives on this device. The games of a Hollywood match sit side by side as on a paper sheet, each with a
@@ -554,7 +554,7 @@ paint(); stayAwake();
 // Kept for a place with no signal: once opened, the pad opens again without one (see sw.js).
 if ('serviceWorker' in navigator && !['localhost', '127.0.0.1'].includes(location.hostname)) {
   navigator.serviceWorker.register('/games/sw.js', { scope: '/games/' }).catch(() => {});
-  if ('caches' in window) caches.open('ace-pad-v1').then((c) => c.addAll(['/games/score/', '/games/room.css?v=7', '/games/icons/favicon-32.png?v=3'])).catch(() => {});
+  if ('caches' in window) caches.open('ace-pad-v1').then((c) => c.addAll(['/games/score/', '/games/room.css?v=8', '/games/icons/favicon-32.png?v=3'])).catch(() => {});
 }
 window.AceScore = { work };   // for the tests
 })();

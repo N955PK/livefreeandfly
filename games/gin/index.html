@@ -16,7 +16,7 @@
 <link rel="manifest" href="/games/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Ace">
-<link rel="stylesheet" href="../room.css?v=7">
+<link rel="stylesheet" href="../room.css?v=8">
 <style>
 /* Gin Rummy. The pages around the table (opening one, sitting down, waiting) are Ace's ordinary pages.
    The table is cloth: its own colors, the same shapes. */
@@ -273,7 +273,6 @@ table.sheet.book td.up{color:var(--accent);font-weight:650}table.sheet.book td.d
   <a class="crumb" href="/games/">Ace</a>
   <h1>Gin Rummy</h1>
   <p class="tag">Open a table, send the link, deal the cards.</p>
-  <div class="panel"><h2>You</h2><div id="lobbyProfile"></div><div id="lobbyAcct"></div></div>
   <div class="panel">
     <h2>A new table</h2>
     <div class="seg" id="modeSeg">
@@ -309,6 +308,7 @@ table.sheet.book td.up{color:var(--accent);font-weight:650}table.sheet.book td.d
   <div class="panel"><h2>Your tables</h2><div id="myTables"><p class="none">Loading…</p></div></div>
   <div class="panel"><h2>Open tables</h2><div id="openTables"><p class="none">Loading…</p></div></div>
   <div class="panel"><h2>Leaderboard</h2><div id="ginBoard"><p class="none">Loading…</p></div></div>
+  <div class="panel"><h2>You</h2><div id="lobbyProfile"></div><div id="lobbyAcct"></div></div>
   <details class="rules panel"><summary>House rules</summary>
     <ul>
       <li>Ten cards each. One card is turned up: it starts the discard pile and sets the knock. A face card means 10, an ace means 1.</li>
@@ -751,7 +751,7 @@ const setup = Object.assign({ mode: 'single', target: 150, listed: false }, stor
 setup.stakes = stakesOf(setup.stakes);
 function showLobby() {
   show('lobby');
-  Room.profileEditor($('#lobbyProfile'), profile, Room.saveProfile);
+  Room.meRow($('#lobbyProfile'));
   Room.accountBox($('#lobbyAcct'));
   Room.showLeaderboard($('#ginBoard'), 'gin');
   const paint = () => {
@@ -784,7 +784,8 @@ function showLobby() {
   $('#listedSw').onclick = () => { setup.listed = !setup.listed; paint(); };
   paint();
   $('#openBtn').onclick = async () => {
-    if (!Room.named()) return;
+    // Nobody is asked who they are until they open a table; then once, and the table opens after.
+    if (!profile.name.trim()) return Room.profileDialog(() => { Room.meRow($('#lobbyProfile')); $('#openBtn').click(); });
     const typed = $('#targetNum').value;
     if (typed && !(+typed >= 10 && +typed <= 1000)) return toast('Play to somewhere between 10 and 1000.');
     $('#openBtn').disabled = true;
@@ -824,7 +825,8 @@ async function showJoin() {
   form.hidden = false;
   box.replaceChildren(avatarEl(info.host, 'big'),
     h('p', {}, `${info.host.name} is waiting to play gin.`, h('small', {}, describe(info.mode, info.target, info.stakes))));
-  Room.profileEditor($('#joinProfile'), profile, Room.saveProfile);
+  // Someone the room already knows just sits down; only a newcomer is asked for a name and a face.
+  if (profile.name.trim()) Room.meRow($('#joinProfile'), null, 'This is how you show up at the table.'); else Room.profileEditor($('#joinProfile'), profile, Room.saveProfile);
   Room.accountBox($('#joinAcct'));
   $('#sitBtn').disabled = false;
   $('#sitBtn').onclick = async () => {

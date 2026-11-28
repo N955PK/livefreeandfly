@@ -27,6 +27,9 @@ folded away underneath. Every sheet is kept: New sheet asks who is playing and s
 others, and All sheets lists them (who played, how it stands, when) to go back to or remove. It can keep the screen on, and once opened it opens again with no signal (`sw.js` keeps a
 copy of the page). The last hand can be undone, or any line tapped to take that hand off; the sheet is always added up again from its lines.
 
+A game's own page leads with opening a table. Who you are is one line near the foot (a tap to change), and a
+newcomer is asked for a name and a face only at the moment they open or join a table.
+
 ## How it works
 
 You pick a name and a face, open a table, and send the link (or list the table in the room so anyone there can sit

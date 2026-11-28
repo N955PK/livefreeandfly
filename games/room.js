@@ -29,7 +29,7 @@ const GAMES = {
       const n = t.options.mode === 'hollywood' ? 3 : 1;
       return tot.slice(0, n).map((g) => `${g[t.seat]}–${g[1 - t.seat]}`).join(' · ');
     },
-    idle: (t) => (t.summary && t.summary.state === 'hand_over' ? 'DEAL' : 'THEIR TURN')
+    idle: (t) => (t.summary && t.summary.state === 'hand_over' ? 'DEAL' : 'Their turn')
   }
 };
 
@@ -184,6 +184,17 @@ function profileEditor(box, p, changed) {
     changed();
   }
   box.replaceChildren(h('div', { class: 'who' }, face, name), faces, dots);
+}
+
+// Who you are, in one line: your face and name, and a tap to change them. changed() runs after a change is saved.
+function meRow(box, changed, sub) {
+  const draw = () => {
+    const has = !!profile.name.trim();
+    box.replaceChildren(h('button', { class: 'me', type: 'button', 'aria-label': 'Change your name and avatar', on: { click: () => profileDialog(() => { draw(); if (changed) changed(); }) } },
+      avatarEl(profile), h('span', { class: 't' }, h('b', {}, has ? profile.name : 'Pick a name and a face'), h('span', {}, has ? (sub || 'Tap to change your name or avatar.') : 'It takes ten seconds.')),
+      h('span', { class: 'chev' }, '›')));
+  };
+  draw();
 }
 
 /* ---------- dialogs any page can open ---------- */
@@ -412,12 +423,12 @@ const mine = () => (key ? call('room_mine') : Promise.resolve([]));
 const lobby = () => rpc('room_lobby', { p_token: key });
 // One line in a list: a table you're at ('mine') or one you could sit down at ('open').
 function tableRow(t, kind) {
-  const g = GAMES[t.game] || { name: t.game, path: '/games/', options: () => '', score: () => '', idle: () => 'THEIR TURN' };
+  const g = GAMES[t.game] || { name: t.game, path: '/games/', options: () => '', score: () => '', idle: () => 'Their turn' };
   const who = kind === 'open' ? t.host : t.players.find((p, i) => i !== t.seat) || null;
   const title = kind === 'open' ? who.name : who ? 'vs ' + who.name : 'Waiting for someone';
   const sub = [g.name, g.options(t.options), kind === 'mine' && g.score(t)].filter(Boolean).join(' · ');
-  const badge = kind === 'open' ? (t.mine ? ['YOURS', ''] : ['SIT DOWN', ' sit'])
-    : t.status === 'waiting' ? ['OPEN', ''] : t.your_turn ? ['YOUR TURN', ' you'] : t.status === 'over' ? ['GAME OVER', ''] : [g.idle(t), ''];
+  const badge = kind === 'open' ? (t.mine ? ['Yours', ''] : ['Sit down', ' sit'])
+    : t.status === 'waiting' ? ['Open', ''] : t.your_turn ? ['Your turn', ' you'] : t.status === 'over' ? ['Game over', ''] : [g.idle(t), ''];
   return h('a', { class: 'trow', href: `${g.path}?t=${t.code}` }, avatarEl(who), h('div', { class: 't' }, h('b', {}, title), h('span', {}, sub)),
     h('span', { class: 'badge' + badge[1] }, badge[0]));
 }
@@ -485,5 +496,5 @@ const sound = (() => {
 
 return { DEV, GAMES, $, h, store, toast, plural, rpc, call, me, ready, named, profile, saveProfile, key: () => key,
          avatarEl, setAvatar, profileEditor, profileDialog, deviceDialog, dialog, qr, mine, lobby, showTables, live, sound,
-         handle: () => handle, accountBox, accountDialog, showLeaderboard, pushState, pushDialog, notify };
+         handle: () => handle, accountBox, accountDialog, showLeaderboard, pushState, pushDialog, notify, meRow };
 })();
