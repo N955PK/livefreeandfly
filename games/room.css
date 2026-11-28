@@ -24,7 +24,8 @@
   --warn:#ff6b6f; --hi:#f2c14e;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
 }}
-*{box-sizing:border-box;margin:0;padding:0}
+/* Tapping twice quickly (a keypad, a card) must not zoom the page; sliding and pinching still work. */
+*{box-sizing:border-box;margin:0;padding:0;touch-action:manipulation}
 html,body{height:100%}
 body{background:var(--page);color:var(--ink);font-family:var(--sans);line-height:1.45;min-height:100svh;overflow-x:hidden;
   -webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;font-variant-numeric:tabular-nums}
