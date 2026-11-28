@@ -15,6 +15,9 @@ button:disabled{cursor:default}
 a{color:inherit}
 .slash{color:var(--hot);font-weight:700}
 
+/* A solid strip over the clock, in the page's own color, the way Turbo Snow does it. Without one an iPhone lays its
+   own fog over whatever is at the top of the page and smears it; given a solid strip it takes that instead. */
+#topTint{position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top,0px) + 5px);z-index:7;pointer-events:none;background:var(--bg)}
 .page{max-width:560px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) 18px calc(34px + env(safe-area-inset-bottom))}
 .crumb{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--dim);text-decoration:none}
 h1{font-family:var(--mono);font-weight:600;font-size:clamp(26px,7vw,36px);letter-spacing:.05em;margin:14px 0 4px}
