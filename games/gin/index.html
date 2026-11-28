@@ -241,7 +241,8 @@ body{background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.4
 .strip .to{display:flex;align-items:center;padding:0 8px 0 2px}
 .strip .cash{display:flex;align-items:center;margin-left:2px;padding:0 9px;border-radius:999px;font-weight:700;background:rgba(242,193,78,.16);color:var(--gold)}
 .strip .cash.down{background:rgba(255,92,111,.16);color:var(--hot)}
-.gear{flex:none}
+.gear{flex:none;width:38px;height:38px;display:grid;place-items:center;padding:0;color:var(--ink)}
+.gear svg{display:block}
 /* What to do next, in a plate of its own; gold-edged when it is this player's move. */
 #prompt{margin-top:18px;padding:8px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:15px;min-height:0;max-width:100%}
 #prompt:empty{display:none}
@@ -366,7 +367,7 @@ table.sheet.book td small{font-family:var(--sans)}
   <div class="bar">
     <a class="crumb" href="/games/">← Lobby</a>
     <button class="strip" id="strip" aria-label="Scoresheet"></button>
-    <button class="gear" id="gear" aria-label="Table settings">⚙︎</button>
+    <button class="gear" id="gear" aria-label="Table settings"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
   <div class="seat" id="oppSeat"><div class="av" id="oppAv"></div><div class="txt"><div class="nm" id="oppNm"></div><div class="sub" id="oppSub"></div></div><button id="nudgeBtn" hidden>Ring them</button></div>
   <div id="oppHand"></div>
