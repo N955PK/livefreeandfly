@@ -22,10 +22,6 @@
    sheet lives on this device. The games of a Hollywood match sit side by side as on a paper sheet, each with a
    column for every player, and each hand is a row. */
 .page{max-width:720px}
-.sum{display:flex;align-items:center;gap:10px;width:100%;text-align:left}
-.sum .t{flex:1;min-width:0}
-.sum .t b{display:block;font-size:16px;font-weight:650}
-.sum .t span{display:block;color:var(--muted);font-size:13.5px}
 .names{display:flex;gap:8px;flex-wrap:wrap}
 .names input{flex:1;min-width:90px;height:40px;border-radius:999px;background:var(--field);border:1px solid var(--border);color:var(--ink);font:inherit;font-size:15px;padding:0 14px;-webkit-appearance:none;appearance:none}
 .names input:focus{outline:none;border-color:var(--accent)}
@@ -37,20 +33,35 @@
   transition:transform .32s cubic-bezier(.3,1.6,.5,1),background-color .15s}
 .who button:active{transform:scale(.95);transition-duration:.1s}
 .who button[aria-pressed=true]{background:var(--ink);color:var(--page)}
-/* The keypad: opens when a player is tapped, so the phone's own keyboard never comes up. */
-dialog.keys{max-width:380px;padding:18px 16px 16px}
-.keys .for{font-size:13px;font-weight:650;color:var(--muted);text-align:center}
-.keys .show{display:flex;align-items:baseline;justify-content:center;gap:6px;min-height:64px;margin:2px 0 10px;font-size:52px;font-weight:750;letter-spacing:-.02em;line-height:1.2}
-.keys .show.zero{color:var(--muted)}
-.keys .show.minus{color:var(--warn)}
-.keys .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.keys .grid button{height:58px;border-radius:999px;background:var(--wash);font-size:24px;font-weight:600;
-  transition:transform .32s cubic-bezier(.3,1.6,.5,1),background-color .15s}
-.keys .grid button:active{transform:scale(.93);transition-duration:.08s;background:var(--border)}
-.keys .grid button.fn{font-size:17px;font-weight:700;color:var(--accent);background:var(--tint)}
+/* The adding machine: opens when a player is tapped, so the phone's own keyboard never comes up. A strip of tape
+   shows what has been keyed, the total sits under it, and the keys are laid out like a calculator's. */
+dialog.keys{max-width:380px;padding:16px}
+.keys .tape{min-height:62px;padding:10px 14px 12px;border-radius:18px;background:var(--field);border:1px solid var(--border);text-align:right;overflow:hidden}
+.keys .tape .sum{display:block;min-height:19px;font-size:14.5px;font-weight:600;color:var(--muted);white-space:nowrap;direction:rtl;text-overflow:ellipsis;overflow:hidden}
+.keys .tape .sum bdi{direction:ltr;unicode-bidi:isolate}
+.keys .tape .tot{display:block;font-size:46px;font-weight:750;letter-spacing:-.02em;line-height:1.1}
+.keys .tape .tot.zero{color:var(--muted)}
+.keys .tape .tot.neg{color:var(--warn)}
+.keys .tape .tot.bump{animation:bump .22s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bump{from{transform:scale(1.08)}}
+.keys .who{margin:10px 0}
+.keys .who button{min-height:42px;font-size:15.5px}
+.keys .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.keys .grid button{height:56px;border-radius:999px;background:var(--wash);font-size:23px;font-weight:600;
+  transition:transform .32s cubic-bezier(.3,1.6,.5,1),background-color .15s,color .15s}
+.keys .grid button:active{transform:scale(.93);transition-duration:.08s}
+.keys .grid button.op{background:var(--tint);color:var(--accent);font-size:26px;font-weight:700}
+.keys .grid button.op[aria-pressed=true]{background:var(--accent);color:var(--on-accent)}
+.keys .grid button.fn{font-size:17px;font-weight:700;color:var(--ink2)}
+/* Gin is a switch, not a key: on or off, so its 25 can only ever be in the total once. */
+.keys .grid button.gin{grid-column:span 2;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--wash);color:var(--ink)}
+.keys .grid button.gin i{font-style:normal;font-size:13px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--border)}
+.keys .grid button.gin[aria-pressed=true]{background:var(--gold);color:var(--on-gold)}
+.keys .grid button.gin[aria-pressed=true] i{background:rgba(0,0,0,.14)}
 .keys .btns{margin-top:12px}
 .under{display:flex;gap:8px;margin-top:12px}
 .under .ghost{flex:1;min-width:0;padding:0 10px;font-size:15px;white-space:nowrap}
+table.pad tbody td small i{font-style:normal;color:var(--hi);font-weight:650}
 /* The sheet. */
 .scroll{overflow-x:auto;margin:0 -18px;padding:0 18px;-webkit-overflow-scrolling:touch}
 table.pad{border-collapse:collapse;width:100%;font-size:15px}
@@ -101,10 +112,10 @@ table.pad tfoot td.win{color:var(--hi)}
   <div class="panel" id="addPanel">
     <h2 id="addTitle">Who won the hand?</h2>
     <div class="who" id="who"></div>
-    <div class="under"><button class="ghost" id="undo">Undo</button><button class="ghost" id="minusBtn">Subtract</button><button class="ghost" id="setupBtn">Set up</button></div>
+    <div class="under"><button class="ghost" id="undo">Undo the last hand</button><button class="ghost" id="setupBtn">Set up</button></div>
   </div>
 
-  <div class="panel"><h2 id="sheetTitle">The sheet</h2><div class="scroll"><table class="pad" id="pad"></table></div><p class="none" id="empty">No hands yet. Tap who won and key in the points.</p></div>
+  <div class="panel"><h2 id="sheetTitle">The sheet</h2><div class="scroll"><table class="pad" id="pad"></table></div><p class="none" id="empty">No hands yet. Tap who won and add up the points.</p></div>
 
   <div class="panel reck" id="reckPanel" hidden><h2>What it comes to</h2><div id="reck"></div></div>
 
@@ -151,7 +162,7 @@ function work(s) {
   const winners = Array(n).fill(-1), entered = Array(P).fill(0), rows = [];
   s.entries.forEach((e, at) => {
     if (e.p >= P) return;
-    const row = { at, p: e.p, pts: e.pts, cells: {} };
+    const row = { at, p: e.p, pts: e.pts, gin: !!e.gin, cells: {} };
     if (winners.every((w) => w !== -1)) { rows.push({ ...row, late: true }); return; }
     if (e.pts > 0) {
       let into = entered[e.p];
@@ -186,43 +197,68 @@ function work(s) {
 
 /* ---------- adding a hand ---------- */
 function paintAdd(w) {
-  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => h('button', { disabled: w.over, on: { click: () => keypad(p, false) } }, name(p))));
+  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => h('button', { disabled: w.over, on: { click: () => machine(p) } }, name(p))));
   $('#addTitle').textContent = w.over ? 'The match is over. Start a new sheet below.' : 'Who won the hand?';
   $('#undo').disabled = !S.entries.length;
-  $('#minusBtn').disabled = w.over || !S.entries.length;
 }
-// The keypad, like a calculator's: the figures, a rub-out, and +25 for gin or an undercut. minus is for taking
-// points off a player. A keyboard works too, for anyone at a desk.
-function keypad(p, minus) {
-  let n = 0;
-  const show = h('div', { class: 'show', role: 'status', 'aria-live': 'polite' }), go = h('button', { class: 'go' });
-  const who = h('div', { class: 'who', style: 'margin-bottom:6px' });
-  const draw = () => {
-    show.textContent = (minus ? '−' : '') + n; show.className = 'show' + (n ? '' : ' zero') + (minus && n ? ' minus' : '');
-    go.disabled = !n; go.textContent = n ? `${minus ? 'Take' : 'Add'} ${n} ${minus ? 'from' : 'for'} ${name(p)}` : minus ? 'Key in the points to take off' : 'Key in the points';
+// The adding machine. Key a figure, then + or − and another, as many as it takes: 34 + 12 − 5. The Gin switch puts
+// 25 on top, once. What it comes to is what goes on the sheet; if it comes to less than nothing, that much is taken
+// off the player instead (a correction, not a hand won). A keyboard works too, for anyone at a desk.
+function machine(p) {
+  let terms = [], sign = 1, cur = '', gin = false;
+  const sum = h('span', { class: 'sum' }), tot = h('span', { class: 'tot', role: 'status', 'aria-live': 'polite' }), go = h('button', { class: 'go' });
+  const who = h('div', { class: 'who' }), plus = h('button', { class: 'op', 'aria-label': 'Add the next figure' }, '+'), minus = h('button', { class: 'op', 'aria-label': 'Take the next figure away' }, '−');
+  const ginKey = h('button', { class: 'gin', 'aria-label': 'Gin or an undercut: 25 more' }, 'Gin', h('i', {}, '+25'));
+  const total = () => terms.reduce((a, b) => a + b, 0) + (cur ? sign * +cur : 0) + (gin ? 25 : 0);
+  const draw = (bump) => {
+    const t = total(), parts = terms.map((x, i) => (i ? (x < 0 ? '− ' : '+ ') : x < 0 ? '−' : '') + Math.abs(x));
+    if (cur || terms.length) parts.push((terms.length ? (sign < 0 ? '− ' : '+ ') : sign < 0 ? '−' : '') + cur);
+    if (gin) parts.push((parts.length ? '+ ' : '') + '25 gin');
+    sum.replaceChildren(h('bdi', {}, parts.join(' ').trim() || 'Key in the points'));
+    tot.textContent = (t < 0 ? '−' : '') + Math.abs(t);
+    tot.className = 'tot' + (t === 0 ? ' zero' : t < 0 ? ' neg' : '');
+    if (bump) { void tot.offsetWidth; tot.classList.add('bump'); }
+    plus.setAttribute('aria-pressed', String(!cur && terms.length > 0 && sign > 0)); minus.setAttribute('aria-pressed', String(!cur && sign < 0));
+    ginKey.setAttribute('aria-pressed', String(gin));
+    go.disabled = t === 0;
+    go.textContent = t > 0 ? `Add ${t} for ${name(p)}` : t < 0 ? `Take ${-t} off ${name(p)}` : 'Add the hand';
     who.replaceChildren(...Array.from({ length: S.players }, (_, q) => h('button', { 'aria-pressed': String(q === p), on: { click: () => { p = q; draw(); } } }, name(q))));
   };
   const key = (k) => {
-    if (k === 'back') n = Math.floor(n / 10); else if (k === '+25') n = Math.min(9999, n + 25); else if (n < 1000) n = n * 10 + k;
-    draw();
+    if (typeof k === 'number') { if (cur.length < 4) cur = String(+(cur + k)); }
+    else if (k === '+' || k === '-') { if (cur) { terms.push(sign * +cur); cur = ''; } sign = k === '+' ? 1 : -1; }
+    else if (k === 'back') {
+      if (cur) cur = cur.slice(0, -1);
+      else if (terms.length) { const last = terms.pop(); sign = last < 0 ? -1 : 1; cur = String(Math.abs(last)); }   // back into the figure before
+      else sign = 1;
+    }
+    else if (k === 'clear') { terms = []; cur = ''; sign = 1; gin = false; }
+    else if (k === 'gin') gin = !gin;
+    draw(k !== 'back' && k !== 'clear');
   };
-  const commit = () => { if (!n) return; S.entries.push({ p, pts: minus ? -n : n }); save(); d.close(); paint(); };
-  go.onclick = commit;
-  const b = (label, k, cls, aria) => h('button', { class: cls || '', 'aria-label': aria || null, on: { click: () => key(k) } }, label);
-  const d = h('dialog', { class: 'keys', 'aria-label': minus ? 'Take points off' : 'Points for the hand', tabindex: '-1', autofocus: '' },
-    h('div', { class: 'for' }, minus ? 'Take points off' : 'Points for the hand'), show, who,
-    h('div', { class: 'grid', style: 'margin-top:10px' }, [1, 2, 3, 4, 5, 6, 7, 8, 9].map((x) => b(String(x), x)),
-      minus ? h('span', {}) : b('+25', '+25', 'fn', 'Add 25 for gin or an undercut'), b('0', 0), b('⌫', 'back', 'fn', 'Rub out the last figure')),
+  const commit = () => {
+    const t = total(); if (!t) return;
+    S.entries.push(gin && t > 0 ? { p, pts: t, gin: true } : { p, pts: t }); save(); d.close(); paint();
+  };
+  go.onclick = commit; plus.onclick = () => key('+'); minus.onclick = () => key('-'); ginKey.onclick = () => key('gin');
+  const n = (x) => h('button', { on: { click: () => key(x) } }, String(x));
+  const d = h('dialog', { class: 'keys', 'aria-label': 'Points for the hand', tabindex: '-1', autofocus: '' },
+    h('div', { class: 'tape' }, sum, tot), who,
+    h('div', { class: 'grid' },
+      n(7), n(8), n(9), h('button', { class: 'fn', 'aria-label': 'Rub out the last figure', on: { click: () => key('back') } }, '⌫'),
+      n(4), n(5), n(6), minus,
+      n(1), n(2), n(3), plus,
+      h('button', { class: 'fn', 'aria-label': 'Clear and start again', on: { click: () => key('clear') } }, 'C'), n(0), ginKey),
     h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel'), go));
   d.addEventListener('keydown', (e) => {
-    if (/^[0-9]$/.test(e.key)) key(+e.key); else if (e.key === 'Backspace') key('back'); else if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (/^[0-9]$/.test(e.key)) key(+e.key); else if (e.key === '+' || e.key === '-') key(e.key); else if (e.key === 'Backspace') key('back');
+    else if (e.key.toLowerCase() === 'g') key('gin'); else if (e.key === 'Enter') { e.preventDefault(); commit(); }
   });
   d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
   d.addEventListener('close', () => d.remove());
   draw(); document.body.append(d); d.showModal();
 }
-$('#minusBtn').onclick = () => keypad(S.entries[S.entries.length - 1].p, true);
-$('#undo').onclick = () => { if (S.entries.length) { S.entries.pop(); save(); paint(); toast('The last one is undone.'); } };
+$('#undo').onclick = () => { if (S.entries.length) { S.entries.pop(); save(); paint(); toast('The last hand is undone.'); } };
 
 /* ---------- the sheet ---------- */
 function paintSheet(w) {
@@ -246,7 +282,7 @@ function paintSheet(w) {
       const c = cols[g][p][i];
       if (!c) return h('td', { class: p === 0 ? 'first' : '' });
       return h('td', { class: (p === 0 ? 'first ' : '') + 'has' + (c.r.pts < 0 ? ' neg' : '') + (c.r === newest ? ' new' : ''), title: 'Tap to take this hand off the sheet', on: { click: () => removeRow(c.r) } },
-        h('b', {}, String(c.total)), h('small', {}, (c.r.pts > 0 ? '+' : '−') + Math.abs(c.r.pts)));
+        h('b', {}, String(c.total)), h('small', {}, (c.r.pts > 0 ? '+' : '−') + Math.abs(c.r.pts), c.r.gin ? h('i', {}, ' gin') : null));
     }))));
   const foot = h('tfoot', {},
     h('tr', {}, h('td', { class: 'h' }), each((g, p) => h('td', { class: (p === 0 ? 'first' : '') + (w.winners[g] === p ? ' win' : '') }, String(w.totals[g][p])))),
