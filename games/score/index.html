@@ -66,11 +66,9 @@ dialog.keys{max-width:380px;padding:16px}
 .setup:active{transform:scale(.98);transition-duration:.1s}
 .setup span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 .setup b{flex:none;display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:999px;background:var(--surface);color:var(--accent);font-size:13.5px;font-weight:650;box-shadow:0 1px 2px rgba(0,0,0,.12)}
-/* The winner's buttons: the name, and under it how far that player is from the game they are after. */
-.who.big button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:68px;padding:6px 8px;border-radius:22px}
+/* The winner's buttons. */
+.who.big button{display:flex;align-items:center;justify-content:center;min-height:60px;padding:6px 8px}
 .who.big button b{display:block;max-width:100%;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis}
-.who.big button small{display:block;font-size:12.5px;font-weight:600;color:var(--muted)}
-.who.big button.lead small{color:var(--accent)}
 .foot{display:flex;gap:8px;margin-top:18px}
 .foot .ghost{flex:1;min-width:0;white-space:nowrap}
 /* The match is over. */
@@ -85,9 +83,6 @@ dialog.keys{max-width:380px;padding:16px}
 #toast button{flex:none;height:32px;padding:0 14px;border-radius:999px;background:var(--page);color:var(--ink);font-size:14px;font-weight:700}
 .confetti{position:fixed;top:-40px;font-size:24px;pointer-events:none;z-index:170;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
-table.pad tfoot tr.togo td{font-weight:600;font-size:12.5px;color:var(--muted);padding-top:0}
-table.pad tfoot tr.togo td.h{font-size:10px}
-table.pad.tight tfoot tr.togo td{font-size:11px}
 details.work{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 details.work summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:650;color:var(--muted)}
 details.work summary::-webkit-details-marker{display:none}
@@ -253,13 +248,7 @@ function pays(w) {
 const rate = () => (S.cents < 100 ? S.cents + '¢' : cash(S.cents)) + ' a point';
 function paintAdd(w) {
   $('#sumLine').textContent = `${S.players} players · ${S.mode === 'hollywood' ? 'Hollywood' : 'Single'} to ${S.target}${S.cents > 0 ? ' · ' + (S.cents < 100 ? S.cents + '¢' : cash(S.cents)) : ''}`;
-  // Under each name: how far they are from the first game still open.
-  const open = w.winners.indexOf(-1), best = open < 0 ? 0 : Math.max(...w.totals[open]);
-  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => {
-    const have = open < 0 ? 0 : w.totals[open][p], togo = S.target - have;
-    return h('button', { class: open >= 0 && have > 0 && have === best ? 'lead' : '', on: { click: () => machine(p) } },
-      h('b', {}, name(p)), h('small', {}, open < 0 ? '' : `${togo} to go${w.n > 1 ? ' in game ' + (open + 1) : ''}`));
-  }));
+  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => h('button', { on: { click: () => machine(p) } }, h('b', {}, name(p)))));
   $('#addPanel').hidden = w.over;
   $('#undo').disabled = !S.entries.length;
   $('#fresh').disabled = !S.entries.length;
@@ -374,8 +363,7 @@ function paintSheet(w) {
     }))));
   const foot = h('tfoot', {},
     h('tr', {}, h('td', { class: 'h' }), each((g, p) => h('td', { class: (p === 0 ? 'first' : '') + (w.winners[g] === p ? ' win' : '') }, String(w.totals[g][p])))),
-    h('tr', { class: 'bx' }, h('td', { class: 'h' }, 'boxes'), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, String(w.boxes[g][p])))),
-    w.over ? null : h('tr', { class: 'togo' }, h('td', { class: 'h' }, 'to go'), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, w.winners[g] === -1 ? String(S.target - w.totals[g][p]) : w.winners[g] === p ? 'won' : '–'))));
+    h('tr', { class: 'bx' }, h('td', { class: 'h' }, 'boxes'), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, String(w.boxes[g][p])))));
   pad.classList.toggle('tight', tight);
   pad.replaceChildren(head, body, foot);
 }
