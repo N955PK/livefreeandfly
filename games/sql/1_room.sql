@@ -1,4 +1,4 @@
--- Card Night, part 1 of 2: the room itself. Run this, then 2_gin.sql, in the Supabase project's SQL editor.
+-- Ace, part 1 of 2: the room itself. Run this, then 2_gin.sql, in the Supabase project's SQL editor.
 -- Both files are the whole current definition and are safe to run again at any time; they upgrade what's there
 -- in place and keep every table in play.
 --
@@ -487,7 +487,7 @@ begin
   v_body := case p_kind when 'turn' then 'Your turn. ' || me.name || ' is waiting.'
                         when 'say' then me.name || ': ' || v_text
                         else me.name || ' is waiting for you at the table.' end;
-  return jsonb_build_object('title', case t.game when 'gin' then 'Gin Rummy' else 'Card Night' end, 'body', v_body,
+  return jsonb_build_object('title', case t.game when 'gin' then 'Gin Rummy' else 'Ace' end, 'body', v_body,
     'url', '/games/' || t.game || '/?t=' || t.code, 'tag', t.code, 'subs', v_subs);
 end $$;
 

@@ -1,6 +1,6 @@
 {
-  "name": "Card Night",
-  "short_name": "Card Night",
+  "name": "Ace",
+  "short_name": "Ace",
   "description": "Card games for two, played over a link.",
   "start_url": "/games/",
   "scope": "/games/",

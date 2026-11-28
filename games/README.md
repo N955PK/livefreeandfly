@@ -1,10 +1,10 @@
-# Card Night
+# Ace
 
 Games for two, played over a link. It lives at `livefreeandfly.org/games/`. Gin rummy is the first one, at `/games/gin/`.
 
 ## The look
 
-Card Night has a look of its own (the mark is two fanned cards under a crescent moon, in `icons/`) and follows the
+Ace has a look of its own (the mark is the ace of spades in a gunsight, in `icons/`; the name is the card and the pilot) and follows the
 same rules as Turbo Snow: the phone's own lettering, a page and its surfaces in the phone's light or dark, one accent
 (green), hairline borders, and everything that can be tapped a pill that dips under the finger and springs back.
 Pop-ups are sheets that rise from the bottom. Copy is plain whole sentences. The one place with colors of its own

@@ -1,12 +1,12 @@
-// Card Night's service worker. It keeps nothing and answers no page loads; it is here only so a phone can show
+// Ace's service worker. It keeps nothing and answers no page loads; it is here only so a phone can show
 // "your turn" while the game is closed. The sender (games/push) delivers {title, body, url, tag}.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 self.addEventListener('push', (event) => {
   let note = {};
   try { note = event.data.json(); } catch (e) { /* a message with nothing in it still has to show something */ }
-  event.waitUntil(self.registration.showNotification(note.title || 'Card Night', {
-    body: note.body || 'Something happened at your table.', tag: note.tag || 'card-night', renotify: true,
+  event.waitUntil(self.registration.showNotification(note.title || 'Ace', {
+    body: note.body || 'Something happened at your table.', tag: note.tag || 'ace', renotify: true,
     icon: '/games/icons/icon-180.png', badge: '/games/icons/favicon-32.png', data: { url: note.url || '/games/' }
   }));
 });
