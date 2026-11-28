@@ -43,7 +43,9 @@ House rules:
 - A game is played to 150 unless the table says otherwise (10 to 1000).
 - Hollywood is three games at once: a player's first winning hand counts in game one, the second in games one and two,
   and the rest in all three. A finished game takes no more points.
-- Two cards left in the deck and nobody down is a dead hand: no score, same dealer. Otherwise the loser deals next.
+- You may throw back the card you just took off the discard pile.
+- Two cards left in the deck and nobody down is a dead hand: no score, same dealer. Otherwise the winner deals next,
+  so the loser is offered the turned-up card first.
 
 At the table:
 
@@ -51,6 +53,10 @@ At the table:
   a reload. A card you draw lands on the right end. The Sort buttons put the whole hand in order by meld, suit, or
   rank whenever you want a fresh start.
 - Tap a card and then Throw it, or drag it onto the discard pile.
+- Going down is the gold circle beside the piles, not a button next to Throw, so it is never tapped by mistake.
+- The 💬 button sends a line of your own across the table; the faces beside it are one-tap reactions.
+- "Cards and table" in the table's settings picks the suit colors (clubs are green unless you choose classic), the
+  backs of the cards (six, or a picture of your own) and the cloth. They are kept on your device and are yours alone.
 - Melds are colored and deadwood counted for you; "Show my melds" in the table's settings turns that off.
 - The page picks each player's best melds and layoffs when someone goes down; the database checks them and scores.
 - The scoresheet also keeps the tally of every game the two of you have finished, across tables.

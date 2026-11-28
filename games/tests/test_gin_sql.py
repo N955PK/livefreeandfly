@@ -265,11 +265,11 @@ def test_whole_games(db, mode, target):
                 n = 3 if mode == "hollywood" else 1
                 assert all(w != -1 for w in winners[:n]) and r["over"]
                 break
-            # The loser deals next; a dead hand is dealt again by the same dealer. A second tap deals nothing.
+            # The winner deals next; a dead hand is dealt again by the same dealer. A second tap deals nothing.
             nxt = call(db, "gin_next", p_code=code, p_token=tokens[0], p_hand_no=st["hand_no"])
             again = call(db, "gin_next", p_code=code, p_token=tokens[1], p_hand_no=st["hand_no"])
             assert nxt["hand_no"] == again["hand_no"] == st["hand_no"] + 1
-            assert nxt["dealer"] == (before["dealer"] if r["winner"] is None else 1 - r["winner"])
+            assert nxt["dealer"] == (before["dealer"] if r["winner"] is None else r["winner"])
             assert nxt["knock"] == val(nxt["upcard"]) and nxt["turn"] == 1 - nxt["dealer"]
         else:
             pytest.fail("the game never ended")
@@ -340,8 +340,18 @@ def test_seats_and_turns(db):
     call(db, "gin_discard", p_code=code, p_token=first, p_card=me["hand"][0])
     took = call(db, "gin_draw", p_code=code, p_token=dealer, p_source="discard")
     assert took["drawn"] == me["hand"][0]
-    fails(db, "gin_discard", "just picked up", p_code=code, p_token=dealer, p_card=took["drawn"])
-    fails(db, "gin_knock", "just picked up", p_code=code, p_token=dealer, p_card=took["drawn"], p_melds=[])
+    # The card just taken off the pile may be thrown straight back; going down with it still needs the count.
+    fails(db, "gin_knock", "or less to go down", p_code=code, p_token=dealer, p_card=took["drawn"], p_melds=[])
+    back = call(db, "gin_discard", p_code=code, p_token=dealer, p_card=took["drawn"])
+    assert back["top"] == took["drawn"] and back["phase"] == "draw" and back["turn"] == 1 - back["you"]
+    # A line said across the table reaches the other seat without a move being made, cleaned and cut to length.
+    v = call(db, "gin_state", p_code=code, p_token=first)["v"]
+    said = call(db, "gin_say", p_code=code, p_token=dealer, p_text="  nice\nthrow " + "x" * 200)["said"]
+    assert said["seat"] == back["you"] and said["n"] == 1 and said["text"].startswith("nice throw x") and len(said["text"]) == 140
+    heard = call(db, "gin_state", p_code=code, p_token=first, p_since=v)
+    assert heard["said"]["text"] == said["text"] and heard["phase"] == "draw" and heard["last"]["type"] == "discard"
+    assert call(db, "gin_say", p_code=code, p_token=first, p_text="thanks")["said"]["n"] == 2
+    fails(db, "gin_say", "Say something", p_code=code, p_token=first, p_text="   ")
     # A new name shows up for the other player without a move being made.
     v = call(db, "gin_state", p_code=code, p_token=t0)["v"]
     assert hello(db, "Bobby", "🦉", "#39D0A4", token=t1) == t1
@@ -503,7 +513,7 @@ def test_knock_layoff_and_undercut(db):
     out = call(db, "gin_layoff", p_code=code, p_token=t1, p_melds=[hand("7C 8C 9C")], p_layoffs=[[C("KC")], [C("7H")]])
     r = out["result"]
     assert (r["type"], r["winner"], r["pts"]) == ("undercut", 1, 26) and out["totals"][0] == [3, 26]
-    assert out["dealer"] == 1 and call(db, "gin_next", p_code=code, p_token=t1, p_hand_no=out["hand_no"])["dealer"] == 0
+    assert out["dealer"] == 1 and call(db, "gin_next", p_code=code, p_token=t1, p_hand_no=out["hand_no"])["dealer"] == 1
 
     # A tie goes to the other player too: 25 and nothing more. And gin takes no layoffs.
     h1 = hand("7C 8C 9C KC 7H AS AD 2D 2C 3S")

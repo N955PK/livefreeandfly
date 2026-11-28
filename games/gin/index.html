@@ -14,8 +14,12 @@
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.v13.png">
 <link rel="stylesheet" href="../room.css">
 <style>
-:root{--dim:#9fb0a8; --glass:rgba(8,20,17,.62); --panel:#0c2a21; --cw:clamp(50px,13.5vw,84px)}
-body{background:#081f19 radial-gradient(ellipse at 50% 38%,#17573f 0%,#0d3a2b 48%,#081f19 100%) fixed}
+:root{--dim:#9fb0a8; --glass:rgba(8,20,17,.62); --panel:#0c2a21; --cw:clamp(60px,18vw,108px);
+  /* The table's cloth and the cards' backs; the player's choice of each is set on the page by applyLook(). */
+  --felt0:#081f19; --felt1:#0d3a2b; --felt2:#17573f;
+  --back-bg:repeating-linear-gradient(45deg,rgba(255,255,255,.09) 0 4px,transparent 4px 8px),repeating-linear-gradient(-45deg,rgba(0,0,0,.14) 0 4px,transparent 4px 8px),#a31f34;
+  --back-edge:#f4f1ea; --back-d1:#6d1423; --back-d2:#5a101d}
+body{background:var(--felt0) radial-gradient(ellipse at 50% 38%,var(--felt2) 0%,var(--felt1) 48%,var(--felt0) 100%) fixed}
 
 /* ---------- lobby, join, waiting ---------- */
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -44,14 +48,16 @@ details.rules ul{margin:10px 0 0 18px}
   box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 2px 6px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.18);
   font-family:var(--sans);user-select:none;-webkit-user-select:none;overflow:hidden}
 .card.red{color:#c8102e}
+/* Clubs are green unless the player asks for the classic two colors, so a club is never taken for a spade; with
+   four colors the diamonds are blue as well. */
+html[data-deck=clubs] .card.s3,html[data-deck=four] .card.s3{color:#0a7a4c}
+html[data-deck=four] .card.s2{color:#1668c9}
 .card .ix{position:absolute;top:calc(var(--cw)*.06);left:calc(var(--cw)*.09);display:flex;flex-direction:column;align-items:center;line-height:.95}
 .card .ix b{font-size:calc(var(--cw)*.3);font-weight:700;letter-spacing:-.04em}
-.card .ix i{font-style:normal;font-size:calc(var(--cw)*.25)}
+.card .ix i{font-style:normal;font-size:calc(var(--cw)*.3);margin-top:calc(var(--cw)*.01)}
 .card .pip{position:absolute;right:calc(var(--cw)*.08);bottom:calc(var(--cw)*.02);font-size:calc(var(--cw)*.62);line-height:1;opacity:.9}
-.card.back{background:
-  repeating-linear-gradient(45deg,rgba(255,255,255,.09) 0 4px,transparent 4px 8px),
-  repeating-linear-gradient(-45deg,rgba(0,0,0,.14) 0 4px,transparent 4px 8px),#a31f34;
-  box-shadow:0 0 0 calc(var(--cw)*.05) #f4f1ea inset,0 2px 6px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.25)}
+.card.back{background:var(--back-bg);
+  box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,0 2px 6px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.25)}
 .card.slot{background:none;box-shadow:0 0 0 2px rgba(255,255,255,.16) inset}
 .card.sm{--cw:clamp(30px,8.2vw,44px)}
 
@@ -82,12 +88,35 @@ details.rules ul{margin:10px 0 0 18px}
 .pile.drop{box-shadow:0 0 0 4px var(--hot),0 0 26px rgba(255,92,111,.6);transform:scale(1.06)}
 @keyframes glow{50%{box-shadow:0 0 0 3px var(--gold),0 0 8px rgba(242,193,78,.25)}}
 .pile .cnt{position:absolute;left:50%;bottom:-20px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--dim);white-space:nowrap}
-#stock .card.back{box-shadow:0 0 0 calc(var(--cw)*.05) #f4f1ea inset,2px 2px 0 #6d1423,4px 4px 0 #5a101d,0 6px 10px rgba(0,0,0,.45)}
+#stock .card.back{box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,2px 2px 0 var(--back-d1),4px 4px 0 var(--back-d2),0 6px 10px rgba(0,0,0,.45)}
 .knock{display:flex;flex-direction:column;align-items:center;justify-content:center;width:calc(var(--cw)*1.05);
   aspect-ratio:1;border-radius:50%;border:2px solid var(--gold);color:var(--gold);background:rgba(0,0,0,.25)}
 .knock span{font-family:var(--mono);font-size:9px;letter-spacing:.16em}
 .knock b{font-size:calc(var(--cw)*.44);line-height:1;font-weight:800}
 .knock small{font-size:10.5px;opacity:.8}
+/* Going down is done here, by the piles, and nowhere near the Throw button: a thumb reaching for Throw cannot go
+   down by mistake. The circle fills with gold when the card picked would leave the count low enough. */
+button.knock{font:inherit;padding:0;cursor:default}
+button.knock.can{background:var(--gold);color:#1d1602;cursor:pointer;animation:glow 1.4s ease-in-out infinite;box-shadow:0 0 0 3px var(--gold),0 0 22px rgba(242,193,78,.5)}
+button.knock.can:active{transform:scale(.95)}
+button.knock.can b{font-size:calc(var(--cw)*.36)}
+/* A line said across the table: a bubble by the speaker's seat. */
+.say{position:fixed;z-index:155;max-width:min(78vw,340px);padding:9px 13px;border-radius:16px;background:#fff;color:#14181d;font-size:15px;line-height:1.35;
+  box-shadow:0 8px 22px rgba(0,0,0,.45);pointer-events:none;animation:say 6.5s ease forwards;overflow-wrap:anywhere}
+.say.mine{background:var(--gold);color:#1d1602}
+@keyframes say{0%{opacity:0;transform:translateY(6px) scale(.92)}5%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
+#sayBtn{font-size:19px;padding:4px 8px;border-radius:10px;opacity:.85}
+.sayrow{display:flex;gap:8px;margin-top:14px}
+.sayrow input{flex:1;min-width:0;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-size:16px;padding:11px 12px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.quick button{border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:14px;background:rgba(0,0,0,.2)}
+/* Choosing the cards and the table. */
+.looks{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.looks button{position:relative;border:2px solid transparent;border-radius:12px;padding:5px;background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--dim)}
+.looks button[aria-pressed=true]{border-color:var(--gold);color:var(--ink)}
+.looks .felt{width:54px;height:40px;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset}
+.looks .deck{display:flex;gap:1px;font-size:22px;line-height:1;background:#fff;border-radius:8px;padding:6px 8px}
+.looks .card.sm{--cw:38px}
 #prompt{text-align:center;font-size:15.5px;font-weight:600;min-height:22px;margin-top:14px;padding:0 6px}
 #prompt.me{color:var(--gold)}
 #mine{margin-top:auto}
@@ -102,7 +131,7 @@ details.rules ul{margin:10px 0 0 18px}
 #hand .card.fresh .ix b{text-decoration:underline;text-decoration-thickness:2px}
 .nohints #hand .card::after{background:transparent!important}
 .nohints #dw,.nohints #dwHint{visibility:hidden}
-.handbar{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--dim);min-height:28px}
+.handbar{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--dim);min-height:28px;white-space:nowrap}
 .handbar .dw{font-family:var(--mono);color:var(--ink)}
 .handbar .dw.ok{color:var(--gold)}
 .handbar .sorts{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.1em}
@@ -189,7 +218,8 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
       <li>Gin scores 25 plus the other player’s deadwood. A knock scores the difference.</li>
       <li>Undercut: if the other player ties or beats the knocker after laying off, they score 25 plus the difference.</li>
       <li>Hollywood: your first winning hand counts in game one, your second in games one and two, the rest in all three.</li>
-      <li>Two cards left in the deck and nobody down: dead hand, no score. The loser of a hand deals the next.</li>
+      <li>You may throw back the card you just took off the pile.</li>
+      <li>Two cards left in the deck and nobody down: dead hand, no score. The winner of a hand deals the next, so the loser gets first look at the turned-up card.</li>
     </ul>
   </details>
 </div>
@@ -226,7 +256,7 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
   <div id="oppHand"></div>
   <div id="middle">
     <div id="piles">
-      <div class="knock" title="Go down at this or less"><span>KNOCK</span><b id="knockN"></b><small id="knockC"></small></div>
+      <button class="knock" id="knockBtn" title="Go down at this or less"><span id="knockT">KNOCK</span><b id="knockN"></b><small id="knockC"></small></button>
       <button class="pile" id="stock" aria-label="Draw from the deck"><div class="card back"></div><span class="cnt" id="stockN"></span></button>
       <button class="pile" id="discard" aria-label="Take the top discard"></button>
     </div>
@@ -236,7 +266,7 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
     <div class="handbar"><span class="dw" id="dw"></span><span id="dwHint"></span>
       <span class="sorts" id="sorts">SORT <button data-sort="melds">Melds</button><button data-sort="suit">Suits</button><button data-sort="rank">Ranks</button></span></div>
     <div id="handWrap"><div id="hand"></div></div>
-    <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><div id="emotes"></div></div>
+    <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><div id="emotes"></div><button id="sayBtn" aria-label="Say something">💬</button></div>
     <div id="actions"></div>
   </div>
 </div>
@@ -263,7 +293,7 @@ const cardName = (c) => RANKS[rank(c)] + SUITS[suit(c)];
 const points = (cards) => cards.reduce((n, c) => n + val(c), 0);
 function cardEl(c, cls, tag) {
   const s = suit(c);
-  const el = h(tag || 'div', { class: `card${s === 1 || s === 2 ? ' red' : ''}${cls ? ' ' + cls : ''}`, 'aria-label': cardName(c) },
+  const el = h(tag || 'div', { class: `card s${s}${s === 1 || s === 2 ? ' red' : ''}${cls ? ' ' + cls : ''}`, 'aria-label': cardName(c) },
     h('span', { class: 'ix' }, h('b', {}, RANKS[rank(c)]), h('i', {}, SUITS[s] + '︎')),
     h('span', { class: 'pip' }, SUITS[s] + '︎'));
   el.dataset.c = c;
@@ -348,6 +378,60 @@ function sorted(cards, how) {
   return best.melds.map((m) => m.slice().sort(byRank)).sort((a, b) => byRank(a[0], b[0])).flat().concat(best.deadCards.slice().sort(byRank));
 }
 
+/* ---------- how the cards and the table look: this player's own choice, kept on this device ---------- */
+const stripes = (c) => `repeating-linear-gradient(45deg,rgba(255,255,255,.09) 0 4px,transparent 4px 8px),repeating-linear-gradient(-45deg,rgba(0,0,0,.14) 0 4px,transparent 4px 8px),${c}`;
+const BACKS = {
+  red: { name: 'Red', bg: stripes('#a31f34'), edge: '#f4f1ea', deep: ['#6d1423', '#5a101d'] },
+  blue: { name: 'Blue', bg: stripes('#1f4fa3'), edge: '#f4f1ea', deep: ['#15376f', '#102a57'] },
+  green: { name: 'Green', bg: stripes('#1c7a4d'), edge: '#f4f1ea', deep: ['#145636', '#0f432a'] },
+  black: { name: 'Black', bg: 'radial-gradient(circle at 50% 50%,rgba(242,193,78,.5) 0 12%,transparent 13%),repeating-linear-gradient(45deg,rgba(242,193,78,.16) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(242,193,78,.16) 0 2px,transparent 2px 9px),#15171b', edge: '#f2c14e', deep: ['#0c0d10', '#050607'] },
+  plaid: { name: 'Plaid', bg: 'repeating-linear-gradient(0deg,rgba(255,255,255,.16) 0 3px,transparent 3px 12px),repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 3px,transparent 3px 12px),#7a2f8f', edge: '#f4f1ea', deep: ['#53205f', '#3f184a'] },
+  dots: { name: 'Dots', bg: 'radial-gradient(circle at 25% 25%,rgba(255,255,255,.34) 0 14%,transparent 15%) 0 0/10px 10px,#d9661f', edge: '#f4f1ea', deep: ['#9c4614', '#7c370f'] }
+};
+const FELTS = {
+  green: { name: 'Green', c: ['#081f19', '#0d3a2b', '#17573f'] },
+  blue: { name: 'Blue', c: ['#07162b', '#0d2a4f', '#184a7d'] },
+  burgundy: { name: 'Burgundy', c: ['#1f080d', '#3d0f1a', '#641c2c'] },
+  charcoal: { name: 'Charcoal', c: ['#0d0e10', '#1b1d21', '#2e3238'] },
+  purple: { name: 'Purple', c: ['#150a24', '#2a1447', '#45236f'] },
+  sand: { name: 'Sand', c: ['#2a1f12', '#4a3620', '#6b5030'] }
+};
+const DECKS = { clubs: 'Green clubs', four: 'Four colors', classic: 'Classic' };
+const look = Object.assign({ deck: 'clubs', back: 'red', felt: 'green' }, store.get('gin-look', {}));
+const customBack = () => store.get('gin-back-img', null);
+function backVars(key) {
+  if (key === 'custom' && customBack()) return { bg: `url("${customBack()}") center/cover`, edge: '#f4f1ea', deep: ['#3a3f46', '#2a2e33'] };
+  return BACKS[key] || BACKS.red;
+}
+function setBack(el, key) {
+  const b = backVars(key);
+  el.style.setProperty('--back-bg', b.bg); el.style.setProperty('--back-edge', b.edge);
+  el.style.setProperty('--back-d1', b.deep[0]); el.style.setProperty('--back-d2', b.deep[1]);
+}
+function applyLook() {
+  const root = document.documentElement, f = (FELTS[look.felt] || FELTS.green).c;
+  root.dataset.deck = DECKS[look.deck] ? look.deck : 'clubs';
+  setBack(root, look.back);
+  f.forEach((c, i) => root.style.setProperty('--felt' + i, c));
+  const meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.content = f[1];
+  store.set('gin-look', look);
+}
+applyLook();
+// A picture of the player's own for the backs: cut to a card's shape and kept small, on this device only.
+function readBack(file) {
+  return new Promise((ok, no) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const W = 300, H = 420, c = Object.assign(document.createElement('canvas'), { width: W, height: H }), k = Math.max(W / img.width, H / img.height);
+      c.getContext('2d').drawImage(img, (W - img.width * k) / 2, (H - img.height * k) / 2, img.width * k, img.height * k);
+      URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); no(new Error('That picture could not be read.')); };
+    img.src = url;
+  });
+}
+
 /* ---------- state ---------- */
 const code = (new URLSearchParams(location.search).get('t') || '').trim().toUpperCase();
 let st = null;             // the table as the server last described it
@@ -363,6 +447,7 @@ let seenKey = store.get('gin-seen-' + code, null);   // the last result this pla
 let answeredV = -1;        // the knock we've already answered
 let thrownFrom = null;     // where on screen the card I just threw was, so the pile can catch it
 let wire = null;           // the live channel
+let heardN = store.get('gin-said-' + code, null);   // the last line said at this table that this page has shown
 const handEls = new Map();
 
 const playing = (s) => s.status === 'playing' && !s.closed;
@@ -395,6 +480,47 @@ function apply(next) {
     }
   }
   answerKnock();
+  hear();
+}
+// A line said across the table is shown once, by its speaker's seat. One said long ago is not brought up again.
+function hear() {
+  const said = st && st.said;
+  if (!said || said.n === heardN || $('#table').hidden) return;
+  heardN = said.n; store.set('gin-said-' + code, heardN);
+  if (Date.now() - new Date(said.at).getTime() > 10 * 60 * 1000) return;
+  bubble(said.text, said.seat);
+  if (said.seat !== st.you) { sound.pop(); if (navigator.vibrate && navigator.userActivation?.hasBeenActive) navigator.vibrate(20); }
+}
+function bubble(text, seat) {
+  document.querySelectorAll('.say').forEach((el) => { if (el.dataset.seat === String(seat)) el.remove(); });
+  const mine = seat === st.you, from = rectOf(mine ? $('#meAv') : $('#oppAv'));
+  const el = h('div', { class: 'say' + (mine ? ' mine' : ''), role: 'status' }, String(text).slice(0, 140));
+  el.dataset.seat = seat;
+  el.style.left = Math.max(10, from.left) + 'px';
+  if (mine) el.style.bottom = innerHeight - from.top + 8 + 'px'; else el.style.top = from.bottom + 8 + 'px';
+  document.body.append(el); setTimeout(() => el.remove(), 6600);
+}
+// Type a line, or tap a ready one. It goes through the card room, so it arrives even if the other page is not
+// listening live; a room that does not take lines yet passes it over the live channel instead.
+const QUICK = ['Nice hand', 'Good game', 'Your turn!', 'One sec', 'Ouch', 'Rematch?'];
+function showSay() {
+  if (!st) return;
+  const box = h('input', { type: 'text', maxlength: 140, placeholder: `Say something to ${st.names[1 - st.you] || 'the table'}`, 'aria-label': 'Your message', enterkeyhint: 'send' });
+  const send = async (text) => {
+    text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+    if (!text) return box.focus();
+    d.close();
+    try { apply(await Room.call('gin_say', { p_code: code, p_text: text })); if (wire) wire.send('poke'); }
+    catch (e) {
+      if (wire && wire.channel) { wire.send('say', { t: text }); bubble(text, st.you); } else toast('That could not be sent just now.');
+    }
+  };
+  box.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(box.value); });
+  const d = Room.dialog('Say something', h('h3', {}, 'Say something'),
+    h('div', { class: 'sayrow' }, box, h('button', { class: 'go', style: 'margin-top:0;width:auto;padding:0 18px', on: { click: () => send(box.value) } }, 'Send')),
+    h('div', { class: 'quick' }, QUICK.map((q) => h('button', { on: { click: () => send(q) } }, q))),
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel')));
+  box.focus();
 }
 
 async function act(fn, args) {
@@ -418,6 +544,7 @@ function goLive() {
   if (wire) return;
   wire = Room.live('gin-' + code, {
     poke: () => refresh(),
+    say: (m) => { if (st && m.t) { bubble(String(m.t), 1 - st.you); sound.pop(); } },
     emote: (m) => {
       if (!st) return;
       fly(String(m.e || '').slice(0, 8), 1 - st.you); sound.pop();
@@ -592,8 +719,6 @@ function renderScoreStrip() {
 }
 function renderMiddle(move) {
   const mine = isMine(st), opp = st.names[1 - st.you], live = playing(st);
-  $('#knockN').textContent = st.knock;
-  $('#knockC').textContent = st.upcard == null ? '' : cardName(st.upcard);
   $('#stockN').textContent = live ? plural(st.stock, 'card') : '';
   const canStock = mine && st.phase === 'draw';
   const canPile = mine && st.top != null && (st.phase === 'upcard' || st.phase === 'upcard2' || (st.phase === 'draw' && !st.stock_only));
@@ -653,7 +778,7 @@ function layout() {
 }
 // What throwing each card would leave. Only meaningful with eleven cards in hand.
 function throwOptions() {
-  return st.hand.filter((c) => !(st.drawn_from === 'discard' && c === st.drawn)).map((c) => {
+  return st.hand.map((c) => {
     const rest = st.hand.filter((x) => x !== c);
     return { card: c, ...bestMelds(rest) };
   });
@@ -695,7 +820,7 @@ function renderHand(prev) {
     const d = pickd ? pickd.dead : low;
     dw.textContent = `Deadwood ${d}`;
     dw.classList.toggle('ok', d <= st.knock);
-    hint.textContent = pickd ? 'after that throw' : low === 0 ? '· you have gin!' : low <= st.knock ? '· you can go down' : 'at best';
+    hint.textContent = pickd ? 'after it' : low === 0 ? '· you have gin!' : low <= st.knock ? '· you can go down' : 'at best';
   } else {
     dw.textContent = `Deadwood ${best.dead}`;
     dw.classList.toggle('ok', best.dead <= st.knock);
@@ -708,7 +833,7 @@ function grab(e, c, el) {
   const start = { x: e.clientX, y: e.clientY }, box = rectOf($('#handWrap')), r = rectOf(el);
   const off = { x: e.clientX - r.left, y: e.clientY - r.top };
   const overPile = (ev) => { const p = rectOf($('#discard')); return ev.clientX > p.left - 24 && ev.clientX < p.right + 24 && ev.clientY > p.top - 24 && ev.clientY < p.bottom + 24; };
-  const canThrow = () => myDiscard() && !busy && !(st.drawn_from === 'discard' && c === st.drawn);
+  const canThrow = () => myDiscard() && !busy;
   let moved = false;
   try { el.setPointerCapture(e.pointerId); } catch (err) { /* the pointer is already gone */ }
   const move = (ev) => {
@@ -733,7 +858,6 @@ function grab(e, c, el) {
 }
 function pick(c) {
   if (!myDiscard() || busy) return;
-  if (st.drawn_from === 'discard' && c === st.drawn) return toast('You can’t throw the card you just picked up.');
   sel = sel === c ? null : c;
   renderHand(); renderMiddle(); renderActions();
 }
@@ -750,7 +874,7 @@ function renderActions() {
   if (!st || st.status === 'waiting') return;
   const bar = $('#actions'), btn = (label, cls, fn, off) => h('button', { class: cls, disabled: !!off || busy, on: { click: fn } }, label);
   const mine = isMine(st);
-  let kids = [];
+  let kids = [], down = null;
   if (st.closed) {
     kids = [h('a', { href: '/games/' }, 'The game room'), h('a', { class: 'pri', href: location.pathname }, 'A new table')];
   } else if (st.status !== 'playing') {
@@ -761,14 +885,24 @@ function renderActions() {
   } else if (mine && st.phase === 'discard') {
     const o = sel == null ? null : throwOptions().find((x) => x.card === sel);
     kids = [btn('Throw it', 'pri', () => throwCard(sel), !o)];
-    if (o && o.dead <= st.knock) {
-      kids.push(btn(o.dead === 0 ? 'Gin!' : `Go down with ${o.dead}`, 'gold', () => {
-        thrownFrom = { card: o.card, rect: rectOf(handEls.get(o.card)) }; sel = null;
-        act('gin_knock', { p_card: o.card, p_melds: o.melds });
-      }));
-    }
+    if (o && o.dead <= st.knock) down = o;
   }
+  // Going down is the circle by the piles, away from Throw (see the style sheet).
+  canDown = down && !busy ? down : null;
+  const kb = $('#knockBtn');
+  kb.classList.toggle('can', !!canDown);
+  $('#knockT').textContent = canDown ? (canDown.dead === 0 ? 'GIN!' : 'GO DOWN') : 'KNOCK';
+  $('#knockN').textContent = canDown ? (canDown.dead === 0 ? '✓' : canDown.dead) : st.knock;
+  $('#knockC').textContent = canDown ? 'tap here' : st.upcard == null ? '' : cardName(st.upcard);
+  kb.setAttribute('aria-label', canDown ? (canDown.dead === 0 ? 'Go gin' : `Go down with ${canDown.dead}`) : `Knock is ${st.knock}`);
   bar.replaceChildren(...kids);
+}
+let canDown = null;        // the throw that would let the player go down, while the knock circle is lit
+function goDown() {
+  const o = canDown;
+  if (!o || busy) return;
+  thrownFrom = { card: o.card, rect: rectOf(handEls.get(o.card)) }; sel = null;
+  act('gin_knock', { p_card: o.card, p_melds: o.melds });
 }
 function dealNext() {
   closeResult();
@@ -891,6 +1025,7 @@ function showSettings() {
   const d = Room.dialog('Table settings', h('h3', {}, 'Table ' + code), h('p', { class: 'why' }, describe(st.mode, st.target)),
     toggle('Sound', 'Cards, knocks, and a chime when it’s your turn.', () => sound.on, (v) => { sound.set(v); if (v) sound.turn(); }),
     toggle('Show my melds', 'Color the melds in your hand and count your deadwood.', () => hints, (v) => { hints = v; store.set('gin-hints', v); render(); }),
+    go('Cards and table', `${DECKS[look.deck] || DECKS.clubs} · ${look.back === 'custom' ? 'your own' : (BACKS[look.back] || BACKS.red).name.toLowerCase()} backs · ${(FELTS[look.felt] || FELTS.green).name.toLowerCase()} table`, showLook),
     go('Your name and avatar', profile.name, () => Room.profileDialog(() => { if (wire) wire.send('poke'); refresh(); })),
     go('Play on another device', 'Take your seat to a second phone or a laptop.', Room.deviceDialog),
     st.closed ? null : go('Leave the table', 'Ends the game for both of you. The scores stand.',
@@ -898,9 +1033,45 @@ function showSettings() {
     h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Done')));
 }
 
+// The suit colors, the backs of the cards, and the cloth. Each choice shows on the table at once.
+function showLook() {
+  const pick = (box, key, set) => box.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === key)));
+  const row = (label, kids) => [h('p', { class: 'label', style: 'margin-top:18px' }, label), kids];
+  const decks = h('div', { class: 'looks' }, Object.entries(DECKS).map(([k, name]) => {
+    const sample = h('span', { class: 'deck' }, ['♠', '♥', '♦', '♣'].map((ch, i) => {
+      const color = i === 1 ? '#c8102e' : i === 2 ? (k === 'four' ? '#1668c9' : '#c8102e') : i === 3 && k !== 'classic' ? '#0a7a4c' : '#14181d';
+      return h('span', { style: `color:${color}` }, ch + '︎');
+    }));
+    return h('button', { 'data-k': k, on: { click: () => { look.deck = k; applyLook(); pick(decks, k); } } }, sample, name);
+  }));
+  const file = h('input', { type: 'file', accept: 'image/*', hidden: true, on: { change: async () => {
+    if (!file.files[0]) return;
+    try { store.set('gin-back-img', await readBack(file.files[0])); look.back = 'custom'; applyLook(); paintBacks(); }
+    catch (e) { toast(e.message); }
+    file.value = '';
+  } } });
+  const backs = h('div', { class: 'looks' });
+  const paintBacks = () => {
+    const tile = (k, name, click) => { const c = h('div', { class: 'card back sm' }); setBack(c, k); return h('button', { 'data-k': k, on: { click } }, c, name); };
+    backs.replaceChildren(...Object.entries(BACKS).map(([k, b]) => tile(k, b.name, () => { look.back = k; applyLook(); pick(backs, k); })),
+      ...(customBack() ? [tile('custom', 'Yours', () => { look.back = 'custom'; applyLook(); pick(backs, 'custom'); })] : []),
+      h('button', { 'data-k': '+', on: { click: () => file.click() } }, h('div', { class: 'card slot sm', style: 'display:grid;place-items:center;font-size:22px;color:var(--dim)' }, '+'), customBack() ? 'Change' : 'Your own'));
+    pick(backs, look.back);
+  };
+  const felts = h('div', { class: 'looks' }, Object.entries(FELTS).map(([k, f]) =>
+    h('button', { 'data-k': k, on: { click: () => { look.felt = k; applyLook(); pick(felts, k); } } },
+      h('span', { class: 'felt', style: `background:radial-gradient(ellipse at 50% 40%,${f.c[2]},${f.c[1]} 60%,${f.c[0]})` }), f.name)));
+  paintBacks(); pick(decks, DECKS[look.deck] ? look.deck : 'clubs'); pick(felts, FELTS[look.felt] ? look.felt : 'green');
+  const d = Room.dialog('Cards and table', h('h3', {}, 'Cards and table'), h('p', { class: 'why' }, 'These are yours alone: the other player sees their own choices.'),
+    row('Suit colors', decks), row('Card backs', backs), file, row('Table', felts),
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Done')));
+}
+
 /* ---------- wiring ---------- */
 $('#stock').onclick = () => act('gin_draw', { p_source: 'stock' });
 $('#discard').onclick = () => act('gin_draw', { p_source: 'discard' });
+$('#knockBtn').onclick = goDown;
+$('#sayBtn').onclick = showSay;
 $('#strip').onclick = showSheet;
 $('#gear').onclick = showSettings;
 $('#meAv').onclick = () => Room.profileDialog(() => { if (wire) wire.send('poke'); refresh(); });

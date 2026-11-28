@@ -43,6 +43,8 @@ create table if not exists gin.games (
   winners     int[] not null default '{-1,-1,-1}'    -- who won each game, -1 while it's open
 );
 alter table gin.games enable row level security;     -- and no policies: only the functions below can touch it
+-- The last thing said across the table: {seat, text, n, at}. n counts up, so a page knows a line it has not shown.
+alter table gin.games add column if not exists said jsonb;
 
 -- Helpers the room has taken over, and ones whose arguments changed.
 drop function if exists gin.clean_name(text);
@@ -129,7 +131,7 @@ create or replace function gin.view(g gin.games, s int) returns jsonb language s
     'opp', cardinality(case when s = 0 then g.hand1 else g.hand0 end),
     'drawn', case when g.turn = s and g.phase = 'discard' then g.drawn end,
     'drawn_from', case when g.turn = s and g.phase = 'discard' then g.drawn_from end,
-    'last', g.last, 'knocked', g.knocked, 'result', g.result,
+    'last', g.last, 'knocked', g.knocked, 'result', g.result, 'said', g.said,
     'log', g.log, 'totals', g.totals, 'winners', to_jsonb(g.winners)
   )
   from room.tables t, lateral (select room.faces(t.seats) as f) x where t.code = g.code
@@ -312,6 +314,8 @@ begin
   return gin.out(g.code, s);
 end $$;
 
+-- Any card in the hand may be thrown, the one just taken off the discard pile included: taking the top card and
+-- throwing it straight back is allowed at this table.
 create or replace function public.gin_discard(p_code text, p_token text, p_card int)
 returns jsonb language plpgsql security definer set search_path = gin, room, public, pg_temp as $$
 declare g gin.games := gin.open(p_code); s int := room.seat(g.code, p_token); h int[];
@@ -319,9 +323,6 @@ begin
   if g.status <> 'playing' or g.turn <> s or g.phase <> 'discard' then raise exception 'It is not your turn to discard'; end if;
   h := case when s = 0 then g.hand0 else g.hand1 end;
   if p_card is null or not (p_card = any(h)) then raise exception 'That card is not in your hand'; end if;
-  if g.drawn_from = 'discard' and p_card = g.drawn then
-    raise exception 'You can''t discard the card you just picked up';
-  end if;
   h := array_remove(h, p_card);
   update gin.games set
     hand0 = case when s = 0 then h else hand0 end, hand1 = case when s = 1 then h else hand1 end,
@@ -345,9 +346,6 @@ begin
   if g.status <> 'playing' or g.turn <> s or g.phase <> 'discard' then raise exception 'It is not your turn to knock'; end if;
   h := case when s = 0 then g.hand0 else g.hand1 end;
   if p_card is null or not (p_card = any(h)) then raise exception 'That card is not in your hand'; end if;
-  if g.drawn_from = 'discard' and p_card = g.drawn then
-    raise exception 'You can''t discard the card you just picked up';
-  end if;
   h := array_remove(h, p_card);
   dead := gin.minus(h, gin.meld_cards(p_melds, h));
   dw := gin.points(dead);
@@ -400,20 +398,34 @@ begin
   return gin.out(g.code, s);
 end $$;
 
--- Deals the next hand, or a fresh game once one is over. The loser of a hand deals the next; a dead hand is dealt
--- again by the same dealer. p_hand_no is the hand the caller is looking at, so two taps can't deal twice.
+-- Deals the next hand, or a fresh game once one is over. The winner of a hand deals the next, so the loser is the
+-- one offered the turned-up card first; a dead hand is dealt again by the same dealer. p_hand_no is the hand the caller is looking at, so two taps can't deal twice.
 create or replace function public.gin_next(p_code text, p_token text, p_hand_no int)
 returns jsonb language plpgsql security definer set search_path = gin, room, public, pg_temp as $$
 declare g gin.games := gin.open(p_code); s int := room.seat(g.code, p_token); v_dealer int;
 begin
   if g.status in ('hand_over', 'game_over') and g.hand_no = p_hand_no then
-    v_dealer := case when g.result ->> 'winner' is null then g.dealer else 1 - (g.result ->> 'winner')::int end;
+    v_dealer := case when g.result ->> 'winner' is null then g.dealer else (g.result ->> 'winner')::int end;
     if g.status = 'game_over' then
       update gin.games set match_no = match_no + 1, hand_no = 0, log = '[]', totals = '[[0,0],[0,0],[0,0]]',
         entered = '{0,0}', winners = '{-1,-1,-1}' where code = g.code;
     end if;
     perform gin.deal(g.code, v_dealer);
   end if;
+  return gin.out(g.code, s);
+end $$;
+
+-- A few words across the table, from either seat at any time. Only the latest line is kept.
+create or replace function public.gin_say(p_code text, p_token text, p_text text)
+returns jsonb language plpgsql security definer set search_path = gin, room, public, pg_temp as $$
+declare g gin.games := gin.open(p_code); s int := room.seat(g.code, p_token); v_text text;
+begin
+  v_text := left(btrim(regexp_replace(coalesce(p_text, ''), '[[:cntrl:]]+', ' ', 'g')), 140);
+  if v_text = '' then raise exception 'Say something first'; end if;
+  update gin.games set
+    said = jsonb_build_object('seat', s, 'text', v_text, 'n', coalesce((said ->> 'n')::int, 0) + 1, 'at', now()),
+    version = version + 1, updated_at = now()
+  where code = g.code;
   return gin.out(g.code, s);
 end $$;
 
