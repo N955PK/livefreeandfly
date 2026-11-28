@@ -80,6 +80,7 @@ dialog.keys{max-width:380px;padding:16px}
 .over .pay{font-size:18px;font-weight:750;color:var(--hi);margin-top:8px}
 .over .go{margin-top:16px}
 #toast.act{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px}
+#toast:not(.on){visibility:hidden;transition:opacity .2s,transform .28s,visibility 0s .3s}
 #toast.act.on{pointer-events:auto}   /* only while it shows: faded out, it must not sit over the buttons */
 #toast button{flex:none;height:32px;padding:0 14px;border-radius:999px;background:var(--page);color:var(--ink);font-size:14px;font-weight:700}
 .confetti{position:fixed;top:-40px;font-size:24px;pointer-events:none;z-index:170;animation:fall linear forwards}
@@ -347,7 +348,14 @@ function machine(p) {
   d.addEventListener('close', () => d.remove());
   draw(); document.body.append(d); d.showModal();
 }
-function undo() { if (S.entries.length) { const e = S.entries.pop(); save(); paint(); toast(`Took off ${e.pts > 0 ? '+' : '−'}${Math.abs(e.pts)} for ${name(e.p)}`); } }
+// Undoing asks first, and says exactly what would come off.
+function undo() {
+  if (!S.entries.length) return;
+  const e = S.entries[S.entries.length - 1], what = `${e.pts > 0 ? '+' : '−'}${Math.abs(e.pts)} for ${name(e.p)}`;
+  const d = sheet('Undo the last hand?', `${what} comes off the sheet.`,
+    h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Keep it'),
+    h('button', { class: 'go', on: { click: () => { d.close(); if (S.entries[S.entries.length - 1] === e) { S.entries.pop(); save(); paint(); toast(`Took off ${what}`); } } } }, 'Undo it'));
+}
 $('#undo').onclick = undo;
 function party() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -517,8 +525,9 @@ function allSheets() {
       h('button', { class: 't', style: 'text-align:left', on: { click: () => { d.close(); open(s.id); } } },
         h('b', {}, who.join(' v ')), h('span', {}, `${state}${score} · ${when(s.updated)}`)),
       s.id === S.id ? h('span', { class: 'badge sit' }, 'Open') : h('button', { class: 'badge', 'aria-label': `Remove the sheet for ${who.join(' and ')}`, on: { click: () => {
-        const at = book.sheets.indexOf(s); book.sheets.splice(at, 1); save(false); draw();
-        toast('Sheet removed', 'Put it back', () => { book.sheets.push(s); save(false); if (d.open) draw(); });
+        const ask = sheet('Remove this sheet?', `${who.join(' v ')}, ${state.toLowerCase()}. It cannot be brought back.`,
+          h('button', { class: 'ghost', on: { click: () => ask.close() } }, 'Keep it'),
+          h('button', { class: 'go', on: { click: () => { ask.close(); book.sheets.splice(book.sheets.indexOf(s), 1); save(false); draw(); toast('Sheet removed'); } } }, 'Remove it'));
       } } }, 'Remove'));
   }));
   draw();
@@ -535,9 +544,9 @@ function toast(msg, label, fn) {
   let t = $('#toast');
   if (!t) t = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' });
   ([...document.querySelectorAll('dialog[open]')].pop() || document.body).append(t);   // an open sheet sits above the page
-  t.replaceChildren(h('span', {}, msg), label ? h('button', { on: { click: () => { t.classList.remove('on'); fn(); } } }, label) : null);
+  t.replaceChildren(h('span', {}, msg), label ? h('button', { on: { click: (e) => { t.classList.remove('on', 'act'); e.currentTarget.remove(); fn(); } } }, label) : null);
   t.classList.toggle('act', !!label); t.classList.add('on');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), label ? 5000 : 2600);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.classList.remove('on', 'act'); const b = t.querySelector('button'); if (b) b.remove(); }, label ? 5000 : 2600);
 }
 
 function paint() { const w = work(S); paintAdd(w); paintSheet(w); paintReck(w); }
