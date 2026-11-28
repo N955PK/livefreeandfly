@@ -545,6 +545,12 @@ def test_stakes_and_settling_up(db):
     assert call(db, "gin_state", p_code=code, p_token=ann)["money"] == r["settle"]["money0"]
     other, _ = new_table(db, players=(bob, ann))
     assert call(db, "gin_state", p_code=other, p_token=ann)["money"] == r["settle"]["money0"]
+    # The book between the two lists each settled match from each side, and adds up to the balance.
+    book = call(db, "gin_state", p_code=other, p_token=ann)["ledger"]
+    assert [(m["won"], m["net"], m["money"], m["cents"], m["target"]) for m in book] == \
+        [(True, r["settle"]["net0"], r["settle"]["money0"], 10, 40)]
+    theirs = call(db, "gin_state", p_code=other, p_token=bob)["ledger"]
+    assert [(m["won"], m["net"], m["money"]) for m in theirs] == [(False, -r["settle"]["net0"], -r["settle"]["money0"])]
 
 
 def test_upgrade_keeps_tables_in_play(server):

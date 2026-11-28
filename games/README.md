@@ -52,8 +52,9 @@ House rules:
   every hand they won (a box); the loser pays the difference at a penny a point. If the loser never scored, the game
   bonus is doubled. Whoever opens the table sets the money a point (or none) and can change the game bonus, the box,
   the gin and undercut bonuses, and what a shutout pays. Hollywood settles its three games one by one. The scoresheet
-  shows what each match came to and how the two of you stand in money over every match you have finished. The app
-  only keeps the tally; no money moves through it.
+  shows what each match came to and the book between the two of you: every match you have finished, what it paid,
+  and the running total after it. The running total also sits beside the score at the top of the table. The app only
+  keeps the tally; no money moves through it.
 - Hollywood is three games at once: a player's first winning hand counts in game one, the second in games one and two,
   and the rest in all three. A finished game takes no more points.
 - You may throw back the card you just took off the discard pile.

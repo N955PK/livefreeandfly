@@ -195,6 +195,61 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
 .confetti{position:fixed;top:-40px;font-size:24px;pointer-events:none;z-index:170;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110svh) rotate(540deg)}}
 @media (min-height:760px){#middle{gap:18px}}
+
+/* ---------- finish: the cloth, the cards, and the furniture around them ---------- */
+/* The cloth darkens toward its edges, like a table under one lamp. */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.42) 100%)}
+#table,.page{position:relative;z-index:1}
+/* Cards: a crisper face, a hairline edge, and a shadow on the left edge so each card in a fanned hand stands off
+   the one under it. */
+.card{background:linear-gradient(165deg,#fff 0%,#f6f4ee 100%);border-radius:calc(var(--cw)*.12);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(0,0,0,.2),0 3px 8px rgba(0,0,0,.38)}
+.card .ix b{font-weight:800;letter-spacing:-.05em}
+#hand .card{box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(0,0,0,.2),-4px 0 7px -3px rgba(0,0,0,.45),0 4px 10px rgba(0,0,0,.4)}
+#hand .card.sel{box-shadow:0 0 0 3px var(--gold),-4px 0 7px -3px rgba(0,0,0,.45),0 12px 18px rgba(0,0,0,.5)}
+#oppHand .card{box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,0 0 0 1px rgba(0,0,0,.28),-3px 0 5px -2px rgba(0,0,0,.5),0 2px 5px rgba(0,0,0,.35)}
+.grp .card{box-shadow:0 0 0 1px rgba(0,0,0,.2),-3px 0 5px -2px rgba(0,0,0,.4),0 2px 5px rgba(0,0,0,.3)}
+/* The discard pile sits in a marked place, and both piles say what they are. */
+.card.slot{box-shadow:none;border:2px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.12)}
+#discard{position:relative}
+#discard::after{content:"discards";position:absolute;left:50%;bottom:-20px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--dim);white-space:nowrap}
+#piles{margin-bottom:14px}
+/* The top bar: the way back, the scores under their players' names, the money between the two, and settings. */
+.bar .crumb{font-size:12px;opacity:.85}
+.strip{gap:0;padding:5px 6px 5px 4px;font-size:12.5px;align-items:stretch}
+.strip .g{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:34px;padding:0 9px;font-weight:700;line-height:1.1}
+.strip .g i{font-style:normal;font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:1px}
+.strip .g+.g{padding-left:9px}
+.strip .to{display:flex;align-items:center;padding:0 8px 0 2px}
+.strip .cash{display:flex;align-items:center;margin-left:2px;padding:0 9px;border-radius:999px;font-weight:700;background:rgba(242,193,78,.16);color:var(--gold)}
+.strip .cash.down{background:rgba(255,92,111,.16);color:var(--hot)}
+.gear{flex:none}
+/* What to do next, in a plate of its own; gold-edged when it is this player's move. */
+#prompt{margin-top:18px;padding:8px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:15px;min-height:0;max-width:100%}
+#prompt:empty{display:none}
+#prompt.me{border-color:rgba(242,193,78,.55);box-shadow:0 0 18px rgba(242,193,78,.14)}
+/* The count of deadwood as a plate, and the three sorts as one control. */
+.handbar .dw{padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:12px}
+.handbar .dw.ok{border-color:rgba(242,193,78,.55)}
+.handbar .sorts{gap:0;letter-spacing:.1em}
+.handbar .sorts button{border-radius:0;border-left-width:0;padding:6px 10px;background:var(--glass)}
+.handbar .sorts button:first-of-type{border-left-width:1px;border-radius:999px 0 0 999px}
+#dwHint{font-size:12.5px;white-space:nowrap;opacity:.8}
+.handbar .sorts button:last-of-type{border-radius:0 999px 999px 0}
+/* The seats. */
+.seat .nm{font-size:15.5px}
+.pill{padding:2px 7px;background:rgba(0,0,0,.25)}
+#sayBtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--glass);padding:0;font-size:17px;opacity:1;flex:none}
+/* The buttons along the bottom. */
+#actions button,#actions a{border-radius:16px;font-size:16.5px;letter-spacing:.01em;transition:transform .08s,filter .15s}
+#actions button:not(:disabled):active{transform:translateY(1px) scale(.99)}
+#actions .pri{box-shadow:0 6px 16px rgba(163,31,52,.35),0 1px 0 rgba(255,255,255,.18) inset}
+.knock{box-shadow:0 0 0 4px rgba(0,0,0,.18) inset}
+/* The book. */
+table.sheet.book td:first-child{width:auto}
+table.sheet.book td.up{color:var(--gold)}table.sheet.book td.down{color:var(--hot)}
+table.sheet.book td small{font-family:var(--sans)}
 </style>
 </head>
 <body>
@@ -295,7 +350,7 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
   </div>
   <div id="mine">
     <div class="handbar"><span class="dw" id="dw"></span><span id="dwHint"></span>
-      <span class="sorts" id="sorts">SORT <button data-sort="melds">Melds</button><button data-sort="suit">Suits</button><button data-sort="rank">Ranks</button></span></div>
+      <span class="sorts" id="sorts" role="group" aria-label="Sort your hand"><button data-sort="melds">Melds</button><button data-sort="suit">Suits</button><button data-sort="rank">Ranks</button></span></div>
     <div id="handWrap"><div id="hand"></div></div>
     <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><div id="emotes"></div><button id="sayBtn" aria-label="Say something">💬</button></div>
     <div id="actions"></div>
@@ -790,10 +845,19 @@ function slide(el, from, delay) {
     { duration: 340, delay: delay || 0, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
 }
 function renderScoreStrip() {
-  const games = st.mode === 'hollywood' ? 3 : 1, me = st.you;
-  $('#strip').replaceChildren(...Array.from({ length: games }, (_, i) =>
-    h('span', { class: 'g' + (st.winners[i] !== -1 ? ' done' : '') }, `${st.totals[i][me]}–${st.totals[i][1 - me]}`)),
-    h('span', { class: 'to' }, '/' + st.target));
+  const games = st.mode === 'hollywood' ? 3 : 1, me = st.you, opp = 1 - me;
+  const first = (name) => String(name || '').trim().split(/\s+/)[0].slice(0, 9) || 'Them';
+  // One game: each score under its player's name. Hollywood: the three games side by side, yours first in each.
+  const kids = games === 1
+    ? [h('span', { class: 'g' + (st.winners[0] !== -1 ? ' done' : '') }, h('i', {}, 'You'), String(st.totals[0][me])),
+       h('span', { class: 'g' + (st.winners[0] !== -1 ? ' done' : '') }, h('i', {}, first(st.names[opp])), String(st.totals[0][opp]))]
+    : Array.from({ length: games }, (_, i) => h('span', { class: 'g' + (st.winners[i] !== -1 ? ' done' : '') }, `${st.totals[i][me]}–${st.totals[i][opp]}`));
+  kids.push(h('span', { class: 'to' }, '/' + st.target));
+  // How the two stand in money over every match they have finished: up in gold, down in red.
+  const m = +st.money || 0;
+  if (m) kids.push(h('span', { class: 'cash ' + (m > 0 ? 'up' : 'down') }, (m > 0 ? '+' : '−') + cash(m)));
+  $('#strip').replaceChildren(...kids);
+  $('#strip').setAttribute('aria-label', 'Scoresheet' + (m ? `. You are ${m > 0 ? 'up' : 'down'} ${cash(m)} over every game you two have finished` : ''));
 }
 function renderMiddle(move) {
   const mine = isMine(st), opp = st.names[1 - st.you], live = playing(st);
@@ -1102,6 +1166,28 @@ function standing(s) {
   return `Over every game you two have finished, ${m > 0 ? `you are up ${cash(m)}` : `you are down ${cash(m)}`}.`;
 }
 
+// The book between the two players: each match they have settled, what it came to for this player, and the running
+// total after it. The last line is how they stand now.
+function ledger(s) {
+  const rows = Array.isArray(s.ledger) ? s.ledger : [];
+  if (!rows.length) return null;
+  const day = (at) => new Date(at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const signed = (c) => (c > 0 ? '+' : c < 0 ? '−' : '') + cash(c);
+  let run = 0;
+  const body = rows.map((m) => {
+    run += +m.money || 0;
+    const what = (m.mode === 'hollywood' ? 'Hollywood to ' : 'To ') + m.target + (+m.cents > 0 ? ` · ${cash(m.cents)}` : '');
+    return h('tr', {}, h('td', {}, day(m.at), h('small', { style: 'display:block;margin:0' }, what)),
+      h('td', { class: +m.money > 0 ? 'up' : +m.money < 0 ? 'down' : '' }, +m.cents > 0 ? signed(+m.money) : `${m.net > 0 ? '+' : '−'}${Math.abs(m.net)} pts`),
+      h('td', { class: run > 0 ? 'up' : run < 0 ? 'down' : '' }, signed(run)));
+  });
+  const opp = s.names[1 - s.you];
+  return h('div', {}, h('div', { class: 'sheetT' }, 'The book', h('b', {}, `you and ${opp}`)),
+    h('table', { class: 'sheet book' }, h('thead', {}, h('tr', {}, h('th', {}, 'Match'), h('th', {}, 'You'), h('th', {}, 'Running'))), h('tbody', {}, body)),
+    h('div', { class: 'tally' }, run > 0 ? h('b', {}, `${opp} owes you ${cash(run)}`) : run < 0 ? h('b', {}, `You owe ${opp} ${cash(run)}`) : h('b', {}, 'You two are all square'),
+      rows.length >= 40 ? ' over your last forty matches.' : ` over ${plural(rows.length, 'match').replace('matchs', 'matches')}.`));
+}
+
 /* ---------- scoresheet ---------- */
 function showSheet() {
   const s = st, me = s.you, opp = 1 - me, games = s.mode === 'hollywood' ? 3 : 1, dlg = $('#sheetDlg');
@@ -1125,6 +1211,8 @@ function showSheet() {
   const dead = s.log.filter((x) => x.winner == null).length;
   if (dead) kids.push(h('p', { class: 'why' }, plural(dead, 'dead hand') + ' not shown.'));
   if (s.status === 'game_over' && s.result) { const bill = settlement(s, s.result); if (bill) kids.push(bill); }
+  const book = ledger(s);
+  if (book) kids.push(book);
   if (s.record[0] + s.record[1] > 0) {
     kids.push(h('div', { class: 'tally' }, 'Every game you two have finished: ', h('b', {}, `You ${s.record[0]} · ${s.names[opp]} ${s.record[1]}`),
       s.status !== 'game_over' && standing(s) ? h('div', {}, standing(s).replace(/^Over every game you two have finished, y/, 'Y')) : null));

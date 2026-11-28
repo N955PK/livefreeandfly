@@ -174,6 +174,18 @@ create or replace function gin.money(a uuid, b uuid) returns numeric language sq
   from room.results where game = 'gin' and players @> array[a, b] and detail -> 'settle' ? 'money0'
 $$;
 
+-- The book between two players: every match they have finished that was settled, oldest first (the last forty), each
+-- with what player a won or lost in points and in cents. The page adds them up into a running total.
+create or replace function gin.ledger(a uuid, b uuid) returns jsonb language sql stable as $$
+  select coalesce(jsonb_agg(x.item order by x.at), '[]') from (
+    select r.at, jsonb_build_object('at', r.at, 'mode', r.detail ->> 'mode', 'target', (r.detail ->> 'target')::int,
+      'won', r.winner = a, 'cents', r.detail -> 'settle' -> 'cents',
+      'net', case when r.players[1] = a then 1 else -1 end * (r.detail -> 'settle' ->> 'net0')::int,
+      'money', case when r.players[1] = a then 1 else -1 end * (r.detail -> 'settle' ->> 'money0')::numeric) as item
+    from room.results r where r.game = 'gin' and r.players @> array[a, b] and r.detail -> 'settle' ? 'money0'
+    order by r.at desc limit 40) x
+$$;
+
 -- What one seat is allowed to see.
 create or replace function gin.view(g gin.games, s int) returns jsonb language sql stable as $$
   select jsonb_build_object(
@@ -185,6 +197,7 @@ create or replace function gin.view(g gin.games, s int) returns jsonb language s
     'away', jsonb_build_array(coalesce((f -> 0 ->> 'away')::boolean, false), coalesce((f -> 1 ->> 'away')::boolean, false)),
     'record', gin.record(t.seats[s + 1], t.seats[2 - s]),
     'stakes', gin.stakes(g.stakes), 'money', gin.money(t.seats[s + 1], t.seats[2 - s]),
+    'ledger', gin.ledger(t.seats[s + 1], t.seats[2 - s]),
     'match_no', g.match_no, 'hand_no', g.hand_no, 'dealer', g.dealer, 'turn', g.turn, 'phase', g.phase,
     'stock_only', g.stock_only, 'knock', g.knock, 'upcard', g.upcard,
     'stock', cardinality(g.stock), 'pile', cardinality(g.pile), 'top', g.pile[cardinality(g.pile)],
