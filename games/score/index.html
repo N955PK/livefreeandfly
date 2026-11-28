@@ -37,13 +37,20 @@
   transition:transform .32s cubic-bezier(.3,1.6,.5,1),background-color .15s}
 .who button:active{transform:scale(.95);transition-duration:.1s}
 .who button[aria-pressed=true]{background:var(--ink);color:var(--page)}
-.amount{display:flex;gap:8px;margin-top:10px;align-items:center}
-.amount input{flex:1;min-width:0;height:52px;border-radius:999px;background:var(--field);border:1px solid var(--border);color:var(--ink);font:inherit;font-size:22px;font-weight:700;text-align:center;-webkit-appearance:none;appearance:none}
-.amount input:focus{outline:none;border-color:var(--accent)}
-.amount .pillbtn{flex:none;min-width:52px;height:52px;padding:0 14px;border-radius:999px;background:var(--wash);font-size:16px;font-weight:700}
-.amount .pillbtn[aria-pressed=true]{background:var(--warn);color:#fff}
-.go{margin-top:12px}
-.under{display:flex;justify-content:space-between;gap:10px;margin-top:12px}
+/* The keypad: opens when a player is tapped, so the phone's own keyboard never comes up. */
+dialog.keys{max-width:380px;padding:18px 16px 16px}
+.keys .for{font-size:13px;font-weight:650;color:var(--muted);text-align:center}
+.keys .show{display:flex;align-items:baseline;justify-content:center;gap:6px;min-height:64px;margin:2px 0 10px;font-size:52px;font-weight:750;letter-spacing:-.02em;line-height:1.2}
+.keys .show.zero{color:var(--muted)}
+.keys .show.minus{color:var(--warn)}
+.keys .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keys .grid button{height:58px;border-radius:999px;background:var(--wash);font-size:24px;font-weight:600;
+  transition:transform .32s cubic-bezier(.3,1.6,.5,1),background-color .15s}
+.keys .grid button:active{transform:scale(.93);transition-duration:.08s;background:var(--border)}
+.keys .grid button.fn{font-size:17px;font-weight:700;color:var(--accent);background:var(--tint)}
+.keys .btns{margin-top:12px}
+.under{display:flex;gap:8px;margin-top:12px}
+.under .ghost{flex:1;min-width:0;padding:0 10px;font-size:15px;white-space:nowrap}
 /* The sheet. */
 .scroll{overflow-x:auto;margin:0 -18px;padding:0 18px;-webkit-overflow-scrolling:touch}
 table.pad{border-collapse:collapse;width:100%;font-size:15px}
@@ -54,20 +61,21 @@ table.pad thead tr.g th.done{color:var(--hi)}
 table.pad thead tr.n th{border-bottom:1px solid var(--border);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 table.pad .first{border-left:1px solid var(--border)}
 table.pad td.h,table.pad th.h{width:30px;min-width:30px;color:var(--muted);font-size:13px;text-align:left;padding-left:0}
-table.pad tbody tr{border-bottom:1px solid var(--border);cursor:pointer}
+table.pad tbody tr{border-bottom:1px solid var(--border)}
+table.pad tbody td.has{cursor:pointer}
 table.pad tbody td b{font-weight:700}
 table.pad tbody td small{display:block;font-size:11.5px;color:var(--muted);line-height:1.1}
 table.pad tbody td.neg small{color:var(--warn)}
-table.pad tbody tr.last td b{color:var(--accent)}
+table.pad tbody td.new b{color:var(--accent)}
 table.pad tfoot td{font-weight:750;font-size:16px;padding-top:9px}
-table.pad tfoot tr.bx td{font-weight:500;font-size:12px;color:var(--muted);padding-top:0;white-space:nowrap}
+table.pad tfoot tr.bx td{font-weight:500;font-size:13px;color:var(--muted);padding-top:0;white-space:nowrap}
+table.pad tfoot tr.bx td.h{font-size:10px}
 /* Three players at Hollywood is nine columns: drawn tighter, so the whole sheet fits a phone without sliding. */
 table.pad.tight{font-size:13.5px}
 table.pad.tight th,table.pad.tight td{padding:6px 1px;min-width:31px}
 table.pad.tight thead tr.n th{font-size:11.5px;max-width:34px}
 table.pad.tight tfoot td{font-size:14px}
 table.pad.tight tfoot tr.bx td{font-size:12px}
-table.pad.tight tfoot tr.bx td.h{font-size:9.5px}
 table.pad.tight tbody td small{font-size:10.5px}
 table.pad tfoot td.win{color:var(--hi)}
 /* What it comes to. */
@@ -88,21 +96,15 @@ table.pad tfoot td.win{color:var(--hi)}
 <main class="page">
   <a class="crumb" href="/games/">Ace</a>
   <h1>Score pad</h1>
-  <p class="tag">A gin rummy sheet for a game with real cards. It adds up the Hollywood columns, the boxes and the money.</p>
+  <p class="tag">A gin rummy sheet for a game with real cards.</p>
 
   <div class="panel" id="addPanel">
     <h2 id="addTitle">Who won the hand?</h2>
     <div class="who" id="who"></div>
-    <div class="amount">
-      <button class="pillbtn" id="sign" aria-pressed="false" aria-label="Take points away instead of adding them">+</button>
-      <input id="pts" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Points" aria-label="Points for the hand" autocomplete="off">
-      <button class="pillbtn" id="plus25" aria-label="Add 25 for gin or an undercut">+25</button>
-    </div>
-    <button class="go" id="add" disabled>Add the hand</button>
-    <div class="under"><button class="ghost" id="undo">Undo the last one</button><button class="ghost" id="setupBtn">Set up</button></div>
+    <div class="under"><button class="ghost" id="undo">Undo</button><button class="ghost" id="minusBtn">Subtract</button><button class="ghost" id="setupBtn">Set up</button></div>
   </div>
 
-  <div class="panel"><h2 id="sheetTitle">The sheet</h2><div class="scroll"><table class="pad" id="pad"></table></div><p class="none" id="empty">No hands yet. Tap who won, type the points, and add.</p></div>
+  <div class="panel"><h2 id="sheetTitle">The sheet</h2><div class="scroll"><table class="pad" id="pad"></table></div><p class="none" id="empty">No hands yet. Tap who won and key in the points.</p></div>
 
   <div class="panel reck" id="reckPanel" hidden><h2>What it comes to</h2><div id="reck"></div></div>
 
@@ -183,31 +185,43 @@ function work(s) {
 }
 
 /* ---------- adding a hand ---------- */
-let pick = null, minus = false;
 function paintAdd(w) {
-  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) =>
-    h('button', { 'aria-pressed': String(pick === p), on: { click: () => { pick = pick === p ? null : p; paintAdd(work(S)); if (pick != null && !$('#pts').value) $('#pts').focus(); } } }, name(p))));
-  const n = parseInt($('#pts').value, 10) || 0;
-  $('#sign').textContent = minus ? '−' : '+'; $('#sign').setAttribute('aria-pressed', String(minus));
-  $('#plus25').hidden = minus;
-  $('#addTitle').textContent = w.over ? 'The match is over' : minus ? 'Whose points come off?' : 'Who won the hand?';
-  const ok = !w.over && pick != null && n > 0;
-  $('#add').disabled = !ok;
-  $('#add').textContent = w.over ? 'Start a new sheet below' : ok ? `${minus ? 'Take' : 'Add'} ${n} ${minus ? 'from' : 'for'} ${name(pick)}` : minus ? 'Take points away' : 'Add the hand';
+  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => h('button', { disabled: w.over, on: { click: () => keypad(p, false) } }, name(p))));
+  $('#addTitle').textContent = w.over ? 'The match is over. Start a new sheet below.' : 'Who won the hand?';
   $('#undo').disabled = !S.entries.length;
+  $('#minusBtn').disabled = w.over || !S.entries.length;
 }
-function addHand() {
-  const n = parseInt($('#pts').value, 10) || 0;
-  if (pick == null || n <= 0) return;
-  S.entries.push({ p: pick, pts: minus ? -n : n }); save();
-  pick = null; minus = false; $('#pts').value = ''; $('#pts').blur();
-  paint();
+// The keypad, like a calculator's: the figures, a rub-out, and +25 for gin or an undercut. minus is for taking
+// points off a player. A keyboard works too, for anyone at a desk.
+function keypad(p, minus) {
+  let n = 0;
+  const show = h('div', { class: 'show', role: 'status', 'aria-live': 'polite' }), go = h('button', { class: 'go' });
+  const who = h('div', { class: 'who', style: 'margin-bottom:6px' });
+  const draw = () => {
+    show.textContent = (minus ? '−' : '') + n; show.className = 'show' + (n ? '' : ' zero') + (minus && n ? ' minus' : '');
+    go.disabled = !n; go.textContent = n ? `${minus ? 'Take' : 'Add'} ${n} ${minus ? 'from' : 'for'} ${name(p)}` : minus ? 'Key in the points to take off' : 'Key in the points';
+    who.replaceChildren(...Array.from({ length: S.players }, (_, q) => h('button', { 'aria-pressed': String(q === p), on: { click: () => { p = q; draw(); } } }, name(q))));
+  };
+  const key = (k) => {
+    if (k === 'back') n = Math.floor(n / 10); else if (k === '+25') n = Math.min(9999, n + 25); else if (n < 1000) n = n * 10 + k;
+    draw();
+  };
+  const commit = () => { if (!n) return; S.entries.push({ p, pts: minus ? -n : n }); save(); d.close(); paint(); };
+  go.onclick = commit;
+  const b = (label, k, cls, aria) => h('button', { class: cls || '', 'aria-label': aria || null, on: { click: () => key(k) } }, label);
+  const d = h('dialog', { class: 'keys', 'aria-label': minus ? 'Take points off' : 'Points for the hand', tabindex: '-1', autofocus: '' },
+    h('div', { class: 'for' }, minus ? 'Take points off' : 'Points for the hand'), show, who,
+    h('div', { class: 'grid', style: 'margin-top:10px' }, [1, 2, 3, 4, 5, 6, 7, 8, 9].map((x) => b(String(x), x)),
+      minus ? h('span', {}) : b('+25', '+25', 'fn', 'Add 25 for gin or an undercut'), b('0', 0), b('⌫', 'back', 'fn', 'Rub out the last figure')),
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel'), go));
+  d.addEventListener('keydown', (e) => {
+    if (/^[0-9]$/.test(e.key)) key(+e.key); else if (e.key === 'Backspace') key('back'); else if (e.key === 'Enter') { e.preventDefault(); commit(); }
+  });
+  d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  d.addEventListener('close', () => d.remove());
+  draw(); document.body.append(d); d.showModal();
 }
-$('#pts').addEventListener('input', () => { $('#pts').value = $('#pts').value.replace(/\D/g, '').slice(0, 4); paintAdd(work(S)); });
-$('#pts').addEventListener('keydown', (e) => { if (e.key === 'Enter') addHand(); });
-$('#sign').onclick = () => { minus = !minus; paintAdd(work(S)); };
-$('#plus25').onclick = () => { $('#pts').value = String(Math.min(9999, (parseInt($('#pts').value, 10) || 0) + 25)); paintAdd(work(S)); };
-$('#add').onclick = addHand;
+$('#minusBtn').onclick = () => keypad(S.entries[S.entries.length - 1].p, true);
 $('#undo').onclick = () => { if (S.entries.length) { S.entries.pop(); save(); paint(); toast('The last one is undone.'); } };
 
 /* ---------- the sheet ---------- */
@@ -218,28 +232,35 @@ function paintSheet(w) {
   if (!w.rows.length) return;
   const tight = w.n * w.P > 6;
   const each = (fn) => Array.from({ length: w.n }, (_, g) => Array.from({ length: w.P }, (_, p) => fn(g, p)));
+  // As on a paper sheet, every column fills from its own top: a player's first score in a game is on the first
+  // line of that column, whichever hand it was. A line is the running total, with what was added small under it.
+  const cols = each(() => []);
+  w.rows.forEach((r) => { for (const g in r.cells) cols[g][r.p].push({ total: r.cells[g], r }); });
+  const lines = Math.max(1, ...cols.flat().map((c) => c.length)), newest = w.rows[w.rows.length - 1];
   const head = h('thead', {},
     h('tr', { class: 'g' }, h('th', { class: 'h' }), Array.from({ length: w.n }, (_, g) =>
       h('th', { colspan: w.P, class: 'first' + (w.winners[g] !== -1 ? ' done' : '') }, (w.n > 1 ? `Game ${g + 1}` : 'Game') + (w.winners[g] !== -1 ? ' 🏆' : '')))),
-    h('tr', { class: 'n' }, h('th', { class: 'h' }, '#'), each((g, p) => h('th', { class: p === 0 ? 'first' : '' }, name(p)))));
-  const body = h('tbody', {}, w.rows.map((r, i) =>
-    h('tr', { class: i === w.rows.length - 1 ? 'last' : '', title: 'Tap to take this one off the sheet', on: { click: () => removeRow(r, i + 1) } },
-      h('td', { class: 'h' }, String(i + 1)),
-      each((g, p) => h('td', { class: (p === 0 ? 'first' : '') + (r.pts < 0 ? ' neg' : '') },
-        p === r.p && r.cells[g] != null ? [h('b', {}, String(r.cells[g])), h('small', {}, (r.pts > 0 ? '+' : '−') + Math.abs(r.pts))] : '')))));
+    h('tr', { class: 'n' }, h('th', { class: 'h' }), each((g, p) => h('th', { class: p === 0 ? 'first' : '' }, name(p)))));
+  const body = h('tbody', {}, Array.from({ length: lines }, (_, i) => h('tr', {}, h('td', { class: 'h' }, String(i + 1)),
+    each((g, p) => {
+      const c = cols[g][p][i];
+      if (!c) return h('td', { class: p === 0 ? 'first' : '' });
+      return h('td', { class: (p === 0 ? 'first ' : '') + 'has' + (c.r.pts < 0 ? ' neg' : '') + (c.r === newest ? ' new' : ''), title: 'Tap to take this hand off the sheet', on: { click: () => removeRow(c.r) } },
+        h('b', {}, String(c.total)), h('small', {}, (c.r.pts > 0 ? '+' : '−') + Math.abs(c.r.pts)));
+    }))));
   const foot = h('tfoot', {},
     h('tr', {}, h('td', { class: 'h' }), each((g, p) => h('td', { class: (p === 0 ? 'first' : '') + (w.winners[g] === p ? ' win' : '') }, String(w.totals[g][p])))),
-    // Nine columns have no room for the word under each: the row is named once, at its left.
-    h('tr', { class: 'bx' }, h('td', { class: 'h' }, tight ? 'boxes' : ''), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, tight ? String(w.boxes[g][p]) : w.boxes[g][p] + (w.boxes[g][p] === 1 ? ' box' : ' boxes')))));
+    h('tr', { class: 'bx' }, h('td', { class: 'h' }, 'boxes'), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, String(w.boxes[g][p])))));
   pad.classList.toggle('tight', tight);
   pad.replaceChildren(head, body, foot);
 }
-function removeRow(r, number) {
-  const what = `${r.pts > 0 ? '+' : '−'}${Math.abs(r.pts)} for ${name(r.p)}`;
-  const d = sheet('Take it off the sheet?', `Line ${number}: ${what}. Everything after it is added up again.`,
+function removeRow(r) {
+  const games = Object.keys(r.cells).map((g) => +g + 1), where = w0().n > 1 && games.length ? ` It is in game${games.length > 1 ? 's' : ''} ${games.join(' and ').replace(/ and (\d) and /, ', $1 and ')}.` : '';
+  const d = sheet('Take it off the sheet?', `${r.pts > 0 ? '+' : '−'}${Math.abs(r.pts)} for ${name(r.p)}.${where} Everything after it is added up again.`,
     h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Keep it'),
     h('button', { class: 'go', on: { click: () => { S.entries.splice(r.at, 1); save(); d.close(); paint(); } } }, 'Take it off'));
 }
+const w0 = () => work(S);
 
 /* ---------- what it comes to ---------- */
 function paintReck(w) {
@@ -295,7 +316,7 @@ function setUp() {
   d.append(h('h3', {}, 'Set up'),
     h('p', { class: 'why' }, 'Change anything at any time; the sheet is added up again from the hands.'),
     h('div', { style: 'margin-top:16px' },
-      chips('Players', [[2, 'Two'], [3, 'Three']], () => S.players, (v) => { S.players = v; pick = null; drawNames(); }),
+      chips('Players', [[2, 'Two'], [3, 'Three']], () => S.players, (v) => { S.players = v; drawNames(); }),
       h('p', { class: 'label' }, 'Names'), names,
       chips('Game', [['hollywood', 'Hollywood'], ['single', 'Single game']], () => S.mode, (v) => { S.mode = v; }),
       chips('Play to', [[100, '100'], [150, '150'], [200, '200'], [250, '250'], [300, '300']], () => S.target, (v) => { S.target = v; }),

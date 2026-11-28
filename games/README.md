@@ -15,12 +15,13 @@ thing to do next). `room.css` holds the shared pieces and the colors; a game's p
 ## The score pad
 
 `score/` is a gin rummy score sheet for a game played with real cards, for two or three players. It talks to no
-server: the sheet is kept on the device. Tap who won the hand, type the points, add. The games of a Hollywood match
-sit side by side, each with a column for every player, and each hand is a row showing the running total where it
-counted. It works out which games a hand counts in, closes a game at the target, counts the boxes, and settles each
+server: the sheet is kept on the device. Tap who won the hand and a keypad opens (the phone's keyboard never does);
+key in the points and add. The games of a Hollywood match sit side by side, each with a column for every player, and
+every column fills from its own top as on a paper sheet: a player's first score in a game is on its first line,
+whichever hand it was. A line is the running total with what was added under it. It works out which games a hand counts in, closes a game at the target, counts the boxes, and settles each
 finished game by the same convention as the online table (game bonus, boxes, shutout, money a point), pair by pair
-when there are three. Points can be taken away with the + / − switch, the last line undone, or any line tapped to
-take it off; the sheet is always added up again from its lines.
+when there are three. Points can be taken away with Subtract, the last hand undone, or any line tapped to
+take that hand off; the sheet is always added up again from its lines.
 
 ## How it works
 
