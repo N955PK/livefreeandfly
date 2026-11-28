@@ -423,6 +423,73 @@ def test_record_between_two_players(db):
     assert call(db, "gin_state", p_code=other, p_token=tokens[0])["record"] == wins
 
 
+def test_accounts_and_the_leaderboard(db):
+    def play_game(code, tokens, seed):
+        rng = random.Random(seed)
+        while True:
+            play_hand(db, code, tokens, rng)
+            st = call(db, "gin_state", p_code=code, p_token=tokens[0])
+            if st["status"] == "game_over":
+                return st["winners"][0]
+            call(db, "gin_next", p_code=code, p_token=tokens[0], p_hand_no=st["hand_no"])
+
+    ann, bob = hello(db, "Ann"), hello(db, "Bob", "🐻", "#ffa32e")
+    # A login name and a password are attached to the browser's player; the name is one person's.
+    fails(db, "room_register", "3 to 20", p_token=ann, p_handle="a!", p_password="secret1")
+    fails(db, "room_register", "6 to 72", p_token=ann, p_handle="ann", p_password="short")
+    made = call(db, "room_register", p_token=ann, p_handle=" Ann ", p_password="secret1")
+    assert made["handle"] == "ann" and made["token"] == ann and call(db, "room_who", p_token=ann)["handle"] == "ann"
+    fails(db, "room_register", "already logged in", p_token=ann, p_handle="ann2", p_password="secret1")
+    fails(db, "room_register", "taken", p_token=bob, p_handle="ANN", p_password="secret2")
+    call(db, "room_register", p_token=bob, p_handle="bob", p_password="secret2")
+    db.execute("select pass from room.players where handle = 'ann'")
+    stored = db.fetchone()[0]
+    assert "secret1" not in stored and len(stored.split("$")) == 2          # a salt and a hash are kept, not the password
+
+    # Ann and Bob play a game; a guest plays Ann too. Only the game between two accounts is on the leaderboard.
+    code, tokens = new_table(db, target=25, players=(ann, bob))
+    winner = play_game(code, tokens, 3)
+    guest = hello(db, "Guest", "👻")
+    other, t2 = new_table(db, target=25, players=(ann, guest))
+    play_game(other, t2, 5)
+    board = call(db, "room_leaderboard", p_game="gin", p_token=ann)
+    assert [(row["handle"], row["wins"], row["losses"]) for row in board] == \
+        ([("ann", 1, 0), ("bob", 0, 1)] if winner == 0 else [("bob", 1, 0), ("ann", 0, 1)])
+    assert [row["me"] for row in board if row["handle"] == "ann"] == [True] and "token" not in json.dumps(board)
+    assert call(db, "room_leaderboard", p_game="chess") == []
+
+    # Logging in on another device hands it the account's key, and that device finds the account's tables. A guest
+    # who was playing in that browser has their table folded into the account.
+    laptop = hello(db, "Someone", "🦉")
+    spare, _ = new_table(db, players=(laptop, hello(db, "Cy")))
+    back = call(db, "room_login", p_handle="Ann", p_password="secret1", p_token=laptop)
+    assert back["token"] == ann and back["name"] == "Ann" and back["handle"] == "ann"
+    mine = {row["code"] for row in call(db, "room_mine", p_token=back["token"])}
+    assert {code, other, spare} <= mine
+    fails(db, "room_who", "doesn't know this browser", p_token=laptop)      # the guest is gone, folded in
+
+    # A wrong password says so without saying which part was wrong; five in a row lock the name for a while,
+    # even against the right password.
+    assert "don't match" in call(db, "room_login", p_handle="nobody", p_password="secret1")["error"]
+    for _ in range(5):
+        assert "don't match" in call(db, "room_login", p_handle="bob", p_password="wrong")["error"]
+    assert "Too many" in call(db, "room_login", p_handle="bob", p_password="secret2")["error"]
+    db.execute("update room.players set locked_until = now() - interval '1 second' where handle = 'bob'")
+    assert call(db, "room_login", p_handle="bob", p_password="secret2")["token"] == bob
+
+    # A new password needs the old one.
+    assert "not your current" in call(db, "room_password", p_token=ann, p_old="nope", p_new="better99")["error"]
+    assert call(db, "room_password", p_token=ann, p_old="secret1", p_new="better99") == {"changed": True}
+    assert "error" in call(db, "room_login", p_handle="ann", p_password="secret1")
+    assert call(db, "room_login", p_handle="ann", p_password="better99")["token"] == ann
+    # An account is never folded into another player, and is not swept out with the idle guests.
+    assert call(db, "room_adopt", p_token=guest, p_other=ann) == {"moved": 0}
+    db.execute("update room.players set seen_at = now() - interval '400 days'")
+    new_table(db)
+    db.execute("select count(*) from room.players where handle in ('ann', 'bob')")
+    assert db.fetchone()[0] == 2
+
+
 def test_upgrade_keeps_tables_in_play(server):
     admin = connect(server)
     admin.cursor().execute("create database upgrade")

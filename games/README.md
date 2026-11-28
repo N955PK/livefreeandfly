@@ -4,10 +4,17 @@ Games for two, played over a link. It lives at `livefreeandfly.org/games/`. Gin 
 
 ## How it works
 
-There are no accounts. You pick a name and a face, open a table, and send the link (or list the table in the room so
-anyone there can sit down). A player is a browser: the first time it does anything, the room hands it a long random
-key, and that key goes with every call after. "Play on another device" hands the same key to a second phone or
-laptop by link or QR code, so both sit in your seat at every table.
+You pick a name and a face, open a table, and send the link (or list the table in the room so anyone there can sit
+down). A player is a browser: the first time it does anything, the room hands it a long random key, and that key goes
+with every call after. "Play on another device" hands the same key to a second phone or laptop by link or QR code,
+so both sit in your seat at every table.
+
+An account is optional: a login name and a password attached to that player. Logging in on any phone or computer
+hands it the account's key, so your tables and your record are there; anything played in that browser as a guest
+is folded into the account. The leaderboard lists players with accounts by games won, and counts only games in
+which both players have accounts. The room keeps a salted, stretched hash of the password, never the password, and
+locks a login name for five minutes after five wrong tries. There is no email, so a forgotten password cannot be
+reset.
 
 The room runs on the same Supabase project as ski/lease, in two layers:
 

@@ -6,8 +6,10 @@
 -- tables, sitting down and leaving. Each game keeps its own cards and rules in its own schema (gin, so far) and hangs
 -- them off a row in room.tables. Nothing here is reachable through the API except the public room_* functions.
 --
--- A player is a browser, not an account: the page keeps a long random key and sends it with every call. The
--- member_id column is where a ski/lease member will be attached once the two are joined up; nothing reads it yet.
+-- A player is a browser: the page keeps a long random key and sends it with every call. A player may also take a
+-- login name and a password (an account), and then logging in on any device hands that device the same key, so
+-- their tables and their record follow them; the leaderboard is kept among players with accounts. The member_id
+-- column is where a ski/lease member will be attached once the two are joined up; nothing reads it yet.
 
 create schema if not exists room;
 revoke all on schema room from public;
@@ -22,6 +24,14 @@ create table if not exists room.players (
   created_at  timestamptz not null default now(),
   seen_at     timestamptz not null default now()
 );
+
+-- Accounts: a login name, the password's salted hash (never the password), and a count of wrong tries that locks
+-- the name for a few minutes when it runs up.
+alter table room.players add column if not exists handle text;
+alter table room.players add column if not exists pass text;
+alter table room.players add column if not exists fails int not null default 0;
+alter table room.players add column if not exists locked_until timestamptz;
+create unique index if not exists players_handle on room.players (handle) where handle is not null;
 
 create table if not exists room.tables (
   code        text primary key,                       -- the six letters in the share link
@@ -64,6 +74,21 @@ create or replace function room.clean_avatar(t text) returns text language sql i
 $$;
 create or replace function room.clean_color(t text) returns text language sql immutable as $$
   select case when coalesce(t, '') ~ '^#[0-9a-fA-F]{6}$' then lower(t) else '#a31f34' end
+$$;
+
+-- A password's hash: SHA-256 of the salt and the password, then fed back through itself twenty thousand times so
+-- that guessing is slow. It uses only what Postgres has built in, so it needs no extension. Kept as "salt$hash".
+create or replace function room.hash_pass(p_password text, p_salt text) returns text language plpgsql immutable as $$
+declare v bytea := sha256(convert_to(p_salt || p_password, 'UTF8')); pw bytea := convert_to(p_password, 'UTF8');
+begin
+  for i in 1..20000 loop v := sha256(v || pw); end loop;
+  return p_salt || '$' || encode(v, 'hex');
+end $$;
+create or replace function room.new_pass(p_password text) returns text language sql volatile as $$
+  select room.hash_pass(p_password, replace(gen_random_uuid()::text, '-', ''))
+$$;
+create or replace function room.pass_ok(p_password text, p_stored text) returns boolean language sql immutable as $$
+  select p_stored is not null and p_stored = room.hash_pass(coalesce(p_password, ''), split_part(p_stored, '$', 1))
 $$;
 
 create or replace function room.new_key() returns text language sql volatile as $$
@@ -109,7 +134,7 @@ returns text language plpgsql as $$
 declare v_code text;
 begin
   delete from room.tables where updated_at < now() - interval '45 days';
-  delete from room.players p where p.seen_at < now() - interval '180 days'
+  delete from room.players p where p.seen_at < now() - interval '180 days' and p.handle is null   -- accounts are kept
     and not exists (select 1 from room.tables t where p.id = any(t.seats));
   delete from room.results where at < now() - interval '2 years';
   if (select count(*) from room.tables) >= 20000 then raise exception 'The game room is full. Try again later.'; end if;
@@ -187,7 +212,7 @@ create or replace function public.room_who(p_token text)
 returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
 declare me room.players := room.me(p_token);
 begin
-  return jsonb_build_object('token', me.key, 'name', me.name, 'avatar', me.avatar, 'color', me.color);
+  return jsonb_build_object('token', me.key, 'name', me.name, 'avatar', me.avatar, 'color', me.color, 'handle', me.handle);
 end $$;
 
 -- The open tables anyone in the room can sit down at.
@@ -240,7 +265,8 @@ returns jsonb language plpgsql security definer set search_path = room, public, 
 declare me room.players := room.me(p_token); other room.players; n int;
 begin
   select * into other from room.players where key = p_other and length(p_other) >= 32;
-  if other.id is null or other.id = me.id then return jsonb_build_object('moved', 0); end if;
+  -- An account is never folded into anything: its tables are reached by logging in to it.
+  if other.id is null or other.id = me.id or other.handle is not null then return jsonb_build_object('moved', 0); end if;
   update room.tables set seats = array_replace(seats, other.id, me.id),
     turn = case when turn = other.id then me.id else turn end,
     left_by = case when left_by = other.id then me.id else left_by end, rev = rev + 1
@@ -252,6 +278,96 @@ begin
   delete from room.players p where p.id = other.id and not exists (select 1 from room.tables t where p.id = any(t.seats));
   return jsonb_build_object('moved', n);
 end $$;
+
+/* ---------- accounts and the leaderboard ---------- */
+
+-- Gives this browser's player a login name and a password. From then on, logging in anywhere hands that device
+-- this player's key. A name is 3 to 20 letters, digits or underscores; a password at least 6 characters.
+create or replace function public.room_register(p_token text, p_handle text, p_password text)
+returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare me room.players := room.me(p_token); v_handle text := lower(btrim(coalesce(p_handle, '')));
+begin
+  if me.handle is not null then raise exception 'You are already logged in as %', me.handle; end if;
+  if v_handle !~ '^[a-z0-9_]{3,20}$' then raise exception 'A login name is 3 to 20 letters, digits or underscores'; end if;
+  if length(coalesce(p_password, '')) < 6 or length(p_password) > 72 then raise exception 'A password is 6 to 72 characters'; end if;
+  begin
+    update room.players set handle = v_handle, pass = room.new_pass(p_password), fails = 0, locked_until = null
+    where id = me.id;
+  exception when unique_violation then raise exception 'That login name is taken';
+  end;
+  return jsonb_build_object('token', me.key, 'name', me.name, 'avatar', me.avatar, 'color', me.color, 'handle', v_handle);
+end $$;
+
+-- Logs in. A wrong name or password is answered {"error": ...} and not raised, so the count of wrong tries is kept:
+-- five in a row lock the name for five minutes. On success the answer carries the account's key, and a guest who
+-- was playing in this browser (p_token) has their tables and results folded into the account.
+create or replace function public.room_login(p_handle text, p_password text, p_token text default null)
+returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare p room.players; guest room.players; v_handle text := lower(btrim(coalesce(p_handle, '')));
+begin
+  select * into p from room.players where handle = v_handle for update;
+  if p.id is null then
+    perform room.new_pass(coalesce(p_password, ''));                 -- as long as a real check takes
+    return jsonb_build_object('error', 'That name and password don''t match.');
+  end if;
+  if p.locked_until is not null and p.locked_until > now() then
+    return jsonb_build_object('error', 'Too many wrong tries. Wait a few minutes and try again.');
+  end if;
+  if not room.pass_ok(p_password, p.pass) then
+    update room.players set fails = fails + 1,
+      locked_until = case when fails + 1 >= 5 then now() + interval '5 minutes' else null end where id = p.id;
+    return jsonb_build_object('error', 'That name and password don''t match.');
+  end if;
+  update room.players set fails = 0, locked_until = null, seen_at = now() where id = p.id;
+  if p_token is not null and length(p_token) >= 32 then
+    select * into guest from room.players where key = p_token;
+    if guest.id is not null and guest.id <> p.id and guest.handle is null then
+      update room.tables set seats = array_replace(seats, guest.id, p.id),
+        turn = case when turn = guest.id then p.id else turn end,
+        left_by = case when left_by = guest.id then p.id else left_by end, rev = rev + 1
+      where guest.id = any(seats) and array_position(seats, p.id) is null;
+      update room.results set players = array_replace(players, guest.id, p.id),
+        winner = case when winner = guest.id then p.id else winner end
+      where guest.id = any(players) and array_position(players, p.id) is null;
+      delete from room.players g where g.id = guest.id and not exists (select 1 from room.tables t where g.id = any(t.seats));
+    end if;
+  end if;
+  return jsonb_build_object('token', p.key, 'name', p.name, 'avatar', p.avatar, 'color', p.color, 'handle', p.handle);
+end $$;
+
+-- A new password for the account this browser is logged in to. The old one is asked for, and counted like a login.
+create or replace function public.room_password(p_token text, p_old text, p_new text)
+returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare me room.players := room.me(p_token);
+begin
+  if me.handle is null then raise exception 'Log in first'; end if;
+  if length(coalesce(p_new, '')) < 6 or length(p_new) > 72 then raise exception 'A password is 6 to 72 characters'; end if;
+  if me.locked_until is not null and me.locked_until > now() then
+    return jsonb_build_object('error', 'Too many wrong tries. Wait a few minutes and try again.');
+  end if;
+  if not room.pass_ok(p_old, me.pass) then
+    update room.players set fails = fails + 1,
+      locked_until = case when fails + 1 >= 5 then now() + interval '5 minutes' else null end where id = me.id;
+    return jsonb_build_object('error', 'That is not your current password.');
+  end if;
+  update room.players set pass = room.new_pass(p_new), fails = 0, locked_until = null where id = me.id;
+  return jsonb_build_object('changed', true);
+end $$;
+
+-- The leaderboard: players with accounts, by games won. Only a game between players who both have accounts counts,
+-- so a record cannot be run up against throwaway guests. p_game narrows it to one game; p_token marks the caller.
+create or replace function public.room_leaderboard(p_game text default null, p_token text default null)
+returns jsonb language sql stable security definer set search_path = room, public, pg_temp as $$
+  select coalesce(jsonb_agg(jsonb_build_object('name', x.name, 'avatar', x.avatar, 'color', x.color, 'handle', x.handle,
+      'wins', x.wins, 'losses', x.games - x.wins, 'me', x.me) order by x.wins desc, x.games, x.handle), '[]')
+  from (
+    select p.name, p.avatar, p.color, p.handle, count(*) filter (where r.winner = p.id) as wins, count(*) as games,
+           coalesce(p.key = p_token, false) as me
+    from room.players p join room.results r on p.id = any(r.players)
+    where p.handle is not null and r.winner is not null and (p_game is null or r.game = p_game)
+      and not exists (select 1 from unnest(r.players) q left join room.players o on o.id = q where o.handle is null)
+    group by p.id order by 5 desc, 6 limit 50) x
+$$;
 
 do $$
 declare f record;

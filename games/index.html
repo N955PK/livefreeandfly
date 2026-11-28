@@ -44,13 +44,14 @@ a.tile:hover{border-color:rgba(163,31,52,.55);transform:translateY(-2px)}
   <h1>game<span class="slash">/</span>room</h1>
   <p class="tag">Games for two. Open a table, send the link, play.</p>
 
-  <div class="panel"><button class="me" id="me" aria-label="Change your name and avatar"></button></div>
+  <div class="panel"><button class="me" id="me" aria-label="Change your name and avatar"></button><div id="acct"></div></div>
 
   <div class="cols">
     <div class="panel"><h2>Your tables</h2><div id="mine"><p class="none">Loading…</p></div></div>
     <div class="panel"><h2>Open tables</h2><div id="open"><p class="none">Loading…</p></div></div>
   </div>
 
+  <div class="panel"><h2>Leaderboard</h2><div id="board"><p class="none">Loading…</p></div></div>
   <p class="label" style="margin:26px 0 0">The games</p>
   <div class="grid">
     <a class="tile" href="/games/gin/">
@@ -94,7 +95,7 @@ async function refresh() {
 $('#me').onclick = () => Room.profileDialog(() => { paintMe(); refresh(); });
 $('#device').onclick = () => { if (Room.named()) Room.deviceDialog(); else Room.profileDialog(paintMe); };
 paintMe();
-Room.ready.then(() => { paintMe(); refresh(); setInterval(refresh, 5000); });
+Room.ready.then(() => { paintMe(); refresh(); setInterval(refresh, 5000); Room.accountBox($('#acct')); Room.showLeaderboard($('#board')); });
 document.addEventListener('visibilitychange', refresh);
 })();
 </script>

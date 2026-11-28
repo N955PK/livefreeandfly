@@ -81,10 +81,11 @@ async function rpc(fn, args) {
 }
 
 /* ---------- who you are ---------- */
-const KEY = 'lff-games-key', PROFILE = 'lff-games-profile', SYNCED = 'lff-games-synced';
+const KEY = 'lff-games-key', PROFILE = 'lff-games-profile', SYNCED = 'lff-games-synced', HANDLE = 'lff-games-handle';
 const pickOne = (list) => list[Math.floor(Math.random() * list.length)];
 const profile = Object.assign({ name: '', avatar: pickOne(FACES), color: pickOne(COLORS) }, store.get(PROFILE, {}));
 let key = store.get(KEY, null);
+let handle = store.get(HANDLE, null);     // the login name of the account this browser is logged in to, if any
 const saveProfile = () => store.set(PROFILE, profile);
 const signature = () => JSON.stringify([profile.name, profile.avatar, profile.color]);
 
@@ -131,9 +132,15 @@ const ready = (async () => {
       const who = await rpc('room_who', { p_token: incoming });
       if (key && key !== incoming) await rpc('room_adopt', { p_token: incoming, p_other: key }).catch(() => {});
       key = incoming; store.set(KEY, key);
+      handle = who.handle || null; if (handle) store.set(HANDLE, handle); else store.del(HANDLE);
       Object.assign(profile, { name: who.name, avatar: who.avatar, color: who.color }); saveProfile(); store.set(SYNCED, signature());
       toast(`This device is now playing as ${who.name}.`);
     } catch (e) { toast('That link didn’t work. Make a new one on your other device.'); }
+  }
+  // Whether this browser's key is an account's is asked once a visit, so a login made elsewhere with a link shows.
+  if (key && !incoming) {
+    try { const who = await rpc('room_who', { p_token: key }); handle = who.handle || null; if (handle) store.set(HANDLE, handle); else store.del(HANDLE); }
+    catch (e) { /* an older room, or no signal: what this browser remembers stands */ }
   }
   const old = store.keys().filter((k) => k.startsWith('gin-seat-'));
   if (old.length) {
@@ -228,6 +235,85 @@ async function deviceDialog() {
   qr(link).then((el) => spot.append(el)).catch(() => {});
 }
 
+/* ---------- accounts: a login name and a password, so your tables follow you to any device ---------- */
+// Takes over this browser with an account's key (after logging in or signing up) and starts the page afresh.
+function become(who) {
+  key = who.token; store.set(KEY, key);
+  Object.assign(profile, { name: who.name, avatar: who.avatar, color: who.color }); saveProfile(); store.set(SYNCED, signature());
+  handle = who.handle || null; if (handle) store.set(HANDLE, handle); else store.del(HANDLE);
+  location.reload();
+}
+// Logging out leaves the account and its tables where they are; this browser simply stops being that player.
+function logout() {
+  key = null; handle = null; store.del(KEY); store.del(SYNCED); store.del(HANDLE);
+  location.reload();
+}
+function accountDialog(mode) {
+  const signup = mode === 'signup';
+  const name = h('input', { type: 'text', maxlength: 20, placeholder: 'Login name', autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', 'aria-label': 'Login name' });
+  const pass = h('input', { type: 'password', maxlength: 72, placeholder: signup ? 'Password (6 or more characters)' : 'Password', autocomplete: signup ? 'new-password' : 'current-password', 'aria-label': 'Password' });
+  const note = h('p', { class: 'why warn', role: 'alert' });
+  const go = h('button', { class: 'go', on: { click: submit } }, signup ? 'Create the account' : 'Log in');
+  async function submit() {
+    const n = name.value.trim(), w = pass.value;
+    note.textContent = '';
+    if (!/^[A-Za-z0-9_]{3,20}$/.test(n)) { note.textContent = 'A login name is 3 to 20 letters, digits or underscores.'; return name.focus(); }
+    if (w.length < 6) { note.textContent = 'A password is at least 6 characters.'; return pass.focus(); }
+    if (signup && !profile.name.trim()) { profile.name = n; saveProfile(); }     // a name to show at the table
+    go.disabled = true;
+    try {
+      const r = signup ? await call('room_register', { p_handle: n, p_password: w }) : await rpc('room_login', { p_handle: n, p_password: w, p_token: key });
+      if (r.error) { note.textContent = r.error; go.disabled = false; return; }
+      become(r);
+    } catch (e) { note.textContent = e.message; go.disabled = false; }
+  }
+  for (const box of [name, pass]) box.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+  const d = dialog(signup ? 'Create an account' : 'Log in', h('h3', {}, signup ? 'Create an account' : 'Log in'),
+    h('p', { class: 'why' }, signup ? 'Pick a login name and a password. Your tables and your record are kept under them, and you can log in on any phone or computer to find them. Games between two players with accounts count on the leaderboard.'
+      : 'Your tables and your record come with you. Anything you were playing in this browser as a guest is added to your account.'),
+    h('div', { class: 'acctform' }, name, pass), note,
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel'), go),
+    h('p', { class: 'why' }, signup ? 'There is no email on file, so a forgotten password cannot be reset. Pick one you will remember.' : ''));
+  name.focus();
+}
+function passwordDialog() {
+  const old = h('input', { type: 'password', maxlength: 72, placeholder: 'Current password', autocomplete: 'current-password', 'aria-label': 'Current password' });
+  const fresh = h('input', { type: 'password', maxlength: 72, placeholder: 'New password (6 or more characters)', autocomplete: 'new-password', 'aria-label': 'New password' });
+  const note = h('p', { class: 'why warn', role: 'alert' });
+  const d = dialog('Change your password', h('h3', {}, 'Change your password'), h('div', { class: 'acctform' }, old, fresh), note,
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel'),
+      h('button', { class: 'go', on: { click: async () => {
+        if (fresh.value.length < 6) { note.textContent = 'A password is at least 6 characters.'; return; }
+        try {
+          const r = await call('room_password', { p_old: old.value, p_new: fresh.value });
+          if (r.error) { note.textContent = r.error; return; }
+          d.close(); toast('Password changed');
+        } catch (e) { note.textContent = e.message; }
+      } } }, 'Change it')));
+  old.focus();
+}
+// The line under your name that says whether you are logged in, with the buttons to change that.
+function accountBox(box) {
+  const link = (label, fn) => h('button', { type: 'button', class: 'alink', on: { click: fn } }, label);
+  box.className = 'acct';
+  if (handle) box.replaceChildren(h('span', {}, 'Logged in as ', h('b', {}, handle)), link('Change password', passwordDialog), link('Log out', () => {
+    const d = dialog('Log out', h('h3', {}, 'Log out?'), h('p', { class: 'why' }, 'Your tables and your record stay with your account. Log in again here or anywhere to get back to them.'),
+      h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Stay'), h('button', { class: 'go', on: { click: logout } }, 'Log out')));
+  }));
+  else box.replaceChildren(h('span', {}, 'Playing as a guest on this device.'), link('Log in', () => accountDialog('login')), link('Create an account', () => accountDialog('signup')));
+}
+// The leaderboard: players with accounts, by games won against each other.
+async function showLeaderboard(box, game) {
+  let rows;
+  try { rows = await rpc('room_leaderboard', { p_game: game || null, p_token: key }); }
+  catch (e) { box.replaceChildren(h('p', { class: 'none' }, 'The leaderboard opens once the game room is updated.')); return; }
+  if (!rows.length) { box.replaceChildren(h('p', { class: 'none' }, 'Nobody is on it yet. A finished game between two players with accounts puts them here.')); return; }
+  box.replaceChildren(h('div', { class: 'tables' }, rows.map((r, i) =>
+    h('div', { class: 'trow lb' + (r.me ? ' me' : '') }, h('span', { class: 'rank' }, String(i + 1)), avatarEl(r),
+      h('div', { class: 't' }, h('b', {}, r.name), h('span', {}, r.handle)),
+      h('span', { class: 'wl' }, h('b', {}, String(r.wins)), ' won · ', String(r.losses), ' lost')))));
+}
+
 /* ---------- lists of tables ---------- */
 const mine = () => (key ? call('room_mine') : Promise.resolve([]));
 const lobby = () => rpc('room_lobby', { p_token: key });
@@ -305,5 +391,6 @@ const sound = (() => {
 })();
 
 return { DEV, GAMES, $, h, store, toast, plural, rpc, call, me, ready, named, profile, saveProfile, key: () => key,
-         avatarEl, setAvatar, profileEditor, profileDialog, deviceDialog, dialog, qr, mine, lobby, showTables, live, sound };
+         avatarEl, setAvatar, profileEditor, profileDialog, deviceDialog, dialog, qr, mine, lobby, showTables, live, sound,
+         handle: () => handle, accountBox, accountDialog, showLeaderboard };
 })();

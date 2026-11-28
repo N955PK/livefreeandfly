@@ -194,7 +194,7 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
   <a class="crumb" href="/games/">← game/room</a>
   <h1>gin<span class="slash">/</span>rummy</h1>
   <p class="tag">Open a table, send the link, deal the cards.</p>
-  <div class="panel"><h2>You</h2><div id="lobbyProfile"></div></div>
+  <div class="panel"><h2>You</h2><div id="lobbyProfile"></div><div id="lobbyAcct"></div></div>
   <div class="panel">
     <h2>A new table</h2>
     <div class="seg" id="modeSeg">
@@ -213,6 +213,7 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
   </div>
   <div class="panel"><h2>Your tables</h2><div id="myTables"><p class="none">Loading…</p></div></div>
   <div class="panel"><h2>Open tables</h2><div id="openTables"><p class="none">Loading…</p></div></div>
+  <div class="panel"><h2>Leaderboard</h2><div id="ginBoard"><p class="none">Loading…</p></div></div>
   <details class="rules panel"><summary>House rules</summary>
     <ul>
       <li>Ten cards each. One card is turned up: it starts the discard pile and sets the knock. A face card means 10, an ace means 1.</li>
@@ -232,7 +233,7 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
   <a class="crumb" href="/games/gin/">← gin/rummy</a>
   <h1>gin<span class="slash">/</span>rummy</h1>
   <div class="panel"><div class="invite" id="inviteBox"></div></div>
-  <div class="panel" id="joinForm"><h2>You</h2><div id="joinProfile"></div><button class="go" id="sitBtn">Sit down</button></div>
+  <div class="panel" id="joinForm"><h2>You</h2><div id="joinProfile"></div><div id="joinAcct"></div><button class="go" id="sitBtn">Sit down</button></div>
 </div>
 
 <div class="page" id="waiting" hidden>
@@ -606,6 +607,8 @@ const setup = Object.assign({ mode: 'single', target: 150, listed: false }, stor
 function showLobby() {
   show('lobby');
   Room.profileEditor($('#lobbyProfile'), profile, Room.saveProfile);
+  Room.accountBox($('#lobbyAcct'));
+  Room.showLeaderboard($('#ginBoard'), 'gin');
   const paint = () => {
     document.querySelectorAll('#modeSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === setup.mode)));
     let chip = false;
@@ -657,6 +660,7 @@ async function showJoin() {
   box.replaceChildren(avatarEl(info.host, 'big'),
     h('p', {}, `${info.host.name} is waiting to play gin.`, h('small', {}, describe(info.mode, info.target))));
   Room.profileEditor($('#joinProfile'), profile, Room.saveProfile);
+  Room.accountBox($('#joinAcct'));
   $('#sitBtn').disabled = false;
   $('#sitBtn').onclick = async () => {
     if (!Room.named()) return;
