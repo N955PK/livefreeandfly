@@ -16,7 +16,7 @@
 <link rel="manifest" href="/games/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Ace">
-<link rel="stylesheet" href="../room.css?v=8">
+<link rel="stylesheet" href="../room.css?v=9">
 <style>
 /* Gin Rummy. The pages around the table (opening one, sitting down, waiting) are Ace's ordinary pages.
    The table is cloth: its own colors, the same shapes. */
@@ -272,42 +272,15 @@ table.sheet.book td.up{color:var(--accent);font-weight:650}table.sheet.book td.d
 <div class="page" id="lobby" hidden>
   <a class="crumb" href="/games/">Ace</a>
   <h1>Gin Rummy</h1>
-  <p class="tag">Open a table, send the link, deal the cards.</p>
+  <p class="tag">Ten cards, a knock card, and a friend.</p>
+  <div class="panel" hidden><h2>Your tables</h2><div id="myTables"></div></div>
   <div class="panel">
-    <h2>A new table</h2>
-    <div class="seg" id="modeSeg">
-      <button data-mode="single"><b>Single game</b><span>First to the target wins.</span></button>
-      <button data-mode="hollywood"><b>Hollywood</b><span>Three games at once, scored side by side.</span></button>
-    </div>
-    <p class="label" style="margin-top:18px">Play to</p>
-    <div class="chips" id="targetChips">
-      <button data-t="100">100</button><button data-t="150">150</button><button data-t="200">200</button><button data-t="250">250</button>
-      <input class="num" id="targetNum" type="number" inputmode="numeric" min="10" max="1000" placeholder="other" aria-label="Another target">
-    </div>
-    <p class="label" style="margin-top:18px">Money a point</p>
-    <div class="chips" id="centChips">
-      <button data-c="0">None</button><button data-c="1">1¢</button><button data-c="5">5¢</button><button data-c="10">10¢</button><button data-c="25">25¢</button>
-      <input class="num" id="centNum" type="number" inputmode="decimal" min="0" max="10000" step="0.5" placeholder="other ¢" aria-label="Another amount, in cents">
-    </div>
-    <details class="rules" id="scoring" style="margin-top:14px"><summary>Scoring</summary>
-      <div class="scoregrid">
-        <label>Game bonus<input class="num" data-k="game" type="number" inputmode="numeric" min="0" max="1000"></label>
-        <label>Each hand won (a box)<input class="num" data-k="box" type="number" inputmode="numeric" min="0" max="500"></label>
-        <label>Gin bonus<input class="num" data-k="gin" type="number" inputmode="numeric" min="0" max="500"></label>
-        <label>Undercut bonus<input class="num" data-k="undercut" type="number" inputmode="numeric" min="0" max="500"></label>
-      </div>
-      <p class="label" style="margin-top:14px">A shutout (the loser of a game never scored)</p>
-      <div class="chips" id="shutChips"><button data-s="bonus">Doubles the game bonus</button><button data-s="total">Doubles everything</button><button data-s="none">Pays no more</button></div>
-      <p style="margin-top:12px">When a game ends, the winner takes their points, the game bonus, and a box for each hand they won; the loser takes their points and their own boxes, and pays the difference at the money a point. <button type="button" class="alink" id="classicBtn">Back to the usual figures</button></p>
-    </details>
-    <button class="setting" id="listedSw" role="switch" aria-checked="false" style="margin-top:16px">
-      <span class="t"><b>List it in the lobby</b><span>Anyone there can sit down. Off, only people with your link can.</span></span><span class="switch"></span>
-    </button>
-    <button class="go" id="openBtn">Open a table</button>
+    <button class="go" id="openBtn" style="margin-top:0">Open a table</button>
+    <button class="setup" id="tableSetup" aria-label="Change the game, the target and the money" style="margin-top:12px"><span id="setupLine"></span><b>Change</b></button>
+    <p class="hint">Open one, then send the link to whoever you want to play.</p>
   </div>
-  <div class="panel"><h2>Your tables</h2><div id="myTables"><p class="none">Loading…</p></div></div>
-  <div class="panel"><h2>Open tables</h2><div id="openTables"><p class="none">Loading…</p></div></div>
-  <div class="panel"><h2>Leaderboard</h2><div id="ginBoard"><p class="none">Loading…</p></div></div>
+  <div class="panel" hidden><h2>Open tables</h2><div id="openTables"></div></div>
+  <div class="panel" hidden><h2>Leaderboard</h2><div id="ginBoard"></div></div>
   <div class="panel"><h2>You</h2><div id="lobbyProfile"></div><div id="lobbyAcct"></div></div>
   <details class="rules panel"><summary>House rules</summary>
     <ul>
@@ -372,6 +345,41 @@ table.sheet.book td.up{color:var(--accent);font-weight:650}table.sheet.book td.d
   </div>
 </div>
 
+<dialog id="setupDlg" aria-label="Set up the table" tabindex="-1" autofocus>
+  <h3>The table</h3>
+  <p class="why">What you choose here is remembered for the next table too.</p>
+  <div style="margin-top:16px">
+    <div class="seg" id="modeSeg">
+      <button data-mode="single"><b>Single game</b><span>First to the target wins.</span></button>
+      <button data-mode="hollywood"><b>Hollywood</b><span>Three games at once, scored side by side.</span></button>
+    </div>
+    <p class="label" style="margin-top:18px">Play to</p>
+    <div class="chips" id="targetChips">
+      <button data-t="100">100</button><button data-t="150">150</button><button data-t="200">200</button><button data-t="250">250</button>
+      <input class="num" id="targetNum" type="number" inputmode="numeric" min="10" max="1000" placeholder="other" aria-label="Another target">
+    </div>
+    <p class="label" style="margin-top:18px">Money a point</p>
+    <div class="chips" id="centChips">
+      <button data-c="0">None</button><button data-c="1">1¢</button><button data-c="5">5¢</button><button data-c="10">10¢</button><button data-c="25">25¢</button>
+      <input class="num" id="centNum" type="number" inputmode="decimal" min="0" max="10000" step="0.5" placeholder="other ¢" aria-label="Another amount, in cents">
+    </div>
+    <details class="rules" id="scoring" style="margin-top:14px"><summary>Scoring</summary>
+      <div class="scoregrid">
+        <label>Game bonus<input class="num" data-k="game" type="number" inputmode="numeric" min="0" max="1000"></label>
+        <label>Each hand won (a box)<input class="num" data-k="box" type="number" inputmode="numeric" min="0" max="500"></label>
+        <label>Gin bonus<input class="num" data-k="gin" type="number" inputmode="numeric" min="0" max="500"></label>
+        <label>Undercut bonus<input class="num" data-k="undercut" type="number" inputmode="numeric" min="0" max="500"></label>
+      </div>
+      <p class="label" style="margin-top:14px">A shutout (the loser of a game never scored)</p>
+      <div class="chips" id="shutChips"><button data-s="bonus">Doubles the game bonus</button><button data-s="total">Doubles everything</button><button data-s="none">Pays no more</button></div>
+      <p style="margin-top:12px">When a game ends, the winner takes their points, the game bonus, and a box for each hand they won; the loser takes their points and their own boxes, and pays the difference at the money a point. <button type="button" class="alink" id="classicBtn">Back to the usual figures</button></p>
+    </details>
+    <button class="setting" id="listedSw" role="switch" aria-checked="false" style="margin-top:16px">
+      <span class="t"><b>List it in the lobby</b><span>Anyone there can sit down. Off, only people with your link can.</span></span><span class="switch"></span>
+    </button>
+  </div>
+  <div class="btns"><button class="go" id="setupDone">Done</button></div>
+</dialog>
 <dialog id="resultDlg" aria-label="Hand result" tabindex="-1" autofocus></dialog>
 <dialog id="sheetDlg" aria-label="Scoresheet" tabindex="-1" autofocus></dialog>
 <div id="stamp" aria-hidden="true"></div>
@@ -753,7 +761,7 @@ function showLobby() {
   show('lobby');
   Room.meRow($('#lobbyProfile'));
   Room.accountBox($('#lobbyAcct'));
-  Room.showLeaderboard($('#ginBoard'), 'gin');
+  Promise.resolve(Room.showLeaderboard($('#ginBoard'), 'gin')).then(() => { $('#ginBoard').parentElement.hidden = !$('#ginBoard .trow'); });
   const paint = () => {
     document.querySelectorAll('#modeSeg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === setup.mode)));
     let chip = false;
@@ -768,6 +776,7 @@ function showLobby() {
     document.querySelectorAll('#shutChips button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.s === k.shutout)));
     const changed = ['game', 'box', 'gin', 'undercut', 'shutout'].some((key) => k[key] !== CLASSIC[key]);
     $('#scoring summary').textContent = changed ? 'Scoring (changed)' : 'Scoring';
+    $('#setupLine').textContent = `${setup.mode === 'hollywood' ? 'Hollywood' : 'Single game'} to ${setup.target}${+setup.stakes.cents > 0 ? ' · ' + perPoint(setup.stakes) : ''}${setup.listed ? ' · listed' : ''}`;
     store.set('gin-setup', setup);
   };
   document.querySelectorAll('#centChips button').forEach((b) => b.onclick = () => { setup.stakes.cents = +b.dataset.c; $('#centNum').value = ''; paint(); });
@@ -783,11 +792,15 @@ function showLobby() {
   $('#targetNum').oninput = (e) => { const n = Math.round(+e.target.value); if (n >= 10 && n <= 1000) { setup.target = n; paint(); } };
   $('#listedSw').onclick = () => { setup.listed = !setup.listed; paint(); };
   paint();
+  const dlg = $('#setupDlg');
+  $('#tableSetup').onclick = () => dlg.showModal();
+  $('#setupDone').onclick = () => dlg.close();
+  dlg.onclick = (e) => { if (e.target === dlg) dlg.close(); };
   $('#openBtn').onclick = async () => {
     // Nobody is asked who they are until they open a table; then once, and the table opens after.
     if (!profile.name.trim()) return Room.profileDialog(() => { Room.meRow($('#lobbyProfile')); $('#openBtn').click(); });
     const typed = $('#targetNum').value;
-    if (typed && !(+typed >= 10 && +typed <= 1000)) return toast('Play to somewhere between 10 and 1000.');
+    if (typed && !(+typed >= 10 && +typed <= 1000)) { dlg.showModal(); return toast('Play to somewhere between 10 and 1000.'); }
     $('#openBtn').disabled = true;
     try {
       const args = { p_mode: setup.mode, p_target: setup.target, p_listed: !!setup.listed };
@@ -801,9 +814,11 @@ function showLobby() {
     if (document.hidden || $('#lobby').hidden) return;
     try {
       const [mine, open] = await Promise.all([Room.mine(), Room.lobby()]);
-      Room.showTables($('#myTables'), mine.filter((t) => t.game === 'gin'), 'mine', 'None yet. Open one above.');
-      Room.showTables($('#openTables'), open.filter((t) => t.game === 'gin'), 'open', 'Nobody is waiting for a game right now.');
-    } catch (e) { for (const id of ['#myTables', '#openTables']) if ($(id).textContent === 'Loading…') $(id).replaceChildren(h('p', { class: 'none' }, e.message)); }
+      const [my, waiting] = [mine.filter((t) => t.game === 'gin'), open.filter((t) => t.game === 'gin')];
+      Room.showTables($('#myTables'), my, 'mine', '');
+      Room.showTables($('#openTables'), waiting, 'open', '');
+      $('#myTables').parentElement.hidden = !my.length; $('#openTables').parentElement.hidden = !waiting.length;   // nothing to list, nothing shown
+    } catch (e) { /* the lists stay as they were; the next look tries again */ }
   };
   lists(); setInterval(lists, 5000);
 }

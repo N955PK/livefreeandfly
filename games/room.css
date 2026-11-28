@@ -71,6 +71,14 @@ h1{font-weight:750;font-size:clamp(28px,7.4vw,36px);letter-spacing:-.02em;line-h
 .av.sm{width:30px;height:30px;font-size:17px}
 .av.empty{background:var(--wash);color:var(--muted);font-size:16px}
 
+/* What is set, in one line; tapping it changes it. */
+.setup{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--tap);padding:0 8px 0 16px;border-radius:999px;background:var(--wash);text-align:left;font-size:14.5px;color:var(--ink2);
+  transition:transform .32s cubic-bezier(.3,1.6,.5,1)}
+.setup:active{transform:scale(.98);transition-duration:.1s}
+.setup span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.setup b{flex:none;display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:999px;background:var(--surface);color:var(--accent);font-size:13.5px;font-weight:650;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.hint{color:var(--muted);font-size:13.5px;margin-top:12px}
+
 /* who you are, in one line */
 .me{display:flex;align-items:center;gap:14px;width:100%;text-align:left}
 .me .t{flex:1;min-width:0}
