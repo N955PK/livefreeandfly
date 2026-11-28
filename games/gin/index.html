@@ -259,7 +259,12 @@ body{background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.4
 .pill{padding:2px 7px;background:rgba(0,0,0,.25)}
 #sayBtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--glass);padding:0;font-size:19px;opacity:1;flex:none}
 #sayBtn.send{background:var(--gold);border-color:var(--gold);color:#1d1602;font-size:16px}
-#meSeat .txt{flex:0 1 auto;max-width:30%}
+#meSeat{margin-top:10px;min-height:0;gap:8px}
+#meSeat .av{width:40px;height:40px;font-size:20px;flex:none}
+#meSeat .nm{flex:none}#meSeat .nm:empty{display:none}
+/* The way the hand is sorted right now is the lit one; none is lit once cards have been moved by hand. */
+.handbar .sorts button.on{background:var(--gold);border-color:var(--gold);color:#1d1602;font-weight:700}
+.handbar .sorts button.on+button{border-left-width:0}
 #sayBox{flex:1;min-width:0;height:40px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:999px;color:var(--ink);font:inherit;font-size:16px;padding:0 14px;outline:none}
 #sayBox:focus{border-color:var(--gold)}
 #sayBox::placeholder{color:var(--dim)}
@@ -374,8 +379,8 @@ table.sheet.book td small{font-family:var(--sans)}
     <div class="handbar"><span class="dw" id="dw"></span><span id="dwHint"></span>
       <span class="sorts" id="sorts" role="group" aria-label="Sort your hand"><button data-sort="melds">Melds</button><button data-sort="suit">Suits</button><button data-sort="rank">Ranks</button></span></div>
     <div id="handWrap"><div id="hand"></div></div>
-    <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><input id="sayBox" type="text" maxlength="140" placeholder="Say something" aria-label="Say something to the other player" enterkeyhint="send" autocomplete="off"><button id="sayBtn" aria-label="Faces and ready lines">😀</button></div>
     <div id="actions"></div>
+    <div class="seat" id="meSeat"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="nm" id="meNm"></div><input id="sayBox" type="text" maxlength="140" placeholder="Say something" aria-label="Say something to the other player" enterkeyhint="send" autocomplete="off"><button id="sayBtn" aria-label="Faces and ready lines">😀</button></div>
   </div>
 </div>
 
@@ -889,7 +894,7 @@ function renderSeats(move) {
   setAvatar($('#meAv'), face(me));
   const nm = (seat) => [st.names[seat]].concat(st.dealer === seat && playing(st) ? [h('span', { class: 'pill' }, 'DEALER')] : []);
   $('#oppNm').replaceChildren(...nm(opp));
-  $('#meNm').replaceChildren(...nm(me));
+  $('#meNm').replaceChildren(...nm(me).slice(1));   // your own row is your face and the box; only the dealer tag is said
   $('#oppSeat').classList.toggle('turn', playing(st) && st.turn === opp);
   $('#meSeat').classList.toggle('turn', isMine(st));
   $('#oppSeat').classList.toggle('away', !!st.away[opp] || (st.closed && st.left === opp));
@@ -982,6 +987,7 @@ function syncOrder(cards) {
 function saveOrder() { store.set('gin-order-' + code, { key: orderKey, order }); }
 function layout() {
   const n = order.length;
+  markSort();
   if (!n) return;
   const W = $('#handWrap').clientWidth, cw = handEls.get(order[0]).offsetWidth;
   const step = n > 1 ? Math.min(cw * 0.72, (W - cw) / (n - 1)) : 0, x0 = (W - (cw + step * (n - 1))) / 2;
@@ -1084,7 +1090,16 @@ function throwCard(c, from) {
 }
 function sortHand(how) {
   if (!st || !playing(st)) return;
-  order = sorted(st.hand, how); saveOrder(); layout();
+  sortHow = how; order = sorted(st.hand, how); saveOrder(); layout();
+}
+// One is lit: the sort last tapped if the hand is still in that order, else the first one the hand happens to match.
+let sortHow = 'melds';
+function markSort() {
+  const now = order.join(), fits = (how) => !!st && order.length > 0 && sorted(st.hand, how).join() === now;
+  const lit = fits(sortHow) ? sortHow : ['melds', 'suit', 'rank'].find(fits);
+  document.querySelectorAll('#sorts button').forEach((b) => {
+    b.classList.toggle('on', b.dataset.sort === lit); b.setAttribute('aria-pressed', String(b.dataset.sort === lit));
+  });
 }
 function renderActions() {
   if (!st || st.status === 'waiting') return;

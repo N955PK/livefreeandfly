@@ -73,7 +73,7 @@ At the table:
   link already written; you pick who it goes to.
   A player with an account can add a phone number (the Phone number link under their name); the text is then
   already addressed to it. Only players sitting at a table with them can use the number.
-- The box by your name is always there to type in; send with the keyboard's send key or the button beside it. With
+- The box in the bottom row, beside your avatar, is always there to type in; send with the keyboard's send key or the button beside it. With
   the box empty, that button slides up a dozen faces that send on one tap (the tray stays up for more), ready lines,
   and your own last six. A face reaches the other player even when the live channel is down.
 - Notifications: a player turns them on per device (the 🔔 link under their name, or the table's settings). A device
