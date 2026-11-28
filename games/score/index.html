@@ -79,7 +79,8 @@ dialog.keys{max-width:380px;padding:16px}
 .over p{color:var(--muted);font-size:15px}
 .over .pay{font-size:18px;font-weight:750;color:var(--hi);margin-top:8px}
 .over .go{margin-top:16px}
-#toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px}
+#toast.act{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px}
+#toast.act.on{pointer-events:auto}   /* only while it shows: faded out, it must not sit over the buttons */
 #toast button{flex:none;height:32px;padding:0 14px;border-radius:999px;background:var(--page);color:var(--ink);font-size:14px;font-weight:700}
 .confetti{position:fixed;top:-40px;font-size:24px;pointer-events:none;z-index:170;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
@@ -156,7 +157,8 @@ table.pad tfoot td.win{color:var(--hi)}
 
   <div class="panel reck" id="reckPanel" hidden><h2>What it comes to</h2><div id="reck"></div></div>
 
-  <div class="foot"><button class="ghost" id="undo">Undo the last hand</button><button class="ghost" id="fresh">New sheet</button></div>
+  <div class="foot"><button class="ghost" id="undo">Undo the last hand</button></div>
+  <div class="foot" style="margin-top:8px"><button class="ghost" id="allBtn">All sheets</button><button class="ghost" id="fresh">New sheet</button></div>
 </main>
 
 <script>
@@ -172,20 +174,40 @@ function h(tag, props, ...kids) {
   for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) el.append(kid);
   return el;
 }
-const KEY = 'ace-score-pad';
+// Every sheet is kept on this device: the one being played and the ones before it, each with its own players,
+// its own game and money, and its hands. KEY holds them all; OLD_KEY is the single sheet the first version kept.
+const KEY = 'ace-score-pads', OLD_KEY = 'ace-score-pad', MOST = 60;
 const DEFAULT_NAMES = ['We', 'Them', 'Other'];
-const fresh = () => ({ players: 2, names: DEFAULT_NAMES.slice(), mode: 'hollywood', target: 150, cents: 1, game: 100, box: 25, shutout: 'bonus', entries: [] });
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const fresh = () => ({ id: newId(), at: Date.now(), updated: Date.now(), players: 2, names: DEFAULT_NAMES.slice(), mode: 'hollywood', target: 150, cents: 1, game: 100, box: 25, shutout: 'bonus', entries: [] });
+function tidy(raw) {
+  const s = { ...fresh(), ...(raw && typeof raw === 'object' ? raw : {}) };
+  s.players = s.players === 3 ? 3 : 2; s.mode = s.mode === 'single' ? 'single' : 'hollywood';
+  s.names = DEFAULT_NAMES.map((d, i) => String((s.names || [])[i] || d).slice(0, 14));
+  s.entries = (Array.isArray(s.entries) ? s.entries : []).filter((e) => e && Number.isInteger(e.p) && e.p >= 0 && e.p < 3 && Number.isInteger(e.pts) && e.pts !== 0);
+  return s;
+}
 function load() {
   try {
-    const s = { ...fresh(), ...JSON.parse(localStorage.getItem(KEY) || '{}') };
-    s.players = s.players === 3 ? 3 : 2; s.mode = s.mode === 'single' ? 'single' : 'hollywood';
-    s.names = DEFAULT_NAMES.map((d, i) => String((s.names || [])[i] || d).slice(0, 14));
-    s.entries = (Array.isArray(s.entries) ? s.entries : []).filter((e) => e && Number.isInteger(e.p) && e.p >= 0 && e.p < 3 && Number.isInteger(e.pts) && e.pts !== 0);
-    return s;
-  } catch (e) { return fresh(); }
+    const kept = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (kept && Array.isArray(kept.sheets) && kept.sheets.length) {
+      const sheets = kept.sheets.map(tidy);
+      return { sheets, current: sheets.some((s) => s.id === kept.current) ? kept.current : sheets[0].id };
+    }
+    const one = tidy(JSON.parse(localStorage.getItem(OLD_KEY) || 'null'));
+    return { sheets: [one], current: one.id };
+  } catch (e) { const one = fresh(); return { sheets: [one], current: one.id }; }
 }
-let S = load();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* a private window: the sheet lasts until the tab closes */ } };
+const book = load();
+let S = book.sheets.find((s) => s.id === book.current);
+function save(touched = true) {
+  if (touched) S.updated = Date.now();
+  // The newest first; past the limit, the oldest are let go (never the one being played).
+  book.sheets.sort((a, b) => b.updated - a.updated);
+  while (book.sheets.length > MOST) book.sheets.splice(book.sheets.map((s) => s.id === S.id).lastIndexOf(false), 1);
+  try { localStorage.setItem(KEY, JSON.stringify(book)); } catch (e) { /* a private window: the sheets last until the tab closes */ }
+}
+function open(id) { const s = book.sheets.find((x) => x.id === id); if (s) { S = s; book.current = id; save(false); paint(); scrollTo({ top: 0 }); } }
 const name = (p) => S.names[p] || DEFAULT_NAMES[p];
 const cash = (cents) => '$' + (Math.abs(cents) / 100).toFixed(2);
 
@@ -247,11 +269,10 @@ function pays(w) {
 }
 const rate = () => (S.cents < 100 ? S.cents + '¢' : cash(S.cents)) + ' a point';
 function paintAdd(w) {
-  $('#sumLine').textContent = `${S.players} players · ${S.mode === 'hollywood' ? 'Hollywood' : 'Single'} to ${S.target}${S.cents > 0 ? ' · ' + (S.cents < 100 ? S.cents + '¢' : cash(S.cents)) : ''}`;
+  $('#sumLine').textContent = `${Array.from({ length: S.players }, (_, p) => name(p)).join(' v ')} · ${S.mode === 'hollywood' ? 'Hollywood' : 'Single'} ${S.target}${S.cents > 0 ? ' · ' + (S.cents < 100 ? S.cents + '¢' : cash(S.cents)) : ''}`;
   $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => h('button', { on: { click: () => machine(p) } }, h('b', {}, name(p)))));
   $('#addPanel').hidden = w.over;
   $('#undo').disabled = !S.entries.length;
-  $('#fresh').disabled = !S.entries.length;
   // The match is over: who won, what is owed, and one button for the next one.
   const over = $('#overPanel'); over.hidden = !w.over;
   if (w.over) {
@@ -260,7 +281,8 @@ function paintAdd(w) {
       h('h2', {}, champs === 1 ? `${name(won.indexOf(top))} took the match` : 'The match is over'),
       w.n > 1 ? h('p', {}, Array.from({ length: w.P }, (_, p) => `${name(p)} ${won[p]}`).join(' · ') + ' games') : null,
       ...pays(w).map((line) => h('div', { class: 'pay' }, line)),
-      h('button', { class: 'go', on: { click: newSheet } }, 'Start a new sheet')].filter(Boolean));
+      h('button', { class: 'go', on: { click: () => start({ ...S }) } }, 'Play again'),
+      h('p', { style: 'margin-top:10px' }, 'This sheet is kept under All sheets.')].filter(Boolean));
   }
 }
 // The adding machine. Key a figure, then + or − and another, as many as it takes: 34 + 12 − 5. The Gin switch puts
@@ -451,17 +473,68 @@ async function stayAwake() {
   } catch (e) { lock = null; }
 }
 document.addEventListener('visibilitychange', stayAwake);
-// A new sheet is one tap, and one tap to get the old one back.
+/* ---------- more than one sheet ---------- */
+// Starts a sheet with these players and this game, and keeps the one before. A sheet nobody has scored on is not
+// kept: it is simply the one that changes.
+function start(like) {
+  const next = { ...fresh(), players: like.players, names: like.names.slice(), mode: like.mode, target: like.target, cents: like.cents, game: like.game, box: like.box, shutout: like.shutout, awake: like.awake };
+  if (!S.entries.length) book.sheets.splice(book.sheets.indexOf(S), 1);
+  book.sheets.push(next); S = next; book.current = next.id; save(); paint(); scrollTo({ top: 0, behavior: 'smooth' });
+  toast(book.sheets.length > 1 ? 'New sheet. The others are under All sheets.' : 'New sheet');
+}
+// A new sheet: who is playing. The game and the money carry over, and can be changed after.
 function newSheet() {
-  if (!S.entries.length) return;
-  const old = S.entries; S.entries = []; save(); paint(); scrollTo({ top: 0, behavior: 'smooth' });
-  toast('New sheet started', 'Put the old one back', () => { S.entries = old; save(); paint(); });
+  const draft = { ...S, names: S.names.slice() };
+  const names = h('div', { class: 'names' });
+  const drawNames = () => names.replaceChildren(...Array.from({ length: draft.players }, (_, p) => h('input', { type: 'text', maxlength: 14, value: draft.names[p], 'aria-label': `Name ${p + 1}`, autocomplete: 'off', enterkeyhint: 'done',
+    on: { input: (e) => { draft.names[p] = e.target.value.trim().slice(0, 14) || DEFAULT_NAMES[p]; }, focus: (e) => e.target.select() } })));
+  const count = h('div', { class: 'chips' });
+  const drawCount = () => count.replaceChildren(...[[2, 'Two'], [3, 'Three']].map(([v, t]) => h('button', { 'aria-pressed': String(draft.players === v), on: { click: () => { draft.players = v; drawCount(); drawNames(); } } }, t)));
+  drawCount(); drawNames();
+  const d = h('dialog', { 'aria-label': 'New sheet', tabindex: '-1', autofocus: '' }, h('h3', {}, 'New sheet'),
+    h('p', { class: 'why' }, S.entries.length ? 'Who is playing? This sheet is kept, and you can go back to it under All sheets.' : 'Who is playing?'),
+    h('div', { style: 'margin-top:16px' }, h('p', { class: 'label' }, 'Players'), count, h('p', { class: 'label' }, 'Names'), names),
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel'), h('button', { class: 'go', on: { click: () => { d.close(); start(draft); } } }, 'Start')));
+  d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  d.addEventListener('close', () => d.remove());
+  document.body.append(d); d.showModal();
 }
 $('#fresh').onclick = newSheet;
+// All the sheets, newest first: who played, how it stands, when. Tap one to go back to it.
+const when = (t) => {
+  const d = new Date(t), now = new Date(), days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+  const clock = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return days === 0 ? `today ${clock}` : days === 1 ? `yesterday ${clock}` : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+function allSheets() {
+  const list = h('div', { class: 'tables', style: 'margin-top:14px' });
+  const draw = () => list.replaceChildren(...book.sheets.slice().sort((a, b) => b.updated - a.updated).map((s) => {
+    const w = work(s), who = Array.from({ length: s.players }, (_, p) => s.names[p]);
+    const won = who.map((_, p) => w.winners.filter((x) => x === p).length);
+    const state = !s.entries.length ? 'No hands yet' : w.over ? 'Finished' : `${s.entries.length} hand${s.entries.length === 1 ? '' : 's'}`;
+    const score = !s.entries.length ? '' : w.n === 1 ? ` · ${w.totals[0].join('–')}` : w.over || won.some(Boolean) ? ` · games ${won.join('–')}` : '';
+    return h('div', { class: 'trow' },
+      h('button', { class: 't', style: 'text-align:left', on: { click: () => { d.close(); open(s.id); } } },
+        h('b', {}, who.join(' v ')), h('span', {}, `${state}${score} · ${when(s.updated)}`)),
+      s.id === S.id ? h('span', { class: 'badge sit' }, 'Open') : h('button', { class: 'badge', 'aria-label': `Remove the sheet for ${who.join(' and ')}`, on: { click: () => {
+        const at = book.sheets.indexOf(s); book.sheets.splice(at, 1); save(false); draw();
+        toast('Sheet removed', 'Put it back', () => { book.sheets.push(s); save(false); if (d.open) draw(); });
+      } } }, 'Remove'));
+  }));
+  draw();
+  const d = h('dialog', { 'aria-label': 'All sheets', tabindex: '-1', autofocus: '' }, h('h3', {}, 'All sheets'),
+    h('p', { class: 'why' }, 'Every sheet is kept on this phone. Tap one to go back to it.'), list,
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Close'), h('button', { class: 'go', on: { click: () => { d.close(); newSheet(); } } }, 'New sheet')));
+  d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  d.addEventListener('close', () => d.remove());
+  document.body.append(d); d.showModal();
+}
+$('#allBtn').onclick = allSheets;
 let toastTimer;
 function toast(msg, label, fn) {
   let t = $('#toast');
-  if (!t) { t = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' }); document.body.append(t); }
+  if (!t) t = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' });
+  ([...document.querySelectorAll('dialog[open]')].pop() || document.body).append(t);   // an open sheet sits above the page
   t.replaceChildren(h('span', {}, msg), label ? h('button', { on: { click: () => { t.classList.remove('on'); fn(); } } }, label) : null);
   t.classList.toggle('act', !!label); t.classList.add('on');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), label ? 5000 : 2600);

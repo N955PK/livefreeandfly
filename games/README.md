@@ -23,7 +23,8 @@ whichever hand it was. A line is the running total with what was added under it.
 finished game by the same convention as the online table (game bonus, boxes, shutout, money a point), pair by pair
 when there are three. Every hand added says what it did and offers Undo on the spot; a new sheet is one tap, with
 one tap to put the old one back; when the match is over the pad says who took it and what is owed, with the working
-folded away underneath. It can keep the screen on, and once opened it opens again with no signal (`sw.js` keeps a
+folded away underneath. Every sheet is kept: New sheet asks who is playing and starts one beside the
+others, and All sheets lists them (who played, how it stands, when) to go back to or remove. It can keep the screen on, and once opened it opens again with no signal (`sw.js` keeps a
 copy of the page). The last hand can be undone, or any line tapped to take that hand off; the sheet is always added up again from its lines.
 
 ## How it works
