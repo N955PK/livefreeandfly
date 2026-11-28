@@ -68,7 +68,9 @@ At the table:
   rank whenever you want a fresh start.
 - Tap a card and then Throw it, or drag it onto the discard pile.
 - Going down is the gold circle beside the piles, not a button next to Throw, so it is never tapped by mistake.
-- The 💬 button sends a line of your own across the table; the faces beside it are one-tap reactions.
+- The 💬 button slides up a tray with the keyboard ready: a dozen faces that send on one tap (the tray stays up for
+  more), ready lines and your own last six that send on one tap, and a box to type in. Typing narrows the lines to
+  the ones that match. A face reaches the other player even when the live channel is down.
 - "Cards and table" in the table's settings picks the suit colors (classic, green clubs, or four colors; the suits are drawn so a club and a spade differ in shape), the
   backs of the cards (six, or a picture of your own) and the cloth. They are kept on your device and are yours alone.
 - Melds are colored and deadwood counted for you; "Show my melds" in the table's settings turns that off.

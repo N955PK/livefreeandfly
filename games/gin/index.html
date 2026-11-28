@@ -117,10 +117,26 @@ button.knock.can b{font-size:calc(var(--cw)*.36)}
 .say.mine{background:var(--gold);color:#1d1602}
 @keyframes say{0%{opacity:0;transform:translateY(6px) scale(.92)}5%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
 #sayBtn{font-size:19px;padding:4px 8px;border-radius:10px;opacity:.85}
-.sayrow{display:flex;gap:8px;margin-top:14px}
-.sayrow input{flex:1;min-width:0;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-size:16px;padding:11px 12px}
-.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.quick button{border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:14px;background:rgba(0,0,0,.2)}
+/* The reaction tray: slides up from the bottom and rides on top of the keyboard. */
+#sayTray{position:fixed;inset:0;z-index:150}
+#sayTray .shade{position:absolute;inset:0;background:rgba(3,8,10,.35);opacity:0;transition:opacity .16s}
+#sayTray .sheet{position:absolute;left:0;right:0;bottom:var(--kb,0px);max-width:560px;margin:0 auto;padding:12px 12px calc(12px + env(safe-area-inset-bottom));
+  background:#0e241d;border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -14px 40px rgba(0,0,0,.5);
+  transform:translateY(105%);transition:transform .18s cubic-bezier(.2,.8,.3,1)}
+#sayTray.up .shade{opacity:1}#sayTray.up .sheet{transform:none}
+#sayTray .faces{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+#sayTray .faces button{font-size:27px;line-height:1;padding:8px 0;border-radius:14px}
+#sayTray .faces button:active{background:rgba(255,255,255,.12)}
+#sayTray .lines{display:flex;gap:7px;margin:10px -12px 0;padding:0 12px 2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#sayTray .lines::-webkit-scrollbar{display:none}
+#sayTray .lines button{flex:none;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-size:15px;background:rgba(255,255,255,.06);white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
+#sayTray .lines button.mine{border-color:rgba(242,193,78,.5);color:var(--gold)}
+#sayTray .lines button:active{background:rgba(255,255,255,.16)}
+.sayrow{display:flex;gap:8px;margin-top:10px;align-items:center}
+.sayrow input{flex:1;min-width:0;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:999px;color:var(--ink);font:inherit;font-size:16px;padding:11px 16px;outline:none}
+.sayrow input:focus{border-color:var(--gold)}
+.sayrow .send{flex:none;width:44px;height:44px;border-radius:50%;background:var(--gold);color:#1d1602;font-size:18px;transition:opacity .15s}
+.sayrow .send:disabled{opacity:.35}
 /* Choosing the cards and the table. */
 .looks{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .looks button{position:relative;border:2px solid transparent;border-radius:12px;padding:5px;background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--dim)}
@@ -156,9 +172,6 @@ button.knock.can b{font-size:calc(var(--cw)*.36)}
 #actions .pri{background:var(--accent);border-color:transparent;color:#fff}
 #actions .gold{background:var(--gold);border-color:transparent;color:#1d1602}
 #actions button:disabled{opacity:.4}
-#emotes{display:flex;justify-content:center;gap:2px}
-#emotes button{font-size:19px;padding:4px 6px;border-radius:10px;opacity:.75}
-#emotes button:active{transform:scale(1.3)}
 .fly{position:fixed;font-size:40px;pointer-events:none;z-index:160;animation:fly 1.9s ease-out forwards}
 @keyframes fly{0%{transform:translate(-50%,0) scale(.4);opacity:0}15%{opacity:1;transform:translate(-50%,calc(var(--dy)*.2)) scale(1.3)}
   100%{transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(1);opacity:0}}
@@ -352,7 +365,7 @@ table.sheet.book td small{font-family:var(--sans)}
     <div class="handbar"><span class="dw" id="dw"></span><span id="dwHint"></span>
       <span class="sorts" id="sorts" role="group" aria-label="Sort your hand"><button data-sort="melds">Melds</button><button data-sort="suit">Suits</button><button data-sort="rank">Ranks</button></span></div>
     <div id="handWrap"><div id="hand"></div></div>
-    <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><div id="emotes"></div><button id="sayBtn" aria-label="Say something">💬</button></div>
+    <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><button id="sayBtn" aria-label="React or say something">💬</button></div>
     <div id="actions"></div>
   </div>
 </div>
@@ -369,7 +382,6 @@ table.sheet.book td small{font-family:var(--sans)}
    what's face up. Who you are, the calls, and the live nudges come from ../room.js. */
 const { $, h, store, toast, plural, profile, avatarEl, setAvatar, sound } = Room;
 const POLL_MS = Room.DEV ? 900 : 2500;
-const EMOTES = ['👋', '😂', '😬', '🔥', '👏', '😭', '🤔'];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS = ['♠','♥','♦','♣'];
 
@@ -587,7 +599,7 @@ function hear() {
   if (!said || said.n === heardN || $('#table').hidden) return;
   heardN = said.n; store.set('gin-said-' + code, heardN);
   if (Date.now() - new Date(said.at).getTime() > 10 * 60 * 1000) return;
-  bubble(said.text, said.seat);
+  if (isFace(said.text)) { if (said.seat !== st.you) fly(said.text, said.seat); } else bubble(said.text, said.seat);
   if (said.seat !== st.you) { sound.pop(); if (navigator.vibrate && navigator.userActivation?.hasBeenActive) navigator.vibrate(20); }
 }
 function bubble(text, seat) {
@@ -599,27 +611,65 @@ function bubble(text, seat) {
   if (mine) el.style.bottom = innerHeight - from.top + 8 + 'px'; else el.style.top = from.bottom + 8 + 'px';
   document.body.append(el); setTimeout(() => el.remove(), 6600);
 }
-// Type a line, or tap a ready one. It goes through the card room, so it arrives even if the other page is not
-// listening live; a room that does not take lines yet passes it over the live channel instead.
-const QUICK = ['Nice hand', 'Good game', 'Your turn!', 'One sec', 'Ouch', 'Rematch?'];
+// The tray that slides up from the 💬 button: a row of faces, a tap each; ready lines and the player's own recent
+// ones, a tap each; and a box to type in, with the keyboard already up. A face keeps the tray open so several can go;
+// a line closes it. A line goes through the card room, so it arrives even if the other page is not listening live;
+// a room that does not take lines yet passes it over the live channel instead.
+const EMOTES = ['👋', '😂', '😬', '🔥', '👏', '😭', '🤔', '😎', '🙄', '🍀', '💀', '❤️'];
+const QUICK = ['Nice hand', 'Good game', 'Your turn!', 'One sec', 'Ouch', 'Lucky!', 'So close', 'Rematch?', 'Thanks', 'Ha!'];
+const isFace = (t) => EMOTES.includes(t);
+const myLines = () => { const l = store.get('gin-lines', []); return Array.isArray(l) ? l.filter((x) => typeof x === 'string').slice(0, 6) : []; };
+async function sayLine(text) {
+  text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+  if (!text || !st) return false;
+  if (!isFace(text) && !QUICK.includes(text)) store.set('gin-lines', [text, ...myLines().filter((x) => x !== text)].slice(0, 6));
+  try { apply(await Room.call('gin_say', { p_code: code, p_text: text })); if (wire) wire.send('poke'); }
+  catch (e) {
+    if (wire && wire.channel) { wire.send('say', { t: text }); bubble(text, st.you); } else toast('That could not be sent just now.');
+  }
+  return true;
+}
+function sendFace(e) {
+  fly(e, st.you);
+  if (wire && wire.channel) wire.send('emote', { e });
+  else Room.call('gin_say', { p_code: code, p_text: e }).then((r) => { heardN = r.said && r.said.n; store.set('gin-said-' + code, heardN); apply(r); }).catch(() => {});
+}
+function closeSay() {
+  const t = $('#sayTray'); if (!t) return;
+  t.classList.remove('up'); document.activeElement && document.activeElement.blur && document.activeElement.blur();
+  if (window.visualViewport) { visualViewport.removeEventListener('resize', t.fit); visualViewport.removeEventListener('scroll', t.fit); }
+  setTimeout(() => t.remove(), 180);
+}
 function showSay() {
   if (!st) return;
-  const box = h('input', { type: 'text', maxlength: 140, placeholder: `Say something to ${st.names[1 - st.you] || 'the table'}`, 'aria-label': 'Your message', enterkeyhint: 'send' });
-  const send = async (text) => {
-    text = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 140);
-    if (!text) return box.focus();
-    d.close();
-    try { apply(await Room.call('gin_say', { p_code: code, p_text: text })); if (wire) wire.send('poke'); }
-    catch (e) {
-      if (wire && wire.channel) { wire.send('say', { t: text }); bubble(text, st.you); } else toast('That could not be sent just now.');
-    }
+  if ($('#sayTray')) return closeSay();
+  const box = h('input', { type: 'text', maxlength: 140, placeholder: `Say something to ${st.names[1 - st.you] || 'the table'}`, 'aria-label': 'Your message', enterkeyhint: 'send', autocomplete: 'off', autocapitalize: 'sentences' });
+  const go = h('button', { class: 'send', 'aria-label': 'Send', disabled: '' }, '➤');
+  const send = (text) => { if (String(text || '').trim()) { closeSay(); sayLine(text); } };
+  const chip = (q, mine) => h('button', { class: mine ? 'mine' : '', on: { click: () => send(q) } }, q);
+  const lines = h('div', { class: 'lines' });
+  // What is typed narrows the lines to the ones that hold it, so a few letters and a tap finish the thought.
+  const fill = () => {
+    const typed = box.value.trim().toLowerCase(), all = [...myLines().map((q) => [q, true]), ...QUICK.map((q) => [q, false])];
+    const show = typed ? all.filter(([q]) => q.toLowerCase().includes(typed) && q.toLowerCase() !== typed) : all;
+    lines.replaceChildren(...show.map(([q, mine]) => chip(q, mine))); lines.hidden = !show.length;
+    go.disabled = !typed;
   };
-  box.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(box.value); });
-  const d = Room.dialog('Say something', h('h3', {}, 'Say something'),
-    h('div', { class: 'sayrow' }, box, h('button', { class: 'go', style: 'margin-top:0;width:auto;padding:0 18px', on: { click: () => send(box.value) } }, 'Send')),
-    h('div', { class: 'quick' }, QUICK.map((q) => h('button', { on: { click: () => send(q) } }, q))),
-    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel')));
-  box.focus();
+  box.addEventListener('input', fill);
+  box.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(box.value); else if (e.key === 'Escape') closeSay(); });
+  go.onclick = () => send(box.value);
+  const tray = h('div', { id: 'sayTray', role: 'dialog', 'aria-label': 'React or say something' },
+    h('div', { class: 'shade', on: { click: closeSay } }),
+    h('div', { class: 'sheet' },
+      h('div', { class: 'faces' }, EMOTES.map((e) => h('button', { 'aria-label': 'Send ' + e, on: { click: (ev) => { sendFace(e); ev.currentTarget.animate([{ transform: 'scale(1.5)' }, { transform: 'none' }], 220); } } }, e))),
+      lines,
+      h('div', { class: 'sayrow' }, box, go)));
+  // The sheet sits on top of the keyboard, wherever the phone puts it.
+  tray.fit = () => { const v = window.visualViewport; tray.style.setProperty('--kb', (v ? Math.max(0, innerHeight - v.height - v.offsetTop) : 0) + 'px'); };
+  if (window.visualViewport) { visualViewport.addEventListener('resize', tray.fit); visualViewport.addEventListener('scroll', tray.fit); }
+  document.body.append(tray); fill(); tray.fit();
+  requestAnimationFrame(() => tray.classList.add('up'));
+  box.focus({ preventScroll: true });
 }
 
 async function act(fn, args) {
@@ -649,7 +699,7 @@ function goLive() {
       fly(String(m.e || '').slice(0, 8), 1 - st.you); sound.pop();
       if (navigator.vibrate && navigator.userActivation?.hasBeenActive) navigator.vibrate(20);
     }
-  }, (up) => { $('#emotes').hidden = !up; });
+  });
 }
 function fly(emoji, seat) {
   const from = rectOf(seat === st.you ? $('#meAv') : $('#oppAv'));
@@ -1285,8 +1335,6 @@ $('#strip').onclick = showSheet;
 $('#gear').onclick = showSettings;
 $('#meAv').onclick = () => Room.profileDialog(() => { if (wire) wire.send('poke'); refresh(); });
 document.querySelectorAll('#sorts button').forEach((b) => b.onclick = () => sortHand(b.dataset.sort));
-$('#emotes').hidden = true;
-$('#emotes').replaceChildren(...EMOTES.map((e) => h('button', { 'aria-label': 'Send ' + e, on: { click: () => { fly(e, st.you); if (wire) wire.send('emote', { e }); } } }, e)));
 $('#sheetDlg').addEventListener('click', (e) => { if (e.target === $('#sheetDlg')) $('#sheetDlg').close(); });
 addEventListener('resize', () => { if (st && st.status !== 'waiting') layout(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
