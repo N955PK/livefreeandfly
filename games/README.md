@@ -12,6 +12,16 @@ is a game's table, which is cloth: there everything is light on dark whatever th
 dark glass pills of a few fixed heights, and gold is the single highlight (whose turn it is, what is chosen, the
 thing to do next). `room.css` holds the shared pieces and the colors; a game's page adds only its table.
 
+## The score pad
+
+`score/` is a gin rummy score sheet for a game played with real cards, for two or three players. It talks to no
+server: the sheet is kept on the device. Tap who won the hand, type the points, add. The games of a Hollywood match
+sit side by side, each with a column for every player, and each hand is a row showing the running total where it
+counted. It works out which games a hand counts in, closes a game at the target, counts the boxes, and settles each
+finished game by the same convention as the online table (game bonus, boxes, shutout, money a point), pair by pair
+when there are three. Points can be taken away with the + / − switch, the last line undone, or any line tapped to
+take it off; the sheet is always added up again from its lines.
+
 ## How it works
 
 You pick a name and a face, open a table, and send the link (or list the table in the room so anyone there can sit

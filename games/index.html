@@ -34,6 +34,10 @@
   box-shadow:0 0 0 1px rgba(0,0,0,.2),-2px 0 4px -1px rgba(0,0,0,.4);transform-origin:50% 130%;display:grid;place-items:center;font-style:normal;font-size:19px;color:#14181d}
 .tile .cloth i:nth-child(1){transform:rotate(-24deg)}.tile .cloth i:nth-child(2){transform:rotate(-8deg);color:#c8102e}
 .tile .cloth i:nth-child(3){transform:rotate(8deg);color:#c8102e}.tile .cloth i:nth-child(4){transform:rotate(24deg)}
+.tile .cloth.pad{display:grid;grid-template-columns:1fr 1fr;align-content:center;gap:2px 0;padding:10px 8px;background:linear-gradient(165deg,#fffdf6,#f1eee6);color:#14181d;font-size:12px;text-align:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.tile .cloth.pad b{font-weight:700;font-size:11px;border-bottom:1px solid rgba(0,0,0,.25);padding-bottom:2px;margin-bottom:2px}
+.tile .cloth.pad b+b,.tile .cloth.pad u:nth-child(even){border-left:1px solid rgba(0,0,0,.25)}
+.tile .cloth.pad u{text-decoration:none;min-height:15px;font-weight:600}
 .tile .t{flex:1;min-width:0}
 .tile h2{font-size:19px;font-weight:700;letter-spacing:-.01em}
 .tile p{color:var(--muted);font-size:14.5px;margin-top:3px}
@@ -57,6 +61,11 @@
   <a class="tile" href="/games/gin/">
     <span class="cloth" aria-hidden="true"><i>♠</i><i>♥</i><i>♦</i><i>♣</i></span>
     <span class="t"><h2>Gin Rummy</h2><p>Ten cards, a knock card, and a friend. A single game or Hollywood, for points or for pennies.</p></span>
+    <span class="chev">›</span>
+  </a>
+  <a class="tile" href="/games/score/">
+    <span class="cloth pad" aria-hidden="true"><b>We</b><b>Them</b><u>24</u><u></u><u>51</u><u>18</u><u></u><u>43</u></span>
+    <span class="t"><h2>Score pad</h2><p>Playing with real cards? A gin sheet for two or three that adds up the Hollywood columns, the boxes and the money.</p></span>
     <span class="chev">›</span>
   </a>
   <p class="none" style="margin:12px 4px 0">More games will be dealt in here.</p>
