@@ -29,7 +29,7 @@ const GAMES = {
       const n = t.options.mode === 'hollywood' ? 3 : 1;
       return tot.slice(0, n).map((g) => `${g[t.seat]}–${g[1 - t.seat]}`).join(' · ');
     },
-    idle: (t) => (t.summary && t.summary.state === 'hand_over' ? 'DEAL' : 'Their turn')
+    idle: (t) => (t.summary && t.summary.state === 'hand_over' ? 'Deal' : 'Their turn')
   }
 };
 
