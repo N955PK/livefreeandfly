@@ -369,6 +369,117 @@ returns jsonb language sql stable security definer set search_path = room, publi
     group by p.id order by 5 desc, 6 limit 50) x
 $$;
 
+/* ---------- notifications: a buzz on a player's phone when the table is waiting on them ---------- */
+
+-- A phone or browser that asked to be told. The endpoint is the address its maker (Apple, Google, Mozilla) gave it
+-- for messages; the two keys seal a message so only that device can read it.
+create table if not exists room.push (
+  endpoint    text primary key,
+  player      uuid not null references room.players (id) on delete cascade,
+  p256dh      text not null,
+  auth        text not null,
+  created_at  timestamptz not null default now(),
+  last_at     timestamptz                              -- when it was last sent something, to keep from pestering
+);
+create index if not exists push_player on room.push (player);
+alter table room.push enable row level security;      -- and no policies
+
+-- What the sender keeps to itself: the key pair that signs every notification. Made by the sender the first time
+-- it runs, and never handed to a page.
+create table if not exists room.secrets (name text primary key, value jsonb not null);
+alter table room.secrets enable row level security;   -- and no policies
+
+-- This device wants notifications. p_sub is what the browser hands back: {endpoint, keys: {p256dh, auth}}.
+create or replace function public.room_push_on(p_token text, p_sub jsonb)
+returns boolean language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare me room.players := room.me(p_token); v_end text := p_sub ->> 'endpoint';
+  v_key text := p_sub -> 'keys' ->> 'p256dh'; v_auth text := p_sub -> 'keys' ->> 'auth';
+begin
+  if v_end is null or v_end !~ '^https://[a-z0-9.-]+/' or length(v_end) > 1000
+     or v_key is null or length(v_key) not between 80 and 120 or v_auth is null or length(v_auth) not between 16 and 40 then
+    raise exception 'That is not something notifications can be sent to';
+  end if;
+  insert into room.push (endpoint, player, p256dh, auth) values (v_end, me.id, v_key, v_auth)
+  on conflict (endpoint) do update set player = excluded.player, p256dh = excluded.p256dh, auth = excluded.auth;
+  delete from room.push where player = me.id and endpoint not in (   -- a player's five newest devices
+    select endpoint from room.push where player = me.id order by created_at desc limit 5);
+  return true;
+end $$;
+
+create or replace function public.room_push_off(p_token text, p_endpoint text)
+returns boolean language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare me room.players := room.me(p_token);
+begin
+  delete from room.push where player = me.id and endpoint = p_endpoint;
+  return true;
+end $$;
+
+-- The three below are for the sender alone (the "push" edge function); no page may call them.
+
+-- The signing keys. Given a pair when none is stored, it stores that pair; either way it answers what is stored.
+create or replace function public.push_keys(p_set jsonb default null)
+returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
+begin
+  if p_set is not null then
+    insert into room.secrets (name, value) values ('vapid', p_set) on conflict (name) do nothing;
+  end if;
+  return (select value from room.secrets where name = 'vapid');
+end $$;
+
+-- Who to tell, and what. The caller must be sitting at the table. p_kind is
+--   turn   it has become someone's move: told only if they have stepped away
+--   say    the caller said p_text: told to whoever has stepped away
+--   ring   the caller is asking the others to come back: told whether they are looking or not
+-- A device is not sent a turn or a line within ten seconds of its last message, nor a ring within twenty.
+-- Answers {title, body, url, tag, subs: [{endpoint, p256dh, auth}]}.
+create or replace function public.push_job(p_code text, p_token text, p_kind text, p_text text default null)
+returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare me room.players := room.me(p_token); t room.tables; v_subs jsonb; v_body text; v_text text;
+begin
+  select * into t from room.tables where code = room.code(p_code);
+  if not found or not (me.id = any(t.seats)) then raise exception 'You are not sitting at this table'; end if;
+  if p_kind is null or p_kind not in ('turn', 'say', 'ring') then raise exception 'Unknown kind of notification'; end if;
+  v_text := left(btrim(regexp_replace(coalesce(p_text, ''), '[[:cntrl:]]+', ' ', 'g')), 140);
+  if p_kind = 'say' and v_text = '' then return jsonb_build_object('subs', '[]'::jsonb); end if;
+  with picked as (
+    select s.endpoint from room.push s join room.players p on p.id = s.player
+    where s.player = any(t.seats) and s.player <> me.id and t.status <> 'closed'
+      and (p_kind = 'ring' or p.seen_at < now() - interval '40 seconds')
+      and (p_kind <> 'turn' or t.turn = s.player)
+      and (s.last_at is null or s.last_at < now() - case when p_kind = 'ring' then interval '20 seconds' else interval '10 seconds' end)
+  ), marked as (
+    update room.push s set last_at = now() from picked where s.endpoint = picked.endpoint
+    returning s.endpoint, s.p256dh, s.auth
+  )
+  select coalesce(jsonb_agg(jsonb_build_object('endpoint', endpoint, 'p256dh', p256dh, 'auth', auth)), '[]') into v_subs from marked;
+  v_body := case p_kind when 'turn' then 'Your turn. ' || me.name || ' is waiting.'
+                        when 'say' then me.name || ': ' || v_text
+                        else me.name || ' is waiting for you at the table.' end;
+  return jsonb_build_object('title', case t.game when 'gin' then 'gin/rummy' else 'game/room' end, 'body', v_body,
+    'url', '/games/' || t.game || '/?t=' || t.code, 'tag', t.code, 'subs', v_subs);
+end $$;
+
+-- A device that no longer takes messages (it was reset, or notifications were turned off there).
+create or replace function public.push_gone(p_endpoint text)
+returns boolean language sql security definer set search_path = room, public, pg_temp as $$
+  delete from room.push where endpoint = p_endpoint returning true
+$$;
+
+do $$
+declare f record; r text;
+begin
+  for f in select p.oid::regprocedure as sig from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.proname in ('push_keys', 'push_job', 'push_gone') loop
+    execute format('revoke all on function %s from public', f.sig);
+    foreach r in array array['anon', 'authenticated'] loop
+      if exists (select 1 from pg_roles where rolname = r) then execute format('revoke all on function %s from %I', f.sig, r); end if;
+    end loop;
+    if exists (select 1 from pg_roles where rolname = 'service_role') then
+      execute format('grant execute on function %s to service_role', f.sig);
+    end if;
+  end loop;
+end $$;
+
 do $$
 declare f record;
 begin

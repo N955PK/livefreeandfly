@@ -12,6 +12,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.v13.png">
 <link rel="icon" type="image/svg+xml" sizes="any" href="/assets/favicon.v13.svg">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.v13.png">
+<link rel="manifest" href="/games/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="../room.css">
 <style>
 :root{--dim:#9fb0a8; --glass:rgba(8,20,17,.62); --panel:#0c2a21; --cw:clamp(60px,18vw,108px);
@@ -133,11 +136,6 @@ button.knock.can b{font-size:calc(var(--cw)*.36)}
 #sayTray .lines button{flex:none;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-size:15px;background:rgba(255,255,255,.06);white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
 #sayTray .lines button.mine{border-color:rgba(242,193,78,.5);color:var(--gold)}
 #sayTray .lines button:active{background:rgba(255,255,255,.16)}
-.sayrow{display:flex;gap:8px;margin-top:10px;align-items:center}
-.sayrow input{flex:1;min-width:0;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:999px;color:var(--ink);font:inherit;font-size:16px;padding:11px 16px;outline:none}
-.sayrow input:focus{border-color:var(--gold)}
-.sayrow .send{flex:none;width:44px;height:44px;border-radius:50%;background:var(--gold);color:#1d1602;font-size:18px;transition:opacity .15s}
-.sayrow .send:disabled{opacity:.35}
 /* Choosing the cards and the table. */
 .looks{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .looks button{position:relative;border:2px solid transparent;border-radius:12px;padding:5px;background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--dim)}
@@ -255,7 +253,12 @@ body{background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.4
 /* The seats. */
 .seat .nm{font-size:15.5px}
 .pill{padding:2px 7px;background:rgba(0,0,0,.25)}
-#sayBtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--glass);padding:0;font-size:17px;opacity:1;flex:none}
+#sayBtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--glass);padding:0;font-size:19px;opacity:1;flex:none}
+#sayBtn.send{background:var(--gold);border-color:var(--gold);color:#1d1602;font-size:16px}
+#meSeat .txt{flex:0 1 auto;max-width:30%}
+#sayBox{flex:1;min-width:0;height:40px;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:999px;color:var(--ink);font:inherit;font-size:16px;padding:0 14px;outline:none}
+#sayBox:focus{border-color:var(--gold)}
+#sayBox::placeholder{color:var(--dim)}
 /* The buttons along the bottom. */
 #actions button,#actions a{border-radius:16px;font-size:16.5px;letter-spacing:.01em;transition:transform .08s,filter .15s}
 #actions button:not(:disabled):active{transform:translateY(1px) scale(.99)}
@@ -353,7 +356,7 @@ table.sheet.book td small{font-family:var(--sans)}
     <button class="strip" id="strip" aria-label="Scoresheet"></button>
     <button class="gear" id="gear" aria-label="Table settings">⚙︎</button>
   </div>
-  <div class="seat" id="oppSeat"><div class="av" id="oppAv"></div><div class="txt"><div class="nm" id="oppNm"></div><div class="sub" id="oppSub"></div></div><button id="nudgeBtn" hidden>Text them</button></div>
+  <div class="seat" id="oppSeat"><div class="av" id="oppAv"></div><div class="txt"><div class="nm" id="oppNm"></div><div class="sub" id="oppSub"></div></div><button id="nudgeBtn" hidden>Ring them</button></div>
   <div id="oppHand"></div>
   <div id="middle">
     <div id="piles">
@@ -367,7 +370,7 @@ table.sheet.book td small{font-family:var(--sans)}
     <div class="handbar"><span class="dw" id="dw"></span><span id="dwHint"></span>
       <span class="sorts" id="sorts" role="group" aria-label="Sort your hand"><button data-sort="melds">Melds</button><button data-sort="suit">Suits</button><button data-sort="rank">Ranks</button></span></div>
     <div id="handWrap"><div id="hand"></div></div>
-    <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><button id="sayBtn" aria-label="React or say something">💬</button></div>
+    <div class="seat" id="meSeat" style="margin-top:2px"><button class="av" id="meAv" aria-label="Change your name and avatar"></button><div class="txt"><div class="nm" id="meNm"></div></div><input id="sayBox" type="text" maxlength="140" placeholder="Say something" aria-label="Say something to the other player" enterkeyhint="send" autocomplete="off"><button id="sayBtn" aria-label="Faces and ready lines">😀</button></div>
     <div id="actions"></div>
   </div>
 </div>
@@ -629,6 +632,7 @@ async function sayLine(text) {
   catch (e) {
     if (wire && wire.channel) { wire.send('say', { t: text }); bubble(text, st.you); } else toast('That could not be sent just now.');
   }
+  if (st.away[1 - st.you]) Room.notify(code, 'say', text);
   return true;
 }
 function sendFace(e) {
@@ -638,40 +642,29 @@ function sendFace(e) {
 }
 function closeSay() {
   const t = $('#sayTray'); if (!t) return;
-  t.classList.remove('up'); document.activeElement && document.activeElement.blur && document.activeElement.blur();
-  if (window.visualViewport) { visualViewport.removeEventListener('resize', t.fit); visualViewport.removeEventListener('scroll', t.fit); }
-  setTimeout(() => t.remove(), 180);
+  t.classList.remove('up'); setTimeout(() => t.remove(), 180);
 }
 function showSay() {
   if (!st) return;
   if ($('#sayTray')) return closeSay();
-  const box = h('input', { type: 'text', maxlength: 140, placeholder: `Say something to ${st.names[1 - st.you] || 'the table'}`, 'aria-label': 'Your message', enterkeyhint: 'send', autocomplete: 'off', autocapitalize: 'sentences' });
-  const go = h('button', { class: 'send', 'aria-label': 'Send', disabled: '' }, '➤');
-  const send = (text) => { if (String(text || '').trim()) { closeSay(); sayLine(text); } };
-  const chip = (q, mine) => h('button', { class: mine ? 'mine' : '', on: { click: () => send(q) } }, q);
-  const lines = h('div', { class: 'lines' });
-  // What is typed narrows the lines to the ones that hold it, so a few letters and a tap finish the thought.
-  const fill = () => {
-    const typed = box.value.trim().toLowerCase(), all = [...myLines().map((q) => [q, true]), ...QUICK.map((q) => [q, false])];
-    const show = typed ? all.filter(([q]) => q.toLowerCase().includes(typed) && q.toLowerCase() !== typed) : all;
-    lines.replaceChildren(...show.map(([q, mine]) => chip(q, mine))); lines.hidden = !show.length;
-    go.disabled = !typed;
-  };
-  box.addEventListener('input', fill);
-  box.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(box.value); else if (e.key === 'Escape') closeSay(); });
-  go.onclick = () => send(box.value);
-  const tray = h('div', { id: 'sayTray', role: 'dialog', 'aria-label': 'React or say something' },
+  const send = (text) => { closeSay(); sayLine(text); };
+  const tray = h('div', { id: 'sayTray', role: 'dialog', 'aria-label': 'Faces and ready lines' },
     h('div', { class: 'shade', on: { click: closeSay } }),
     h('div', { class: 'sheet' },
       h('div', { class: 'faces' }, EMOTES.map((e) => h('button', { 'aria-label': 'Send ' + e, on: { click: (ev) => { sendFace(e); ev.currentTarget.animate([{ transform: 'scale(1.5)' }, { transform: 'none' }], 220); } } }, e))),
-      lines,
-      h('div', { class: 'sayrow' }, box, go)));
-  // The sheet sits on top of the keyboard, wherever the phone puts it.
-  tray.fit = () => { const v = window.visualViewport; tray.style.setProperty('--kb', (v ? Math.max(0, innerHeight - v.height - v.offsetTop) : 0) + 'px'); };
-  if (window.visualViewport) { visualViewport.addEventListener('resize', tray.fit); visualViewport.addEventListener('scroll', tray.fit); }
-  document.body.append(tray); fill(); tray.fit();
+      h('div', { class: 'lines' }, [...myLines().map((q) => [q, true]), ...QUICK.map((q) => [q, false])].map(([q, mine]) => h('button', { class: mine ? 'mine' : '', on: { click: () => send(q) } }, q)))));
+  document.body.append(tray);
   requestAnimationFrame(() => tray.classList.add('up'));
-  box.focus({ preventScroll: true });
+}
+// The box by your name is always there: type, press send. With words in it, the button beside it sends them;
+// empty, the button opens the faces and ready lines.
+function saySetup() {
+  const box = $('#sayBox'), btn = $('#sayBtn');
+  const paint = () => { const full = !!box.value.trim(); btn.textContent = full ? '➤' : '😀'; btn.classList.toggle('send', full); btn.setAttribute('aria-label', full ? 'Send' : 'Faces and ready lines'); };
+  const send = () => { const text = box.value; box.value = ''; paint(); box.blur(); sayLine(text); };
+  box.addEventListener('input', paint);
+  box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && box.value.trim()) send(); else if (e.key === 'Escape') box.blur(); });
+  btn.onclick = () => (box.value.trim() ? send() : showSay());
 }
 
 async function act(fn, args) {
@@ -680,6 +673,8 @@ async function act(fn, args) {
   try {
     apply(await Room.call(fn, { p_code: code, ...args }));
     if (wire) wire.send('poke');
+    // The move is theirs now and they are not looking: their phone is told.
+    if (st.away[1 - st.you] && playing(st) && st.turn !== st.you) Room.notify(code, 'turn');
   } catch (e) { toast(e.message); thrownFrom = null; busy = false; refresh(); }
   busy = false; renderActions();
 }
@@ -860,10 +855,15 @@ function leave(title, why, yes) {
     } } }, yes)));
 }
 
-// The other player has stepped away: a text to bring them back. It opens the phone's own Messages with the words
-// and the table's link already written, and the player picks who it goes to; the room knows nobody's number.
-function nudge() {
-  const opp = 1 - st.you, url = location.origin + location.pathname + '?t=' + code;
+// The other player has stepped away: ring their phone. If they have notifications on, that is a notification
+// there. If not, it falls back to a text: the phone's own Messages opens with the words and the table's link
+// already written, and the player picks who it goes to; the room knows nobody's number.
+async function nudge() {
+  const opp = 1 - st.you, url = location.origin + location.pathname + '?t=' + code, btn = $('#nudgeBtn');
+  btn.disabled = true;
+  const reached = await Room.notify(code, 'ring');
+  btn.disabled = false;
+  if (reached) return toast(`Rang ${st.names[opp] || 'them'}.`);
   const waiting = playing(st) && st.turn === opp;
   const text = `${waiting ? 'Your turn at gin' : 'Come back to the gin table'}, ${st.names[opp] || 'you'}. ${st.names[st.you] || 'I'} ${st.names[st.you] ? 'is' : 'am'} waiting: ${url}`;
   const ua = navigator.userAgent, apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
@@ -1301,6 +1301,7 @@ function showSettings() {
     toggle('Show my melds', 'Color the melds in your hand and count your deadwood.', () => hints, (v) => { hints = v; store.set('gin-hints', v); render(); }),
     go('Cards and table', `${DECKS[look.deck] || DECKS.classic} · ${look.back === 'custom' ? 'your own' : (BACKS[look.back] || BACKS.red).name.toLowerCase()} backs · ${(FELTS[look.felt] || FELTS.green).name.toLowerCase()} table`, showLook),
     go('Your name and avatar', profile.name, () => Room.profileDialog(() => { if (wire) wire.send('poke'); refresh(); })),
+    Room.pushState() === 'none' ? null : go('Notifications', Room.pushState() === 'on' ? 'On for this device.' : 'A buzz on this device when it’s your turn.', () => Room.pushDialog()),
     go('Play on another device', 'Take your seat to a second phone or a laptop.', Room.deviceDialog),
     st.closed ? null : go('Leave the table', 'Ends the game for both of you. The scores stand.',
       () => leave('Leave this table?', `That ends the game for you and ${st.names[1 - st.you]}. The scores stay as they are.`, 'Leave'), 'warn'),
@@ -1345,7 +1346,7 @@ function showLook() {
 $('#stock').onclick = () => act('gin_draw', { p_source: 'stock' });
 $('#discard').onclick = () => act('gin_draw', { p_source: 'discard' });
 $('#knockBtn').onclick = goDown;
-$('#sayBtn').onclick = showSay;
+saySetup();
 $('#nudgeBtn').onclick = nudge;
 $('#strip').onclick = showSheet;
 $('#gear').onclick = showSettings;

@@ -553,6 +553,51 @@ def test_stakes_and_settling_up(db):
     assert [(m["won"], m["net"], m["money"]) for m in theirs] == [(False, -r["settle"]["net0"], -r["settle"]["money0"])]
 
 
+def test_notifications(db):
+    code, (ann, bob) = new_table(db)
+    cy = hello(db, "Cy")
+    sub = {"endpoint": "https://web.push.apple.com/abc123", "keys": {"p256dh": "B" * 87, "auth": "a" * 22}}
+    fails(db, "room_push_on", "not something", p_token=bob, p_sub={"endpoint": "http://x/y", "keys": sub["keys"]})
+    assert call(db, "room_push_on", p_token=bob, p_sub=sub)
+    job = lambda who, kind, text=None: call(db, "push_job", p_code=code, p_token=who, p_kind=kind, p_text=text)
+    fails(db, "push_job", "not sitting", p_code=code, p_token=cy, p_kind="ring")
+    fails(db, "push_job", "Unknown kind", p_code=code, p_token=ann, p_kind="shout")
+    db.execute("select t.turn = p.id from room.tables t, room.players p where t.code = %s and p.key = %s", [code, bob])
+    bobs_turn = db.fetchone()[0]
+    # Bob is at the table and looking: a turn or a line is not worth a notification, a ring is.
+    assert job(ann, "turn")["subs"] == [] and job(ann, "say", "hello")["subs"] == []
+    rung = job(ann, "ring")
+    assert [s["endpoint"] for s in rung["subs"]] == [sub["endpoint"]] and rung["subs"][0]["p256dh"] == "B" * 87
+    assert rung["title"] == "gin/rummy" and rung["body"] == "Ann is waiting for you at the table."
+    assert rung["url"] == f"/games/gin/?t={code}" and rung["tag"] == code
+    assert job(ann, "ring")["subs"] == []                                   # not twice in twenty seconds
+    assert job(bob, "ring")["subs"] == []                                   # Ann has no device, and Bob is not told of himself
+    # Bob steps away: now a line reaches him, and a turn does when the move is his.
+    db.execute("update room.players set seen_at = now() - interval '2 minutes' where key = %s", [bob])
+    db.execute("update room.push set last_at = null")
+    said = job(ann, "say", "  your\nmove ")
+    assert len(said["subs"]) == 1 and said["body"] == "Ann: your move"
+    db.execute("update room.push set last_at = null")
+    assert len(job(ann, "turn")["subs"]) == (1 if bobs_turn else 0)
+    db.execute("update room.push set last_at = null")
+    assert job(ann, "say", "   ")["subs"] == []
+    # The signing keys are stored once and never replaced.
+    assert call(db, "push_keys") is None
+    assert call(db, "push_keys", p_set={"public": "one"}) == {"public": "one"}
+    assert call(db, "push_keys", p_set={"public": "two"}) == {"public": "one"}
+    # A device that has gone is forgotten; so is one its owner turns off.
+    assert call(db, "room_push_on", p_token=ann, p_sub={**sub, "endpoint": "https://fcm.googleapis.com/fcm/send/zzz"})
+    assert call(db, "room_push_off", p_token=ann, p_endpoint="https://fcm.googleapis.com/fcm/send/zzz")
+    assert call(db, "push_gone", p_endpoint=sub["endpoint"]) is True
+    db.execute("select count(*) from room.push")
+    assert db.fetchone()[0] == 0
+    # No page may call the sender's functions.
+    db.execute("select has_function_privilege('anon', 'public.push_job(text, text, text, text)', 'execute'), "
+               "has_function_privilege('anon', 'public.push_keys(jsonb)', 'execute'), "
+               "has_function_privilege('anon', 'public.room_push_on(text, jsonb)', 'execute')")
+    assert db.fetchone() == (False, False, True)
+
+
 def test_upgrade_keeps_tables_in_play(server):
     admin = connect(server)
     admin.cursor().execute("create database upgrade")

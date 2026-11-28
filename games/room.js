@@ -302,7 +302,81 @@ function accountBox(box) {
       h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Stay'), h('button', { class: 'go', on: { click: logout } }, 'Log out')));
   }));
   else box.replaceChildren(h('span', {}, 'Playing as a guest on this device.'), link('Log in', () => accountDialog('login')), link('Create an account', () => accountDialog('signup')));
+  const state = pushState();
+  if (state !== 'none') box.append(link(state === 'on' ? '🔔 Notifications on' : '🔔 Turn on notifications', () => pushDialog(() => accountBox(box))));
 }
+/* ---------- notifications: a buzz on the phone when the table is waiting on you ---------- */
+// The sender is the "push" edge function (games/push); the list of devices is in the card room. An iPhone only
+// allows this for a page added to the Home Screen and opened from there.
+const PUSH_FN = DEV ? null : API + '/functions/v1/push', PUSH_ON = 'lff-games-push';
+const KEYED = { apikey: CONFIG.supabaseAnonKey, Authorization: 'Bearer ' + CONFIG.supabaseAnonKey };
+const APPLE = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const homeScreen = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+// none: this browser cannot; install: an iPhone that has to open the page from the Home Screen first;
+// denied: turned off in the phone's settings; on, off.
+function pushState() {
+  if (!PUSH_FN) return 'none';
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return APPLE && !homeScreen() ? 'install' : 'none';
+  if (Notification.permission === 'denied') return 'denied';
+  return Notification.permission === 'granted' && store.get(PUSH_ON, false) ? 'on' : 'off';
+}
+const keyBytes = (text) => Uint8Array.from(atob(text.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0));
+async function pushOn() {
+  // The phone's own question comes first: it is only allowed straight off a tap.
+  if (await Notification.requestPermission() !== 'granted') throw new Error('Notifications are turned off for this page in the phone’s settings.');
+  const reg = await navigator.serviceWorker.register('/games/sw.js', { scope: '/games/' });
+  await navigator.serviceWorker.ready;
+  const reply = await fetch(PUSH_FN, { headers: KEYED }).then((r) => r.json()).catch(() => null);
+  if (!reply || !reply.key) throw new Error('Notifications are not set up in the game room yet.');
+  let sub = await reg.pushManager.getSubscription();
+  const held = sub && sub.options && sub.options.applicationServerKey && btoa(String.fromCharCode(...new Uint8Array(sub.options.applicationServerKey)));
+  if (sub && held && held !== btoa(String.fromCharCode(...keyBytes(reply.key)))) { await sub.unsubscribe(); sub = null; }
+  sub = sub || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(reply.key) });
+  await call('room_push_on', { p_sub: sub.toJSON() });
+  store.set(PUSH_ON, true);
+}
+async function pushOff() {
+  store.set(PUSH_ON, false);
+  const reg = await navigator.serviceWorker.getRegistration('/games/'), sub = reg && await reg.pushManager.getSubscription();
+  if (sub) { await call('room_push_off', { p_endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
+}
+// On every visit, the room is told again where this device is: the address can change, and so can who is logged in.
+async function pushSync() {
+  if (pushState() !== 'on') return;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration('/games/'), sub = reg && await reg.pushManager.getSubscription();
+    if (sub) await call('room_push_on', { p_sub: sub.toJSON() }); else store.set(PUSH_ON, false);
+  } catch (e) { /* the next visit tries again */ }
+}
+// Tells the other players at a table. kind is turn, say or ring. Answers how many devices were reached.
+async function notify(code, kind, text) {
+  if (!PUSH_FN) return 0;
+  try {
+    const r = await fetch(PUSH_FN, { method: 'POST', headers: { ...KEYED, 'Content-Type': 'application/json' }, body: JSON.stringify({ code, token: await me(), kind, text: text || null }) });
+    return (await r.json()).sent || 0;
+  } catch (e) { return 0; }
+}
+function pushDialog(done) {
+  const state = pushState(), close = () => { d.close(); if (done) done(); };
+  const act = (label, fn) => h('button', { class: 'go', on: { click: async (ev) => {
+    ev.currentTarget.disabled = true;
+    try { await fn(); close(); toast(pushState() === 'on' ? 'Notifications are on for this device.' : 'Notifications are off for this device.'); }
+    catch (e) { toast(e.message || 'That did not work just now.'); ev.target.disabled = false; }
+  } } }, label);
+  const why = {
+    on: 'This device gets a notification when it is your turn and you have stepped away, when the other player says something, and when they ring you.',
+    off: 'Get a notification on this device when it is your turn and you have stepped away, when the other player says something, and when they ring you.',
+    install: 'On an iPhone or iPad, notifications only work from the Home Screen. Tap Share, then Add to Home Screen, open game/room from the new icon, and turn notifications on there.',
+    denied: 'Notifications are turned off for this page in the phone’s or browser’s settings. Turn them on there, then come back here.',
+    none: DEV ? 'Notifications are not sent from a local copy.' : 'This browser cannot show notifications from a web page.'
+  }[state];
+  const d = dialog('Notifications', h('h3', {}, 'Notifications'), h('p', { class: 'why' }, why),
+    h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, state === 'on' || state === 'off' ? 'Not now' : 'Close'),
+      state === 'off' ? act('Turn on', pushOn) : state === 'on' ? act('Turn off', pushOff) : null));
+}
+
+ready.then(pushSync).catch(() => {});
+
 // The leaderboard: players with accounts, by games won against each other.
 async function showLeaderboard(box, game) {
   let rows;
@@ -393,5 +467,5 @@ const sound = (() => {
 
 return { DEV, GAMES, $, h, store, toast, plural, rpc, call, me, ready, named, profile, saveProfile, key: () => key,
          avatarEl, setAvatar, profileEditor, profileDialog, deviceDialog, dialog, qr, mine, lobby, showTables, live, sound,
-         handle: () => handle, accountBox, accountDialog, showLeaderboard };
+         handle: () => handle, accountBox, accountDialog, showLeaderboard, pushState, pushDialog, notify };
 })();

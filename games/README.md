@@ -68,11 +68,15 @@ At the table:
   rank whenever you want a fresh start.
 - Tap a card and then Throw it, or drag it onto the discard pile.
 - Going down is the gold circle beside the piles, not a button next to Throw, so it is never tapped by mistake.
-- When the other player has stepped away, a Text them button by their name opens your phone's Messages with a
-  reminder and the table's link already written; you pick who it goes to.
-- The 💬 button slides up a tray with the keyboard ready: a dozen faces that send on one tap (the tray stays up for
-  more), ready lines and your own last six that send on one tap, and a box to type in. Typing narrows the lines to
-  the ones that match. A face reaches the other player even when the live channel is down.
+- When the other player has stepped away, a Ring them button by their name sends a notification to their phone.
+  If they have not turned notifications on, it opens your phone's Messages instead, with a reminder and the table's
+  link already written; you pick who it goes to.
+- The box by your name is always there to type in; send with the keyboard's send key or the button beside it. With
+  the box empty, that button slides up a dozen faces that send on one tap (the tray stays up for more), ready lines,
+  and your own last six. A face reaches the other player even when the live channel is down.
+- Notifications: a player turns them on per device (the 🔔 link under their name, or the table's settings). A device
+  is told when it is its owner's turn and they have stepped away, when the other player says something while they
+  are away, and when they are rung. On an iPhone this needs the page added to the Home Screen and opened from there.
 - "Cards and table" in the table's settings picks the suit colors (classic, green clubs, or four colors; the suits are drawn so a club and a spade differ in shape), the
   backs of the cards (six, or a picture of your own) and the cloth. They are kept on your device and are yours alone.
 - Melds are colored and deadwood counted for you; "Show my melds" in the table's settings turns that off.
@@ -113,3 +117,18 @@ loaded with `sql/`. The pages use it automatically on localhost.
 `tests/test_gin_sql.py` has two bots play whole games through the same functions the page calls, checks the room
 (lists, leaving, a second device), and upgrades a copy of the first version of gin to make sure tables in play
 survive it.
+
+## Notifications: setting up the sender
+
+Notifications need one more piece on the Supabase project, once:
+
+1. Run `sql/1_room.sql` again (it adds the list of devices and the sender's functions).
+2. In Supabase, open Edge Functions, deploy a new function through the editor, name it `push`, and paste in
+   `push/index.ts`. Turn "Verify JWT" off for it: the pages call it with the publishable key, and it checks every
+   request against the card room itself.
+
+There is no key to make or paste. The sender makes its signing key pair the first time it runs and keeps it in the
+database (`room.secrets`), where no page can read it. Who is told, and what, is decided in the database
+(`public.push_job`); the function only seals each message for its device and hands it to Apple, Google or Mozilla.
+`sw.js` is what shows the notification on the phone, and `manifest.webmanifest` is what lets an iPhone add the room
+to its Home Screen as an app.
