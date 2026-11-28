@@ -283,7 +283,7 @@ function machine(p) {
     plus.setAttribute('aria-pressed', String(!cur && terms.length > 0 && sign > 0)); minus.setAttribute('aria-pressed', String(!cur && sign < 0));
     ginKey.setAttribute('aria-pressed', String(gin));
     go.disabled = t === 0;
-    go.textContent = t > 0 ? `Add ${t} for ${name(p)}` : t < 0 ? `Take ${-t} off ${name(p)}` : 'Add the hand';
+    go.textContent = t < 0 ? `Take off ${name(p)}` : `Add for ${name(p)}`;
     who.replaceChildren(...Array.from({ length: S.players }, (_, q) => h('button', { 'aria-pressed': String(q === p), on: { click: () => { p = q; draw(); } } }, name(q))));
   };
   const key = (k) => {
