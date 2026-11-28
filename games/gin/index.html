@@ -216,7 +216,9 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
 /* The cloth darkens toward its edges, like a table under one lamp. */
 /* It is a layer of the page's own background, not a sheet fixed over the screen: an iPhone takes anything fixed
    against the top edge for a toolbar and fogs whatever sits under the clock, which hid the score. */
-body{background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.42) 100%) fixed,
+/* The top layer runs the solid strip over the clock (#topTint) down into the cloth, so the strip has no edge. */
+body{background:linear-gradient(to bottom,var(--felt0) 0,var(--felt0) calc(env(safe-area-inset-top,0px) + 12px),transparent calc(env(safe-area-inset-top,0px) + 120px)) fixed,
+  radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.42) 100%) fixed,
   var(--felt0) radial-gradient(ellipse at 50% 38%,var(--felt2) 0%,var(--felt1) 48%,var(--felt0) 100%) fixed}
 /* Cards: a crisper face, a hairline edge, and a shadow on the left edge so each card in a fanned hand stands off
    the one under it. */
