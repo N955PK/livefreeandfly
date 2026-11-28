@@ -1,4 +1,4 @@
--- game/room, part 2 of 2: gin rummy. Run 1_room.sql first, then this, in the Supabase project's SQL editor.
+-- Card Night, part 2 of 2: gin rummy. Run 1_room.sql first, then this, in the Supabase project's SQL editor.
 -- Safe to run again at any time. Run on top of the first version of gin (20261120_gin.sql), it moves every table
 -- in play onto the room and keeps each player's seat: the link and the browser they were using still work.
 --

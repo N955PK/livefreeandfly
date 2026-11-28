@@ -1,13 +1,14 @@
 {
-  "name": "game/room",
-  "short_name": "game/room",
+  "name": "Card Night",
+  "short_name": "Card Night",
+  "description": "Card games for two, played over a link.",
   "start_url": "/games/",
   "scope": "/games/",
   "display": "standalone",
-  "background_color": "#081f19",
-  "theme_color": "#0b2a21",
+  "background_color": "#0d1014",
+  "theme_color": "#0d1014",
   "icons": [
-    {"src": "/assets/apple-touch-icon.v13.png", "sizes": "180x180", "type": "image/png"},
-    {"src": "/assets/logo-512.v8.png", "sizes": "512x512", "type": "image/png"}
+    {"src": "/games/icons/icon-180.png", "sizes": "180x180", "type": "image/png"},
+    {"src": "/games/icons/icon-512.png", "sizes": "512x512", "type": "image/png"}
   ]
 }

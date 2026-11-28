@@ -3,48 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0e13">
-<title>game/room</title>
-<meta property="og:title" content="game/room">
-<meta property="og:description" content="Games for two, played over a link.">
+<meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
+<title>Card Night</title>
+<meta property="og:title" content="Card Night">
+<meta property="og:description" content="Card games for two, played over a link.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://livefreeandfly.org/assets/og-card.v8.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.v13.png">
-<link rel="icon" type="image/svg+xml" sizes="any" href="/assets/favicon.v13.svg">
-<link rel="apple-touch-icon" href="/assets/apple-touch-icon.v13.png">
+<meta property="og:image" content="https://livefreeandfly.org/games/icons/og.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/games/icons/favicon-32.png">
+<link rel="icon" type="image/svg+xml" sizes="any" href="/games/icons/favicon.svg">
+<link rel="apple-touch-icon" href="/games/icons/icon-180.png">
 <link rel="manifest" href="/games/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="room.css?v=3">
+<meta name="apple-mobile-web-app-title" content="Card Night">
+<link rel="stylesheet" href="room.css?v=5">
 <style>
 .page{max-width:880px}
-.me{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.me{display:flex;align-items:center;gap:14px;width:100%;text-align:left}
 .me .t{flex:1;min-width:0}
-.me .t b{display:block;font-size:17px}
-.me .t span{display:block;color:var(--dim);font-size:13px;margin-top:2px}
+.me .t b{display:block;font-size:18px;font-weight:650}
+.me .t span{display:block;color:var(--muted);font-size:14px;margin-top:1px}
 .cols{display:grid;gap:0 14px;grid-template-columns:minmax(0,1fr)}
 @media(min-width:700px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-.grid{display:grid;gap:14px;margin-top:14px;grid-template-columns:1fr}
-@media(min-width:640px){.grid{grid-template-columns:1fr 1fr}}
-.tile{display:block;position:relative;border:1px solid var(--line);border-radius:16px;background:var(--glass);
-  padding:22px 20px;text-decoration:none;color:var(--ink);transition:border-color .2s,transform .2s}
-a.tile:hover{border-color:rgba(163,31,52,.55);transform:translateY(-2px)}
-.tile h2{font-family:var(--mono);font-size:15px;letter-spacing:.05em;font-weight:600}
-.tile p{color:var(--dim);font-size:13px;line-height:1.55;margin-top:8px}
-.tile .suits{position:absolute;top:18px;right:18px;font-size:15px;letter-spacing:2px;color:var(--dim)}
-.tile .suits b{color:var(--hot);font-weight:400}
-.tile.soon{opacity:.55}
-.tile.soon h2{color:var(--dim)}
-.soonchip{position:absolute;top:20px;right:18px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dim);
-  border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+/* A game: its cloth on the left with a hand fanned on it, its name and a line about it on the right. */
+.tile{display:flex;align-items:center;gap:16px;border:1px solid var(--border);border-radius:20px;background:var(--surface);
+  padding:14px;margin-top:14px;text-decoration:none;color:var(--ink);box-shadow:var(--shadow)}
+.tile .cloth{flex:none;position:relative;width:92px;height:92px;border-radius:14px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 35%,#1c6a4c 0%,#0e3d2d 60%,#07211a 100%)}
+.tile .cloth i{position:absolute;left:50%;top:54%;width:34px;height:48px;margin:-24px 0 0 -17px;border-radius:5px;background:linear-gradient(165deg,#fff,#f1eee6);
+  box-shadow:0 0 0 1px rgba(0,0,0,.2),-2px 0 4px -1px rgba(0,0,0,.4);transform-origin:50% 130%;display:grid;place-items:center;font-style:normal;font-size:19px;color:#14181d}
+.tile .cloth i:nth-child(1){transform:rotate(-24deg)}.tile .cloth i:nth-child(2){transform:rotate(-8deg);color:#c8102e}
+.tile .cloth i:nth-child(3){transform:rotate(8deg);color:#c8102e}.tile .cloth i:nth-child(4){transform:rotate(24deg)}
+.tile .t{flex:1;min-width:0}
+.tile h2{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.tile p{color:var(--muted);font-size:14.5px;margin-top:3px}
 .foot{margin-top:26px;text-align:center}
-.foot button{color:var(--dim);font-size:13px;text-decoration:underline;text-underline-offset:3px}
 </style>
 </head>
 <body>
 <div id="topTint" aria-hidden="true"></div>
 <main class="page">
-  <h1>game<span class="slash">/</span>room</h1>
-  <p class="tag">Games for two. Open a table, send the link, play.</p>
+  <div class="brand"><img src="/games/icons/icon-180.png" alt="" width="46" height="46"><h1>Card Night</h1></div>
+  <p class="tag">Card games for two. Open a table, send the link, play.</p>
 
   <div class="panel"><button class="me" id="me" aria-label="Change your name and avatar"></button><div id="acct"></div></div>
 
@@ -53,21 +53,16 @@ a.tile:hover{border-color:rgba(163,31,52,.55);transform:translateY(-2px)}
     <div class="panel"><h2>Open tables</h2><div id="open"><p class="none">Loading…</p></div></div>
   </div>
 
+  <p class="label" style="margin:26px 4px 0">The games</p>
+  <a class="tile" href="/games/gin/">
+    <span class="cloth" aria-hidden="true"><i>♠</i><i>♥</i><i>♦</i><i>♣</i></span>
+    <span class="t"><h2>Gin Rummy</h2><p>Ten cards, a knock card, and a friend. A single game or Hollywood, for points or for pennies.</p></span>
+    <span class="chev">›</span>
+  </a>
+  <p class="none" style="margin:12px 4px 0">More games will be dealt in here.</p>
+
   <div class="panel"><h2>Leaderboard</h2><div id="board"><p class="none">Loading…</p></div></div>
-  <p class="label" style="margin:26px 0 0">The games</p>
-  <div class="grid">
-    <a class="tile" href="/games/gin/">
-      <span class="suits">♠︎<b>♥︎♦︎</b>♣︎</span>
-      <h2>gin<span class="slash">/</span>rummy</h2>
-      <p>Ten cards, a knock card, and a friend. Single game or Hollywood.</p>
-    </a>
-    <div class="tile soon">
-      <span class="soonchip">SOON</span>
-      <h2>next<span class="slash">/</span>deal</h2>
-      <p>Another game will be dealt in here.</p>
-    </div>
-  </div>
-  <p class="foot"><button id="device">Play on another device</button></p>
+  <p class="foot"><button class="ghost" id="device">Play on another device</button></p>
 </main>
 
 <script src="room.js"></script>
@@ -89,7 +84,7 @@ async function refresh() {
     Room.showTables($('#mine'), mine, 'mine', 'You’re not at a table yet. Pick a game below to open one.');
     Room.showTables($('#open'), open, 'open', 'Nobody is waiting for a game right now.');
     const turns = mine.filter((t) => t.your_turn).length;
-    document.title = (turns ? `(${turns}) ` : '') + 'game/room';
+    document.title = (turns ? `(${turns}) ` : '') + 'Card Night';
   } catch (e) {
     for (const id of ['#mine', '#open']) if ($(id).textContent === 'Loading…') $(id).replaceChildren(h('p', { class: 'none' }, e.message));
   }

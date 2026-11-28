@@ -3,60 +3,64 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#081f19">
-<title>gin/rummy</title>
-<meta property="og:title" content="gin/rummy">
+<meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1014" media="(prefers-color-scheme: dark)">
+<title>Gin Rummy</title>
+<meta property="og:title" content="Gin Rummy · Card Night">
 <meta property="og:description" content="Pull up a chair. Gin rummy for two.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://livefreeandfly.org/assets/og-card.v8.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.v13.png">
-<link rel="icon" type="image/svg+xml" sizes="any" href="/assets/favicon.v13.svg">
-<link rel="apple-touch-icon" href="/assets/apple-touch-icon.v13.png">
+<meta property="og:image" content="https://livefreeandfly.org/games/icons/og.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/games/icons/favicon-32.png">
+<link rel="icon" type="image/svg+xml" sizes="any" href="/games/icons/favicon.svg">
+<link rel="apple-touch-icon" href="/games/icons/icon-180.png">
 <link rel="manifest" href="/games/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="stylesheet" href="../room.css?v=3">
+<meta name="apple-mobile-web-app-title" content="Card Night">
+<link rel="stylesheet" href="../room.css?v=5">
 <style>
-:root{--dim:#9fb0a8; --glass:rgba(8,20,17,.62); --panel:#0c2a21; --cw:clamp(60px,18vw,108px);
+/* Gin Rummy. The pages around the table (opening one, sitting down, waiting) are Card Night's ordinary pages.
+   The table is cloth: its own colors, the same shapes. */
+:root{--cw:clamp(60px,18vw,108px);
   /* The table's cloth and the cards' backs; the player's choice of each is set on the page by applyLook(). */
   --felt0:#081f19; --felt1:#0d3a2b; --felt2:#17573f;
   --back-bg:repeating-linear-gradient(45deg,rgba(255,255,255,.09) 0 4px,transparent 4px 8px),repeating-linear-gradient(-45deg,rgba(0,0,0,.14) 0 4px,transparent 4px 8px),#a31f34;
   --back-edge:#f4f1ea; --back-d1:#6d1423; --back-d2:#5a101d}
-body{background:var(--felt0) radial-gradient(ellipse at 50% 38%,var(--felt2) 0%,var(--felt1) 48%,var(--felt0) 100%) fixed}
 
-/* ---------- lobby, join, waiting ---------- */
+/* ---------- opening a table, sitting down, waiting ---------- */
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.seg button,.chips button{border:1px solid var(--line);border-radius:12px;padding:12px 10px;text-align:left;background:rgba(0,0,0,.2)}
-.seg button b{display:block;font-size:15px}
-.seg button span{display:block;color:var(--dim);font-size:12px;margin-top:3px;line-height:1.35}
-.seg button[aria-pressed=true],.chips button[aria-pressed=true]{border-color:var(--gold);background:rgba(242,193,78,.14)}
-.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.chips button{padding:9px 14px;font-family:var(--mono);font-size:14px;text-align:center}
-.num{width:84px;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:12px;color:var(--ink);
-  font-family:var(--mono);font-size:14px;padding:9px 10px}
-details.rules{color:var(--dim);font-size:13.5px;line-height:1.6}
-details.rules summary{cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
-details.rules ul{margin:10px 0 0 18px}
-.scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:12px}
-.scoregrid label{display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+.seg button{border:1px solid var(--border);border-radius:16px;padding:12px 14px;text-align:left;background:var(--field)}
+.seg button b{display:block;font-size:16px;font-weight:650}
+.seg button span{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.seg button[aria-pressed=true]{border-color:var(--accent);background:var(--tint);box-shadow:inset 0 0 0 1px var(--accent)}
+details.rules{color:var(--ink2);font-size:14.5px}
+details.rules summary{cursor:pointer;font-size:13px;font-weight:650;color:var(--muted);list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.rules summary::-webkit-details-marker{display:none}
+details.rules summary::after{content:"›";font-size:20px;line-height:1;transition:transform .2s}
+details.rules[open] summary::after{transform:rotate(90deg)}
+details.rules ul{margin:12px 0 0 18px}
+details.rules li{margin-top:6px}
+.scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:14px}
+.scoregrid label{display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--muted)}
 .scoregrid .num{width:100%}
-.settle{margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid var(--line);font-size:14px;line-height:1.55}
+.settle{margin-top:14px;padding:14px 16px;border-radius:16px;background:var(--field);border:1px solid var(--border);font-size:15px}
 .settle .ln{display:flex;justify-content:space-between;gap:12px}
-.settle .ln span:last-child{font-family:var(--mono);white-space:nowrap}
-.settle .ln.sum{margin-top:6px;padding-top:6px;border-top:1px solid var(--line);font-weight:700;color:var(--ink)}
-.settle .pay{margin-top:8px;font-size:16px;font-weight:700;color:var(--gold)}
-.settle small{display:block;color:var(--dim);font-size:12.5px;margin-top:6px}
+.settle .ln span:last-child{white-space:nowrap;font-weight:600}
+.settle .ln.sum{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-weight:700;color:var(--ink)}
+.settle .pay{margin-top:10px;font-size:17px;font-weight:750;color:var(--hi)}
+.settle small{display:block;color:var(--muted);font-size:13.5px;margin-top:6px}
 .invite{display:flex;gap:14px;align-items:center}
-.invite p{font-size:16px;line-height:1.45}
-.invite small{color:var(--dim);display:block;font-size:13px;margin-top:2px}
+.invite p{font-size:17px}
+.invite small{color:var(--muted);display:block;font-size:14px;margin-top:2px}
 .shuffle{display:flex;justify-content:center;margin:26px 0 8px;height:calc(var(--cw)*1.5)}
 .shuffle .card{position:relative;margin:0 -14px;animation:bob 1.5s ease-in-out infinite}
 .shuffle .card:nth-child(2){animation-delay:.15s}.shuffle .card:nth-child(3){animation-delay:.3s}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-14px) rotate(var(--r,0deg))}}
 
 /* ---------- cards ---------- */
-.card{position:relative;flex:none;display:block;width:var(--cw);height:calc(var(--cw)*1.4);border-radius:calc(var(--cw)*.11);
-  background:linear-gradient(160deg,#fff 0%,#f1efe8 100%);color:#14181d;
-  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 2px 6px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.18);
+/* A crisp face, a hairline edge, and in a fanned hand a shadow on the left edge so each card stands off the one under it. */
+.card{position:relative;flex:none;display:block;width:var(--cw);height:calc(var(--cw)*1.4);border-radius:calc(var(--cw)*.12);
+  background:linear-gradient(165deg,#fff 0%,#f6f4ee 100%);color:#14181d;
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(0,0,0,.2),0 3px 8px rgba(0,0,0,.38);
   font-family:var(--sans);user-select:none;-webkit-user-select:none;overflow:hidden}
 .card.red{color:#c8102e}
 /* Spades and clubs are both black, and told apart by their shapes, which are drawn here and not left to the phone's
@@ -65,116 +69,164 @@ details.rules ul{margin:10px 0 0 18px}
 html[data-deck=clubs] .card.s3,html[data-deck=four] .card.s3{color:#0a7a4c}
 html[data-deck=four] .card.s2{color:#1668c9}
 .card .ix{position:absolute;top:calc(var(--cw)*.06);left:calc(var(--cw)*.09);display:flex;flex-direction:column;align-items:center;line-height:.95}
-.card .ix b{font-size:calc(var(--cw)*.3);font-weight:700;letter-spacing:-.04em}
+.card .ix b{font-size:calc(var(--cw)*.3);font-weight:800;letter-spacing:-.05em}
 .card .ix i{font-style:normal;display:block;width:calc(var(--cw)*.27);height:calc(var(--cw)*.27);margin-top:calc(var(--cw)*.03)}
 .card svg{display:block;width:100%;height:100%;fill:currentColor}
 .card .pip{position:absolute;right:calc(var(--cw)*.08);bottom:calc(var(--cw)*.07);width:calc(var(--cw)*.56);height:calc(var(--cw)*.56);opacity:.9}
 .card.back{background:var(--back-bg);
   box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,0 2px 6px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.25)}
-.card.slot{background:none;box-shadow:0 0 0 2px rgba(255,255,255,.16) inset}
+.card.slot{background:rgba(0,0,0,.12);box-shadow:none;border:2px dashed rgba(255,255,255,.22)}
 .card.sm{--cw:clamp(30px,8.2vw,44px)}
 
 /* ---------- the table ---------- */
-/* At the table the page itself cannot scroll or rubber-band. An iPhone fogs and tints whatever a scrolling page
-   has under the clock, and the score bar sits right there; a page that cannot scroll has nothing to fog. */
+/* On the cloth everything is light on dark, whatever the phone's own setting: these stand in for the page's colors.
+   Gold is the table's one highlight: whose turn it is, what is chosen, the thing to do next. */
+#table,.say,.fly{--ink:#f3f5f4;--ink2:rgba(243,245,244,.82);--muted:rgba(243,245,244,.62);--border:rgba(255,255,255,.16);
+  --chip:rgba(0,0,0,.34);--warn:#ff8f95;--bar:40px}
+/* At the table the page is the cloth, and it cannot scroll or rubber-band. The cloth darkens toward its edges, like
+   a table under one lamp, and its top runs up into the solid strip over the clock (#topTint) so the strip has no edge. */
 html.attable,html.attable body{overflow:hidden;overscroll-behavior:none;height:100%;min-height:0}
 html.attable{background:var(--felt0)}
-#topTint{background:var(--felt0)}
-#table{height:100svh;max-width:780px;margin:0 auto;display:flex;flex-direction:column;
+html.attable #topTint{background:var(--felt0)}
+html.attable body{background:linear-gradient(to bottom,var(--felt0) 0,var(--felt0) calc(env(safe-area-inset-top,0px) + 12px),transparent calc(env(safe-area-inset-top,0px) + 120px)) fixed,
+  radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.42) 100%) fixed,
+  var(--felt0) radial-gradient(ellipse at 50% 38%,var(--felt2) 0%,var(--felt1) 48%,var(--felt0) 100%) fixed}
+#table{height:100svh;max-width:780px;margin:0 auto;display:flex;flex-direction:column;color:var(--ink);
   padding:calc(16px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom))}
-.bar{display:flex;align-items:center;gap:8px;min-height:34px}
-.strip{margin-left:auto;display:flex;gap:6px;align-items:center;font-family:var(--mono);font-size:12px;
-  border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--glass)}
-.strip .g{white-space:nowrap}.strip .g.done{opacity:.5}.strip .g+.g{border-left:1px solid var(--line);padding-left:6px}
-.strip .to{color:var(--dim)}
-.gear{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--glass);font-size:16px;line-height:1}
-.seat{display:flex;align-items:center;gap:10px;margin-top:8px;min-height:46px}
-.seat .nm{font-weight:650;font-size:15px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.seat .sub{color:var(--dim);font-size:12.5px;min-height:16px}
+/* Everything tapped on the cloth is the same dark glass pill, and dips under the finger like the rest. */
+#table :is(.crumb,.strip,.gear,#sayBtn,#nudgeBtn,#actions button,#actions a,.sorts button){transition:transform .32s cubic-bezier(.3,1.6,.5,1),background-color .15s}
+#table :is(.crumb,.strip,.gear,#sayBtn,#nudgeBtn,#actions button,#actions a):not(:disabled):active{transform:scale(.95);transition-duration:.1s}
+#table .av{box-shadow:0 0 0 2px rgba(255,255,255,.22),0 3px 8px rgba(0,0,0,.35)}
+
+/* The top bar: the way back, the scores under their players' names, the money between the two, and settings.
+   All three are one height. */
+.bar{display:flex;align-items:center;gap:8px;min-height:var(--bar)}
+#table .crumb{height:var(--bar);margin:0;background:var(--chip);border:1px solid var(--border);color:var(--ink)}
+.strip{margin-left:auto;display:flex;align-items:stretch;height:var(--bar);padding:4px 5px 4px 4px;font-size:13.5px;
+  border:1px solid var(--border);border-radius:999px;background:var(--chip)}
+.strip .g{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:34px;padding:0 9px;font-weight:700;line-height:1.1;white-space:nowrap}
+.strip .g i{font-style:normal;font-size:9.5px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.strip .g.done{opacity:.5}.strip .g+.g{border-left:1px solid var(--border)}
+.strip .to{display:flex;align-items:center;padding:0 8px 0 2px;color:var(--muted)}
+.strip .cash{display:flex;align-items:center;margin-left:2px;padding:0 10px;border-radius:999px;font-weight:700;background:rgba(242,193,78,.18);color:var(--gold)}
+.strip .cash.down{background:rgba(255,143,149,.16);color:var(--warn)}
+.gear{flex:none;width:var(--bar);height:var(--bar);display:grid;place-items:center;padding:0;border-radius:50%;border:1px solid var(--border);background:var(--chip);color:var(--ink)}
+.gear svg{display:block}
+
+/* The seats. */
+.seat{display:flex;align-items:center;gap:10px;margin-top:10px;min-height:46px}
+.seat .nm{font-weight:650;font-size:16px;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seat .sub{color:var(--muted);font-size:13.5px;min-height:18px}
 .seat .txt{min-width:0;flex:1}
-#nudgeBtn{flex:none;border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;background:rgba(242,193,78,.1)}
-.pill{font-family:var(--mono);font-size:9px;letter-spacing:.12em;border:1px solid var(--line);border-radius:999px;padding:2px 6px;color:var(--dim)}
+.pill{font-size:11.5px;font-weight:650;border:1px solid var(--border);border-radius:999px;padding:2px 9px;color:var(--ink2);background:var(--chip)}
+#nudgeBtn{flex:none;height:36px;border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:0 16px;font-size:14.5px;font-weight:650;background:rgba(242,193,78,.1)}
 .seat .av{transition:box-shadow .2s}
-.seat.turn .av{box-shadow:0 0 0 3px var(--gold),0 0 18px rgba(242,193,78,.55)}
+#table .seat.turn .av{box-shadow:0 0 0 3px var(--gold),0 0 18px rgba(242,193,78,.55)}
 .seat.away .av{filter:grayscale(1);opacity:.6}
 #oppHand{display:flex;justify-content:center;margin-top:6px;height:calc(clamp(30px,8.2vw,44px)*1.4)}
-#oppHand .card{margin:0 calc(clamp(30px,8.2vw,44px)*-.3)}
+#oppHand .card{margin:0 calc(clamp(30px,8.2vw,44px)*-.3);
+  box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,0 0 0 1px rgba(0,0,0,.28),-3px 0 5px -2px rgba(0,0,0,.5),0 2px 5px rgba(0,0,0,.35)}
+
+/* The middle: the knock, the deck, the discards, and what to do next. */
 #middle{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
-#piles{display:flex;gap:calc(var(--cw)*.4);align-items:center}
-.pile{position:relative;border-radius:calc(var(--cw)*.11);transition:transform .15s}
+@media (min-height:760px){#middle{gap:18px}}
+#piles{display:flex;gap:calc(var(--cw)*.4);align-items:center;margin-bottom:14px}
+.pile{position:relative;border-radius:calc(var(--cw)*.12);transition:transform .15s}
 .pile.can{box-shadow:0 0 0 3px var(--gold),0 0 22px rgba(242,193,78,.5);animation:glow 1.4s ease-in-out infinite}
 .pile.can:active{transform:scale(.96)}
-.pile.drop{box-shadow:0 0 0 4px var(--hot),0 0 26px rgba(255,92,111,.6);transform:scale(1.06)}
+.pile.drop{box-shadow:0 0 0 4px var(--warn),0 0 26px rgba(255,92,111,.6);transform:scale(1.06)}
 @keyframes glow{50%{box-shadow:0 0 0 3px var(--gold),0 0 8px rgba(242,193,78,.25)}}
-.pile .cnt{position:absolute;left:50%;bottom:-20px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--dim);white-space:nowrap}
+.pile .cnt,#discard::after{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);font-size:12.5px;color:var(--muted);white-space:nowrap}
+#discard{position:relative}
+#discard::after{content:"discards"}
 #stock .card.back{box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,2px 2px 0 var(--back-d1),4px 4px 0 var(--back-d2),0 6px 10px rgba(0,0,0,.45)}
 .knock{display:flex;flex-direction:column;align-items:center;justify-content:center;width:calc(var(--cw)*1.05);
-  aspect-ratio:1;border-radius:50%;border:2px solid var(--gold);color:var(--gold);background:rgba(0,0,0,.25)}
-.knock span{font-family:var(--mono);font-size:9px;letter-spacing:.16em}
-.knock b{font-size:calc(var(--cw)*.44);line-height:1;font-weight:800}
-.knock small{font-size:10.5px;opacity:.8}
+  aspect-ratio:1;border-radius:50%;border:2px solid var(--gold);color:var(--gold);background:rgba(0,0,0,.25);box-shadow:0 0 0 4px rgba(0,0,0,.18) inset}
+.knock span{font-size:calc(var(--cw)*.105);font-weight:700;letter-spacing:.12em;line-height:1;margin-bottom:2px}
+.knock b{font-size:calc(var(--cw)*.4);line-height:1;font-weight:800}
+.knock small{font-size:calc(var(--cw)*.13);line-height:1.1;opacity:.85}
 /* Going down is done here, by the piles, and nowhere near the Throw button: a thumb reaching for Throw cannot go
    down by mistake. The circle fills with gold when the card picked would leave the count low enough. */
 button.knock{font:inherit;padding:0;cursor:default}
-button.knock.can{background:var(--gold);color:#1d1602;cursor:pointer;animation:glow 1.4s ease-in-out infinite;box-shadow:0 0 0 3px var(--gold),0 0 22px rgba(242,193,78,.5)}
+button.knock.can{background:var(--gold);color:var(--on-gold);cursor:pointer;animation:glow 1.4s ease-in-out infinite;box-shadow:0 0 0 3px var(--gold),0 0 22px rgba(242,193,78,.5)}
 button.knock.can:active{transform:scale(.95)}
-button.knock.can b{font-size:calc(var(--cw)*.36)}
-/* A line said across the table: a bubble by the speaker's seat. */
-.say{position:fixed;z-index:155;max-width:min(78vw,340px);padding:9px 13px;border-radius:16px;background:#fff;color:#14181d;font-size:15px;line-height:1.35;
-  box-shadow:0 8px 22px rgba(0,0,0,.45);pointer-events:none;animation:say 6.5s ease forwards;overflow-wrap:anywhere}
-.say.mine{background:var(--gold);color:#1d1602}
-@keyframes say{0%{opacity:0;transform:translateY(6px) scale(.92)}5%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
-#sayBtn{font-size:19px;padding:4px 8px;border-radius:10px;opacity:.85}
-/* The reaction tray: slides up from the bottom and rides on top of the keyboard. */
-#sayTray{position:fixed;inset:calc(env(safe-area-inset-top) + 8px) 0 0;z-index:150}
-#sayTray .shade{position:absolute;inset:0;background:rgba(3,8,10,.35);opacity:0;transition:opacity .16s}
-#sayTray .sheet{position:absolute;left:0;right:0;bottom:var(--kb,0px);max-width:560px;margin:0 auto;padding:12px 12px calc(12px + env(safe-area-inset-bottom));
-  background:#0e241d;border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -14px 40px rgba(0,0,0,.5);
-  transform:translateY(105%);transition:transform .18s cubic-bezier(.2,.8,.3,1)}
-#sayTray.up .shade{opacity:1}#sayTray.up .sheet{transform:none}
-#sayTray .faces{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
-#sayTray .faces button{font-size:27px;line-height:1;padding:8px 0;border-radius:14px}
-#sayTray .faces button:active{background:rgba(255,255,255,.12)}
-#sayTray .lines{display:flex;gap:7px;margin:10px -12px 0;padding:0 12px 2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-#sayTray .lines::-webkit-scrollbar{display:none}
-#sayTray .lines button{flex:none;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-size:15px;background:rgba(255,255,255,.06);white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
-#sayTray .lines button.mine{border-color:rgba(242,193,78,.5);color:var(--gold)}
-#sayTray .lines button:active{background:rgba(255,255,255,.16)}
-/* Choosing the cards and the table. */
-.looks{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-.looks button{position:relative;border:2px solid transparent;border-radius:12px;padding:5px;background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--dim)}
-.looks button[aria-pressed=true]{border-color:var(--gold);color:var(--ink)}
-.looks .felt{width:54px;height:40px;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset}
-.looks .deck{display:flex;gap:3px;background:#fff;border-radius:8px;padding:7px 8px}
-.looks .deck span{display:block;width:19px;height:19px}
-.looks .deck svg{display:block;width:100%;height:100%;fill:currentColor}
-.looks .card.sm{--cw:38px}
-#prompt{text-align:center;font-size:15.5px;font-weight:600;min-height:22px;margin-top:14px;padding:0 6px}
-#prompt.me{color:var(--gold)}
+button.knock.can b{font-size:calc(var(--cw)*.34)}
+/* What to do next, in a pill of its own; gold-edged when it is this player's move. */
+#prompt{text-align:center;font-size:15.5px;font-weight:600;margin-top:18px;padding:9px 18px;border-radius:999px;background:var(--chip);border:1px solid var(--border);max-width:100%}
+#prompt:empty{display:none}
+#prompt.me{color:var(--gold);border-color:rgba(242,193,78,.55);box-shadow:0 0 18px rgba(242,193,78,.14)}
+
+/* The hand: the count of deadwood, the three sorts as one control, the cards, what to do, and the bottom row. */
 #mine{margin-top:auto}
+.handbar{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);min-height:34px;white-space:nowrap}
+.handbar .dw{flex:none;display:inline-flex;align-items:center;height:34px;padding:0 clamp(9px,2.8vw,13px);border-radius:999px;background:var(--chip);border:1px solid var(--border);font-size:13.5px;font-weight:650;color:var(--ink)}
+.handbar .dw.ok{color:var(--gold);border-color:rgba(242,193,78,.55)}
+#dwHint{min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* The sort the hand is in right now is the lit one; none is lit once cards have been moved by hand. */
+.handbar .sorts{flex:none;margin-left:auto;display:flex;align-items:center;height:34px;padding:3px;border-radius:999px;background:var(--chip);border:1px solid var(--border)}
+.handbar .sorts button{height:100%;padding:0 clamp(8px,2.6vw,12px);border-radius:999px;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.handbar .sorts button.on{background:var(--gold);color:var(--on-gold);font-weight:700}
+.nohints #hand .card::after{background:transparent!important}
+.nohints #dw,.nohints #dwHint{visibility:hidden}
 #handWrap{position:relative;height:calc(var(--cw)*1.4 + 24px);margin-top:4px}
-#hand .card{position:absolute;top:20px;transition:left .28s cubic-bezier(.2,.8,.2,1),top .16s,box-shadow .15s;cursor:grab;touch-action:none}
-#hand .card.sel{top:0;box-shadow:0 0 0 3px var(--gold),0 10px 16px rgba(0,0,0,.5)}
+#hand .card{position:absolute;top:20px;transition:left .28s cubic-bezier(.2,.8,.2,1),top .16s,box-shadow .15s;cursor:grab;touch-action:none;
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(0,0,0,.2),-4px 0 7px -3px rgba(0,0,0,.45),0 4px 10px rgba(0,0,0,.4)}
+#hand .card.sel{top:0;box-shadow:0 0 0 3px var(--gold),-4px 0 7px -3px rgba(0,0,0,.45),0 12px 18px rgba(0,0,0,.5)}
 #hand .card.drag{transition:none;z-index:99!important;cursor:grabbing;transform:scale(1.07) rotate(3deg);
   box-shadow:0 18px 30px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.2)}
 #hand .card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(var(--cw)*.09);background:transparent}
 #hand .card.m0::after{background:#39d0a4}#hand .card.m1::after{background:#3aa8ff}
 #hand .card.m2::after{background:#d95ce8}#hand .card.m3::after{background:#ffa32e}
 #hand .card.fresh .ix b{text-decoration:underline;text-decoration-thickness:2px}
-.nohints #hand .card::after{background:transparent!important}
-.nohints #dw,.nohints #dwHint{visibility:hidden}
-.handbar{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--dim);min-height:28px;white-space:nowrap}
-.handbar .dw{font-family:var(--mono);color:var(--ink)}
-.handbar .dw.ok{color:var(--gold)}
-.handbar .sorts{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.1em}
-.handbar .sorts button{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:var(--ink)}
-.handbar .sorts button:active{background:rgba(255,255,255,.14)}
-#actions{display:flex;gap:10px;margin-top:8px;min-height:50px;align-items:stretch}
-#actions button,#actions a{flex:1;border-radius:14px;padding:13px 10px;font-weight:700;font-size:16px;border:1px solid var(--line);
-  background:rgba(0,0,0,.28);text-align:center;text-decoration:none}
-#actions .pri{background:var(--accent);border-color:transparent;color:#fff}
-#actions .gold{background:var(--gold);border-color:transparent;color:#1d1602}
+/* The buttons: the thing to do is gold, anything else is glass. */
+#actions{display:flex;gap:10px;margin-top:8px;min-height:52px;align-items:stretch}
+#actions button,#actions a{flex:1;display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:999px;padding:0 14px;font-weight:700;font-size:16.5px;
+  border:1px solid var(--border);background:var(--chip);color:var(--ink);text-align:center;text-decoration:none}
+#actions .pri,#actions .gold{background:var(--gold);border-color:transparent;color:var(--on-gold);box-shadow:0 6px 18px rgba(0,0,0,.3),0 1px 0 rgba(255,255,255,.35) inset}
 #actions button:disabled{opacity:.4}
+/* The bottom row: your face, the box to type in, and the faces. One height; the your-turn ring is drawn inside the avatar. */
+#meSeat{margin-top:10px;min-height:0;gap:8px}
+#meSeat .av{width:var(--tap);height:var(--tap);font-size:22px;flex:none}
+#table #meSeat.turn .av{box-shadow:inset 0 0 0 3px var(--gold)}
+#meSeat .nm{flex:none}#meSeat .nm:empty{display:none}
+#sayBox{flex:1;min-width:0;height:var(--tap);-webkit-appearance:none;appearance:none;margin:0;background:var(--chip);border:1px solid var(--border);border-radius:999px;color:var(--ink);font:inherit;font-size:16px;padding:0 16px;outline:none}
+#sayBox:focus{border-color:var(--gold)}
+#sayBox::placeholder{color:var(--muted)}
+#sayBtn{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;border:1px solid var(--border);background:var(--chip);padding:0;font-size:19px}
+#sayBtn.send{background:var(--gold);border-color:var(--gold);color:var(--on-gold);font-size:16px}
+
+/* A line said across the table: a bubble by the speaker's seat. */
+.say{position:fixed;z-index:155;max-width:min(78vw,340px);padding:9px 14px;border-radius:18px;background:#fff;color:#14181d;font-size:15.5px;line-height:1.35;
+  box-shadow:0 8px 22px rgba(0,0,0,.45);pointer-events:none;animation:say 6.5s ease forwards;overflow-wrap:anywhere}
+.say.mine{background:var(--gold);color:var(--on-gold)}
+@keyframes say{0%{opacity:0;transform:translateY(6px) scale(.92)}5%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
+/* The faces and ready lines: a sheet like the others. */
+#sayTray{position:fixed;inset:calc(env(safe-area-inset-top) + 8px) 0 0;z-index:150}
+#sayTray .shade{position:absolute;inset:0;background:rgba(15,23,32,.38);opacity:0;transition:opacity .16s}
+#sayTray .sheet{position:absolute;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));max-width:540px;margin:0 auto;padding:14px;
+  background:var(--surface);color:var(--ink);border-radius:26px;box-shadow:0 18px 60px rgba(0,0,0,.35);
+  transform:translateY(110%);transition:transform .24s cubic-bezier(.2,.9,.3,1)}
+#sayTray.up .shade{opacity:1}#sayTray.up .sheet{transform:none}
+#sayTray .faces{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:0}
+#sayTray .faces button{font-size:27px;line-height:1;padding:9px 0;border-radius:16px;aspect-ratio:auto;background:var(--wash)}
+#sayTray .lines{display:flex;gap:8px;margin:12px -14px 0;padding:0 14px 2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#sayTray .lines::-webkit-scrollbar{display:none}
+#sayTray .lines button{flex:none;min-height:40px;border-radius:999px;padding:0 16px;font-size:15px;font-weight:600;background:var(--wash);white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis;
+  transition:transform .32s cubic-bezier(.3,1.6,.5,1)}
+#sayTray .lines button.mine{background:var(--tint);color:var(--accent)}
+#sayTray .lines button:active{transform:scale(.95);transition-duration:.1s}
+
+/* Choosing the cards and the table. */
+.looks{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.looks button{position:relative;border:2px solid transparent;border-radius:16px;padding:6px;background:var(--wash);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12.5px;color:var(--muted)}
+.looks button[aria-pressed=true]{border-color:var(--accent);background:var(--tint);color:var(--ink)}
+.looks .felt{width:54px;height:40px;border-radius:10px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset}
+.looks .deck{display:flex;gap:3px;background:#fff;border-radius:10px;padding:7px 8px;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.looks .deck span{display:block;width:19px;height:19px}
+.looks .deck svg{display:block;width:100%;height:100%;fill:currentColor}
+.looks .card.sm{--cw:38px}
+.looks .card.slot{border-color:var(--border);background:var(--field)}
+
 .fly{position:fixed;font-size:40px;pointer-events:none;z-index:160;animation:fly 1.9s ease-out forwards}
 @keyframes fly{0%{transform:translate(-50%,0) scale(.4);opacity:0}15%{opacity:1;transform:translate(-50%,calc(var(--dy)*.2)) scale(1.3)}
   100%{transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(1);opacity:0}}
@@ -182,114 +234,44 @@ button.knock.can b{font-size:calc(var(--cw)*.36)}
   color:var(--gold);-webkit-text-stroke:2px #3a2a00;text-shadow:0 6px 0 rgba(0,0,0,.35),0 0 40px rgba(242,193,78,.5);
   transform:translate(-50%,-50%) rotate(-8deg) scale(.2);opacity:0;white-space:nowrap}
 #stamp.on{animation:stamp 1.25s cubic-bezier(.2,1.4,.3,1) forwards}
-#stamp.red{color:var(--hot);-webkit-text-stroke:2px #3d0710;text-shadow:0 6px 0 rgba(0,0,0,.35),0 0 40px rgba(255,92,111,.5)}
+#stamp.red{color:#ff5c6f;-webkit-text-stroke:2px #3d0710;text-shadow:0 6px 0 rgba(0,0,0,.35),0 0 40px rgba(255,92,111,.5)}
 @keyframes stamp{0%{transform:translate(-50%,-50%) rotate(-8deg) scale(2.4);opacity:0}22%{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:1}
   78%{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:1}100%{transform:translate(-50%,-50%) rotate(-8deg) scale(1.08);opacity:0}}
-
-/* ---------- the end of a hand ---------- */
-dialog h3.gin{color:var(--gold)}
-.setting b.warn{color:var(--hot)}
-.spread{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
-.spread .hd{display:flex;align-items:center;gap:8px;font-weight:650;font-size:14.5px}
-.spread .hd small{margin-left:auto;font-family:var(--mono);font-weight:400;color:var(--dim);font-size:12px}
-.groups{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:10px}
-.grp{display:flex;padding:3px;border-radius:8px}
-.grp .card{margin-right:calc(var(--cw)*-.42)}.grp .card:last-child{margin-right:0}
-.grp.meld{background:rgba(57,208,164,.16);box-shadow:0 0 0 1px rgba(57,208,164,.4)}
-.grp.dead{background:rgba(0,0,0,.22)}
-.grp .card.laid{box-shadow:0 0 0 2px var(--gold),0 2px 6px rgba(0,0,0,.4);transform:translateY(-4px)}
-.tally{margin-top:16px;padding:12px 14px;border-radius:12px;background:rgba(242,193,78,.12);border:1px solid rgba(242,193,78,.35);font-size:15px;line-height:1.5}
-.tally b{color:var(--gold)}
-table.sheet{width:100%;border-collapse:collapse;margin-top:10px;font-family:var(--mono);font-size:13px}
-table.sheet th,table.sheet td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line)}
-table.sheet th{font-weight:600;font-family:var(--sans);font-size:13px}
-table.sheet td:first-child,table.sheet th:first-child{text-align:left;color:var(--dim);width:38%}
-table.sheet tr.tot td{border-bottom:0;font-weight:700;font-size:15px;color:var(--ink)}
-table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
-.sheetT{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);margin-top:18px;text-transform:uppercase}
-.sheetT b{color:var(--gold);letter-spacing:0;text-transform:none;font-family:var(--sans);margin-left:6px}
 .confetti{position:fixed;top:-40px;font-size:24px;pointer-events:none;z-index:170;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110svh) rotate(540deg)}}
-@media (min-height:760px){#middle{gap:18px}}
 
-/* ---------- finish: the cloth, the cards, and the furniture around them ---------- */
-/* The cloth darkens toward its edges, like a table under one lamp. */
-/* It is a layer of the page's own background, not a sheet fixed over the screen: an iPhone takes anything fixed
-   against the top edge for a toolbar and fogs whatever sits under the clock, which hid the score. */
-/* The top layer runs the solid strip over the clock (#topTint) down into the cloth, so the strip has no edge. */
-body{background:linear-gradient(to bottom,var(--felt0) 0,var(--felt0) calc(env(safe-area-inset-top,0px) + 12px),transparent calc(env(safe-area-inset-top,0px) + 120px)) fixed,
-  radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.42) 100%) fixed,
-  var(--felt0) radial-gradient(ellipse at 50% 38%,var(--felt2) 0%,var(--felt1) 48%,var(--felt0) 100%) fixed}
-/* Cards: a crisper face, a hairline edge, and a shadow on the left edge so each card in a fanned hand stands off
-   the one under it. */
-.card{background:linear-gradient(165deg,#fff 0%,#f6f4ee 100%);border-radius:calc(var(--cw)*.12);
-  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(0,0,0,.2),0 3px 8px rgba(0,0,0,.38)}
-.card .ix b{font-weight:800;letter-spacing:-.05em}
-#hand .card{box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 0 0 1px rgba(0,0,0,.2),-4px 0 7px -3px rgba(0,0,0,.45),0 4px 10px rgba(0,0,0,.4)}
-#hand .card.sel{box-shadow:0 0 0 3px var(--gold),-4px 0 7px -3px rgba(0,0,0,.45),0 12px 18px rgba(0,0,0,.5)}
-#oppHand .card{box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,0 0 0 1px rgba(0,0,0,.28),-3px 0 5px -2px rgba(0,0,0,.5),0 2px 5px rgba(0,0,0,.35)}
-.grp .card{box-shadow:0 0 0 1px rgba(0,0,0,.2),-3px 0 5px -2px rgba(0,0,0,.4),0 2px 5px rgba(0,0,0,.3)}
-/* The discard pile sits in a marked place, and both piles say what they are. */
-.card.slot{box-shadow:none;border:2px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.12)}
-#discard{position:relative}
-#discard::after{content:"discards";position:absolute;left:50%;bottom:-20px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--dim);white-space:nowrap}
-#piles{margin-bottom:14px}
-/* The top bar: the way back, the scores under their players' names, the money between the two, and settings. */
-.bar .crumb{font-size:12px;opacity:.85}
-.strip{gap:0;padding:5px 6px 5px 4px;font-size:12.5px;align-items:stretch}
-.strip .g{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:34px;padding:0 9px;font-weight:700;line-height:1.1}
-.strip .g i{font-style:normal;font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:1px}
-.strip .g+.g{padding-left:9px}
-.strip .to{display:flex;align-items:center;padding:0 8px 0 2px}
-.strip .cash{display:flex;align-items:center;margin-left:2px;padding:0 9px;border-radius:999px;font-weight:700;background:rgba(242,193,78,.16);color:var(--gold)}
-.strip .cash.down{background:rgba(255,92,111,.16);color:var(--hot)}
-.gear{flex:none;width:38px;height:38px;display:grid;place-items:center;padding:0;color:var(--ink)}
-.gear svg{display:block}
-/* What to do next, in a plate of its own; gold-edged when it is this player's move. */
-#prompt{margin-top:18px;padding:8px 16px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:15px;min-height:0;max-width:100%}
-#prompt:empty{display:none}
-#prompt.me{border-color:rgba(242,193,78,.55);box-shadow:0 0 18px rgba(242,193,78,.14)}
-/* The count of deadwood as a plate, and the three sorts as one control. */
-.handbar .dw{padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--line);font-size:12px}
-.handbar .dw.ok{border-color:rgba(242,193,78,.55)}
-.handbar .sorts{gap:0;letter-spacing:.1em}
-.handbar .sorts button{border-radius:0;border-left-width:0;padding:6px 10px;background:var(--glass)}
-.handbar .sorts button:first-of-type{border-left-width:1px;border-radius:999px 0 0 999px}
-#dwHint{font-size:12.5px;white-space:nowrap;opacity:.8}
-.handbar .sorts button:last-of-type{border-radius:0 999px 999px 0}
-/* The seats. */
-.seat .nm{font-size:15.5px}
-.pill{padding:2px 7px;background:rgba(0,0,0,.25)}
-#sayBtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--glass);padding:0;font-size:19px;opacity:1;flex:none}
-#sayBtn.send{background:var(--gold);border-color:var(--gold);color:#1d1602;font-size:16px}
-#meSeat{margin-top:10px;min-height:0;gap:8px}
-#meSeat .av{width:44px;height:44px;font-size:22px;flex:none}
-/* In the bottom row the three are one height, so the ring that says it is your turn is drawn inside the avatar. */
-#meSeat.turn .av{box-shadow:inset 0 0 0 3px var(--gold)}
-#meSeat .nm{flex:none}#meSeat .nm:empty{display:none}
-/* The way the hand is sorted right now is the lit one; none is lit once cards have been moved by hand. */
-.handbar .sorts button.on{background:var(--gold);border-color:var(--gold);color:#1d1602;font-weight:700}
-.handbar .sorts button.on+button{border-left-width:0}
-#sayBox{flex:1;min-width:0;height:44px;-webkit-appearance:none;appearance:none;margin:0;background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:999px;color:var(--ink);font:inherit;font-size:16px;padding:0 14px;outline:none}
-#sayBox:focus{border-color:var(--gold)}
-#sayBox::placeholder{color:var(--dim)}
-/* The buttons along the bottom. */
-#actions button,#actions a{border-radius:16px;font-size:16.5px;letter-spacing:.01em;transition:transform .08s,filter .15s}
-#actions button:not(:disabled):active{transform:translateY(1px) scale(.99)}
-#actions .pri{box-shadow:0 6px 16px rgba(163,31,52,.35),0 1px 0 rgba(255,255,255,.18) inset}
-.knock{box-shadow:0 0 0 4px rgba(0,0,0,.18) inset}
-/* The book. */
+/* ---------- the end of a hand, the scoresheet, the book ---------- */
+dialog h3.gin{color:var(--hi)}
+.spread{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.spread .hd{display:flex;align-items:center;gap:8px;font-weight:650;font-size:15.5px}
+.spread .hd small{margin-left:auto;font-weight:500;color:var(--muted);font-size:13.5px}
+.groups{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:10px}
+.grp{display:flex;padding:4px;border-radius:10px}
+.grp .card{margin-right:calc(var(--cw)*-.42);box-shadow:0 0 0 1px rgba(0,0,0,.2),-3px 0 5px -2px rgba(0,0,0,.4),0 2px 5px rgba(0,0,0,.3)}
+.grp .card:last-child{margin-right:0}
+.grp.meld{background:var(--tint);box-shadow:0 0 0 1px var(--accent)}
+.grp.dead{background:var(--wash)}
+.grp .card.laid{box-shadow:0 0 0 2px var(--gold),0 2px 6px rgba(0,0,0,.4);transform:translateY(-4px)}
+.tally{margin-top:16px;padding:13px 16px;border-radius:16px;background:var(--field);border:1px solid var(--border);font-size:15.5px}
+.tally b{color:var(--hi)}
+table.sheet{width:100%;border-collapse:collapse;margin-top:10px;font-size:14.5px}
+table.sheet th,table.sheet td{padding:8px;text-align:right;border-bottom:1px solid var(--border)}
+table.sheet th{font-weight:650;font-size:13.5px;color:var(--muted)}
+table.sheet td:first-child,table.sheet th:first-child{text-align:left;color:var(--muted);width:38%}
+table.sheet tr.tot td{border-bottom:0;font-weight:750;font-size:16px;color:var(--ink)}
+table.sheet td small{color:var(--muted);font-size:12px;margin-right:6px}
+.sheetT{font-size:13px;font-weight:650;color:var(--muted);margin-top:20px}
+.sheetT b{color:var(--hi);margin-left:6px}
 table.sheet.book td:first-child{width:auto}
-table.sheet.book td.up{color:var(--gold)}table.sheet.book td.down{color:var(--hot)}
-table.sheet.book td small{font-family:var(--sans)}
+table.sheet.book td.up{color:var(--accent);font-weight:650}table.sheet.book td.down{color:var(--warn);font-weight:650}
 </style>
 </head>
 <body>
 <div id="topTint" aria-hidden="true"></div>
 
 <div class="page" id="lobby" hidden>
-  <a class="crumb" href="/games/">← game/room</a>
-  <h1>gin<span class="slash">/</span>rummy</h1>
+  <a class="crumb" href="/games/">Card Night</a>
+  <h1>Gin Rummy</h1>
   <p class="tag">Open a table, send the link, deal the cards.</p>
   <div class="panel"><h2>You</h2><div id="lobbyProfile"></div><div id="lobbyAcct"></div></div>
   <div class="panel">
@@ -320,7 +302,7 @@ table.sheet.book td small{font-family:var(--sans)}
       <p style="margin-top:12px">When a game ends, the winner takes their points, the game bonus, and a box for each hand they won; the loser takes their points and their own boxes, and pays the difference at the money a point. <button type="button" class="alink" id="classicBtn">Back to the usual figures</button></p>
     </details>
     <button class="setting" id="listedSw" role="switch" aria-checked="false" style="margin-top:16px">
-      <span class="t"><b>List it in the game room</b><span>Anyone there can sit down. Off, only people with your link can.</span></span><span class="switch"></span>
+      <span class="t"><b>List it in the lobby</b><span>Anyone there can sit down. Off, only people with your link can.</span></span><span class="switch"></span>
     </button>
     <button class="go" id="openBtn">Open a table</button>
   </div>
@@ -344,14 +326,14 @@ table.sheet.book td small{font-family:var(--sans)}
 </div>
 
 <div class="page" id="join" hidden>
-  <a class="crumb" href="/games/">← Lobby</a>
-  <h1>gin<span class="slash">/</span>rummy</h1>
+  <a class="crumb" href="/games/">Lobby</a>
+  <h1>Gin Rummy</h1>
   <div class="panel"><div class="invite" id="inviteBox"></div></div>
   <div class="panel" id="joinForm"><h2>You</h2><div id="joinProfile"></div><div id="joinAcct"></div><button class="go" id="sitBtn">Sit down</button></div>
 </div>
 
 <div class="page" id="waiting" hidden>
-  <a class="crumb" href="/games/">← Lobby</a>
+  <a class="crumb" href="/games/">Lobby</a>
   <h1>Table’s open</h1>
   <p class="tag" id="waitTag"></p>
   <div class="shuffle"><div class="card back" style="--r:-9deg"></div><div class="card back"></div><div class="card back" style="--r:9deg"></div></div>
@@ -362,12 +344,12 @@ table.sheet.book td small{font-family:var(--sans)}
     <div class="row"><button class="go" id="shareBtn" style="margin-top:0;flex:2">Share the link</button><button class="ghost" id="copyBtn" style="flex:1">Copy</button></div>
   </div>
   <p class="tag" style="margin-top:16px;text-align:center">The cards are dealt the moment they sit down.</p>
-  <p style="text-align:center"><button class="ghost warn" id="takeDown">Take the table down</button></p>
+  <p style="text-align:center;margin-top:8px"><button class="ghost warn" id="takeDown">Take the table down</button></p>
 </div>
 
 <div id="table" hidden>
   <div class="bar">
-    <a class="crumb" href="/games/">← Lobby</a>
+    <a class="crumb" href="/games/">Lobby</a>
     <button class="strip" id="strip" aria-label="Scoresheet"></button>
     <button class="gear" id="gear" aria-label="Table settings"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
@@ -390,8 +372,8 @@ table.sheet.book td small{font-family:var(--sans)}
   </div>
 </div>
 
-<dialog id="resultDlg" aria-label="Hand result"></dialog>
-<dialog id="sheetDlg" aria-label="Scoresheet"></dialog>
+<dialog id="resultDlg" aria-label="Hand result" tabindex="-1" autofocus></dialog>
+<dialog id="sheetDlg" aria-label="Scoresheet" tabindex="-1" autofocus></dialog>
 <div id="stamp" aria-hidden="true"></div>
 
 <script src="../room.js"></script>
@@ -539,13 +521,18 @@ function setBack(el, key) {
   el.style.setProperty('--back-bg', b.bg); el.style.setProperty('--back-edge', b.edge);
   el.style.setProperty('--back-d1', b.deep[0]); el.style.setProperty('--back-d2', b.deep[1]);
 }
+// The color the browser gives its own bars: the cloth's edge at the table, the page's color everywhere else.
+const PAGE_TINT = [...document.querySelectorAll('meta[name=theme-color]')].map((m) => m.content);
+function paintChrome() {
+  const at = document.documentElement.classList.contains('attable'), felt = (FELTS[look.felt] || FELTS.green).c[0];
+  document.querySelectorAll('meta[name=theme-color]').forEach((m, i) => { m.content = at ? felt : PAGE_TINT[i]; });
+}
 function applyLook() {
   const root = document.documentElement, f = (FELTS[look.felt] || FELTS.green).c;
   root.dataset.deck = DECKS[look.deck] ? look.deck : 'classic';
   setBack(root, look.back);
   f.forEach((c, i) => root.style.setProperty('--felt' + i, c));
-  const meta = document.querySelector('meta[name=theme-color]');
-  if (meta) meta.content = f[0];
+  paintChrome();
   store.set('gin-look-2', look);
 }
 applyLook();
@@ -731,6 +718,7 @@ function stamp(text, cls) {
 function show(id) {
   for (const s of ['lobby', 'join', 'waiting', 'table']) $('#' + s).hidden = s !== id;
   document.documentElement.classList.toggle('attable', id === 'table');   // the table never scrolls; see the style
+  paintChrome();
 }
 async function route() {
   await Room.ready;
@@ -745,7 +733,7 @@ function render(prev, move) {
   show('table');
   $('#table').classList.toggle('nohints', !hints);
   renderSeats(move); renderScoreStrip(); renderMiddle(move); renderHand(prev); renderActions();
-  document.title = (isMine(st) ? '● Your turn · ' : '') + 'gin/rummy';
+  document.title = (isMine(st) ? '● Your turn · ' : '') + 'Gin Rummy';
 }
 
 /* ---------- lobby ---------- */
@@ -854,10 +842,10 @@ let waitingFor = null;
 function showWaiting() {
   show('waiting');
   const url = location.origin + location.pathname + '?t=' + code;
-  $('#waitTag').textContent = describe(st.mode, st.target, st.stakes) + (st.listed ? '. Listed in the game room, so anyone there can sit down.' : '.');
+  $('#waitTag').textContent = describe(st.mode, st.target, st.stakes) + (st.listed ? '. Listed in the lobby, so anyone there can sit down.' : '.');
   $('#shareLink').textContent = url;
   $('#shareBtn').hidden = !navigator.share;
-  $('#shareBtn').onclick = () => navigator.share({ title: 'gin/rummy', text: `${st.names[0]} wants to play gin.`, url }).catch(() => {});
+  $('#shareBtn').onclick = () => navigator.share({ title: 'Gin Rummy', text: `${st.names[0]} wants to play gin.`, url }).catch(() => {});
   $('#copyBtn').onclick = async () => {
     try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch (e) { toast('Press and hold the link to copy it'); }
   };
@@ -898,7 +886,7 @@ function renderSeats(move) {
   const face = (s) => ({ avatar: st.avatars[s], color: st.colors[s] });
   setAvatar($('#oppAv'), face(opp));
   setAvatar($('#meAv'), face(me));
-  const nm = (seat) => [st.names[seat]].concat(st.dealer === seat && playing(st) ? [h('span', { class: 'pill' }, 'DEALER')] : []);
+  const nm = (seat) => [st.names[seat]].concat(st.dealer === seat && playing(st) ? [h('span', { class: 'pill' }, 'Dealer')] : []);
   $('#oppNm').replaceChildren(...nm(opp));
   $('#meNm').replaceChildren(...nm(me).slice(1));   // your own row is your face and the box; only the dealer tag is said
   $('#oppSeat').classList.toggle('turn', playing(st) && st.turn === opp);
@@ -1113,7 +1101,7 @@ function renderActions() {
   const mine = isMine(st);
   let kids = [], down = null;
   if (st.closed) {
-    kids = [h('a', { href: '/games/' }, 'The game room'), h('a', { class: 'pri', href: location.pathname }, 'A new table')];
+    kids = [h('a', { href: '/games/' }, 'The lobby'), h('a', { class: 'pri', href: location.pathname }, 'A new table')];
   } else if (st.status !== 'playing') {
     kids = [btn(st.status === 'game_over' ? 'See the result' : 'See the hand', '', () => { shown = { key: resultKey(st.result), st }; showResult(); }),
             btn(st.status === 'game_over' ? 'Rematch' : 'Next hand', 'pri', dealNext)];

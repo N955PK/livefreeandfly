@@ -1,4 +1,4 @@
-// game/room's notification sender: a Supabase Edge Function named "push". Paste this whole file into
+// Card Night's notification sender: a Supabase Edge Function named "push". Paste this whole file into
 // Supabase > Edge Functions > Deploy a new function > Via Editor, name it push, and turn "Verify JWT" off for it
 // (the pages call it with the publishable key; it does its own checking through the card room).
 //

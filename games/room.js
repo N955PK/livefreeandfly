@@ -1,4 +1,4 @@
-/* game/room: what every page in the room shares. Who you are, the calls to the card room, the lists of tables,
+/* Card Night: what every page in the room shares. Who you are, the calls to the card room, the lists of tables,
    live nudges between two pages, and sound. A game's page loads this and adds its own table.
 
    The room runs on the same Supabase project as ski/lease (games/sql). A player is this browser: the room hands it a
@@ -20,7 +20,7 @@ const API = DEV ? location.origin : CONFIG.supabaseUrl.replace(/\/$/, '');
 // Every game in the room. The lists use this to name a table and say how it's going; add a game here and it shows up.
 const GAMES = {
   gin: {
-    name: 'gin/rummy', path: '/games/gin/',
+    name: 'Gin Rummy', path: '/games/gin/',
     options: (o) => (o.mode === 'hollywood' ? 'Hollywood to ' : 'Single game to ') + o.target +
       (+o.cents > 0 ? ' · ' + (+o.cents < 100 ? +o.cents + '¢' : '$' + (o.cents / 100).toFixed(2)) + ' a point' : ''),
     score(t) {
@@ -77,7 +77,7 @@ async function rpc(fn, args) {
   } catch (e) { throw new Error('No connection. Trying again…'); }
   const body = await res.json().catch(() => null);
   if (res.ok) return body;
-  if (res.status === 404 || (body && body.code === 'PGRST202')) throw new Error('The game room is being set up. Try again in a little while.');
+  if (res.status === 404 || (body && body.code === 'PGRST202')) throw new Error('Card Night is being set up. Try again in a little while.');
   throw new Error((body && body.message) || 'Something went wrong');
 }
 
@@ -188,7 +188,7 @@ function profileEditor(box, p, changed) {
 
 /* ---------- dialogs any page can open ---------- */
 function dialog(label, ...kids) {
-  const d = h('dialog', { 'aria-label': label }, kids);
+  const d = h('dialog', { 'aria-label': label, tabindex: '-1', autofocus: '' }, kids);   // the sheet takes the focus itself, so no button in it opens ringed
   d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
   d.addEventListener('close', () => d.remove());
   document.body.append(d); d.showModal();
@@ -301,7 +301,7 @@ async function phoneDialog(done) {
   const note = h('p', { class: 'why warn', role: 'alert' });
   const save = async (value) => {
     try { await call('room_phone_set', { p_phone: value }); d.close(); toast(value ? 'Phone number saved' : 'Phone number removed'); if (done) done(); }
-    catch (e) { note.textContent = /being set up/.test(e.message) ? 'Phone numbers open once the game room is updated.' : e.message; }
+    catch (e) { note.textContent = /being set up/.test(e.message) ? 'Phone numbers open once Card Night is updated.' : e.message; }
   };
   box.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(box.value.trim()); });
   const d = dialog('Your phone number', h('h3', {}, 'Your phone number'),
@@ -345,7 +345,7 @@ async function pushOn() {
   const reg = await navigator.serviceWorker.register('/games/sw.js', { scope: '/games/' });
   await navigator.serviceWorker.ready;
   const reply = await fetch(PUSH_FN, { headers: KEYED }).then((r) => r.json()).catch(() => null);
-  if (!reply || !reply.key) throw new Error('Notifications are not set up in the game room yet.');
+  if (!reply || !reply.key) throw new Error('Notifications are not set up yet.');
   let sub = await reg.pushManager.getSubscription();
   const held = sub && sub.options && sub.options.applicationServerKey && btoa(String.fromCharCode(...new Uint8Array(sub.options.applicationServerKey)));
   if (sub && held && held !== btoa(String.fromCharCode(...keyBytes(reply.key)))) { await sub.unsubscribe(); sub = null; }
@@ -384,7 +384,7 @@ function pushDialog(done) {
   const why = {
     on: 'This device gets a notification when it is your turn and you have stepped away, when the other player says something, and when they ring you.',
     off: 'Get a notification on this device when it is your turn and you have stepped away, when the other player says something, and when they ring you.',
-    install: 'On an iPhone or iPad, notifications only work from the Home Screen. Tap Share, then Add to Home Screen, open game/room from the new icon, and turn notifications on there.',
+    install: 'On an iPhone or iPad, notifications only work from the Home Screen. Tap Share, then Add to Home Screen, open Card Night from the new icon, and turn notifications on there.',
     denied: 'Notifications are turned off for this page in the phone’s or browser’s settings. Turn them on there, then come back here.',
     none: DEV ? 'Notifications are not sent from a local copy.' : 'This browser cannot show notifications from a web page.'
   }[state];
@@ -399,7 +399,7 @@ ready.then(pushSync).catch(() => {});
 async function showLeaderboard(box, game) {
   let rows;
   try { rows = await rpc('room_leaderboard', { p_game: game || null, p_token: key }); }
-  catch (e) { box.replaceChildren(h('p', { class: 'none' }, 'The leaderboard opens once the game room is updated.')); return; }
+  catch (e) { box.replaceChildren(h('p', { class: 'none' }, 'The leaderboard opens once Card Night is updated.')); return; }
   if (!rows.length) { box.replaceChildren(h('p', { class: 'none' }, 'Nobody is on it yet. A finished game between two players with accounts puts them here.')); return; }
   box.replaceChildren(h('div', { class: 'tables' }, rows.map((r, i) =>
     h('div', { class: 'trow lb' + (r.me ? ' me' : '') }, h('span', { class: 'rank' }, String(i + 1)), avatarEl(r),

@@ -586,7 +586,7 @@ def test_notifications(db):
     assert job(ann, "turn")["subs"] == [] and job(ann, "say", "hello")["subs"] == []
     rung = job(ann, "ring")
     assert [s["endpoint"] for s in rung["subs"]] == [sub["endpoint"]] and rung["subs"][0]["p256dh"] == "B" * 87
-    assert rung["title"] == "gin/rummy" and rung["body"] == "Ann is waiting for you at the table."
+    assert rung["title"] == "Gin Rummy" and rung["body"] == "Ann is waiting for you at the table."
     assert rung["url"] == f"/games/gin/?t={code}" and rung["tag"] == code
     assert job(ann, "ring")["subs"] == []                                   # not twice in twenty seconds
     assert job(bob, "ring")["subs"] == []                                   # Ann has no device, and Bob is not told of himself
