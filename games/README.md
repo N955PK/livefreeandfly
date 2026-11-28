@@ -68,6 +68,8 @@ At the table:
   rank whenever you want a fresh start.
 - Tap a card and then Throw it, or drag it onto the discard pile.
 - Going down is the gold circle beside the piles, not a button next to Throw, so it is never tapped by mistake.
+- When the other player has stepped away, a Text them button by their name opens your phone's Messages with a
+  reminder and the table's link already written; you pick who it goes to.
 - The 💬 button slides up a tray with the keyboard ready: a dozen faces that send on one tap (the tray stays up for
   more), ready lines and your own last six that send on one tap, and a box to type in. Typing narrows the lines to
   the ones that match. A face reaches the other player even when the live channel is down.

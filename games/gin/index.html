@@ -85,6 +85,7 @@ html[data-deck=four] .card.s2{color:#1668c9}
 .seat .nm{font-weight:650;font-size:15px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seat .sub{color:var(--dim);font-size:12.5px;min-height:16px}
 .seat .txt{min-width:0;flex:1}
+#nudgeBtn{flex:none;border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;background:rgba(242,193,78,.1)}
 .pill{font-family:var(--mono);font-size:9px;letter-spacing:.12em;border:1px solid var(--line);border-radius:999px;padding:2px 6px;color:var(--dim)}
 .seat .av{transition:box-shadow .2s}
 .seat.turn .av{box-shadow:0 0 0 3px var(--gold),0 0 18px rgba(242,193,78,.55)}
@@ -352,7 +353,7 @@ table.sheet.book td small{font-family:var(--sans)}
     <button class="strip" id="strip" aria-label="Scoresheet"></button>
     <button class="gear" id="gear" aria-label="Table settings">⚙︎</button>
   </div>
-  <div class="seat" id="oppSeat"><div class="av" id="oppAv"></div><div class="txt"><div class="nm" id="oppNm"></div><div class="sub" id="oppSub"></div></div></div>
+  <div class="seat" id="oppSeat"><div class="av" id="oppAv"></div><div class="txt"><div class="nm" id="oppNm"></div><div class="sub" id="oppSub"></div></div><button id="nudgeBtn" hidden>Text them</button></div>
   <div id="oppHand"></div>
   <div id="middle">
     <div id="piles">
@@ -859,6 +860,18 @@ function leave(title, why, yes) {
     } } }, yes)));
 }
 
+// The other player has stepped away: a text to bring them back. It opens the phone's own Messages with the words
+// and the table's link already written, and the player picks who it goes to; the room knows nobody's number.
+function nudge() {
+  const opp = 1 - st.you, url = location.origin + location.pathname + '?t=' + code;
+  const waiting = playing(st) && st.turn === opp;
+  const text = `${waiting ? 'Your turn at gin' : 'Come back to the gin table'}, ${st.names[opp] || 'you'}. ${st.names[st.you] || 'I'} ${st.names[st.you] ? 'is' : 'am'} waiting: ${url}`;
+  const ua = navigator.userAgent, apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (apple || /Android/.test(ua)) location.href = `sms:${apple ? '&' : '?'}body=${encodeURIComponent(text)}`;
+  else if (navigator.share) navigator.share({ text }).catch(() => {});
+  else navigator.clipboard.writeText(text).then(() => toast('Message copied. Paste it wherever you two talk.'), () => toast(url));
+}
+
 /* ---------- the table ---------- */
 function renderSeats(move) {
   const me = st.you, opp = 1 - me;
@@ -877,6 +890,7 @@ function renderSeats(move) {
   else if (st.away[opp]) sub = 'Stepped away';
   else if (L && L.seat === opp) sub = { stock: 'Drew from the deck', take: 'Took the ' + cardName(L.card ?? 0), discard: 'Threw the ' + cardName(L.card ?? 0), pass: 'Passed', knock: 'Went down' }[L.type] || '';
   $('#oppSub').textContent = sub;
+  $('#nudgeBtn').hidden = !(st.away[opp] && !st.closed && st.status !== 'waiting');
   const n = playing(st) ? st.opp : 0;
   const row = $('#oppHand');
   while (row.children.length > n) row.lastChild.remove();
@@ -1332,6 +1346,7 @@ $('#stock').onclick = () => act('gin_draw', { p_source: 'stock' });
 $('#discard').onclick = () => act('gin_draw', { p_source: 'discard' });
 $('#knockBtn').onclick = goDown;
 $('#sayBtn').onclick = showSay;
+$('#nudgeBtn').onclick = nudge;
 $('#strip').onclick = showSheet;
 $('#gear').onclick = showSettings;
 $('#meAv').onclick = () => Room.profileDialog(() => { if (wire) wire.send('poke'); refresh(); });
