@@ -59,8 +59,41 @@ dialog.keys{max-width:380px;padding:16px}
 .keys .grid button.gin[aria-pressed=true]{background:var(--gold);color:var(--on-gold)}
 .keys .grid button.gin[aria-pressed=true] i{background:rgba(0,0,0,.14)}
 .keys .btns{margin-top:12px}
-.under{display:flex;gap:8px;margin-top:12px}
-.under .ghost{flex:1;min-width:0;padding:0 10px;font-size:15px;white-space:nowrap}
+.hint{color:var(--muted);font-size:13.5px;margin-top:12px}
+/* What is being played, in one line; tapping it changes it. */
+.setup{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--tap);padding:0 8px 0 16px;border-radius:999px;background:var(--wash);text-align:left;font-size:14.5px;color:var(--ink2);
+  transition:transform .32s cubic-bezier(.3,1.6,.5,1)}
+.setup:active{transform:scale(.98);transition-duration:.1s}
+.setup span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.setup b{flex:none;display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:999px;background:var(--surface);color:var(--accent);font-size:13.5px;font-weight:650;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+/* The winner's buttons: the name, and under it how far that player is from the game they are after. */
+.who.big button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:68px;padding:6px 8px;border-radius:22px}
+.who.big button b{display:block;max-width:100%;font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.who.big button small{display:block;font-size:12.5px;font-weight:600;color:var(--muted)}
+.who.big button.lead small{color:var(--accent)}
+.foot{display:flex;gap:8px;margin-top:18px}
+.foot .ghost{flex:1;min-width:0;white-space:nowrap}
+/* The match is over. */
+.over{text-align:center;padding:24px 18px;margin-top:14px}
+.setup + .panel{margin-top:14px}
+.over .cup{font-size:44px;line-height:1}
+.over h2{font-size:24px;font-weight:750;color:var(--ink);letter-spacing:-.02em;margin:6px 0 2px}
+.over p{color:var(--muted);font-size:15px}
+.over .pay{font-size:18px;font-weight:750;color:var(--hi);margin-top:8px}
+.over .go{margin-top:16px}
+#toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px}
+#toast button{flex:none;height:32px;padding:0 14px;border-radius:999px;background:var(--page);color:var(--ink);font-size:14px;font-weight:700}
+.confetti{position:fixed;top:-40px;font-size:24px;pointer-events:none;z-index:170;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+table.pad tfoot tr.togo td{font-weight:600;font-size:12.5px;color:var(--muted);padding-top:0}
+table.pad tfoot tr.togo td.h{font-size:10px}
+table.pad.tight tfoot tr.togo td{font-size:11px}
+details.work{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+details.work summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:650;color:var(--muted)}
+details.work summary::-webkit-details-marker{display:none}
+details.work summary::after{content:"›";font-size:20px;line-height:1;transition:transform .2s}
+details.work[open] summary::after{transform:rotate(90deg)}
+details.work .gt:first-of-type{margin-top:10px}
 table.pad tbody td small i{font-style:normal;color:var(--hi);font-weight:650}
 /* The sheet. */
 .scroll{overflow-x:auto;margin:0 -18px;padding:0 18px;-webkit-overflow-scrolling:touch}
@@ -94,8 +127,8 @@ table.pad tfoot td.win{color:var(--hi)}
 .reck .ln span:last-child{white-space:nowrap;font-weight:600}
 .reck .gt{font-size:13px;font-weight:650;color:var(--muted);margin-top:12px}
 .reck .gt:first-child{margin-top:0}
-.reck .pay{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:17px;font-weight:750;color:var(--hi)}
-.reck .pay + .pay{margin-top:4px;padding-top:0;border-top:0}
+.reck .pay{font-size:18px;font-weight:750;color:var(--hi)}
+.reck .pay + .pay{margin-top:4px}
 .reck small{display:block;color:var(--muted);font-size:13.5px;margin-top:6px}
 .scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
 .scoregrid label{display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--muted)}
@@ -107,19 +140,28 @@ table.pad tfoot td.win{color:var(--hi)}
 <main class="page">
   <a class="crumb" href="/games/">Ace</a>
   <h1>Score pad</h1>
-  <p class="tag">A gin rummy sheet for a game with real cards.</p>
+  <p class="tag">Keep score for gin rummy played with real cards.</p>
+
+  <button class="setup" id="setupBtn" aria-label="Change the players, the game and the money"><span id="sumLine"></span><b>Change</b></button>
+
+  <div class="panel over" id="overPanel" hidden></div>
 
   <div class="panel" id="addPanel">
-    <h2 id="addTitle">Who won the hand?</h2>
-    <div class="who" id="who"></div>
-    <div class="under"><button class="ghost" id="undo">Undo the last hand</button><button class="ghost" id="setupBtn">Set up</button></div>
+    <h2>Who won the hand?</h2>
+    <div class="who big" id="who"></div>
+    <p class="hint">Tap the winner, then add up their points.</p>
   </div>
 
-  <div class="panel"><h2 id="sheetTitle">The sheet</h2><div class="scroll"><table class="pad" id="pad"></table></div><p class="none" id="empty">No hands yet. Tap who won and add up the points.</p></div>
+  <div class="panel">
+    <h2 id="sheetTitle">The sheet</h2>
+    <div class="scroll"><table class="pad" id="pad"></table></div>
+    <p class="none" id="empty">Nothing on the sheet yet.</p>
+    <p class="hint" id="sheetHint">Tap any line to take that hand off.</p>
+  </div>
 
   <div class="panel reck" id="reckPanel" hidden><h2>What it comes to</h2><div id="reck"></div></div>
 
-  <p style="text-align:center;margin-top:22px"><button class="ghost warn" id="fresh">Start a new sheet</button></p>
+  <div class="foot"><button class="ghost" id="undo">Undo the last hand</button><button class="ghost" id="fresh">New sheet</button></div>
 </main>
 
 <script>
@@ -196,10 +238,41 @@ function work(s) {
 }
 
 /* ---------- adding a hand ---------- */
+// Who is paid what, over the games finished so far. With three players each pair is squared up on its own.
+function pays(w) {
+  const out = [];
+  for (let a = 0; a < w.P; a++) for (let b = a + 1; b < w.P; b++) {
+    let net = 0;
+    w.games.forEach((g) => g && g.owes.forEach((o) => { if (g.w === a && o.l === b) net += o.net; if (g.w === b && o.l === a) net -= o.net; }));
+    if (!net) continue;
+    const [up, down] = net > 0 ? [a, b] : [b, a], pts = Math.abs(net);
+    out.push(S.cents > 0 ? `Owed to ${name(up)} by ${name(down)}: ${cash(pts * S.cents)}` : `${name(up)} by ${pts} points over ${name(down)}`);
+  }
+  return out;
+}
+const rate = () => (S.cents < 100 ? S.cents + '¢' : cash(S.cents)) + ' a point';
 function paintAdd(w) {
-  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => h('button', { disabled: w.over, on: { click: () => machine(p) } }, name(p))));
-  $('#addTitle').textContent = w.over ? 'The match is over. Start a new sheet below.' : 'Who won the hand?';
+  $('#sumLine').textContent = `${S.players} players · ${S.mode === 'hollywood' ? 'Hollywood' : 'Single'} to ${S.target}${S.cents > 0 ? ' · ' + (S.cents < 100 ? S.cents + '¢' : cash(S.cents)) : ''}`;
+  // Under each name: how far they are from the first game still open.
+  const open = w.winners.indexOf(-1), best = open < 0 ? 0 : Math.max(...w.totals[open]);
+  $('#who').replaceChildren(...Array.from({ length: S.players }, (_, p) => {
+    const have = open < 0 ? 0 : w.totals[open][p], togo = S.target - have;
+    return h('button', { class: open >= 0 && have > 0 && have === best ? 'lead' : '', on: { click: () => machine(p) } },
+      h('b', {}, name(p)), h('small', {}, open < 0 ? '' : `${togo} to go${w.n > 1 ? ' in game ' + (open + 1) : ''}`));
+  }));
+  $('#addPanel').hidden = w.over;
   $('#undo').disabled = !S.entries.length;
+  $('#fresh').disabled = !S.entries.length;
+  // The match is over: who won, what is owed, and one button for the next one.
+  const over = $('#overPanel'); over.hidden = !w.over;
+  if (w.over) {
+    const won = Array.from({ length: w.P }, (_, p) => w.winners.filter((x) => x === p).length), top = Math.max(...won), champs = won.filter((x) => x === top).length;
+    over.replaceChildren(...[h('div', { class: 'cup' }, '🏆'),
+      h('h2', {}, champs === 1 ? `${name(won.indexOf(top))} took the match` : 'The match is over'),
+      w.n > 1 ? h('p', {}, Array.from({ length: w.P }, (_, p) => `${name(p)} ${won[p]}`).join(' · ') + ' games') : null,
+      ...pays(w).map((line) => h('div', { class: 'pay' }, line)),
+      h('button', { class: 'go', on: { click: newSheet } }, 'Start a new sheet')].filter(Boolean));
+  }
 }
 // The adding machine. Key a figure, then + or − and another, as many as it takes: 34 + 12 − 5. The Gin switch puts
 // 25 on top, once. What it comes to is what goes on the sheet; if it comes to less than nothing, that much is taken
@@ -238,7 +311,12 @@ function machine(p) {
   };
   const commit = () => {
     const t = total(); if (!t) return;
+    const before = work(S);
     S.entries.push(gin && t > 0 ? { p, pts: t, gin: true } : { p, pts: t }); save(); d.close(); paint();
+    // Say what just happened, with a way straight back; a game won gets a little more.
+    const after = work(S), wonNow = after.winners.map((x, g) => (x !== -1 && before.winners[g] === -1 ? g : -1)).filter((g) => g >= 0);
+    if (wonNow.length) { party(); if (after.over) scrollTo({ top: 0, behavior: 'smooth' }); }
+    toast(wonNow.length ? `${name(p)} won ${after.n > 1 ? 'game ' + wonNow.map((g) => g + 1).join(' and ') : 'the game'}` : `${t > 0 ? '+' : '−'}${Math.abs(t)} for ${name(p)}`, 'Undo', undo);
   };
   go.onclick = commit; plus.onclick = () => key('+'); minus.onclick = () => key('-'); ginKey.onclick = () => key('gin');
   const n = (x) => h('button', { on: { click: () => key(x) } }, String(x));
@@ -258,14 +336,24 @@ function machine(p) {
   d.addEventListener('close', () => d.remove());
   draw(); document.body.append(d); d.showModal();
 }
-$('#undo').onclick = () => { if (S.entries.length) { S.entries.pop(); save(); paint(); toast('The last hand is undone.'); } };
+function undo() { if (S.entries.length) { const e = S.entries.pop(); save(); paint(); toast(`Took off ${e.pts > 0 ? '+' : '−'}${Math.abs(e.pts)} for ${name(e.p)}`); } }
+$('#undo').onclick = undo;
+function party() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (let i = 0; i < 26; i++) {
+    const c = h('div', { class: 'confetti', 'aria-hidden': 'true' }, ['♠', '♥', '♦', '♣', '🎉', '✨'][i % 6]);
+    c.style.left = Math.random() * 100 + 'vw'; c.style.color = ['#c8102e', 'var(--ink)', '#f2c14e', '#1f8a5b'][i % 4];
+    c.style.animationDuration = 1.6 + Math.random() * 1.6 + 's'; c.style.animationDelay = Math.random() * 0.4 + 's';
+    document.body.append(c); setTimeout(() => c.remove(), 3800);
+  }
+}
 
 /* ---------- the sheet ---------- */
 function paintSheet(w) {
   const pad = $('#pad');
-  $('#empty').hidden = w.rows.length > 0; pad.hidden = !w.rows.length;
+  $('#empty').hidden = w.rows.length > 0; pad.hidden = !w.rows.length; $('#sheetHint').hidden = !w.rows.length;
   $('#sheetTitle').textContent = (S.mode === 'hollywood' ? 'Hollywood' : 'Single game') + ' to ' + S.target;
-  if (!w.rows.length) return;
+  if (!w.rows.length) { pad.replaceChildren(); return; }
   const tight = w.n * w.P > 6;
   const each = (fn) => Array.from({ length: w.n }, (_, g) => Array.from({ length: w.P }, (_, p) => fn(g, p)));
   // As on a paper sheet, every column fills from its own top: a player's first score in a game is on the first
@@ -286,7 +374,8 @@ function paintSheet(w) {
     }))));
   const foot = h('tfoot', {},
     h('tr', {}, h('td', { class: 'h' }), each((g, p) => h('td', { class: (p === 0 ? 'first' : '') + (w.winners[g] === p ? ' win' : '') }, String(w.totals[g][p])))),
-    h('tr', { class: 'bx' }, h('td', { class: 'h' }, 'boxes'), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, String(w.boxes[g][p])))));
+    h('tr', { class: 'bx' }, h('td', { class: 'h' }, 'boxes'), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, String(w.boxes[g][p])))),
+    w.over ? null : h('tr', { class: 'togo' }, h('td', { class: 'h' }, 'to go'), each((g, p) => h('td', { class: p === 0 ? 'first' : '' }, w.winners[g] === -1 ? String(S.target - w.totals[g][p]) : w.winners[g] === p ? 'won' : '–'))));
   pad.classList.toggle('tight', tight);
   pad.replaceChildren(head, body, foot);
 }
@@ -300,31 +389,26 @@ const w0 = () => work(S);
 
 /* ---------- what it comes to ---------- */
 function paintReck(w) {
-  const box = $('#reck'), kids = [];
+  const box = $('#reck'), working = [];
   $('#reckPanel').hidden = !w.games.some(Boolean);
+  if (!w.games.some(Boolean)) return;
+  const ln = (a, b, strong) => h('div', { class: 'ln' }, h('span', {}, strong ? h('b', {}, a) : a), h('span', {}, b));
   w.games.forEach((g, i) => {
     if (!g) return;
-    kids.push(h('div', { class: 'gt' }, (w.n > 1 ? `Game ${i + 1}: ` : '') + `${name(g.w)} won, ${w.totals[i].join(' to ')}`));
+    working.push(h('div', { class: 'gt' }, (w.n > 1 ? `Game ${i + 1}: ` : '') + `${name(g.w)} won, ${w.totals[i].join(' to ')}`));
     g.owes.forEach((o) => {
-      const ln = (a, b) => h('div', { class: 'ln' }, h('span', {}, a), h('span', {}, b));
-      if (w.P > 2) kids.push(h('div', { class: 'ln' }, h('span', {}, h('b', {}, `From ${name(o.l)}`)), h('span', {}, String(o.net))));
-      kids.push(ln(`Points, ${w.totals[i][g.w]} to ${w.totals[i][o.l]}`, String(o.pointsBy)),
+      if (w.P > 2) working.push(ln(`From ${name(o.l)}`, String(o.net), true));
+      working.push(ln(`Points, ${w.totals[i][g.w]} to ${w.totals[i][o.l]}`, String(o.pointsBy)),
         ln('Game bonus' + (o.shut && S.shutout === 'bonus' ? ', doubled for the shutout' : ''), '+' + o.bonus),
         ln(`Boxes, ${w.boxes[i][g.w]} to ${w.boxes[i][o.l]} at ${S.box}`, (o.boxBy < 0 ? '−' : '+') + Math.abs(o.boxBy * S.box)));
-      if (o.shut && S.shutout === 'total') kids.push(ln('Doubled for the shutout', '×2'));
-      if (w.P === 2) kids.push(h('div', { class: 'ln' }, h('span', {}, h('b', {}, `${name(g.w)} by`)), h('span', {}, String(o.net))));
+      if (o.shut && S.shutout === 'total') working.push(ln('Doubled for the shutout', '×2'));
+      if (w.P === 2) working.push(ln(`${name(g.w)} by`, String(o.net), true));
     });
   });
-  // Who pays whom, over the games finished so far. With three players each pair is squared up on its own.
-  for (let a = 0; a < w.P; a++) for (let b = a + 1; b < w.P; b++) {
-    let net = 0;
-    w.games.forEach((g) => g && g.owes.forEach((o) => { if (g.w === a && o.l === b) net += o.net; if (g.w === b && o.l === a) net -= o.net; }));
-    if (!net) continue;
-    const [up, down] = net > 0 ? [a, b] : [b, a], pts = Math.abs(net);
-    kids.push(h('div', { class: 'pay' }, S.cents > 0 ? `Owed to ${name(up)} by ${name(down)}: ${cash(pts * S.cents)}` : `${name(up)} by ${pts} points over ${name(down)}`));
-  }
-  if (S.cents > 0 && w.games.some(Boolean)) kids.push(h('small', {}, `At ${S.cents < 100 ? S.cents + '¢' : cash(S.cents)} a point${w.over ? '.' : ', for the games finished so far.'}`));
-  box.replaceChildren(...kids);
+  const open = box.querySelector('details') ? box.querySelector('details').open : false;
+  box.replaceChildren(...pays(w).map((line) => h('div', { class: 'pay' }, line)),
+    h('small', {}, (S.cents > 0 ? `At ${rate()}` : 'In points') + (w.over ? '.' : ', for the games finished so far.')),
+    h('details', { class: 'work', open }, h('summary', {}, 'How that is worked out'), working));
 }
 
 /* ---------- set up ---------- */
@@ -345,6 +429,9 @@ function setUp() {
   };
   const num = (label, key, max) => h('label', {}, label, h('input', { class: 'num', type: 'number', inputmode: 'numeric', min: 0, max, value: S[key],
     on: { input: (e) => { const v = Math.round(+e.target.value); if (Number.isFinite(v) && v >= 0 && v <= max) { S[key] = v; save(); paint(); } } } }));
+  const awake = !('wakeLock' in navigator) ? null : h('button', { class: 'setting', role: 'switch', 'aria-checked': String(!!S.awake), style: 'margin-top:16px',
+    on: { click: (e) => { S.awake = !S.awake; save(); e.currentTarget.setAttribute('aria-checked', String(S.awake)); stayAwake(); } } },
+    h('span', { class: 't' }, h('b', {}, 'Keep the screen on'), h('span', {}, 'So the phone does not go dark on the table between hands.')), h('span', { class: 'switch' }));
   const names = h('div', { class: 'names' });
   const drawNames = () => names.replaceChildren(...Array.from({ length: S.players }, (_, p) => h('input', { type: 'text', maxlength: 14, value: S.names[p], 'aria-label': `Name ${p + 1}`, autocomplete: 'off',
     on: { input: (e) => { S.names[p] = e.target.value.trim().slice(0, 14) || DEFAULT_NAMES[p]; save(); paint(); } } })));
@@ -360,28 +447,45 @@ function setUp() {
       h('p', { class: 'label' }, 'Bonuses'),
       h('div', { class: 'scoregrid' }, num('For winning a game', 'game', 1000), num('For each hand won (a box)', 'box', 500)),
       chips('A shutout (a player never scored in a game)', [['bonus', 'Doubles the game bonus'], ['total', 'Doubles everything'], ['none', 'Pays no more']], () => S.shutout, (v) => { S.shutout = v; })),
+    awake,
     h('div', { class: 'btns' }, h('button', { class: 'go', on: { click: () => d.close() } }, 'Done')));
   d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
   d.addEventListener('close', () => d.remove());
   document.body.append(d); d.showModal();
 }
 $('#setupBtn').onclick = setUp;
-$('#fresh').onclick = () => {
-  if (!S.entries.length) return toast('The sheet is already empty.');
-  const d = sheet('Start a new sheet?', 'The hands on this one are cleared. The players, the target and the money stay as they are.',
-    h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Keep this one'),
-    h('button', { class: 'go', on: { click: () => { S.entries = []; save(); d.close(); paint(); } } }, 'New sheet'));
-};
+// A phone lying on the table goes dark between hands. With this on, it stays lit while the pad is showing.
+let lock = null;
+async function stayAwake() {
+  try {
+    if (S.awake && !lock && 'wakeLock' in navigator && !document.hidden) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); }
+    else if (!S.awake && lock) { await lock.release(); lock = null; }
+  } catch (e) { lock = null; }
+}
+document.addEventListener('visibilitychange', stayAwake);
+// A new sheet is one tap, and one tap to get the old one back.
+function newSheet() {
+  if (!S.entries.length) return;
+  const old = S.entries; S.entries = []; save(); paint(); scrollTo({ top: 0, behavior: 'smooth' });
+  toast('New sheet started', 'Put the old one back', () => { S.entries = old; save(); paint(); });
+}
+$('#fresh').onclick = newSheet;
 let toastTimer;
-function toast(msg) {
+function toast(msg, label, fn) {
   let t = $('#toast');
   if (!t) { t = h('div', { id: 'toast', role: 'status', 'aria-live': 'polite' }); document.body.append(t); }
-  t.textContent = msg; t.classList.add('on');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2600);
+  t.replaceChildren(h('span', {}, msg), label ? h('button', { on: { click: () => { t.classList.remove('on'); fn(); } } }, label) : null);
+  t.classList.toggle('act', !!label); t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), label ? 5000 : 2600);
 }
 
 function paint() { const w = work(S); paintAdd(w); paintSheet(w); paintReck(w); }
-paint();
+paint(); stayAwake();
+// Kept for a place with no signal: once opened, the pad opens again without one (see sw.js).
+if ('serviceWorker' in navigator && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+  navigator.serviceWorker.register('/games/sw.js', { scope: '/games/' }).catch(() => {});
+  if ('caches' in window) caches.open('ace-pad-v1').then((c) => c.addAll(['/games/score/', '/games/room.css?v=6', '/games/icons/favicon-32.png?v=3'])).catch(() => {});
+}
 window.AceScore = { work };   // for the tests
 })();
 </script>

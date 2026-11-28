@@ -1,7 +1,20 @@
-// Ace's service worker. It keeps nothing and answers no page loads; it is here only so a phone can show
+// Ace's service worker. It is here so a phone can show
 // "your turn" while the game is closed. The sender (games/push) delivers {title, body, url, tag}.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+// The score pad has to open at a table with no signal. Its page and the few files it needs are fetched as usual
+// when there is a connection (and the copy kept is refreshed); with none, the kept copy answers. Nothing else in
+// the room is kept: the games themselves need the card room anyway.
+const PAD = 'ace-pad-v1';
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (!/^\/games\/(score\/(index\.html)?$|room\.css$|icons\/)/.test(url.pathname)) return;
+  event.respondWith(fetch(event.request).then((reply) => {
+    if (reply.ok) { const copy = reply.clone(); caches.open(PAD).then((c) => c.put(event.request, copy)); }
+    return reply;
+  }).catch(() => caches.match(event.request, { ignoreSearch: true }).then((kept) => kept || Response.error())));
+});
 self.addEventListener('push', (event) => {
   let note = {};
   try { note = event.data.json(); } catch (e) { /* a message with nothing in it still has to show something */ }
