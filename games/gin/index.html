@@ -867,7 +867,9 @@ async function nudge() {
   const waiting = playing(st) && st.turn === opp;
   const text = `${waiting ? 'Your turn at gin' : 'Come back to the gin table'}, ${st.names[opp] || 'you'}. ${st.names[st.you] || 'I'} ${st.names[st.you] ? 'is' : 'am'} waiting: ${url}`;
   const ua = navigator.userAgent, apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  if (apple || /Android/.test(ua)) location.href = `sms:${apple ? '&' : '?'}body=${encodeURIComponent(text)}`;
+  // If they gave their account a number, the text is already addressed to it.
+  const to = await Room.call('room_phones', { p_code: code }).then((list) => (list[0] && list[0].phone) || '', () => '');
+  if (apple || /Android/.test(ua)) location.href = `sms:${to}${apple ? '&' : '?'}body=${encodeURIComponent(text)}`;
   else if (navigator.share) navigator.share({ text }).catch(() => {});
   else navigator.clipboard.writeText(text).then(() => toast('Message copied. Paste it wherever you two talk.'), () => toast(url));
 }

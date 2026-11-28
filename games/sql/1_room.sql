@@ -32,6 +32,8 @@ alter table room.players add column if not exists pass text;
 alter table room.players add column if not exists fails int not null default 0;
 alter table room.players add column if not exists locked_until timestamptz;
 create unique index if not exists players_handle on room.players (handle) where handle is not null;
+-- A number an account's owner chose to give, so the players they sit with can text them. Shown to nobody else.
+alter table room.players add column if not exists phone text;
 
 create table if not exists room.tables (
   code        text primary key,                       -- the six letters in the share link
@@ -212,7 +214,37 @@ create or replace function public.room_who(p_token text)
 returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
 declare me room.players := room.me(p_token);
 begin
-  return jsonb_build_object('token', me.key, 'name', me.name, 'avatar', me.avatar, 'color', me.color, 'handle', me.handle);
+  return jsonb_build_object('token', me.key, 'name', me.name, 'avatar', me.avatar, 'color', me.color, 'handle', me.handle,
+                            'phone', me.phone);
+end $$;
+
+-- An account's phone number, for texts from the players its owner sits with. Kept as digits with an optional
+-- leading +; nothing, or an empty string, takes it away. Answers what is now stored.
+create or replace function public.room_phone_set(p_token text, p_phone text)
+returns text language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare me room.players := room.me(p_token); v text := btrim(coalesce(p_phone, ''));
+begin
+  if me.handle is null then raise exception 'Log in first'; end if;
+  if v = '' then
+    v := null;
+  else
+    if v !~ '^\+?[0-9 ().-]+$' then raise exception 'A phone number is digits, with + in front for a country code'; end if;
+    v := case when left(v, 1) = '+' then '+' else '' end || regexp_replace(v, '[^0-9]', '', 'g');
+    if length(replace(v, '+', '')) not between 7 and 15 then raise exception 'A phone number is 7 to 15 digits'; end if;
+  end if;
+  update room.players set phone = v where id = me.id;
+  return v;
+end $$;
+
+-- The numbers of the other players at a table the caller is sitting at: [{name, phone}], only those who gave one.
+create or replace function public.room_phones(p_token text, p_code text)
+returns jsonb language plpgsql security definer set search_path = room, public, pg_temp as $$
+declare me room.players := room.me(p_token); t room.tables;
+begin
+  select * into t from room.tables where code = room.code(p_code);
+  if not found or not (me.id = any(t.seats)) then raise exception 'You are not sitting at this table'; end if;
+  return (select coalesce(jsonb_agg(jsonb_build_object('name', p.name, 'phone', p.phone)), '[]')
+          from room.players p where p.id = any(t.seats) and p.id <> me.id and p.phone is not null and p.handle is not null);
 end $$;
 
 -- The open tables anyone in the room can sit down at.

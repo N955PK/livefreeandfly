@@ -293,11 +293,29 @@ function passwordDialog() {
       } } }, 'Change it')));
   old.focus();
 }
+// A number the players you sit with can text. Only an account can hold one.
+async function phoneDialog(done) {
+  let now = null;
+  try { now = (await rpc('room_who', { p_token: key })).phone || null; } catch (e) { /* shown as none */ }
+  const box = h('input', { type: 'tel', maxlength: 24, placeholder: 'Phone number', autocomplete: 'tel', inputmode: 'tel', 'aria-label': 'Phone number', value: now || '' });
+  const note = h('p', { class: 'why warn', role: 'alert' });
+  const save = async (value) => {
+    try { await call('room_phone_set', { p_phone: value }); d.close(); toast(value ? 'Phone number saved' : 'Phone number removed'); if (done) done(); }
+    catch (e) { note.textContent = /being set up/.test(e.message) ? 'Phone numbers open once the game room is updated.' : e.message; }
+  };
+  box.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(box.value.trim()); });
+  const d = dialog('Your phone number', h('h3', {}, 'Your phone number'),
+    h('p', { class: 'why' }, 'When you have stepped away from a table, the player you are sitting with can text this number to bring you back. Only players at your tables can use it; it is never shown in the lists or on the leaderboard.'),
+    h('div', { class: 'acctform' }, box), note,
+    h('div', { class: 'btns' }, now ? h('button', { class: 'ghost', on: { click: () => save('') } }, 'Remove it') : h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Cancel'),
+      h('button', { class: 'go', on: { click: () => save(box.value.trim()) } }, 'Save')));
+  box.focus();
+}
 // The line under your name that says whether you are logged in, with the buttons to change that.
 function accountBox(box) {
   const link = (label, fn) => h('button', { type: 'button', class: 'alink', on: { click: fn } }, label);
   box.className = 'acct';
-  if (handle) box.replaceChildren(h('span', {}, 'Logged in as ', h('b', {}, handle)), link('Change password', passwordDialog), link('Log out', () => {
+  if (handle) box.replaceChildren(h('span', {}, 'Logged in as ', h('b', {}, handle)), link('Phone number', () => phoneDialog()), link('Change password', passwordDialog), link('Log out', () => {
     const d = dialog('Log out', h('h3', {}, 'Log out?'), h('p', { class: 'why' }, 'Your tables and your record stay with your account. Log in again here or anywhere to get back to them.'),
       h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Stay'), h('button', { class: 'go', on: { click: logout } }, 'Log out')));
   }));

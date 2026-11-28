@@ -553,6 +553,24 @@ def test_stakes_and_settling_up(db):
     assert [(m["won"], m["net"], m["money"]) for m in theirs] == [(False, -r["settle"]["net0"], -r["settle"]["money0"])]
 
 
+def test_phone_numbers(db):
+    ann, bob, cy = hello(db, "Ann"), hello(db, "Bob"), hello(db, "Cy")
+    code, _ = new_table(db, players=(ann, bob))
+    fails(db, "room_phone_set", "Log in first", p_token=bob, p_phone="555 123 4567")
+    call(db, "room_register", p_token=bob, p_handle="bobphone", p_password="secret1")
+    fails(db, "room_phone_set", "digits", p_token=bob, p_phone="call me")
+    fails(db, "room_phone_set", "7 to 15", p_token=bob, p_phone="12345")
+    assert call(db, "room_phone_set", p_token=bob, p_phone=" +1 (555) 123-4567 ") == "+15551234567"
+    assert call(db, "room_who", p_token=bob)["phone"] == "+15551234567"
+    assert call(db, "room_phones", p_token=ann, p_code=code) == [{"name": "Bob", "phone": "+15551234567"}]
+    assert call(db, "room_phones", p_token=bob, p_code=code) == []                 # Ann gave none, and not his own
+    fails(db, "room_phones", "not sitting", p_token=cy, p_code=code)
+    assert "phone" not in json.dumps(call(db, "gin_state", p_code=code, p_token=ann))   # not in what the table shows
+    assert "5551234567" not in json.dumps(call(db, "room_leaderboard"))
+    assert call(db, "room_phone_set", p_token=bob, p_phone="") is None
+    assert call(db, "room_phones", p_token=ann, p_code=code) == []
+
+
 def test_notifications(db):
     code, (ann, bob) = new_table(db)
     cy = hello(db, "Cy")
