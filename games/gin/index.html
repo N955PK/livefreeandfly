@@ -118,7 +118,7 @@ button.knock.can b{font-size:calc(var(--cw)*.36)}
 @keyframes say{0%{opacity:0;transform:translateY(6px) scale(.92)}5%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
 #sayBtn{font-size:19px;padding:4px 8px;border-radius:10px;opacity:.85}
 /* The reaction tray: slides up from the bottom and rides on top of the keyboard. */
-#sayTray{position:fixed;inset:0;z-index:150}
+#sayTray{position:fixed;inset:calc(env(safe-area-inset-top) + 8px) 0 0;z-index:150}
 #sayTray .shade{position:absolute;inset:0;background:rgba(3,8,10,.35);opacity:0;transition:opacity .16s}
 #sayTray .sheet{position:absolute;left:0;right:0;bottom:var(--kb,0px);max-width:560px;margin:0 auto;padding:12px 12px calc(12px + env(safe-area-inset-bottom));
   background:#0e241d;border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -14px 40px rgba(0,0,0,.5);
@@ -211,9 +211,10 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
 
 /* ---------- finish: the cloth, the cards, and the furniture around them ---------- */
 /* The cloth darkens toward its edges, like a table under one lamp. */
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.42) 100%)}
-#table,.page{position:relative;z-index:1}
+/* It is a layer of the page's own background, not a sheet fixed over the screen: an iPhone takes anything fixed
+   against the top edge for a toolbar and fogs whatever sits under the clock, which hid the score. */
+body{background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(0,0,0,.42) 100%) fixed,
+  var(--felt0) radial-gradient(ellipse at 50% 38%,var(--felt2) 0%,var(--felt1) 48%,var(--felt0) 100%) fixed}
 /* Cards: a crisper face, a hairline edge, and a shadow on the left edge so each card in a fanned hand stands off
    the one under it. */
 .card{background:linear-gradient(165deg,#fff 0%,#f6f4ee 100%);border-radius:calc(var(--cw)*.12);
