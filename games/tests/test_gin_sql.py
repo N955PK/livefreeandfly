@@ -366,7 +366,7 @@ def test_the_room(db):
     listed = call(db, "gin_create", p_token=ann, p_mode="hollywood", p_target=200, p_listed=True)["code"]
     lobby = {t["code"]: t for t in call(db, "room_lobby", p_token=bob)}
     assert quiet not in lobby and lobby[listed]["host"]["name"] == "Ann" and not lobby[listed]["mine"]
-    assert lobby[listed]["options"] == {"mode": "hollywood", "target": 200} and lobby[listed]["game"] == "gin"
+    assert lobby[listed]["options"] == {"mode": "hollywood", "target": 200, "cents": 1} and lobby[listed]["game"] == "gin"
     assert {t["code"]: t for t in call(db, "room_lobby", p_token=ann)}[listed]["mine"]
     call(db, "gin_join", p_token=bob, p_code=listed)
     assert listed not in {t["code"] for t in call(db, "room_lobby")}      # full tables drop off the list
@@ -488,6 +488,63 @@ def test_accounts_and_the_leaderboard(db):
     new_table(db)
     db.execute("select count(*) from room.players where handle in ('ann', 'bob')")
     assert db.fetchone()[0] == 2
+
+
+def test_stakes_and_settling_up(db):
+    # The usual convention: the winner of a game takes the game bonus and each player a box for every hand won;
+    # the loser pays the difference, at so much a point. Every figure can be set when the table is opened.
+    ann, bob = hello(db, "Ann"), hello(db, "Bob", "🐻", "#ffa32e")
+    made = call(db, "gin_create", p_token=ann, p_mode="single", p_target=100)
+    assert made["state"]["stakes"] == {"cents": 1, "game": 100, "box": 25, "shutout": "bonus", "gin": 25, "undercut": 25}
+    assert call(db, "gin_peek", p_code=made["code"])["stakes"]["cents"] == 1
+    odd = call(db, "gin_create", p_token=ann, p_mode="single", p_target=100,
+               p_stakes={"cents": 2.5, "game": 150, "box": 20, "shutout": "total", "gin": 30, "undercut": 99999, "junk": 1})
+    assert odd["state"]["stakes"] == {"cents": 2.5, "game": 150, "box": 20, "shutout": "total", "gin": 30, "undercut": 500}
+
+    def settle(mode, totals, winners, log, stakes=None):
+        db.execute("select gin.settle(%s, %s::jsonb, %s::int[], %s::jsonb, %s::jsonb)",
+                   (mode, json.dumps(totals), winners, json.dumps(log), json.dumps(stakes or {})))
+        return db.fetchone()[0]
+
+    hands = lambda wins: [{"hand": i + 1, "winner": w, "pts": 10, "cols": [0]} for i, w in enumerate(wins)]
+    # Seat 0 wins 104 to 37 with five boxes to two: 67 points, the 100 for the game, and three boxes more.
+    out = settle("single", [[104, 37], [0, 0], [0, 0]], [0, -1, -1], hands([0, 1, 0, 0, 1, 0, 0]))
+    assert out == {"games": [{"winner": 0, "net": 67 + 100 + 75, "boxes": [5, 2], "shutout": False}], "net0": 242, "cents": 1, "money0": 242}
+    # A shutout doubles the game bonus by default, doubles the lot when the table says so, or pays no more.
+    blank = ([[110, 0], [0, 0], [0, 0]], [0, -1, -1], hands([0, 0, 0]))
+    assert settle("single", *blank)["net0"] == 110 + 200 + 75
+    assert settle("single", *blank, {"shutout": "total"})["net0"] == (110 + 100 + 75) * 2
+    assert settle("single", *blank, {"shutout": "none", "cents": 5})["money0"] == (110 + 100 + 75) * 5
+    # Seat 1 winning leaves seat 0 down; a table that plays for nothing settles in points alone.
+    lost = settle("single", [[20, 100], [0, 0], [0, 0]], [1, -1, -1], hands([0, 1, 1, 1]), {"cents": 0, "box": 20, "game": 50})
+    assert (lost["net0"], lost["money0"]) == (-(80 + 50 + 40), 0)
+    # Hollywood settles its three games one by one: a hand is a box in each game it counted in.
+    log = [{"hand": 1, "winner": 0, "pts": 60, "cols": [0]}, {"hand": 2, "winner": 0, "pts": 50, "cols": [0, 1]},
+           {"hand": 3, "winner": 1, "pts": 30, "cols": [0]}, {"hand": 4, "winner": 0, "pts": 110, "cols": [1, 2]},
+           {"hand": 5, "winner": 1, "pts": 105, "cols": [0, 1]}]
+    three = settle("hollywood", [[110, 135], [160, 105], [110, 0]], [1, 0, 0], log)
+    assert [g["net"] for g in three["games"]] == [25 + 100 + 0, 55 + 100 + 25, 110 + 200 + 25]
+    assert three["net0"] == -125 + 180 + 335
+
+    # At the table: gin and undercut bonuses come from the stakes, and the match is settled when it ends.
+    code = call(db, "gin_create", p_token=ann, p_mode="single", p_target=40, p_stakes={"cents": 10, "gin": 30})["code"]
+    call(db, "gin_join", p_token=bob, p_code=code)
+    h0 = hand("3H 4H 5H 6H 9S 9D 9C JD QD KD") + [C("QS")]
+    h1 = hand("7C 8C 9H KC 7H AS AD 2D 4C 3S")
+    rest = [c for c in range(52) if c not in h0 + h1]
+    rig(db, code, hand0=h0, hand1=h1, pile=rest[:1], stock=rest[1:], knock=9, turn=0, phase="discard",
+        drawn=C("QS"), drawn_from="stock", dealer=1, stock_only=False)
+    call(db, "gin_knock", p_code=code, p_token=ann, p_card=C("QS"), p_melds=[hand("3H 4H 5H 6H"), hand("9S 9D 9C"), hand("JD QD KD")])
+    done = call(db, "gin_layoff", p_code=code, p_token=bob, p_melds=[], p_layoffs=[[], [], []])
+    dead = sum(val(c) for c in h1)
+    r = done["result"]
+    assert (r["type"], r["pts"], r["over"]) == ("gin", 30 + dead, True)
+    assert r["settle"]["net0"] == (30 + dead) + 200 + 25 and r["settle"]["money0"] == r["settle"]["net0"] * 10
+    # The running balance between the two follows each of them, and carries to another table.
+    assert done["money"] == -r["settle"]["money0"]
+    assert call(db, "gin_state", p_code=code, p_token=ann)["money"] == r["settle"]["money0"]
+    other, _ = new_table(db, players=(bob, ann))
+    assert call(db, "gin_state", p_code=other, p_token=ann)["money"] == r["settle"]["money0"]
 
 
 def test_upgrade_keeps_tables_in_play(server):

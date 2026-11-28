@@ -43,6 +43,14 @@ create table if not exists gin.games (
   winners     int[] not null default '{-1,-1,-1}'    -- who won each game, -1 while it's open
 );
 alter table gin.games enable row level security;     -- and no policies: only the functions below can touch it
+-- What the table plays for, chosen by whoever opened it: {cents, game, box, shutout, gin, undercut}. See gin.stakes.
+-- Tables already in play when stakes arrived were not opened for money, and stay that way.
+do $$ begin
+  if not exists (select 1 from information_schema.columns where table_schema = 'gin' and table_name = 'games' and column_name = 'stakes') then
+    alter table gin.games add column stakes jsonb not null default '{}';
+    update gin.games set stakes = '{"cents": 0}';
+  end if;
+end $$;
 -- The last thing said across the table: {seat, text, n, at}. n counts up, so a page knows a line it has not shown.
 alter table gin.games add column if not exists said jsonb;
 
@@ -114,6 +122,58 @@ create or replace function gin.record(a uuid, b uuid) returns jsonb language sql
   from room.results where game = 'gin' and players @> array[a, b]
 $$;
 
+-- A table's stakes, whole and within bounds, whatever was sent or stored:
+--   cents     money a point, in cents (a penny by default; 0 plays for nothing)
+--   game      the bonus for winning a game (100)
+--   box       the bonus for each hand won, a "box" (25)
+--   shutout   when the loser of a game never scored: 'bonus' doubles the game bonus, 'total' doubles everything the
+--             winner is owed for that game, 'none' pays no more
+--   gin       the bonus for going gin (25), and undercut, the bonus for undercutting a knock (25)
+create or replace function gin.stakes(j jsonb) returns jsonb language sql immutable as $$
+  select jsonb_build_object(
+    'cents', least(greatest(round(coalesce(nullif(j ->> 'cents', '')::numeric, 1), 2), 0), 10000),
+    'game', least(greatest(coalesce(nullif(j ->> 'game', '')::numeric::int, 100), 0), 1000),
+    'box', least(greatest(coalesce(nullif(j ->> 'box', '')::numeric::int, 25), 0), 500),
+    'shutout', case when j ->> 'shutout' in ('bonus', 'total', 'none') then j ->> 'shutout' else 'bonus' end,
+    'gin', least(greatest(coalesce(nullif(j ->> 'gin', '')::numeric::int, 25), 0), 500),
+    'undercut', least(greatest(coalesce(nullif(j ->> 'undercut', '')::numeric::int, 25), 0), 500))
+$$;
+
+-- How a finished match is settled, by the usual convention. In each game the winner takes their points, the game
+-- bonus, and a box bonus for every hand they won in it; the loser takes their points and their own boxes; the
+-- loser pays the difference. A shutout pays more, as the stakes say. Hollywood settles its three games one by one.
+-- Answers {games: [{winner, net, boxes, shutout}], net0, cents, money0}: net0 is how many points seat 0 is up
+-- (negative when down) and money0 the same in cents.
+create or replace function gin.settle(p_mode text, p_totals jsonb, p_winners int[], p_log jsonb, p_stakes jsonb)
+returns jsonb language plpgsql immutable as $$
+declare
+  st jsonb := gin.stakes(p_stakes); n int := case p_mode when 'hollywood' then 3 else 1 end;
+  games jsonb := '[]'; net0 int := 0; w int; l int; b int[]; shut boolean; net int;
+begin
+  for i in 1 .. n loop
+    w := p_winners[i];
+    if w is null or w = -1 then continue; end if;
+    l := 1 - w;
+    select array[count(*) filter (where (h ->> 'winner')::int = 0), count(*) filter (where (h ->> 'winner')::int = 1)]
+      into b from jsonb_array_elements(p_log) h where h -> 'cols' @> to_jsonb(i - 1) and h ->> 'winner' is not null;
+    shut := (p_totals -> (i - 1) ->> l)::int = 0;
+    net := (p_totals -> (i - 1) ->> w)::int - (p_totals -> (i - 1) ->> l)::int
+         + (st ->> 'game')::int * case when shut and st ->> 'shutout' = 'bonus' then 2 else 1 end
+         + (st ->> 'box')::int * (b[w + 1] - b[l + 1]);
+    if shut and st ->> 'shutout' = 'total' then net := net * 2; end if;
+    games := games || jsonb_build_object('winner', w, 'net', net, 'boxes', to_jsonb(b), 'shutout', shut);
+    net0 := net0 + case when w = 0 then net else -net end;
+  end loop;
+  return jsonb_build_object('games', games, 'net0', net0, 'cents', st -> 'cents',
+                            'money0', round(net0 * (st ->> 'cents')::numeric, 2));
+end $$;
+
+-- How many cents player a is up on player b over every match the two have finished (negative when down).
+create or replace function gin.money(a uuid, b uuid) returns numeric language sql stable as $$
+  select coalesce(sum(case when players[1] = a then 1 else -1 end * (detail -> 'settle' ->> 'money0')::numeric), 0)
+  from room.results where game = 'gin' and players @> array[a, b] and detail -> 'settle' ? 'money0'
+$$;
+
 -- What one seat is allowed to see.
 create or replace function gin.view(g gin.games, s int) returns jsonb language sql stable as $$
   select jsonb_build_object(
@@ -124,6 +184,7 @@ create or replace function gin.view(g gin.games, s int) returns jsonb language s
     'colors', jsonb_build_array(coalesce(f -> 0 ->> 'color', ''), coalesce(f -> 1 ->> 'color', '')),
     'away', jsonb_build_array(coalesce((f -> 0 ->> 'away')::boolean, false), coalesce((f -> 1 ->> 'away')::boolean, false)),
     'record', gin.record(t.seats[s + 1], t.seats[2 - s]),
+    'stakes', gin.stakes(g.stakes), 'money', gin.money(t.seats[s + 1], t.seats[2 - s]),
     'match_no', g.match_no, 'hand_no', g.hand_no, 'dealer', g.dealer, 'turn', g.turn, 'phase', g.phase,
     'stock_only', g.stock_only, 'knock', g.knock, 'upcard', g.upcard,
     'stock', cardinality(g.stock), 'pile', cardinality(g.pile), 'top', g.pile[cardinality(g.pile)],
@@ -160,7 +221,7 @@ create or replace function gin.finish(g gin.games, p_winner int, p_pts int, p_ty
 language plpgsql as $$
 declare
   n int := case g.mode when 'hollywood' then 3 else 1 end;
-  e int; i int; t int; cols int[] := '{}'; over boolean := false; champ int;
+  e int; i int; t int; cols int[] := '{}'; over boolean := false; champ int; v_log jsonb; v_settle jsonb;
   v_totals jsonb := g.totals; v_winners int[] := g.winners; v_entered int[] := g.entered;
 begin
   if p_winner is not null then
@@ -179,20 +240,24 @@ begin
     end loop;
     over := not (-1 = any(v_winners[1:n]));
   end if;
+  v_log := g.log || jsonb_build_array(jsonb_build_object(
+    'hand', g.hand_no, 'type', p_type, 'winner', p_winner, 'pts', p_pts, 'cols', to_jsonb(cols)));
+  if over then v_settle := gin.settle(g.mode, v_totals, v_winners, v_log, g.stakes); end if;
   update gin.games set
     status = case when over then 'game_over' else 'hand_over' end, phase = '', knocked = null,
     totals = v_totals, winners = v_winners, entered = v_entered,
-    log = log || jsonb_build_array(jsonb_build_object(
-      'hand', g.hand_no, 'type', p_type, 'winner', p_winner, 'pts', p_pts, 'cols', to_jsonb(cols))),
+    log = v_log,
     result = p_detail || jsonb_build_object('type', p_type, 'winner', p_winner, 'pts', p_pts, 'cols', to_jsonb(cols),
-      'hand', g.hand_no, 'match', g.match_no, 'over', over, 'totals', v_totals, 'winners', to_jsonb(v_winners)),
+      'hand', g.hand_no, 'match', g.match_no, 'over', over, 'totals', v_totals, 'winners', to_jsonb(v_winners))
+      || case when over then jsonb_build_object('settle', v_settle) else '{}' end,
     version = version + 1, updated_at = now()
   where code = g.code;
   if over then   -- one line in the room's book: who beat whom
     champ := case when (select count(*) from unnest(v_winners[1:n]) w where w = 0) * 2 > n then 0 else 1 end;
     insert into room.results (game, code, players, winner, detail)
     select 'gin', g.code, r.seats, r.seats[champ + 1],
-           jsonb_build_object('mode', g.mode, 'target', g.target, 'totals', v_totals, 'winners', to_jsonb(v_winners))
+           jsonb_build_object('mode', g.mode, 'target', g.target, 'totals', v_totals, 'winners', to_jsonb(v_winners),
+                              'settle', v_settle, 'stakes', gin.stakes(g.stakes))
     from room.tables r where r.code = g.code;
   end if;
 end $$;
@@ -216,14 +281,18 @@ create trigger gin_sync after insert or update on gin.games for each row execute
 /* ---------- the API (public) ---------- */
 
 -- Opens a table. p_token is the caller's room key (from room_hello), here and in everything below.
-create or replace function public.gin_create(p_token text, p_mode text, p_target int, p_listed boolean default false)
+-- (The version without stakes is dropped first: two with the same four leading arguments could not be told apart.)
+drop function if exists public.gin_create(text, text, int, boolean);
+create or replace function public.gin_create(p_token text, p_mode text, p_target int, p_listed boolean default false,
+                                             p_stakes jsonb default null)
 returns jsonb language plpgsql security definer set search_path = gin, room, public, pg_temp as $$
-declare me room.players := room.me(p_token); v_code text;
+declare me room.players := room.me(p_token); v_code text; v_stakes jsonb := gin.stakes(coalesce(p_stakes, '{}'));
 begin
   if p_mode is null or p_mode not in ('single', 'hollywood') then raise exception 'Pick single game or Hollywood'; end if;
   if p_target is null or p_target not between 10 and 1000 then raise exception 'Play to somewhere between 10 and 1000'; end if;
-  v_code := room.new_table('gin', me.id, 2, p_listed, jsonb_build_object('mode', p_mode, 'target', p_target));
-  insert into gin.games (code, mode, target) values (v_code, p_mode, p_target);
+  v_code := room.new_table('gin', me.id, 2, p_listed,
+                           jsonb_build_object('mode', p_mode, 'target', p_target, 'cents', v_stakes -> 'cents'));
+  insert into gin.games (code, mode, target, stakes) values (v_code, p_mode, p_target, v_stakes);
   return jsonb_build_object('code', v_code, 'state', gin.out(v_code, 0));
 end $$;
 
@@ -232,7 +301,7 @@ create or replace function public.gin_peek(p_code text)
 returns jsonb language sql stable security definer set search_path = gin, room, public, pg_temp as $$
   select coalesce((
     select jsonb_build_object('found', true, 'open', t.status = 'waiting', 'mode', g.mode, 'target', g.target,
-                              'host', room.face(t.seats[1]))
+                              'host', room.face(t.seats[1]), 'stakes', gin.stakes(g.stakes))
     from gin.games g join room.tables t on t.code = g.code where g.code = room.code(p_code)),
     jsonb_build_object('found', false))
 $$;
@@ -388,8 +457,10 @@ begin
   d := gin.points(dead);
   k := (g.knocked ->> 'deadwood')::int;
   ks := (g.knocked ->> 'seat')::int;
-  if (g.knocked ->> 'gin')::boolean then v_winner := ks; v_pts := 25 + d;       v_type := 'gin';
-  elsif d <= k then                      v_winner := s;  v_pts := 25 + (k - d); v_type := 'undercut';
+  if (g.knocked ->> 'gin')::boolean then
+    v_winner := ks; v_pts := (gin.stakes(g.stakes) ->> 'gin')::int + d;            v_type := 'gin';
+  elsif d <= k then
+    v_winner := s;  v_pts := (gin.stakes(g.stakes) ->> 'undercut')::int + (k - d); v_type := 'undercut';
   else                                   v_winner := ks; v_pts := d - k;        v_type := 'knock';
   end if;
   perform gin.finish(g, v_winner, v_pts, v_type, jsonb_build_object(

@@ -34,6 +34,15 @@ body{background:var(--felt0) radial-gradient(ellipse at 50% 38%,var(--felt2) 0%,
 details.rules{color:var(--dim);font-size:13.5px;line-height:1.6}
 details.rules summary{cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
 details.rules ul{margin:10px 0 0 18px}
+.scoregrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:12px}
+.scoregrid label{display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+.scoregrid .num{width:100%}
+.settle{margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid var(--line);font-size:14px;line-height:1.55}
+.settle .ln{display:flex;justify-content:space-between;gap:12px}
+.settle .ln span:last-child{font-family:var(--mono);white-space:nowrap}
+.settle .ln.sum{margin-top:6px;padding-top:6px;border-top:1px solid var(--line);font-weight:700;color:var(--ink)}
+.settle .pay{margin-top:8px;font-size:16px;font-weight:700;color:var(--gold)}
+.settle small{display:block;color:var(--dim);font-size:12.5px;margin-top:6px}
 .invite{display:flex;gap:14px;align-items:center}
 .invite p{font-size:16px;line-height:1.45}
 .invite small{color:var(--dim);display:block;font-size:13px;margin-top:2px}
@@ -206,6 +215,22 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
       <button data-t="100">100</button><button data-t="150">150</button><button data-t="200">200</button><button data-t="250">250</button>
       <input class="num" id="targetNum" type="number" inputmode="numeric" min="10" max="1000" placeholder="other" aria-label="Another target">
     </div>
+    <p class="label" style="margin-top:18px">Money a point</p>
+    <div class="chips" id="centChips">
+      <button data-c="0">None</button><button data-c="1">1¢</button><button data-c="5">5¢</button><button data-c="10">10¢</button><button data-c="25">25¢</button>
+      <input class="num" id="centNum" type="number" inputmode="decimal" min="0" max="10000" step="0.5" placeholder="other ¢" aria-label="Another amount, in cents">
+    </div>
+    <details class="rules" id="scoring" style="margin-top:14px"><summary>Scoring</summary>
+      <div class="scoregrid">
+        <label>Game bonus<input class="num" data-k="game" type="number" inputmode="numeric" min="0" max="1000"></label>
+        <label>Each hand won (a box)<input class="num" data-k="box" type="number" inputmode="numeric" min="0" max="500"></label>
+        <label>Gin bonus<input class="num" data-k="gin" type="number" inputmode="numeric" min="0" max="500"></label>
+        <label>Undercut bonus<input class="num" data-k="undercut" type="number" inputmode="numeric" min="0" max="500"></label>
+      </div>
+      <p class="label" style="margin-top:14px">A shutout (the loser of a game never scored)</p>
+      <div class="chips" id="shutChips"><button data-s="bonus">Doubles the game bonus</button><button data-s="total">Doubles everything</button><button data-s="none">Pays no more</button></div>
+      <p style="margin-top:12px">When a game ends, the winner takes their points, the game bonus, and a box for each hand they won; the loser takes their points and their own boxes, and pays the difference at the money a point. <button type="button" class="alink" id="classicBtn">Back to the usual figures</button></p>
+    </details>
     <button class="setting" id="listedSw" role="switch" aria-checked="false" style="margin-top:16px">
       <span class="t"><b>List it in the game room</b><span>Anyone there can sit down. Off, only people with your link can.</span></span><span class="switch"></span>
     </button>
@@ -222,6 +247,7 @@ table.sheet td small{color:var(--dim);font-size:10.5px;margin-right:6px}
       <li>After a knock the other player lays off on the knocker’s melds. Nothing can be laid off on gin.</li>
       <li>Gin scores 25 plus the other player’s deadwood. A knock scores the difference.</li>
       <li>Undercut: if the other player ties or beats the knocker after laying off, they score 25 plus the difference.</li>
+      <li>Settling up: when a game ends the winner adds 100 for the game and each player adds 25 for every hand they won (a box). The loser pays the difference, a penny a point. If the loser never scored, the game bonus is doubled. Whoever opens the table can change every one of these figures.</li>
       <li>Hollywood: your first winning hand counts in game one, your second in games one and two, the rest in all three.</li>
       <li>You may throw back the card you just took off the pile.</li>
       <li>Two cards left in the deck and nobody down: dead hand, no score. The winner of a hand deals the next, so the loser gets first look at the turned-up card.</li>
@@ -603,7 +629,18 @@ function render(prev, move) {
 }
 
 /* ---------- lobby ---------- */
+// The usual figures for settling up; whoever opens a table can change any of them.
+const CLASSIC = { cents: 1, game: 100, box: 25, shutout: 'bonus', gin: 25, undercut: 25 };
+const stakesOf = (x) => Object.assign({}, CLASSIC, x || {});
+// Money, from cents: 83¢, $2.42, $1,204.50.
+function cash(cents) {
+  const c = Math.abs(+cents || 0);
+  if (c < 100) return (Number.isInteger(c) ? c : c.toFixed(1)) + '¢';
+  return '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+const perPoint = (stakes) => (+stakesOf(stakes).cents > 0 ? `${cash(stakesOf(stakes).cents)} a point` : 'no money');
 const setup = Object.assign({ mode: 'single', target: 150, listed: false }, store.get('gin-setup', {}));
+setup.stakes = stakesOf(setup.stakes);
 function showLobby() {
   show('lobby');
   Room.profileEditor($('#lobbyProfile'), profile, Room.saveProfile);
@@ -615,8 +652,24 @@ function showLobby() {
     document.querySelectorAll('#targetChips button').forEach((b) => { const on = +b.dataset.t === setup.target; chip = chip || on; b.setAttribute('aria-pressed', String(on)); });
     if (document.activeElement !== $('#targetNum')) $('#targetNum').value = chip ? '' : setup.target;
     $('#listedSw').setAttribute('aria-checked', String(!!setup.listed));
+    const k = setup.stakes;
+    let cent = false;
+    document.querySelectorAll('#centChips button').forEach((b) => { const on = +b.dataset.c === +k.cents; cent = cent || on; b.setAttribute('aria-pressed', String(on)); });
+    if (document.activeElement !== $('#centNum')) $('#centNum').value = cent ? '' : k.cents;
+    document.querySelectorAll('#scoring input[data-k]').forEach((box) => { if (document.activeElement !== box) box.value = k[box.dataset.k]; });
+    document.querySelectorAll('#shutChips button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.s === k.shutout)));
+    const changed = ['game', 'box', 'gin', 'undercut', 'shutout'].some((key) => k[key] !== CLASSIC[key]);
+    $('#scoring summary').textContent = changed ? 'Scoring (changed)' : 'Scoring';
     store.set('gin-setup', setup);
   };
+  document.querySelectorAll('#centChips button').forEach((b) => b.onclick = () => { setup.stakes.cents = +b.dataset.c; $('#centNum').value = ''; paint(); });
+  $('#centNum').oninput = (e) => { const n = +e.target.value; if (e.target.value !== '' && n >= 0 && n <= 10000) { setup.stakes.cents = Math.round(n * 100) / 100; paint(); } };
+  document.querySelectorAll('#scoring input[data-k]').forEach((box) => box.oninput = () => {
+    const n = Math.round(+box.value);
+    if (box.value !== '' && n >= 0 && n <= +box.max) { setup.stakes[box.dataset.k] = n; paint(); }
+  });
+  document.querySelectorAll('#shutChips button').forEach((b) => b.onclick = () => { setup.stakes.shutout = b.dataset.s; paint(); });
+  $('#classicBtn').onclick = () => { setup.stakes = Object.assign({}, CLASSIC, { cents: setup.stakes.cents }); paint(); };
   document.querySelectorAll('#modeSeg button').forEach((b) => b.onclick = () => { setup.mode = b.dataset.mode; paint(); });
   document.querySelectorAll('#targetChips button').forEach((b) => b.onclick = () => { setup.target = +b.dataset.t; $('#targetNum').value = ''; paint(); });
   $('#targetNum').oninput = (e) => { const n = Math.round(+e.target.value); if (n >= 10 && n <= 1000) { setup.target = n; paint(); } };
@@ -628,7 +681,10 @@ function showLobby() {
     if (typed && !(+typed >= 10 && +typed <= 1000)) return toast('Play to somewhere between 10 and 1000.');
     $('#openBtn').disabled = true;
     try {
-      const r = await Room.call('gin_create', { p_mode: setup.mode, p_target: setup.target, p_listed: !!setup.listed });
+      const args = { p_mode: setup.mode, p_target: setup.target, p_listed: !!setup.listed };
+      // A card room that has not learned about stakes yet opens the table without them.
+      const r = await Room.call('gin_create', { ...args, p_stakes: setup.stakes })
+        .catch((e) => { if (/being set up/.test(e.message)) return Room.call('gin_create', args); throw e; });
       location.href = location.pathname + '?t=' + r.code;
     } catch (e) { toast(e.message); $('#openBtn').disabled = false; }
   };
@@ -644,7 +700,8 @@ function showLobby() {
 }
 
 /* ---------- join ---------- */
-const describe = (mode, target) => (mode === 'hollywood' ? 'Hollywood, three games to ' : 'Single game to ') + target;
+const describe = (mode, target, stakes) => (mode === 'hollywood' ? 'Hollywood, three games to ' : 'Single game to ') + target +
+  (stakes ? ', ' + perPoint(stakes) : '');
 async function showJoin() {
   show('join');
   let info;
@@ -658,7 +715,7 @@ async function showJoin() {
   }
   form.hidden = false;
   box.replaceChildren(avatarEl(info.host, 'big'),
-    h('p', {}, `${info.host.name} is waiting to play gin.`, h('small', {}, describe(info.mode, info.target))));
+    h('p', {}, `${info.host.name} is waiting to play gin.`, h('small', {}, describe(info.mode, info.target, info.stakes))));
   Room.profileEditor($('#joinProfile'), profile, Room.saveProfile);
   Room.accountBox($('#joinAcct'));
   $('#sitBtn').disabled = false;
@@ -677,7 +734,7 @@ let waitingFor = null;
 function showWaiting() {
   show('waiting');
   const url = location.origin + location.pathname + '?t=' + code;
-  $('#waitTag').textContent = describe(st.mode, st.target) + (st.listed ? '. Listed in the game room, so anyone there can sit down.' : '.');
+  $('#waitTag').textContent = describe(st.mode, st.target, st.stakes) + (st.listed ? '. Listed in the game room, so anyone there can sit down.' : '.');
   $('#shareLink').textContent = url;
   $('#shareBtn').hidden = !navigator.share;
   $('#shareBtn').onclick = () => navigator.share({ title: 'gin/rummy', text: `${st.names[0]} wants to play gin.`, url }).catch(() => {});
@@ -967,7 +1024,8 @@ function showResult() {
     kids.push(h('h3', { class: r.type === 'knock' ? '' : 'gin' }, title), h('p', { class: 'why' }, why));
     kids.push(spread(s, k.seat, k.melds, o.layoffs, k.dead, r.type === 'gin' ? 'gin' : `deadwood ${k.deadwood}`));
     kids.push(spread(s, o.seat, o.melds, null, o.dead, `deadwood ${o.deadwood}` + (laid.length ? `, laid off ${laid.length}` : '')));
-    const sum = r.type === 'gin' ? `25 + ${o.deadwood}` : r.type === 'undercut' ? `25 + ${k.deadwood - o.deadwood}` : `${o.deadwood} − ${k.deadwood}`;
+    const sk = stakesOf(s.stakes);
+    const sum = r.type === 'gin' ? `${sk.gin} + ${o.deadwood}` : r.type === 'undercut' ? `${sk.undercut} + ${k.deadwood - o.deadwood}` : `${o.deadwood} − ${k.deadwood}`;
     const tally = h('div', { class: 'tally' }, h('b', {}, `${name(w)} ${verb(w, 'score', 'scores')} ${r.pts}`), ` (${sum})`);
     if (s.mode === 'hollywood') {
       const games = r.cols.map((c) => c + 1);
@@ -982,6 +1040,8 @@ function showResult() {
     const line = games === 1 ? `${r.totals[0][champ]} to ${r.totals[0][1 - champ]}` : `${won[champ]} games to ${won[1 - champ]}`;
     kids.push(h('div', { class: 'tally' }, h('b', {}, `🏆 ${name(champ)} ${verb(champ, 'win', 'wins')} ${games === 1 ? 'the game' : 'Hollywood'}`), `, ${line}.`));
     if (champ === me && shown.key !== seenKey) confetti();
+    const bill = settlement(s, r);
+    if (bill) kids.push(bill);
   }
   kids.push(h('div', { class: 'btns' },
     h('button', { class: 'ghost', on: { click: showSheet } }, 'Scores'),
@@ -1006,10 +1066,48 @@ function confetti() {
   }
 }
 
+// Settling up at the end of a match, as the card room worked it out (r.settle): game by game, how the winner's
+// margin is made up, then what it comes to in money and how the two players stand over every match they've finished.
+function settlement(s, r) {
+  const set = r && r.settle;
+  if (!set || !set.games) return null;
+  const me = s.you, k = stakesOf(s.stakes), name = (seat) => (seat === me ? 'You' : s.names[seat]);
+  const box = h('div', { class: 'settle' }), line = (a, b, cls) => h('div', { class: 'ln' + (cls ? ' ' + cls : '') }, h('span', {}, a), h('span', {}, b));
+  let g = -1;
+  set.games.forEach((game) => {
+    do g++; while (r.winners[g] === -1);
+    const w = game.winner, l = 1 - w, tot = r.totals[g], boxes = game.boxes[w] - game.boxes[l];
+    const bonus = k.game * (game.shutout && k.shutout === 'bonus' ? 2 : 1);
+    if (set.games.length > 1) box.append(h('div', { class: 'sheetT', style: 'margin-top:' + (g ? 12 : 0) + 'px' }, `Game ${g + 1}`, h('b', {}, name(w))));
+    box.append(line(`Points, ${tot[w]} to ${tot[l]}`, String(tot[w] - tot[l])),
+      line(game.shutout && k.shutout === 'bonus' ? 'Game bonus, doubled for the shutout' : 'Game bonus', '+' + bonus),
+      line(`Boxes, ${game.boxes[w]} to ${game.boxes[l]} at ${k.box}`, (boxes < 0 ? '−' : '+') + Math.abs(boxes * k.box)));
+    if (game.shutout && k.shutout === 'total') box.append(line('Doubled for the shutout', '×2'));
+    box.append(line(`${name(w)} ${w === me ? 'win' : 'wins'} by`, String(game.net), 'sum'));
+  });
+  const mine = me === 0 ? set.net0 : -set.net0, money = Math.abs(+set.money0 || 0);
+  if (set.games.length > 1) box.append(line(mine >= 0 ? 'You are up, all three games' : 'You are down, all three games', String(Math.abs(mine)), 'sum'));
+  if (+set.cents > 0 && money > 0) {
+    box.append(h('div', { class: 'pay' }, mine >= 0 ? `${s.names[1 - me]} owes you ${cash(money)}` : `You owe ${s.names[1 - me]} ${cash(money)}`),
+      h('small', {}, `${Math.abs(mine)} points at ${cash(set.cents)} a point.`));
+  } else if (+set.cents > 0) box.append(h('div', { class: 'pay' }, 'All square.'));
+  const run = standing(st);
+  if (run) box.append(h('small', {}, run));
+  return box;
+}
+// How the two players stand in money over every match they have finished, at any table.
+function standing(s) {
+  const m = +s.money || 0;
+  if (!m) return '';
+  return `Over every game you two have finished, ${m > 0 ? `you are up ${cash(m)}` : `you are down ${cash(m)}`}.`;
+}
+
 /* ---------- scoresheet ---------- */
 function showSheet() {
   const s = st, me = s.you, opp = 1 - me, games = s.mode === 'hollywood' ? 3 : 1, dlg = $('#sheetDlg');
-  const kids = [h('h3', {}, 'Scores'), h('p', { class: 'why' }, describe(s.mode, s.target) + (s.match_no > 1 ? ` · match ${s.match_no}` : ''))];
+  const k = stakesOf(s.stakes);
+  const kids = [h('h3', {}, 'Scores'), h('p', { class: 'why' }, describe(s.mode, s.target, s.stakes) + (s.match_no > 1 ? ` · match ${s.match_no}` : '')),
+    h('p', { class: 'why' }, `Settling up: ${k.game} for the game, ${k.box} a box` + (k.shutout === 'bonus' ? ', the game bonus doubled for a shutout' : k.shutout === 'total' ? ', everything doubled for a shutout' : '') + `. Gin ${k.gin}, undercut ${k.undercut}.`)];
   for (let g = 0; g < games; g++) {
     const run = [0, 0], rows = [];
     for (const hnd of s.log) {
@@ -1026,8 +1124,10 @@ function showSheet() {
   }
   const dead = s.log.filter((x) => x.winner == null).length;
   if (dead) kids.push(h('p', { class: 'why' }, plural(dead, 'dead hand') + ' not shown.'));
+  if (s.status === 'game_over' && s.result) { const bill = settlement(s, s.result); if (bill) kids.push(bill); }
   if (s.record[0] + s.record[1] > 0) {
-    kids.push(h('div', { class: 'tally' }, 'Every game you two have finished: ', h('b', {}, `You ${s.record[0]} · ${s.names[opp]} ${s.record[1]}`)));
+    kids.push(h('div', { class: 'tally' }, 'Every game you two have finished: ', h('b', {}, `You ${s.record[0]} · ${s.names[opp]} ${s.record[1]}`),
+      s.status !== 'game_over' && standing(s) ? h('div', {}, standing(s).replace(/^Over every game you two have finished, y/, 'Y')) : null));
   }
   kids.push(h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => dlg.close() } }, 'Close')));
   dlg.replaceChildren(...kids);
@@ -1043,7 +1143,7 @@ function showSettings() {
   };
   const go = (title, sub, fn, cls) => h('button', { class: 'setting', on: { click: () => { d.close(); fn(); } } },
     h('span', { class: 't' }, h('b', { class: cls || '' }, title), h('span', {}, sub)), h('span', { class: 'chev' }, '›'));
-  const d = Room.dialog('Table settings', h('h3', {}, 'Table ' + code), h('p', { class: 'why' }, describe(st.mode, st.target)),
+  const d = Room.dialog('Table settings', h('h3', {}, 'Table ' + code), h('p', { class: 'why' }, describe(st.mode, st.target, st.stakes)),
     toggle('Sound', 'Cards, knocks, and a chime when it’s your turn.', () => sound.on, (v) => { sound.set(v); if (v) sound.turn(); }),
     toggle('Show my melds', 'Color the melds in your hand and count your deadwood.', () => hints, (v) => { hints = v; store.set('gin-hints', v); render(); }),
     go('Cards and table', `${DECKS[look.deck] || DECKS.classic} · ${look.back === 'custom' ? 'your own' : (BACKS[look.back] || BACKS.red).name.toLowerCase()} backs · ${(FELTS[look.felt] || FELTS.green).name.toLowerCase()} table`, showLook),

@@ -21,7 +21,8 @@ const API = DEV ? location.origin : CONFIG.supabaseUrl.replace(/\/$/, '');
 const GAMES = {
   gin: {
     name: 'gin/rummy', path: '/games/gin/',
-    options: (o) => (o.mode === 'hollywood' ? 'Hollywood to ' : 'Single game to ') + o.target,
+    options: (o) => (o.mode === 'hollywood' ? 'Hollywood to ' : 'Single game to ') + o.target +
+      (+o.cents > 0 ? ' · ' + (+o.cents < 100 ? +o.cents + '¢' : '$' + (o.cents / 100).toFixed(2)) + ' a point' : ''),
     score(t) {
       const tot = t.summary && t.summary.totals;
       if (!tot || t.status === 'waiting') return '';

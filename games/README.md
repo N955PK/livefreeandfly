@@ -48,6 +48,12 @@ House rules:
 - Gin scores 25 plus the other player's deadwood. A knock scores the difference.
 - Undercut: if the other player ties or beats the knocker after laying off, they score 25 plus the difference.
 - A game is played to 150 unless the table says otherwise (10 to 1000).
+- Settling up, by the usual convention: when a game ends the winner adds 100 for the game and each player adds 25 for
+  every hand they won (a box); the loser pays the difference at a penny a point. If the loser never scored, the game
+  bonus is doubled. Whoever opens the table sets the money a point (or none) and can change the game bonus, the box,
+  the gin and undercut bonuses, and what a shutout pays. Hollywood settles its three games one by one. The scoresheet
+  shows what each match came to and how the two of you stand in money over every match you have finished. The app
+  only keeps the tally; no money moves through it.
 - Hollywood is three games at once: a player's first winning hand counts in game one, the second in games one and two,
   and the rest in all three. A finished game takes no more points.
 - You may throw back the card you just took off the discard pile.
