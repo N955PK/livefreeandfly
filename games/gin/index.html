@@ -48,14 +48,16 @@ details.rules ul{margin:10px 0 0 18px}
   box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 2px 6px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.18);
   font-family:var(--sans);user-select:none;-webkit-user-select:none;overflow:hidden}
 .card.red{color:#c8102e}
-/* Clubs are green unless the player asks for the classic two colors, so a club is never taken for a spade; with
-   four colors the diamonds are blue as well. */
+/* Spades and clubs are both black, and told apart by their shapes, which are drawn here and not left to the phone's
+   lettering: a spade is one pointed leaf, a club three separate round lobes. A player who wants color as well can
+   have green clubs, or four colors with blue diamonds. */
 html[data-deck=clubs] .card.s3,html[data-deck=four] .card.s3{color:#0a7a4c}
 html[data-deck=four] .card.s2{color:#1668c9}
 .card .ix{position:absolute;top:calc(var(--cw)*.06);left:calc(var(--cw)*.09);display:flex;flex-direction:column;align-items:center;line-height:.95}
 .card .ix b{font-size:calc(var(--cw)*.3);font-weight:700;letter-spacing:-.04em}
-.card .ix i{font-style:normal;font-size:calc(var(--cw)*.3);margin-top:calc(var(--cw)*.01)}
-.card .pip{position:absolute;right:calc(var(--cw)*.08);bottom:calc(var(--cw)*.02);font-size:calc(var(--cw)*.62);line-height:1;opacity:.9}
+.card .ix i{font-style:normal;display:block;width:calc(var(--cw)*.27);height:calc(var(--cw)*.27);margin-top:calc(var(--cw)*.03)}
+.card svg{display:block;width:100%;height:100%;fill:currentColor}
+.card .pip{position:absolute;right:calc(var(--cw)*.08);bottom:calc(var(--cw)*.07);width:calc(var(--cw)*.56);height:calc(var(--cw)*.56);opacity:.9}
 .card.back{background:var(--back-bg);
   box-shadow:0 0 0 calc(var(--cw)*.05) var(--back-edge) inset,0 2px 6px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.25)}
 .card.slot{background:none;box-shadow:0 0 0 2px rgba(255,255,255,.16) inset}
@@ -115,7 +117,9 @@ button.knock.can b{font-size:calc(var(--cw)*.36)}
 .looks button{position:relative;border:2px solid transparent;border-radius:12px;padding:5px;background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;color:var(--dim)}
 .looks button[aria-pressed=true]{border-color:var(--gold);color:var(--ink)}
 .looks .felt{width:54px;height:40px;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset}
-.looks .deck{display:flex;gap:1px;font-size:22px;line-height:1;background:#fff;border-radius:8px;padding:6px 8px}
+.looks .deck{display:flex;gap:3px;background:#fff;border-radius:8px;padding:7px 8px}
+.looks .deck span{display:block;width:19px;height:19px}
+.looks .deck svg{display:block;width:100%;height:100%;fill:currentColor}
 .looks .card.sm{--cw:38px}
 #prompt{text-align:center;font-size:15.5px;font-weight:600;min-height:22px;margin-top:14px;padding:0 6px}
 #prompt.me{color:var(--gold)}
@@ -291,11 +295,23 @@ const SUITS = ['♠','♥','♦','♣'];
 const rank = (c) => c % 13, suit = (c) => Math.floor(c / 13), val = (c) => Math.min(c % 13 + 1, 10);
 const cardName = (c) => RANKS[rank(c)] + SUITS[suit(c)];
 const points = (cards) => cards.reduce((n, c) => n + val(c), 0);
+// The four suits, drawn. A spade is one pointed leaf on a stem; a club is three round lobes that do not touch.
+const SUIT_PATHS = [
+  'M12 1.6C9.4 6 2.6 9.2 2.6 14.4c0 2.7 2.1 4.8 4.7 4.8 1.5 0 2.8-.7 3.6-1.8-.2 2.1-1 3.6-2.6 5h7.4c-1.6-1.4-2.4-2.9-2.6-5 .8 1.1 2.1 1.8 3.6 1.8 2.6 0 4.7-2.1 4.7-4.8C21.4 9.2 14.6 6 12 1.6z',
+  'M12 21.6C5.6 16.4 2 12.6 2 8.3 2 5.3 4.3 3 7.2 3c2 0 3.8 1.1 4.8 2.9C13 4.1 14.800 3 16.800 3 19.700 3 22 5.300 22 8.300c0 4.300-3.600 8.100-10 13.300z',
+  'M12 1.800 20.400 12 12 22.200 3.600 12z',
+  'M12 1.800a4.200 4.200 0 1 1 0 8.400 4.200 4.200 0 0 1 0-8.400zM6.200 9.600a4.200 4.200 0 1 1 0 8.400 4.200 4.200 0 0 1 0-8.400zm11.600 0a4.200 4.200 0 1 1 0 8.400 4.200 4.200 0 0 1 0-8.400zM10.700 9.800h2.600l.5 7.200c.2 2.300 1 3.800 2.600 5.200H7.600c1.600-1.400 2.400-2.900 2.600-5.200z'
+];
+function suitEl(s, tag, cls) {
+  const el = h(tag || 'span', cls ? { class: cls } : {});
+  el.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SUIT_PATHS[s]}"/></svg>`;   // our own drawing, nothing from outside
+  return el;
+}
 function cardEl(c, cls, tag) {
   const s = suit(c);
   const el = h(tag || 'div', { class: `card s${s}${s === 1 || s === 2 ? ' red' : ''}${cls ? ' ' + cls : ''}`, 'aria-label': cardName(c) },
-    h('span', { class: 'ix' }, h('b', {}, RANKS[rank(c)]), h('i', {}, SUITS[s] + '︎')),
-    h('span', { class: 'pip' }, SUITS[s] + '︎'));
+    h('span', { class: 'ix' }, h('b', {}, RANKS[rank(c)]), suitEl(s, 'i')),
+    suitEl(s, 'span', 'pip'));
   el.dataset.c = c;
   return el;
 }
@@ -396,8 +412,9 @@ const FELTS = {
   purple: { name: 'Purple', c: ['#150a24', '#2a1447', '#45236f'] },
   sand: { name: 'Sand', c: ['#2a1f12', '#4a3620', '#6b5030'] }
 };
-const DECKS = { clubs: 'Green clubs', four: 'Four colors', classic: 'Classic' };
-const look = Object.assign({ deck: 'clubs', back: 'red', felt: 'green' }, store.get('gin-look', {}));
+const DECKS = { classic: 'Classic', clubs: 'Green clubs', four: 'Four colors' };
+// (Kept under a new name: the first version of this choice stored green clubs for everyone who opened the page.)
+const look = Object.assign({ deck: 'classic', back: 'red', felt: 'green' }, store.get('gin-look-2', {}));
 const customBack = () => store.get('gin-back-img', null);
 function backVars(key) {
   if (key === 'custom' && customBack()) return { bg: `url("${customBack()}") center/cover`, edge: '#f4f1ea', deep: ['#3a3f46', '#2a2e33'] };
@@ -410,12 +427,12 @@ function setBack(el, key) {
 }
 function applyLook() {
   const root = document.documentElement, f = (FELTS[look.felt] || FELTS.green).c;
-  root.dataset.deck = DECKS[look.deck] ? look.deck : 'clubs';
+  root.dataset.deck = DECKS[look.deck] ? look.deck : 'classic';
   setBack(root, look.back);
   f.forEach((c, i) => root.style.setProperty('--felt' + i, c));
   const meta = document.querySelector('meta[name=theme-color]');
   if (meta) meta.content = f[1];
-  store.set('gin-look', look);
+  store.set('gin-look-2', look);
 }
 applyLook();
 // A picture of the player's own for the backs: cut to a card's shape and kept small, on this device only.
@@ -1025,7 +1042,7 @@ function showSettings() {
   const d = Room.dialog('Table settings', h('h3', {}, 'Table ' + code), h('p', { class: 'why' }, describe(st.mode, st.target)),
     toggle('Sound', 'Cards, knocks, and a chime when it’s your turn.', () => sound.on, (v) => { sound.set(v); if (v) sound.turn(); }),
     toggle('Show my melds', 'Color the melds in your hand and count your deadwood.', () => hints, (v) => { hints = v; store.set('gin-hints', v); render(); }),
-    go('Cards and table', `${DECKS[look.deck] || DECKS.clubs} · ${look.back === 'custom' ? 'your own' : (BACKS[look.back] || BACKS.red).name.toLowerCase()} backs · ${(FELTS[look.felt] || FELTS.green).name.toLowerCase()} table`, showLook),
+    go('Cards and table', `${DECKS[look.deck] || DECKS.classic} · ${look.back === 'custom' ? 'your own' : (BACKS[look.back] || BACKS.red).name.toLowerCase()} backs · ${(FELTS[look.felt] || FELTS.green).name.toLowerCase()} table`, showLook),
     go('Your name and avatar', profile.name, () => Room.profileDialog(() => { if (wire) wire.send('poke'); refresh(); })),
     go('Play on another device', 'Take your seat to a second phone or a laptop.', Room.deviceDialog),
     st.closed ? null : go('Leave the table', 'Ends the game for both of you. The scores stand.',
@@ -1038,9 +1055,9 @@ function showLook() {
   const pick = (box, key, set) => box.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === key)));
   const row = (label, kids) => [h('p', { class: 'label', style: 'margin-top:18px' }, label), kids];
   const decks = h('div', { class: 'looks' }, Object.entries(DECKS).map(([k, name]) => {
-    const sample = h('span', { class: 'deck' }, ['♠', '♥', '♦', '♣'].map((ch, i) => {
+    const sample = h('span', { class: 'deck' }, [0, 1, 2, 3].map((i) => {
       const color = i === 1 ? '#c8102e' : i === 2 ? (k === 'four' ? '#1668c9' : '#c8102e') : i === 3 && k !== 'classic' ? '#0a7a4c' : '#14181d';
-      return h('span', { style: `color:${color}` }, ch + '︎');
+      const el = suitEl(i); el.style.color = color; return el;
     }));
     return h('button', { 'data-k': k, on: { click: () => { look.deck = k; applyLook(); pick(decks, k); } } }, sample, name);
   }));
@@ -1061,7 +1078,7 @@ function showLook() {
   const felts = h('div', { class: 'looks' }, Object.entries(FELTS).map(([k, f]) =>
     h('button', { 'data-k': k, on: { click: () => { look.felt = k; applyLook(); pick(felts, k); } } },
       h('span', { class: 'felt', style: `background:radial-gradient(ellipse at 50% 40%,${f.c[2]},${f.c[1]} 60%,${f.c[0]})` }), f.name)));
-  paintBacks(); pick(decks, DECKS[look.deck] ? look.deck : 'clubs'); pick(felts, FELTS[look.felt] ? look.felt : 'green');
+  paintBacks(); pick(decks, DECKS[look.deck] ? look.deck : 'classic'); pick(felts, FELTS[look.felt] ? look.felt : 'green');
   const d = Room.dialog('Cards and table', h('h3', {}, 'Cards and table'), h('p', { class: 'why' }, 'These are yours alone: the other player sees their own choices.'),
     row('Suit colors', decks), row('Card backs', backs), file, row('Table', felts),
     h('div', { class: 'btns' }, h('button', { class: 'ghost', on: { click: () => d.close() } }, 'Done')));
